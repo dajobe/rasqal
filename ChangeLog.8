@@ -1,0 +1,4973 @@
+2010-12-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_strings.c: Count number of Unicode characters
+	not byte length
+
+	(rasqal_unicode_utf8_strlen): Added to count number of UTF-8
+	encoded characters in a string.
+
+	(rasqal_expression_evaluate_strlen): Use above to return strlen
+
+	* tests/sparql/check-sparql: Handle vars mentioned in select
+	expresssions, partially
+
+	* src/rasqal_expr_evaluate.c, src/rasqal_expr_strings.c: Use
+	rasqal_expression_evaluate_str_prefix_suffix() to implement
+	CONTAINS()
+
+	* src/rasqal_expr_evaluate.c, src/rasqal_expr_strings.c,
+	src/rasqal_internal.h: Implement SPARQL 1.1 STRSTARTS() and
+	STRENDS()
+
+	(rasqal_literals_sparql11_compatible): Added to check literal
+	compatibility for matching according to SPARQL 1.1 draft string
+	matching rules.
+
+	(rasqal_expression_evaluate_str_prefix_suffix): Added to implement
+	prefix and suffix matching if the literals are compatible.
+
+	* src/rasqal_expr_evaluate.c, src/rasqal_expr_strings.c,
+	src/rasqal_internal.h:
+	(rasqal_expression_evaluate_set_case): Added implementing UCASE()
+	and LCASE() for ASCII
+
+	* src/rasqal_expr_evaluate.c, src/rasqal_expr_strings.c,
+	src/rasqal_internal.h:
+	(rasqal_expression_evaluate_strlen): Added implementing STRLEN()
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_query_write.c, src/sparql_lexer.l, src/sparql_parser.y:
+	
+	Added tokens and parsing for 7 more SPARQL 1.1 string functions
+
+	rasqal_op gains: RASQAL_EXPR_STRLEN, RASQAL_EXPR_SUBSTR,
+	RASQAL_EXPR_UCASE, RASQAL_EXPR_LCASE, RASQAL_EXPR_STRSTARTS,
+	RASQAL_EXPR_STRENDS, RASQAL_EXPR_CONTAINS,
+	RASQAL_EXPR_ENCODE_FOR_URI Added SPARQL parsing support for above
+	builtin functions.
+
+	(rasqal_expression_write, rasqal_expression_print,
+	rasqal_expression_is_constant, rasqal_expression_compare,
+	rasqal_query_write_sparql_expression, sparql_token_print): Add
+	support (rasqal_expression_evaluate): Add cases to switch with
+	not-implemented.
+
+	(STRLEN, SUBSTR, UCASE, LCASE, STRSTARTS, STRENDS, CONTAINS,
+	ENCODE_FOR_URI): Added terminal tokens.
+
+	(SPARQL grammar token StringExpression): Added token
+
+	* src/rasqal_format_rdf.c:
+	(rasqal_query_results_rdf_init): Only declare raptor_world_ptr for
+	Raptor V2
+
+	* src/rasqal_format_rdf.c:
+	(rasqal_query_results_rdf_init): For unknown name, set write
+	format to NULL.
+
+	* src/rasqal_expr_evaluate.c: remove unused var s
+
+	* src/rasqal_expr_evaluate.c: Remove regex headers
+
+	* src/Makefile.am, src/rasqal_expr_datetimes.c,
+	src/rasqal_expr_evaluate.c, src/rasqal_internal.h: Split date and
+	time expression evaluations out into rasqal_expr_datetimes.c
+
+	* src/rasqal_expr_evaluate.c, src/rasqal_expr_strings.c,
+	src/rasqal_internal.h:
+	(rasqal_expression_evaluate_langmatches): Added
+
+	* src/Makefile.am, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c, src/rasqal_internal.h: Split string
+	expression evaluations out into rasqal_expr_strings.c
+
+	* src/rasqal_expr_evaluate.c: Code style
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate): Report eror failure for executing
+	aggregate expressions.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate): Remove unused i
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_bnode_constructor): Added and make it
+	tidy up.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_uri_constructor): Added.
+
+	* src/rasqal_expr_evaluate.c: Handle IN and NOT_IN with one
+	function
+
+	(rasqal_expression_evaluate_in_set): Renamed from
+	rasqal_expression_evaluate_in and invert result for NOT_IN.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_in): Added.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_sameterm): Added.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_datatype): Added
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_lang): Added
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_str): Added
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_coalesce): Added.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_if): Added
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_bound): Added.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_istype): Added for checking term types
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_strlang): Added and may even work now.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_strdt): Copy lang string
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_strdt): Added.
+
+	* src/rasqal_literal.c:
+	docs
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_concat): Added.  Preserves literal
+	datatype.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_datetime_part): Free literal
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_datetime_part): Added Also make
+	TIMEZONE() report an error and fail rather than abort()
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_from_unixtime): Added
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_to_unixtime): Added
+
+	* src/rasqal_expr_evaluate.c: #ws
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_now): Added
+
+	* src/Makefile.am, src/rasqal_expr.c, src/rasqal_expr_evaluate.c:
+	Move expression evaluate code to new file rasqal_expr_evaluate.c
+
+2010-12-29  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c: code style - newline after case break; remove
+	fallthrough
+
+	* src/rasqal_result_formats.c:
+	(rasqal_get_query_results_formatter_factory): Fix searching by uri
+
+	* utils/roqet.c: Compile when built with Raptor V1 for now.
+
+	* src/rasqal.h.in, src/rasqal_format_html.c,
+	src/rasqal_format_json.c, src/rasqal_format_rdf.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_sv.c,
+	src/rasqal_format_table.c, src/rasqal_general.c,
+	src/rasqal_internal.h, src/rasqal_result_formats.c,
+	src/rdql_parser.y, src/sparql_parser.y: Update factories to use
+	raptor V2 1.9.2+ or internal syntax description
+
+	* configure.ac: Raptor V2 min version is now 1.9.2 for syntax
+	description changes.
+
+2010-12-28  Dave Beckett <dave@dajobe.org>
+
+	* utils/srxread.c: Use
+	rasqal_world_get_query_results_format_description() and print all
+	mime types.
+
+	* utils/roqet.c: Use
+	rasqal_world_get_query_results_format_description()
+
+	* src/rasqal_internal.h, src/rasqal_result_formats.c: Set query
+	results format flags in registration
+
+	(rasqal_world_register_query_results_format_factory): Set
+	desc.flags based on presence/absence of factory methods.  Tidy
+	code and rename arg to be register_factory
+
+	* src/rasqal_format_rdf.c: Copy mime type information from raptor
+	syntax descriptions for Raptor V2
+
+	(rasqal_query_results_format_rdf_copy_syntax_description_from_parser):
+	Added to copy mime type static info for RDF query result formats.
+
+	* src/rasqal.h.in, src/rasqal_result_formats.c: Added method to
+	get syntax description for query results formats
+
+	(rasqal_world_get_query_results_format_description): Added,
+	deprecating rasqal_query_results_formats_enumerate() and
+	rasqal_query_results_formatter_get_mime_type()
+
+	* src/rasqal_format_rdf.c, src/rasqal_internal.h,
+	src/rasqal_result_formats.c: Add finish cleanup method for query
+	results formatter context
+
+	rasqal_query_results_finish_func added for finish method.
+
+	rasqal_query_results_format_factory gains finish factory method.
+
+	(rasqal_free_query_results_formatter): Call finish method if present
+	before cleaning up context.
+
+	rasqal_query_results_format_rdf gains static URIs used for reading
+
+	(rasqal_query_results_rdf_init, rasqal_query_results_rdf_finish):
+	Allocate and free static URIs.
+
+	(rasqal_query_results_rdf_write): Use static URIs rather than
+	allocate each time.  Use rasqal_query_results_rdf_finish in rdfxml
+	and turtle format cleanup factory methods.
+
+	* src/Makefile.am, src/rasqal_format_rdf.c,
+	src/rasqal_format_turtle.c: Provide read/write for turtle query
+	results using RDF formatter for reading
+
+	rasqal_query_results_format_rdf gains read and write format name
+	fields.
+
+	(rasqal_query_results_rdf_init): Init read and write format name
+	fields based on formatter name used.
+
+	(rasqal_query_results_rdf_write): Renamed from
+	rasqal_query_results_write_rdf. Use write_format_name from
+	formatter context.
+
+	(rasqal_rowsource_rdf_process): use read_format_name from
+	formatter context.
+
+	(rasqal_query_results_rdf_get_rowsource): Renamed from
+	rasqal_query_results_get_rowsource_rdf.
+
+	(rasqal_query_results_rdfxml_register_factory): Updated for
+	renames above.
+
+	(rasqal_query_results_turtle_write): Merge turtle writer function
+	into the rdf formatter code.  Still preserved since prettier than
+	what raptor does for rdf query results in turtle.
+
+	(rasqal_query_results_turtle_register_factory): Merged into rdf
+	formatter code and uses rasqal_query_results_rdf_get_rowsource to
+	read turtle query results.
+l
+2010-12-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_html.c, src/rasqal_format_json.c,
+	src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_sv.c, src/rasqal_format_table.c,
+	src/rasqal_format_turtle.c, src/rasqal_internal.h,
+	src/rasqal_result_formats.c: Query result formatter gains init
+	method, optional context and pass in formatter
+
+	Following raptor_parser factory pattern allow each formatter to have
+	some saved state on construction that can be used.
+
+	Adjust the factory methods to pass in formatter arg to get at
+	formatter->context.
+
+	rasqal_query_results_init_func typedef added for init function.
+
+	rasqal_query_results_format_factory gains context_length field and
+	init function. Loses mime_type field that is now handled by
+	factory syntax description.
+
+	rasqal_query_results_formatter gains context field.
+
+	(rasqal_new_query_results_formatter2): Allocate context field if
+	needed and call init function if present.
+
+	(rasqal_free_query_results_formatter): Free context if present.
+
+	(rasqal_query_results_formatter_get_mime_type): use first mime
+	type string from factory syntax description.
+
+	(rasqal_query_results_formatter_write,
+	rasqal_query_results_formatter_read): Pass in formatter arg to
+	factory methods.
+
+	(rasqal_query_results_rdf_init): Added as init function for rdf
+	formatter.
+
+	* src/rasqal_format_html.c, src/rasqal_format_json.c,
+	src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_sv.c, src/rasqal_format_table.c,
+	src/rasqal_format_turtle.c, src/rasqal_internal.h,
+	src/rasqal_result_formats.c: Remove unused
+	rasqal_query_results_format_factory method reader; rename writer
+	to write
+
+	* src/rasqal_format_html.c, src/rasqal_format_json.c,
+	src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_sv.c, src/rasqal_format_table.c,
+	src/rasqal_format_turtle.c: Switch query result formats to use
+	static rasqal_query_results_format_factory initialisation
+
+	* src/rasqal_internal.h, src/rasqal_result_formats.c: Switch
+	rasqal_query_results_format_factory to use a
+	raptor_syntax_description
+
+	* utils/srxread.c: Show format mime type
+
+2010-12-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_dataset.c:
+	(rasqal_dataset_load_graph_iostream): Handle being called multiple
+	times.
+
+	* utils/roqet.c, utils/srxread.c:
+	Remove bogus use of feature count
+	for query results format enumeration.
+
+	* utils/srxwrite.c:
+	Remove SRX branding
+
+	* utils/srxread.c:
+	Usage message, remove SRX branding
+
+	* src/rasqal_result_formats.c:
+	(rasqal_query_results_formats_enumerate): set reader flag if
+	get_rowsource is there.
+
+2010-12-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/rasqal_raptor.c: Make
+	rasqal_raptor_error_handler static again
+
+	* src/rasqal_dataset.c: rasqal_dataset_raptor_error_handler is
+	static
+
+	* src/rasqal_dataset.c:
+	(rasqal_dataset_raptor_error_handler): Added for Raptor V1
+
+	* src/rasqal_dataset.c: Handle base URI in triple match (if
+	present)
+
+	* utils/.gitignore: ignore less
+
+	* src/rasqal_format_sparql_xml.c: crash fix when called on non
+	sparql XML
+
+	* src/rasqal_format_rdf.c: code tidy
+
+	* src/rasqal_format_rdf.c: Move RDF formatter to rasqal_dataset
+	internal API
+
+	* src/Makefile.am: Add rasqal_dataset internal API
+
+	* src/rasqal_dataset.c, src/rasqal_internal.h: Add rasqal_dataset
+	internal API
+
+	* src/rasqal_data_graph.c: # code style
+
+2010-12-25  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_rdf.c: Do not build
+	rasqal_query_results_write_rdf for raptor V1
+
+	* src/rasqal_format_sparql_xml.c, src/rasqal_literal.c: Allow
+	writing RASQAL_LITERAL_UDT in Turtle and SPARQL XML
+
+	* src/rasqal_format_rdf.c: Fix rs:resultVariable URI.  Serialize
+	RASQAL_LITERAL_UDT
+
+	* src/rasqal_format_rdf.c: message
+
+	* src/rasqal_format_rdf.c: Free resource
+
+	* src/rasqal_format_rdf.c:
+	(rasqal_query_results_write_rdf): Implement writing rdfxml
+
+	* utils/Makefile.am, utils/rdfr_read.c: Remove rdfr_read example;
+	srxread.c can do it
+
+	* src/rasqal_format_rdf.c, src/rasqal_internal.h,
+	src/rasqal_raptor.c: Export rasqal_raptor_error_handler()
+	internally
+
+	* src/Makefile.am, src/rasqal_format_rdf.c, src/rasqal_internal.h,
+	src/rasqal_raptor.c, src/rasqal_result_formats.c: Add RDF Query
+	Results format reading
+
+	* utils/rdfr_read.c: uri allocation tidy
+
+	* utils/rdfr_read.c: ws
+
+	* utils/rdfr_read.c: Add binding iterator.  Add
+	get_source/get_target helpers
+
+	* utils/rdfr_read.c: code tidy
+
+	* utils/rdfr_read.c: Added (sigh) yet another iterator class.
+
+	* utils/rdfr_read.c: Added simple iterator
+
+	* utils/.gitignore, utils/Makefile.am, utils/rdfr_read.c: Add
+	skeleton of code for reading rdf serialized query results
+
+	* src/rasqal_internal.h, src/rasqal_raptor.c: Make
+	raptor_statement_as_rasqal_triple() available to internal code.
+
+2010-12-22  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Start state is Sparql with Query or Update
+	alternatives.
+
+	* src/sparql_common.h, src/sparql_parser.y: Split SPARQL 1.1 into
+	sparql11-query, sparql11-update and sparql11 languages
+
+	struct rasqal_sparql_query_language_s gains flags for sparql_query
+	and sparql11_query plus some comments.
+
+	Updated SPARQL query grammar tokens to check for sparql_query flag
+	and return error.
+
+	Updated SPARQL update grammar tokens to reword error message to
+	mention update.
+
+	(rasqal_sparql11_query_language_register_factory,
+	rasqal_sparql11_update_language_register_factory): Added to
+	register the sparql11-query and sparql11-update names with
+	different descriptions and URIs.
+
+2010-12-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_decimal.c: Restrict decimal as double range to
+	DBL_DIG digits
+
+	* src/rasqal_decimal.c: Fix XSD decimal formatting to match
+	canonical lexical format.
+
+	(rasqal_xsd_decimal_as_string): Use appropriate library snprintf
+	and then prune trailing 0s
+
+	* src/rasqal_decimal.c: Canonical XSD decimal 0 is 0.0 not 0.0E0
+
+	* src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_format_double): Canonical xsd:double uses capital E.
+
+	* src/rasqal_rowsource_having.c:
+	(rasqal_having_rowsource_read_row): Do not rebind row.
+
+2010-12-20  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_builtin_agg_expression_execute_step): Fixed debug
+	conditional
+
+2010-12-19  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_decimal.c:
+	(rasqal_xsd_decimal_as_string): Round to precision digits for
+	MPFR/GMP.
+
+	* src/rasqal_decimal.c, src/rasqal_rowsource_aggregation.c: MPFR
+	operation return code is rounding not an error code - ignore.  Add
+	debugging for agg step values
+
+	* tests/sparql/check-sparql: Handle SPARQL 1.1 test namespace,
+	sparql11 language and new update types.
+
+	* tests/sparql/check-sparql: Use GIT
+
+	* src/rasqal_literal.c: Fix promotion of numerics to decimal
+
+	(rasqal_new_literal_from_promotion): Promote to decimal via double
+	rather than string values which is both better and more accurate.
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_builtin_agg_expression_execute_step): Set error if result
+	is NULL.
+
+2010-12-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_query_write.c,
+	src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 CONCAT()
+
+	rasqal_op gains RASQAL_EXPR_CONCAT
+
+	(rasqal_new_expr_seq_expression): Added, replacing deprecated
+	rasqal_new_coalece_expression
+
+	(rasqal_new_coalesce_expression): Deprecated for above. 
+
+	Add init/free/print code for CONCAT()
+
+	Execute concat by evaluating values as strings and building a plain
+	literal.  Not clear if it is allowed to work on URIs or what to do
+	with errors; right now it stringify URIs and stops at an expression
+	in the arg with an error.
+
+	(CoalesceExpression): Use rasqal_new_expr_seq_expression
+
+	(BuiltInCall): Added CONCAT() support using
+	rasqal_new_expr_seq_expression()
+
+2010-12-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c: Add new laqrs keywords to rasqal_op_labels
+
+	* docs/tmpl/section-expression.sgml: Update doc tmpls
+
+2010-12-15  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_query_results.c,
+	src/rasqal_query_write.c, src/sparql_lexer.l, src/sparql_parser.y:
+	Add experimental LAQRS NOW()/CURRENT_DATETIME(), FROM_UNIXTIME() and
+	TO_UNIXTIME() builtin functions
+
+	Added builtins enabled by use of the 'laqrs' query language.
+
+	NOW()/CURRENT_DATETIME() are synonyms to return an XSD datetime for
+	the current datetime.  At the first execution/preparation of the
+	query, the value is set as a constant throughout the life of the
+	query execution.
+
+	FROM_UNIXTIME() turns an integer value into an XSD DateTime
+
+	TO_UNIXTIME() turns an XSD DateTime into an integer value.
+
+	These functions are likely not opposites since they do not take into
+	consideration leap seconds or daylight saving time changes.
+
+	LAQRS (SPARQL) grammar gains new terminals NOW, CURRENT_DATETIME,
+	FROM_UNIXTIME and TO_UNIXTIME.
+
+	(DatetimeExtensions) Added to grammar, only allowing the terms
+	when query language is LAQRS.
+
+	(BuiltInCall): Call above.
+
+	rasqal_op gains new expressions RASQAL_EXPR_CURRENT_DATETIME,
+	RASQAL_EXPR_NOW, RASQAL_EXPR_FROM_UNIXTIME and
+	RASQAL_EXPR_TO_UNIXTIME.
+
+	(rasqal_expression_clear, rasqal_expression_write,
+	rasqal_expression_print, rasqal_expression_is_constant,
+	rasqal_expression_is_compare,
+	rasqal_query_write_sparql_expression): Updated all expression
+	functions to handle new expressions operations.
+
+	(rasqal_expression_evaluate): Execute new operations.
+
+	* src/rasqal_general.c, src/rasqal_internal.h: Add methods to
+	world class for getting current datetime timeval.
+
+	(rasqal_world_reset_now): Invalidate any cached current datetime
+
+	(rasqal_world_get_now_timeval): Get current datetime as a timeval.
+
+	rasqal_world_s gains a struct timeval now field and a bit flag to
+	know when it is set.
+
+	* src/rasqal.h.in, src/rasqal_datetime.c:
+	(rasqal_new_xsd_datetime_from_timeval): Added to make a new
+	datetime from struct timeval*
+
+	* src/rasqal.h.in, src/rasqal_literal.c:
+	(rasqal_new_datetime_literal_from_datetime): Added to make a
+	datetime literal
+
+	* src/rasqal.h.in, src/rasqal_datetime.c:
+	(rasqal_new_xsd_datetime_from_unixtime): Added to create a
+	datetime from a unix time int
+
+2010-12-14  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in: autodocs
+
+	* configure.ac, src/rasqal_datetime.c: Define HAVE_TM_GMTOFF and
+	use to detect this non-portable field of struct tm
+
+2010-12-14  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_set_from_timeval): Fix compilation errors
+	systems where time_t and struct timeval tv_sec are of different
+	types (e.g. long, int)
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Init vars.i in any case to keep some
+	optimizing compilers happy
+
+2010-12-13  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, src/rasqal.h.in, src/rasqal_datetime.c: Add
+	datetime to/from unix times and timevals
+
+	(rasqal_xsd_datetime_set_from_timeval,
+	rasqal_xsd_datetime_set_from_unixtime,
+	rasqal_xsd_datetime_get_as_unixtime,
+	rasqal_xsd_datetime_get_as_timeval): Added.
+
+	Added automake substitutions so that sys/time.h and/or time.h get
+	include in rasqal.h in order to get the timeval and time_t
+	definitions.
+
+	* src/rasqal.h.in, src/rasqal_datetime.c: Store full timezone
+	minutes offset in rasqal_xsd_datetime
+
+	rasqal_xsd_datetime gains timezone_minutes field with sentinel
+	value RASQAL_XSD_DATETIME_NO_TZ when there is no timezone.
+
+	(rasqal_xsd_datetime_normalize): Normalize timezone to Zulu here.
+
+	(rasqal_xsd_datetime_parse): Save but do not normalize timezone.
+
+	(rasqal_xsd_datetime_to_counted_string): Generate none, Zulu or
+	timezone offset setings.
+
+2010-12-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_datetime.c:
+	Fix datetime equals method
+
+	(rasqal_xsd_datetime_equals): Compare field by field since memcmp
+	fails due to padding bytes.
+
+	* src/rasqal_datetime.c: Fix rasqal_xsd_datetime_compare
+	comparison order
+
+	(rasqal_xsd_datetime_compare): Datetime comparison should be
+	negative for dt1 earlier than dt2.
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_compare): break after datetime compare
+
+2010-12-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_datetime.c, src/rasqal_expr.c:
+	(rasqal_xsd_datetime_get_seconds_as_decimal): Added
+
+	* src/rasqal_expr.c: Add "isnumeric" to rasqal_op_labels
+
+	* src/rasqal_expr.c: Make SECONDS() return decimal correctly
+
+	* src/sparql_parser.y: Accept datetime accessor builtins
+
+	(DatetimeBuiltinAccessors): Added
+
+	(BuiltInCall): Use above as an alternative
+
+	* src/rasqal_expr.c:
+	Add labels for datetime accessors
+
+	* src/sparql_parser.y:
+	(BuiltInCall): Initialize isnumeric expression properly.  Now works.
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_literal.c,
+	src/rasqal_query_write.c, src/rasqal_xsd_datatypes.c,
+	src/sparql_lexer.l, src/sparql_parser.y: Added datetime accessor
+	builtin functions: YEAR, MONTH, DAY, HOURS, MINUTES, SECONDS and
+	TIMEZONE
+
+	rasqal_op gains RASQAL_EXPR_YEAR, RASQAL_EXPR_MONTH,
+	RASQAL_EXPR_DAY, RASQAL_EXPR_HOURS, RASQAL_EXPR_MINUTES,
+	RASQAL_EXPR_SECONDS, RASQAL_EXPR_TIMEZONE.
+
+	(rasqal_expression_clear, rasqal_expression_visit,
+	rasqal_expression_write, rasqal_expression_print,
+	rasqal_expression_is_constant, rasqal_expression_compare,
+	rasqal_query_write_sparql_expression): Added handling for datetime
+	accessor builtins.
+
+	(rasqal_expression_evaluate): Evaluate datetime accessor builtins
+	mostly returning integer, seconds returns decimal and timezone
+	TBD.
+
+	rasqal_sparql_op_labels: Add labels for the builtins.
+
+	(YEAR, MONTH, DAY, HOURS, MINUTES, SECONDS, TIMEZONE): Added
+	tokens to SPARQL grammar
+
+	* src/rasqal.h.in, src/rasqal_datetime.c, src/rasqal_internal.h:
+	rasqal_xsd_datetime functions take/return const char* strings
+
+	* src/rasqal.h.in: rasqal_data_graph format_type and format_name
+	fields are not const.
+
+	* src/rasqal_data_graph.c:
+	(rasqal_new_data_graph_common): Replace strncpy with memcpy.
+
+	* src/rasqal.h.in, src/rasqal_datetime.c, src/rasqal_literal.c:
+	Added equals and compare methods for XSD datetime
+
+	(rasqal_xsd_datetime_equals, rasqal_xsd_datetime_compare): Added.
+
+	(rasqal_literal_compare): Use rasqal_xsd_datetime_compare.
+
+	(rasqal_literal_equals_flags): Use rasqal_xsd_datetime_equals.
+
+	* src/rasqal.h.in, src/rasqal_literal.c: Add datetime to rasqal
+	literal union
+
+	Now xsd:dateTime objects use the rasqal_xsd_datetime class and get a
+	new literal union value.
+
+	(rasqal_literal_set_typed_value): Set value.datetime as well as
+	the string field when a datetime is found.
+
+	(rasqal_free_literal): Free datetime.
+
+	* src/rasqal.h.in, src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_to_counted_string): Added.
+	(rasqal_xsd_datetime_to_string): Edit to wrap above
+
+	* src/rasqal_datetime.c: Split datetime parsing and normalizing
+
+	(rasqal_xsd_datetime_parse): Renamed from
+	rasqal_xsd_datetime_parse_and_normalize_common and remove call to
+	rasqal_xsd_datetime_normalize() at end.
+
+	(rasqal_xsd_datetime_parse_and_normalize,
+	rasqal_xsd_date_parse_and_normalize, rasqal_new_xsd_datetime):
+	Update callers to call rasqal_xsd_datetime_parse() and
+	rasqal_xsd_datetime_normalize() in order.
+
+	* src/rasqal.h.in, src/rasqal_datetime.c: XSD datetime holds
+	microseconds now
+
+	rasqal_xsd_decimal gains int microseconds field replacing
+	second_frac string.
+
+	(rasqal_xsd_datetime_parse_and_normalize_common): Fill microseconds
+	field.
+
+	(rasqal_xsd_datetime_to_string): Format microseconds in
+	result.
+
+	(main): Adjust tests to allow 4th digit of decimal digits to work.
+
+2010-12-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_datetime.c: Added XSD DateTime class
+	to public API
+
+	Made rasqal_xsd_datetime struct public with public
+	fields.
+
+	(rasqal_new_xsd_datetime, rasqal_free_xsd_datetime): Added
+	constructor and destructor.
+
+	(rasqal_xsd_datetime_to_string): Added method to get datetime as
+	canonical string format.
+
+
+	* NEWS.html, RELEASE.html, configure.ac:
+	Bumped version to 0.9.22
+
+2010-12-05  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html: 0.9.21 add release notes pointer
+
+2010-12-04  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_21 for 0.9.21 release (GIT
+	ec8c54cccd2cf2fdc716ac90dfb66f5d06b0a138)
+
+	* INSTALL.html, README.html: update notes encouraging use of
+	release tarballs, more using rasqal sections
+
+	* docs/tmpl/section-service.sgml:
+	Add section-service descriptions
+
+	* utils/Makefile.am:
+	Update for moved fix script
+
+	* docs/.gitignore:
+	Ignore rasqal-fake.i
+
+	* docs/tmpl/section-data.sgml, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-general.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-prefix.sgml,
+	docs/tmpl/section-query.sgml,
+	docs/tmpl/section-query_results_formatter.sgml,
+	docs/tmpl/section-triples_source.sgml,
+	docs/tmpl/section-variable.sgml: Update tmpls
+
+	* Makefile.am, configure.ac, docs/Makefile.am, fix-groff-xhtml,
+	scripts/Makefile.am, scripts/fix-bison, scripts/fix-flex,
+	scripts/fix-groff-xhtml, scripts/fix-gtkdoc-header.pl,
+	src/Makefile.am, src/fix-bison, src/fix-flex: Add scripts dir,
+	move fix* scripts there and fixup gtkdoc-header with fake
+	mechanism like raptor
+
+2010-12-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_raptor.c,
+	src/rasqal_triples_source.c: Rename rasqal_triple_source_feature
+	to rasqal_triples_source_feature to match other names
+
+	* src/rasqal.h.in: autodocs
+
+	* src/rasqal.h.in:
+	Add RASQAL_API for rasqal_expression_compare
+
+	* src/rasqal_literal.c: rasqal_literal_sequence_equals debug print
+	less
+
+	* src/rasqal.h.in: Declare RASQAL_RAPTOR_VERSION to record what
+	version of raptor was built with.
+
+	* configure.ac: Save raptor version that rasqal was built with in
+	RAPTOR_VERSION_DEC
+
+2010-12-02  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_datetime.c: internal docs
+
+	* src/rasqal_datetime.c: code style
+
+	* tests/sparql/aggregate/Makefile.am: Add group-concat-4 files to
+	dist
+
+	* tests/sparql/aggregate/Makefile.am,
+	tests/sparql/aggregate/group-concat-4.rq,
+	tests/sparql/aggregate/group-concat-4.ttl,
+	tests/sparql/aggregate/manifest.n3: Add group-concat-4* test for
+	GROUP DISTINCT
+
+	* src/rasqal_rowsource_aggregation.c: Initialise group DISTINCT at
+	start/end of each group
+
+	(rasqal_aggregation_rowsource_init): Remove init of distinct map
+
+	(rasqal_aggregation_rowsource_read_row): Destroy/create a distinct
+	map at the group boundaries.
+
+	* tests/sparql/aggregate/group-concat-2.rq: Test GROUP_CONCAT()
+	with default separator
+
+	* configure.ac, tests/algebra/Makefile.am,
+	tests/engine/Makefile.am, tests/laqrs/syntax/Makefile.am,
+	tests/rdql/Makefile.am, tests/rdql/testsuite/Makefile.am,
+	tests/sparql/Expr1/Makefile.am, tests/sparql/Expr2/Makefile.am,
+	tests/sparql/ExprBuiltins/Makefile.am,
+	tests/sparql/ExprEquals/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am,
+	tests/sparql/SyntaxFull/Makefile.am,
+	tests/sparql/ValueTesting/Makefile.am,
+	tests/sparql/aggregate/Makefile.am,
+	tests/sparql/bound/Makefile.am, tests/sparql/bugs/Makefile.am,
+	tests/sparql/examples/Makefile.am,
+	tests/sparql/federated/Makefile.am,
+	tests/sparql/part1/Makefile.am, tests/sparql/regex/Makefile.am,
+	tests/sparql/simple/Makefile.am, tests/sparql/sort/Makefile.am,
+	tests/sparql/sparql11/Makefile.am,
+	tests/sparql/survey/Makefile.am, tests/sparql/syntax/Makefile.am,
+	tests/sparql/update/Makefile.am: Use local echo subst vars RECHO*
+	and real echo program
+
+	* src/rasqal_rowsource_aggregation.c: Add DISTINCTing of aggregate
+	expression results in aggregate expressions.
+
+	Remove literal_seq from expr_data
+
+	(rasqal_aggregation_rowsource_read_row): Use
+	rasqal_expression_sequence_evaluate() to make a new sequence of
+	literals each time.  If a duplicate is found, do not evaluate a
+	step.
+
+	* src/rasqal_expr.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_groupby.c, src/rasqal_rowsource_having.c:
+	Make rasqal_expression_sequence_evaluate() return a new seq of
+	literal each time
+
+	(rasqal_expression_sequence_evaluate): Lose literals_seq argument
+	This was an unused and confusing approach.  A new list each time
+	is easier to deal with.  Update all callers to
+	rasqal_expression_sequence_evaluate()
+
+	* src/rasqal_literal.c: Add tests for literal sequence sort map
+
+2010-11-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_map.c:
+	(rasqal_free_map_node): Free key / value only if there is a free
+	handler.
+
+	* src/rasqal_map.c:
+	(rasqal_free_map_node): Free value properly
+
+	* src/rasqal_internal.h: Fixes for building with raptor V1
+
+	* src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_rowsource_aggregation.c: Added literal sequence sorting
+	support
+
+	(rasqal_new_literal_sequence_sort_map):
+	Added
+
+	(rasqal_literal_sequence_sort_map_add_literal_sequence): Added.
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_sequence_equals): Added
+
+	* src/Makefile.am, src/rasqal_internal.h, src/rasqal_literal.c:
+	Add rasqal_literal_test
+
+2010-11-25  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c, src/rasqal_engine_sort.c,
+	src/rasqal_internal.h, src/rasqal_map.c: Alter rasqal_map
+	signature to take separate key/value free methods
+
+	Add new typedef for raptor V1 for raptor_data_print_handler.
+
+	(rasqal_new_map): Replaces rasqal_kv_free_fn free_fn arg with
+	raptor_data_free_handler free_key_fn and free_value_fn.  Remove
+	prototype ifdef for raptor V1/V2.
+
+	Update all callers of rasqal_new_map().
+
+	(rasqal_free_map_node): Pass in map arg down when freeing tree.
+
+2010-11-19  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine_sort.c, src/rasqal_internal.h,
+	src/rasqal_literal.c: Move literal array equals/compare functions
+	to literal module
+
+	(rasqal_literal_array_compare): Renamed from
+	rasqal_engine_rowsort_compare_literals_sequence - takes two arrays
+	not sequences.
+
+	(rasqal_literal_array_equals): Renamed from
+	rasqal_engine_rowsort_literal_sequence_equals() - takes two arrays
+	not sequences.
+
+	* src/Makefile.am, src/rasqal_algebra.c,
+	src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_having.c, tests/sparql/aggregate/agg-1.ttl,
+	tests/sparql/aggregate/group-concat-3.rq,
+	tests/sparql/aggregate/group-concat-3.ttl: Add support for SPARQL
+	1.1 query HAVING
+
+	rasqal_algebra_node_operator gains new algebra operator
+	RASQAL_ALGEBRA_OPERATOR_HAVING
+
+	rasqal_algebra_node updated field notes for having to use seq of
+	expressions.
+
+	(rasqal_new_having_algebra_node): Added.
+
+	(rasqal_algebra_query_add_having): Added to add a having algebra
+	node to the tree of algebra nodes
+
+	(rasqal_algebra_having_algebra_node_to_rowsource): Added to turn a
+	having algebra node into a having rowsource.
+
+	(rasqal_algebra_node_to_rowsource): Call above for
+	RASQAL_ALGEBRA_OPERATOR_HAVING.
+
+	* src/rasqal_rowsource_groupby.c:
+	(rasqal_groupby_rowsource_read_row): Bind result row to variables.
+
+	* docs/tmpl/section-variable.sgml: update tmpls
+
+2010-11-17  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_query_engine_algebra_execute_init): Project before Order By
+
+	* src/rasqal_rowsource_aggregation.c: Support COUNT(*) and
+	COUNT(expr list)
+
+	* src/rasqal.h.in: rasqal_variable gains usage field.
+
+	* src/rasqal_algebra.c, src/rasqal_bindings.c, src/rasqal_query.c,
+	src/rasqal_query_transform.c, src/rasqal_row.c,
+	src/rasqal_rowsource.c, src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_project.c, src/rasqal_rowsource_triples.c,
+	src/rasqal_variable.c, src/rdql_parser.y, src/sparql_parser.y:
+	Switch rasqal_variable to sane reference counting model
+
+2010-11-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_turtle.c, src/rasqal_internal.h,
+	src/rasqal_literal.c: Improve turtle query results output
+
+	(rasqal_literal_write_turtle): Added Turtle results format
+	registration uses turtle mime type, no URI Only support variable
+	bindings for Turtle Code style and tidy.
+
+	* tests/sparql/check-sparql: More carefully make @vars_order from
+	roqet debug output
+
+	* tests/sparql/aggregate/Makefile.am: Add CLEANFILES
+
+	* tests/sparql/aggregate/Makefile.am: Add SPARQL_TEST_FILES to
+	dist
+
+	* tests/sparql/aggregate/Makefile.am,
+	tests/sparql/aggregate/agg-1.ttl,
+	tests/sparql/aggregate/agg-2.ttl,
+	tests/sparql/aggregate/agg-3.ttl,
+	tests/sparql/aggregate/group-concat-1.ttl,
+	tests/sparql/aggregate/group-concat-2.ttl,
+	tests/sparql/aggregate/group-concat-3.ttl,
+	tests/sparql/aggregate/manifest.n3: Add aggregate query execution
+	tests
+
+	* tests/sparql/check-sparql:
+	Fix detecting variables order with
+	bind-variables.  Also add some debug prints
+
+	* src/Makefile.am, src/rasqal_format_turtle.c,
+	src/rasqal_internal.h, src/rasqal_result_formats.c: Add turtle
+	results format
+
+	* tests/sparql/check-sparql: Add -i QUERY-LANGUAGE support
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_aggregation_rowsource_read_row): Handle doing nothing if
+	input rowsource is empty
+
+	* src/rasqal_algebra.c, src/rasqal_rowsource_aggregation.c: Remove
+	all uses of rasqal_new_variable_from_variable for now until
+	variable reference counting is sane
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_add_modifiers): Do nothing if there are no
+	modifiers
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_aggregation_rowsource_read_row): Bind agg value results to
+	variables.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Apply GROUP BY algebra node before
+	aggregation, separate from other modifiers
+
+	(rasqal_algebra_query_add_group_by): Added, pulled out of
+	rasqal_algebra_query_add_modifiers
+
+	(rasqal_query_engine_algebra_execute_init): Call above before
+	aggregation node is added.
+
+	* src/rasqal_algebra.c, src/rasqal_internal.h,
+	src/rasqal_query_transform.c: Build variable use data and rebuild
+	if query adds a variable in planning
+
+	(rasqal_query_build_variables_use): Added.
+
+	(rasqal_query_prepare_common): Call above
+
+	(rasqal_algebra_query_prepare_aggregates): Call above when
+	aggregate variables are added.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_bound_in): Handle being called 2+ times
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_variables_use_map): Handle being called 2+
+	times
+
+2010-11-15  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_query.c, src/rasqal_rowsource_triples.c: Remove
+	bound_in use from triples rowsource
+
+	(rasqal_new_triples_rowsource): Lose bound_in and size args.
+
+	(rasqal_algebra_basic_algebra_node_to_rowsource): Do not
+	construct/copy bound_in from query variables.
+
+	(rasqal_query_get_bound_in_column_for_variable): Added
+	rasqal_rowsoruce_Triples_context loses bound_in and bound_in_size
+	fields.
+
+	(rasqal_triples_rowsource_init): Do not use above fields but call
+	rasqal_query_get_bound_in_column_for_variable()
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Revert
+	7038b5a52a555fa19d9cf07ff97a2981a3f5b68e and make tests pass again
+
+2010-11-14  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Move bound_in calculation outside algebra
+	node
+
+	(rasqal_algebra_basic_algebra_node_to_rowsource): Remove creation
+	of bound_in to
+	rasqal_algebra_make_bound_in_for_all_query_variables()
+
+	(rasqal_algebra_make_bound_in_for_gp): Added containing calculaton
+	for a graph pattern, taking into consideration variable use.
+
+	(rasqal_algebra_make_bound_in_for_all_query_variables): Added
+	providing old approach of assuming all selected variables are
+	bound in triples.  Wrong.  rasqal_algebra_node gains bound_in and
+	bound_in_size fields.
+
+	(rasqal_new_triples_algebra_node): Add bound_in and bound_in_size
+	args.
+
+	(rasqal_algebra_basic_graph_pattern_to_algebra): Calculate
+	bound_in for basic graph pattern before constructing triples
+	algebra node.
+
+	(rasqal_algebra_basic_graph_pattern_to_algebra): Free bound_in
+	field.
+
+	(main): Update test to create test bound_in.
+
+	* src/rasqal_query_transform.c: Declare a variable bound in a
+	triple only if unbound.
+
+	(rasqal_query_triples_build_bound_in_internal): Assign column only
+	if not already bound in a triple using test for BOUND_IN_UNBOUND.
+
+2010-11-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource.c: more debug prints
+
+	* src/rasqal_internal.h:
+	Use unsigned 1 bit flags in structs rasqal_algebra_aggregate field
+	adding_new_vars_is_error is unsigned
+	1 bit flag rasqal_rowsource fields finished and generate_group are
+	now unsigned 1 bit flags.
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_extract_aggregate_expression_visit): Ignore
+	non-agg exprs
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_add_aggregation): Added
+
+	* src/rasqal_algebra.c, src/rasqal_internal.h:
+	(rasqal_algebra_extract_aggregate_expressions): Add agg_vars_seq
+	to store variables during aggregation preparation
+
+	* src/rasqal_algebra.c: debug print
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_new_aggregation_rowsource): Copy args exprs_seq and
+	vars_seq
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_query_engine_algebra_execute_init): Tidy if
+	rasqal_algebra_query_add_aggregation fails.
+
+	* src/rasqal_rowsource_project.c:
+	(rasqal_new_project_rowsource): copy input projection sequence.
+
+	* src/rasqal_variable.c:
+	(rasqal_variable_copy_variable_sequence): Do not free variables in
+	seq.
+
+	* src/rasqal_rowsource_join.c, src/rasqal_rowsource_triples.c,
+	src/rasqal_rowsource_union.c:
+	autodocs
+
+	* src/rasqal_algebra.c, src/rasqal_engine_sort.c,
+	src/rasqal_expr.c, src/rasqal_internal.h, src/rasqal_query_write.c,
+	src/rasqal_rowsource_groupby.c, src/rasqal_rowsource_rowsequence.c:
+	
+	Code style: use exprs_seq and vars_seq for sequences of expressions
+	and variables
+
+	* src/rasqal_internal.h, src/rasqal_variable.c:
+	(rasqal_variable_copy_variable_sequence): Added
+
+	* src/rasqal_internal.h:
+	docs
+
+	* src/rasqal_rowsource_assignment.c,
+	src/rasqal_rowsource_distinct.c, src/rasqal_rowsource_empty.c,
+	src/rasqal_rowsource_filter.c, src/rasqal_rowsource_graph.c,
+	src/rasqal_rowsource_groupby.c, src/rasqal_rowsource_project.c,
+	src/rasqal_rowsource_sort.c, src/rasqal_rowsource_triples.c:
+	
+	autodocs
+
+2010-11-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_extract_aggregate_expression_visit): Add key:exp,
+	value:var
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_prepare_aggregates): Tidy on failures Free
+	ae with rasqal_free_algebra_aggregate if things fail.
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_convert_aggregate_to_variable): Malloc right
+	size.
+
+	* src/rasqal_rowsource_aggregation.c: Pass through/sample scalar
+	variable values to output row rasqal_aggregation_rowsource_context
+	gains a sequence of input_values, a counter and a step counter to
+	know when to sample input rows for scalars.
+
+	(rasqal_aggregation_rowsource_init,
+	rasqal_aggregation_rowsource_finish): Init and free the new
+	sequence. Reset the step count.
+
+	(rasqal_aggregation_rowsource_ensure_variables): Copy in all input
+	variables and record the count/offset in input_values_count for
+	use later.
+
+	(rasqal_aggregation_rowsource_read_row): If at first row of group,
+	copy in all values into input_values sequence for use in
+	generating the output row.  When generating output row, use those.
+
+	(main): Update tests to expect input vars/values in output rows
+
+2010-11-11  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_variables_use_map): use row offsets correctly.
+
+2010-11-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_builtin_agg_expression_execute_step): fixed warning:
+	result may be used before being set
+
+2010-11-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Return rasqal_algebra_aggregate to engine
+
+	(rasqal_algebra_query_prepare_aggregates): return
+	rasqal_algebra_aggregate.
+
+	(rasqal_free_algebra_aggregate): Export internally.
+
+	(rasqal_query_engine_algebra_execute_init): Update
+	call to above and free returned structure.
+
+	* src/rasqal_algebra.c: When looking for aggregate expressions,
+	preserve scalar ones
+
+	(rasqal_algebra_extract_aggregate_expression_visit): Add scalar
+	exprs to agg_exprs list.
+
+	(rasqal_algebra_query_prepare_aggregates): Debug message when no
+	agg exprs found.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Store sequence of expr + vars in algebra
+	node for aggregation
+
+	(rasqal_new_aggregation_algebra_node): Change params to be two
+	sequences of expressions and variables.
+
+	rasqal_algebra_node update docs for AGGREGATION using of sequence
+	fields.
+
+2010-11-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c: docs
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_aggregation_rowsource_finish): code style
+
+	* src/rasqal_internal.h, src/rasqal_rowsource_aggregation.c:
+	
+	Aggregate rowsource now operates on seq of input expr/output vars
+
+	rasqal_aggregation_rowsource_context gains sequence of expression
+	input and sequence of output variables.
+
+	(rasqal_aggregation_rowsource_finish): Free new seqs.
+
+	(rasqal_new_aggregation_rowsource): Args now are the two sequences
+	of expressions and variables.
+
+	* src/rasqal_rowsource_aggregation.c: code style
+
+	* src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_aggregation.c: Remove func arg/field from
+	aggregation rowsource and rasqal_algebra_node
+
+	* src/rasqal_expr.c, src/rasqal_internal.h:
+	(rasqal_expression_mentions_aggregate): Added
+
+2010-11-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c: Rename builtin_agg
+	struct/methods to rasqal_builtin_agg_expression_execute*
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_aggregation_rowsource_init): Request grouping.
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c:
+	Allow rowsource users to request groups
+
+	rasqal_rowsource gains bit flag for marking request.  Turn
+	finished flag into bitflag too while here.
+
+	(rasqal_rowsource_request_grouping): Added to set flag.
+
+	(rasqal_rowsource_read_row): Synthesise group if not in output row
+
+	(rasqal_rowsource_read_rows): If seq is returned, check for group
+	ID in first row and if missing, add to rest of rows.  If no seq is
+	returned, filter each returned row and set a group ID if missing.
+
+	* src/rasqal_rowsource_aggregation.c: Add rasqal_agg_expr_data for
+	per-agg expr execution data.
+
+	rasqal_agg_expr_data added with all data that is per-aggregate
+	expression incuding input: expr, expr_seq (args) and output:
+	variable to write to, sequence of literals and the per-execution
+	data agg_user_data.
+
+	rasqal_aggregation_rowsource_context loses a bunch of fields to
+	above.  Refactor remaining code to add loops around per-expr data,
+	only supporting 1-arg initialising at this time.
+
+	* src/rasqal_rowsource_aggregation.c: Added
+	rasqal_builtin_aggregation_reset to reset state to avoid
+	finish/init pair
+
+2010-11-04  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_clear): Do not try to clear name field for
+	group_concat.
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_aggregation_rowsource_read_row): Free builtin_agg data
+	after result.
+
+	* docs/tmpl/section-data.sgml, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-triples_source.sgml, src/rasqal_internal.h,
+	src/rasqal_rowsource_groupby.c: Fixes for building with raptor V1
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h, src/rasqal_rowsource_aggregation.c: Alter
+	rowsource aggregation calling convention to take an expression
+
+	(rasqal_new_aggregation_rowsource): Take an expression; ditch op,
+	parameters, flags.  Parameters will return later but is not used
+	now for GROUP_CONCAT()
+
+	rasqal_algebra_node loses unused/not used used fields op,
+	parameters, flags.
+
+	(rasqal_new_aggregation_algebra_node): Take an expression; ditch
+	op, paramaters and flags.  Parameters will return later but is not
+	used now for GROUP_CONCAT().  Creates or initialises an expression
+	sequence based on the expression passed in.
+
+	rasqal_aggregation_rowsource_context loses expr_seq_size, op, func
+	and parameters fields.  Gains expr field.  builtin_agg gains expr
+	field.
+
+	(rasqal_builtin_aggregation_init): expr param replaces expr_seq,
+	op, parameters.  Parameters will return later.
+
+	(rasqal_aggregation_rowsource_finish): Destroy expr field.
+	Updated test code to make/use an expression for agg testing.
+
+	(rasqal_algebra_aggregation_algebra_node_to_rowsource): Update
+	calling convention for aggregation rowsource.
+
+2010-11-02  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c:
+	Made GROUP_CONCAT work with fixed ' ' separator.
+
+	builtin_agg gains stringbuffer and separator
+
+	(rasqal_builtin_aggregation_init): Init above for group concat.
+
+	(rasqal_builtin_aggregation_finish): Free stringbuffer.
+
+	(rasqal_builtin_aggregation_step): At each step, concat the
+	literal string and put a separator before it if not first literal.
+
+	(rasqal_builtin_aggregation_result): Compute result from
+	stringbuffer.
+
+	(main): Add group concat test
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_query_engine_algebra_execute_init): code tidy
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Pull out more algebra transformations and
+	all take/return nodes
+
+	(rasqal_algebra_query_add_modifiers): Take and return a node so
+	that the algebra node tree gets modified.
+
+	(rasqal_algebra_query_add_projection): Added to add projection
+	node to algebra node tree.
+
+	(rasqal_algebra_query_add_distinct): Added to add distinct node to
+	algebra node tree.
+
+	(rasqal_query_engine_algebra_execute_init): Call new functions
+	above to transform algebra node tree.
+
+	* tests/algebra/convert_graph_pattern.c:
+	(main): Add new pulled-out query transforms.  code style
+
+	* src/rasqal_internal.h: rasqal_algebra_aggregate gains error
+	fields
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_replace_aggregate_expressions): Added to transform
+	expression sequences with aggregages.
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_prepare_aggregates): Print agg expressions
+	in debugging
+
+	* src/rasqal_internal.h: rasqal_algebra_aggregate renames
+	project_exprs field to agg_exprs and values are rasqal_expression
+
+	* src/rasqal_algebra.c: Store aggregate expression in
+	rasqal_algebra_aggregate
+
+	agg_exprs seq rasqal_algebra_aggregate renames project_exprs field
+	to agg_exprs and values are rasqal_expression
+
+	(rasqal_algebra_extract_aggregate_expressions): Alter
+	raptor_new_sequence args.
+
+	* src/rasqal_internal.h: docs
+
+	* src/rasqal_algebra.c, src/rasqal_internal.h: Introduce internal
+	rasqal_algebra_aggregate
+
+	(rasqal_free_algebra_aggregate): Added.
+
+	(rasqal_algebra_query_prepare_aggregates): Dynamically create the
+	rasqal_algebra_aggregate* and free with above.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h:
+
+	(rasqal_algebra_query_prepare_aggregates): Added pulled out of
+	rasqal_algebra_query_to_algebra.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h:
+
+	(rasqal_algebra_query_add_modifiers): Pulled out of
+	rasqal_algebra_query_to_algebra.
+
+2010-11-02  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_to_algebra): don't attempt to debugprint
+	query->selects for construct queries
+
+2010-11-01  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c: Add initial code for transforming project
+	expression to handle aggregates
+
+	struct agg_extract added for handling state during walk of select
+	expression trees.
+
+	(rasqal_agg_expr_var_compare, rasqal_free_agg_expr_var): Added for
+	support a rasqal_map of k:expression, v:variable when scanning for
+	aggregate expressions.
+
+	(rasqal_algebra_extract_aggregate_expression_visit): Added as a
+	rasqal_expression tree visit function to do an in-line change of
+	aggregate expressions to new internal variables.
+
+	(rasqal_algebra_extract_aggregate_expressions): Added to wrap
+	above transformation.
+
+	(rasqal_algebra_query_to_algebra): Call above with initialised
+	working state and print out result.  Free working state.
+
+	* src/rasqal_expr.c, src/rasqal_internal.h:
+	(rasqal_expression_convert_aggregate_to_variable): Added to do an
+	inplace edit of an expression to replace an aggregate.  This feels
+	like a hack but at least it's in one place
+
+	* src/rasqal_expr.c, src/rasqal_internal.h:
+	(rasqal_expression_is_aggregate): Added
+
+	* src/rasqal.h.in, src/rasqal_expr.c:
+	(rasqal_expression_compare): Added
+
+	* src/rasqal_expr.c, src/rasqal_literal.c: Move
+	rasqal_literal_sequence_compare to rasqal_literal.c
+
+2010-10-31  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/aggregate/data-2.ttl: make ex:year data integer for
+	later numeric testing
+
+	* src/rasqal_algebra.c: code style
+
+	* tests/sparql/aggregate/Makefile.am,
+	tests/sparql/aggregate/agg-3.rq,
+	tests/sparql/aggregate/data-2.ttl:
+	
+	Add agg-3.rq GROUP BY test with SAMPLE (lexes, parses, does not
+	execute correctly)
+
+	* src/sparql_lexer.l: Add SAMPLE
+
+	* src/rasqal_algebra.c, src/rasqal_internal.h, src/rasqal_map.c,
+	src/rasqal_rowsource_aggregation.c: Switch aggregation parameters
+	from sequence to map
+
+	Switch raptor_sequence* parameters to rasqal_map* parameters in
+	aggregation rowsource and algebra node structures and functions.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Start adding algebra nodes for grouping and
+	aggregation
+
+	rasqal_algebra_node_operator gains RASQAL_ALGEBRA_OPERATOR_GROUP
+	and RASQAL_ALGEBRA_OPERATOR_AGGREGATE
+
+	rasqal_algebra_node gains fields for aggregation: expr_op, func,
+	parameters and flags.  group reuses seq.
+
+	(rasqal_new_groupby_algebra_node,
+	rasqal_new_aggregation_algebra_node): Added.
+	rasqal_algebra_node_operator_labels gains labels for two new
+	algebra operators.
+
+	(rasqal_algebra_group_algebra_node_to_rowsource,
+	rasqal_algebra_aggregation_algebra_node_to_rowsource): Added.
+
+	(rasqal_algebra_query_to_algebra): Use
+	rasqal_new_groupby_algebra_node() when group conditions expression
+	is present to make a group algebra node. (Does not yet do
+	aggregation).
+
+	(rasqal_algebra_node_to_rowsource): Use
+	rasqal_algebra_group_algebra_node_to_rowsource() and
+	rasqal_algebra_aggregation_algebra_node_to_rowsource().
+
+	* src/rasqal_rowsource_aggregation.c: docs
+
+	* src/rasqal_map.c: code style
+
+	* src/rasqal.h.in: Fix rasqal_literal_type arg in source header
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_builtin_aggregation_step): Fix max/min compare
+
+	(main): Add tests for final row outputs of aggregations
+
+	* src/rasqal_literal.c: Fix rasqal_literal_write_type
+
+	* src/rasqal.h.in, src/rasqal_literal.c:
+	(rasqal_literal_type_label): Added and used for debug prints
+
+2010-10-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_aggregation_rowsource_read_row): Create output row
+	connected to rowsource.
+
+	* src/rasqal_rowsource_aggregation.c: Add MIN, SUM, AVG, SAMPLE to
+	tests
+
+	* src/rasqal_row.c:
+	(rasqal_new_row_sequence): Make integer literals from things that
+	strtol() likes i.e. match ^[0-9]$
+
+	* src/rasqal_rowsource_aggregation.c: Implement SAMPLE and AVG
+
+	* src/rasqal_rowsource_aggregation.c: Aggregation works over
+	multiple group inputs
+
+	rasqal_aggregation_rowsource_context gains last_group_id to know
+	boundaries, saved_row to store a row when a boundary change
+	happens and offset to mark output rows correctly.
+
+	(rasqal_aggregation_rowsource_init): Move agg init into read_row
+	factory method.  Init last_group_id and offset.
+
+	(rasqal_aggregation_rowsource_finish): Tidy up saved_row if left.
+
+	(rasqal_aggregation_rowsource_read_row): Restructured to recognize
+	start/end of group boundaries and end of input to know when to
+	init/finish aggregation.  Otherwise, read input rows.
+
+	(main): Make test expect 2 row results as it should be.
+
+	* src/rasqal_rowsource_aggregation.c: Move literal_seq to a field
+	of rasqal_aggregation_rowsource_context for reuse across groups.
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_aggregation_rowsource_read_row): Evaluate expressions to
+	form list of literals for aggregations step.
+
+	* src/rasqal.h.in, src/rasqal_expr.c:
+	(rasqal_expression_op_label): Added public function
+
+	(rasqal_expression_write_op, rasqal_expression_print_op): Internal
+	functions just call above.
+
+	* src/rasqal_internal.h:
+	(rasqal_new_aggregation_rowsource): Add flags arg.
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_new_aggregation_rowsource): Add flags arg.
+
+2010-10-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/rasqal_rowsource_aggregation.c:
+	Initial aggregation rowsource executes
+
+	There are many issues to fix primarily in the execution steps to
+	use the expression sequence and the issue of what to name the
+	result variable, which the execution engine needs to decide.
+
+	* src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_groupby.c: Implement get_inner_rowsource
+	rowsource method for groupby and aggregation rowsources
+
+	* src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_rowsource_aggregation.c: Add skeleton aggregation
+	rowsource with test that just copies rows through (cat rowsource)
+
+	* src/rasqal_literal.c: less verbose when debugging
+
+	* src/rasqal_rowsource_groupby.c: aargh
+
+	* src/rasqal_format_table.c:
+	(rasqal_query_results_write_table_bindings): Fix for raptor V2
+
+	* src/rasqal_rowsource_groupby.c: Make group ID orders work for
+	avltree ordering and raptor V1 sequence ordering
+
+	* src/rasqal_rowsource_groupby.c:
+	(raptor_avltree_search): compare correctly for raptor
+
+	* src/rasqal_format_table.c:
+	(rasqal_query_results_write_table_bindings): Remove unused world var
+
+2010-10-28  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_update_bindings): Do not access row values
+	beyond row size
+
+2010-10-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_groupby.c:
+	(main): Check number of groups returned is as expected
+
+	* src/rasqal_rowsource_groupby.c: Add US Senators data test #3
+	with 2 group by vars, many groups
+
+	* src/rasqal_expr.c:
+	(rasqal_literal_sequence_compare): Make less debug verbose
+
+	* src/rasqal_row.c:
+	(rasqal_new_row_sequence): Remove local reference to new literal.
+
+	* src/rasqal_rowsource_groupby.c: Fix variable ownership and
+	cleanup in tests
+
+	* src/rasqal_rowsource_groupby.c: Fix groupby rowsource row
+	returning to always return a new row
+
+	(rasqal_groupby_rowsource_process): Do not copy row, let sequence
+	own it.
+
+	(rasqal_groupby_rowsource_read_row): Delete row from sequence so
+	reference is passed back.
+
+	* src/rasqal_rowsource_groupby.c:
+	(Fake raptor_avltree_print): Return int on error
+
+	* src/rasqal_rowsource_rowsequence.c:
+	(rasqal_rowsequence_rowsource_finish): Free owned vars_seq
+
+	* src/rasqal_rowsource_groupby.c: Memory
+	tracking
+
+	(rasqal_groupby_rowsource_finish): Ensure avltree iterator is
+	destroyed
+
+	(rasqal_groupby_rowsource_process): Copy/take reference to row
+	before saving.
+
+	* src/rasqal_rowsource_groupby.c: Refactor tests to be data driven
+
+	* src/rasqal_rowsource_groupby.c: Print out grouping when computed
+	and debugging
+
+2010-10-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_groupby.c: Add a fake rasqal_avltree to
+	make groups work for Raptor V1
+
+2010-10-25  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h: Added rasqal_row_bind_variables and fixed
+	rasqal_new_groupby_rowsource()
+
+	* src/rasqal_row.c:
+	(rasqal_row_bind_variables): Added.
+
+	* src/rasqal_rowsource_groupby.c: GROUP BY rowsource passes unit
+	tests for no grouping / grouping
+
+	(rasqal_groupby_rowsource_process): Using processed flag to know
+	when to do no work so that when there are no expressions, the
+	group ID is setup.  Use rasqal_row_bind_variables() to bind
+	variables from the row into the variables table.  Add the node
+	containing rows to the avltree in order to group them.
+
+	(rasqal_groupby_rowsource_read_row): Handle no expression case as
+	well as avltree/expression list case.
+
+	(rasqal_new_groupby_rowsource): Add rowsource arg and save it.
+	Tidy error cleanup path.
+
+	(main): Add test case for no group by expression and one from
+	SPARQL 1.1 query draft
+
+	* src/rasqal_row.c: Set/show group IDs in rows
+
+	(rasqal_new_row_common): Set default row group_id to
+	-1 (rasqal_row_print): Print group_id if in range >= 0
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_sequence_evaluate): Save a copy/free literal.
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_sequence_evaluate): Do ignore errors when
+	ignore_errors arg is set.
+
+	(rasqal_literal_sequence_compare): Docs
+
+	* src/rasqal_rowsource_groupby.c: Update groupby rowsource to use
+	raptor_avltree for grouping
+
+	Added typedef rasqal_groupby_tree_node to use as nodes in avltree.
+
+	(rasqal_free_groupby_tree_node,
+	rasqal_free_groupby_tree_print_node): Added.
+
+	(rasqal_rowsource_groupby_literal_sequence_compare): Added to
+	compare a sequence of literals in an avltree comparison.
+
+	(rasqal_groupby_rowsource_init): Init group_id and row offset.
+
+	(rasqal_groupby_rowsource_finish): Destry input rowsource, avltree
+	if set.
+
+	(rasqal_groupby_rowsource_ensure_variables): Call input rowsource.
+
+	(rasqal_groupby_rowsource_process): Added to do the grouping logic
+	- read all input rows, add them to the avltree if new, extend
+	sequence of rows.  Initilise an avltree iterator and sequence
+	index.
+
+	(rasqal_groupby_rowsource_read_row): Call above to ensure group
+	data is there then deliver rows from store using the avltree
+	iterator and sequence index.
+
+	(rasqal_groupby_new_map): Deleted.
+
+	* src/rasqal_expr.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_groupby.c:
+	(rasqal_expression_sequence_evaluate): Put OUT parameters at end.
+
+	* src/rasqal_rowsource_groupby.c: Group by rowsource gains map for
+	grouping and map factory method.  Added but looks like a
+	raptor_avltree would be better since it allows lookups.
+
+	(rasqal_groupby_new_map): Added to make a map for grouping.
+
+	* src/rasqal_expr.c, src/rasqal_internal.h:
+	(rasqal_literal_sequence_compare,
+	rasqal_expression_sequence_evaluate): Added.
+
+	* src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_rowsource_groupby.c: Added skeleton of groupby
+	rowsource
+
+	(rasqal_new_groupby_rowsource): Added taking sequence of
+	expressions.  Need to add HAVING conditions and possibly other
+	flags.
+
+	* src/rasqal_expr.c, src/rasqal_internal.h:
+	(rasqal_expression_copy_expression_sequence): Added
+
+2010-10-21  Lauri Aalto <laalto@iki.fi>
+
+	* src/strcasecmp.c:
+	(rasqal_strcasecmp,rasqal_strncasecmp): Fixed gcc "array subscript
+	has type ‘char’" warnings
+
+	* src/rasqal_query_transform.c: #ws
+
+2010-10-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_internal.h,
+	src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c, src/rasqal_query_write.c,
+	src/rasqal_rowsource_sort.c, src/sparql_parser.y: Move solution
+	modifiers in query from fields to rasqal_modifier fields.
+
+	rasqal_query loses fields limit, offset,
+	order_conditions_sequence, group_conditions_sequence and
+	having_conditions_sequence.
+
+	(rasqal_new_query, rasqal_free_query): Do not init/free fields.
+
+	(rasqal_query_get_limit, rasqal_query_set_limit,
+	rasqal_query_get_offset, rasqal_query_set_offset,
+	rasqal_query_get_order_conditions_sequence,
+	rasqal_query_get_order_condition,
+	rasqal_query_get_group_conditions_sequence,
+	rasqal_query_get_group_condition,
+	rasqal_query_get_having_conditions_sequence,
+	rasqal_query_get_having_condition, rasqal_query_print): Update for
+	field changes and do not access modifier if it is NULL.  Adjust
+	docs to note cannot set limit or offset until query is prepared,
+	ie after parsing.
+
+	(rasqal_algebra_query_to_algebra, rasqal_engine_make_rowsource,
+	rasqal_engine_rowsort_calculate_order_values,
+	rasqal_query_results_execute_with_engine,
+	rasqal_query_results_check_limit_offset,
+	rasqal_query_results_get_count,
+	rasqal_query_results_execute_and_store_results,
+	rasqal_query_build_variables_use_map,
+	rasqal_query_write_sparql_20060406, rasqal_sort_rowsource_init):
+	Use query methods to get limit, offset fields rather than direct
+	access.
+
+	(SPARQL parser WhereClauseOpt): Return solution modifier and do not
+	write to query fields.
+
+2010-10-19  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c:
+	Make dryrun be success (exit 0)
+
+	* utils/roqet.c:
+	(roqet_init_query): Do not free data graphs here, let main() do it
+
+	* src/rasqal_service.c: Cleanup allocations
+
+	(rasqal_free_service): Free object
+
+	(rasqal_service_content_type_handler): Only check content
+	type for ; or ' ' if not NULL.  Code tidy
+
+	* src/rasqal.h.in, src/rasqal_service.c, utils/roqet.c:
+	rasqal_new_service now takes an optional list of data graphs
+
+	(rasqal_new_service): Add new raptor_sequence* data_graphs arg.
+
+	(rasqal_service_execute): Use data graphs to add default-graph-uri
+	and named-graph-uri parameters to the sparql protocol service URI
+	that is resolved.  Update roqet to pass in data graphs from command line.
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c: Add usage counting and
+	copy constructor for rasqal_data_graph
+
+	rasqal_data_graph gains new int usage field.
+
+	(rasqal_new_data_graph_from_data_graph): Added
+
+	(rasqal_new_data_graph_common, rasqal_free_data_graph): Handle
+	usage counts.
+
+	* utils/roqet.c:
+	# code style
+
+2010-10-18  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c: docs
+
+	* src/rasqal_service.c: Tidy some service function args
+
+	(rasqal_new_service): Allow NULL query_string.
+
+	(rasqal_free_service): autodocs
+
+	(rasqal_service_set_www): autodocs for NULL www
+
+	(rasqal_service_set_format): autodocs for NULL format
+
+	* src/rasqal_service.c: Restore local
+	raptor_stringbuffer_append_uri_escaped_counted_string()
+
+	* utils/roqet.c: Switch to using rasqal_service to execute sparql
+	protocol service
+
+	* src/rasqal_service.c: Make rasqal_service_execute use correct
+	variables
+
+	(rasqal_service_execute): Fix aliasing of www var with svc->www.
+	Rename sb to uri_sb for clarity since there is a local and svc
+	stringbuffer in use.
+
+	* src/Makefile.am, src/rasqal.h.in, src/rasqal_service.c: Added
+	rasqal_service class for executing remote queries
+
+	Added public rasqal_service
+
+	Internal typedef rasqal_service_s
+
+	(rasqal_new_service, rasqal_free_service): Added constructor and
+	destructor.  Args will change since no data graphs are passed in
+	yet.
+
+	(rasqal_service_set_www): Added to set WWW object
+
+	(rasqal_service_set_format): Added to set request Accept header.
+
+	(rasqal_service_execute): Added to execute remote query and get
+	back a result set.  May need to be changed to use a rowsource for
+	internal execution inside a query for a SPARQL 1.1 SERVICE.
+
+	* utils/roqet.c: Remove raptor_world* from
+	roqet_call_sparql_service()
+
+	* utils/roqet.c: Also conditionally define
+	raptor_stringbuffer_append_hexadecimal
+
+	* configure.ac, utils/roqet.c: Use
+	raptor_stringbuffer_append_uri_escaped_counted_string() when
+	present.
+
+	(raptor_stringbuffer_append_uri_escaped_counted_string): Defined
+	here if not available in raptor2.
+
+	* utils/roqet.c: Use HAVE_RAPTOR_STRINGBUFFER_APPEND_HEXADECIMAL
+	to not use internal version.
+
+	* configure.ac: Add configure test for
+	raptor_stringbuffer_append_hexadecimal() defining
+	HAVE_RAPTOR_STRINGBUFFER_APPEND_HEXADECIMAL
+
+	* src/rasqal.h.in, src/rasqal_query_transform.c,
+	src/rasqal_variable.c, src/rdql_parser.y, src/sparql_parser.y:
+	Deprecate rasqal_new_variable() and rasqal_new_variable_typed()
+	for rasqal_variables_table_add()
+
+	(rasqal_new_variable, rasqal_new_variable_typed): Already were
+	calling rasqal_variables_table_add() but add deprecated docs and
+	flag to prototype.  Update all callers to use
+	rasqal_variables_table_add().
+
+	* utils/roqet.c: Use and allow -p URI and -e QUERY for protocol
+	invocations.
+
+	* utils/roqet.1: Document -p
+
+2010-10-18  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_projection.c: #filename in boilerplate
+
+	* src/rasqal_query.c:
+	(rasqal_query_add_data_graph): docs: Clarify ownership of passed
+	in data_graphs.
+
+2010-10-17  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c: One more raptor_www_free() for Raptor V1
+
+	* utils/roqet.c: Use raptor_www_free() for Raptor V1
+
+	* utils/roqet.c: Use Raptor V1 or V2
+	raptor_new_iostream_from_string() call
+
+	* src/rasqal_format_sparql_xml.c:
+	(rasqal_query_results_write_sparql_xml): One more
+	rasqal_world_simple_error needed
+
+	* src/rasqal_format_sparql_xml.c:
+	(rasqal_query_results_write_sparql_xml): use
+	rasqal_world_simple_error() for error reporting with Raptor V1
+
+	* src/rasqal_general.c, src/rasqal_internal.h: Add
+	rasqal_world_simple_error() to help building with raptor1 and
+	passing errors up without a query
+
+	* utils/roqet.c: Roqet is a sparql protocol client
+
+	(roqet_stringbuffer_append_hexadecimal): Added.
+
+	(roqet_stringbuffer_append_uri_escaped_string): Added to escape a
+	URI string for a query parameter, using above.
+
+	(roqet_call_sparql_service): Uses above to correctly form the
+	sparql query parameter with encoding.  Does not send default or
+	named graph parameters.
+
+	(main): Fix some cleanups
+
+	* utils/roqet.c: FIXME note that this isn't calling using sparql
+	protocol yet
+
+	* utils/roqet.c: Add support for reading from SPARQL protocol
+	services
+
+	Added -p/--protocol SERVICE-URI
+
+	Added internal struct roqet_results_write_state
+
+	(roqet_results_write_bytes, roqet_results_content_type_handler):
+	Added.
+
+	(roqet_call_sparql_service): Added to call a SPARQL protocol with a
+	query string (optional - not yet used here) against a service URI.
+
+	(main): Validate that -e and -p are not used together
+
+	Move -r validation to after result format has been chosen.  (I
+	thought I did that already)
+
+	Add help message and verbose message for sparql protocol -p uses.
+
+	* src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c: Do
+	not assume a query_results has a query in formatting.
+
+	(rasqal_query_results_write_table_bindings,
+	rasqal_query_results_write_sparql_xml): Use
+	rasqal_query_results_get_world() to get rasqal world.
+
+	* src/sparql_parser.y:
+	(BindingsRowList): Set row offset
+
+	* utils/roqet.c: Add bindings block to query walk using API
+
+	* src/rasqal.h.in, src/rasqal_query.c: Added API access to
+	bindings variables and rows
+
+	(rasqal_query_get_bindings_variables_sequence,
+	rasqal_query_get_bindings_variable,
+	rasqal_query_get_bindings_rows_sequence,
+	rasqal_query_get_bindings_row): Added.
+
+	* src/rasqal_internal.h, src/rasqal_query_write.c: Elimiate graph
+	pattern field where and use existing graph_patterns
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_get_service): Add again
+
+	* utils/roqet.c:
+	(roqet_graph_pattern_walk): Print LET variable, GRAPH and SERVICE
+	literals using rasqal public APIs Code tidy: reorder options
+
+	* src/rasqal.h.in, src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_get_service): Added
+
+2010-10-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_algebra.c,
+	src/rasqal_graph_pattern.c, src/rasqal_internal.h,
+	src/rasqal_query_transform.c, src/rasqal_query_write.c,
+	src/sparql_parser.y: Added SPARQL SERVICE and MINUS syntax and
+	graph pattern support
+
+	rasqal_graph_pattern_operator gains
+	RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE and
+	RASQAL_GRAPH_PATTERN_OPERATOR_MINUS
+
+	(rasqal_new_single_graph_pattern): Added.  Added service and minus
+	to rasqal_graph_pattern_operator_labels.
+
+	rasqal_graph_pattern: Document use of origin for service literal
+	and where for MINUS graph pattern.
+
+	(ServiceGraphPattern, MinusGraphPattern): use
+	rasqal_new_single_graph_pattern() to store service and minus graph
+	patterns.
+
+	* src/rasqal_bindings.c, src/rasqal_projection.c,
+	src/rasqal_solution_modifier.c: Code style - allow NULL free
+	pointer for destructors
+
+	(rasqal_free_projection, rasqal_free_solution_modifier,
+	rasqal_free_bindings): Do nothing with NULL reference
+
+	* src/rasqal_bindings.c:
+	remove unused functions
+
+	* src/rasqal_bindings.c:
+	rasqal bindings added
+
+	* configure.ac, src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_query.c, src/rasqal_query_write.c, src/sparql_parser.y,
+	tests/sparql/Makefile.am, tests/sparql/federated/Makefile.am,
+	tests/sparql/federated/bindings-1.rq,
+	tests/sparql/federated/bindings-2.rq,
+	tests/sparql/federated/bindings-3.rq,
+	tests/sparql/federated/data-1.ttl,
+	tests/sparql/federated/data-2.ttl,
+	tests/sparql/federated/data-3.ttl,
+	tests/sparql/federated/data-4.ttl,
+	tests/sparql/federated/data-5.ttl,
+	tests/sparql/federated/service-1.rq,
+	tests/sparql/federated/service-2.rq: Add SPARQL BINDINGS federated
+	query data structures
+
+	Added (internal) rasqal_bindings datatype.
+
+	rasqal_query gains bindings structure.
+
+	(rasqal_free_query, rasqal_query_print): Handle bindings
+
+	(rasqal_new_bindings, rasqal_free_bindings,
+	rasqal_bindings_print): Added.
+
+	(rasqal_query_write_sparql_bindings, rasqal_write_sparql_row):
+	Added for writing bindings.
+
+	(rasqal_query_write_sparql_20060406): Add SPARQL formatting for
+	BINDINGS Updated SPARQL grammar for full BINDINGS support.
+
+	(BindingsClauseOpt): Now is a rasqal_bindings type and stores
+	fields properly.
+
+	(SelectQuery): Store bindings.
+
+	(VarList): Fixed to not free variables and fix error handling
+
+	(MinusGraphPattern): Fix comment.
+
+	Added syntax tests from
+	http://www.w3.org/2009/sparql/docs/fed/service draft in
+	tests/sparql/federated
+
+	* src/rasqal_raptor.c:
+	RASQAL_RAPTOR_READ_BUFFER_SIZE again
+
+	* src/rasqal_raptor.c:
+	RASQAL_RAPTOR_READ_BUFFER_SIZE
+
+	* src/Makefile.am, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_projection.c,
+	src/rasqal_query_write.c, src/sparql_parser.y: Add select
+	projection class
+
+	Added internal class rasqal_projection to wrap SELECT variables,
+	wildcard flag, distinct/reduced mode.
+
+	(rasqal_new_projection, rasqal_free_projection,
+	rasqal_projection_get_variables_sequence): Added.
+
+	rasqal_graph_pattern replace select variables field with a
+	projection.
+
+	(rasqal_new_select_graph_pattern, rasqal_free_graph_pattern,
+	rasqal_graph_pattern_write_internal): Adjust to use
+	rasqal_projection rather than variable sequence.
+
+	(rasqal_query_write_sparql_graph_pattern): Adjust to use
+	rasqal_projection_get_variables_sequence() to get select variables
+	for sub SELECT.  SPARQL grammar: Add projection to token union
+
+	(SelectClause, SelectExpressionList): Now return projection.
+
+	(SelectQuery): Use returned projection object to write old fields
+	in query object.  At this point there is very little, if any,
+	writing direct to fields of the query object deep in the SPARQL
+	parse tree, it is mostly to objects passed back.
+
+	* src/sparql_parser.y:
+	(SolutionModifier): Do not pass in sequences to solution_modifier
+	for now.
+
+	* src/sparql_parser.y: Remove grammar checks for ASK verb that can
+	never happen
+
+	(GroupClauseOpt, HavingClauseOpt, LimitOffsetClausesOpt,
+	OrderCondition, LimitClause): Remove checks for group by, having,
+	limit, offset with ASK that will never happen due to the grammar
+	not allowing it.
+
+	* src/sparql_parser.y: Make limit and offsets pass data up to
+	higher level structures
+
+	Add limit_offset integer pair and integer int to token union
+
+	(GroupClauseOpt, HavingClauseOpt, OrderClauseOpt): now return
+	sequences or NULL rather than write to query object.
+
+	(LimitOffsetClausesOpt): Now returns an int pair in (limit,
+	offset)
+
+	(LimitClause. OffsetClause): Now return int rather than write to
+	query object.
+
+	(SolutionModifier): Write group, having, order, limit and offset
+	to query structure.
+
+	* src/Makefile.am, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_solution_modifier.c, src/sparql_parser.y: Add solution
+	modifier class and use for sub SELECT parsing
+
+	Add private structure rasqal_solution_modifier with fields for
+	order, group, having, limit and offset for modifying a solution.
+
+	(rasqal_new_select_graph_pattern): Change last arg to
+	rasqal_solution_modifier* pointer.
+
+	(rasqal_free_graph_pattern): Free modifier.
+
+	rasqal_graph_pattern now points to a modifier for sub-SELECT.
+
+	rasqal_query gains a filed pointing to a modifier (not used yet).
+	
+	(rasqal_free_query): Destroy above.
+
+	(rasqal_new_solution_modifier, rasqal_free_solution_modifier): Added
+	constructor and destructor for new class.
+
+	SPARQL parsing token union gains a modifier field.
+
+	(SolutionModifier): returns a modifier.
+
+	(SelectQuery, ConstructQuery, DescribeQuery): Store modifier in
+	query modifier field.
+
+	(SubSelect): Pass modifier to select graph pattern.
+
+	(SolutionModifier): Construct a modifier object from empty fields
+	for now.
+
+	* src/sparql_parser.y:
+	(BuiltInCall): FIXME is done - RASQAL_EXPR_ISNUMERIC exists
+
+	* src/sparql_parser.y: Add support for BINDINGS variables and
+	lists of rows
+
+	Extended parser token to contain a rasqal_row
+
+	(BindingsRowList, BindingsRowListOpt): Added as sequences of
+	rasqal_row
+
+	(BindingValueList): Added as sequence of rasqal_literals
+
+	(BindingsRow): Added as a rasqal_row
+
+	(VarList): Added as a sequence of variables
+
+	(BindingsClause): Rewritten to follow SPARQL 1.1 grammar and
+	construct a sequence of variables and sequence of rows.  All are
+	discarded rather than stored for now.
+
+	* src/sparql_parser.y: Fix BindingsClause defn
+
+2010-10-15  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/sparql11/Makefile.am,
+	tests/sparql/sparql11/subquery-1.rq,
+	tests/sparql/sparql11/subquery-1.ttl: Add subquery - sub SELECT
+	from SPARQL 1.1 Query 2010-10-14 WD
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_graph_pattern): Write sub-SELECT except
+	modifiers.
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_print_indent): Improve SELECT GP printing
+
+	* src/rasqal.h.in, src/rasqal_algebra.c,
+	src/rasqal_graph_pattern.c, src/rasqal_internal.h,
+	src/rasqal_query_transform.c, src/sparql_parser.y: Add start of
+	SELECT graph pattern support
+
+	rasqal_graph_pattern_operator gains
+	RASQAL_GRAPH_PATTERN_OPERATOR_SELECT
+
+	rasqal_graph_pattern gains internal fields for variables and where
+	along with temporary void* for modifiers, yet to be implemented.
+
+	(rasqal_new_select_graph_pattern): Added with new fields for
+	variables and where graph pattern.
+
+	(rasqal_free_graph_pattern): Free new fields.
+
+	(rasqal_algebra_select_graph_pattern_to_algebra,
+	rasqal_query_select_build_variables_use_map_in_internal): Added
+	skeleton algebra supports - fail with error.
+
+	rasqal_graph_pattern_operator_labels gains select label
+
+	(rasqal_graph_pattern_write_internal): Code style.
+
+	SPARQL grammar: store select graph pattern for sub SELECT.
+
+	(rasqal_graph_pattern_write_internal): Print new fields.
+
+	* src/rasqal.h.in, src/rasqal_query.c, src/sparql_parser.y: Use
+	rasqal_data_graph inside SPARQL parser.
+
+	(rasqal_query_add_data_graphs): Added to add a list of data graphs
+	in a raptor_sequence
+
+	Add data_graph to SPARQL token union.
+
+	(DatasetClauseList, DatasetClauseListOpt): Now raptor_sequence of
+	rasqal_data_graph
+
+	(DatasetClause): Added, taking a rasqal_data_graph type.
+
+	(DefaultGraphClause, NamedGraphClause): Now rasqal_data_graph
+	types.
+
+	(SelectQuery, ConstructQuery, DescribeQuery, AskQuery,
+	DeleteQuery, InsertQuery, LoadQuery): Store data graphs in query
+	object.
+
+	* tests/engine/rasqal_triples_test.c: Updated tests to use
+	rasqal_new_data_graph_from_uri()
+
+	* tests/engine/rasqal_graph_test.c: Updated tests to use
+	rasqal_new_data_graph_from_uri()
+
+	* configure.ac, src/rasqal.h.in, src/rasqal_expr.c,
+	src/rasqal_query_write.c, src/sparql_lexer.l,
+	tests/sparql/Makefile.am, tests/sparql/sparql11/Makefile.am,
+	tests/sparql/sparql11/data-1.ttl,
+	tests/sparql/sparql11/isnumeric-1.rq: Add SPARQL 1.1 isNUMERIC()
+
+	rasqal_op gains RASQAL_EXPR_ISNUMERIC
+
+	(rasqal_expression_clear, rasqal_expression_visit,
+	rasqal_expression_evaluate, rasqal_expression_write,
+	rasqal_expression_print, rasqal_expression_is_constant,
+	rasqal_query_write_sparql_expression): Added support for
+	RASQAL_EXPR_ISNUMERIC Added sparql11 tests dir with isnumeric-1.rq
+	test
+
+2010-10-14  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Update SPARQL grammar
+	for 1.1 2010-10-14 draft
+
+	Added new tokens: BINDINGS, UNDEF, SERVICE, MINUS, isNUMERIC (case
+	independent all)
+
+	Still not added: any property path tokens (SPARQL grammar tokens
+	Path to PathOneInPropertyClass)
+
+	(sparql_token_print): Print new tokens
+
+	(SelectQuery): Split into new SelectClause
+
+	(SubSelect): Added, to be implemented.
+
+	(BindingsCLauseOpt): Added, to be implemented.
+
+	(BindingValueList): Added for above.
+
+	(BindingValue): Added, UNDEF to be implemented maybe.
+
+	(GroupGraphPattern): Add SubSelect.
+
+	(GroupGraphPatternSub): Added with old GroupGraphPattern code.
+
+	(GraphPatternNotTriples): Add MinusGraphPattern and
+	ServiceGraphPattern.
+
+	(ServiceGraphPattern): Added, to be implemented.
+
+	(MinusGraphPattern): Added, to be implemented.
+
+	(BuiltInCall): Accept isNUMERIC, to be implemented in expression
+	code.
+
+	* src/sparql_parser.y: Remove SPARQL grammar term numbers, keep
+	changing too much
+
+2010-10-13  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal.h.in:
+	(rasqal_graph_pattern_get_variable): Added RASQAL_API to public
+	API function
+
+2010-10-11  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_graph_pattern.c: Add
+	rasqal_graph_pattern_get_variable to get variable for LAQRS LET
+	graph patterns
+
+2010-10-09  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c: Replace internal data_graph with
+	rasqal_data_graph and functions
+
+	Save a list of rasqal_data_graph from the -s/-D/-G args using
+	rasqal_new_data_graph_from_iostream() and
+	rasqal_new_data_graph_from_uri() then later on use
+	rasqal_query_add_data_graph2()
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_init_triples_source): Set parser base URI from
+	rasqal_data_graph
+
+2010-10-08  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_query.c, src/rdql_parser.y,
+	src/sparql_parser.y, utils/roqet.c: Replace
+	rasqal_query_add_data_graph_from_uri/iostream() with
+	rasqal_query_add_data_graph2()
+
+	(rasqal_query_add_data_graph2): Added just to append to sequence.
+
+	(rasqal_query_add_data_graph_from_uri,
+	rasqal_query_add_data_graph_from_iostream): Removed Update rdql
+	and sparql parsers
+
+	* utils/roqet.c: Add base_uri to roqet data_graph and use for
+	iostream
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c, src/rasqal_query.c:
+	Add base_uri to rasqal_data_graph and functions for iostream
+
+	The iostream functions for a data graph need a separate base URI.
+
+	rasqal_data_graph gains uri field
+
+	(query_add_data_graph_from_iostream,
+	rasqal_new_data_graph_from_iostream, rasqal_new_data_graph_common,
+	rasqal_free_data_graph): Gain base_uri arg and use/store/free
+	it.
+
+	(rasqal_data_graph_print): Print base URI
+
+2010-10-07  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c: Set fake base URI for now when reading from stdin
+
+	* src/rasqal_data_graph.c:
+	(rasqal_data_graph_print): Fix print fields
+
+	* src/rasqal_internal.h, utils/roqet.c: Add support for data graph
+	from stdin to roqet
+
+	Accept -D/-G/-s with '-' arg to mean use stdin as a source of a
+	data graph.
+
+	Use rasqal_query_add_data_graph_from_iostream() to set up the data
+	graph.
+
+	Add an internal data_graph struct to hold flags arg.  This is a
+	stopgap, should be able to use rasqal_data_graph here.
+
+	* src/rasqal_raptor.c: Support data graphs from iostreams via a
+	rasqal_data_graph
+
+	(rasqal_raptor_parse_iostream): Added internal for raptor V1 to
+	support same feature as raptor V2 raptor_parser_parse_iostream()
+
+	(rasqal_raptor_init_triples_source): Support parsing from an
+	iostream with no URI using name_uri as base URI
+
+	* src/rasqal.h.in, src/rasqal_query.c: Added
+	rasqal_query_add_data_graph_from_iostream() wrapping
+	rasqal_new_data_graph_from_iostream()
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_support_feature): Declare support for
+	RASQAL_TRIPLE_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH
+
+	* src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_raptor.c,
+	src/rasqal_triples_source.c: Add rasqal_triples_source_factory API
+	V2: support.
+
+	RASQAL_TRIPLES_SOURCE_MAX_VERSION now 2
+
+	Added enum rasqal_triple_source_feature for factories to respond
+	to.
+
+	rasqal_triples_source gains support_feature factory method for API
+	V2
+
+	(rasqal_triples_source_support_feature): Added internal check
+	method.
+
+	(rasqal_raptor_init_triples_source): Declare support for API V2
+
+	* src/rasqal.h.in: rasqal_data_graph autodocs
+
+	* src/rasqal_data_graph.c:
+	(rasqal_data_graph_print): Print fix
+
+	* src/rasqal_data_graph.c:
+	(rasqal_data_graph_print): Support iostream/uri data graphs
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c: Added
+	rasqal_new_data_graph_from_iostream to get data graphs from
+	non-URIs.
+
+	rasqal_data_graph gains raptor_iostream field.
+
+	(rasqal_new_data_graph_common): Added internal function to support
+	all data graph constructors.
+
+	(rasqal_new_data_graph_from_iostream): Added taking a
+	raptor_iostream arg (shared) using rasqal_new_data_graph_common()
+
+	(rasqal_new_data_graph_from_uri): Now using
+	rasqal_new_data_graph_common()
+
+	* src/rasqal_triples_source.c:
+	(rasqal_new_triples_source): Only use init_triples_source if
+	factory API version >=2
+
+2010-10-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c, src/rasqal_query.c:
+	Rename rasqal_new_data_graph2() to
+	rasqal_new_data_graph_from_uri()
+
+	* utils/roqet.c: Rename rasqal_query_add_data_graph2() to
+	rasqal_query_add_data_graph_from_uri()
+
+	* src/rasqal.h.in, src/rasqal_query.c, src/rdql_parser.y,
+	src/sparql_parser.y: Rename rasqal_query_add_data_graph2() to
+	rasqal_query_add_data_graph_from_uri()
+
+	* src/rasqal.h.in: Lets assume OSX GCC precompiled headers are
+	working after many years
+
+	* src/rdql_parser.y, src/sparql_parser.y: Replace calls to
+	rasqal_query_add_data_graph() with rasqal_query_add_data_graph2()
+
+	* src/rasqal.h.in, src/rasqal_result_formats.c: Added
+	rasqal_query_results_formats_check2() allowing checking for a
+	readable and/or writable result format.
+
+	(rasqal_query_results_formats_check2): Added with new flags arg,
+	deprecating rasqal_query_results_formats_check.
+
+	(rasqal_query_results_formats_check): Calls above and deprecated.
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/let4.rq: Add
+	let4 example with a SELECT *
+
+2010-10-04  Dave Beckett <dave@dajobe.org>
+
+	* utils/srxread.c, utils/srxwrite.c: Newlines in error messages
+
+	* utils/srxread.c, utils/srxwrite.c: Provide raptor2 support in
+	example programs srxread.c and srxwrite.c
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_init_triples_source): Fix raptor_world_ptr reference.
+
+	* utils/roqet.1: Document -F/--format
+
+	* utils/roqet.c: Re-order help args to be alphabetic
+
+	* utils/roqet.c: Document -F/--format
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_init_triples_source): Support using parser name
+
+	* utils/roqet.c: Add -F NAME format arg for specifying data graph
+	formats
+
+	(main): Add -F support and check it is a legal parser na,e.  Use
+	rasqal_query_add_data_graph2() to pass in parser name as format.
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c, src/rasqal_internal.h,
+	src/rasqal_query.c: Added data graph constructors/helpers that add
+	format args
+
+	(rasqal_query_add_data_graph2): Added with format args deprecating
+	rasqal_query_add_data_graph()
+
+	(rasqal_query_add_data_graph): Deprecated for above.
+
+	(rasqal_new_data_graph2): Added with format args deprecating
+	rasqal_new_data_graph().
+
+	(rasqal_new_data_graph): Deprecated for above.
+
+	* src/rasqal.h.in: Add new data graph format fields to
+	rasqal_data_graph
+
+	* src/rasqal_data_graph.c, src/rasqal_query_write.c: Add format
+	mime type, name and uri to rasqal_data_graph
+
+	(rasqal_free_data_graph): Free new fields.
+
+	(rasqal_data_graph_print): Print new fields
+
+	(rasqal_query_write_data_format_comment): Add to print new fields
+	to sparql query output as a comment.
+
+	(rasqal_query_write_sparql_20060406): Use above.
+
+2010-10-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_raptor.c: Make raptor triples source provide new init
+	method init_triples_source
+
+	(rasqal_raptor_init_triples_source): Added to implement the new
+	triples source factory initialisation.  Call the handler with
+	locator and message.
+
+	(rasqal_raptor_new_triples_source): Rewritten to call
+	rasqal_raptor_init_triples_source() with
+	rasqal_triples_source_error_handler as error handler.
+
+	(rasqal_raptor_register_triples_source_factory): Indicate this
+	supports triples source factory API v2
+
+	* src/rasqal_internal.h: Export
+	rasqal_triples_source_error_handler for internal use
+
+	* src/rasqal_triples_source.c: Support using new triples source
+	factory init method init_triples_source
+
+	(rasqal_triples_source_error_handler): Added.
+
+	(rasqal_new_triples_source): Use above to provide an error handler
+	when making a rasqal triples source.  Keep generic error code for
+	V1 triples source factory init method (new_triples_source)
+
+	* src/rasqal.h.in: Add a way for a triples source factory to
+	return meaningful errors.
+
+	Added typedef rasqal_triples_error_handler for triples source
+	factory error callback.
+
+	rasqal_triples_source_factory bumps max API version to 2 and adds
+	new @init_triples_source factory method to replace
+	@new_triples_source allowing an error callback arg.
+
+	RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION is now 2
+
+	* src/sparql_parser.y:
+	(CoalesceExpression): COALESCE is in SPARQL 1.1
+
+2010-10-02  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/update/Makefile.am: Switch to -i sparql11
+
+	* src/sparql_parser.y: Do not register sparql11 name twice
+
+	* src/rasqal_general.c, src/rasqal_internal.h, src/sparql_parser.y:
+	Separate SPARQL 1.0 and SPARQL 1.1 language names
+
+	(rasqal_sparql11_query_language_register_factory): Added to
+	register SPARQL 1.1
+
+	(rasqal_world_open): Register SPARQL 1.1 with
+	rasqal_sparql11_query_language_register_factory.
+
+	* src/sparql_parser.y: Use rasqal_language_name_check() to check
+	language and code tidy
+
+	* utils/roqet.c: code style
+
+	* src/sparql_common.h, src/sparql_parser.y: Add sparql query
+	language feature flags to separate sparql 1.0, 1.1 and experiments
+	in laqrs
+
+	rasqal_sparql_query_language_s gains bit flags to replace extended
+	field.  Update grammar to use appropriate flags for family language
+	features.  Alter some error messages to mention can only be used in
+	LAQRS such as EXPLAIN, COALESCE
+
+	(rasqal_sparql_query_language_init): Initialise the query language
+	family flags.
+
+	* src/sparql_parser.y: Update SPARQL and LAQRS query language
+	registrations adding aliases
+
+	(rasqal_sparql_query_language_register_factory): Updated for new
+	registration model.  Adds aliases sparql10 and sparql11 for
+	sparql.
+
+	(rasqal_laqrs_query_language_register_factory): Added for new
+	registration model but calling same functions as
+	rasqal_sparql_query_language_register_factory
+
+	* src/rdql_parser.y:
+	(rasqal_rdql_query_language_register_factory): Updated for new
+	registration model.
+
+	* src/rasqal_query.c:
+	(rasqal_query_get_name, rasqal_query_get_label): Use syntax
+	description fields.
+
+	* src/rasqal_general.c: Initialise query languages using
+	raptor-style syntax description model
+
+	(rasqal_world_open): Initialise sequence and re-order initialisation
+	of languages since it's now default-first instead of default-last.
+
+	(rasqal_free_query_language_factory): Just free query languages
+	sequence now.
+
+	(rasqal_query_language_register_factory): Updated to just use a
+	callback function to do registration returning int status, and this
+	function returns the factory it makes.  Alter logic based on Raptor
+	V2 raptor_world_register_parser_factory()
+
+	(rasqal_get_query_language_factory): Updated to use sequence and
+	logic based on Raptor V2 raptor_world_get_parser_factory()
+
+	(rasqal_languages_enumerate): Simplify using query languages
+	sequence.
+
+	* src/rasqal_internal.h: Add a Raptor V2-style
+	raptor_syntax_description data model to rasqal.
+
+	For now this requires importing bits of Raptor V2
+	raptor_syntax_description public API if building with Raptor V1.
+
+	Specifically, import: typedef raptor_data_free_handler,
+	raptor_type_q and raptor_syntax_description from Raptor
+
+	rasqal_query_language_factory_s gains world arg and loses name,
+	label, alias, mime_type, uri_string fields. The latter replaced by
+	raptor_syntax_description static.
+
+	typedef rasqal_query_language_register_factory loses most args and
+	just uses a callback to (sic) call.  Return value is the factory.
+	Callback returns an error int.
+
+	typedef rasqal_world replaces linked list of query languages with
+	a raptor_sequence
+
+	* src/rasqal_internal.h, utils/roqet.c: Add more Raptor V1
+	backward compatiblity defines for roqet.c
+
+2010-09-30  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c:
+	Set default graph format to "ntriples" again.
+
+	* utils/roqet.c:
+	(print_formatted_query_results): Move error reporting here
+
+	* utils/roqet.c:
+	(print_formatted_query_results): Create/destroy formatter here
+
+	* utils/roqet.c: Delay -r FORMAT checking until result type is
+	known.
+	Fixes Issue#0000388 http://bugs.librdf.org/mantis/view.php?id=388
+
+	(print_graph_result): Move graph serializer format checking here.
+
+	(main): For each result type decide if simple or if formatted
+
+	* utils/roqet.c:
+	(print_formatted_query_results): Added making formatted query
+	results from code in main()
+
+	* utils/roqet.c:
+	(print_graph_result): Added making graph results from code in
+	main()
+
+	* utils/roqet.c:
+	(print_boolean_result_simple): Added with simple boolean results
+	out of main()
+
+	* utils/roqet.c:
+	(print_bindings_result_simple): Added to refactor out huge main()
+
+	* NEWS.html, configure.ac, src/rasqal.h.in: Bumped version to
+	0.9.21
+
+2010-09-24  Dave Beckett <dave@dajobe.org>
+
+	* Use AC_LANG_SOURCE for gcc flag test
+
+2010-09-24  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Use AC_LANG_SOURCE for gcc flag test
+
+2010-08-29  Dave Beckett <dave@dajobe.org>
+
+	* LICENSE.html: or any newer versions
+
+	* utils/Makefile.am: Link srxread and srxwrite using
+	`@RAPTOR_CONFIG@ --libs` approach like roqet.
+
+	* utils/Makefile.am:
+	Link to raptor2 for utilities Updating approach used in
+	http://bugs.librdf.org/mantis/view.php?id=347 for Raptor V2
+
+2010-08-22  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_20 for 0.9.20 release (GIT
+	6b842b7e85565693bb8fe7a250710443f8d3a2a3)
+
+2010-08-22  Nicholas J Humfrey <njh@aelius.com>
+
+	* rasqal.rdf.in: Updated repository section to new Git repository
+	on Github
+
+	* rasqal.rdf.in: Normalised tabs into spaces #ws
+
+2010-08-21  Dave Beckett <dave@dajobe.org>
+
+	* README.html, RELEASE.html: Remove links to TODO.html
+
+	* README.html: words
+
+	* RELEASE.html: 0.9.20
+
+	* NEWS.html: 0.9.20
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Return error failure not abort on
+	attempt to evaluate SAMPLE() and GROUP_CONCAT()
+
+	* TODO.html: Empty document and point at bugs.librdf.org
+
+	* README.html: requires raptor 1.4.19
+
+	* README.html: words - jena RDQL links are all broken; comment
+	out.
+
+	* LICENSE.html: Link to specific LGPL 2.1 version doc.  Wording
+	and formatting
+
+	* INSTALL.html: words
+
+	* src/rasqal_general.c: Removed dmalloc support
+
+	* configure.ac, src/rasqal_internal.h: Removed dmalloc support
+
+	* docs/rasqal-sections.txt, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-query.sgml, docs/tmpl/section-unused.sgml:
+	Updated docbook tmpls and sections
+
+	* src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_transform.c, src/rasqal_query_write.c,
+	src/sparql_parser.y, tests/sparql/aggregate/Makefile.am,
+	tests/sparql/aggregate/group-concat-1.rq,
+	tests/sparql/aggregate/group-concat-2.rq,
+	tests/sparql/aggregate/group-concat-3.rq:
+	Add support for SPARQL 1.1 HAVING <list of Expression>
+
+	(rasqal_query_get_having_conditions_sequence,
+	rasqal_query_get_having_condition): Added.
+
+	struct rasqal_query gains new internal field
+	having_conditions_sequence.
+
+	(rasqal_free_query, rasqal_query_print,
+	rasqal_query_write_sparql_20060406): Handle new sequence of having
+	conditions.
+
+	(rasqal_query_build_variables_use_map): Scan HAVING expr for
+	variable use.  Removes a fixme.
+
+	(SPARQL parser token HavingClauseOpt): Store having conditions
+	sequence.  Removes a fixme.  Added teses for above.
+
+	* src/rasqal_expr.c:
+	(rasqal_new_group_concat_expression): Allow separator to be NULL
+
+	* src/rasqal.h.in:
+	Add rasqal_new_group_concat_expression header
+
+	* src/rasqal_expr.c, src/rasqal_query_write.c, src/sparql_lexer.l,
+	src/sparql_parser.y, tests/sparql/aggregate/Makefile.am,
+	tests/sparql/aggregate/group-concat-1.rq: Add full GROUP_CONCAT()
+	syntax and representation support.
+
+	Added tests/sparql/aggregate/group-concat-1.rq (nothing in spec
+	yet)
+
+	(rasqal_new_group_concat_expression): Added taking distinct flag,
+	sequence of expressions and literal separator
+
+	(rasqal_expression_clear, rasqal_expression_write,
+	rasqal_expression_print, rasqal_expression_is_constant,
+	rasqal_query_write_sparql_expression): updated for above change.
+
+	Fix SPARQL lexer token to be GROUP_CONCAT not GROUPCONCAT.  Oops -
+	that's why a test is needed.
+
+	(SeparatorOpt): Use EQ not '=' which never gets here.
+
+	(ExpressionList): added for a comma-separated list of
+	expressions.
+
+	(GroupConcatAggregateExpression): Use ExpressionList and create
+	new expression from rasqal_new_group_concat_expression().
+
+2010-08-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine_algebra.c:
+	Zero out freed node pointer
+
+	(rasqal_algebra_graph_algebra_node_to_rowsource): After "case #2"
+	when rasqal_free_algebra_node() is called, zap out the pointer.
+	Addresses Issue#0000378
+	http://bugs.librdf.org/mantis/view.php?id=378
+
+	* src/rasqal_rowsource_empty.c:
+	(rasqal_empty_rowsource_ensure_variables): Use to set row width to
+	0
+
+2010-08-19  Dave Beckett <dave@dajobe.org>
+
+	* docs/Makefile.am, src/Makefile.am: Do not ship rasqal.h in
+	tarball since it is system-dependent (raptor2 or not)
+
+	Add nodist_ before list of installed includes: rasqal.h must be
+	installed but not distributed.
+
+	Add docs dependency rule for rasqal.h for gtk-doc scanning.
+
+	* tests/sparql/bugs/353-result.ttl, tests/sparql/bugs/353.ttl: Add
+	bug353 ttl files
+
+	* tests/sparql/check-sparql: remove debug print
+
+2010-08-18  Dave Beckett <dave@dajobe.org>
+
+	* 000-README-GIT.txt: Remove 000-README-GIT.txt intended for old
+	repo
+
+	* tests/sparql/bugs/353-result.ttl, tests/sparql/bugs/353.rq,
+	tests/sparql/bugs/Makefile.am, tests/sparql/bugs/manifest.ttl: Add
+	test for 353 - currently fails
+
+	* tests/sparql/check-sparql: Handle RDF graph results type as well
+	as bindings
+
+	* tests/sparql/check-sparql: debug messages when reading results
+
+2010-08-18  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_update_bindings): Avoid using uninitialized
+	pointer
+
+2010-08-17  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c: Ensure CONSTRUCT sets up variables for
+	projection.
+
+	(rasqal_algebra_get_variables_mentioned_in): Added to get list of
+	variables mentioned in a construct.
+
+	(rasqal_algebra_query_to_algebra): For a CONSTRUCT, get the
+	mentioned vars and use those in the projection and free the
+	sequence after.
+
+	* AUTHORS: Added Lauri Aalto
+
+	* 000-README-GIT.txt: Moved to GitHub at
+	http://github.com/dajobe/rasqal
+
+	* README.html: Update for github
+
+2010-08-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_result_formats.c:
+	(rasqal_query_results_formatter_write): document NULL base_uri is
+	allowed
+
+2010-08-04  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_raptor.c: Update rasqal_raptor_generate_id_handler to
+	handle new raptor generate nodeid API
+
+2010-07-27  Dave Beckett <dave@dajobe.org>
+
+	* src/.gitignore: Ignore generated rasqal.h
+
+	* src/sparql_parser.y:
+	Add VarOrBadVarName state to track deprecated LAQRS .. AS varname ...
+
+	(SelectTerm): Use VarOrBadVarName for deprecated LAQRS SELECT
+	... AS varname, instead of the draft SPARQL 1.1 Query SELECT
+	... AS ?varname
+
+	(VarOrBadVarName): Added generating a warning for a bare varname.
+
+	* src/sparql_lexer.l: Restore SPID state after AS and return $, ?
+	and VarName tokens
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/group-by1.rq:
+	Remove group-by1.rq - syntax was never added to sparql 1.1 and this
+	was never in shipped rasqal release
+
+	* src/sparql_parser.y:
+	Make SELECT AS, HAVING, GROUP_CONCAT with SEPARATOR partially work
+
+	Added tokens HAVING and SEPARATOR
+
+	(SelectTerm): Use AS Var not VarName.
+
+	(SelectExpression): Deleted, SelectQuery uses Expression direct.
+
+	(AggregateExpression): Add annotations.
+
+	(SeparatorOpt): Added to handle ; SEPARATOR = "string" for
+	GROUP_CONCAT.
+
+	(GroupConcatAggregateExpression): Use SeparatorOpt but throw away
+	the string for now - FIXME.
+
+	(SolutionModifier): Add HavingClauseOpt
+
+	(GroupCondition): Use AS Var not VarName
+
+	(HavingCondition): Added, just alias for Constraint.
+
+	(HavingConditionList): Added as list of HavingCondiiton
+
+	(HavingClauseOpt): Added for HAVING.  Throws away result for now -
+	FIXME.
+
+	(PrimaryExpression): Add AggregateExpression here; so you can put an
+	aggregate expression such as as SUM() etc. anywhere an expression
+	can go!
+
+2010-07-26  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l: Added HAVING, GROUP_CONCAT, SEPARATOR tokens
+
+	* configure.ac, tests/sparql/Makefile.am,
+	tests/sparql/aggregate/Makefile.am,
+	tests/sparql/aggregate/agg-1.rq, tests/sparql/aggregate/agg-2.rq,
+	tests/sparql/aggregate/bad-1.rq, tests/sparql/aggregate/data-1.ttl:
+	
+	Add SPARQL 1.1 aggregate function tests
+
+	* src/sparql_lexer.l:
+	Accept ( Expr AS Var ) not ( Expr as VarName ) (AS): Return AS, do
+	not enter SPID state.
+
+	(SPID state): Deleted
+
+	* RELEASE.html: words
+
+	* RELEASE.html: words
+
+	* words and formatting
+
+2010-07-25  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Allow SPARQL 1.1 UPDATE 2010-06-01 CLEAR
+	GRAPH <uri>/DEFAULT
+
+	* tests/sparql/update/clear-4.rq: CLEAR GRAPH DEFAULT
+
+	* tests/sparql/update/clear-1.rq: note CLEAR is not legal syntax
+	anymore
+
+	* tests/sparql/update/Makefile.am, tests/sparql/update/clear-1.rq,
+	tests/sparql/update/clear-2.rq, tests/sparql/update/clear-3.rq,
+	tests/sparql/update/create-1.rq, tests/sparql/update/create-2.rq,
+	tests/sparql/update/delete-1.rq, tests/sparql/update/delete-2.rq,
+	tests/sparql/update/delete-data-1.rq,
+	tests/sparql/update/delete-data-2.rq,
+	tests/sparql/update/delete-insert-1.rq,
+	tests/sparql/update/delete-where-1.rq,
+	tests/sparql/update/delete-where-2.rq,
+	tests/sparql/update/drop-1.rq, tests/sparql/update/drop-2.rq,
+	tests/sparql/update/insert-1.rq, tests/sparql/update/insert-2.rq,
+	tests/sparql/update/insert-data-1.rq,
+	tests/sparql/update/insert-data-2.rq,
+	tests/sparql/update/insert-data-3.rq,
+	tests/sparql/update/insert-data-4.rq,
+	tests/sparql/update/insert-delete-1.rq,
+	tests/sparql/update/load-1.rq, tests/sparql/update/load-2.rq: 
+	Updated tests for
+	http://www.w3.org/TR/2010/WD-sparql11-update-20100601/
+
+2010-05-17  Dave Beckett <dave@dajobe.org>
+
+	* rasqal.pc.in: set have_raptor2_api boolean for rasqal pkgconfig
+
+2010-05-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_expr.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_general.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_literal.c, src/rasqal_map.c,
+	src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c, src/rasqal_query_write.c,
+	src/rasqal_raptor.c, src/rasqal_result_formats.c, src/rasqal_row.c,
+	src/rasqal_rowsource.c, src/rasqal_rowsource_rowsequence.c,
+	src/rasqal_rowsource_sort.c, src/rasqal_variable.c,
+	src/rdql_lexer.l, src/rdql_parser.y, src/sparql_lexer.l,
+	src/sparql_parser.y, utils/roqet.c:
+	Replace #ifdef RAPTOR_V2_AVAILABLE with #ifdef HAVE_RAPTOR2_API -
+	controlled by configure --enable-raptor2
+
+	* src/rasqal_general.c:
+	(rasqal_world_set_log_handler): Enable with HAVE_RAPTOR2_API
+
+	* src/rasqal_query.c: Stub out raptor1 error handler functions.
+
+	(rasqal_query_set_fatal_error_handler,
+	rasqal_query_set_error_handler, rasqal_query_set_warning_handler):
+	Declare as stubs
+
+	* src/rasqal.h.in: When HAVE_RAPTOR2_API, declare raptor1 APIs with
+	void* arg
+
+	* configure.ac, src/rasqal.h, src/rasqal.h.in: Define
+	HAVE_RAPTOR2_API subst var and alter API depending on raptor2
+	availability
+
+	* configure.ac: Add --enable-raptor configure arg
+
+	Raptor2 is only considered if --enable-raptor2 is given to
+	configure.  When raptor2 is present and sufficient, #define
+	HAVE_RAPTOR2_API and add automakefile variable RAPTOR2
+
+	* src/rasqal_datetime.c, src/rasqal_decimal.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_general.c, src/rasqal_literal.c, src/rasqal_raptor.c,
+	src/rasqal_row.c, src/rasqal_variable.c,
+	src/rasqal_xsd_datatypes.c, src/rdql_lexer.l, src/sparql_lexer.l: 
+	code style: replace strncpy with memcpy - never need strncpy
+	zero-checking/filling semantics.
+
+	* src/rasqal_raptor.c: Update to latest raptor_term blank field
+	structure.
+
+2010-05-03  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_graph_pattern.c, src/rasqal_internal.h,
+	src/rasqal_map.c, src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c, src/rasqal_result_formats.c,
+	src/rasqal_row.c, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_rowsequence.c, src/rasqal_rowsource_sort.c,
+	src/rasqal_variable.c, src/rdql_parser.y, src/sparql_parser.y,
+	utils/roqet.c: Ported to raptor2 head - funcptr typedef changes
+
+2010-04-24  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_data_graph.c, src/rasqal_decimal.c, src/rasqal_expr.c,
+	src/rasqal_general.c, src/rasqal_literal.c, src/rasqal_map.c,
+	src/rasqal_prefix.c, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_result_formats.c,
+	src/rasqal_row.c, src/rasqal_rowsource.c, src/rasqal_triple.c,
+	src/rasqal_variable.c: Make all rasqal destructors simply return
+	when given a NULL object pointer.  They mostly did this already -
+	just remove macros to make it obvious.
+
+	* src/rasqal_graph.c: Mark autodocs as INTERNAL
+
+2010-04-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c, src/rasqal_result_formats.c: autodocs
+	noting that formatting query results drains them
+
+2010-04-14  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_table.c:
+	(rasqal_query_results_write_table_bindings): Made function compile
+	on raptor2 again.
+
+2010-04-13  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-expression.sgml, docs/tmpl/section-general.sgml: 
+	Updated docbook tmpls
+
+	* src/rasqal.h: rasqal_expression_s autodocs
+
+	* src/rasqal.h: autodocs
+
+	* src/rasqal.h: autodocs
+
+	* src/rasqal.h: autodocs
+
+	* docs/rasqal-sections.txt: Added new funcs
+
+	* docs/rasqal-sections.txt, src/rasqal.h, src/rasqal_literal.c: 
+	rasqal_literal_equals_flags is internal
+
+	* docs/rasqal-sections.txt: remove unused unused raptor world tokens
+
+	* docs/rasqal-sections.txt: Added rasqal_new_function_expression2
+
+	* src/rasqal.h: rasqal_compare_flags: autodocs do not refer to
+	internal funcs
+
+	* docs/rasqal-sections.txt: Add rasqal_literal_equals_flags
+
+	* docs/rasqal-sections.txt: Add new funcs
+	rasqal_world_set_generate_bnodeid_handler
+	rasqal_world_set_default_generate_bnodeid_parameters
+
+	* src/rasqal_literal.c:
+	(rasqal_new_string_literal): autodocs do not link to internal
+	rasqal_literal_string_to_native
+
+	* src/rasqal_format_table.c:
+	(rasqal_query_results_write_table_bindings): Remove unused query
+	var.
+
+2010-04-12  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Pack local vars in union to save
+	some stack.
+
+	* src/rasqal_format_table.c: #ws
+
+2010-04-11  Dave Beckett <dave@dajobe.org>
+
+	* RELEASE.html: 0.9.20 notes
+
+2010-04-11  Nicholas J Humfrey <njh@aelius.com>
+
+	* src/rasqal_format_table.c: Added boolean result support to the
+	Table results format.
+
+2010-04-06  Lauri Aalto <laalto@iki.fi>
+
+	* configure.ac, rasqal.pc.in: Proper pkg-config dependencies when
+	built with raptor2.
+
+	* configure.ac: Support configuring with raptor2. Prefer installed
+	raptor2 over raptor v1.
+
+	* utils/Makefile.am: Support linking with libraptor2
+
+	* utils/roqet.c: Ported to raptor2 git head. Support
+	raptor_syntax_description.
+
+2010-03-31  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_write.c: ,
+
+	* src/rasqal_query_write.c: write a, b not a ,b
+
+	* src/sparql_parser.y:
+	(RelationalExpression): Add IN and NOT IN
+
+	* src/rasqal.h, src/rasqal_expr.c:
+	(rasqal_new_set_expression): Added for expr IN/NOT-IN list ops
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/in1.rq: Add
+	IN test
+
+	* src/rasqal_format_sv.c: T is for TAB
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_expression): Emit DISTINCT for func
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_variable): Write ( expr AS var )
+
+	* tests/laqrs/syntax/count2.rq, tests/laqrs/syntax/count4.rq:
+	Update expr AS Var format
+
+	* src/rasqal_expr.c:
+	(rasqal_new_function_expression_common): Fix arg test
+
+	* configure.ac: fix raptor version test check
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Implement executing of IN and NOT IN
+
+	* src/rasqal_expr.c, src/rasqal_query_write.c: Added expression
+	handling for IN and NOT IN - no executing yet.
+
+	(rasqal_expression_clear, rasqal_expression_evaluate,
+	rasqal_expression_write, rasqal_expression_print,
+	rasqal_expression_is_constant,
+	rasqal_query_write_sparql_expression): Added support for IN and
+	NOT IN
+
+	(rasqal_expression_visit): Added support for IN and NOT IN;
+	adjusted checking of result values for other forms to ensure visit
+	is truncated on a return value of non-0
+
+	* src/rasqal.h: Added expression enums for IN and NOT IN
+	expressions rasqal_op gains RASQAL_EXPR_IN and RASQAL_EXPR_NOT_IN
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Add NOT and IN tokens
+	to sparql lexer and parser
+
+2010-03-30  Dave Beckett <dave@dajobe.org>
+
+	* tests/laqrs/syntax/explain.rq: Adjust to require () around
+	renamed vars
+
+	* src/sparql_parser.y: Accept ( Expr AS Var ) with required braces
+	in select and group by
+
+	(SelectTerm): SelectExpression does not include ()s
+
+	(SelectExpression): Remove optional ()s
+
+	(GroupCondition): Accept ( Expr AS Var ) and store expression in
+	var field expression.  Not totally a good idea, should be a new
+	rename expression probably.
+
+	* tests/laqrs/syntax/avg1.rq, tests/laqrs/syntax/coalesce1.rq,
+	tests/laqrs/syntax/count1.rq, tests/laqrs/syntax/count3.rq,
+	tests/laqrs/syntax/coverage.rq, tests/laqrs/syntax/group-by1.rq,
+	tests/laqrs/syntax/max1.rq, tests/laqrs/syntax/min1.rq,
+	tests/laqrs/syntax/sum1.rq: Update rename expr as var syntax from
+	latest SPARQL 1.1 draft
+
+	* src/sparql_parser.y:
+	(GroupCondition): Do not free unused variable $3 - not owned here.
+
+	* src/rasqal_query_transform.c: Support finding mentioned
+	variables in GROUP BY
+
+	(rasqal_query_expression_build_variables_use_map): Renamed from
+	rasqal_query_filter_build_variables_use_map_in_internal
+
+	(rasqal_query_graph_pattern_build_variables_use_map): Rename as
+	above for FILTER expression.
+
+	(rasqal_query_expression_build_variables_use_map_row): Renamed
+	from rasqal_expression_expr_build_variables_use_map_row
+
+	(rasqal_query_build_expressions_sequence_use_map_row) Lose unused
+	query arg.
+
+	(rasqal_query_build_variables_use_map): Tidy code and implement
+	finding mentioned vars in list of GROUP BY expressions. Does not
+	yet find declared EXPR as Var since SPARQL parser doesn't store it
+	anywhere yet.
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/group-by1.rq:
+	Add group-by1.rq for group by conditions
+
+	* src/sparql_parser.y:
+	(GroupClauseOpt): Do not add group asc/desc to group conditions
+	list.
+
+	* src/rasqal_expr.c:
+	(rasqal_new_0op_expression): Remove RASQAL_EXPR_GROUP_COND_ASC and
+	RASQAL_EXPR_GROUP_COND_DESC from autodocs
+
+	* src/rasqal.h: Mark RASQAL_EXPR_GROUP_COND_ASC and
+	RASQAL_EXPR_GROUP_COND_DESC as obsolete.
+
+	* src/sparql_parser.y: Update for GroupCondition rules.
+
+	(GroupConditionList): Added list of GroupCondition.
+
+	(GroupCondition): Added.  FIXME: what does Expression AS Var mean
+	in GROUP BY?
+
+	(GroupClauseOpt): Now a list of GroupConditionList
+
+	* src/sparql_parser.y: Implement GROUP_CONCAT and SAMPLE and
+	update other builtin agg functions.
+
+	(AggregateExpression): Added group concat and sample.
+
+	(ExpressionOrStar): Added pulled out of CountAggregateExpression.
+
+	(CountAggregateExpression): Simplified duplicate code handling an
+	expression and * in one place.  Use
+	rasqal_new_aggregate_function_expression() and set distinct flags.
+
+	(SumAggregateExpression, AvgAggregateExpression,
+	MinAggregateExpression, MaxAggregateExpression): Use
+	rasqal_new_aggregate_function_expression() and set distinct flags.
+
+	(GroupConcatAggregateExpression, SampleAggregateExpression): Added
+	using rasqal_new_aggregate_function_expression() and setting
+	distinct flags.
+
+	* src/rasqal.h, src/rasqal_expr.c: Add
+	rasqal_new_aggregate_function_expression() for built-in aggregate
+	functions
+
+	(rasqal_new_function_expression_common): Added internal function
+	based on core of rasqal_new_function_expression2 and taking
+	optional arg1 rasqal_expression for internal aggregate functions.
+
+	(rasqal_new_function_expression2): Rewritten in terms of
+	rasqal_new_function_expression_common.
+
+	(rasqal_new_aggregate_function_expression):
+	Added.  based on rasqal_new_function_expression_common.
+
+	* src/rasqal.h: autodocs
+
+	* src/sparql_lexer.l:
+	(sparql_token_print): Handle GROUP_CONCAT and SAMPLE tokens
+
+	* src/rasqal_expr.c, src/rasqal_query_write.c: Added expression
+	class suport for group_concat() and sample()
+
+	(rasqal_expression_clear, rasqal_expression_visit,
+	rasqal_expression_write, rasqal_expression_print,
+	rasqal_expression_is_constant,
+	rasqal_query_write_sparql_expression): Add support for
+	RASQAL_EXPR_SAMPLE and RASQAL_EXPR_GROUP_CONCAT.
+
+	(rasqal_expression_evaluate): Add placeholders for group_concat()
+	and sample() evaluation.  Do they have any meaning for
+	non-aggregate function evaluation?
+
+	* src/rasqal.h:
+	Added RASQAL_EXPR_GROUP_CONCAT and
+	RASQAL_EXPR_SAMPLE for SPARQL 1.1 agg functions.
+
+	* src/sparql_parser.y: Added optional DISTINCT for built-in
+	aggregate functions, setting bitflags.
+
+	(%union): Added uninteger unsigned int for flags.
+
+	(DistinctOpt): Moved earlier
+
+	(CountAggregateExpression, SumAggregateExpression,
+	AvgAggregateExpression, MinAggregateExpression,
+	MaxAggregateExpression, FunctionCall): Add DistinctOpt and set
+	expression flags if present.
+
+	* src/rasqal.h: Added rasqal_expression_flags for
+	rasqal_expression bitflags
+
+	* src/rasqal_expr.c: #ws
+
+	* tests/laqrs/syntax/agg-function-1.rq,
+	tests/laqrs/syntax/agg-function1.rq: Rename test
+
+	* tests/laqrs/syntax/Makefile.am,
+	tests/laqrs/syntax/agg-function-1.rq: Test agg function with zero
+	params
+
+	* tests/laqrs/syntax/function-distinct1.rq: Update to latest draft
+	aggregate function syntax; note example is not real.
+
+	* src/sparql_parser.y: Start to handle latest draft aggregate
+	function style (DISTINCT + parameters)
+
+2010-03-29  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y:
+	(FunctionCall): Use rasqal_new_function_expression2
+
+	* src/rasqal.h, src/rasqal_expr.c: Added support for sparql 1.1
+	function parameters and flags.
+
+	(rasqal_new_function_expression2): Added.
+
+	(rasqal_new_function_expression): Deprecated for above
+
+	* src/sparql_parser.y: Add support for function with optional
+	DISTINCT.
+
+	(DistinctOpt): Added, returning boolean (integer) flag.
+
+	(FunctionCall): Add new clause for DISTINCT
+
+	* tests/laqrs/syntax/Makefile.am,
+	tests/laqrs/syntax/function-distinct1.rq: Added test for function
+	with DISTINCT for sparql 1.1
+
+	* src/sparql_parser.y: Add ArgList including braces, rename old
+	ArgList to ArgListNoBraces.
+
+2010-03-28  Dave Beckett <dave@dajobe.org>
+
+	* rasqal.spec.in: Updates based on fedora spec - not tested.
+
+2010-03-24  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_html.c, src/rasqal_internal.h: Rewrite in
+	RAPTOR V2 API terms with raptor_xml_escape_string_write
+
+	Add raptor_xml_escape_string_write for Raptor V1 to older
+	function.
+
+	* src/rasqal_format_html.c: code style
+
+	* src/Makefile.am, src/rasqal_format_html.c,
+	src/rasqal_internal.h, src/rasqal_result_formats.c: Add HTML Table
+	results format Applied patch from
+	http://bugs.librdf.org/mantis/view.php?id=360
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Implement RASQAL_EXPR_IF
+
+	* tests/laqrs/syntax/if1.rq: turn into a constant IF expr that can
+	be evaluated at parse time
+
+	* configure.ac, src/rasqal.h: Update minimum raptor to 1.4.19 so
+	that raptor_world typedef is always available
+
+2010-03-23  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal.h: Use RAPTOR_V2_AVAILABLE instead of
+	RAPTOR_WORLD_DECLARED (no longer available) to decide whether to
+	declare raptor_world type
+
+	* src/rasqal_xsd_datatypes.c: Fixed gcc4 warnings about using a
+	char where an int is required
+
+	* src/sparql_parser.y:
+	(LoadQuery): Allow DEFAULT graphs i.e. NULL graph_uri.
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Use raptor_world not rasqal_world
+	for raptor_new_uri()
+
+2010-03-22  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y:
+	(UpdateQuery): Handle WITH URI INSERT DATA
+
+	* src/rasqal.h: Record deprecated bnodeid functions.Adjust
+	macros.
+
+	Add RASQAL_DEPRECATED for
+	rasqal_query_set_default_generate_bnodeid_parameters and
+	rasqal_query_set_generate_bnodeid_handler.  If
+	RASQAL_DISABLE_DEPRECATED is defined, remove all deprecated
+	prototypes and typedefs.
+
+	* src/sparql_parser.y: Handle LOAD ... list of DocUris... (INTO
+	GraphUri)
+
+	(IriRefList): Added to build a raptor_sequence of raptor_uri
+
+	(LoadQuery): Use IriRefList to iterate over doc uris and make an
+	update operation for each of them.  This may not correspond to the
+	actual sparql update semantics, to be determined. If the list-load
+	is one operation, it will need a rasqal_update_operation API
+	change
+
+	* src/sparql_parser.y: Handle updated SPARQL 1.1 update draft
+	syntax removing GRAPH keyword in update operations, adding DEFAULT
+	keyword
+
+	* src/sparql_lexer.l: Added DEFAULT token
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): RASQAL_EXPR_BNODE fix for no arg.
+
+	* src/rasqal_expr.c: Handle BNODE() with NULL expression arg.
+
+	(rasqal_expression_clear, rasqal_expression_visit,
+	rasqal_expression_evaluate, rasqal_expression_write,
+	rasqal_expression_print, rasqal_expression_is_constant): Handle
+	optional arg1 for RASQAL_EXPR_BNODE.
+
+	* src/rasqal.h, src/rasqal_general.c, src/rasqal_internal.h,
+	src/rasqal_query.c: Move generate blank node ID functionality to
+	world class and deprecate query class methods
+
+	rasqal_generate_bnodeid_handler2 added handler typedef taking world
+	arg.
+
+	rasqal_world gains bnodeid generating parameter fields and
+	handler/user data fields.
+
+	rasqal_query loses the bnodeid generating parameter fields,
+	renamed to unused1-3.
+
+	(rasqal_world_set_default_generate_bnodeid_parameters,
+	rasqal_world_set_generate_bnodeid_handler): Added
+
+	(rasqal_query_set_default_generate_bnodeid_parameters): Deprecated
+	for rasqal_world_set_default_generate_bnodeid_parameters and now
+	is a wrapper for it.
+
+	(rasqal_query_set_generate_bnodeid_handler): Deprecated but still
+	has to be stored since handler signature is not the same as new
+	rasqal_generate_bnodeid_handler2
+	typedef.
+
+	(rasqal_query_generate_bnodeid): Prefer world bnodeid handler,
+	then query handler, then world generate bnodeid functionality.
+
+	* src/rasqal_general.c: Renamed some internal functions
+
+	(rasqal_query_default_generate_bnodeid_handler): Renamed from
+	rasqal_default_generate_bnodeid_handler
+
+	* src/rasqal_general.c: autodocs
+
+	* src/rasqal.h, src/rasqal_expr.c: Fix rasqal_expression_visit,
+	rasqal_graph_pattern_visit_fn and rasqal_expression_visit_fn docs
+	to match code
+
+	* src/sparql_parser.y:
+	(BuiltInCall): Handle BNODE() and BNODE(expr)
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/bnode2.rq:
+	Add test for BNODE() with no args
+
+	* tests/sparql/update/Makefile.am, tests/sparql/update/clear-4.rq,
+	tests/sparql/update/insert-data-2.rq,
+	tests/sparql/update/insert-data-3.rq,
+	tests/sparql/update/insert-data-4.rq,
+	tests/sparql/update/load-3.rq, tests/sparql/update/load-4.rq:
+	Added laqrs / SPARQL 1.1 update draft syntax examples from
+
+	http://lists.w3.org/Archives/Public/public-rdf-dawg/2010JanMar/0569.html
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/bnode1.rq,
+	tests/laqrs/syntax/strdt1.rq, tests/laqrs/syntax/strdt2.rq: Update
+	laqrs tests for bnode() and strdt()
+
+	* src/rasqal_expr.c: Implement expression evaluation for IRI, URI,
+	STRLANG, STRDT, BNODE.
+
+	(rasqal_expression_evaluate): Implement RASQAL_EXPR_IRI,
+	RASQAL_EXPR_URI, RASQAL_EXPR_STRLANG, RASQAL_EXPR_STRDT and
+	RASQAL_EXPR_BNODE.
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/bnode1.rq,
+	tests/laqrs/syntax/if1.rq, tests/laqrs/syntax/iri1.rq,
+	tests/laqrs/syntax/strdt1.rq, tests/laqrs/syntax/strlang1.rq,
+	tests/laqrs/syntax/uri1.rq: Add LAQRS tests for new LAQRS (draft
+	SPARQL 1.1) expressions
+
+	* src/rasqal_expr.c, src/rasqal_query_write.c: Add expression
+	support for STRLANG, STRDT, IF, URI, IRI and BNODE.
+
+	(rasqal_expression_clear, rasqal_expression_visit,
+	rasqal_expression_write, rasqal_expression_print,
+	rasqal_expression_is_constant,
+	rasqal_query_write_sparql_expression): Added cases for new
+	expressions.  rasqal_op_labels and rasqal_sparql_op_labels gain
+	labels for new tokens.
+
+	(rasqal_expression_evaluate): Added dummy support for these
+	expressions, causing a fatal error.
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL
+	lexer/parser for STRLANG, STRDT, IF, IRI, URI and BNODE.
+
+	* src/rasqal.h: Added operations for IF, URI, IRI, STRLANG, STRDT
+	and BNODE expressions.
+
+	rasqal_op gains RASQAL_EXPR_IF, RASQAL_EXPR_URI, RASQAL_EXPR_IRI,
+	RASQAL_EXPR_STRLANG, RASQAL_EXPR_STRDT and RASQAL_EXPR_BNODE
+
+2010-03-22  Lauri Aalto <laalto@iki.fi>
+
+	* utils/roqet.c: Ported to raptor2 git head.
+	raptor_parser_get_option_count() -> raptor_option_get_count()
+
+2010-03-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h: Note datetime does not write to literal value
+
+	* src/rasqal_internal.h: Added prototypes for
+	rasqal_xsd_date_check and rasqal_xsd_date_string_to_canonical
+
+	* src/rasqal_datetime.c: Adjust normalized xsd:date - no trailing
+	Z
+
+	* src/rasqal_datetime.c: Fix
+	rasqal_xsd_datetime_parse_and_normalize_common() for dates.  Add
+	tests.
+
+	(rasqal_xsd_datetime_parse_and_normalize_common): Handle day in
+	common code and allow xsd:date to terminate on Z or +/- timezone.
+
+	(rasqal_xsd_date_to_string): Terminate in Z Add test framework for
+	xsd:date and adjust dateTime tests to check timezones with dates
+	that canonicalize to a different date.
+
+	* src/rasqal_datetime.c:
+	(main): Rename d var to dt for dateTime
+
+	* src/rasqal_datetime.c:
+	Add rasqal_xsd_date and xsd:date check,
+	normalization functions rasqal_xsd_date added based on y/m/d from
+	rasqal_xsd_dateTime
+
+	(rasqal_xsd_date_parse_and_normalize): Added calling
+	rasqal_xsd_datetime_parse_and_normalize_common and copying the
+	result fields over on success.
+
+	(rasqal_xsd_date_to_string): Added.
+
+	(rasqal_xsd_date_string_to_canonical): Added.
+
+	(rasqal_xsd_date_check): Added.
+
+	* src/rasqal_datetime.c:
+	Start letting rasqal_xsd_datetime_parse_and_normalize_common()
+	handle date
+
+	(rasqal_xsd_datetime_parse_and_normalize_common): Renamed from
+	rasqal_xsd_datetime_parse_and_normalize and takes is_dateTime
+	boolean arg.  If set, checks hour, mins, secs and fractions of
+	secs, otherwise sets that to 12:00:00.00 for
+	xsd:date.
+
+	(rasqal_xsd_datetime_parse_and_normalize): Call
+	rasqal_xsd_datetime_parse_and_normalize_common with flag set.
+
+	* src/rasqal_datetime.c: code style
+
+2010-03-04  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, configure.ac, src/rasqal.h:
+	Bumped version to 0.9.20
+
+	* tests/sparql/bugs/352-result.ttl, tests/sparql/bugs/352.rq,
+	tests/sparql/bugs/352.ttl, tests/sparql/bugs/Makefile.am,
+	tests/sparql/bugs/manifest.ttl: Add tests for bug 352
+
+	* docs/tmpl/section-general.sgml, docs/tmpl/section-literal.sgml:
+	Update doc tmpls
+
+	* docs/rasqal-sections.txt:
+	Add rasqal_world_set_log_handler
+
+	* tests/sparql/.gitignore, tests/sparql/bugs/354-result.ttl,
+	tests/sparql/bugs/354.nt, tests/sparql/bugs/354.rq,
+	tests/sparql/bugs/Makefile.am, tests/sparql/bugs/manifest.ttl: Add
+	sparql bugs dir
+
+	* configure.ac, tests/sparql/Makefile.am: Add bugs test area and
+	test for Issue#0000354
+
+	* src/rasqal_xsd_datatypes.c: code style
+
+	* src/rasqal.h, src/rasqal_format_json.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_sv.c,
+	src/rasqal_literal.c, src/rasqal_query_results.c,
+	src/rasqal_query_write.c, src/rasqal_xsd_datatypes.c:
+	Added literal type RASQAL_LITERAL_INTEGER_SUBTYPE to let subtypes
+	of xsd:integer work.
+
+	rasqal_literal_type gains (internal)
+	RASQAL_LITERAL_INTEGER_SUBTYPE to handle literals that are
+	sub-types of xsd:integer - so their parent is always
+	RASQAL_LITERAL_INTEGER and for all other purposes, act as integer.
+
+	(rasqal_literal_set_typed_value): If type is
+	RASQAL_LITERAL_INTEGER_SUBTYPE, do not rewrite the datatype URI
+	based on the literal type, but assume URI already there and parent
+	type are correct.
+
+	(rasqal_xsd_datatype_uri_to_type): Recognize when a type URI is
+	found that is a subtype of xsd:integer, set literal type to
+	RASQAL_LITERAL_INTEGER_SUBTYPE.
+
+	(rasqal_xsd_datatype_is_numeric): Accept
+	RASQAL_LITERAL_INTEGER_SUBTYPE as a numeric type.
+
+	(rasqal_xsd_datatype_parent_type): Return RASQAL_LITERAL_INTEGER
+	as parent type for RASQAL_LITERAL_INTEGER_SUBTYPE.
+
+	Update all literal type switches to use
+	RASQAL_LITERAL_INTEGER_SUBTYPE as RASQAL_LITERAL_INTEGER.
+
+	* src/rasqal_xsd_datatypes.c:
+	code style
+
+2010-03-02  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal.h, src/rasqal_format_sparql_xml.c,
+	src/rasqal_general.c, src/rasqal_internal.h, src/rasqal_query.c,
+	utils/roqet.c:
+	Ported to raptor2 git head while retaining support for raptor1.
+	
+	(rasqal_query_set_fatal_error_handler,
+	rasqal_query_set_error_handler, rasqal_query_set_warning_handler):
+	Flagged out for raptor2. Use rasqal_world_set_log_handler()
+	instead.
+	
+	(rasqal_world_set_log_handler): Added new API function for raptor2
+	only. 
+	
+	(rasqal_rowsource_sparql_xml_context): Flagged out error_handlers.
+	Not needed with raptor2.
+	
+	(rasqal_query_results_get_rowsource_sparql_xml): No need to init
+	error_handlers. raptor2 raptor_new_sax2() takes a raptor_locator*,
+	not error_handlers containing raptor_locator*.
+	
+	(rasqal_world_open): Flagged out error_handlers magic.
+	
+	(rasqal_log_error_varargs): Support raptor2 raptor_log_messages and
+	raptor_log_handlers.
+	
+	(rasqal_log_error): Removed unused internal function declaration.
+	
+	(rasqal_world_s): Flagged out error_handlers. Added support for
+	raptor_log_handlers.
+	
+	(roqet_log_handler): Added.
+	
+	(main): Use raptor2 log_handler in roqet.
+
+2010-02-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c: Check for limit and offsets when
+	reading incremental query results
+
+	(rasqal_query_results_ensure_have_row_internal): When calling the
+	execution factory get_row() method, check the query result limit
+	and offsets are met and select a subsequence of the returned
+	results.
+
+	Intended to address Issue#000352 but may also be better done with
+	other changes to QE1 to remove it's duplicate limit/offset
+	checking in favour of this check.
+
+2010-02-23  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h: Declare
+	rasqal_escaped_name_to_utf8_string with printf format arg.
+
+2010-02-22  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_general.c, src/rasqal_internal.h, src/rdql_lexer.l,
+	src/sparql_lexer.l: raptor2 raptor_unicode_utf8_string_put_char(),
+	raptor_unicode_utf8_string_get_char()
+
+2010-02-21  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_general.c, src/rasqal_query.c, src/rasqal_query_test.c,
+	src/rasqal_raptor.c, src/rasqal_row.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_xsd_datatypes.c,
+	src/rdql_lexer.l, src/rdql_parser.y, src/sparql_lexer.l,
+	src/sparql_parser.y, tests/algebra/convert_graph_pattern.c,
+	tests/engine/rasqal_construct_test.c,
+	tests/engine/rasqal_graph_test.c,
+	tests/engine/rasqal_limit_test.c,
+	tests/engine/rasqal_order_test.c,
+	tests/engine/rasqal_triples_test.c, utils/roqet.c: raptor2
+	raptor_new_uri() with preprocessor macro for raptor1 compatibility
+
+	* src/rasqal_algebra.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_rowsource.c, tests/algebra/convert_graph_pattern.c,
+	utils/roqet.c: raptor2 raptor_new_iostream_to_file_handle() with
+	preprocessor macro for raptor1 compatibility
+
+	* src/rasqal_format_json.c, src/rasqal_format_sv.c,
+	src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_query_write.c, src/sparql_parser.y: raptor2
+	raptor_string_ntriples_write() with preprocessor macro for raptor1
+	raptor_iostream_write_string_ntriples() compatibility
+
+	* src/rasqal_feature.c, src/rasqal_general.c,
+	src/rasqal_internal.h, src/rasqal_xsd_datatypes.c: raptor2
+	raptor_new_uri_from_uri_local_name() with preprocessor macro for
+	raptor1 compatibility
+
+	* src/rasqal_expr.c, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_query_transform.c,
+	src/rdql_parser.y, src/sparql_parser.y: raptor2
+	RAPTOR_LOG_LEVEL_WARN with preprocessor macro for raptor1
+	compatibility
+
+	* src/rasqal_general.c, src/rasqal_internal.h:
+	raptor_unicode_decode_utf8_char() ->
+	raptor_unicode_utf8_string_get_char()
+
+2010-02-19  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c, src/rasqal_expr.c,
+	src/rasqal_format_json.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_sv.c, src/rasqal_format_table.c,
+	src/rasqal_general.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_query_write.c, src/rasqal_rowsource.c,
+	src/rasqal_triple.c, src/rasqal_variable.c, src/sparql_parser.y,
+	tests/algebra/convert_graph_pattern.c:
+	Ported to raptor2 git head.
+	  - raptor_iostream_*()  
+	  - raptor_uri_write()
+	  - raptor_new_qname_from_namespace_local_uri()
+
+	Use preprocessor defines to maintain compatibility with raptor1. 
+
+2010-02-18  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_print): DRY: Use rasqal_literal_write().
+
+	(rasqal_literal_print_type): DRY: Use rasqal_literal_write_type().
+
+	(rasqal_literal_write): raptor2
+	raptor_iostream_write_string_ntriples() ->
+	raptor_string_ntriples_write()
+
+	* utils/roqet.c:
+	updated roqet.c to compile on raptor2 git head
+
+	* src/sparql_parser.y:
+	(rasqal_sparql_query_language_iostream_write_escaped_counted_string):
+	raptor2 raptor_iostream_write_string_ntriples() ->
+	raptor_string_ntriples_write()
+
+	* src/rasqal_format_json.c, src/rasqal_format_sv.c:
+	(rasqal_query_results_write_json1,rasqal_query_results_write_sv):
+	raptor2 raptor_iostream_write_string_ntriples() ->
+	raptor_string_ntriples_write()
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_uri,rasqal_query_write_sparql_literal):
+	raptor2 raptor_iostream_write_qname() -> raptor_qname_write(),
+	raptor_iostream_write_string_ntriples() ->
+	raptor_string_ntriples_write()
+
+	* src/rasqal_raptor.c:
+	(ordinal_as_uri): Flagged out function needed only with raptor1
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_new_triples_source): raptor2 raptor_parse_uri() ->
+	raptor_parser_parse_uri()
+
+2010-02-16  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_result_formats.c:
+	(rasqal_query_results_formatter_write): NULL base_uri is valid.
+
+	* src/fix-bison: Removed fix-bison %destructor hack.  Was required
+	to get the raptor_world* param to raptor_free_uri() - no longer
+	needed.
+
+2010-02-15  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_19 for 0.9.19 release
+
+	* NEWS.html, RELEASE.html, configure.ac, src/rasqal.h: 0.9.19
+
+	* rasqal.pc.in:
+	Restore Requires: raptor ...
+
+	* README.html: GIT
+
+2010-02-14  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_18 for 0.9.18 release
+
+	* utils/Makefile.am: Add -lraptor to internal linking of utility
+	and example programs.
+
+	Added -lraptor to linking roqet, srxread and srxwrite so that on
+	systems where indirect library symbols (here in libraptor) are not
+	automatically found by looking up the base library (here
+	librasqal), the programs work.  This should not affect user
+	programs that link with rasqal since they use
+	  pkg-config rasqal --libs
+	or
+	  rasqal-config --libs
+	both of which add -lraptor.
+
+	See also
+	  Fedora bug 564885 for rasqal
+	  https://bugzilla.redhat.com/show_bug.cgi?id=564885
+	nd
+	  http://fedoraproject.org/wiki/Features/ChangeInImplicitDSOLinking
+	  https://fedoraproject.org/wiki/UnderstandingDSOLinkChange
+
+	Fixes Issue#0000347 http://bugs.librdf.org/mantis/view.php?id=347
+
+2010-02-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h:
+	reorder to put query results methods together
+
+	* src/rasqal_general.c: 2010
+
+2010-02-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h:
+	reorder to group query_results functions
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_as_node): Return NULL rather than reswitch and die.
+
+	* src/rasqal_literal.c: autodocs
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_as_node): Let reswitch - variable values return
+	a NULL value for an unbound variable.
+
+	* src/sparql_lexer.l:
+	(sparql_copy_string_token): copy language NUL
+
+	* src/sparql_lexer.l: code style
+
+	* src/rdql_lexer.l: code style
+
+	* src/rasqal_prefix.c: add includes
+
+	* src/Makefile.am: Add rasqal_prefix.c to lib
+
+	* src/rasqal_result_formats.c: code style
+
+	* src/rasqal_expr.c, src/rasqal_prefix.c: Move rasqal_prefix
+	class to rasqal_prefix.c
+
+	* src/Makefile.am, src/rasqal_data_graph.c, src/rasqal_expr.c:
+	Move rasqal_data_graph class to rasqal_data_graph.c
+
+	* src/Makefile.am, src/rasqal_expr.c, src/rasqal_triple.c:
+	Move rasqal_triple class to rasqal_triple.c
+
+	* ChangeLog, ChangeLog.7, Makefile.am: Add ChangeLog.7 for 2009
+
+	* .gitignore: do not ignore ChangeLog
+
+2010-02-12  Lauri Aalto <laalto@iki.fi>
+
+	* .gitignore: ignore *.stackdump files
+
+	* src/rasqal_general.c: raptor2 compatible rasqal_log_level_labels
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_triple): break out of switch properly
+	with raptor2.
+
+	* tests/algebra/convert_graph_pattern.c,
+	tests/engine/rasqal_construct_test.c,
+	tests/engine/rasqal_graph_test.c,
+	tests/engine/rasqal_limit_test.c,
+	tests/engine/rasqal_order_test.c,
+	tests/engine/rasqal_triples_test.c: Ported test code to raptor2
+	git HEAD with RAPTOR_V2_AVAILABLE flagging.
+
+	* src/rasqal_algebra.c: raptor2 raptor_new_sequence()
+	compatibility in test code.
+
+	* utils/roqet.c: Ported roqet to raptor2 git HEAD with
+	RAPTOR_V2_AVAILABLE flagging.
+
+	* src/rdql_lexer.l, src/rdql_parser.y: RDQL parser/lexer:
+	raptor2 raptor_uri calls
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_new_triples_source): raptor2 statement_handler,
+	generate_id_handler settings. Removed error_handler
+	setting.
+	(rasqal_raptor_statement_handler): Signature changed
+	to accept non-const raptor_statement for raptor2.
+	(rasqal_raptor_error_handler): Flagged out as unneeded with
+	raptor2.
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_error_handler): raptor2 raptor_locator_format()
+
+	* src/rasqal_raptor.c:
+	(raptor_statement_as_rasqal_triple): raptor2 compatible variant
+	of the function
+
+2010-02-11  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_new_triples_source): raptor2 raptor_new_parser()
+	call
+
+	* src/rasqal_algebra.c, src/rasqal_expr.c,
+	src/rasqal_format_json.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_sv.c, src/rasqal_general.c, src/rasqal_query.c,
+	src/rasqal_query_test.c, src/rasqal_query_write.c,
+	src/rasqal_result_formats.c, src/rasqal_row.c,
+	src/rasqal_rowsource.c, src/rasqal_rowsource_graph.c,
+	src/rasqal_rowsource_rowsequence.c, src/rasqal_rowsource_sort.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_variable.c,
+	src/rasqal_xsd_datatypes.c, src/rdql_lexer.l, src/rdql_parser.y,
+	src/sparql_lexer.l, src/sparql_parser.y: Work-in-progress to make
+	rasqal compile with raptor2 git HEAD (with RAPTOR_V2_AVAILABLE
+	defined).
+
+	Changed RAPTOR_LOG_LEVEL_WARNING to RAPTOR_LOG_LEVEL_WARN
+
+	Changed function call args:
+	 * raptor_uri calls
+	 * raptor_print_locator() -> raptor_locator_print()
+	 * raptor_new_sequence():
+	   raptor_sequence_{free,print}_handler -> raptor_data_..._handler
+	 * raptor_qname_string_to_uri()
+
+	* tests/.gitignore: ignore roqet.tmp in tests
+
+2010-02-10  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_divide): Make decimal division call
+	rasqal_xsd_decimal_divide() not add!
+
+	* src/Makefile.am, src/rasqal_formula.c, src/rasqal_literal.c:
+	Added rasqal_formula.c for rasqal_formula class code
+
+	* src/rasqal_variable.c: Revert
+	"(rasqal_new_variable_from_variable): Do not copy NULL expression"
+	This reverts commit 124173f9eddde4a57ed184ebd650418503d53e5b.
+
+	* src/rasqal_rowsource_join.c: Revert
+	"(rasqal_new_join_rowsource): Do not copy a NULL expr" This
+	reverts commit f9e92a72533cd8432c78175e0d65dce3392951da.
+
+	* src/rasqal_expr.c:
+	(rasqal_new_expression_from_expression): Allow NULL arg again for
+	the sake of code simplicity.
+
+	* src/rasqal_variable.c: Revert
+	"(rasqal_new_variable_from_variable): Do not try to copy NULL
+	literal pointer." This reverts commit
+	b1df8da1d6fadab183457ead62ab019eccde81ec.
+
+	* src/rasqal_literal.c:
+	(rasqal_new_literal_from_literal): Allow NULL arg again for the sake
+	of code simplicity.
+
+	* src/rasqal_variable.c:
+	(rasqal_new_variable_from_variable): Do not try to copy NULL
+	literal pointer.
+
+	* src/rasqal_literal.c: More assertions for NULL args for literal
+	class.  Tidied internal autodocs.
+
+	* src/rasqal_literal.c:
+	(rasqal_new_decimal_literal_from_decimal): Remove assertions
+	already checked in code
+
+	* src/rasqal_literal.c: casts for literal class arg checking
+
+	* src/rasqal_internal.h, src/rasqal_literal.c,
+	src/sparql_parser.y:
+	
+	rasqal_new_formula() gains a world arg.
+
+	* src/rasqal_literal.c: Code style: use var = ... calloc ( ...
+	sizeof(*var) )
+
+	* docs/tmpl/section-row.sgml,
+	docs/tmpl/section-variables-table.sgml: doc words
+
+	* docs/rasqal-docs.xml, docs/rasqal-sections.txt,
+	docs/tmpl/section-query_results.sgml, docs/tmpl/section-row.sgml,
+	docs/tmpl/section-variable.sgml,
+	docs/tmpl/section-variables-table.sgml: Update docs to add row and
+	variables-table sections and new functions
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_add_row): This is public.  autodocs and
+	check params
+
+2010-02-10  Lauri Aalto <laalto@iki.fi>
+
+	* .gitignore: ignore .libs, *.exe
+
+	* src/rasqal_raptor.c: raptor_uri
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_triple): Construct raptor_statement
+	using v2 raptor_terms.
+
+	(rasqal_new_query_results): Init static
+	raptor_statement.
+
+	(rasqal_free_query_results): Free terms owned by static
+	raptor_statement.
+
+2010-02-09  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_expr.c, src/rasqal_feature.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_general.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_literal.c, src/rasqal_map.c,
+	src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c, src/rasqal_query_write.c,
+	src/rasqal_raptor.c, src/rdql_lexer.l, src/sparql_lexer.l:
+	
+	Work-in-progress to make rasqal compile with raptor2 git HEAD (with
+	RAPTOR_V2_AVAILABLE defined).
+
+	(rasqal_escaped_name_to_utf8_string): Changed internal function
+	signature to be compatible with both raptor1 and raptor2.
+
+	(rasqal_query_results_get_triple): Construct raptor_statement
+	using v2 raptor_terms.
+
+	(rasqal_new_query_results): Init static raptor_statement.
+
+	(rasqal_free_query_results): Free terms owned by static
+	raptor_statement.
+
+	Changed RAPTOR_LOG_LEVEL_WARNING to RAPTOR_LOG_LEVEL_WARN
+
+	Changed function call args:
+	  * raptor_new_namespaces()
+	  * raptor_new_xml_writer()
+	  * raptor_new_qname(), raptor_new_qname_from_namespace_local_name()
+	  * raptor_qname_string_to_uri()
+	  * raptor_error_handlers_init()
+	  * raptor_new_sax2()
+	  * raptor_new_iostream_to_string(),
+	    raptor_new_iostream_to_file_handle()
+	  * raptor_uri calls
+	  * raptor_print_ntriples_string()
+	  * raptor_new_sequence(),
+	    raptor_sequence_{free,print}_handler ->  raptor_data_..._handler
+
+	* src/rasqal_general.c, src/rasqal_internal.h, src/rdql_lexer.l,
+	src/sparql_lexer.l:
+	(rasqal_escaped_name_to_utf8_string): Changed internal function
+	signature to be compatible with both raptor1 and raptor2.
+
+2010-02-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c:
+	(rasqal_new_prefix): Allow NULL prefix
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_new_graph_pattern_from_sequence): Allow NULL
+	graph_patterns seq.
+
+	* src/rasqal_variable.c:
+	(rasqal_new_variable_from_variable): Do not copy NULL expression
+	value.
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Allow locator arg to be NULL.
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_new_join_rowsource): Do not copy a NULL expr
+
+	* src/rasqal_expr.c, src/rasqal_graph_pattern.c,
+	src/rasqal_result_formats.c: Add a lot of assertions for
+	validating parameters are not NULL.
+
+	* src/rasqal_feature.c, src/rasqal_general.c,
+	src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c: Add a lot of assertions for validating
+	parameters are not NULL.
+
+	* tests/.gitignore: Ignore test output junk
+
+	* utils/.gitignore: Ignore example exes
+
+	* src/rasqal_format_json.c:
+	(rasqal_query_results_write_json1): Work when query is NULL and
+	take world from query results.
+
+	* src/rasqal_internal.h, src/rasqal_query_results.c: Add
+	rasqal_query_results_get_world()
+
+	* utils/Makefile.am: Add examples target
+
+	* utils/Makefile.am: Added srxwrite example to create a query
+	results via API and write it
+
+	* utils/srxwrite.c: Added srxwrite example to create a query results
+	via API and write it
+
+	* src/rasqal_query_results.c: (rasqal_query_results_get_binding_name):
+	Use variables table to get projection order if there is no query
+
+	* src/rasqal_format_sparql_xml.c, src/rasqal_row.c: Change
+	rasqal_row_set_value_at semantics to copy the passed-in literal.
+
+	(rasqal_row_set_value_at): Free any existing literal and copy the
+	literal given.  Update all callers to above semantics.
+
+	* src/rasqal.h, src/rasqal_row.c,
+	src/rasqal_rowsource_assignment.c, src/rasqal_rowsource_graph.c,
+	src/rasqal_rowsource_join.c, src/rasqal_rowsource_project.c: Give
+	row construct a world parameter like other constructors
+
+	(rasqal_new_row_for_size): Gains world param.
+
+	(rasqal_new_row_common): Gains world parameter.  Update all
+	callers.
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_internal.h, src/rasqal_literal.c:
+	(rasqal_literal_string_to_native): Deleted error_handler, error_data
+	args from internal function - not used.
+
+	* src/rasqal_format_sparql_xml.c:
+	(rasqal_query_results_get_rowsource_sparql_xml): Removed redundant
+	call to raptor_sax2_set_characters_handler().
+
+	* src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_table.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_map.c, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_query_transform.c:
+	
+	raptor_new_sequence(), raptor_sequence_{free,print}_handler ->
+	raptor_data_..._handler
+
+	* src/rasqal_literal.c:
+	raptor_qname_string_to_uri()
+
+	* src/rasqal_literal.c:
+	raptor_print_ntriples_string()
+
+	* src/rasqal_internal.h, src/rasqal_literal.c:
+	(rasqal_literal_string_to_native): Deleted error_handler, error_data
+	args from internal function - not used.
+
+	* src/rasqal_algebra.c, src/rasqal_graph_pattern.c:
+	
+	raptor_new_iostream_to_file_handle()
+
+	* src/rasqal_expr.c, src/rasqal_feature.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_general.c,
+	src/rasqal_literal.c, src/rasqal_query.c, src/rasqal_query_write.c:
+	
+	raptor_uri
+
+	* src/rasqal_format_table.c:
+	raptor_new_iostream_to_string()
+
+	* src/rasqal_format_sparql_xml.c:
+	(rasqal_query_results_get_rowsource_sparql_xml): Removed redundant
+	call to raptor_sax2_set_characters_handler().
+
+	* src/rasqal_format_sparql_xml.c:
+	raptor_new_sax2()
+
+	* src/rasqal_format_sparql_xml.c:
+	raptor_error_handlers_init()
+
+	* src/rasqal_format_sparql_xml.c:
+	
+	raptor_new_qname_from_namespace_local_name()
+
+	* src/rasqal_format_sparql_xml.c:
+	raptor_new_qname()
+
+	* src/rasqal_format_sparql_xml.c:
+	raptor_new_xml_writer()
+
+	* src/rasqal_format_sparql_xml.c, src/rasqal_query.c,
+	src/rasqal_query_write.c:
+	raptor_new_namespaces()
+
+	* src/rasqal_expr.c, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_query_transform.c:
+	
+	RAPTOR_LOG_LEVEL_WARNING -> RAPTOR_LOG_LEVEL_WARN
+
+	* src/rasqal_internal.h: raptor_simple_message_handler ->
+	raptor_message_handler
+
+2010-02-08  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_variable.c: Export
+	rasqal_variables_table_add to public API.
+
+	* utils/srxread.c: Use only public API.
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_query_results.c,
+	src/rasqal_row.c, src/rasqal_variable.c: Export to public API
+	functions and structs to allow creating standalone results
+
+	rasqal_variables_table added to public API (opaque struct)
+
+	rasqal_new_variables_table() and rasqal_free_variables_table() added
+	to public API to make a variables table and free it.
+
+	rasqal_query_results_type enum added to public API for use with
+	rasqal_new_query_results().
+
+	rasqal_new_query_results() added to public API to create a static
+	query result set.
+
+	rasqal_query_results_add_row() added to public API to add a row to a
+	static query result set.  Adjust to return a failure status.
+
+	rasqal_new_row_for_size(), rasqal_free_row() and
+	rasqal_row_set_value_at() added to public API to make a row with
+	literal values.  Add docs plus argument and offset checking to
+	rasqal_row_set_value_at().
+
+	* utils/srxread.c: #ws
+
+	* utils/srxread.c: Use rasqal_new_query_results_formatter2
+
+	* docs/rasqal-docs.xml, docs/tmpl/section-data.sgml,
+	docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-prefix.sgml,
+	docs/tmpl/section-query.sgml,
+	docs/tmpl/section-query_results.sgml,
+	docs/tmpl/section-query_results_formatter.sgml,
+	docs/tmpl/section-triple.sgml, docs/tmpl/section-updates.sgml,
+	docs/tmpl/section-variable.sgml: Updated doc templates.  Added
+	section updates.
+
+	* src/rasqal.h: rasqal_update_operation - autodocs for flags
+
+	* src/rasqal_expr.c: rasqal_prefix_print - autodocs
+
+	* docs/rasqal-sections.txt: Add section-updates
+
+	* src/rasqal_query_results.c: autodocs
+
+	* src/rasqal.h, src/rasqal_query_results.c: Added query read and
+	write functions with name, mime type and format args.
+
+	(rasqal_query_results_write2, rasqal_query_results_read2): Added
+	with new name and mime_type args deprecating versions without the
+	2 suffix.
+
+	* src/rasqal_query_results.c: Use
+	rasqal_new_query_results_formatter2 in query results read/write
+	methods.
+
+	(rasqal_query_results_write, rasqal_query_results_read): Use
+	rasqal_new_query_results_formatter2 with NULL name and mime type
+	args.
+
+	* utils/roqet.c, utils/srxread.c: Use
+	rasqal_new_query_results_formatter2 in utilities
+
+	* src/rasqal.h, src/rasqal_result_formats.c: Added
+	rasqal_new_query_results_formatter2 with format name, mime type
+	and URI args.
+
+	(rasqal_new_query_results_formatter2): Added
+
+	(rasqal_new_query_results_formatter,
+	rasqal_new_query_results_formatter_by_mime_type): Deprecated for
+	the above.
+
+	* src/rasqal.h, src/rasqal_algebra.c, src/rasqal_internal.h,
+	src/rasqal_literal.c, src/rasqal_map.c: Add status return code for
+	literal, algebra node, map print methods.
+
+	(rasqal_literal_print, rasqal_map_print,
+	rasqal_algebra_node_print): Return int status.
+
+	* src/rasqal_variable.c: autodocs
+
+	* src/rasqal_expr.c: autodocs
+
+	* src/rasqal_graph_pattern.c: autodocs
+
+	* src/rasqal_expr.c: autodocs
+
+	* src/rasqal_query_write.c: Update query writing for older laqrs
+	insert/delete forms.
+
+	(rasqal_query_write_sparql_20060406): Handles LAQRS INSERT/DELETE
+	experimental forms.  Add comments for what SPARQL 1.1 (Draft)
+	Update forms are done.
+
+	* tests/sparql/update/Makefile.am: insert-2.rq and delete-data-2.rq
+	now pass
+
+2010-02-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_write.c: Format SPARQL Update 1.1 output
+
+	(rasqal_query_write_sparql_triple_data): Added to help write
+	triple data blocks - GP known to contain just triples.
+
+	* src/sparql_parser.y: Set RASQAL_UPDATE_FLAGS_SILENT for CREATE /
+	DROP SILENT
+
+	* src/rasqal.h, src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c: Delete RASQAL_QUERY_VERB_CLEAR /
+	CREATE / DROP / LOAD
+
+	* src/sparql_parser.y: Use RASQAL_UPDATE_FLAGS_DATA to mark INSERT /
+	DELETE DATA is using triples.
+
+	* src/rasqal.h: Add RASQAL_UPDATE_FLAGS_DATA to rasqal_update_flags
+	for triple data.
+
+	* src/sparql_parser.y: Add UpdateOperationList to allow sequences of
+	update operations
+
+	* tests/sparql/update/Makefile.am: delete-2.rq passes
+
+	* src/sparql_parser.y: (UpdateQuery): Use WhereClauseOpt to allow
+	optional WHERE
+
+	* tests/sparql/update/Makefile.am, tests/sparql/update/clear-1.rq,
+	tests/sparql/update/clear-2.rq, tests/sparql/update/clear-3.rq,
+	tests/sparql/update/create-1.rq, tests/sparql/update/create-2.rq,
+	tests/sparql/update/delete-1.rq, tests/sparql/update/delete-2.rq,
+	tests/sparql/update/delete-data-1.rq,
+	tests/sparql/update/delete-data-2.rq,
+	tests/sparql/update/drop-1.rq, tests/sparql/update/drop-2.rq,
+	tests/sparql/update/insert-1.rq, tests/sparql/update/insert-2.rq,
+	tests/sparql/update/insert-data-1.rq,
+	tests/sparql/update/insert-delete-1.rq,
+	tests/sparql/update/load-1.rq, tests/sparql/update/load-2.rq:
+	Update tests from
+	http://www.w3.org/TR/2010/WD-sparql11-update-20100126/
+
+	* tests/sparql/update/Makefile.am,
+	tests/sparql/update/delete-data-2.rq: Add delete-data-2.rq from
+	http://www.w3.org/TR/2010/WD-sparql11-update-20100126/
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_update.c,
+	src/sparql_parser.y: Each rasqal_update_operation can now do
+	inserts and deletes in one.
+
+	Remove update types insert, delete and merge into
+	RASQAL_UPDATE_TYPE_UPDATE.
+
+	Added enum RASQAL_UPDATE_FLAGS_SILENT for capturing SILENT from
+	SPARQL update.
+
+	rasqal_update_operation gains both an insert and delete set of
+	templates.
+
+	(rasqal_new_update_operation): Gains two templates args to replace
+	one and a flags arg.  Update callers to create one
+	rasqal_update_operation instead of 1 or 2.
+
+	* src/sparql_parser.y: Moved WITH ... INSERT/DELETE ... WHERE query
+	into rasqal_update_operation form
+
+	* src/rasqal.h, src/rasqal_graph_pattern.c, src/rasqal_internal.h,
+	src/rasqal_update.c, src/sparql_parser.y: Added
+	rasqal_new_basic_graph_pattern_from_triples()
+
+	(rasqal_new_basic_graph_pattern_from_triples): Added to create a
+	basic graph pattern form a sequence of triples.
+
+	* src/sparql_parser.y: improve error message for beyond SPARQL 1.0
+	extensions.
+
+	* src/sparql_parser.y: Write update operations into query updates
+
+	Add update to lexer/parser union of type rasqal_update_operation.
+
+	Add destructor for GraphTriples as type rasqal_update_operation
+
+	Make all update queries return RASQAL_QUERY_VERB_UPDATE except for
+	previously used RASQAL_QUERY_VERB_INSERT and
+	RASQAL_QUERY_VERB_DELETE that are deprecated now.
+
+	(GraphTriples) creates and returns an update operation.
+
+	(InsertQuery, UpdateQuery, DeleteQuery, ClearQuery, DropQuery):
+	Create updates rather than store in query structure directly.
+
+	* src/rasqal_internal.h, src/rasqal_query.c: Remove query
+	graph_uri and document_uri fields in preference to updates field.
+
+	* src/rasqal_update.c: rasqal_new_update_operation args can be
+	NULL for CLEAR.
+
+	* src/rasqal.h, src/rasqal_update.c: Sort rasqal_update_type and
+	fix labels
+
+	* src/rasqal.h, src/rasqal_expr.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_literal.c, src/rasqal_query.c,
+	src/rasqal_row.c, src/rasqal_update.c, src/rasqal_variable.c:
+	Debug print methods now return int status to match
+	raptor_sequence_print_handler method.
+
+	* src/sparql_parser.y: (LoadQuery): Store document and graph URIs
+	in update operations.
+
+	* src/rasqal_update.c: cast for malloc
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_query.c: Added
+	rasqal_query_add_update_operation - internal for now
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_query.c: Add
+	update reading methods to query class
+
+	(rasqal_query_get_update_operations_sequence): Added to get sequence
+	of updates.
+
+	(rasqal_query_get_update_operation): Added to get an operation from
+	sequence of updates.
+
+	rasqal_query_s gains updates sequence field.
+
+	(rasqal_free_query): Free updates sequence.
+
+	(rasqal_query_print): Print updates
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_update.c: Add
+	document_uri to rasqal_update_operation
+
+	* src/Makefile.am, src/rasqal.h, src/rasqal_internal.h,
+	src/rasqal_update.c: Add rasqal graph update type, structure and
+	object functions
+
+	Added rasqal_update_type enum for types of graph update
+
+	Added rasqal_update_operation for holding an individual update
+
+	(rasqal_update_type_label): Added to get label for update type.
+
+	(rasqal_new_update_operation, rasqal_free_update_operation): Added
+	constructor and destructor for update operation.
+
+	(rasqal_update_operation_print): Added debug print method
+
+	* src/rasqal_query.c: Add update operations to
+	rasqal_query_verb_labels
+
+	* src/rasqal.h, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c: Added RASQAL_QUERY_VERB_UPDATE for
+	update operations
+
+	rasqal_query_verb gains RASQAL_QUERY_VERB_UPDATE Update switch
+	statements on this type to add new case.
+
+	* src/sparql_parser.y: Restored LAQRS old INSERT and DELETE syntax
+	with deprecated warnings.
+
+	* tests/improve: allow recursive running of a test to skip dirs
+	where it isn't supported
+
+	* tests/sparql/update/Makefile.am: Mark insert-2.rq as expected to
+	fail
+
+	* src/sparql_parser.y: Revert "Improve ConstructTemplate and
+	ConstructTriples rules"
+
+	This reverts commit f3e05dc3d465ce12677fc2daa12c80dc4ffc278e.
+
+	Get older tests to work at the cost of new test insert-2 failing.
+
+	* src/sparql_parser.y: debug message fix
+
+	* src/sparql_parser.y: Improve ConstructTemplate and
+	ConstructTriples rules
+
+	Down from expect 31 shift/reduce conflicts to
+	13 (ConstructTriplesRest): Added for second optional clause in
+	ConstructTriples to reduce conflicts.
+
+	* src/sparql_parser.y: Adjust comment - EXPLAIN is LAQRS, not in
+	SPARQL 1.1 draft
+
+2010-02-06  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Re-add SPARQL 1.1 WITH .. DELETE/INSERT
+	From 5 shift/reduce conflicts to 31 shift/reduce conflicts - seems
+	to be choices between two optional sequences of triples nearby.
+
+	Add UpdateQuery option that (for now) marks it as an INSERT.
+
+	(DeleteQuery): Switch to list of modify templates - which are
+	discarded.
+
+	(GraphTemplate): Added
+
+	(ModifyTemplate, ModifyTemplateList): Added.
+
+	(InsertQuery): Switch to list of modify templates - which are
+	discarded.
+
+	(UpdateQuery): Added for WITH alternatives.
+
+	* src/sparql_parser.y: Split ConstructTriplesOpt into
+	ConstructTriples and ConstructTriplesOpt
+
+	(ConstructTriplesOpt): Moved empty case here
+
+	(ConstructTriples): Added, calling ConstructTriplesOpt and
+	handling a non-empty list of construct triples.  The above makes
+	ConstructTemplate closer to the SPARQL 1.0 grammar for construct
+	triples.  The difference is probably extra optional '.'s
+
+	* src/sparql_parser.y: Revert to make existing sparql tests work
+
+	Revert commits 83d66dd1c115b9f18b2043f13122630daad594d8
+	18ce2f8f3fc61dd641068f6ff5fddc01df4106bc so that the older SPARQL
+	tests work.  This makes the SPARQL 1.1 draft insert & delete forms
+	tests fail.
+
+	* tests/improve: truncate log to 15 lines only if too long
+
+	* tests/rdql/testsuite/check-rdql: (toDebug): Discard @lang from
+	"string"@lang^^datatype
+
+	* tests/rdql/testsuite/check-rdql: #2010
+
+	* .gitignore: Remove rdf files from top level .gitignore
+
+	* docs/tmpl/section-query.sgml, docs/tmpl/section-variable.sgml:
+	updated generated docs
+
+	* tests/sparql/update/data.ttl: Data for sparql update test
+
+	* RELEASE.html: 0.9.18
+
+	* src/rasqal_algebra.c, src/rasqal_expr.c,
+	src/rasqal_graph_pattern.c, src/rasqal_query.c,
+	src/rasqal_rowsource.c, src/rasqal_variable.c: Use FILE* for
+	autodocs not #FILE*
+
+	* src/rasqal.h: rasqal_data_graph autodocs
+
+	* src/rasqal_literal.c: rasqal_literal_print_type autodocs
+
+	* src/rasqal.h: rasqal_data_graph autodocs
+
+	* src/rasqal_literal.c: rasqal_literal_print autodocs
+
+	* src/rasqal_query.c: remove autodocs indicator
+
+	* src/rasqal_query_results.c: remove autodocs indicator
+
+	* src/rasqal_general.c:
+	rasqal_query_set_default_generate_bnodeid_parameters autodocs
+
+	* src/rasqal_engine.c: remove autodocs indicator
+
+	* .gitignore, RELEASE.html, autogen.sh, build/.gitignore,
+	build/shave-libtool.in, build/shave.in, build/shave.m4,
+	configure.ac: Use AM_SILENT_RULES and move autotools helper files
+	to build/ dir
+
+	Update autogen.sh with latest version; dependent on automake 1.11
+	and it's dependencies to get AM_SILENT_RULES.
+
+	Update configure.ac to invoke AM_SILENT_RULES defaulting to 'no'.
+
+	Delete SHAVE.
+
+	* NEWS.html, configure.ac, src/rasqal.h:
+	Bumped version to 0.9.18
+
+	* src/sparql_lexer.l:
+	Make sparql_token_free static
+
+	* src/rasqal.h:
+	Add user_data field to rasqal_variable.
+
+	rasqal_variable gains user_data field.
+
+	Fixes Issue#0000320
+	http://bugs.librdf.org/mantis/view.php?id=320
+
+	* src/rasqal_format_json.c: Use application/json for JSON results
+	format mime type
+
+	(rasqal_init_result_format_json): Register mime type
+	application/json instead of text/json for JSON results format.
+	
+	Fixes Issue#0000323 http://bugs.librdf.org/mantis/view.php?id=323
+
+2010-02-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_sv.c: Give CSV and TSV query result formats
+	mime types and URIs
+
+	(rasqal_init_result_format_sv): Register result format 'csv' with
+	URI http://www.ietf.org/rfc/rfc4180.txt and result format 'tsv'
+	with mime type text/tab-separated-values and URI
+	http://www.iana.org/assignments/media-types/text/tab-separated-valuesValues
+	taken from Issue#0000345.
+
+	Fixes Issue#0000345 http://bugs.librdf.org/mantis/view.php?id=345
+
+2010-02-05  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_table.c:
+	(rasqal_init_result_format_table): Fixed typo in result format
+	MIME type.	
+
+	Fixes Issue #0000343
+	http://bugs.librdf.org/mantis/view.php?id=343
+
+2010-02-01  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Set and enforce raptor max version of <= 1.8.99
+
+2010-01-31  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l: Make sparql_token_free usable outside this
+	module.
+
+2010-01-24  Dave Beckett <dave@dajobe.org>
+
+	* rasqal.pc.in: Use pkg-config (undocumented) Requires.private for
+	raptor
+
+2010-01-19  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Alter DELETE to take a list of templates
+	(sub-graphs) to delete.
+
+	* src/sparql_parser.y: make WITH <uri> DELETE ... INSERT ... WHERE
+	.. SPARQL 1.1 update (draft) work
+
+	Because the grammar is ambiguous in several places and unstable,
+	in this grammar WITH <uri> is required, not optional as the
+	grammar makes it.
+
+	Shift/reduce conflicts goes from 5 to 13 probably because of
+	insert/delete ambiguity.
+
+	(ConstructTriples): Added; was part of ConstructTriplesOpt
+
+	(GraphTemplate): Added.
+
+	(ModifyTemplate, ModifyTemplateList): To form list of graphs to
+	update.  This data is thrown away now, not stored.
+
+	(UpdateQuery): Added but pretending to be INSERT verb.  Only
+	supports WITH <uri> DELETE { ... } INSERT { ... } WHERE ...  form
+	with no optional WITH; otherwise this is even more ambiguous.
+
+	* tests/sparql/update/insert-1.rq: ws
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Add SPARQL 1.1 update
+	draft LOAD <documentUri> [ INTO <graph URI>]
+
+	Added INTO keyword to sparql lexer
+
+	(LoadQuery): Added with the two forms, storing the document URI as
+	well as the optional graph URI
+
+	* src/rasqal_internal.h, src/rasqal_query.c: Add document_uri
+	field to rasqal_query for SPARQL 1.1 update LOAD document URI
+
+	* src/rasqal.h, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c: Add RASQAL_QUERY_VERB_LOAD for
+	SPARQL 1.1 update draft LOAD command
+
+	* src/sparql_parser.y: Code style - break lines and whitespace
+
+	* src/sparql_parser.y: Code style - break lines, whitespace, move
+	seq size out of loops.
+
+	* src/sparql_parser.y: Code style - break long lines.
+
+	* src/sparql_parser.y: Add DELETE triples syntax from SPARQL 1.1
+	update draft
+
+	(DeleteQuery): Add DELETE DATA { triples} form, storing the
+	triples to delete in the rasqal_query constructs field, for now.
+
+	* src/sparql_parser.y: Add INSERT triples syntax from SPARQL 1.1
+	update draft
+
+	(GraphTriples): Added to turn a block of triples with optional
+	graph URI into query structure.  The insert triples are stored in
+	the query construct triples field.
+
+	(InsertQuery): Allow SPARQL 1.1 update draft form inserting a set
+	of triples with INSERT DATA { triples }.
+
+	(GraphpatternListOpt): Fix error message label
+
+	* src/sparql_parser.y: Add CREATE and DROP syntax from SPARQL 1.1
+	update draft
+
+	* src/rasqal.h, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c: Add RASQAL_QUERY_VERB_CREATE and
+	RASQAL_QUERY_VERB_DROP for SPARQL 1.1 update draft
+
+	* src/sparql_parser.y:
+	Added SPARQL 1.1 Update CLEAR & CLEAR GRAPH
+
+	<uri> (ClearQuery): Added.  Stores graph URI when given, in
+	rasqal_query field graph_uri.
+
+	* tests/sparql/update/Makefile.am:
+	Use -i laqrs in testing for now
+
+	* src/sparql_lexer.l:
+	(sparql_token_print): Add missing tokens
+
+	* src/rasqal_internal.h, src/rasqal_query.c: rasqal_query gains
+	graph_uri field for storing CLEAR/DROP graph uri
+
+	* src/rasqal.h, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c: Added RASQAL_QUERY_VERB_CLEAR for
+	SPARQL 1.1 update CLEAR verb
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 Update
+	LOAD keyword
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 Update
+	DROP keyword
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 Update
+	DATA keyword
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 Update
+	SILENT keyword
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 Update
+	CREATE keyword
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 Update
+	CLEAR keyword
+
+	* configure.ac, tests/sparql/Makefile.am,
+	tests/sparql/update/Makefile.am, tests/sparql/update/bad-1.rq,
+	tests/sparql/update/clear-1.rq, tests/sparql/update/clear-2.rq,
+	tests/sparql/update/clear-3.rq, tests/sparql/update/create-1.rq,
+	tests/sparql/update/create-2.rq, tests/sparql/update/delete-1.rq,
+	tests/sparql/update/delete-data-1.rq,
+	tests/sparql/update/drop-1.rq, tests/sparql/update/drop-2.rq,
+	tests/sparql/update/insert-1.rq, tests/sparql/update/insert-2.rq,
+	tests/sparql/update/insert-data-1.rq,
+	tests/sparql/update/insert-delete-1.rq,
+	tests/sparql/update/load-1.rq, tests/sparql/update/load-2.rq: Add
+	SPARQL 1.1 Update tests
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added WITH keyword to
+	SPARQL 1.1 (draft) / LAQRS
+
+2010-01-06  Dave Beckett <dave@dajobe.org>
+
+	* LICENSE.html: 2010
+
+	* TODO.html: 2010
+
+	* INSTALL.html: 2010
+
+	* RELEASE.html: 2010
+
+	* README.html: 2010
+
+	* NEWS.html: 2010
+
+2010-01-02  Dave Beckett <dave@dajobe.org>
+
+	* tests/engine/.gitignore: Ignore deps
+
+	* docs/tmpl/.gitignore: Update another .gitignore
+
+	* .gitignore, build/.gitignore, docs/.gitignore, src/.gitignore,
+	tests/algebra/.gitignore, tests/engine/.gitignore, utils/.gitignore:
+	
+	Add .gitignore to replace SVN properties svn:ignore
