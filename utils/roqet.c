@@ -1457,6 +1457,9 @@ main(int argc, char *argv[])
   if(!query_from_string)
     free(query_string);
 
+  if(rq)
+    rasqal_free_query(rq);
+
  tidy_setup:
 
   if(data_graphs)
