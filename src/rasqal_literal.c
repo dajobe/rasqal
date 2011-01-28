@@ -2452,7 +2452,7 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
   /* NULL literals */
   if(!l1 || !l2) {
     /* if either is not null, the comparison fails */
-    return (l1 || l2);
+    return !(l1 || l2);
   }
 
 #if RASQAL_DEBUG > 1
