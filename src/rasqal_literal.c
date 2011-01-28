@@ -961,9 +961,7 @@ rasqal_new_variable_literal(rasqal_world* world, rasqal_variable *variable)
     l->value.variable = variable;
   }
 
-  /* Do not rasqal_free_variable(variable) on error since
-   * all variables are shared and owned by rasqal_query
-   * variables_sequence */
+  rasqal_free_variable(variable);
 
   return l;
 }
@@ -1053,7 +1051,8 @@ rasqal_free_literal(rasqal_literal* l)
       break;
 
     case RASQAL_LITERAL_VARIABLE:
-      rasqal_free_variable(l->value.variable);
+      if(l->value.variable)
+        rasqal_free_variable(l->value.variable);
       break;
 
     case RASQAL_LITERAL_UNKNOWN:
