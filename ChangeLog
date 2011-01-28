@@ -1,3 +1,45 @@
+2011-01-27  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/Expr1/Makefile.am, tests/sparql/Expr2/Makefile.am:
+	Mark 4 SPARQL 1.0 tests as passing after NULL literal comparison
+	fixes.
+	Expr1:
+	  Tests "OPTIONAL-FILTER" and "OPTIONAL - Outer FILTER" now pass
+	Expr2:
+	  Tests "Test 'boolean effective value' - optional" and 
+	  "Test 'boolean effective value' - unknown types" now pass
+
+	* NEWS.html, RELEASE.html, src/rasqal_literal.c:
+	(rasqal_literal_equals_flags): Make comparisons with one or more
+	NULLs work.
+
+	Fixes Issue#0000417
+	http://bugs.librdf.org/mantis/view.php?id=417
+
+2011-01-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_array_compare): Sort NULLs earlier in SPARQL
+	ordering.
+	Fixes Issue#0000407
+	http://bugs.librdf.org/mantis/view.php?id=407
+
+	* docs/tmpl/section-graph_pattern.sgml: Update tmpls
+
+	* scripts/process-changes.pl: Sort by new version, newest first.
+	Put package title in section only. Handle multiple old/new version
+	pairs
+
+	* docs/Makefile.am: Rasqal name
+
+	* ChangeLog, ChangeLog.8, Makefile.am: Add ChangeLog.8 for 2010
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt: Add
+	rasqal_graph_pattern_get_flattened_triples
+
+	* scripts/process-changes.pl:
+	Update to version from librdf
+
 2011-01-25  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_query_write.c:
