@@ -1,4 +1,7 @@
-2011-01-27  Dave Beckett <dave@dajobe.org>
+2011-01-27  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_23 for 0.9.23 release (GIT
+	c2105bc8f4ccc77bb407213aa19c2a9e57c42531)
 
 	* tests/sparql/Expr1/Makefile.am, tests/sparql/Expr2/Makefile.am:
 	Mark 4 SPARQL 1.0 tests as passing after NULL literal comparison
