@@ -1053,11 +1053,7 @@ rasqal_free_literal(rasqal_literal* l)
       break;
 
     case RASQAL_LITERAL_VARIABLE:
-      /* It is correct that this is not called here
-       * since all variables are shared and owned by
-       * the rasqal_query sequence variables_sequence */
-
-      /* rasqal_free_variable(l->value.variable); */
+      rasqal_free_variable(l->value.variable);
       break;
 
     case RASQAL_LITERAL_UNKNOWN:
