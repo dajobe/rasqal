@@ -1908,8 +1908,10 @@ rasqal_algebra_query_add_aggregation(rasqal_query* query,
   if(!query || !ae || !node)
     goto tidy;
   
-  if(!ae->counter)
+  if(!ae->counter) {
+    rasqal_free_algebra_aggregate(ae);
     return node;
+  }
 
   /* Move ownership of sequences inside ae to here */
   exprs_seq = ae->agg_exprs; ae->agg_exprs = NULL;
