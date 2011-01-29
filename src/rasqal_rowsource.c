@@ -97,7 +97,6 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
   else
     rowsource->vars_table = NULL;
 
-  /* no free method here - the variables are owned by rowsource->vars_table */
   rowsource->variables_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                                                       (raptor_data_print_handler)rasqal_variable_print);
   if(!rowsource->variables_sequence) {
