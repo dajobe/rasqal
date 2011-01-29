@@ -1,3 +1,122 @@
+2011-01-29  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y, tests/sparql/update/Makefile.am,
+	tests/sparql/update/multiple-1.rq: Support SPARQL 1.1 Update
+	DELETE WHERE { }
+
+	(DeleteQuery): Add DELETE WHERE { } storing the triples in
+	update->delete_templates
+
+	Add and enable DELETE WHERE tests delete-where-1.rq and
+	delete-where-2.rq which were in GIT already but not called.
+
+	* src/sparql_lexer.l, src/sparql_parser.y,
+	tests/sparql/update/Makefile.am,
+	tests/sparql/update/delete-data-2.rq,
+	tests/sparql/update/insert-2.rq,
+	tests/sparql/update/multiple-1.rq:
+	Require ; between update operations
+
+	Add test for multiple operations in one update
+
+	Adjust tests to match new syntax: delete-data-2.rq insert-2.rq
+
+	Alter sparql lexer and parser test buffer size to 4K
+
+	* src/rasqal_literal.c:
+	(rasqal_free_literal): Free datetime datatype URI
+
+	* docs/tmpl/section-updates.sgml: Update tmpls
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_extract_aggregate_expression_visit): Correct
+	variable references for aggregate work: give map a reference.
+
+	* src/rasqal_rowsource_aggregation.c: autodocs
+
+	* src/rasqal_rowsource.c: autodocs
+
+2011-01-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_add_aggregation): Clean up ae if no
+	aggregation in query.
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_aggregation_rowsource_finish): Free con->expr_data
+
+	* src/rasqal_solution_modifier.c:
+	(rasqal_free_solution_modifier): Free having conditions
+
+	* src/rasqal_algebra.c, src/rasqal_dataset.c, src/rasqal_engine.c,
+	src/rasqal_format_table.c, src/rasqal_formula.c,
+	src/rasqal_general.c, src/rasqal_graph.c,
+	src/rasqal_graph_pattern.c, src/rasqal_map.c,
+	src/rasqal_result_formats.c, src/rasqal_row_compatible.c,
+	src/rasqal_rowsource.c, src/rasqal_triples_source.c,
+	src/rasqal_update.c: Make all object destructors simply return on
+	a NULL object pointer
+
+	* src/rasqal_projection.c:
+	(rasqal_free_projection): Free if pointer NOT NULL
+
+	* src/rasqal_literal.c:
+	(rasqal_new_variable_literal): Only free variable if calloc fails
+
+	* docs/rasqal-sections.txt, src/rasqal.h.in,
+	src/rasqal_internal.h, src/rasqal_query_write.c,
+	src/rasqal_update.c, src/sparql_lexer.l, src/sparql_parser.y,
+	tests/sparql/update/Makefile.am, tests/sparql/update/add-1.rq,
+	tests/sparql/update/add-2.rq, tests/sparql/update/copy-1.rq,
+	tests/sparql/update/copy-2.rq, tests/sparql/update/move-1.rq,
+	tests/sparql/update/move-2.rq: Added support for SPARQL 1.1 Update
+	draft ADD, MOVE, COPY parsing.
+
+	rasqal_update_type gains new enum values RASQAL_UPDATE_TYPE_ADD,
+	RASQAL_UPDATE_TYPE_MOVE and RASQAL_UPDATE_TYPE_COPY
+
+	Added new enum rasqal_update_graph_applies
+
+	rasqal_update_operation gains new applies field for CLEAR and DROP
+	to signify they apply to multiple graphs.
+
+	(rasqal_query_write_graphref): Added method for writing uri or
+	DEFAULT or Named or ALL
+
+	(rasqal_query_write_sparql_20060406): Write out new tokens and use
+	rasqal_query_write_graphref() for terms.  Refactor.  SPARQL
+	lexer/parser adds the new tokens ADD, MOVE, COPY and TO.
+
+	(AddQuery, MoveQuery, CopyQuery): Added.
+
+	(UpdateOperation): Add above alternatives to updates.
+
+	(SilentOpt): Added to return silent flag.
+
+	(CreateQuery, DropQuery, LoadQuery): Refactored to use above flag
+	and save several code blocks.  Move around the warnings for
+	deprecated SPARQL 1.1 and LAQRS syntax.
+
+	(GraphRefAll): Added for Clear and Drop (excluding GraphRef)
+
+	(rasqal_new_update_operation): Add applies arg.
+
+	(rasqal_update_operation_print): Print new ops, document URI and
+	applies.  Added tests for SPARQL 1.1 Update ADD, MOVE, COPY
+
+	* NEWS.html, RELEASE.html, configure.ac: Bumped version to 0.9.24
+
+	* src/rasqal_literal.c: Free a few more variable references
+
+	(rasqal_new_variable_literal): Free passed in variable on error
+
+	(rasqal_free_literal): Free variable if not NULL.
+
+	* src/rasqal_literal.c:
+	(rasqal_free_literal): Free reference-counted variables
+
+	* utils/roqet.c: Make tidy_query free the query
+
 2011-01-27  Dave Beckett  <dave@dajobe.org>
 
 	* Snapshotted rasqal_0_9_23 for 0.9.23 release (GIT
