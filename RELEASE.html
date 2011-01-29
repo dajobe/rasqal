@@ -14,10 +14,65 @@
 </p>
 
 
-<p>The changes in this release are:</p>
-<ol>
-<li>Fixed memory leak in variables during parsing</li>
-</ol>
+<h3>SPARQL 1.1 Update draft Language changes</h3>
+
+<p>Added support for <code>CLEAR</code> and <code>DROP</code>
+applying to more than one graph.  The options are now: just default
+graph with <code>DEFAULT</code>, all named graphs with
+<code>NAMED</code> and all graphs with <code>ALL</code>.
+</p>
+
+<p>Added support for optional <code>SILENT</code> flag before most
+update operations.
+</p>
+
+<p>Added support for <code>ADD</code>, <code>MOVE</code> and
+<code>COPY</code> operations which both operate between two graphs.
+</p>
+
+<p>Added support for <code>DELETE WHERE {}</code> writing the triple
+results into the delete_templates field of the update structure.
+</p>
+
+<p>Added support for multiple update operations in one 'query'
+separated by ';'.
+</p>
+
+
+<h3>Query Engine changes</h3>
+
+<p>Fixed a few memory leaks in aggregate operation with
+<code>GROUP</code> and with <code>HAVING</code>.
+</p>
+
+
+<h3>Literal API changes</h3>
+
+<p>Fixed a memory leak with datetime literals.
+</p>
+
+
+<h3>Update API changes</h3>
+
+<p><code>rasqal_update_type</code> gains new enum values
+<code>RASQAL_UPDATE_TYPE_ADD</code>,
+<code>RASQAL_UPDATE_TYPE_MOVE</code> and
+<code>RASQAL_UPDATE_TYPE_COPY</code> for the SPARQL 1.1 Update ADD,
+MOVE and COPY operations respectively.
+</p>
+
+<p>Added enum <code>rasqal_update_graph_applies</code> to specify
+scope that update applies to beyond one graph to either just the
+default graph, to all named graphs or to all graphs.  Applies to
+CLEAR and DROP operations only
+</p>
+
+
+<h3>Other changes</h3>
+
+<p>Make all object destructors simply return on a NULL object
+pointer.  This was already done but with different code styles.
+</p>
 
 
 <h2 id="rel0_9_23"><a name="rel0_9_23">Rasqal 0.9.23 Changes</a></h2>
