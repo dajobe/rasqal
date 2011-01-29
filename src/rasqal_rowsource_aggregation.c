@@ -69,7 +69,8 @@ typedef struct
    */
   void* agg_user_data;
 
-  /* output variable for this expression */
+  /* (shared) output variable for this expression pointing into
+   * aggregation rowsource context vars_seq */
   rasqal_variable* variable;
 
   /* sequence of aggregate function arguments */
