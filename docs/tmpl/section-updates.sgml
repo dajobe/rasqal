@@ -36,6 +36,7 @@ as of February 2010.
 @delete_templates: 
 @where: 
 @flags: 
+@applies: 
 
 <!-- ##### ENUM rasqal_update_type ##### -->
 <para>
@@ -48,6 +49,9 @@ as of February 2010.
 @RASQAL_UPDATE_TYPE_DROP: 
 @RASQAL_UPDATE_TYPE_LOAD: 
 @RASQAL_UPDATE_TYPE_UPDATE: 
+@RASQAL_UPDATE_TYPE_ADD: 
+@RASQAL_UPDATE_TYPE_MOVE: 
+@RASQAL_UPDATE_TYPE_COPY: 
 @RASQAL_UPDATE_TYPE_LAST: 
 
 <!-- ##### ENUM rasqal_update_flags ##### -->
@@ -57,4 +61,14 @@ as of February 2010.
 
 @RASQAL_UPDATE_FLAGS_SILENT: 
 @RASQAL_UPDATE_FLAGS_DATA: 
+
+<!-- ##### ENUM rasqal_update_graph_applies ##### -->
+<para>
+
+</para>
+
+@RASQAL_UPDATE_GRAPH_ONE: 
+@RASQAL_UPDATE_GRAPH_DEFAULT: 
+@RASQAL_UPDATE_GRAPH_NAMED: 
+@RASQAL_UPDATE_GRAPH_ALL: 
 
