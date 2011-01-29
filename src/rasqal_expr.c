@@ -562,7 +562,7 @@ rasqal_new_group_concat_expression(rasqal_world* world,
     e->usage = 1;
     e->world = world;
     /* Discard any flags except RASQAL_EXPR_FLAG_DISTINCT */
-    e->flags = flags & RASQAL_EXPR_FLAG_DISTINCT;
+    e->flags = (flags & RASQAL_EXPR_FLAG_DISTINCT) | RASQAL_EXPR_FLAG_AGGREGATE;
     e->op = RASQAL_EXPR_GROUP_CONCAT;
     e->args = args; args = NULL;
     e->literal = separator; separator = NULL;
