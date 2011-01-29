@@ -1479,7 +1479,12 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
     /* Yes: get value => use existing internal variable for it */
     RASQAL_DEBUG2("Found variable %s for existing expression\n", v->name);
 
-    /* convert expression in-situ to use existing internal variable */
+    /* add a new reference to v */
+    v = rasqal_new_variable_from_variable(v);
+    
+    /* convert expression in-situ to use existing internal variable
+     * After this e holds a v reference
+     */
     if(rasqal_expression_convert_aggregate_to_variable(e, v, NULL)) {
       ae->error = 1;
       return 1;
@@ -1520,15 +1525,19 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
     }
 
     /* convert expression in-situ to use new internal variable
-     * and create a new expression in new_e from the old fields
+     * and create a new expression in new_e from the old fields.
+     *
+     * After this one v reference is held by new_e.
      */
     if(rasqal_expression_convert_aggregate_to_variable(e, v, &new_e)) {
       ae->error = 1;
       return 1;
     }
 
-    /* new_e is a new reference and after this new_e is owned by map 
-     * (all variables are shared and owned by query object)
+    v = rasqal_new_variable_from_variable(v);
+
+    /* new_e is a new reference
+     * after this new_e and 1 v reference are owned by the map 
      */
     if(rasqal_map_add_kv(ae->agg_vars, new_e, v)) {
       ae->error = 1;
@@ -1547,7 +1556,7 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
       return 1;
     }
 
-    /* add to variables sequence too */
+    /* add one more v reference for the variables sequence too */
     v = rasqal_new_variable_from_variable(v);
     if(raptor_sequence_push(ae->agg_vars_seq, v)) {
       ae->error = 1;
