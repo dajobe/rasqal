@@ -100,6 +100,9 @@ rasqal_free_solution_modifier(rasqal_solution_modifier* sm)
   
   if(sm->group_conditions)
     raptor_free_sequence(sm->group_conditions);
+
+  if(sm->having_conditions)
+    raptor_free_sequence(sm->having_conditions);
   
   RASQAL_FREE(rasqal_solution_modifier, sm);
 }
