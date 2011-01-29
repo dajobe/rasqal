@@ -959,9 +959,8 @@ rasqal_new_variable_literal(rasqal_world* world, rasqal_variable *variable)
     l->world = world;
     l->type = RASQAL_LITERAL_VARIABLE;
     l->value.variable = variable;
-  }
-
-  rasqal_free_variable(variable);
+  } else
+    rasqal_free_variable(variable);
 
   return l;
 }
