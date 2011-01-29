@@ -80,25 +80,25 @@ WHERE
 ;
 
 
-#PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
-#
-#DELETE WHERE { ?person foaf:firstName 'Fred';
-#                       ?property      ?value }
-#
-#;
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+
+DELETE WHERE { ?person foaf:firstName 'Fred';
+                       ?property      ?value }
+
+;
 
 
-#PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
-#
-#DELETE WHERE {
-#  GRAPH <http://example.com/names> {
-#    ?person foaf:firstName 'Fred'
-#  } .
-#  GRAPH <http://example.com/addresses> {
-#    ?person ?property ?value
-#  }
-#}
-#;
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+
+DELETE WHERE {
+  GRAPH <http://example.com/names> {
+    ?person foaf:firstName 'Fred'
+  } .
+  GRAPH <http://example.com/addresses> {
+    ?person ?property ?value
+  }
+}
+;
 
 
 DROP GRAPH <http://graph.example.org>

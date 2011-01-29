@@ -51,7 +51,10 @@ move-1.rq \
 move-2.rq \
 add-1.rq \
 add-2.rq \
-multiple-1.rq
+multiple-1.rq \
+delete-where-1.rq \
+delete-where-2.rq
+
 
 
 SPARQL_BAD_TEST_FILES= \

@@ -1240,6 +1240,46 @@ DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
   
   rasqal_query_add_update_operation((rasqal_query*)rq, $4);
 }
+| DELETE WHERE GroupGraphPattern
+{
+  rasqal_sparql_query_language* sparql;
+  rasqal_update_operation* update;
+  raptor_sequence* delete_templates = NULL;
+  
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql11_update) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "DELETE WHERE { } can only be used with a SPARQL 1.1 Update");
+    YYERROR;
+  }
+
+  /* SPARQL 1.1 (Draft) update:
+   * deleting via template - not inline atomic triples 
+   */
+
+  /* Turn GP into flattened triples */
+  if($3) {
+    delete_templates = rasqal_graph_pattern_get_flattened_triples((rasqal_query*)rq, $3);
+    rasqal_free_graph_pattern($3);
+    $3 = NULL;
+  }
+
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UPDATE,
+                                       NULL /* graph_uri */,
+                                       NULL /* document_uri */,
+                                       NULL /* insert templates */,
+                                       delete_templates /* delete templates */,
+                                       NULL /* where */,
+                                       0 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
+  if(!update) {
+    YYERROR_MSG("DeleteQuery: rasqal_new_update_operation failed");
+  } else {
+    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
+      YYERROR_MSG("DeleteQuery: rasqal_query_add_update_operation failed");
+  }
+}
 ;
 
 
