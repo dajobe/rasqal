@@ -217,7 +217,8 @@ rasqal_free_gp_data(rasqal_engine_gp_data* gp_data)
 {
   rasqal_graph_pattern* gp;
 
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(gp_data, rasqal_engine_gp_data);
+  if(!gp_data)
+    return;
   
   gp = gp_data->gp;
   if(gp_data->triple_meta) {

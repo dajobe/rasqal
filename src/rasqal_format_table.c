@@ -47,8 +47,13 @@
 static void
 rasqal_free_chararray(void* object)
 {
-  char** values = (char**)object;
+  char** values;
   int i;
+
+  if(!object)
+    return;
+  
+  values = (char**)object;
   for(i = 0; values[i] != (char*)-1; i++) {
     if(values[i])
       free(values[i]);

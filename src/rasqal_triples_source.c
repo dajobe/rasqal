@@ -191,7 +191,8 @@ rasqal_new_triples_source(rasqal_query* query)
 void
 rasqal_free_triples_source(rasqal_triples_source *rts)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(rts, rasqal_triples_source);
+  if(!rts)
+    return;
   
   if(rts->user_data) {
     rts->free_triples_source(rts->user_data);
@@ -214,7 +215,8 @@ rasqal_triples_source_triple_present(rasqal_triples_source *rts,
 static void
 rasqal_free_triples_match(rasqal_triples_match* rtm)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(rtm, rasqal_triples_match);
+  if(!rtm)
+    return;
 
   if(!rtm->is_exact)
     rtm->finish(rtm, rtm->user_data);

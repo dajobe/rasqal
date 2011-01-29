@@ -58,7 +58,8 @@ rasqal_new_formula(rasqal_world* world)
 void
 rasqal_free_formula(rasqal_formula* formula)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(formula, rasqal_formula);
+  if(!formula)
+    return;
   
   if(formula->triples)
     raptor_free_sequence(formula->triples);

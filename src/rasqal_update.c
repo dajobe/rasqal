@@ -139,6 +139,9 @@ rasqal_new_update_operation(rasqal_update_type type,
 void
 rasqal_free_update_operation(rasqal_update_operation *update)
 {
+  if(!update)
+    return;
+  
   if(update->graph_uri)
     raptor_free_uri(update->graph_uri);
   if(update->document_uri)

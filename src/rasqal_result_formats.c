@@ -135,6 +135,9 @@ rasqal_world_register_query_results_format_factory(rasqal_world* world,
 void
 rasqal_free_query_results_format_factory(rasqal_query_results_format_factory* factory)
 {
+  if(!factory)
+    return;
+  
   RASQAL_FREE(query_results_format_factory, factory);
 }
 

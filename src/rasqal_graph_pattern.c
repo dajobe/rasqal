@@ -307,7 +307,8 @@ rasqal_new_single_graph_pattern(rasqal_query* query,
 void
 rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(gp, rasqal_graph_pattern);
+  if(!gp)
+    return;
   
   if(gp->graph_patterns)
     raptor_free_sequence(gp->graph_patterns);

@@ -589,7 +589,8 @@ rasqal_new_having_algebra_node(rasqal_query* query,
 void
 rasqal_free_algebra_node(rasqal_algebra_node* node)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(node, rasqal_algebra_node);
+  if(!node)
+    return;
 
   /* node->triples is SHARED with the query - not freed here */
 

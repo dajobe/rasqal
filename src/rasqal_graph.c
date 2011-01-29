@@ -163,7 +163,12 @@ rasqal_init_graph_factory(rasqal_world *world,
 void
 rasqal_free_graph_factory(rasqal_world *world)
 {
-  rasqal_graph_factory *factory = world->graph_factory;
+  rasqal_graph_factory *factory;
+
+  if(!world)
+    return;
+  
+  world = world->graph_factory;
 
   if(factory->terminate_factory)
     factory->terminate_factory(world->graph_factory_user_data);
@@ -275,13 +280,19 @@ rasqal_new_graph(rasqal_world* world, raptor_uri *uri)
 void
 rasqal_free_graph(rasqal_graph *graph)
 {
-  rasqal_graph_factory *factory = graph->world->graph_factory;
+  rasqal_graph_factory *factory;
 
+  if(!graph)
+    return;
+  
   if(graph->usage--)
     return;
   
+  factory = graph->world->graph_factory;
+
   if(factory->free_graph)
     factory->free_graph(graph->user_data);
+
   RASQAL_FREE(rasqal_graph, graph);
 }
 
@@ -361,12 +372,18 @@ rasqal_new_graph_match(rasqal_graph *graph, rasqal_triple *triple)
 void
 rasqal_free_graph_match(rasqal_graph_match *match)
 {
-  rasqal_graph_factory *factory = match->world->graph_factory;
+  rasqal_graph_factory *factory;
 
+  if(!match)
+    return;
+  
   rasqal_free_graph(match->graph);
+
+  factory = match->world->graph_factory;
 
   if(factory->free_graph_match)
     factory->free_graph_match(match->user_data);
+
   RASQAL_FREE(rasqal_graph_match, match);
 }
 
@@ -434,12 +451,18 @@ rasqal_new_graph_bindings(rasqal_graph *graph,
 void
 rasqal_free_graph_bindings(rasqal_graph_bindings *graph_bindings)
 {
-  rasqal_graph_factory *factory = graph_bindings->world->graph_factory;
+  rasqal_graph_factory *factory;
 
+  if(!graph_bindings)
+    return;
+  
   rasqal_free_graph(graph_bindings->graph);
+
+  factory = graph_bindings->world->graph_factory;
 
   if(factory->free_graph_bindings)
     factory->free_graph_bindings(graph_bindings->user_data);
+
   RASQAL_FREE(rasqal_graph_bindings, graph_bindings);
 }
 

@@ -84,7 +84,8 @@ rasqal_new_map_node(rasqal_map* map, void *key, void *value)
 static void
 rasqal_free_map_node(rasqal_map* map, rasqal_map_node *node) 
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(node, rasqal_map_node);
+  if(!node)
+    return;
   
   if(node->prev)
     rasqal_free_map_node(map, node->prev);

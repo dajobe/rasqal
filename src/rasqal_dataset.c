@@ -254,6 +254,9 @@ rasqal_dataset_init_match_internal(rasqal_dataset* ds,
 void
 rasqal_free_dataset_term_iterator(rasqal_dataset_term_iterator* iter)
 {
+  if(!iter)
+    return;
+  
   RASQAL_FREE(rasqal_dataset_term_iterator, iter);
 }
 

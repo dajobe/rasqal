@@ -124,7 +124,8 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
 void
 rasqal_free_rowsource(rasqal_rowsource *rowsource)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(rowsource, rasqal_rowsource);
+  if(!rowsource)
+    return;
 
   if(rowsource->handler->finish)
     rowsource->handler->finish(rowsource, rowsource->user_data);

@@ -84,6 +84,9 @@ rasqal_new_row_compatible(rasqal_variables_table* vt,
 void
 rasqal_free_row_compatible(rasqal_row_compatible* map)
 {
+  if(!map)
+    return;
+  
   RASQAL_FREE(intarray, map->defined_in_map);
   RASQAL_FREE(rasqal_row_compatible, map);
 }

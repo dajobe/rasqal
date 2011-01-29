@@ -313,7 +313,8 @@ rasqal_world_set_log_handler(rasqal_world* world, void *user_data,
 static void
 rasqal_free_query_language_factory(rasqal_query_language_factory *factory)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(factory, rasqal_query_language_factory);
+  if(!factory)
+    return;
   
   if(factory->finish_factory)
     factory->finish_factory(factory);
