@@ -449,6 +449,8 @@ rasqal_aggregation_rowsource_finish(rasqal_rowsource* rowsource,
       if(expr_data->map)
         rasqal_free_map(expr_data->map);
     }
+
+    RASQAL_FREE(rasqal_agg_expr_data, con->expr_data);
   }
   
   if(con->exprs_seq)
