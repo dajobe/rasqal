@@ -1031,6 +1031,8 @@ rasqal_free_literal(rasqal_literal* l)
     case RASQAL_LITERAL_DATETIME:
       if(l->string)
         RASQAL_FREE(cstring, (void*)l->string);
+      if(l->datatype)
+        raptor_free_uri(l->datatype);
       if(l->value.datetime)
         rasqal_free_xsd_datetime(l->value.datetime);
       break;
