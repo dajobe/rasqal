@@ -85,7 +85,7 @@ rasqal_new_projection(rasqal_query* query,
 void
 rasqal_free_projection(rasqal_projection* projection)
 {
-  if(projection)
+  if(!projection)
     return;
   
   if(projection->variables)
