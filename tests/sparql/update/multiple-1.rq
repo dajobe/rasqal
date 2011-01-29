@@ -1,0 +1,194 @@
+# Multiple update operations in one file with ;s to separate
+
+ADD DEFAULT TO <http://example.org/named>
+;
+
+ADD SILENT <http://example.org/named1> TO <http://example.org/named2>
+;
+
+WITH <http://graph.example.org> DELETE { ?s ?p ?o } WHERE { ?s ?p ?o }
+
+;
+
+
+CLEAR GRAPH <http://graph.example.org>
+
+;
+
+
+COPY DEFAULT TO <http://example.org/named>
+;
+
+COPY SILENT <http://example.org/named1> TO <http://example.org/named2>
+;
+
+
+PREFIX dc:  <http://purl.org/dc/elements/1.1/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+DELETE
+ { ?book ?p ?v }
+WHERE
+ { ?book dc:date ?date .
+   FILTER ( ?date < "2000-01-01T00:00:00-02:00"^^xsd:dateTime )
+   ?book ?p ?v
+ }
+;
+
+
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+
+WITH <http://example/addresses>
+DELETE { ?person foaf:firstName 'Fred';
+                 ?property      ?value }
+;
+
+
+# Defined above
+# PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+DELETE DATA
+{ <http://example/bookx> dc:title    "David Copperfield" ;
+                         dc:creator  "Edmund Wells" .
+}
+;
+
+
+# Defined above
+# PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+DELETE DATA
+{ GRAPH <http://example/bookStore> { <http://example/book3>  dc:title  "Fundamentals of Compiler Desing" } }
+
+;
+
+INSERT DATA
+{ GRAPH <http://example/bookStore> { <http://example/book3>  dc:title  "Fundamentals of Compiler Design" } }
+;
+
+
+# Defined above
+# PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+
+WITH <http://example/addresses>
+DELETE { ?person foaf:firstName 'Bill' }
+INSERT { ?person foaf:firstName 'William' }
+WHERE
+  { ?person a foaf:Person .
+    ?person foaf:firstName 'Bill'
+  } 
+;
+
+
+#PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+#
+#DELETE WHERE { ?person foaf:firstName 'Fred';
+#                       ?property      ?value }
+#
+#;
+
+
+#PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+#
+#DELETE WHERE {
+#  GRAPH <http://example.com/names> {
+#    ?person foaf:firstName 'Fred'
+#  } .
+#  GRAPH <http://example.com/addresses> {
+#    ?person ?property ?value
+#  }
+#}
+#;
+
+
+DROP GRAPH <http://graph.example.org>
+;
+
+
+DROP SILENT GRAPH <http://graph.example.org>
+;
+
+
+# Defined above
+# PREFIX dc:  <http://purl.org/dc/elements/1.1/>
+# PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+INSERT 
+  { GRAPH <http://example/bookStore2> { ?book ?p ?v } }
+WHERE
+  { GRAPH  <http://example/bookStore>
+       { ?book dc:date ?date .
+         FILTER ( ?date < "2000-01-01T00:00:00-02:00"^^xsd:dateTime )
+         ?book ?p ?v
+       }
+  }
+;
+
+
+# Defined above
+# PREFIX dc:  <http://purl.org/dc/elements/1.1/>
+PREFIX dcmitype: <http://purl.org/dc/dcmitype/>
+# PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+INSERT
+  { GRAPH <http://example/bookStore2> { ?book ?p ?v } }
+WHERE
+  { GRAPH  <http://example/bookStore>
+     { ?book dc:date ?date . 
+       FILTER ( ?date < "2000-01-01T00:00:00-02:00"^^xsd:dateTime )
+       ?book ?p ?v
+     }
+  }
+
+;
+
+WITH <http://example/bookStore>
+DELETE
+ { ?book ?p ?v }
+WHERE
+ { ?book dc:date ?date ;
+         dc:type dcmitype:PhysicalObject .
+   FILTER ( ?date < "2000-01-01T00:00:00-02:00"^^xsd:dateTime ) 
+   ?book ?p ?v
+ }
+
+;
+
+INSERT { <http://example.org/subject>
+  <http://example.org/predicate>
+  <http://example.org/object>
+}
+;
+
+# Defined above
+# PREFIX dc: <http://purl.org/dc/elements/1.1/>
+INSERT DATA
+{ <http://example/book3> dc:title    "A new book" ;
+                         dc:creator  "A.N.Other" .
+}
+;
+
+
+
+LOAD <http://example.org/>
+;
+
+
+LOAD <http://example.org/> INTO <http://graph.example.org/>
+;
+
+
+LOAD <http://example.org/> INTO DEFAULT
+;
+
+
+LOAD <http://example.org/1> <http://example.org/2> INTO <http://graph.example.org/>
+;
+
+
+MOVE DEFAULT TO <http://example.org/named>
+;
+
+MOVE SILENT <http://example.org/named1> TO <http://example.org/named2>
+;
+

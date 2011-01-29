@@ -137,14 +137,14 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 /*
  * shift/reduce conflicts
  * FIXME: document this
- *  34 total
+ *  33 total
  *
  *   7 shift/reduce are OPTIONAL/GRAPH/FILTER/SERVICE/MINUS/LET/{
  *      after a TriplesBlockOpt has been accepted but before a
  *      GraphPatternListOpt.  Choice is made to reduce with GraphPatternListOpt.
  * 
  */
-%expect 34
+%expect 33
 
 /* word symbols */
 %token SELECT FROM WHERE
@@ -497,13 +497,13 @@ ReportFormat: SelectQuery
 }
 ;
 
-
-Update: Prologue UpdateOperationList
+Update: Prologue UpdateOperation UpdateTailOpt
 ;
 
 
-UpdateOperationList: UpdateOperationList UpdateOperation
-| UpdateOperation
+UpdateTailOpt: ';' Update
+| ';'
+| /* empty */
 ;
 
 
@@ -5472,7 +5472,7 @@ extern char *optarg;
 
 #define GETOPT_STRING "di:"
 
-#define SPARQL_FILE_BUF_SIZE 2048
+#define SPARQL_FILE_BUF_SIZE 4096
 
 int
 main(int argc, char *argv[]) 

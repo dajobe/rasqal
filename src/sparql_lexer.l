@@ -1739,7 +1739,7 @@ sparql_token_free(rasqal_world* world, int token, YYSTYPE *lval)
 }
 
 
-#define FILE_READ_BUF_SIZE 2048
+#define FILE_READ_BUF_SIZE 4096
 
 int
 main(int argc, char *argv[]) 

@@ -50,7 +50,8 @@ copy-2.rq \
 move-1.rq \
 move-2.rq \
 add-1.rq \
-add-2.rq
+add-2.rq \
+multiple-1.rq
 
 
 SPARQL_BAD_TEST_FILES= \
