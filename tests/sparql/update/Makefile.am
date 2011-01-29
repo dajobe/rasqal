@@ -44,7 +44,13 @@ create-2.rq \
 delete-1.rq \
 drop-1.rq \
 drop-2.rq \
-delete-insert-1.rq
+delete-insert-1.rq \
+copy-1.rq \
+copy-2.rq \
+move-1.rq \
+move-2.rq \
+add-1.rq \
+add-2.rq
 
 
 SPARQL_BAD_TEST_FILES= \

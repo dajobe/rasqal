@@ -802,6 +802,42 @@ rasqal_write_sparql_bindings(sparql_writer_context* wc,
 }
 
 
+static int
+rasqal_query_write_graphref(sparql_writer_context* wc,
+                            raptor_iostream *iostr, 
+                            raptor_uri* uri,
+                            rasqal_update_graph_applies applies)
+{
+  switch(applies) {
+    case RASQAL_UPDATE_GRAPH_ONE:
+      if(uri) {
+        raptor_iostream_counted_string_write(" GRAPH ", 7, iostr);
+        rasqal_query_write_sparql_uri(wc, iostr, uri);
+        break;
+      }
+      /* FALLTHROUGH */
+      
+    case RASQAL_UPDATE_GRAPH_DEFAULT:
+      raptor_iostream_counted_string_write(" DEFAULT", 8, iostr);
+      break;
+      
+    case RASQAL_UPDATE_GRAPH_NAMED:
+      raptor_iostream_counted_string_write(" NAMED", 6, iostr);
+      break;
+      
+    case RASQAL_UPDATE_GRAPH_ALL:
+      raptor_iostream_counted_string_write(" ALL", 4, iostr);
+      break;
+      
+    default:
+      break;
+  }
+
+  return 0;
+}
+
+
+
 int
 rasqal_query_write_sparql_20060406(raptor_iostream *iostr, 
                                    rasqal_query* query, raptor_uri *base_uri)
@@ -864,6 +900,9 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     /* Write SPARQL Update */
 
     for(i = 0; (update = rasqal_query_get_update_operation(query, i)); i++) {
+      int is_always_2_args = (update->type >= RASQAL_UPDATE_TYPE_ADD &&
+                              update->type <= RASQAL_UPDATE_TYPE_COPY);
+      
       if(update->type == RASQAL_UPDATE_TYPE_UPDATE) {
         /* update operations:
          * WITH ... INSERT { template } DELETE { template } WHERE { template }
@@ -902,28 +941,56 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
         }
       } else {
         /* admin operations:
-         * CLEAR / CLEAR GRAPH graph-uri
-         * CREATE (SILENT) GRAPH graph-uri
+         * CLEAR GRAPH graph-uri | DEFAULT | NAMED | ALL
+         * CREATE (SILENT) GRAPH graph-uri | DEFAULT | NAMED | ALL
          * DROP (SILENT) GRAPH graph-uri
-         * LOAD GRAPH graph-uri / LOAD doc-uri INTO graph-uri
+         * LOAD (SILENT) doc-uri / LOAD (SILENT) doc-uri INTO GRAPH graph-uri
+         * ADD (SILENT) GraphOrDefault TO GraphOrDefault
+         * MOVE (SILENT) GraphOrDefault TO GraphOrDefault
+         * COPY (SILENT) GraphOrDefault TO GraphOrDefault
          */
         raptor_iostream_string_write(rasqal_update_type_label(update->type),
                                      iostr);
         if(update->flags & RASQAL_UPDATE_FLAGS_SILENT)
           raptor_iostream_counted_string_write(" SILENT", 7, iostr);
-        if(update->document_uri) {
+
+        if(is_always_2_args) {
+          /* ADD, MOVE, COPY are always 2-arg admin operations */
+          rasqal_query_write_graphref(&wc, iostr, 
+                                      update->graph_uri,
+                                      RASQAL_UPDATE_GRAPH_ONE);
+
+          raptor_iostream_counted_string_write(" TO", 3, iostr);
+        
+          rasqal_query_write_graphref(&wc, iostr, 
+                                      update->document_uri,
+                                      RASQAL_UPDATE_GRAPH_ONE);
+
+        } else if(update->type == RASQAL_UPDATE_TYPE_LOAD) {
+          /* LOAD is 1 or 2 URIs and first one never has a GRAPH prefix */
+
           raptor_iostream_write_byte(' ', iostr);
+
           rasqal_query_write_sparql_uri(&wc, iostr, update->document_uri);
+
+          if(update->graph_uri) {
+            raptor_iostream_counted_string_write(" INTO", 5, iostr);
+            
+            rasqal_query_write_graphref(&wc, iostr, 
+                                        update->graph_uri,
+                                        RASQAL_UPDATE_GRAPH_ONE);
+          }
+        } else {
+          /* everything else is defined by update->applies; only
+          * CLEAR and DROP may apply to >1 graph
+          */
+          rasqal_query_write_graphref(&wc, iostr, 
+                                      update->graph_uri,
+                                      update->applies);
         }
-        if(update->graph_uri) {
-          if(update->type == RASQAL_UPDATE_TYPE_LOAD &&
-             update->document_uri)
-            raptor_iostream_counted_string_write(" INTO ", 6, iostr);
-          else
-            raptor_iostream_counted_string_write(" GRAPH ", 7, iostr);
-          rasqal_query_write_sparql_uri(&wc, iostr, update->graph_uri);
-          raptor_iostream_write_byte('\n', iostr);
-        }
+        
+        raptor_iostream_write_byte('\n', iostr);
+
       }
     }
 

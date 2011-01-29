@@ -1,0 +1,2 @@
+# An example to copy all statements from one named graph into another named graph.
+COPY SILENT <http://example.org/named1> TO <http://example.org/named2>

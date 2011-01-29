@@ -1,0 +1,5 @@
+# S3.2.4 of http://www.w3.org/2009/sparql/docs/update-1.1/Overview.xml
+# as of Sat Jan 29 02:31:47 GMT 2011
+
+# An example to move all statements from the default graph into a named graph.
+MOVE DEFAULT TO <http://example.org/named>

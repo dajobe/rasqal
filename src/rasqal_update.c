@@ -2,7 +2,7 @@
  *
  * rasqal_update.c - Rasqal graph update operations
  *
- * Copyright (C) 2010, Beckett http://www.dajobe.org/
+ * Copyright (C) 2010-2011, Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -46,7 +46,10 @@ static const char* const rasqal_update_type_labels[RASQAL_UPDATE_TYPE_LAST + 1] 
   "CREATE",
   "DROP",
   "LOAD",
-  "UPDATE"
+  "UPDATE",
+  "ADD",
+  "MOVE",
+  "COPY"
 };
 
 
@@ -79,6 +82,7 @@ rasqal_update_type_label(rasqal_update_type type)
  * @delete_templates: optional sequence of #rasqal_triple templates to delete
  * @where: optional where BASIC graph pattern
  * @flags: update flags - bit-or of flags defined in #rasqal_update_flags
+ * @applies: graph to which update applies defined in #rasqal_update_graph_applies
  *
  * INTERNAL - Constructor - Create new update operation
  *
@@ -97,7 +101,8 @@ rasqal_new_update_operation(rasqal_update_type type,
                             raptor_sequence* insert_templates,
                             raptor_sequence* delete_templates,
                             rasqal_graph_pattern* where,
-                            int flags) 
+                            int flags,
+                            rasqal_update_graph_applies applies)
 {
   rasqal_update_operation* update;
 
@@ -118,6 +123,7 @@ rasqal_new_update_operation(rasqal_update_type type,
   update->delete_templates = delete_templates;
   update->where = where;
   update->flags = flags;
+  update->applies = applies;
   
   return update;
 }
@@ -151,12 +157,44 @@ rasqal_free_update_operation(rasqal_update_operation *update)
 int
 rasqal_update_operation_print(rasqal_update_operation *update, FILE* stream)
 {
+  int is_always_2_args = (update->type >= RASQAL_UPDATE_TYPE_ADD &&
+                          update->type <= RASQAL_UPDATE_TYPE_COPY);
+  
   fputs("update-operation(type=", stream);
   fputs(rasqal_update_type_label(update->type), stream);
-  if(update->graph_uri) {
+  if(update->graph_uri || is_always_2_args) {
     fputs(", graph-uri=", stream);
-    raptor_uri_print(update->graph_uri, stream);
+    if(update->graph_uri)
+      raptor_uri_print(update->graph_uri, stream);
+    else
+      fputs("default", stream);
   }
+  if(update->document_uri || is_always_2_args) {
+    fputs(", document-uri=", stream);
+    if(update->document_uri)
+      raptor_uri_print(update->document_uri, stream);
+    else
+      fputs("default", stream);
+  }
+
+  switch(update->applies) {
+    case RASQAL_UPDATE_GRAPH_ONE:
+      fputs(", applies: one graph", stream);
+      break;
+      
+    case RASQAL_UPDATE_GRAPH_DEFAULT:
+      fputs(", applies: default", stream);
+      break;
+      
+    case RASQAL_UPDATE_GRAPH_NAMED:
+      fputs(", applies: named", stream);
+      break;
+      
+    case RASQAL_UPDATE_GRAPH_ALL:
+      fputs(", applies: all", stream);
+      break;
+  }
+  
   if(update->insert_templates) {
     fputs(", insert-templates=", stream);
     raptor_sequence_print(update->insert_templates, stream);

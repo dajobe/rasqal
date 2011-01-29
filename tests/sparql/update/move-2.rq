@@ -1,0 +1,2 @@
+# An example to move all statements from one named graph into another named graph.
+MOVE SILENT <http://example.org/named1> TO <http://example.org/named2>

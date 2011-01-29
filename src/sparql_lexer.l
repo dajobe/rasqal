@@ -412,6 +412,11 @@ EXPONENT [eE][+-]?[0-9]+
 [Ss][Tt][Rr][Ee][Nn][Dd][Ss] { return STRENDS; }
 [Cc][Oo][Nn][Tt][Aa][Ii][Nn][Ss] { return CONTAINS; }
 [Ee][Nn][Cc][Oo][Dd][Ee][__][Ff][Oo][Rr][__][Uu][Rr][Ii] { return ENCODE_FOR_URI; }
+[Tt][Oo] { return TO; }
+[Aa][Dd][Dd] { return ADD; }
+[Mm][Oo][Vv][Ee] { return MOVE; }
+[Cc][Oo][Pp][Yy] { return COPY; }
+[Aa][Ll][Ll] { return ALL; }
 
 "a" { return A; }
 
@@ -1599,6 +1604,21 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case ENCODE_FOR_URI:
       return "ENCODE_FOR_URI";
+
+    case TO:
+      return "TO";
+
+    case ADD:
+      return "ADD";
+
+    case MOVE:
+      return "MOVE";
+
+    case COPY:
+      return "COPY";
+
+    case ALL:
+      return "ALL";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:

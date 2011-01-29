@@ -291,6 +291,7 @@ rasqal_triple_set_origin
 rasqal_update_operation
 rasqal_update_type
 rasqal_update_flags
+rasqal_update_graph_applies
 </SECTION>
 
 <SECTION>

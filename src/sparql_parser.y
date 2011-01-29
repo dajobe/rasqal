@@ -169,6 +169,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token GROUP HAVING
 %token COUNT SUM AVG MIN MAX GROUP_CONCAT SAMPLE SEPARATOR
 %token DELETE INSERT WITH CLEAR CREATE SILENT DATA DROP LOAD INTO DEFAULT
+%token TO ADD MOVE COPY ALL
 %token COALESCE
 %token AS IF
 %token NOT IN
@@ -284,7 +285,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 
 %type <variable> Var VarName VarOrBadVarName SelectTerm
 
-%type <uri> GraphRef
+%type <uri> GraphRef GraphOrDefault OldGraphRef
 
 %type <uinteger> DistinctOpt
 
@@ -293,7 +294,9 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <modifier> SolutionModifier
 
 %type <limit_offset> LimitOffsetClausesOpt
+
 %type <integer> LimitClause OffsetClause
+%type <integer> SilentOpt GraphRefAll
 
 %type <projection> SelectClause SelectExpressionList
 
@@ -529,6 +532,18 @@ UpdateOperation: DeleteQuery
   ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_UPDATE;
 }
 | LoadQuery
+{
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_UPDATE;
+}
+| AddQuery
+{
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_UPDATE;
+}
+| MoveQuery
+{
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_UPDATE;
+}
+| CopyQuery
 {
   ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_UPDATE;
 }
@@ -1145,13 +1160,9 @@ DatasetClause: FROM DefaultGraphClause
 
 
 /* SPARQL 1.1 Update (draft) */
-GraphRef: URI_LITERAL
+GraphRef: GRAPH URI_LITERAL
 {
-  $$ = $1;
-}
-| DEFAULT
-{
-  $$ = NULL;
+  $$ = $2;
 }
 ;
 
@@ -1200,7 +1211,8 @@ DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
                                        NULL /* insert templates */,
                                        $3 /* delete templates */,
                                        $5 /* where */,
-                                       0 /* flags */);
+                                       0 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
   if(!update) {
     YYERROR_MSG("DeleteQuery: rasqal_new_update_operation failed");
   } else {
@@ -1243,7 +1255,8 @@ GraphTriples: TriplesBlock
                                      $1->triples /* insert templates */, 
                                      NULL /* delete templates */,
                                      NULL /* where */,
-                                     0 /* flags */);
+                                     0 /* flags */,
+                                     RASQAL_UPDATE_GRAPH_ONE /* applies */);
     $1->triples = NULL;
     rasqal_free_formula($1);
   }
@@ -1271,7 +1284,8 @@ GraphTriples: TriplesBlock
                                      seq /* insert templates */,
                                      NULL /* delete templates */,
                                      NULL /* where */,
-                                     0 /* flags */);
+                                     0 /* flags */,
+                                     RASQAL_UPDATE_GRAPH_ONE /* applies */);
     $4->triples = NULL;
     rasqal_free_formula($4);
   }
@@ -1372,7 +1386,8 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
                                        $3 /* insert templates */,
                                        NULL /* delete templates */,
                                        $5 /* where */,
-                                       0 /* flags */);
+                                       0 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
   if(!update) {
     YYERROR_MSG("InsertQuery: rasqal_new_update_operation failed");
   } else {
@@ -1435,7 +1450,8 @@ UpdateQuery: WITH URI_LITERAL
                                        $9 /* insert templates */,
                                        $5 /* delete templates */,
                                        $11 /* where */,
-                                       0 /* flags */);
+                                       0 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
   if(!update) {
     YYERROR_MSG("UpdateQuery 1: rasqal_new_update_operation failed");
   } else {
@@ -1476,7 +1492,8 @@ UpdateQuery: WITH URI_LITERAL
                                        NULL /* insert templates */,
                                        $5 /* delete templates */,
                                        $7 /* where */,
-                                       0 /* flags */);
+                                       0 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
   if(!update) {
     YYERROR_MSG("UpdateQuery 2: rasqal_new_update_operation failed");
   } else {
@@ -1517,7 +1534,8 @@ UpdateQuery: WITH URI_LITERAL
                                        $5 /* insert templates */,
                                        NULL /* delete templates */,
                                        $7 /* where */,
-                                       0 /* flags */);
+                                       0 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
   if(!update) {
     YYERROR_MSG("UpdateQuery 3: rasqal_new_update_operation failed");
   } else {
@@ -1548,8 +1566,24 @@ UpdateQuery: WITH URI_LITERAL
 ;
 
 
+/* SPARQL 1.1 Update token with GraphRef removed */
+GraphRefAll: DEFAULT
+{
+  $$ = RASQAL_UPDATE_GRAPH_DEFAULT;
+}
+| NAMED
+{
+  $$ = RASQAL_UPDATE_GRAPH_NAMED;
+}
+| ALL
+{
+  $$ = RASQAL_UPDATE_GRAPH_ALL;
+}
+;
+
+
 /* SPARQL 1.1 Update (draft) / LAQRS */
-ClearQuery: CLEAR GRAPH GraphRef
+ClearQuery: CLEAR GraphRef
 {
   rasqal_sparql_query_language* sparql;
   rasqal_update_operation* update;
@@ -1563,11 +1597,42 @@ ClearQuery: CLEAR GRAPH GraphRef
   }
 
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CLEAR,
-                                       $3 /* graph uri or NULL */, 
+                                       $2 /* graph uri or NULL */, 
                                        NULL /* document uri */,
                                        NULL, NULL,
                                        NULL /*where */,
-                                       0 /* flags */);
+                                       0 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
+  if(!update) {
+    YYERROR_MSG("ClearQuery: rasqal_new_update_operation failed");
+  } else {
+    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
+      YYERROR_MSG("ClearQuery: rasqal_query_add_update_operation failed");
+  }
+}
+| CLEAR GraphRefAll
+{
+  rasqal_sparql_query_language* sparql;
+  rasqal_update_operation* update;
+
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql11_update) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "CLEAR DEFAULT | NAMED | ALL can only be used with a SPARQL 1.1 Update");
+    YYERROR;
+  }
+
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CLEAR,
+                                       NULL /* graph uri or NULL */, 
+                                       NULL /* document uri */,
+                                       NULL, NULL,
+                                       NULL /*where */,
+                                       0 /* flags */,
+                                       $2 /* applies */);
+  if(update)
+    update->applies = $2;
+  
   if(!update) {
     YYERROR_MSG("ClearQuery: rasqal_new_update_operation failed");
   } else {
@@ -1584,20 +1649,52 @@ ClearQuery: CLEAR GRAPH GraphRef
 
   if(!sparql->sparql11_update) {
     sparql_syntax_error((rasqal_query*)rq,
-                        "CLEAR GRAPH <uri> can only be used with a SPARQL 1.1 Update");
+                        "CLEAR can only be used with a SPARQL 1.1 Update");
     YYERROR;
   }
 
   /* Early draft syntax - deprecated */
   sparql_syntax_warning((rasqal_query*)rq,
-                        "CLEAR is replaced by CLEAR GRAPH DEFAULT in later SPARQL 1.1 drafts");
+                        "CLEAR is replaced by CLEAR DEFAULT in later SPARQL 1.1 drafts");
 
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CLEAR,
                                        NULL /* graph uri */, 
                                        NULL /* document uri */,
                                        NULL, NULL,
                                        NULL /* where */,
-                                       0 /* flags */);
+                                       0 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
+  if(!update) {
+    YYERROR_MSG("ClearQuery: rasqal_new_update_operation failed");
+  } else {
+    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
+      YYERROR_MSG("ClearQuery: rasqal_query_add_update_operation failed");
+  }
+}
+| CLEAR GRAPH DEFAULT
+{
+  rasqal_sparql_query_language* sparql;
+  rasqal_update_operation* update;
+
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql11_update) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "CLEAR GRAPH DEFAULT can only be used with a SPARQL 1.1 Update");
+    YYERROR;
+  }
+
+  /* Early draft syntax - deprecated */
+  sparql_syntax_warning((rasqal_query*)rq,
+                        "CLEAR GRAPH DEFAULT is replaced by CLEAR DEFAULT in later SPARQL 1.1 drafts");
+
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CLEAR,
+                                       NULL /* graph uri */, 
+                                       NULL /* document uri */,
+                                       NULL, NULL,
+                                       NULL /* where */,
+                                       0 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
   if(!update) {
     YYERROR_MSG("ClearQuery: rasqal_new_update_operation failed");
   } else {
@@ -1608,8 +1705,20 @@ ClearQuery: CLEAR GRAPH GraphRef
 ;
 
 
+/* Optional SILENT flag pulled out of SPARQL 1.1 Load ... Copy */
+SilentOpt: SILENT
+{
+  $$ = RASQAL_UPDATE_FLAGS_SILENT;
+}
+| /* empty */
+{
+  $$ = 0;
+}
+;
+
+
 /* SPARQL 1.1 Update (draft) / LAQRS */
-CreateQuery: CREATE URI_LITERAL
+CreateQuery: CREATE SilentOpt URI_LITERAL
 {
   rasqal_sparql_query_language* sparql;
   rasqal_update_operation* update;
@@ -1618,33 +1727,7 @@ CreateQuery: CREATE URI_LITERAL
 
   if(!sparql->sparql11_update) {
     sparql_syntax_error((rasqal_query*)rq, 
-                        "CREATE <uri> can only be used with a SPARQL 1.1 Update");
-    YYERROR;
-  }
-
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CREATE,
-                                       $2 /* graph uri */, 
-                                       NULL /* document uri */,
-                                       NULL, NULL,
-                                       NULL /*where */,
-                                       0 /* flags */);
-  if(!update) {
-    YYERROR_MSG("CreateQuery: rasqal_new_update_operation failed");
-  } else {
-    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
-      YYERROR_MSG("CreateQuery: rasqal_query_add_update_operation failed");
-  }
-}
-| CREATE SILENT URI_LITERAL
-{
-  rasqal_sparql_query_language* sparql;
-  rasqal_update_operation* update;
-
-  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
-
-  if(!sparql->sparql11_update) {
-    sparql_syntax_error((rasqal_query*)rq, 
-                        "CREATE SILENT <uri> can only be used with a SPARQL 1.1 Update");
+                        "CREATE (SILENT) <uri> can only be used with a SPARQL 1.1 Update");
     YYERROR;
   }
 
@@ -1653,7 +1736,8 @@ CreateQuery: CREATE URI_LITERAL
                                        NULL /* document uri */,
                                        NULL, NULL,
                                        NULL /*where */,
-                                       RASQAL_UPDATE_FLAGS_SILENT /* flags */);
+                                       $2 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
   if(!update) {
     YYERROR_MSG("CreateQuery: rasqal_new_update_operation failed");
   } else {
@@ -1661,7 +1745,7 @@ CreateQuery: CREATE URI_LITERAL
       YYERROR_MSG("CreateQuery: rasqal_query_add_update_operation failed");
   }
 }
-| CREATE GRAPH URI_LITERAL
+| CREATE SilentOpt GraphRef
 {
   rasqal_sparql_query_language* sparql;
   rasqal_update_operation* update;
@@ -1670,50 +1754,21 @@ CreateQuery: CREATE URI_LITERAL
 
   if(!sparql->sparql11_update) {
     sparql_syntax_error((rasqal_query*)rq, 
-                        "CREATE GRAPH <uri> can only be used with a SPARQL 1.1 Update");
+                        "CREATE (SILENT) GRAPH <uri> can only be used with a SPARQL 1.1 Update");
     YYERROR;
   }
 
   /* Early draft syntax - deprecated */
   sparql_syntax_warning((rasqal_query*)rq,
-                        "CREATE GRAPH <uri> is replaced by CREATE <uri> in later SPARQL 1.1 drafts");
+                        "CREATE (SILENT) GRAPH <uri> is replaced by CREATE (SILENT) <uri> in later SPARQL 1.1 drafts");
 
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CREATE,
                                        $3 /* graph uri */, 
                                        NULL /* document uri */,
                                        NULL, NULL,
                                        NULL /*where */,
-                                       0 /* flags */);
-  if(!update) {
-    YYERROR_MSG("CreateQuery: rasqal_new_update_operation failed");
-  } else {
-    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
-      YYERROR_MSG("CreateQuery: rasqal_query_add_update_operation failed");
-  }
-}
-| CREATE SILENT GRAPH URI_LITERAL
-{
-  rasqal_sparql_query_language* sparql;
-  rasqal_update_operation* update;
-
-  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
-
-  if(!sparql->sparql11_update) {
-    sparql_syntax_error((rasqal_query*)rq, 
-                        "CREATE SILENT GRAPH <uri> can only be used with a SPARQL 1.1 Update");
-    YYERROR;
-  }
-
-  /* Early draft syntax - deprecated */
-  sparql_syntax_warning((rasqal_query*)rq,
-                        "CREATE SILENT GRAPH <uri> is replaced by CREATE SILENT <uri> in later SPARQL 1.1 drafts");
-
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CREATE,
-                                       $4 /* graph uri */, 
-                                       NULL /* document uri */,
-                                       NULL, NULL,
-                                       NULL /*where */,
-                                       RASQAL_UPDATE_FLAGS_SILENT /* flags */);
+                                       RASQAL_UPDATE_FLAGS_SILENT /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
   if(!update) {
     YYERROR_MSG("CreateQuery: rasqal_new_update_operation failed");
   } else {
@@ -1725,7 +1780,7 @@ CreateQuery: CREATE URI_LITERAL
 
 
 /* SPARQL 1.1 Update (draft) / LAQRS */
-DropQuery: DROP URI_LITERAL
+DropQuery: DROP SilentOpt GraphRef
 {
   rasqal_sparql_query_language* sparql;
   rasqal_update_operation* update;
@@ -1734,33 +1789,7 @@ DropQuery: DROP URI_LITERAL
 
   if(!sparql->sparql11_update) {
     sparql_syntax_error((rasqal_query*)rq, 
-                        "DROP <uri> can only be used with a SPARQL 1.1 Update");
-    YYERROR;
-  }
-
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_DROP,
-                                       $2 /* graph uri */, 
-                                       NULL /* document uri */,
-                                       NULL, NULL,
-                                       NULL /*where */,
-                                       0 /* flags */);
-  if(!update) {
-    YYERROR_MSG("DropQuery: rasqal_new_update_operation failed");
-  } else {
-    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
-      YYERROR_MSG("DropQuery: rasqal_query_add_update_operation failed");
-  }
-}
-| DROP SILENT URI_LITERAL
-{
-  rasqal_sparql_query_language* sparql;
-  rasqal_update_operation* update;
-
-  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
-
-  if(!sparql->sparql11_update) {
-    sparql_syntax_error((rasqal_query*)rq, 
-                        "DROP SILENT <uri> can only be used with a SPARQL 1.1 Update");
+                        "DROP (SILENT) GRAPH <uri> can only be used with a SPARQL 1.1 Update");
     YYERROR;
   }
 
@@ -1769,7 +1798,8 @@ DropQuery: DROP URI_LITERAL
                                        NULL /* document uri */,
                                        NULL, NULL,
                                        NULL /*where */,
-                                       RASQAL_UPDATE_FLAGS_SILENT /* flags */);
+                                       $2 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
   if(!update) {
     YYERROR_MSG("DropQuery: rasqal_new_update_operation failed");
   } else {
@@ -1777,7 +1807,7 @@ DropQuery: DROP URI_LITERAL
       YYERROR_MSG("DropQuery: rasqal_query_add_update_operation failed");
   }
 }
-| DROP GRAPH URI_LITERAL
+| DROP SilentOpt GraphRefAll
 {
   rasqal_sparql_query_language* sparql;
   rasqal_update_operation* update;
@@ -1786,50 +1816,17 @@ DropQuery: DROP URI_LITERAL
 
   if(!sparql->sparql11_update) {
     sparql_syntax_error((rasqal_query*)rq, 
-                        "DROP GRAPH <uri> can only be used with a SPARQL 1.1 Update");
+                        "DROP (SILENT) DEFAULT | NAMED | ALL can only be used with a SPARQL 1.1 Update");
     YYERROR;
   }
 
-  /* Early draft syntax - deprecated */
-  sparql_syntax_warning((rasqal_query*)rq,
-                        "DROP GRAPH <uri> is replaced by DROP <uri> in later SPARQL 1.1 drafts");
-
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_DROP,
-                                       $3 /* graph uri */, 
+                                       NULL /* graph uri */, 
                                        NULL /* document uri */,
                                        NULL, NULL,
                                        NULL /*where */,
-                                       0 /* flags */);
-  if(!update) {
-    YYERROR_MSG("DropQuery: rasqal_new_update_operation failed");
-  } else {
-    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
-      YYERROR_MSG("DropQuery: rasqal_query_add_update_operation failed");
-  }
-}
-| DROP SILENT GRAPH URI_LITERAL
-{
-  rasqal_sparql_query_language* sparql;
-  rasqal_update_operation* update;
-
-  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
-
-  if(!sparql->sparql11_update) {
-    sparql_syntax_error((rasqal_query*)rq, 
-                        "DROP SILENT GRAPH <uri> can only be used with a SPARQL 1.1 Update");
-    YYERROR;
-  }
-
-  /* Early draft syntax - deprecated */
-  sparql_syntax_warning((rasqal_query*)rq,
-                        "DROP SILENT GRAPH <uri> is replaced by DROP SILENT <uri> in later SPARQL 1.1 drafts");
-
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_DROP,
-                                       $4 /* graph uri */, 
-                                       NULL /* document uri */,
-                                       NULL, NULL,
-                                       NULL /*where */,
-                                       RASQAL_UPDATE_FLAGS_SILENT /* flags */);
+                                       $2 /* flags */,
+                                       $3 /* applies */);
   if(!update) {
     YYERROR_MSG("DropQuery: rasqal_new_update_operation failed");
   } else {
@@ -1868,40 +1865,70 @@ IriRefList: IriRefList URI_LITERAL
 ;
 
  
-/* SPARQL 1.1 Update (draft) / LAQRS */
-LoadQuery: LOAD IriRefList
+/* SPARQL 1.1 token GraphOrDefault */
+GraphOrDefault: DEFAULT
+{
+  $$ = NULL;
+}
+| URI_LITERAL
+{
+  $$ = $1;
+}
+;
+
+
+OldGraphRef: GraphRef 
+{
+  $$ = $1;
+}
+| URI_LITERAL
+{
+  /* Early draft syntax allowed a list of URIs - deprecated */
+  sparql_syntax_warning((rasqal_query*)rq,
+                        "LOAD <document uri list> INTO <graph uri> is replaced by LOAD <document uri> INTO GRAPH <graph uri> in later SPARQL 1.1 drafts");
+
+  $$ = $1;
+}
+| DEFAULT
+{
+  /* Early draft syntax allowed a list of URIs - deprecated */
+  sparql_syntax_warning((rasqal_query*)rq,
+                        "LOAD <document uri list> INTO DEFAULT is replaced by LOAD <document uri> in later SPARQL 1.1 drafts");
+
+  $$ = NULL;
+}
+;
+
+
+/* SPARQL 1.1 Update (draft) */
+LoadQuery: LOAD SilentOpt URI_LITERAL
 {
   rasqal_sparql_query_language* sparql;
-  int i;
-  raptor_uri* doc_uri;
+  rasqal_update_operation* update;
   
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->sparql11_update) {
     sparql_syntax_error((rasqal_query*)rq, 
-                        "LOAD <uri list> can only be used with a SPARQL 1.1 Update");
+                        "LOAD <uri> can only be used with a SPARQL 1.1 Update");
     YYERROR;
   }
 
-  for(i = 0; (doc_uri = (raptor_uri*)raptor_sequence_get_at($2, i)); i++) {
-    rasqal_update_operation* update;
-    update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_LOAD,
-                                         NULL /* graph uri */, 
-                                         raptor_uri_copy(doc_uri) /* document uri */,
-                                         NULL, NULL,
-                                         NULL /* where */,
-                                         0 /* flags */);
-    if(!update) {
-      YYERROR_MSG("LoadQuery: rasqal_new_update_operation failed");
-    } else {
-      if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
-        YYERROR_MSG("LoadQuery: rasqal_query_add_update_operation failed");
-    }
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_LOAD,
+                                       NULL /* graph uri */, 
+                                       $3 /* document uri */,
+                                       NULL, NULL,
+                                       NULL /* where */,
+                                       $2 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
+  if(!update) {
+    YYERROR_MSG("LoadQuery: rasqal_new_update_operation failed");
+  } else {
+    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
+      YYERROR_MSG("LoadQuery: rasqal_query_add_update_operation failed");
   }
-
-  raptor_free_sequence($2);
 }
-| LOAD IriRefList INTO GraphRef
+| LOAD SilentOpt IriRefList INTO OldGraphRef
 {
   rasqal_sparql_query_language* sparql;
   int i;
@@ -1911,29 +1938,130 @@ LoadQuery: LOAD IriRefList
 
   if(!sparql->sparql11_update) {
     sparql_syntax_error((rasqal_query*)rq, 
-                        "LOAD <document uri list> INTO <graph URI> can only be used with a SPARQL 1.1 Update");
+                        "LOAD <document uri> INTO GRAPH <graph URI> / DEFAULT can only be used with a SPARQL 1.1 Update");
     YYERROR;
   }
 
-  for(i = 0; (doc_uri = (raptor_uri*)raptor_sequence_get_at($2, i)); i++) {
+  for(i = 0; (doc_uri = (raptor_uri*)raptor_sequence_get_at($3, i)); i++) {
     rasqal_update_operation* update;
     update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_LOAD,
-                                         $4 ? raptor_uri_copy($4) : NULL /* graph uri */,
+                                         $5 ? raptor_uri_copy($5) : NULL /* graph uri */,
                                          raptor_uri_copy(doc_uri) /* document uri */,
                                          NULL, NULL,
                                          NULL /*where */,
-                                         0 /* flags */);
+                                         $2 /* flags */,
+                                         RASQAL_UPDATE_GRAPH_ONE /* applies */);
     if(!update) {
       YYERROR_MSG("LoadQuery: rasqal_new_update_operation failed");
     } else {
       if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
         YYERROR_MSG("LoadQuery: rasqal_query_add_update_operation failed");
     }
+
+    if(i == 1)
+      /* Early draft syntax allowed a list of URIs - deprecated */
+      sparql_syntax_warning((rasqal_query*)rq,
+                            "LOAD <document uri list> INTO <graph uri> / DEFAULT is replaced by LOAD <document uri> INTO GRAPH <graph uri> or LOAD <document uri> in later SPARQL 1.1 drafts");
+    
+
   }
 
-  raptor_free_sequence($2);
-  if($4)
-    raptor_free_uri($4);
+  raptor_free_sequence($3);
+  if($5)
+    raptor_free_uri($5);
+}
+;
+
+
+/* SPARQL 1.1 Update (draft) */
+AddQuery: ADD SilentOpt GraphOrDefault TO GraphOrDefault
+{
+  rasqal_sparql_query_language* sparql;
+  rasqal_update_operation* update;
+
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql11_update) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "ADD (SILENT) <uri> TO <uri> can only be used with a SPARQL 1.1 Update");
+    YYERROR;
+  }
+
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_ADD,
+                                       $3 /* graph uri or NULL */, 
+                                       $5 /* document uri */,
+                                       NULL, NULL,
+                                       NULL /*where */,
+                                       $2 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
+  if(!update) {
+    YYERROR_MSG("AddQuery: rasqal_new_update_operation failed");
+  } else {
+    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
+      YYERROR_MSG("AddQuery: rasqal_query_add_update_operation failed");
+  }
+}
+;
+
+
+/* SPARQL 1.1 Update (draft) */
+MoveQuery: MOVE SilentOpt GraphOrDefault TO GraphOrDefault
+{
+  rasqal_sparql_query_language* sparql;
+  rasqal_update_operation* update;
+
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql11_update) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "MOVE (SILENT) <uri> TO <uri> can only be used with a SPARQL 1.1 Update");
+    YYERROR;
+  }
+
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_MOVE,
+                                       $3 /* graph uri or NULL */, 
+                                       $5 /* document uri */,
+                                       NULL, NULL,
+                                       NULL /*where */,
+                                       $2 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
+  if(!update) {
+    YYERROR_MSG("MoveQuery: rasqal_new_update_operation failed");
+  } else {
+    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
+      YYERROR_MSG("MoveQuery: rasqal_query_add_update_operation failed");
+  }
+}
+;
+
+
+/* SPARQL 1.1 Update (draft) */
+CopyQuery: COPY SilentOpt GraphOrDefault TO GraphOrDefault
+{
+  rasqal_sparql_query_language* sparql;
+  rasqal_update_operation* update;
+
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql11_update) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "COPY (SILENT) <uri> TO <uri> can only be used with a SPARQL 1.1 Update");
+    YYERROR;
+  }
+
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_COPY,
+                                       $3 /* graph uri or NULL */, 
+                                       $5 /* document uri */,
+                                       NULL, NULL,
+                                       NULL /*where */,
+                                       $2 /* flags */,
+                                       RASQAL_UPDATE_GRAPH_ONE /* applies */);
+  if(!update) {
+    YYERROR_MSG("CopyQuery: rasqal_new_update_operation failed");
+  } else {
+    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
+      YYERROR_MSG("CopyQuery: rasqal_query_add_update_operation failed");
+  }
 }
 ;
 

@@ -1,0 +1,2 @@
+# An example to add all statements from one named graph into another named graph.
+ADD SILENT <http://example.org/named1> TO <http://example.org/named2>

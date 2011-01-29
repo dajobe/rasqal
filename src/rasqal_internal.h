@@ -1584,7 +1584,7 @@ void rasqal_triples_source_error_handler(rasqal_query* rdf_query, raptor_locator
 
 /* rasqal_update.c */
 const char* rasqal_update_type_label(rasqal_update_type type);
-rasqal_update_operation* rasqal_new_update_operation(rasqal_update_type type, raptor_uri* graph_uri, raptor_uri* document_uri, raptor_sequence* insert_templates, raptor_sequence* delete_templates, rasqal_graph_pattern* graph_pattern, int flags);
+rasqal_update_operation* rasqal_new_update_operation(rasqal_update_type type, raptor_uri* graph_uri, raptor_uri* document_uri, raptor_sequence* insert_templates, raptor_sequence* delete_templates, rasqal_graph_pattern* graph_pattern, int flags, rasqal_update_graph_applies applies);
 void rasqal_free_update_operation(rasqal_update_operation *update);
 int rasqal_update_operation_print(rasqal_update_operation *update, FILE* stream);
 int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operation *update);

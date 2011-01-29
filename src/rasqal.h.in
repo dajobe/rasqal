@@ -855,6 +855,9 @@ typedef enum {
  * @RASQAL_UPDATE_TYPE_DROP: Drop graph.
  * @RASQAL_UPDATE_TYPE_LOAD: Load graph.
  * @RASQAL_UPDATE_TYPE_UPDATE: Insert or Delete graph or triples.
+ * @RASQAL_UPDATE_TYPE_ADD: Add graph to another graph.
+ * @RASQAL_UPDATE_TYPE_MOVE: Move graph to another grpah.
+ * @RASQAL_UPDATE_TYPE_COPY: Copy graph to another graph.
  * @RASQAL_UPDATE_TYPE_UNKNOWN: Internal
  * @RASQAL_UPDATE_TYPE_LAST: Internal
  *
@@ -869,9 +872,12 @@ typedef enum {
   RASQAL_UPDATE_TYPE_DROP      = 3,
   RASQAL_UPDATE_TYPE_LOAD      = 4,
   RASQAL_UPDATE_TYPE_UPDATE    = 5,
+  RASQAL_UPDATE_TYPE_ADD       = 6,
+  RASQAL_UPDATE_TYPE_MOVE      = 7,
+  RASQAL_UPDATE_TYPE_COPY      = 8,
 
   /* internal */
-  RASQAL_UPDATE_TYPE_LAST = RASQAL_UPDATE_TYPE_UPDATE
+  RASQAL_UPDATE_TYPE_LAST = RASQAL_UPDATE_TYPE_COPY
 } rasqal_update_type;
 
 
@@ -880,25 +886,46 @@ typedef enum {
  * @RASQAL_UPDATE_FLAGS_SILENT: the update operation should be silent
  * @RASQAL_UPDATE_FLAGS_DATA: the update operation is triple data not templates
  *
- * Flags for graph update operations
+ * Bitflags for graph update operations
  */
 typedef enum {
   RASQAL_UPDATE_FLAGS_SILENT = 1,
-  RASQAL_UPDATE_FLAGS_DATA = 2,
+  RASQAL_UPDATE_FLAGS_DATA = 2
 } rasqal_update_flags;
+
+
+/**
+ * rasqal_update_graph_applies:
+ * @RASQAL_UPDATE_GRAPH_ONE: the update operation applies to 1 graph
+ * @RASQAL_UPDATE_GRAPH_DEFAULT: the update operation applies to the default graph
+ * @RASQAL_UPDATE_GRAPH_NAMED: the update operation applies to all named graphs
+ * @RASQAL_UPDATE_GRAPH_ALL: the update operation applies ALL graphs
+ *
+ * The graph(s) that the update operation applies to.
+ */
+typedef enum {
+  RASQAL_UPDATE_GRAPH_ONE = 0,
+  RASQAL_UPDATE_GRAPH_DEFAULT = 1,
+  RASQAL_UPDATE_GRAPH_NAMED = 2,
+  RASQAL_UPDATE_GRAPH_ALL = 3
+} rasqal_update_graph_applies;
 
 
 /**
  * rasqal_update_operation:
  * @type: type of update
- * @graph_uri: optional graph URI (clear, drop, load, with ... delete/insert)
- * @document_uri: optional document URI (load)
+ * @graph_uri: optional graph URI (clear, drop, load, with ... delete, insert); source graph URI (add, move, copy)
+ * @document_uri: optional document URI (load); destination graph URI (add, move, copy)
  * @insert_templates: optional sequence of #rasqal_triple to insert. Data triples if @flags is #RASQAL_UPDATE_FLAGS_DATA set, templates otherwise.
  * @delete_templates: optional sequence of #rasqal_triple templates to delete
  * @where: optional where template (insert/delete)
  * @flags: update flags - bit-or of flags defined in #rasqal_update_flags
+ * @applies: the graph(s) that the update operation applies to, or @graph_uri if #RASQAL_UPDATE_GRAPH_ONE
  *
  * Update operation - changing the dataset
+ *
+ * For LOAD and CLEAR if @applies is set (not 0) then the operation
+ * applies to just those graph(), otherwise it applies to the @graph_uri.
  *
  */
 typedef struct {
@@ -915,6 +942,8 @@ typedef struct {
   rasqal_graph_pattern* where;
 
   int flags;
+
+  rasqal_update_graph_applies applies;
 } rasqal_update_operation;
 
 
