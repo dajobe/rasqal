@@ -914,8 +914,8 @@ typedef enum {
 /**
  * rasqal_update_operation:
  * @type: type of update
- * @graph_uri: optional graph URI (clear, drop, load, with ... delete, insert); source graph URI (add, move, copy)
- * @document_uri: optional document URI (load); destination graph URI (add, move, copy)
+ * @graph_uri: optional graph URI (clear, drop, load, with ... delete, insert); source graph (add, move, copy)
+ * @document_uri: optional document URI (load); destination graph (add, move, copy)
  * @insert_templates: optional sequence of #rasqal_triple to insert. Data triples if @flags is #RASQAL_UPDATE_FLAGS_DATA set, templates otherwise.
  * @delete_templates: optional sequence of #rasqal_triple templates to delete
  * @where: optional where template (insert/delete)
@@ -926,6 +926,12 @@ typedef enum {
  *
  * For LOAD and CLEAR if @applies is set (not 0) then the operation
  * applies to just those graph(), otherwise it applies to the @graph_uri.
+ *
+ * For ADD, MOVE and COPY the source graph is stored in @graph_uri
+ * field and the destination graph in the @document_uri field.  The
+ * field names have no meaning in this case since both values are
+ * always present, always graphs and a NULL value signifies the
+ * default graph.
  *
  */
 typedef struct {

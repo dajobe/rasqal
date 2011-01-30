@@ -27,11 +27,16 @@ update operations.
 </p>
 
 <p>Added support for <code>ADD</code>, <code>MOVE</code> and
-<code>COPY</code> operations which both operate between two graphs.
+<code>COPY</code> operations which both operate between two graphs -
+either named or default.  The source graph is stored in the update
+structure <code>graph_uri</code> field and the destination graph in
+the <code>document_uri</code> field; the names have no meaning here
+since both are graphs and a NULL value signifies the default graph.
 </p>
 
 <p>Added support for <code>DELETE WHERE {}</code> writing the triple
-results into the delete_templates field of the update structure.
+results into the <code>delete_templates</code> field of the update
+structure.
 </p>
 
 <p>Added support for multiple update operations in one 'query'

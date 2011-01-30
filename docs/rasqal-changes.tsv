@@ -53,6 +53,7 @@
 0.9.21	-	-	-	0.9.22	struct timeval*	rasqal_xsd_datetime_get_as_timeval	(rasqal_xsd_datetime *dt)	-
 0.9.21	-	-	-	0.9.22	char*	rasqal_xsd_datetime_get_timezone_as_counted_string	(rasqal_xsd_datetime *dt, size_t *len_p)	-
 0.9.22	-	-	-	0.9.23	raptor_sequence*	rasqal_graph_pattern_get_flattened_triples	(rasqal_query* query, rasqal_graph_pattern* graph_pattern)	-
+0.9.23	-	-	-	0.9.24	raptor_sequence*	rasqal_graph_pattern_get_flattened_triples	(rasqal_query* query, rasqal_graph_pattern* graph_pattern)	-
 #
 # Types
 #
@@ -60,6 +61,7 @@
 0.9.21	type	rasqal_data_graph	-	0.9.22	type	rasqal_data_graph	-	Added const for format_type and format_name fields.
 0.9.21	type	-	-	0.9.22	type	rasqal_xsd_datetime	-	-
 0.9.21	type	rasqal_literal	-	0.9.22	type	rasqal_literal	-	Added datetime to value union.
+0.9.23	type	-	-	0.9.24	type	rasqal_update_graph_applies	-	Specifies scope that a #rasqal_update applies to
 #
 # Enums
 #
@@ -88,3 +90,6 @@
 0.9.21	enum	-	-	0.9.22	enum	RASQAL_QUERY_RESULTS_UNKNOWN	-	Unknown result format type
 0.9.21	enum	-	-	0.9.22	enum	RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER	-	Bitflag for rasqal_query_results_formats_check() to request formats that can be read.
 0.9.21	enum	-	-	0.9.22	enum	RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER	-	Bitflag for rasqal_query_results_formats_check() to request formats that can be written.
+0.9.23	enum	-	-	0.9.24	enum	RASQAL_UPDATE_TYPE_ADD	-	SPARQL 1.1 Update ADD operation
+0.9.23	enum	-	-	0.9.24	enum	RASQAL_UPDATE_TYPE_MOVE	-	SPARQL 1.1 Update MOVE operation
+0.9.23	enum	-	-	0.9.24	enum	RASQAL_UPDATE_TYPE_COPY	-	SPARQL 1.1 Update COPY operation
