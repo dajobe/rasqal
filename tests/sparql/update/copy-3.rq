@@ -1,0 +1,2 @@
+# Check that 2 NULL graph/document uri args work
+COPY DEFAULT TO DEFAULT

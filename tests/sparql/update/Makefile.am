@@ -47,10 +47,13 @@ drop-2.rq \
 delete-insert-1.rq \
 copy-1.rq \
 copy-2.rq \
+copy-3.rq \
 move-1.rq \
 move-2.rq \
+move-3.rq \
 add-1.rq \
 add-2.rq \
+add-3.rq \
 multiple-1.rq \
 delete-where-1.rq \
 delete-where-2.rq
