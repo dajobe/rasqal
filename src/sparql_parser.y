@@ -1669,9 +1669,9 @@ ClearQuery: CLEAR GraphRef
                                        NULL, NULL,
                                        NULL /*where */,
                                        0 /* flags */,
-                                       $2 /* applies */);
+                                       (rasqal_update_graph_applies)$2 /* applies */);
   if(update)
-    update->applies = $2;
+    update->applies = (rasqal_update_graph_applies)$2;
   
   if(!update) {
     YYERROR_MSG("ClearQuery: rasqal_new_update_operation failed");
@@ -1866,7 +1866,7 @@ DropQuery: DROP SilentOpt GraphRef
                                        NULL, NULL,
                                        NULL /*where */,
                                        $2 /* flags */,
-                                       $3 /* applies */);
+                                       (rasqal_update_graph_applies)$3 /* applies */);
   if(!update) {
     YYERROR_MSG("DropQuery: rasqal_new_update_operation failed");
   } else {
