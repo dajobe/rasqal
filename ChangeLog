@@ -1,4 +1,7 @@
-2011-01-30  Dave Beckett <dave@dajobe.org>
+2011-01-30  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_24 for 0.9.24 release (GIT commit
+	17c89f4f3643385e61e25afec9a3599cacf6dedd)
 
 	* tests/sparql/update/Makefile.am, tests/sparql/update/add-3.rq,
 	tests/sparql/update/copy-3.rq, tests/sparql/update/move-3.rq: Add
