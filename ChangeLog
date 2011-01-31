@@ -1,4 +1,25 @@
+2011-01-30  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/update/Makefile.am, tests/sparql/update/add-3.rq,
+	tests/sparql/update/copy-3.rq, tests/sparql/update/move-3.rq: Add
+	tests for ADD, COPY, MOVE with 2 DEFAULT args
+
+	* src/rasqal_update.c:
+	(rasqal_new_update_operation): Allow ADD, COPY, MOVE to have 2
+	NULL args.
+
+	* RELEASE.html, docs/rasqal-changes.tsv, src/rasqal.h.in:
+	Documentation fixes for 0.9.24 Add ADD, MOVE, COPY notes about
+	source/dest graphs
+
+	Add rasqal_graph_pattern_get_flattened_triples and new enums to
+	API changes
+
 2011-01-29  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c:
+	(rasqal_new_group_concat_expression): Add
+	RASQAL_EXPR_FLAG_AGGREGATE
 
 	* src/sparql_parser.y, tests/sparql/update/Makefile.am,
 	tests/sparql/update/multiple-1.rq: Support SPARQL 1.1 Update
