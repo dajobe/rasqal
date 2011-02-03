@@ -973,6 +973,7 @@ const char *mime_type)
 
 static const char* const sparql_xml_names[2] = { "xml", NULL};
 
+#define SPARQL_XML_URIS_COUNT 3
 static const char* const sparql_xml_uri_strings[4] = {
   "http://www.w3.org/TR/rdf-sparql-XMLres/",
   "http://www.w3.org/TR/2008/REC-rdf-sparql-XMLres-20080115/",
@@ -999,6 +1000,7 @@ rasqal_query_results_sparql_xml_register_factory(rasqal_query_results_format_fac
   factory->desc.label = "SPARQL XML Query Results";
 
   factory->desc.uri_strings = sparql_xml_uri_strings;
+  factory->desc.uri_strings_count = SPARQL_XML_URIS_COUNT;
 
   factory->desc.flags = 0;
   

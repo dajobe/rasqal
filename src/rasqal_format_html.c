@@ -245,6 +245,7 @@ rasqal_query_results_write_html(rasqal_query_results_formatter* formatter,
 
 static const char* const html_names[2] = { "html", NULL};
 
+#define HTML_URIS_COUNT 1
 static const char* const html_uri_strings[2] = {
   "http://www.w3.org/1999/xhtml",
   NULL
@@ -270,6 +271,7 @@ rasqal_query_results_html_register_factory(rasqal_query_results_format_factory *
   factory->desc.label = "HTML Table";
 
   factory->desc.uri_strings = html_uri_strings;
+  factory->desc.uri_strings_count = HTML_URIS_COUNT;
 
   factory->desc.flags = 0;
   

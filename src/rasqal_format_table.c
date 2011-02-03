@@ -317,6 +317,7 @@ rasqal_query_results_table_register_factory(rasqal_query_results_format_factory 
   factory->desc.label = "Table";
 
   factory->desc.uri_strings = NULL;
+  factory->desc.uri_strings_count = 0;
 
   factory->desc.flags = 0;
   
