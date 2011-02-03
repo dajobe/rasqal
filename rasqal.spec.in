@@ -17,14 +17,14 @@ BuildRoot: /tmp/%{name}-%{version}
 BuildRequires: libxml2-devel
 BuildRequires: mpfr-devel
 BuildRequires: pcre-devel
-BuildRequires: raptor-devel >= @RAPTOR_MIN_VERSION@
+BuildRequires: raptor2-devel >= @RAPTOR_MIN_VERSION@
 # for the testsuite
 BuildRequires:  perl(XML::DOM)
 
 Packager:  Dave Beckett <dave@dajobe.org>
 
-# Not needed since raptor-devel require above will pull this in.
-# Requires: raptor >= @RAPTOR_MIN_VERSION@
+# Not needed since raptor2-devel require above will pull this in.
+# Requires: raptor2 >= @RAPTOR_MIN_VERSION@
 
 %description
 
@@ -39,7 +39,7 @@ Group: Development/Libraries
 Requires: rasqal = %{version}
 Requires: gtk-doc
 Requires: pkgconfig
-Requires: raptor-devel >= @RAPTOR_MIN_VERSION@
+Requires: raptor2-devel >= @RAPTOR_MIN_VERSION@
 %description devel
 Libraries, includes etc to develop with the Rasqal RDF query language library.
 
@@ -48,7 +48,7 @@ Libraries, includes etc to develop with the Rasqal RDF query language library.
 
 %build
 
-%configure --enable-release --with-raptor=system
+%configure --enable-release
 
 %{__make} OPTIMIZE="$RPM_OPT_FLAGS"
 
@@ -95,6 +95,9 @@ install -d $RPM_BUILD_ROOT%{_mandir}/man3
 
 
 %changelog
+* Tue Feb 1 2011  Dave Beckett <dave@dajobe.org>
+- Raptor 2 attempt
+
 * Wed Aug 11 2005  Dave Beckett <dave.beckett@bristol.ac.uk>
 - Update Source:
 - Use %makeinstall

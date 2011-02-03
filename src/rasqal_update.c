@@ -105,8 +105,11 @@ rasqal_new_update_operation(rasqal_update_type type,
                             rasqal_update_graph_applies applies)
 {
   rasqal_update_operation* update;
+  int is_always_2_args = (type >= RASQAL_UPDATE_TYPE_ADD &&
+                          type <= RASQAL_UPDATE_TYPE_COPY);
 
-  if(type != RASQAL_UPDATE_TYPE_CLEAR) {
+  if(!is_always_2_args && 
+     type != RASQAL_UPDATE_TYPE_CLEAR) {
     if(!graph_uri && !document_uri && !insert_templates && !delete_templates &&
        !where)
       return NULL;

@@ -185,15 +185,6 @@ also <tt>--with-redland-config</tt>.</p>
 
 <dt><tt>--with-pcre-config=NAME</tt><br /></dt>
 <dd><p>Set the path to the <a href="http://www.pcre.org/">PCRE</a> pcre-config program</p></dd>
-<dt><code>--with-raptor=</code> <code>system</code> or <code>internal</code><br /></dt>
-<dd><p>
-This option tells Rasqal to use either the system installed version
-of Raptor or a version in the sibling directory of ../raptor
-If the option is omittted, Rasqal will guess and choose either the
-system one, if new enough or the internal one if present.  If
-<code>--with-raptor=system</code> is used and Rasqal discovers that
-the system Raptor is too old, a warning will be given but the
-configuration will continue.  </p></dd>
 
 <dt><tt>--with-redland-config=NAME</tt><br /></dt>
 <dd><p>Set the path to the <a href="http://librdf.org/">Redland</a> redland-config program</p></dd>
@@ -223,6 +214,16 @@ directory, use:
    ./configure --prefix=/usr --enable-query-languages=sparql
 </pre>
 
+<p>The <code>configure</code> script uses
+<a href="http://pkg-config.freedesktop.org/wiki/"><code>pkg-config(1)</code></a>
+to find an installed version of Raptor . If configure reports that it
+cannot find Raptor, try <code>$ pkg-config raptor2 --modversion</code>
+on the command line and if there is an error or nothing is shown,
+then pkg-config is not properly installed and configured.  Use 'man
+pkg-config(1)' to read how to set <code>PKG_CONFIG_PATH</code> which
+should include a directory where <code>raptor2.pc</code> is installed.
+When it is correct, the above command will return the Raptor version.
+</p>
 
 <h3>2.4 Compiling</h3>
 
