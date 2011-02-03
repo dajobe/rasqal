@@ -953,13 +953,12 @@ main(int argc, char *argv[])
                   program, optarg);
           fprintf(stderr, "Valid arguments are:\n");
           for(i = 0; 1; i++) {
-            const char *help_name;
-            const char *help_label;
-            if(rasqal_languages_enumerate(world, i, 
-                                          &help_name, &help_label, NULL))
+            const raptor_syntax_description* desc;
+            desc = rasqal_world_get_query_language_description(world, i);
+            if(desc == NULL)
               break;
 
-            fprintf(stderr, "  %-12s for %s\n", help_name, help_label);
+            fprintf(stderr, "  %-18s for %s\n", desc->names[0], desc->label);
           }
           usage = 1;
         }
@@ -1146,13 +1145,13 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("p", "protocol URI    ", "Execute QUERY against a SPARQL protocol service URI"));
     puts(HELP_TEXT("i", "input LANGUAGE  ", "Set query language name to one of:"));
     for(i = 0; 1; i++) {
-      const char *help_name;
-      const char *help_label;
+      const raptor_syntax_description* desc;
 
-      if(rasqal_languages_enumerate(world, i, &help_name, &help_label, NULL))
-        break;
+      desc = rasqal_world_get_query_language_description(world, i);
+      if(!desc)
+         break;
 
-      printf("    %-15s         %s", help_name, help_label);
+      printf("    %-15s         %s", desc->names[0], desc->label);
       if(!i)
         puts(" (default)");
       else

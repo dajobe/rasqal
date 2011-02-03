@@ -1041,7 +1041,11 @@ rasqal_feature rasqal_feature_from_uri(rasqal_world* world, raptor_uri *uri);
 RASQAL_API
 int rasqal_feature_value_type(const rasqal_feature feature);
 
+
 RASQAL_API
+const raptor_syntax_description* rasqal_world_get_query_language_description(rasqal_world* world, unsigned int counter);
+
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_languages_enumerate(rasqal_world* world, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
 
 RASQAL_API

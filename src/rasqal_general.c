@@ -434,12 +434,41 @@ rasqal_get_query_language_factory(rasqal_world *world, const char *name,
 
 
 /**
+ * rasqal_world_get_query_language_description:
+ * @world: world object
+ * @counter: index into the list of query languages
+ *
+ * Get query language descriptive information
+ *
+ * Return value: description or NULL if counter is out of range
+ **/
+const raptor_syntax_description*
+rasqal_world_get_query_language_description(rasqal_world* world,
+                                                  unsigned int counter)
+{
+  rasqal_query_language_factory *factory;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
+  rasqal_world_open(world);
+
+  factory = raptor_sequence_get_at(world->query_languages, counter);
+  if(!factory)
+    return NULL;
+
+  return &factory->desc;
+}
+
+
+/**
  * rasqal_languages_enumerate:
  * @world: rasqal_world object
  * @counter: index into the list of syntaxes
  * @name: pointer to store the name of the syntax (or NULL)
  * @label: pointer to store syntax readable label (or NULL)
  * @uri_string: pointer to store syntax URI string (or NULL)
+ *
+ * @deprecated: Use rasqal_world_get_query_language_description() instead.
  *
  * Get information on query languages.
  * 

@@ -87,8 +87,8 @@ static int rasqal_query_add_query_result(rasqal_query* query, rasqal_query_resul
  *
  * A query language can be named or identified by a URI, either
  * of which is optional.  The default query language will be used
- * if both are NULL.  rasqal_languages_enumerate returns
- * information on the known names, labels and URIs.
+ * if both are NULL.  rasqal_world_get_query_language_description returns
+ * the description of the known names, labels, MIME types and URIs.
  *
  * Return value: a new #rasqal_query object or NULL on failure
  */
