@@ -360,8 +360,6 @@ rasqal_query_language_register_factory(rasqal_world *world,
 
   query->world = world;
   
-  query->desc.mime_types = NULL;
-
   if(raptor_sequence_push(world->query_languages, query))
     return NULL; /* on error, query is already freed by the sequence */
   
@@ -369,37 +367,11 @@ rasqal_query_language_register_factory(rasqal_world *world,
   if(factory(query))
     return NULL; /* query is owned and freed by the query_languages sequence */
   
-  if(!query->desc.names || !query->desc.names[0] || !query->desc.label) {
+  if(raptor_syntax_description_validate(&query->desc)) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Query language failed to register required names and label fields\n");
+                            "Query language format description failed to validate\n");
     goto tidy;
   }
-
-#ifdef RASQAL_DEBUG
-  /* Maintainer only check of static data */
-  if(query->desc.mime_types) {
-    unsigned int i;
-    const raptor_type_q* type_q = NULL;
-
-    for(i = 0; 
-        (type_q = &query->desc.mime_types[i]) && type_q->mime_type;
-        i++) {
-      size_t len = strlen(type_q->mime_type);
-      if(len != type_q->mime_type_len) {
-        fprintf(stderr,
-                "Query language %s  mime type %s  actual len %d  static len %d\n",
-                query->desc.names[0], type_q->mime_type,
-                (int)len, (int)type_q->mime_type_len);
-      }
-    }
-
-    if(i != query->desc.mime_types_count) {
-        fprintf(stderr,
-                "Query language %s  saw %d mime types  static count %d\n",
-                query->desc.names[0], i, query->desc.mime_types_count);
-    }
-  }
-#endif
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG3("Registered query language %s with context size %d\n",

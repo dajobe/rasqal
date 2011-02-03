@@ -835,16 +835,13 @@ rasqal_query_results_rdfxml_register_factory(rasqal_query_results_format_factory
   int rc = 0;
 
   factory->desc.names = rdfxml_names;
-
   factory->desc.mime_types = rdfxml_types;
-  factory->desc.mime_types_count = RDFXML_TYPES_COUNT;
+
   rasqal_query_results_format_rdf_copy_syntax_description_from_parser(factory,
                                                                       "rdfxml");
 
   factory->desc.label = "RDF/XML Query Results";
-
   factory->desc.uri_strings = NULL;
-  factory->desc.uri_strings_count = 0;
 
   factory->desc.flags = 0;
   
@@ -995,7 +992,6 @@ const char *mime_type)
 
 static const char* const turtle_names[2] = { "turtle", NULL};
 
-#define TURTLE_URIS_COUNT 1
 static const char* const turtle_uri_strings[2] = {
   "http://www.w3.org/TeamSubmission/turtle/",
   NULL
@@ -1015,14 +1011,11 @@ rasqal_query_results_turtle_register_factory(rasqal_query_results_format_factory
   factory->desc.names = turtle_names;
 
   factory->desc.mime_types = turtle_types;
-  factory->desc.mime_types_count = TURTLE_TYPES_COUNT;
   rasqal_query_results_format_rdf_copy_syntax_description_from_parser(factory,
                                                                       "turtle");
   
   factory->desc.label = "Turtle Query Results";
-
   factory->desc.uri_strings = turtle_uri_strings;
-  factory->desc.uri_strings_count = TURTLE_URIS_COUNT;
 
   factory->context_length = sizeof(rasqal_query_results_format_rdf);
   

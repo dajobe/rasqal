@@ -68,8 +68,6 @@ rasqal_world_register_query_results_format_factory(rasqal_world* world,
 
   factory->world = world;
 
-  factory->desc.mime_types = NULL;
-  
   if(raptor_sequence_push(world->query_results_formats, factory))
     return NULL; /* on error, factory is already freed by the sequence */
   
@@ -78,45 +76,17 @@ rasqal_world_register_query_results_format_factory(rasqal_world* world,
     /* factory is owned and freed by the query_results_formats sequence */
     return NULL;
   
-  if(!factory->desc.names || !factory->desc.names[0] ||
-     !factory->desc.label) {
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Result query result format failed to register required names and label fields\n");
-    goto tidy;
-  }
-
   factory->desc.flags = 0;
   if(factory->get_rowsource)
     factory->desc.flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER;
   if(factory->write)
     factory->desc.flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER;
 
-
-#ifdef RASQAL_DEBUG
-  /* Maintainer only check of static data */
-  if(factory->desc.mime_types) {
-    unsigned int i;
-    const raptor_type_q* type_q = NULL;
-
-    for(i = 0; 
-        (type_q = &factory->desc.mime_types[i]) && type_q->mime_type;
-        i++) {
-      size_t len = strlen(type_q->mime_type);
-      if(len != type_q->mime_type_len) {
-        fprintf(stderr,
-                "Query result format %s  mime type %s  actual len %d  static len %d\n",
-                factory->desc.names[0], type_q->mime_type,
-                (int)len, (int)type_q->mime_type_len);
-      }
-    }
-
-    if(i != factory->desc.mime_types_count) {
-        fprintf(stderr,
-                "Query result format %s  saw %d mime types  static count %d\n",
-                factory->desc.names[0], i, factory->desc.mime_types_count);
-    }
+  if(raptor_syntax_description_validate(&factory->desc)) {
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                            "Result query result format description failed to validate\n");
+    goto tidy;
   }
-#endif
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG3("Registered query result format %s with context size %d\n",

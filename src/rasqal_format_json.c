@@ -250,7 +250,6 @@ rasqal_query_results_write_json1(rasqal_query_results_formatter* formatter,
 
 static const char* const json_names[2] = { "json", NULL};
 
-#define JSON_URIS_COUNT 4
 static const char* const json_uri_strings[5] = { 
   "http://www.w3.org/TR/rdf-sparql-json-res/",
   /* Released DAWG WG results in JSON */
@@ -273,14 +272,10 @@ rasqal_query_results_json_register_factory(rasqal_query_results_format_factory *
   int rc = 0;
 
   factory->desc.names = json_names;
-
   factory->desc.mime_types = json_types;
-  factory->desc.mime_types_count = JSON_TYPES_COUNT;
 
   factory->desc.label = "SPARQL JSON Query Results";
-
   factory->desc.uri_strings = json_uri_strings;
-  factory->desc.uri_strings_count = JSON_URIS_COUNT;
 
   factory->desc.flags = 0;
   

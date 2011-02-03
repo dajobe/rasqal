@@ -310,14 +310,10 @@ rasqal_query_results_table_register_factory(rasqal_query_results_format_factory 
   int rc = 0;
 
   factory->desc.names = table_names;
-
   factory->desc.mime_types = table_types;
-  factory->desc.mime_types_count = TABLE_TYPES_COUNT;
 
   factory->desc.label = "Table";
-
   factory->desc.uri_strings = NULL;
-  factory->desc.uri_strings_count = 0;
 
   factory->desc.flags = 0;
   
