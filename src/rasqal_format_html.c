@@ -243,15 +243,14 @@ rasqal_query_results_write_html(rasqal_query_results_formatter* formatter,
   
 
 
-static const char* const html_names[2] = { "html", NULL};
+static const char* const html_names[] = { "html", NULL};
 
-static const char* const html_uri_strings[2] = {
+static const char* const html_uri_strings[] = {
   "http://www.w3.org/1999/xhtml",
   NULL
 };
 
-#define HTML_TYPES_COUNT 2
-static const raptor_type_q html_types[HTML_TYPES_COUNT + 1] = {
+static const raptor_type_q html_types[] = {
   { "application/xhtml+xml", 21, 10}, 
   { "text/html", 9, 10}, 
   { NULL, 0, 0}

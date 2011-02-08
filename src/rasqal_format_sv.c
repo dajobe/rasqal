@@ -215,10 +215,9 @@ rasqal_query_results_write_tsv(rasqal_query_results_formatter* formatter,
 }
 
 
-static const char* const csv_names[2] = { "csv", NULL};
+static const char* const csv_names[] = { "csv", NULL};
 
-#define CSV_TYPES_COUNT 1
-static const raptor_type_q csv_types[CSV_TYPES_COUNT + 1] = {
+static const raptor_type_q csv_types[] = {
   { "text/csv", 8, 10}, 
   { NULL, 0, 0}
 };
@@ -243,16 +242,15 @@ rasqal_query_results_csv_register_factory(rasqal_query_results_format_factory *f
 }
 
 
-static const char* const tsv_names[2] = { "tsv", NULL};
+static const char* const tsv_names[] = { "tsv", NULL};
 
-static const char* const tsv_uri_strings[2] = {
+static const char* const tsv_uri_strings[] = {
   "http://www.iana.org/assignments/media-types/text/tab-separated-values",
   NULL
 };
 
 
-#define TSV_TYPES_COUNT 1
-static const raptor_type_q tsv_types[TSV_TYPES_COUNT + 1] = {
+static const raptor_type_q tsv_types[] = {
   { "text/tab-separated-values", 25, 10}, 
   { NULL, 0, 0}
 };

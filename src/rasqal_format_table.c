@@ -296,10 +296,9 @@ rasqal_query_results_write_table(rasqal_query_results_formatter* formatter,
 }
 
 
-static const char* const table_names[2] = { "table", NULL};
+static const char* const table_names[] = { "table", NULL};
 
-#define TABLE_TYPES_COUNT 1
-static const raptor_type_q table_types[TABLE_TYPES_COUNT + 1] = {
+static const raptor_type_q table_types[] = {
   { "text/plain", 10, 10}, 
   { NULL, 0, 0}
 };

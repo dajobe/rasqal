@@ -5271,15 +5271,14 @@ rasqal_sparql_query_language_iostream_write_escaped_counted_string(rasqal_query*
 }
 
 
-static const char* const sparql_names[3] = { "sparql", "sparql10", NULL};
+static const char* const sparql_names[] = { "sparql", "sparql10", NULL};
 
-static const char* const sparql_uri_strings[2] = { 
+static const char* const sparql_uri_strings[] = {
   "http://www.w3.org/TR/rdf-sparql-query/",
   NULL
 };
 
-#define SPARQL_TYPES_COUNT 1
-static const raptor_type_q sparql_types[SPARQL_TYPES_COUNT + 1] = {
+static const raptor_type_q sparql_types[] = {
   { "application/sparql", 18, 10}, 
   { NULL, 0, 0}
 };
@@ -5293,7 +5292,6 @@ rasqal_sparql_query_language_register_factory(rasqal_query_language_factory *fac
   factory->desc.names = sparql_names;
 
   factory->desc.mime_types = sparql_types;
-  factory->desc.mime_types_count = SPARQL_TYPES_COUNT;
 
   factory->desc.label = "SPARQL 1.0 W3C RDF Query Language";
 
@@ -5318,10 +5316,9 @@ rasqal_init_query_language_sparql(rasqal_world* world)
 }
 
 
-static const char* const sparql11_names[2] = { "sparql11", NULL };
+static const char* const sparql11_names[] = { "sparql11", NULL };
 
-#define SPARQL11_TYPES_COUNT 0
-static const raptor_type_q sparql11_types[SPARQL11_TYPES_COUNT + 1] = {
+static const raptor_type_q sparql11_types[] = {
   { NULL, 0, 0}
 };
 
@@ -5334,7 +5331,6 @@ rasqal_sparql11_language_register_factory(rasqal_query_language_factory *factory
   factory->desc.names = sparql11_names;
 
   factory->desc.mime_types = sparql11_types;
-  factory->desc.mime_types_count = SPARQL11_TYPES_COUNT;
 
   factory->desc.label = "SPARQL 1.1 (DRAFT) Query and Update Languages";
 
@@ -5352,17 +5348,14 @@ rasqal_sparql11_language_register_factory(rasqal_query_language_factory *factory
 }
 
 
-#define SPARQL11_QUERY_TYPES_COUNT 0
+static const char* const sparql11_query_names[] = { "sparql11-query", NULL };
 
-static const char* const sparql11_query_names[2] = { "sparql11-query", NULL };
-
-static const char* const sparql11_uri_strings[2] = { 
+static const char* const sparql11_uri_strings[] = {
   "http://www.w3.org/TR/2010/WD-sparql11-query-20101014/",
   NULL
 };
 
-#define SPARQL11_TYPES_COUNT 0
-static const raptor_type_q sparql11_query_types[SPARQL11_QUERY_TYPES_COUNT + 1] = {
+static const raptor_type_q sparql11_query_types[] = {
   { NULL, 0, 0}
 };
 
@@ -5375,7 +5368,6 @@ rasqal_sparql11_query_language_register_factory(rasqal_query_language_factory *f
   factory->desc.names = sparql11_query_names;
 
   factory->desc.mime_types = sparql11_query_types;
-  factory->desc.mime_types_count = SPARQL11_TYPES_COUNT;
 
   factory->desc.label = "SPARQL 1.1 (DRAFT) Query Language";
 
@@ -5392,17 +5384,14 @@ rasqal_sparql11_query_language_register_factory(rasqal_query_language_factory *f
 }
 
 
-#define SPARQL11_UPDATE_TYPES_COUNT 0
+static const char* const sparql11_update_names[] = { "sparql11-update", NULL };
 
-static const char* const sparql11_update_names[2] = { "sparql11-update", NULL };
-
-static const char* const sparql11_update_uri_strings[2] = { 
+static const char* const sparql11_update_uri_strings[] = {
   "http://www.w3.org/TR/2010/WD-sparql11-update-20101014/",
   NULL
 };
 
-#define SPARQL11_TYPES_COUNT 0
-static const raptor_type_q sparql11_update_types[SPARQL11_UPDATE_TYPES_COUNT + 1] = {
+static const raptor_type_q sparql11_update_types[] = {
   { NULL, 0, 0}
 };
 
@@ -5415,7 +5404,6 @@ rasqal_sparql11_update_language_register_factory(rasqal_query_language_factory *
   factory->desc.names = sparql11_update_names;
 
   factory->desc.mime_types = sparql11_update_types;
-  factory->desc.mime_types_count = SPARQL11_TYPES_COUNT;
 
   factory->desc.label = "SPARQL 1.1 (DRAFT) Update Language";
 
@@ -5451,10 +5439,9 @@ rasqal_init_query_language_sparql11(rasqal_world* world)
 }
 
 
-static const char* const laqrs_names[2] = { "laqrs", NULL};
+static const char* const laqrs_names[] = { "laqrs", NULL};
 
-#define LAQRS_TYPES_COUNT 0
-static const raptor_type_q laqrs_types[LAQRS_TYPES_COUNT + 1] = {
+static const raptor_type_q laqrs_types[] = {
   { NULL, 0, 0}
 };
 
@@ -5467,7 +5454,6 @@ rasqal_laqrs_query_language_register_factory(rasqal_query_language_factory *fact
   factory->desc.names = laqrs_names;
 
   factory->desc.mime_types = laqrs_types;
-  factory->desc.mime_types_count = LAQRS_TYPES_COUNT;
 
   factory->desc.label = "LAQRS adds to Querying RDF in SPARQL";
 

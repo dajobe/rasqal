@@ -248,9 +248,9 @@ rasqal_query_results_write_json1(rasqal_query_results_formatter* formatter,
 }
 
 
-static const char* const json_names[2] = { "json", NULL};
+static const char* const json_names[] = { "json", NULL};
 
-static const char* const json_uri_strings[5] = { 
+static const char* const json_uri_strings[] = {
   "http://www.w3.org/TR/rdf-sparql-json-res/",
   /* Released DAWG WG results in JSON */
   "http://www.w3.org/TR/2007/NOTE-rdf-sparql-json-res-20070618/",
@@ -260,8 +260,7 @@ static const char* const json_uri_strings[5] = {
   NULL
 };
 
-#define JSON_TYPES_COUNT 1
-static const raptor_type_q json_types[JSON_TYPES_COUNT + 1] = {
+static const raptor_type_q json_types[] = {
   { "application/json", 16, 10}, 
   { NULL, 0, 0}
 };

@@ -797,7 +797,6 @@ rasqal_query_results_format_rdf_copy_syntax_description_from_parser(rasqal_query
     for(j = 0; desc->names[j]; j++) {
       if(!strcmp(desc->names[j], name)) {
         factory->desc.mime_types = desc->mime_types;
-        factory->desc.mime_types_count = desc->mime_types_count;
         return;
       }
     }
@@ -821,10 +820,9 @@ const char *mime_type)
 }
 
 
-static const char* const rdfxml_names[2] = { "rdfxml", NULL};
+static const char* const rdfxml_names[] = { "rdfxml", NULL};
 
-#define RDFXML_TYPES_COUNT 1
-static const raptor_type_q rdfxml_types[RDFXML_TYPES_COUNT + 1] = {
+static const raptor_type_q rdfxml_types[] = {
   { "application/rdf+xml", 19, 10}, 
   { NULL, 0, 0}
 };
@@ -990,15 +988,14 @@ const char *mime_type)
 }
 
 
-static const char* const turtle_names[2] = { "turtle", NULL};
+static const char* const turtle_names[] = { "turtle", NULL};
 
-static const char* const turtle_uri_strings[2] = {
+static const char* const turtle_uri_strings[] = {
   "http://www.w3.org/TeamSubmission/turtle/",
   NULL
 };
 
-#define TURTLE_TYPES_COUNT 1
-static const raptor_type_q turtle_types[TURTLE_TYPES_COUNT + 1] = {
+static const raptor_type_q turtle_types[] = {
   { "application/turtle", 18, 10}, 
   { NULL, 0, 0}
 };
