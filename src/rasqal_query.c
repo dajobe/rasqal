@@ -2103,6 +2103,15 @@ rasqal_query_get_bindings_row(rasqal_query* query, int idx)
 }
 
 
+/*
+ * rasqal_query_get_bound_in_column_for_variable:
+ * @query: #rasqal_query query object
+ * @variable: variable
+ * 
+ * INTERNAL - Get the column number [triple] that a variable is bound in
+ *
+ * Return value: column or < 0 if not bound
+ */
 int
 rasqal_query_get_bound_in_column_for_variable(rasqal_query* query,
                                               rasqal_variable* v)
