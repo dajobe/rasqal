@@ -283,7 +283,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <literal> SeparatorOpt
 %type <literal> BindingValue
 
-%type <variable> Var VarName VarOrBadVarName SelectTerm
+%type <variable> Var VarName VarOrBadVarName SelectTerm AsVarOpt
 
 %type <uri> GraphRef GraphOrDefault OldGraphRef
 
@@ -403,7 +403,7 @@ SeparatorOpt
   if($$)
     rasqal_free_variable($$);
 }
-Var VarName SelectTerm
+Var VarName SelectTerm AsVarOpt
 
 %destructor {
   if($$)
@@ -2256,6 +2256,18 @@ GroupConditionList: GroupConditionList GroupCondition
 ;
 
 
+/* NEW Grammar Term pulled out of SPARQL 1.1 Grammar: [] GroupCondition */
+AsVarOpt: AS Var
+{
+  $$ = $2;
+}
+| /* empty */
+{
+  $$ = NULL;
+}
+;
+ 
+
 /* SPARQL 1.1 Grammar: [] GroupCondition */
 GroupCondition: BuiltInCall
 {
@@ -2265,23 +2277,30 @@ GroupCondition: BuiltInCall
 {
   $$ = $1;
 }
-| '(' Expression AS Var ')'
+| '(' Expression AsVarOpt ')'
 {
-  if(rasqal_expression_mentions_variable($2, $4)) {
-    sparql_query_error_full((rasqal_query*)rq, 
-                            "Expression in GROUP BY ( expression ) AS %s contains the variable name '%s'",
-                            $4->name, $4->name);
-  } else {
-    rasqal_literal* l;
+  rasqal_literal* l;
 
-    $4->expression = $2;
+  $$ = $2;
+  if($3) {
+    if(rasqal_expression_mentions_variable($$, $3)) {
+      sparql_query_error_full((rasqal_query*)rq, 
+                              "Expression in GROUP BY ( expression ) AS %s contains the variable name '%s'",
+                              $3->name, $3->name);
+    } else {
+      /* Expression AS Variable */
+      $3->expression = $$;
+      $$ = NULL;
+      
+      l = rasqal_new_variable_literal(((rasqal_query*)rq)->world, $3);
+      if(!l)
+        YYERROR_MSG("GroupCondition 4: cannot create variable literal");
+      $3 = NULL;
 
-    l = rasqal_new_variable_literal(((rasqal_query*)rq)->world, $4);
-    if(!l)
-      YYERROR_MSG("GroupCondition 4: cannot create lit");
-    $$ = rasqal_new_literal_expression(((rasqal_query*)rq)->world, l);
-    if(!$$)
-      YYERROR_MSG("GroupCondition 4: cannot create lit expr");
+      $$ = rasqal_new_literal_expression(((rasqal_query*)rq)->world, l);
+      if(!$$)
+        YYERROR_MSG("GroupCondition 4: cannot create variable literal expression");
+    }
   }
   
 }
