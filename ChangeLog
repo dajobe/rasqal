@@ -1,3 +1,53 @@
+2011-02-08  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query.c:
+	rasqal_query_get_bound_in_column_for_variable autodocs
+
+2011-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_html.c, src/rasqal_format_json.c,
+	src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_sv.c, src/rasqal_format_table.c,
+	src/rdql_parser.y, src/sparql_parser.y: Removed remaining
+	raptor_syntax_description mime_types_count and uri_strings_count
+	initialization after commit e8d0043.
+
+	he counts are initialized by raptor_syntax_description_validate().
+	Changed mime_types/uri_strings arrays to be implicitly sized.
+
+2011-02-06  Dave Beckett <dave@dajobe.org>
+
+	* LICENSE.html: Make GPL V2 or newer explicit.
+
+2011-02-03  Nicholas J Humfrey <njh@aelius.com>
+
+	* src/rasqal_format_html.c, src/rasqal_format_json.c,
+	src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_sv.c, src/rasqal_format_table.c,
+	src/rasqal_general.c, src/rasqal_result_formats.c: Use
+	raptor_syntax_description_validate() to check query result
+	descriptions and query syntax descriptions, instead of duplicating
+	code.
+
+2011-02-03  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, RELEASE.html, configure.ac:
+	Bumped version to 0.9.25
+
+2011-02-01  Dave Beckett <dave@dajobe.org>
+
+	* rasqal.spec.in: Rasqal using raptor2 attempt
+
+2011-01-31  Dave Beckett <dave@dajobe.org>
+
+	* INSTALL.html:
+	Update INSTALL notes for pkg-config help, remove --with-raptor
+
+2011-01-31  Lauri Aalto <laalto@iki.fi>
+
+	* src/sparql_parser.y:
+	(ClearQuery, DropQuery): Cast away enum-int conversion warnings.
+
 2011-01-30  Dave Beckett  <dave@dajobe.org>
 
 	* Snapshotted rasqal_0_9_24 for 0.9.24 release (GIT commit
