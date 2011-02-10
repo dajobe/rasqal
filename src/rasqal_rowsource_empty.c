@@ -45,7 +45,7 @@
 
 typedef struct 
 {
-  void* undefined;
+  int count;
 } rasqal_empty_rowsource_context;
 
 
@@ -70,9 +70,15 @@ rasqal_empty_rowsource_ensure_variables(rasqal_rowsource* rowsource,
 static rasqal_row*
 rasqal_empty_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
-  /* rasqal_empty_rowsource_context* con;
-  con = (rasqal_empty_rowsource_context*)user_data; */
-  return NULL;
+  rasqal_empty_rowsource_context* con;
+  rasqal_row* row = NULL;
+  
+  con = (rasqal_empty_rowsource_context*)user_data;
+
+  if(!con->count++)
+    row = rasqal_new_row(rowsource);
+    
+  return row;
 }
 
 static raptor_sequence*
@@ -81,7 +87,17 @@ rasqal_empty_rowsource_read_all_rows(rasqal_rowsource* rowsource,
 {
   /* rasqal_empty_rowsource_context* con;
   con = (rasqal_empty_rowsource_context*)user_data; */
-  return NULL;
+  raptor_sequence *seq;
+
+  seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
+                            (raptor_data_print_handler)rasqal_row_print);
+  if(seq) {
+    rasqal_row* row = rasqal_new_row(rowsource);
+
+    raptor_sequence_push(seq, row);
+  }
+  
+  return seq;
 }
 
 static const rasqal_rowsource_handler rasqal_empty_rowsource_handler = {
@@ -166,20 +182,34 @@ main(int argc, char *argv[])
   }
 
   row = rasqal_rowsource_read_row(rowsource);
-  if(row) {
-    fprintf(stderr, "%s: read_row returned a row for a empty stream\n",
+  if(!row) {
+    fprintf(stderr,
+            "%s: read_row failed to return a row for an empty rowsource\n",
             program);
+    failures++;
+    goto tidy;
+  }
+
+  if(row->size) {
+    fprintf(stderr,
+            "%s: read_row returned an non-empty row size %d for a empty stream\n",
+            program, row->size);
     failures++;
     goto tidy;
   }
   
   count = rasqal_rowsource_get_rows_count(rowsource);
-  if(count) {
-    fprintf(stderr, "%s: read_rows returned a row count for a empty stream\n",
-            program);
+  if(count != 1) {
+    fprintf(stderr, "%s: read_rows returned count %d for a empty stream\n",
+            program, count);
     failures++;
     goto tidy;
   }
+  
+  rasqal_free_rowsource(rowsource);
+
+  /* re-init rowsource */
+  rowsource = rasqal_new_empty_rowsource(world, query);
   
   seq = rasqal_rowsource_read_all_rows(rowsource);
   if(!seq) {
@@ -188,9 +218,11 @@ main(int argc, char *argv[])
     failures++;
     goto tidy;
   }
-  if(raptor_sequence_size(seq) != 0) {
-    fprintf(stderr, "%s: read_rows returned a non-empty seq for a empty stream\n",
-            program);
+
+  count = raptor_sequence_size(seq);
+  if(count != 1) {
+    fprintf(stderr, "%s: read_rows returned size %d seq for a empty stream\n",
+            program, count);
     failures++;
     goto tidy;
   }
