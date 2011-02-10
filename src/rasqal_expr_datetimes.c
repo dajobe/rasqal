@@ -262,7 +262,8 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_world *world,
 {
   rasqal_literal* l;
   const unsigned char* s;
-
+  raptor_uri* dt_uri;
+  
   l = rasqal_expression_evaluate(world, locator, e->arg1, flags);
   if(!l)
     goto failed;
@@ -274,12 +275,21 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_world *world,
   s = (const unsigned char*)rasqal_xsd_datetime_get_timezone_as_counted_string(l->value.datetime,
                                                                                NULL);
   if(!s)
-    return NULL;
+    goto failed;
 
-  /* after this s is owned by the result literal */
-  return rasqal_new_string_literal(world, s, NULL, NULL, NULL);
+  dt_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr,
+                                              world->xsd_namespace_uri, 
+                                              (unsigned char*)"dayTimeDuration");
+  if(!dt_uri)
+    goto failed;
+  
+  /* after this s and dt_uri are owned by the result literal */
+  return rasqal_new_string_literal(world, s, NULL, dt_uri, NULL);
 
   failed:
+  if(s)
+    RASQAL_FREE(cstring, s);
+  
   if(l)
     rasqal_free_literal(l);
 
