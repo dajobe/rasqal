@@ -867,30 +867,23 @@ rasqal_xsd_decimal*
 rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world,
                                            rasqal_xsd_datetime* dt)
 {
-  size_t len;
-  char *str;
-  char *p;
   rasqal_xsd_decimal* dec;
-  
-  str = rasqal_xsd_datetime_to_counted_string(dt, &len);
-  if(!str)
-    return NULL;
-  
-  /* Get rid of Z */
-  str[len-1] = '\0';
-  
-  /* 17 bytes into canonical form "YYYY-MM-DDTHH:MM:SS.sss" is start of SS */
-  p = str + 17;
-  /* if seconds is < 10, skip leading 0 */
-  if(*p == '0')
-    p++;
 
   dec = rasqal_new_xsd_decimal(world);
-  if(dec)
-    rasqal_xsd_decimal_set_string(dec, p);
+  if(!dec)
+    return NULL;
+  
+  if(!dt->microseconds) {
+    rasqal_xsd_decimal_set_long(dec, (long)dt->second);
+  } else {
+    /* Max len 9 "SS.UUUUUU\0" */
+    char str[9];
 
-  RASQAL_FREE(cstring, str);
+    sprintf(str, "%d.%06d", dt->second, dt->microseconds);
 
+    rasqal_xsd_decimal_set_string(dec, str);
+  }
+  
   return dec;
 }
 
