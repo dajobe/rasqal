@@ -619,7 +619,7 @@ rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt)
 }
 
 
-#define TIMEZONE_STRING_LEN 7
+#define TIMEZONE_BUFFER_LEN 7
 
 /*
  * rasqal_xsd_datetime_timezone_format:
@@ -637,7 +637,7 @@ rasqal_xsd_datetime_timezone_format(const rasqal_xsd_datetime *dt,
 {
   int mins;
   
-  if(!buffer || len < TIMEZONE_STRING_LEN)
+  if(!buffer || len < TIMEZONE_BUFFER_LEN)
     return 1;
   
   mins = abs(dt->timezone_minutes);
@@ -676,7 +676,7 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
   int r = 0;
   int i;
   /* "[+-]HH:MM\0" */
-  char timezone_string[TIMEZONE_STRING_LEN];
+  char timezone_string[TIMEZONE_BUFFER_LEN];
   
   if(!dt)
     return NULL;
@@ -684,7 +684,7 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
   is_neg = dt->year < 0;
 
   if(rasqal_xsd_datetime_timezone_format(dt, timezone_string,
-                                         TIMEZONE_STRING_LEN))
+                                         TIMEZONE_BUFFER_LEN))
     return NULL;
 
   /* format twice: first with null buffer of zero size to get the
@@ -1310,7 +1310,7 @@ rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt,
 
 
 /**
- * rasqal_xsd_datetime_get_ta_as_counted_string:
+ * rasqal_xsd_datetime_get_tz_as_counted_string:
  * @dt: datetime
  * @len_p: pointer to store returned string length
  * 
@@ -1322,17 +1322,21 @@ rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt,
  * Returns: pointer to a new string or NULL on failure
  **/
 char*
-rasqal_xsd_datetime_get_tz_as_counted_string(rasqal_xsd_datetime* dt)
+rasqal_xsd_datetime_get_tz_as_counted_string(rasqal_xsd_datetime* dt,
+                                             size_t *len_p)
 {
   char* s;
   
-  s = (char*)RASQAL_MALLOC(cstring, TIMEZONE_STRING_LEN);
+  s = (char*)RASQAL_MALLOC(cstring, TIMEZONE_BUFFER_LEN);
   if(!s)
     return NULL;
 
-  if(rasqal_xsd_datetime_timezone_format(dt, s, TIMEZONE_STRING_LEN))
+  if(rasqal_xsd_datetime_timezone_format(dt, s, TIMEZONE_BUFFER_LEN))
     goto failed;
 
+  if(len_p)
+    *len_p = (TIMEZONE_BUFFER_LEN - 1); /* \0 is not in the length */
+  
   return s;
 
   failed:

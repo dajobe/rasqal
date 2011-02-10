@@ -252,7 +252,7 @@ rasqal_expression_evaluate_datetime_part(rasqal_world *world,
  *
  * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_TIMEZONE (datetime) expression.
  *
- * Return value: A #rasqal_literal string value or NULL on failure.
+ * Return value: A #rasqal_literal xsd:dayTimeDuration value or NULL on failure.
  */
 rasqal_literal*
 rasqal_expression_evaluate_datetime_timezone(rasqal_world *world,
@@ -261,7 +261,7 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_world *world,
                                              int flags)
 {
   rasqal_literal* l;
-  const unsigned char* s;
+  const unsigned char* s = NULL;
   raptor_uri* dt_uri;
   
   l = rasqal_expression_evaluate(world, locator, e->arg1, flags);
@@ -271,7 +271,6 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_world *world,
   if(l->type != RASQAL_LITERAL_DATETIME)
     goto failed;
   
-
   s = (const unsigned char*)rasqal_xsd_datetime_get_timezone_as_counted_string(l->value.datetime,
                                                                                NULL);
   if(!s)
@@ -290,6 +289,50 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_world *world,
   if(s)
     RASQAL_FREE(cstring, s);
   
+  if(l)
+    rasqal_free_literal(l);
+
+  return NULL;
+}
+
+
+/* 
+ * rasqal_expression_evaluate_datetime_tz:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_TZ (datetime) expression.
+ *
+ * Return value: A #rasqal_literal string value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_datetime_tz(rasqal_world *world,
+                                       raptor_locator *locator,
+                                       rasqal_expression *e,
+                                       int flags)
+{
+  rasqal_literal* l;
+  const unsigned char* s = NULL;
+  
+  l = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l)
+    goto failed;
+  
+  if(l->type != RASQAL_LITERAL_DATETIME)
+    goto failed;
+  
+#define TIMEZONE_STRING_LEN 7
+
+  s = (const unsigned char*)rasqal_xsd_datetime_get_tz_as_counted_string(l->value.datetime, NULL);
+  if(!s)
+    goto failed;
+  
+  /* after this s is owned by the result literal */
+  return rasqal_new_string_literal(world, s, NULL, NULL, NULL);
+
+  failed:
   if(l)
     rasqal_free_literal(l);
 

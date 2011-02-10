@@ -1472,6 +1472,10 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       result = rasqal_expression_evaluate_datetime_timezone(world, locator, e, flags);
       break;
 
+    case RASQAL_EXPR_TZ:
+      result = rasqal_expression_evaluate_datetime_tz(world, locator, e, flags);
+      break;
+
     case RASQAL_EXPR_ENCODE_FOR_URI:
       result = rasqal_expression_evaluate_encode_for_uri(world, locator, e, flags);
       break;

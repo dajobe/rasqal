@@ -174,7 +174,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token AS IF
 %token NOT IN
 %token BINDINGS UNDEF SERVICE MINUS
-%token YEAR MONTH DAY HOURS MINUTES SECONDS TIMEZONE
+%token YEAR MONTH DAY HOURS MINUTES SECONDS TIMEZONE TZ
 %token STRLEN SUBSTR UCASE LCASE STRSTARTS STRENDS CONTAINS ENCODE_FOR_URI CONCAT
 /* LAQRS */
 %token EXPLAIN LET
@@ -4792,6 +4792,13 @@ DatetimeBuiltinAccessors: YEAR '(' Expression ')'
                                  RASQAL_EXPR_TIMEZONE, $3);
   if(!$$)
     YYERROR_MSG("DatetimeBuiltinAccessors: cannot create TIMEZONE expr");
+}
+| TZ '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_TZ, $3);
+  if(!$$)
+    YYERROR_MSG("DatetimeBuiltinAccessors: cannot create TZ expr");
 }
 ;
 

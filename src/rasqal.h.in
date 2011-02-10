@@ -605,6 +605,7 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_STRENDS: Expression for SPARQL 1.1 STRENDS(str, str)
  * @RASQAL_EXPR_CONTAINS: Expression for SPARQL 1.1 CONTAINS(str, str)
  * @RASQAL_EXPR_ENCODE_FOR_URI: Expression for SPARQL 1.1 ENCODE_FOR_URI(str)
+ * @RASQAL_EXPR_TZ: Expression for SPARQL 1.1 TZ()
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
@@ -690,8 +691,9 @@ typedef enum {
   RASQAL_EXPR_STRENDS,
   RASQAL_EXPR_CONTAINS,
   RASQAL_EXPR_ENCODE_FOR_URI,
+  RASQAL_EXPR_TZ,
   /* internal */
-  RASQAL_EXPR_LAST = RASQAL_EXPR_ENCODE_FOR_URI
+  RASQAL_EXPR_LAST = RASQAL_EXPR_TZ
 } rasqal_op;
 
 
@@ -1608,6 +1610,8 @@ RASQAL_API
 struct timeval* rasqal_xsd_datetime_get_as_timeval(rasqal_xsd_datetime *dt);
 RASQAL_API
 char* rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt, size_t *len_p);
+RASQAL_API
+char* rasqal_xsd_datetime_get_tz_as_counted_string(rasqal_xsd_datetime* dt, size_t *len_p);
 
 
 /**

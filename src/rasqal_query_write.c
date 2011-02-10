@@ -285,6 +285,7 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "STRENDS",
   "CONTAINS",
   "ENCODE_FOR_URI",
+  "TZ"
 };
 
 
@@ -386,6 +387,7 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_UCASE:
     case RASQAL_EXPR_LCASE:
     case RASQAL_EXPR_ENCODE_FOR_URI:
+    case RASQAL_EXPR_TZ:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);

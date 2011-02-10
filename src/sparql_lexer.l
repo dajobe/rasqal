@@ -417,7 +417,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Mm][Oo][Vv][Ee] { return MOVE; }
 [Cc][Oo][Pp][Yy] { return COPY; }
 [Aa][Ll][Ll] { return ALL; }
-[Tt][Zz] { return TIMEZONE; }
+[Tt][Zz] { return TZ; }
 
 "a" { return A; }
 
@@ -1620,6 +1620,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case ALL:
       return "ALL";
+
+    case TZ:
+      return "TZ";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
