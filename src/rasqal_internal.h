@@ -1051,6 +1051,7 @@ rasqal_literal* rasqal_expression_evaluate_to_unixtime(rasqal_world *world, rapt
 rasqal_literal* rasqal_expression_evaluate_from_unixtime(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
 rasqal_literal* rasqal_expression_evaluate_datetime_part(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
 rasqal_literal* rasqal_expression_evaluate_datetime_timezone(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
+rasqal_literal* rasqal_expression_evaluate_datetime_tz(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
 
 /* rasqal_expr_strings.c */
 rasqal_literal* rasqal_expression_evaluate_substr(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);

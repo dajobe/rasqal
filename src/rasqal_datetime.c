@@ -619,6 +619,43 @@ rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt)
 }
 
 
+#define TIMEZONE_STRING_LEN 7
+
+/*
+ * rasqal_xsd_datetime_timezone_format:
+ * @dt: datetime
+ * @buffer: buffer to write the formatted timezone
+ * @len: length of buffer; must be 7 or larger
+ *
+ * INTERNAL - format a timezone into the passed in buffer
+ *
+ * Reutnr value: non-0 on failure
+ */
+static int
+rasqal_xsd_datetime_timezone_format(const rasqal_xsd_datetime *dt,
+                                    char* buffer, size_t len)
+{
+  int mins;
+  
+  if(!buffer || len < TIMEZONE_STRING_LEN)
+    return 1;
+  
+  mins = abs(dt->timezone_minutes);
+  if(mins == RASQAL_XSD_DATETIME_NO_TZ)
+    buffer[0] = '\0';
+  else if(!mins)
+    memcpy(buffer, "Z", 2);
+  else {
+    int hrs = (mins / 60);
+    snprintf(buffer, len, "%c%02d:%02d", 
+             (mins != dt->timezone_minutes ? '-' : '+'),
+             hrs, mins);
+  }
+
+  return 0;
+}
+
+
 /**
  * rasqal_xsd_datetime_to_counted_string:
  * @dt: datetime struct
@@ -639,27 +676,16 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
   int r = 0;
   int i;
   /* "[+-]HH:MM\0" */
-#define TIMEZONE_STRING_LEN 7
   char timezone_string[TIMEZONE_STRING_LEN];
-  int mins;
   
   if(!dt)
     return NULL;
     
   is_neg = dt->year < 0;
 
-  mins = abs(dt->timezone_minutes);
-  if(mins == RASQAL_XSD_DATETIME_NO_TZ)
-    timezone_string[0] = '\0';
-  else if(!mins)
-     memcpy(timezone_string, "Z", 2);
-  else {
-    int hrs = (mins / 60);
-    snprintf(timezone_string, TIMEZONE_STRING_LEN, "%c%02d:%02d", 
-             (mins != dt->timezone_minutes ? '-' : '+'),
-             hrs, mins);
-  }
-  
+  if(rasqal_xsd_datetime_timezone_format(dt, timezone_string,
+                                         TIMEZONE_STRING_LEN))
+    return NULL;
 
   /* format twice: first with null buffer of zero size to get the
    * required buffer size second time to the allocated buffer
@@ -1202,7 +1228,7 @@ rasqal_xsd_datetime_get_as_timeval(rasqal_xsd_datetime *dt)
  * The returned string is owned by the caller and must be freed
  * by rasqal_free_memory().
  *
- * Returns: pointer to a new strng or NULL on failure
+ * Returns: pointer to a new string or NULL on failure
  **/
 char*
 rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt,
@@ -1280,6 +1306,38 @@ rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt,
     *len_p = p - tz_str;
   
   return tz_str;
+}
+
+
+/**
+ * rasqal_xsd_datetime_get_ta_as_counted_string:
+ * @dt: datetime
+ * @len_p: pointer to store returned string length
+ * 
+ * Get the timezone of a datetime as a timezone string
+ *
+ * The returned string is owned by the caller and must be freed
+ * by rasqal_free_memory().
+ *
+ * Returns: pointer to a new string or NULL on failure
+ **/
+char*
+rasqal_xsd_datetime_get_tz_as_counted_string(rasqal_xsd_datetime* dt)
+{
+  char* s;
+  
+  s = (char*)RASQAL_MALLOC(cstring, TIMEZONE_STRING_LEN);
+  if(!s)
+    return NULL;
+
+  if(rasqal_xsd_datetime_timezone_format(dt, s, TIMEZONE_STRING_LEN))
+    goto failed;
+
+  return s;
+
+  failed:
+  RASQAL_FREE(cstring, s);
+  return NULL;
 }
 
 
