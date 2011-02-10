@@ -155,8 +155,6 @@ rasqal_expression_evaluate_strdt(rasqal_world *world,
   if(error)
     goto failed;
   
-  rasqal_free_literal(l1); l1 = NULL;
-
   l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
   if(!l2)
     goto failed;
@@ -176,13 +174,14 @@ rasqal_expression_evaluate_strdt(rasqal_world *world,
       goto failed;
   }
   
-  rasqal_free_literal(l2);
-  
   new_s =(unsigned char*)RASQAL_MALLOC(cstring, len + 1);
   if(!new_s)
     goto failed;
   memcpy(new_s, s, len + 1);
 
+  rasqal_free_literal(l1);
+  rasqal_free_literal(l2);
+  
   /* after this new_s and dt_uri become owned by result */
   return rasqal_new_string_literal(world, new_s, /* language */ NULL,
                                    dt_uri, /* qname */ NULL);
