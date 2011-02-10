@@ -1201,6 +1201,16 @@ rasqal_query_prepare(rasqal_query* query,
   rasqal_query_set_base_uri(query, base_uri);
   query->locator.line = query->locator.column = query->locator.byte = -1;
 
+  rc = rasqal_expression_context_init(&query->eval_context,
+                                      query->world,
+                                      query->base_uri,
+                                      &query->locator,
+                                      query->compare_flags);
+  if(rc) {
+    query->failed = 1;
+    return rc;
+  }
+
   rc = query->factory->prepare(query);
   if(rc) {
     query->failed = 1;

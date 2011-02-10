@@ -108,8 +108,7 @@ rasqal_assignment_rowsource_read_row(rasqal_rowsource* rowsource, void *user_dat
     return NULL;
   
   RASQAL_DEBUG1("evaluating assignment expression\n");
-  result = rasqal_expression_evaluate(rowsource->world, &query->locator,
-                                      con->expr, query->compare_flags);
+  result = rasqal_expression_evaluate2(con->expr, &query->eval_context);
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG2("assignment %s expression result: ", con->var->name);
   if(!result)

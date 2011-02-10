@@ -1078,8 +1078,7 @@ rasqal_expression_foreach_fold(void *user_data, rasqal_expression *e)
 #endif
   
   query = st->query;
-  l = rasqal_expression_evaluate(query->world, &query->locator,
-                                 e, query->compare_flags);
+  l = rasqal_expression_evaluate2(e, &query->eval_context);
   if(!l) {
     st->failed++;
     return 1;

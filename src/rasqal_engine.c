@@ -733,9 +733,8 @@ rasqal_engine_check_constraint(rasqal_engine_execution_data* execution_data,
   fputc('\n', DEBUG_FH);
 #endif
     
-  result = rasqal_expression_evaluate(query->world, &query->locator,
-                                      gp->filter_expression, 
-                                      query->compare_flags);
+  result = rasqal_expression_evaluate2(gp->filter_expression, 
+                                       &query->eval_context);
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("filter expression result: ");
   if(!result)

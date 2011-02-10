@@ -1762,8 +1762,7 @@ rasqal_expression_sequence_evaluate(rasqal_query* query,
     rasqal_literal *l;
     
     e = (rasqal_expression*)raptor_sequence_get_at(exprs_seq, i);
-    l = rasqal_expression_evaluate(query->world, &query->locator,
-                                   e, query->compare_flags);
+    l = rasqal_expression_evaluate2(e, &query->eval_context);
     if(!l) {
       if(ignore_errors)
         continue;
@@ -2132,6 +2131,39 @@ rasqal_expression_convert_aggregate_to_variable(rasqal_expression* e_in,
 }
 
 
+/**
+ * rasqal_expression_context_init:
+ * @eval_context: expression context
+ * @world: rasqal world
+ * @base_uri: base URI of expression context (or NULL)
+ * @locator: locator or NULL
+ * @flags: expression comparison flags
+ *
+ * Initialise a static rasqal_evaluation_context for use
+ * with rasqal_expression_evaluate2()
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_expression_context_init(rasqal_evaluation_context* eval_context,
+                               rasqal_world* world,
+                               raptor_uri* base_uri,
+                               raptor_locator* locator,
+                               int flags)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(eval_context, rasqal_evaluation_context, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
+
+  memset(eval_context, sizeof(*eval_context), '\0');
+  eval_context->world = world;
+  eval_context->base_uri = base_uri;
+  eval_context->locator = locator;
+  eval_context->flags = flags;
+
+  return 0;
+}
+
+
 #endif /* not STANDALONE */
 
 
@@ -2156,6 +2188,7 @@ main(int argc, char *argv[])
   rasqal_literal* result;
   int error=0;
   rasqal_world *world;
+  rasqal_evaluation_context eval_context; /* static */
 
   raptor_world* raptor_world_ptr;
   raptor_world_ptr = raptor_new_world();
@@ -2170,6 +2203,12 @@ main(int argc, char *argv[])
 
   rasqal_xsd_init(world);
   
+  rasqal_expression_context_init(&eval_context, 
+                                 world,
+                                 /* base uri */ NULL,
+                                 /* locator */ NULL, 
+                                 /* flags */ 0);
+
   lit1=rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);
   expr1=rasqal_new_literal_expression(world, lit1);
   lit2=rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);
@@ -2180,7 +2219,7 @@ main(int argc, char *argv[])
   rasqal_expression_print(expr, stderr);
   fputc('\n', stderr);
 
-  result = rasqal_expression_evaluate(world, NULL, expr, 0);
+  result = rasqal_expression_evaluate2(expr, &eval_context);
 
   if(result) {
     int bresult;

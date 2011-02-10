@@ -56,11 +56,10 @@
  * Return value: A #rasqal_literal value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_now(rasqal_world *world,
-                               raptor_locator *locator,
-                               rasqal_expression *e,
-                               int flags)
+rasqal_expression_evaluate_now(rasqal_expression *e,
+                               rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   struct timeval *tv;
   rasqal_xsd_datetime* dt;
 
@@ -88,15 +87,14 @@ rasqal_expression_evaluate_now(rasqal_world *world,
  * Return value: A #rasqal_literal integer value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_to_unixtime(rasqal_world *world,
-                                       raptor_locator *locator,
-                                       rasqal_expression *e,
-                                       int flags)
+rasqal_expression_evaluate_to_unixtime(rasqal_expression *e,
+                                       rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   rasqal_literal* l;
   int unixtime = 0;
   
-  l = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  l = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l)
     return NULL;
 
@@ -130,17 +128,16 @@ rasqal_expression_evaluate_to_unixtime(rasqal_world *world,
  * Return value: A #rasqal_literal datetime value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_from_unixtime(rasqal_world *world,
-                                         raptor_locator *locator,
-                                         rasqal_expression *e,
-                                         int flags)
+rasqal_expression_evaluate_from_unixtime(rasqal_expression *e,
+                                         rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   rasqal_literal* l;
   int error = 0;
   int unixtime = 0;
   rasqal_xsd_datetime* dt;
   
-  l = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  l = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l)
     goto failed;
 
@@ -177,16 +174,15 @@ rasqal_expression_evaluate_from_unixtime(rasqal_world *world,
  * Return value: A #rasqal_literal integer value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_datetime_part(rasqal_world *world,
-                                         raptor_locator *locator,
-                                         rasqal_expression *e,
-                                         int flags)
+rasqal_expression_evaluate_datetime_part(rasqal_expression *e,
+                                         rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   rasqal_literal* l;
   rasqal_literal* result = NULL;
   int i;
 
-  l = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  l = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l)
     goto failed;
   
@@ -255,16 +251,15 @@ rasqal_expression_evaluate_datetime_part(rasqal_world *world,
  * Return value: A #rasqal_literal xsd:dayTimeDuration value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_datetime_timezone(rasqal_world *world,
-                                             raptor_locator *locator,
-                                             rasqal_expression *e,
-                                             int flags)
+rasqal_expression_evaluate_datetime_timezone(rasqal_expression *e,
+                                             rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   rasqal_literal* l;
   const unsigned char* s = NULL;
   raptor_uri* dt_uri;
   
-  l = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  l = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l)
     goto failed;
   
@@ -308,15 +303,14 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_world *world,
  * Return value: A #rasqal_literal string value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_datetime_tz(rasqal_world *world,
-                                       raptor_locator *locator,
-                                       rasqal_expression *e,
-                                       int flags)
+rasqal_expression_evaluate_datetime_tz(rasqal_expression *e,
+                                       rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   rasqal_literal* l;
   const unsigned char* s = NULL;
   
-  l = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  l = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l)
     goto failed;
   

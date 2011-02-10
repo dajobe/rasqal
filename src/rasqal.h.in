@@ -1365,6 +1365,25 @@ typedef enum {
 } rasqal_compare_flags;
 
 
+/**
+ * rasqal_evaluation_context:
+ * @world: rasqal world
+ * @base_uri: base URI of expression context (or NULL)
+ * @locator: locator or NULL
+ * @flags: expression comparison flags
+ *
+ * A context for evaluating an expression such as with
+ * rasqal_expression_evaluate2()
+ */
+typedef struct 
+{
+  rasqal_world *world;
+  raptor_uri* base_uri;
+  raptor_locator *locator;
+  int flags;
+} rasqal_evaluation_context;
+
+
 /* Expression class */
 RASQAL_API
 rasqal_expression* rasqal_new_0op_expression(rasqal_world* world, rasqal_op op);
@@ -1399,8 +1418,10 @@ RASQAL_API
 void rasqal_expression_print_op(rasqal_expression* e, FILE* fh);
 RASQAL_API
 int rasqal_expression_print(rasqal_expression* e, FILE* fh);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 rasqal_literal* rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator, rasqal_expression* e, int flags);
+RASQAL_API
+rasqal_literal* rasqal_expression_evaluate2(rasqal_expression *e, rasqal_evaluation_context* eval_context);
 RASQAL_API
 const char* rasqal_expression_op_label(rasqal_op op);
 RASQAL_API
@@ -1419,6 +1440,9 @@ int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int 
 typedef int (*rasqal_expression_visit_fn)(void *user_data, rasqal_expression *e);
 RASQAL_API
 int rasqal_expression_visit(rasqal_expression* e, rasqal_expression_visit_fn fn, void *user_data);
+
+RASQAL_API
+int rasqal_expression_context_init(rasqal_evaluation_context* eval_context, rasqal_world* world, raptor_uri* base_uri, raptor_locator* locator, int flags);
 
 
 /* Literal class */

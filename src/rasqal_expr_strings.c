@@ -151,22 +151,21 @@ rasqal_unicode_utf8_substr(unsigned char* dest, size_t* dest_length_p,
  * Return value: A #rasqal_literal integer value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_strlen(rasqal_world *world,
-                                  raptor_locator *locator,
-                                  rasqal_expression *e,
-                                  int flags)
+rasqal_expression_evaluate_strlen(rasqal_expression *e,
+                                  rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   rasqal_literal* l1;
   rasqal_literal* result = NULL;
   const unsigned char *s;
   size_t len = 0;
   int error = 0;
   
-  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
     return NULL;
   
-  s = rasqal_literal_as_string_flags(l1, flags, &error);
+  s = rasqal_literal_as_string_flags(l1, eval_context->flags, &error);
   if(error)
     goto failed;
 
@@ -200,11 +199,10 @@ rasqal_expression_evaluate_strlen(rasqal_world *world,
  * Return value: A #rasqal_literal integer value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_substr(rasqal_world *world,
-                                  raptor_locator *locator,
-                                  rasqal_expression *e,
-                                  int flags)
+rasqal_expression_evaluate_substr(rasqal_expression *e,
+                                  rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   rasqal_literal* l1 = NULL;
   rasqal_literal* l2 = NULL;
   rasqal_literal* l3 = NULL;
@@ -218,16 +216,16 @@ rasqal_expression_evaluate_substr(rasqal_world *world,
   int length = -1;
   
   /* haystack string */
-  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
     return NULL;
   
-  s = rasqal_literal_as_counted_string(l1, &len, flags, &error);
+  s = rasqal_literal_as_counted_string(l1, &len, eval_context->flags, &error);
   if(error)
     goto failed;
 
   /* integer startingLoc */
-  l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
+  l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
   if(!l2)
     return NULL;
   
@@ -237,7 +235,7 @@ rasqal_expression_evaluate_substr(rasqal_world *world,
 
   /* optional integer length */
   if(e->arg3) {
-    l3 = rasqal_expression_evaluate(world, locator, e->arg3, flags);
+    l3 = rasqal_expression_evaluate2(e->arg3, eval_context);
     if(!l3)
       return NULL;
 
@@ -299,11 +297,10 @@ rasqal_expression_evaluate_substr(rasqal_world *world,
  * Return value: A #rasqal_literal string value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_set_case(rasqal_world *world,
-                                    raptor_locator *locator,
-                                    rasqal_expression *e,
-                                    int flags)
+rasqal_expression_evaluate_set_case(rasqal_expression *e,
+                                    rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   rasqal_literal* l1;
   const unsigned char *s;
   unsigned char* new_s = NULL;
@@ -312,11 +309,11 @@ rasqal_expression_evaluate_set_case(rasqal_world *world,
   size_t len = 0;
   int error = 0;
   
-  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
     return NULL;
   
-  s = rasqal_literal_as_counted_string(l1, &len, flags, &error);
+  s = rasqal_literal_as_counted_string(l1, &len, eval_context->flags, &error);
   if(error)
     goto failed;
 
@@ -451,11 +448,10 @@ rasqal_literals_sparql11_compatible(rasqal_literal *l1, rasqal_literal *l2)
  * Return value: A #rasqal_literal integer value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_str_prefix_suffix(rasqal_world *world,
-                                             raptor_locator *locator,
-                                             rasqal_expression *e,
-                                             int flags)
+rasqal_expression_evaluate_str_prefix_suffix(rasqal_expression *e,
+                                             rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   rasqal_literal *l1 = NULL;
   rasqal_literal *l2 = NULL;
   int b;
@@ -465,22 +461,22 @@ rasqal_expression_evaluate_str_prefix_suffix(rasqal_world *world,
   size_t len2 = 0;
   int error = 0;
   
-  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
     return NULL;
   
-  l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
+  l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
   if(!l2)
     goto failed;
 
   if(!rasqal_literals_sparql11_compatible(l1, l2))
     goto failed;
   
-  s1 = rasqal_literal_as_counted_string(l1, &len1, flags, &error);
+  s1 = rasqal_literal_as_counted_string(l1, &len1, eval_context->flags, &error);
   if(error)
     goto failed;
   
-  s2 = rasqal_literal_as_counted_string(l2, &len2, flags, &error);
+  s2 = rasqal_literal_as_counted_string(l2, &len2, eval_context->flags, &error);
   if(error)
     goto failed;
 
@@ -528,11 +524,10 @@ rasqal_expression_evaluate_str_prefix_suffix(rasqal_world *world,
  * Return value: A #rasqal_literal string value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_encode_for_uri(rasqal_world *world,
-                                          raptor_locator *locator,
-                                          rasqal_expression *e,
-                                          int flags)
+rasqal_expression_evaluate_encode_for_uri(rasqal_expression *e,
+                                          rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   rasqal_literal* l1;
   raptor_uri* xsd_string_uri;
   const unsigned char *s;
@@ -543,7 +538,7 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_world *world,
   unsigned int i;
   unsigned char* p;
 
-  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
     return NULL;
   
@@ -555,7 +550,7 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_world *world,
     /* datatype and not xsd:string */
     goto failed;
 
-  s = rasqal_literal_as_counted_string(l1, &len, flags, &error);
+  s = rasqal_literal_as_counted_string(l1, &len, eval_context->flags, &error);
   if(error)
     goto failed;
 
@@ -620,11 +615,10 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_world *world,
  * Return value: A #rasqal_literal string value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_concat(rasqal_world *world,
-                                  raptor_locator *locator,
-                                  rasqal_expression *e,
-                                  int flags)
+rasqal_expression_evaluate_concat(rasqal_expression *e,
+                                  rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   raptor_stringbuffer* sb = NULL;
   int i;
   size_t len;
@@ -648,7 +642,7 @@ rasqal_expression_evaluate_concat(rasqal_world *world,
     /* FIXME - check what to do with a NULL literal */
     /* FIXME - check what to do with an empty string literal */
 
-    arg_literal = rasqal_expression_evaluate(world, locator, arg_expr, flags);
+    arg_literal = rasqal_expression_evaluate2(arg_expr, eval_context);
     if(arg_literal) {
 
       if(!dt)
@@ -672,7 +666,7 @@ rasqal_expression_evaluate_concat(rasqal_world *world,
        * concat of URIs is OK 
        */
       s = rasqal_literal_as_string_flags(arg_literal, 
-                                         flags & ~RASQAL_COMPARE_XQUERY, 
+                                         (eval_context->flags & ~RASQAL_COMPARE_XQUERY), 
                                          &error);
       rasqal_free_literal(arg_literal);
     } else
@@ -725,11 +719,10 @@ rasqal_expression_evaluate_concat(rasqal_world *world,
  * Return value: A #rasqal_literal boolean value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_langmatches(rasqal_world *world,
-                                       raptor_locator *locator,
-                                       rasqal_expression *e,
-                                       int flags)
+rasqal_expression_evaluate_langmatches(rasqal_expression *e,
+                                       rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   rasqal_literal *l1 = NULL;
   rasqal_literal *l2 = NULL;
   const unsigned char *tag;
@@ -737,19 +730,19 @@ rasqal_expression_evaluate_langmatches(rasqal_world *world,
   int b;
   int error = 0;
   
-  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
     goto failed;
   
-  l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
+  l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
   if(!l2)
     goto failed;
   
-  tag = rasqal_literal_as_string_flags(l1, flags, &error);
+  tag = rasqal_literal_as_string_flags(l1, eval_context->flags, &error);
   if(error)
     goto failed;
   
-  range = rasqal_literal_as_string_flags(l2, flags, &error);
+  range = rasqal_literal_as_string_flags(l2, eval_context->flags, &error);
   if(error)
     goto failed;
   
@@ -784,11 +777,10 @@ rasqal_expression_evaluate_langmatches(rasqal_world *world,
  * Return value: A #rasqal_literal value or NULL on failure.
  */
 rasqal_literal*
-rasqal_expression_evaluate_strmatch(rasqal_world *world,
-                                    raptor_locator *locator,
-                                    rasqal_expression *e,
-                                    int flags)
+rasqal_expression_evaluate_strmatch(rasqal_expression *e,
+                                    rasqal_evaluation_context* eval_context)
 {
+  rasqal_world* world = eval_context->world;
   int b=0;
   int flag_i=0; /* flags contains i */
   const unsigned char *p;
@@ -810,11 +802,12 @@ rasqal_expression_evaluate_strmatch(rasqal_world *world,
 #endif
   size_t match_len;
     
-  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
     goto failed;
 
-  match_string = rasqal_literal_as_counted_string(l1, &match_len, flags, &error);
+  match_string = rasqal_literal_as_counted_string(l1, &match_len, 
+                                                  eval_context->flags, &error);
   if(error || !match_string) {
     rasqal_free_literal(l1);
     goto failed;
@@ -823,14 +816,14 @@ rasqal_expression_evaluate_strmatch(rasqal_world *world,
   l3=NULL;
   regex_flags=NULL;
   if(e->op == RASQAL_EXPR_REGEX) {
-    l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
+    l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
     if(!l2) {
       rasqal_free_literal(l1);
       goto failed;
     }
 
     if(e->arg3) {
-      l3 = rasqal_expression_evaluate(world, locator, e->arg3, flags);
+      l3 = rasqal_expression_evaluate2(e->arg3, eval_context);
       if(!l3) {
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
@@ -886,7 +879,8 @@ rasqal_expression_evaluate_strmatch(rasqal_world *world,
     
   rc=regcomp(&reg, (const char*)pattern, options);
   if(rc) {
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                            eval_context->locator,
                             "Regex compile of '%s' failed", pattern);
     rc= -1;
   } else {
@@ -897,7 +891,8 @@ rasqal_expression_evaluate_strmatch(rasqal_world *world,
     if(!rc)
       b=1;
     else if (rc != REG_NOMATCH) {
-      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                              eval_context->locator,
                               "Regex match failed - returned code %d", rc);
       rc= -1;
     } else
