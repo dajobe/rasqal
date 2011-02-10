@@ -144,6 +144,12 @@ rasqal_expression_evaluate_strdt(rasqal_world *world,
   l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
   if(!l1)
     goto failed;
+
+  if(l1->language || l1->datatype) {
+    /* not a simple literal so return NULL success */
+    rasqal_free_literal(l1);
+    return NULL;
+  }
   
   s = rasqal_literal_as_counted_string(l1, &len, flags, &error);
   if(error)
@@ -224,6 +230,12 @@ rasqal_expression_evaluate_strlang(rasqal_world *world,
   l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
   if(!l1)
     goto failed;
+  
+  if(l1->language || l1->datatype) {
+    /* not a simple literal so return NULL success */
+    rasqal_free_literal(l1);
+    return NULL;
+  }
   
   s = rasqal_literal_as_counted_string(l1, &len, flags, &error);
   if(error)
