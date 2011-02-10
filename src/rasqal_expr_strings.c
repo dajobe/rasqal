@@ -538,7 +538,6 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_world *world,
   const unsigned char *s;
   unsigned char* new_s = NULL;
   raptor_uri* dt_uri = NULL;
-  char* new_lang = NULL;
   size_t len = 0;
   int error = 0;
   unsigned int i;
@@ -591,21 +590,10 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_world *world,
 
   *p = '\0';
 
-  if(l1->language) {
-    len = strlen((const char*)l1->language);
-    new_lang = (char*)RASQAL_MALLOC(cstring, len + 1);
-    if(!new_lang)
-      goto failed;
-
-    memcpy(new_lang, l1->language, len + 1);
-  }
-
-  dt_uri = l1->datatype;
-  if(dt_uri)
-    dt_uri = raptor_uri_copy(dt_uri);
+  rasqal_free_literal(l1);
 
   /* after this new_s, new_lang and dt_uri become owned by result */
-  return rasqal_new_string_literal(world, new_s, new_lang, dt_uri,
+  return rasqal_new_string_literal(world, new_s, NULL, NULL,
                                    /* qname */ NULL);
   
 
