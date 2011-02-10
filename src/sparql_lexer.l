@@ -417,6 +417,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Mm][Oo][Vv][Ee] { return MOVE; }
 [Cc][Oo][Pp][Yy] { return COPY; }
 [Aa][Ll][Ll] { return ALL; }
+[Tt][Zz] { return TIMEZONE; }
 
 "a" { return A; }
 
