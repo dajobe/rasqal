@@ -1,3 +1,75 @@
+2011-02-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_empty.c,
+	tests/sparql/syntax/result-0triples.n3: Alter empty rowsource to
+	return 1 row of no bindings.
+
+	(rasqal_empty_rowsource_read_row): Return a single empty row, then
+	NULL.
+
+	(rasqal_empty_rowsource_read_all_rows): Return a seq with one
+	empty row
+
+	(main): Adjust tests to expect above.  Alter syntax test
+	result-0triples.n3 to expect change.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_strdt): Free l1 and l2 after done with
+	contents.
+
+	* src/rasqal_expr_evaluate.c: Return no value for STRDT() and
+	STRLANG() on non-simple literals.
+
+	* src/rasqal_expr_strings.c: SPARQL 1.1 ENCODE_FOR_URI() does not
+	preserve language and datatype of input
+
+	(rasqal_expression_evaluate_encode_for_uri): Remove copy of
+	language and datatype URI
+
+	* src/rasqal.h.in, src/rasqal_datetime.c, src/rasqal_expr.c,
+	src/rasqal_expr_datetimes.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_query_write.c, src/sparql_lexer.l, src/sparql_parser.y:
+	Added RASQAL_EXPR_TZ for SPARQL 1.1 TZ()
+
+	(rasqal_expression_evaluate_datetime_timezone): Tidy.
+
+	(rasqal_expression_evaluate_datetime_tz): Added, returning the
+	timezone string using
+	rasqal_xsd_datetime_get_tz_as_counted_string().
+
+	(rasqal_expression_evaluate): Evaluate RASQAL_EXPR_TZ
+
+	* src/rasqal_datetime.c, src/rasqal_internal.h: Add support
+	getting timezone string raw (not as day duration)
+
+	(rasqal_xsd_datetime_timezone_format): Added, pulled out of
+	rasqal_xsd_datetime_to_counted_string().
+
+	Define #TIMEZONE_STRING_LEN for use throughtout the file.
+
+	(rasqal_xsd_datetime_to_counted_string): Call above.
+
+	(rasqal_xsd_datetime_get_ta_as_counted_string): Added to get back
+	the TZ string component.
+
+	* src/sparql_lexer.l: Add TZ as synonym for TIMEZONE. Until
+	otherwise informed.
+
+	* src/rasqal_expr_datetimes.c:
+	(rasqal_expression_evaluate_datetime_timezone): Add
+	xsd:dayTimeDuration datatype to result.
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_get_seconds_as_decimal): Correctly get
+	decimal.
+
+	* src/sparql_parser.y:
+	Allow GROUP BY to have an optional AS ?var
+
+	(AsVarOpt): Added, pulled out of GroupCondition
+
+	(GroupCondition): Handle optional var, returning just an expression
+
 2011-02-08  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_query.c:
