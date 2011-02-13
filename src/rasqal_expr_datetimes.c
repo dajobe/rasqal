@@ -46,10 +46,8 @@
 
 /* 
  * rasqal_expression_evaluate_now:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_NOW, RASQAL_EXPR_DATETIME expressions.
  *
@@ -77,10 +75,8 @@ rasqal_expression_evaluate_now(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_to_unixtime:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate LAQRS RASQAL_EXPR_TO_UNIXTIME (datetime) expression.
  *
@@ -118,10 +114,8 @@ rasqal_expression_evaluate_to_unixtime(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_from_unixtime:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate LAQRS RASQAL_EXPR_FROM_UNIXTIME (integer expr) expression.
  *
@@ -162,10 +156,8 @@ rasqal_expression_evaluate_from_unixtime(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_datetime_part:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_YEAR, RASQAL_EXPR_MONTH,
  *  RASQAL_EXPR_DAY, RASQAL_EXPR_HOURS, RASQAL_EXPR_MINUTES,
@@ -241,10 +233,8 @@ rasqal_expression_evaluate_datetime_part(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_datetime_timezone:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_TIMEZONE (datetime) expression.
  *
@@ -293,10 +283,8 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_datetime_tz:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_TZ (datetime) expression.
  *

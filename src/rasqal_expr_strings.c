@@ -141,10 +141,8 @@ rasqal_unicode_utf8_substr(unsigned char* dest, size_t* dest_length_p,
 
 /* 
  * rasqal_expression_evaluate_strlen:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_STRLEN(expr) expression.
  *
@@ -189,10 +187,8 @@ rasqal_expression_evaluate_strlen(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_substr:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_SUBSTR(expr) expression.
  *
@@ -286,10 +282,8 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_set_case:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_UCASE(expr) or
  * RASQAL_EXPR_LCASE(expr) expressions.
@@ -437,10 +431,8 @@ rasqal_literals_sparql11_compatible(rasqal_literal *l1, rasqal_literal *l2)
 
 /* 
  * rasqal_expression_evaluate_str_prefix_suffix:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_STRSTARTS(lit, lit) and
  * RASQAL_EXPR_STRENDS(lit, lit) expressions.
@@ -514,10 +506,8 @@ rasqal_expression_evaluate_str_prefix_suffix(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_encode_for_uri:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_ENCODE_FOR_URI(string) expression.
  *
@@ -605,10 +595,8 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_concat:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_CONCAT(expr list) expression.
  *
@@ -709,10 +697,8 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_langmatches:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_LANGMATCHES(lang tag, lang tag range) expression.
  *
@@ -766,10 +752,8 @@ rasqal_expression_evaluate_langmatches(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_strmatch:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_STR_MATCH, RASQAL_EXPR_STR_NMATCH and
  * RASQAL_EXPR_REGEX expressions.

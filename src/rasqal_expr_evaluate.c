@@ -118,9 +118,8 @@ rasqal_language_matches(const unsigned char* lang_tag,
 
 /* 
  * rasqal_expression_evaluate_strdt:
- * @query: #rasqal_query
- * @locator: error locator object
  * @e: The expression to evaluate.
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_STRDT(expr) expression.
  *
@@ -200,10 +199,8 @@ rasqal_expression_evaluate_strdt(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_strlang:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_STRLANG(expr) expression.
  *
@@ -279,10 +276,8 @@ rasqal_expression_evaluate_strlang(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_istype:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_ISBLANK, RASQAL_EXPR_ISURI,
  * RASQAL_EXPR_ISLITERAL and RASQAL_EXPR_ISNUMERIC (expr)
@@ -339,10 +334,8 @@ failed:
 
 /* 
  * rasqal_expression_evaluate_bound:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_BOUND (variable) expressions.
  *
@@ -378,10 +371,8 @@ rasqal_expression_evaluate_bound(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_if:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_IF (condition, true expr, false expr) expressions.
  *
@@ -413,10 +404,8 @@ rasqal_expression_evaluate_if(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_sameterm:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_SAMETERM (expr1, expr2) expressions.
  *
@@ -459,10 +448,8 @@ rasqal_expression_evaluate_sameterm(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_in_set:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_IN and RASQAL_EXPR_NOT_IN (expr,
  * expr list) expression.
@@ -526,10 +513,8 @@ rasqal_expression_evaluate_in_set(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_coalesce:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_COALESCE (expr list) expressions.
  *
@@ -561,10 +546,8 @@ rasqal_expression_evaluate_coalesce(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_str:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_STR (literal expr) expression.
  *
@@ -614,10 +597,8 @@ rasqal_expression_evaluate_str(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_lang:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_LANG (literal expr) expression.
  *
@@ -682,10 +663,8 @@ rasqal_expression_evaluate_lang(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_datatype:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_DATATYPE (string literal) expression.
  *
@@ -749,10 +728,8 @@ rasqal_expression_evaluate_datatype(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_uri_constructor:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_URI and RASQAL_EXPR_IRI (string)
  * expressions.
@@ -798,10 +775,8 @@ rasqal_expression_evaluate_uri_constructor(rasqal_expression *e,
 
 /* 
  * rasqal_expression_evaluate_bnode_constructor:
- * @world: #rasqal_world
- * @locator: error locator object
  * @e: The expression to evaluate.
- * @flags: Compare flags
+ * @eval_context: Evaluation context
  *
  * INTERNAL - Evaluate RASQAL_EXPR_BNODE (string) expression.
  *
