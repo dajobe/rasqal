@@ -1297,7 +1297,11 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
 int
 rasqal_literal_as_boolean(rasqal_literal* l, int *error)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 0);
+  if(!l) {
+    /* type error */
+    *error = 1;
+    return 0;
+  }
   
   switch(l->type) {
     case RASQAL_LITERAL_STRING:
