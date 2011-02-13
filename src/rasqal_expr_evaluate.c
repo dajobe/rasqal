@@ -624,6 +624,11 @@ rasqal_expression_evaluate_str(rasqal_expression *e,
   /* after this new_s is owned by result */
   result = rasqal_new_string_literal(world, new_s, NULL, NULL, NULL);
 
+  if(l1)
+    rasqal_free_literal(l1);
+
+  return result;
+  
   failed:
   if(error_p)
     *error_p = 1;
