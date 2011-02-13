@@ -1277,7 +1277,7 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
 /*
  * rasqal_literal_as_boolean:
  * @l: #rasqal_literal object
- * @error: pointer to error flag
+ * @error_p: pointer to error flag
  * 
  * INTERNAL - Return a literal as a boolean value
  *
@@ -1295,11 +1295,11 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
  * Return value: non-0 if true
  **/
 int
-rasqal_literal_as_boolean(rasqal_literal* l, int *error)
+rasqal_literal_as_boolean(rasqal_literal* l, int *error_p)
 {
   if(!l) {
     /* type error */
-    *error = 1;
+    *error_p = 1;
     return 0;
   }
   
@@ -1312,7 +1312,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
           return l->string && *l->string;
         }
         /* typed literal with other datatype -> type error */
-        *error = 1;
+        *error_p = 1;
         return 0;
       }
       /* plain literal -> true if non-empty */
@@ -1329,7 +1329,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
-      *error = 1;
+      *error_p = 1;
       return 0;
       break;
 
@@ -1345,7 +1345,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
       break;
 
     case RASQAL_LITERAL_VARIABLE:
-      return rasqal_literal_as_boolean(l->value.variable->value, error);
+      return rasqal_literal_as_boolean(l->value.variable->value, error_p);
       break;
 
     case RASQAL_LITERAL_UNKNOWN:
@@ -1359,7 +1359,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
 /*
  * rasqal_literal_as_integer
  * @l: #rasqal_literal object
- * @error: pointer to error flag
+ * @error_p: pointer to error flag
  * 
  * INTERNAL - Return a literal as an integer value
  *
@@ -1370,9 +1370,14 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
  * Return value: integer value
  **/
 int
-rasqal_literal_as_integer(rasqal_literal* l, int *error)
+rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 0);
+  if(!l) {
+    /* type error */
+    if(error_p)
+      *error_p = 1;
+    return 0;
+  }
   
   switch(l->type) {
     case RASQAL_LITERAL_INTEGER:
@@ -1410,13 +1415,13 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
         if((unsigned char*)eptr != l->string && *eptr=='\0')
           return (int)d;
       }
-      if(error)
-        *error = 1;
+      if(error_p)
+        *error_p = 1;
       return 0;
       break;
 
     case RASQAL_LITERAL_VARIABLE:
-      return rasqal_literal_as_integer(l->value.variable->value, error);
+      return rasqal_literal_as_integer(l->value.variable->value, error_p);
       break;
 
     case RASQAL_LITERAL_BLANK:
@@ -1425,8 +1430,8 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
-      if(error)
-        *error = 1;
+      if(error_p)
+        *error_p = 1;
       return 0;
       
     case RASQAL_LITERAL_UNKNOWN:
@@ -1440,7 +1445,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
 /*
  * rasqal_literal_as_floating:
  * @l: #rasqal_literal object
- * @error: pointer to error flag
+ * @error_p: pointer to error flag
  * 
  * INTERNAL - Return a literal as a floating value
  *
@@ -1451,9 +1456,13 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
  * Return value: floating value
  **/
 double
-rasqal_literal_as_floating(rasqal_literal* l, int *error)
+rasqal_literal_as_floating(rasqal_literal* l, int *error_p)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 0.0);
+  if(!l) {
+    /* type error */
+    *error_p = 1;
+    return 0.0;
+  }
   
   switch(l->type) {
     case RASQAL_LITERAL_INTEGER:
@@ -1479,13 +1488,13 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
         if((unsigned char*)eptr != l->string && *eptr=='\0')
           return d;
       }
-      if(error)
-        *error = 1;
+      if(error_p)
+        *error_p = 1;
       return 0.0;
       break;
 
     case RASQAL_LITERAL_VARIABLE:
-      return rasqal_literal_as_integer(l->value.variable->value, error);
+      return rasqal_literal_as_integer(l->value.variable->value, error_p);
       break;
 
     case RASQAL_LITERAL_BLANK:
@@ -1494,8 +1503,8 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
-      if(error)
-        *error = 1;
+      if(error_p)
+        *error_p = 1;
       return 0.0;
       
     case RASQAL_LITERAL_UNKNOWN:
@@ -1536,7 +1545,7 @@ rasqal_literal_as_uri(rasqal_literal* l)
  * @l: #rasqal_literal object
  * @len_p: pointer to store length of string (or NULL)
  * @flags: comparison flags
- * @error: pointer to error
+ * @error_p: pointer to error
  *
  * Return a counted string format of a literal according to flags.
  * 
@@ -1549,9 +1558,13 @@ rasqal_literal_as_uri(rasqal_literal* l)
  **/
 const unsigned char*
 rasqal_literal_as_counted_string(rasqal_literal* l, size_t *len_p,
-                                 int flags, int *error)
+                                 int flags, int *error_p)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
+  if(!l) {
+    /* type error */
+    *error_p = 1;
+    return NULL;
+  }
   
   switch(l->type) {
     case RASQAL_LITERAL_XSD_STRING:
@@ -1574,15 +1587,15 @@ rasqal_literal_as_counted_string(rasqal_literal* l, size_t *len_p,
 
     case RASQAL_LITERAL_URI:
       if(flags & RASQAL_COMPARE_XQUERY) {
-        if(error)
-          *error = 1;
+        if(error_p)
+          *error_p = 1;
         return NULL;
       }
       return raptor_uri_as_counted_string(l->value.uri, len_p);
 
     case RASQAL_LITERAL_VARIABLE:
       return rasqal_literal_as_counted_string(l->value.variable->value, len_p,
-                                              flags, error);
+                                              flags, error_p);
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
@@ -1597,7 +1610,7 @@ rasqal_literal_as_counted_string(rasqal_literal* l, size_t *len_p,
  * rasqal_literal_as_string_flags:
  * @l: #rasqal_literal object
  * @flags: comparison flags
- * @error: pointer to error
+ * @error_p: pointer to error
  *
  * Return the string format of a literal according to flags.
  * 
@@ -1609,11 +1622,15 @@ rasqal_literal_as_counted_string(rasqal_literal* l, size_t *len_p,
  * Return value: pointer to a shared string format of the literal.
  **/
 const unsigned char*
-rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error)
+rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error_p)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
-
-  return rasqal_literal_as_counted_string(l, NULL, flags, error);
+  if(!l) {
+    /* type error */
+    *error_p = 1;
+    return NULL;
+  }
+  
+  return rasqal_literal_as_counted_string(l, NULL, flags, error_p);
 }
 
 
@@ -2044,7 +2061,7 @@ rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
  * @l1: #rasqal_literal first literal
  * @l2: #rasqal_literal second literal
  * @flags: comparison flags
- * @error: pointer to error
+ * @error_p: pointer to error
  *
  * Compare two literals with type promotion.
  * 
@@ -2069,7 +2086,7 @@ rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
  **/
 int
 rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
-                       int *error)
+                       int *error_p)
 {
   rasqal_literal *lits[2];
   rasqal_literal* new_lits[2]; /* after promotions */
@@ -2079,11 +2096,11 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   double d = 0;
   int promotion = 0;
   
-  if(error)
-    *error = 0;
+  if(error_p)
+    *error_p = 0;
 
   if(!l1 || !l2) {
-    *error = 1;
+    *error_p = 1;
     return 0;
   }
 
@@ -2094,8 +2111,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   if(!lits[0] || !lits[1]) {
     /* if either is not NULL, the comparison fails */
     if(lits[0] || lits[1]) {
-      if(error)
-        *error = 1;
+      if(error_p)
+        *error_p = 1;
     }
     return 0;
   }
@@ -2139,8 +2156,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
     /* cannot compare UDTs */
     if(type0 == RASQAL_LITERAL_UDT || type1 == RASQAL_LITERAL_UDT) {
-      if(error)
-        *error = 1;
+      if(error_p)
+        *error_p = 1;
       return 0;
     }
 
@@ -2162,8 +2179,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 #endif
         return type_diff;
       }
-      if(error)
-        *error = 1;
+      if(error_p)
+        *error_p = 1;
       return 0;
     }
     promotion = 1;
@@ -2183,8 +2200,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     if(promotion) {
       new_lits[i] = rasqal_new_literal_from_promotion(lits[i], type, flags);
       if(!new_lits[i]) {
-        if(error)
-          *error = 1;
+        if(error_p)
+          *error_p = 1;
         goto done;
       }
     } else {
@@ -2199,8 +2216,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
         result = raptor_uri_compare(new_lits[0]->value.uri,
                                     new_lits[1]->value.uri);
       else {
-        if(error)
-          *error = 1;
+        if(error_p)
+          *error_p = 1;
         result = 0;
         goto done;
       }
@@ -2209,8 +2226,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_UDT:
       result = rasqal_literal_string_compare(new_lits[0], new_lits[1],
-                                           flags, error);
-      if(*error)
+                                           flags, error_p);
+      if(*error_p)
         result = 1;
       break;
       
@@ -2271,7 +2288,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
  * rasqal_literal_string_equals:
  * @l1: #rasqal_literal first literal
  * @l2: #rasqal_literal second literal
- * @error: pointer to error
+ * @error_p: pointer to error
  *
  * INTERNAL - Compare two typed literals
  *
