@@ -2078,8 +2078,10 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   if(error)
     *error = 0;
 
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l1, rasqal_literal, 0);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l2, rasqal_literal, 0);
+  if(!l1 || !l2) {
+    *error = 1;
+    return 0;
+  }
 
   lits[0] = rasqal_literal_value(l1);
   lits[1] = rasqal_literal_value(l2);
