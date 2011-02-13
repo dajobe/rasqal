@@ -160,7 +160,7 @@ rasqal_expression_evaluate_strlen(rasqal_expression *e,
   size_t len = 0;
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p)
+  if(*error_p || !l1)
     goto failed;
   
   s = rasqal_literal_as_string_flags(l1, eval_context->flags, error_p);
@@ -216,7 +216,7 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
   
   /* haystack string */
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p)
+  if(*error_p || !l1)
     goto failed;
   
   s = rasqal_literal_as_counted_string(l1, &len, eval_context->flags, error_p);
@@ -225,7 +225,7 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
 
   /* integer startingLoc */
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-  if(*error_p)
+  if(*error_p || !l2)
     goto failed;
   
   startingLoc = rasqal_literal_as_integer(l2, error_p);
@@ -310,7 +310,7 @@ rasqal_expression_evaluate_set_case(rasqal_expression *e,
   size_t len = 0;
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p)
+  if(*error_p || !l1)
     goto failed;
   
   s = rasqal_literal_as_counted_string(l1, &len, eval_context->flags, error_p);
@@ -463,11 +463,11 @@ rasqal_expression_evaluate_str_prefix_suffix(rasqal_expression *e,
   size_t len2 = 0;
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p)
+  if(*error_p || !l1)
     goto failed;
   
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-  if(*error_p)
+  if(*error_p || !l2)
     goto failed;
 
   if(!rasqal_literals_sparql11_compatible(l1, l2))
@@ -541,7 +541,7 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_expression *e,
   unsigned char* p;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p)
+  if(*error_p || !l1)
     goto failed;
   
   xsd_string_uri = rasqal_xsd_datatype_type_to_uri(l1->world, 
@@ -737,11 +737,11 @@ rasqal_expression_evaluate_langmatches(rasqal_expression *e,
   int b;
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p)
+  if(*error_p || !l1)
     goto failed;
   
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-  if(*error_p)
+  if(*error_p || !l2)
     goto failed;
   
   tag = rasqal_literal_as_string_flags(l1, eval_context->flags, error_p);
@@ -810,7 +810,7 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
   size_t match_len;
     
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p)
+  if(*error_p || !l1)
     goto failed;
 
   match_string = rasqal_literal_as_counted_string(l1, &match_len, 
@@ -824,14 +824,14 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
   regex_flags=NULL;
   if(e->op == RASQAL_EXPR_REGEX) {
     l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-    if(*error_p) {
+    if(*error_p || !l2) {
       rasqal_free_literal(l1);
       goto failed;
     }
 
     if(e->arg3) {
       l3 = rasqal_expression_evaluate2(e->arg3, eval_context, error_p);
-      if(!l3) {
+      if(*error_p || !l3) {
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         goto failed;
