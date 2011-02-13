@@ -97,7 +97,12 @@ rasqal_algebra_filter_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
   rasqal_query *query = execution_data->query;
   rasqal_rowsource *rs;
 
-  rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
+  if(node->node1) {
+    rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
+  } else {
+    rs = rasqal_new_empty_rowsource(query->world, query);
+  }
+
   if(!rs || *error_p)
     return NULL;
 

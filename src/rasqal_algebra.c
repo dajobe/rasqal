@@ -76,11 +76,12 @@ rasqal_new_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op)
  * rasqal_new_filter_algebra_node:
  * @query: #rasqal_query query object
  * @expr: FILTER expression
- * @node: algebra node being filtered
+ * @node: algebra node being filtered (or NULL)
  *
  * INTERNAL - Create a new algebra node for an expression over a node
  *
- * expr and node become owned by the new node
+ * expr and node become owned by the new node.  The @node may be NULL
+ * which means that the logical input/output is a row with no bindings.
  * 
  * Return value: a new #rasqal_algebra_node object or NULL on failure
  **/
@@ -958,6 +959,39 @@ rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
   return node;
 }
 
+
+static rasqal_algebra_node*
+rasqal_algebra_filter_graph_pattern_to_algebra(rasqal_query* query,
+                                               rasqal_graph_pattern* gp)
+{
+  rasqal_algebra_node* node = NULL;
+  rasqal_expression* e;
+
+  e = rasqal_new_expression_from_expression(gp->filter_expression);
+  if(!e) {
+    RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed");
+    goto fail;
+  }
+
+  node = rasqal_new_filter_algebra_node(query, e, NULL);
+  e = NULL; /* now owned by node */
+  if(!node) {
+    RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed");
+    goto fail;
+  }
+
+  return node;
+  
+  fail:
+  if(node)
+    rasqal_free_algebra_node(node);
+  if(e)
+    rasqal_free_expression(e);
+  
+  return node;
+}
+
+
 static rasqal_algebra_node*
 rasqal_algebra_union_graph_pattern_to_algebra(rasqal_query* query,
                                               rasqal_graph_pattern* gp)
@@ -1258,6 +1292,9 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_FILTER:
+      node = rasqal_algebra_filter_graph_pattern_to_algebra(query, gp);
+      break;
+
     case RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE:
     case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
 
