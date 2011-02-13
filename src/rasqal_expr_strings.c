@@ -161,7 +161,7 @@ rasqal_expression_evaluate_strlen(rasqal_expression *e,
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
-    return NULL;
+    goto failed;
   
   s = rasqal_literal_as_string_flags(l1, eval_context->flags, &error);
   if(error)
@@ -214,7 +214,7 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
   /* haystack string */
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
-    return NULL;
+    goto failed;
   
   s = rasqal_literal_as_counted_string(l1, &len, eval_context->flags, &error);
   if(error)
@@ -223,7 +223,7 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
   /* integer startingLoc */
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
   if(!l2)
-    return NULL;
+    goto failed;
   
   startingLoc = rasqal_literal_as_integer(l2, &error);
   if(error)
@@ -233,7 +233,7 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
   if(e->arg3) {
     l3 = rasqal_expression_evaluate2(e->arg3, eval_context);
     if(!l3)
-      return NULL;
+      goto failed;
 
     length = rasqal_literal_as_integer(l3, &error);
     if(error)
@@ -305,7 +305,7 @@ rasqal_expression_evaluate_set_case(rasqal_expression *e,
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
-    return NULL;
+    goto failed;
   
   s = rasqal_literal_as_counted_string(l1, &len, eval_context->flags, &error);
   if(error)
@@ -455,7 +455,7 @@ rasqal_expression_evaluate_str_prefix_suffix(rasqal_expression *e,
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
-    return NULL;
+    goto failed;
   
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
   if(!l2)
@@ -530,7 +530,7 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_expression *e,
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
-    return NULL;
+    goto failed;
   
   xsd_string_uri = rasqal_xsd_datatype_type_to_uri(l1->world, 
                                                    RASQAL_LITERAL_XSD_STRING);
@@ -617,6 +617,8 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
   raptor_uri* dt = NULL;
   
   sb = raptor_new_stringbuffer();
+  if(!sb)
+    goto failed;
   
   for(i = 0; i < raptor_sequence_size(e->args); i++) {
     rasqal_expression *arg_expr;

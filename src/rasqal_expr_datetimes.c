@@ -63,13 +63,16 @@ rasqal_expression_evaluate_now(rasqal_expression *e,
 
   tv = rasqal_world_get_now_timeval(world);
   if(!tv)
-    return NULL;
+    goto failed;
   
   dt = rasqal_new_xsd_datetime_from_timeval(world, tv);
   if(!dt)
-    return NULL;
+    goto failed;
   
   return rasqal_new_datetime_literal_from_datetime(world, dt);
+  
+  failed:
+  return NULL;
 }
 
 
@@ -92,7 +95,7 @@ rasqal_expression_evaluate_to_unixtime(rasqal_expression *e,
   
   l = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l)
-    return NULL;
+    goto failed;
 
   if(l->type != RASQAL_LITERAL_DATETIME)
     goto failed;

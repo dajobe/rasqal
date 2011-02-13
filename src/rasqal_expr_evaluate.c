@@ -355,17 +355,20 @@ rasqal_expression_evaluate_bound(rasqal_expression *e,
    * as early as possible. See (FLATTEN_LITERAL) below
    */
   if(!e->arg1 || e->arg1->op != RASQAL_EXPR_LITERAL)
-    return NULL;
+    goto failed;
   
   l1 = e->arg1->literal;
   if(!l1 || l1->type != RASQAL_LITERAL_VARIABLE)
-    return NULL;
+    goto failed;
   
   v = rasqal_literal_as_variable(l1);
   if(!v)
-    return NULL;
+    goto faield;
   
   return rasqal_new_boolean_literal(world, (v->value != NULL));
+
+  failed;
+  return NULL;
 }
 
 
@@ -388,17 +391,20 @@ rasqal_expression_evaluate_if(rasqal_expression *e,
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
-    return NULL;
+    goto failde;
 
   /* IF condition */
   b = rasqal_literal_as_boolean(l1, &error);
   rasqal_free_literal(l1);
 
   if(error)
-    return NULL;
+    goto failed;
 
   /* condition is true: evaluate arg2 or false: evaluate arg3 */
   return rasqal_expression_evaluate2(b ? e->arg2 : e->arg3, eval_context);
+
+  failed:
+  return NULL;
 }
 
 
@@ -558,7 +564,7 @@ rasqal_expression_evaluate_str(rasqal_expression *e,
                                rasqal_evaluation_context* eval_context)
 {
   rasqal_world* world = eval_context->world;
-  rasqal_literal* l1;
+  rasqal_literal* l1 = NULL;
   rasqal_literal* result = NULL;
   const unsigned char *s;
   size_t len;
@@ -567,7 +573,7 @@ rasqal_expression_evaluate_str(rasqal_expression *e,
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
   if(!l1)
-    return NULL;
+    goto failed;
   
   /* Note: flags removes RASQAL_COMPARE_XQUERY as this is the
    * explicit stringify operation and we want URIs as strings.
