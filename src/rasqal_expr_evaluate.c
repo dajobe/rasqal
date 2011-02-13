@@ -942,22 +942,20 @@ rasqal_expression_evaluate2(rasqal_expression* e,
   
   switch(e->op) {
     case RASQAL_EXPR_AND:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if(*error_p) {
-        errs.errs.e1 = 1;
+      errs.errs.e1 = 0;
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, &errs.errs.e1);
+      if(errs.errs.e1) {
         vars.bools.b1 = 0;
       } else {
-        errs.errs.e1 = 0;
         vars.bools.b1 = rasqal_literal_as_boolean(l1, &errs.errs.e1);
         rasqal_free_literal(l1);
       }
 
-      l1 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if(*error_p) {
-        errs.errs.e2 = 1;
+      errs.errs.e2 = 0;
+      l1 = rasqal_expression_evaluate2(e->arg2, eval_context, &errs.errs.e2);
+      if(errs.errs.e2) {
         vars.bools.b2 = 0;
       } else {
-        errs.errs.e2 = 0;
         vars.bools.b2 = rasqal_literal_as_boolean(l1, &errs.errs.e2);
         rasqal_free_literal(l1);
       }
@@ -979,22 +977,20 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
       
     case RASQAL_EXPR_OR:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if(*error_p) {
-        errs.errs.e1 = 1;
+      errs.errs.e1 = 0;
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, &errs.errs.e1);
+      if(errs.errs.e1) {
         vars.bools.b1 = 0;
       } else {
-        errs.errs.e1 = 0;
         vars.bools.b1 = rasqal_literal_as_boolean(l1, &errs.errs.e1);
         rasqal_free_literal(l1);
       }
 
-      l1 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if(*error_p) {
-        errs.errs.e2 = 1;
+      errs.errs.e2 = 0;
+      l1 = rasqal_expression_evaluate2(e->arg2, eval_context, &errs.errs.e2);
+      if(errs.errs.e2) {
         vars.bools.b2 = 0;
       } else {
-        errs.errs.e2 = 0;
         vars.bools.b2 = rasqal_literal_as_boolean(l1, &errs.errs.e2);
         rasqal_free_literal(l1);
       }
