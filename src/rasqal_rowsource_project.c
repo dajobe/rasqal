@@ -167,11 +167,21 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         v = (rasqal_variable*)raptor_sequence_get_at(con->projection_variables, i);
         if(v && v->expression) {
           int error = 0;
-          nrow->values[i] = rasqal_expression_evaluate2(v->expression,
-                                                        &query->eval_context,
-                                                        &error);
-          if(error)
+
+          if(v->value)
+            rasqal_free_literal(v->value);
+          
+          v->value = rasqal_expression_evaluate2(v->expression,
+                                                 &query->eval_context,
+                                                 &error);
+          if(error) {
+            /* FIXME: Errors are ignored - check this */
+#if 0
             goto failed;
+#endif
+          } else
+            nrow->values[i] = rasqal_new_literal_from_literal(v->value);
+
         }
       }
     }
