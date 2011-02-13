@@ -754,6 +754,7 @@ if($earl_report_file) {
   my(@t)=gmtime;
   my $rasqal_date=sprintf("%04d-%02d-%02d", 1900+$t[5], 1+$t[4], $t[3]);
   my $git_head = `git show-ref -h -s HEAD | head -1`;
+  chomp $git_head;
   open(OUT, ">>$earl_report_file") 
     or die "Cannot write to $earl_report_file - $!\n";
   print OUT <<"EOT"
