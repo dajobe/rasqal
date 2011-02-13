@@ -832,8 +832,9 @@ rasqal_expression_evaluate_bnode_constructor(rasqal_expression *e,
  * @e: The expression to evaluate.
  * @eval_context: expression context
  * 
- * Evaluate a #rasqal_expression tree in the context of a query to
- * give a #rasqal_literal result or error.
+ * Evaluate a #rasqal_expression tree in the context of a
+ * #rasqal_evaluation_context to give a #rasqal_literal result or
+ * error.
  * 
  * Return value: a #rasqal_literal value or NULL on failure.
  **/
@@ -1501,7 +1502,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
  * Evaluate a #rasqal_expression tree to give a #rasqal_literal result
  * or error.
  *
- * @Deprecated: use rasqal_expression_evaluate2() over the query object
+ * @Deprecated: use rasqal_expression_evaluate2() using a #rasqal_evaluation_context
  *
  * Return value: a #rasqal_literal value or NULL on failure.
  **/
