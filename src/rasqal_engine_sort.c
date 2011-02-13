@@ -229,16 +229,20 @@ rasqal_engine_rowsort_calculate_order_values(rasqal_query* query,
   for(i = 0; i < row->order_size; i++) {
     rasqal_expression* e;
     rasqal_literal *l;
+    int error = 0;
     
     e = (rasqal_expression*)raptor_sequence_get_at(order_seq, i);
-    l = rasqal_expression_evaluate2(e, &query->eval_context);
+    l = rasqal_expression_evaluate2(e, &query->eval_context, &error);
+
     if(row->order_values[i])
       rasqal_free_literal(row->order_values[i]);
-    if(l) {
+
+    if(error)
+      row->order_values[i] = NULL;
+    else {
       row->order_values[i] = rasqal_new_literal_from_literal(rasqal_literal_value(l));
       rasqal_free_literal(l);
-    } else
-      row->order_values[i] = NULL;
+    }
   }
   
   return 0;

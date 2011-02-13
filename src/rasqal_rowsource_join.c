@@ -105,21 +105,24 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     rasqal_query *query = rowsource->query;
     rasqal_literal* result;
     int bresult;
+    int error = 0;
     
-    result = rasqal_expression_evaluate2(con->expr, &query->eval_context);
+    result = rasqal_expression_evaluate2(con->expr, &query->eval_context,
+                                         &error);
 
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("join expression condition is constant: ");
-    if(!result)
+    if(error)
       fputs("type error", DEBUG_FH);
     else
       rasqal_literal_print(result, DEBUG_FH);
     fputc('\n', DEBUG_FH);
 #endif
-    if(!result) {
+
+    if(error) {
       bresult = 0;
     } else {
-      int error = 0;
+      error = 0;
       bresult = rasqal_literal_as_boolean(result, &error);
 #ifdef RASQAL_DEBUG
       if(error)
@@ -367,20 +370,23 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     /* Check join expression if present */
     if(con->expr) {
       rasqal_literal *result;
-
-      result = rasqal_expression_evaluate2(con->expr, &query->eval_context);
+      int error = 0;
+      
+      result = rasqal_expression_evaluate2(con->expr, &query->eval_context,
+                                           &error);
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG1("join expression result: ");
-      if(!result)
+      if(error)
         fputs("type error", DEBUG_FH);
       else
         rasqal_literal_print(result, DEBUG_FH);
       fputc('\n', DEBUG_FH);
 #endif
-      if(!result) {
+
+      if(error) {
         bresult = 0;
       } else {
-        int error = 0;
+        error = 0;
         bresult = rasqal_literal_as_boolean(result, &error);
 #ifdef RASQAL_DEBUG
         if(error)

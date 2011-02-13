@@ -101,6 +101,7 @@ rasqal_assignment_rowsource_read_row(rasqal_rowsource* rowsource, void *user_dat
   rasqal_assignment_rowsource_context *con;
   rasqal_literal* result = NULL;
   rasqal_row *row = NULL;
+  int error = 0;
   
   con = (rasqal_assignment_rowsource_context*)user_data;
 
@@ -108,16 +109,18 @@ rasqal_assignment_rowsource_read_row(rasqal_rowsource* rowsource, void *user_dat
     return NULL;
   
   RASQAL_DEBUG1("evaluating assignment expression\n");
-  result = rasqal_expression_evaluate2(con->expr, &query->eval_context);
+  result = rasqal_expression_evaluate2(con->expr, &query->eval_context,
+                                       &error);
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG2("assignment %s expression result: ", con->var->name);
-  if(!result)
+  if(error)
     fputs("type error", DEBUG_FH);
   else
     rasqal_literal_print(result, DEBUG_FH);
   fputc('\n', DEBUG_FH);
 #endif
-  if(result) {
+
+  if(!error) {
     rasqal_variable_set_value(con->var, result);
     row = rasqal_new_row_for_size(rowsource->world, rowsource->size);
     row->rowsource = rowsource;

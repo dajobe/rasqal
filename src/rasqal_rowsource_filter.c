@@ -118,24 +118,26 @@ rasqal_filter_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   while(1) {
     rasqal_literal* result;
     int bresult = 1;
-
+    int error = 0;
+    
     row = rasqal_rowsource_read_row(con->rowsource);
     if(!row)
       break;
 
-    result = rasqal_expression_evaluate2(con->expr, &query->eval_context);
+    result = rasqal_expression_evaluate2(con->expr, &query->eval_context,
+                                         &error);
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("filter expression result: ");
-    if(!result)
+    if(error)
       fputs("type error", DEBUG_FH);
     else
       rasqal_literal_print(result, DEBUG_FH);
     fputc('\n', DEBUG_FH);
 #endif
-    if(!result) {
+    if(error) {
       bresult = 0;
     } else {
-      int error = 0;
+      error = 0;
       bresult = rasqal_literal_as_boolean(result, &error);
 #ifdef RASQAL_DEBUG
       if(error)

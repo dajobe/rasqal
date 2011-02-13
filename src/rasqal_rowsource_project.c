@@ -141,43 +141,54 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_project_rowsource_context *con;
   rasqal_row *row = NULL;
+  rasqal_row* nrow = NULL;
   
   con = (rasqal_project_rowsource_context*)user_data;
 
   row = rasqal_rowsource_read_row(con->rowsource);
   if(row) {
-    rasqal_row* nrow;
     int i;
     
     nrow = rasqal_new_row_for_size(rowsource->world, rowsource->size);
-    if(!nrow) {
-      rasqal_free_row(row);
-      row = NULL;
-    } else {
-      nrow->rowsource = rowsource;
-      nrow->offset = row->offset;
+    if(!nrow)
+      goto failed;
+
+    nrow->rowsource = rowsource;
+    nrow->offset = row->offset;
       
-      for(i = 0; i < rowsource->size; i++) {
-        int offset = con->projection[i];
-        if(offset >= 0)
-          nrow->values[i] = rasqal_new_literal_from_literal(row->values[offset]);
-        else {
-          rasqal_variable* v;
-          rasqal_query *query = rowsource->query;
-          
-          v = (rasqal_variable*)raptor_sequence_get_at(con->projection_variables, i);
-          if(v && v->expression) {
-            nrow->values[i] = rasqal_expression_evaluate2(v->expression,
-                                                          &query->eval_context);
-          }
+    for(i = 0; i < rowsource->size; i++) {
+      int offset = con->projection[i];
+      if(offset >= 0)
+        nrow->values[i] = rasqal_new_literal_from_literal(row->values[offset]);
+      else {
+        rasqal_variable* v;
+        rasqal_query *query = rowsource->query;
+        
+        v = (rasqal_variable*)raptor_sequence_get_at(con->projection_variables, i);
+        if(v && v->expression) {
+          int error = 0;
+          nrow->values[i] = rasqal_expression_evaluate2(v->expression,
+                                                        &query->eval_context,
+                                                        &error);
+          if(error)
+            goto failed;
         }
       }
-      rasqal_free_row(row);
-      row = nrow;
     }
+
+    rasqal_free_row(row);
+    row = nrow;
   }
   
   return row;
+
+  failed:
+  if(nrow)
+    rasqal_free_row(nrow);
+  if(row)
+    rasqal_free_row(row);
+  
+  return NULL;
 }
 
 

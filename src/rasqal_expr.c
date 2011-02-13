@@ -1760,15 +1760,16 @@ rasqal_expression_sequence_evaluate(rasqal_query* query,
   for(i = 0; i < size; i++) {
     rasqal_expression* e;
     rasqal_literal *l;
+    int error = 0;
     
     e = (rasqal_expression*)raptor_sequence_get_at(exprs_seq, i);
-    l = rasqal_expression_evaluate2(e, &query->eval_context);
-    if(!l) {
+    l = rasqal_expression_evaluate2(e, &query->eval_context, &error);
+    if(error) {
       if(ignore_errors)
         continue;
       
       if(error_p)
-        *error_p = 1;
+        *error_p = error;
 
       return NULL;
     }
@@ -2219,9 +2220,11 @@ main(int argc, char *argv[])
   rasqal_expression_print(expr, stderr);
   fputc('\n', stderr);
 
-  result = rasqal_expression_evaluate2(expr, &eval_context);
+  result = rasqal_expression_evaluate2(expr, &eval_context, &error);
 
-  if(result) {
+  if(error) {
+    fprintf(stderr, "%s: expression evaluation FAILED with error\n", program);
+  } else {
     int bresult;
     
     fprintf(stderr, "%s: expression result: \n", program);
@@ -2234,8 +2237,7 @@ main(int argc, char *argv[])
       fprintf(stderr, "%s: boolean expression result: %d\n", program, bresult);
 
 
-  } else
-    fprintf(stderr, "%s: expression evaluation FAILED with error\n", program);
+  }
 
   rasqal_free_expression(expr);
 

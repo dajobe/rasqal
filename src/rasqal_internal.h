@@ -1049,22 +1049,22 @@ int rasqal_literal_sequence_equals(raptor_sequence* values_a, raptor_sequence* v
 int rasqal_language_matches(const unsigned char* lang_tag, const unsigned char* lang_range);
 
 /* rasqal_expr_datetimes.c */
-rasqal_literal* rasqal_expression_evaluate_now(rasqal_expression *e, rasqal_evaluation_context* expr_context);
-rasqal_literal* rasqal_expression_evaluate_to_unixtime(rasqal_expression *e, rasqal_evaluation_context* expr_context);
-rasqal_literal* rasqal_expression_evaluate_from_unixtime(rasqal_expression *e, rasqal_evaluation_context* expr_context);
-rasqal_literal* rasqal_expression_evaluate_datetime_part(rasqal_expression *e, rasqal_evaluation_context* expr_context);
-rasqal_literal* rasqal_expression_evaluate_datetime_timezone(rasqal_expression *e, rasqal_evaluation_context* expr_context);
-rasqal_literal* rasqal_expression_evaluate_datetime_tz(rasqal_expression *e, rasqal_evaluation_context* expr_context);
+rasqal_literal* rasqal_expression_evaluate_now(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_to_unixtime(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_from_unixtime(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_datetime_part(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_datetime_timezone(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_datetime_tz(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 
 /* rasqal_expr_strings.c */
-rasqal_literal* rasqal_expression_evaluate_substr(rasqal_expression *e, rasqal_evaluation_context* expr_context);
-rasqal_literal* rasqal_expression_evaluate_set_case(rasqal_expression *e, rasqal_evaluation_context* expr_context);
-rasqal_literal* rasqal_expression_evaluate_str_prefix_suffix(rasqal_expression *e, rasqal_evaluation_context* expr_context);
-rasqal_literal* rasqal_expression_evaluate_strlen(rasqal_expression *e, rasqal_evaluation_context* expr_context);
-rasqal_literal* rasqal_expression_evaluate_encode_for_uri(rasqal_expression *e, rasqal_evaluation_context* expr_context);
-rasqal_literal* rasqal_expression_evaluate_concat(rasqal_expression *e, rasqal_evaluation_context* expr_context);
-rasqal_literal* rasqal_expression_evaluate_langmatches(rasqal_expression *e, rasqal_evaluation_context* expr_context);
-rasqal_literal* rasqal_expression_evaluate_strmatch(rasqal_expression *e, rasqal_evaluation_context* expr_context);
+rasqal_literal* rasqal_expression_evaluate_substr(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_set_case(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_str_prefix_suffix(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_strlen(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_encode_for_uri(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_concat(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_langmatches(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_strmatch(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
   
 
 /* strcasecmp.c */

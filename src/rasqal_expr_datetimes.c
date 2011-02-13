@@ -55,7 +55,8 @@
  */
 rasqal_literal*
 rasqal_expression_evaluate_now(rasqal_expression *e,
-                               rasqal_evaluation_context* eval_context)
+                               rasqal_evaluation_context *eval_context,
+                               int *error_p)
 {
   rasqal_world* world = eval_context->world;
   struct timeval *tv;
@@ -72,6 +73,9 @@ rasqal_expression_evaluate_now(rasqal_expression *e,
   return rasqal_new_datetime_literal_from_datetime(world, dt);
   
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   return NULL;
 }
 
@@ -87,13 +91,14 @@ rasqal_expression_evaluate_now(rasqal_expression *e,
  */
 rasqal_literal*
 rasqal_expression_evaluate_to_unixtime(rasqal_expression *e,
-                                       rasqal_evaluation_context* eval_context)
+                                       rasqal_evaluation_context *eval_context,
+                                       int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l;
   int unixtime = 0;
   
-  l = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l)
     goto failed;
 
@@ -108,6 +113,9 @@ rasqal_expression_evaluate_to_unixtime(rasqal_expression *e,
   return rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, unixtime);
 
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(l)
     rasqal_free_literal(l);
   return NULL;
@@ -126,7 +134,8 @@ rasqal_expression_evaluate_to_unixtime(rasqal_expression *e,
  */
 rasqal_literal*
 rasqal_expression_evaluate_from_unixtime(rasqal_expression *e,
-                                         rasqal_evaluation_context* eval_context)
+                                         rasqal_evaluation_context *eval_context,
+	int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l;
@@ -134,7 +143,7 @@ rasqal_expression_evaluate_from_unixtime(rasqal_expression *e,
   int unixtime = 0;
   rasqal_xsd_datetime* dt;
   
-  l = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l)
     goto failed;
 
@@ -150,6 +159,9 @@ rasqal_expression_evaluate_from_unixtime(rasqal_expression *e,
   return rasqal_new_datetime_literal_from_datetime(world, dt);
 
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(l)
     rasqal_free_literal(l);
   return NULL;
@@ -170,14 +182,15 @@ rasqal_expression_evaluate_from_unixtime(rasqal_expression *e,
  */
 rasqal_literal*
 rasqal_expression_evaluate_datetime_part(rasqal_expression *e,
-                                         rasqal_evaluation_context* eval_context)
+                                         rasqal_evaluation_context *eval_context,
+	int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l;
   rasqal_literal* result = NULL;
   int i;
 
-  l = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l)
     goto failed;
   
@@ -225,6 +238,9 @@ rasqal_expression_evaluate_datetime_part(rasqal_expression *e,
 
   
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(result) {
     rasqal_free_literal(result);
     result = NULL;
@@ -245,14 +261,15 @@ rasqal_expression_evaluate_datetime_part(rasqal_expression *e,
  */
 rasqal_literal*
 rasqal_expression_evaluate_datetime_timezone(rasqal_expression *e,
-                                             rasqal_evaluation_context* eval_context)
+                                             rasqal_evaluation_context *eval_context,
+	int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l;
   const unsigned char* s = NULL;
   raptor_uri* dt_uri;
   
-  l = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l)
     goto failed;
   
@@ -274,6 +291,9 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_expression *e,
   return rasqal_new_string_literal(world, s, NULL, dt_uri, NULL);
 
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(s)
     RASQAL_FREE(cstring, s);
   
@@ -295,13 +315,14 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_expression *e,
  */
 rasqal_literal*
 rasqal_expression_evaluate_datetime_tz(rasqal_expression *e,
-                                       rasqal_evaluation_context* eval_context)
+                                       rasqal_evaluation_context *eval_context,
+                                       int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l;
   const unsigned char* s = NULL;
   
-  l = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l)
     goto failed;
   
@@ -318,6 +339,9 @@ rasqal_expression_evaluate_datetime_tz(rasqal_expression *e,
   return rasqal_new_string_literal(world, s, NULL, NULL, NULL);
 
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(l)
     rasqal_free_literal(l);
 

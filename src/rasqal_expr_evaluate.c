@@ -127,7 +127,8 @@ rasqal_language_matches(const unsigned char* lang_tag,
  */
 static rasqal_literal*
 rasqal_expression_evaluate_strdt(rasqal_expression *e,
-                                 rasqal_evaluation_context* eval_context)
+                                 rasqal_evaluation_context *eval_context,
+                                 int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal *l1 = NULL;
@@ -138,7 +139,7 @@ rasqal_expression_evaluate_strdt(rasqal_expression *e,
   raptor_uri* dt_uri = NULL;
   int error = 0;
   
-  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l1)
     goto failed;
 
@@ -152,7 +153,7 @@ rasqal_expression_evaluate_strdt(rasqal_expression *e,
   if(error)
     goto failed;
   
-  l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+  l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
   if(!l2)
     goto failed;
   
@@ -186,6 +187,9 @@ rasqal_expression_evaluate_strdt(rasqal_expression *e,
   
   
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(new_s)
     RASQAL_FREE(cstring, new_s);
   if(l1)
@@ -208,7 +212,8 @@ rasqal_expression_evaluate_strdt(rasqal_expression *e,
  */
 static rasqal_literal*
 rasqal_expression_evaluate_strlang(rasqal_expression *e,
-                                   rasqal_evaluation_context* eval_context)
+                                   rasqal_evaluation_context *eval_context,
+                                   int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal *l1 = NULL;
@@ -221,7 +226,7 @@ rasqal_expression_evaluate_strlang(rasqal_expression *e,
   size_t lang_len;
   int error = 0;
 
-  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l1)
     goto failed;
   
@@ -235,7 +240,7 @@ rasqal_expression_evaluate_strlang(rasqal_expression *e,
   if(error)
     goto failed;
 
-  l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+  l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
   if(!l2)
     goto failed;
   
@@ -263,6 +268,9 @@ rasqal_expression_evaluate_strlang(rasqal_expression *e,
   
 
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(new_s)
     RASQAL_FREE(cstring, new_s);
   if(l1)
@@ -287,7 +295,8 @@ rasqal_expression_evaluate_strlang(rasqal_expression *e,
  */
 static rasqal_literal*
 rasqal_expression_evaluate_istype(rasqal_expression *e,
-                                  rasqal_evaluation_context* eval_context)
+                                  rasqal_evaluation_context *eval_context,
+                                  int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l1;
@@ -295,7 +304,7 @@ rasqal_expression_evaluate_istype(rasqal_expression *e,
   rasqal_variable *v;
   int b;
   
-  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l1)
     goto failed;
 
@@ -325,6 +334,9 @@ rasqal_expression_evaluate_istype(rasqal_expression *e,
   return rasqal_new_boolean_literal(world, b);
 
 failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(free_literal && l1)
     rasqal_free_literal(l1);
 
@@ -343,7 +355,8 @@ failed:
  */
 static rasqal_literal*
 rasqal_expression_evaluate_bound(rasqal_expression *e,
-                                 rasqal_evaluation_context* eval_context)
+                                 rasqal_evaluation_context *eval_context,
+                                 int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l1;
@@ -363,11 +376,14 @@ rasqal_expression_evaluate_bound(rasqal_expression *e,
   
   v = rasqal_literal_as_variable(l1);
   if(!v)
-    goto faield;
+    goto failed;
   
   return rasqal_new_boolean_literal(world, (v->value != NULL));
 
-  failed;
+  failed:
+  if(error_p)
+    *error_p = 1;
+
   return NULL;
 }
 
@@ -383,15 +399,16 @@ rasqal_expression_evaluate_bound(rasqal_expression *e,
  */
 static rasqal_literal*
 rasqal_expression_evaluate_if(rasqal_expression *e,
-                              rasqal_evaluation_context* eval_context)
+                              rasqal_evaluation_context *eval_context,
+                              int *error_p)
 {
   rasqal_literal* l1;
   int b;
   int error = 0;
   
-  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l1)
-    goto failde;
+    goto failed;
 
   /* IF condition */
   b = rasqal_literal_as_boolean(l1, &error);
@@ -401,9 +418,13 @@ rasqal_expression_evaluate_if(rasqal_expression *e,
     goto failed;
 
   /* condition is true: evaluate arg2 or false: evaluate arg3 */
-  return rasqal_expression_evaluate2(b ? e->arg2 : e->arg3, eval_context);
+  return rasqal_expression_evaluate2(b ? e->arg2 : e->arg3, eval_context,
+                                     error_p);
 
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   return NULL;
 }
 
@@ -419,18 +440,19 @@ rasqal_expression_evaluate_if(rasqal_expression *e,
  */
 static rasqal_literal*
 rasqal_expression_evaluate_sameterm(rasqal_expression *e,
-                                    rasqal_evaluation_context* eval_context)
+                                    rasqal_evaluation_context *eval_context,
+                                    int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l1;
   rasqal_literal* l2;
   int b;
 
-  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l1)
     goto failed;
   
-  l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+  l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
   if(!l2)
     goto failed;
 
@@ -445,6 +467,9 @@ rasqal_expression_evaluate_sameterm(rasqal_expression *e,
   return rasqal_new_boolean_literal(world, b);
 
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(l1)
     rasqal_free_literal(l1);
 
@@ -464,7 +489,8 @@ rasqal_expression_evaluate_sameterm(rasqal_expression *e,
  */
 static rasqal_literal*
 rasqal_expression_evaluate_in_set(rasqal_expression *e,
-                                  rasqal_evaluation_context* eval_context)
+                                  rasqal_evaluation_context *eval_context,
+                                  int *error_p)
 {
   rasqal_world* world = eval_context->world;
   int size = raptor_sequence_size(e->args);
@@ -472,7 +498,7 @@ rasqal_expression_evaluate_in_set(rasqal_expression *e,
   rasqal_literal* l1;
   int found = 0;
 
-  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l1)
     goto failed;
   
@@ -482,7 +508,7 @@ rasqal_expression_evaluate_in_set(rasqal_expression *e,
     int error = 0;
     
     arg_e = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
-    arg_literal = rasqal_expression_evaluate2(arg_e, eval_context);
+    arg_literal = rasqal_expression_evaluate2(arg_e, eval_context, error_p);
     if(!arg_literal)
       goto failed;
     
@@ -510,6 +536,9 @@ rasqal_expression_evaluate_in_set(rasqal_expression *e,
   return rasqal_new_boolean_literal(world, found);
 
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(l1)
     rasqal_free_literal(l1);
 
@@ -528,7 +557,8 @@ rasqal_expression_evaluate_in_set(rasqal_expression *e,
  */
 static rasqal_literal*
 rasqal_expression_evaluate_coalesce(rasqal_expression *e,
-                                    rasqal_evaluation_context* eval_context)
+                                    rasqal_evaluation_context *eval_context,
+                                    int *error_p)
 {
   int size = raptor_sequence_size(e->args);
   int i;
@@ -539,7 +569,7 @@ rasqal_expression_evaluate_coalesce(rasqal_expression *e,
     arg_e = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
     if(arg_e) {
       rasqal_literal* result;
-      result = rasqal_expression_evaluate2(arg_e, eval_context);
+      result = rasqal_expression_evaluate2(arg_e, eval_context, error_p);
       if(result)
         return result;
     }
@@ -561,7 +591,8 @@ rasqal_expression_evaluate_coalesce(rasqal_expression *e,
  */
 static rasqal_literal*
 rasqal_expression_evaluate_str(rasqal_expression *e,
-                               rasqal_evaluation_context* eval_context)
+                               rasqal_evaluation_context *eval_context,
+                               int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l1 = NULL;
@@ -571,7 +602,7 @@ rasqal_expression_evaluate_str(rasqal_expression *e,
   unsigned char *new_s;
   int error = 0;
   
-  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l1)
     goto failed;
   
@@ -594,6 +625,9 @@ rasqal_expression_evaluate_str(rasqal_expression *e,
   result = rasqal_new_string_literal(world, new_s, NULL, NULL, NULL);
 
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(l1)
     rasqal_free_literal(l1);
   
@@ -612,7 +646,8 @@ rasqal_expression_evaluate_str(rasqal_expression *e,
  */
 static rasqal_literal*
 rasqal_expression_evaluate_lang(rasqal_expression *e,
-                                rasqal_evaluation_context* eval_context)
+                                rasqal_evaluation_context *eval_context,
+                                int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l1;
@@ -620,7 +655,7 @@ rasqal_expression_evaluate_lang(rasqal_expression *e,
   rasqal_variable* v = NULL;
   unsigned char* new_s;
       
-  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l1)
     goto failed;
 
@@ -660,6 +695,9 @@ rasqal_expression_evaluate_lang(rasqal_expression *e,
   return rasqal_new_string_literal(world, new_s, NULL, NULL, NULL);
 
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(free_literal)
     rasqal_free_literal(l1);
 
@@ -678,7 +716,8 @@ rasqal_expression_evaluate_lang(rasqal_expression *e,
  */
 static rasqal_literal*
 rasqal_expression_evaluate_datatype(rasqal_expression *e,
-                                    rasqal_evaluation_context* eval_context)
+                                    rasqal_evaluation_context *eval_context,
+                                    int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l1;
@@ -686,7 +725,7 @@ rasqal_expression_evaluate_datatype(rasqal_expression *e,
   rasqal_variable* v = NULL;
   raptor_uri* dt_uri = NULL;
       
-  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l1)
     goto failed;
 
@@ -725,6 +764,9 @@ rasqal_expression_evaluate_datatype(rasqal_expression *e,
   return rasqal_new_uri_literal(world, dt_uri);
 
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(free_literal)
     rasqal_free_literal(l1);
 
@@ -744,7 +786,8 @@ rasqal_expression_evaluate_datatype(rasqal_expression *e,
  */
 static rasqal_literal*
 rasqal_expression_evaluate_uri_constructor(rasqal_expression *e,
-                                           rasqal_evaluation_context* eval_context)
+                                           rasqal_evaluation_context *eval_context,
+                                           int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l1;
@@ -752,7 +795,7 @@ rasqal_expression_evaluate_uri_constructor(rasqal_expression *e,
   int error = 0;
   const unsigned char *s;
 
-  l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(!l1)
     goto failed;
   
@@ -772,6 +815,9 @@ rasqal_expression_evaluate_uri_constructor(rasqal_expression *e,
   return rasqal_new_uri_literal(world, dt_uri);
 
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(l1)
     rasqal_free_literal(l1);
 
@@ -790,7 +836,8 @@ rasqal_expression_evaluate_uri_constructor(rasqal_expression *e,
  */
 static rasqal_literal*
 rasqal_expression_evaluate_bnode_constructor(rasqal_expression *e,
-                                             rasqal_evaluation_context* eval_context)
+                                             rasqal_evaluation_context *eval_context,
+                                             int *error_p)
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal *l1 = NULL;
@@ -801,7 +848,7 @@ rasqal_expression_evaluate_bnode_constructor(rasqal_expression *e,
     size_t len;
     int error = 0;
     
-    l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+    l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
     if(!l1)
       goto failed;
     
@@ -826,6 +873,9 @@ rasqal_expression_evaluate_bnode_constructor(rasqal_expression *e,
   return rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_s);
 
   failed:
+  if(error_p)
+    *error_p = 1;
+  
   if(l1)
     rasqal_free_literal(l1);
 
@@ -837,16 +887,17 @@ rasqal_expression_evaluate_bnode_constructor(rasqal_expression *e,
  * rasqal_expression_evaluate2:
  * @e: The expression to evaluate.
  * @eval_context: expression context
+ * @error_p: pointer to error return flag
  * 
  * Evaluate a #rasqal_expression tree in the context of a
- * #rasqal_evaluation_context to give a #rasqal_literal result or
- * error.
+ * #rasqal_evaluation_context to give a #rasqal_literal result or error.
  * 
- * Return value: a #rasqal_literal value or NULL on failure.
+ * Return value: a #rasqal_literal value or NULL (a valid value).  @error_p is set to non-0 on failure.  
  **/
 rasqal_literal*
 rasqal_expression_evaluate2(rasqal_expression* e,
-                            rasqal_evaluation_context* eval_context)
+                            rasqal_evaluation_context* eval_context,
+                            int *error_p)
 {
   rasqal_world *world;
   int flags;
@@ -877,6 +928,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(e, rasqal_expression, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(eval_context, rasqal_evaluation_context, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(error_p, intp, NULL);
 
   world = eval_context->world;
   flags = eval_context->flags;
@@ -891,7 +943,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
   
   switch(e->op) {
     case RASQAL_EXPR_AND:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1) {
         errs.errs.e1 = 1;
         vars.bools.b1 = 0;
@@ -901,7 +953,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
         rasqal_free_literal(l1);
       }
 
-      l1 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l1) {
         errs.errs.e2 = 1;
         vars.bools.b2 = 0;
@@ -928,7 +980,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
       
     case RASQAL_EXPR_OR:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1) {
         errs.errs.e1 = 1;
         vars.bools.b1 = 0;
@@ -938,7 +990,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
         rasqal_free_literal(l1);
       }
 
-      l1 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l1) {
         errs.errs.e2 = 1;
         vars.bools.b2 = 0;
@@ -965,11 +1017,11 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
 
     case RASQAL_EXPR_EQ:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
-      l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l2) {
         rasqal_free_literal(l1);
         goto failed;
@@ -1000,11 +1052,11 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
 
     case RASQAL_EXPR_NEQ:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
-      l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l2) {
         rasqal_free_literal(l1);
         goto failed;
@@ -1026,11 +1078,11 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
 
     case RASQAL_EXPR_LT:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
-      l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l2) {
         rasqal_free_literal(l1);
         goto failed;
@@ -1046,11 +1098,11 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
 
     case RASQAL_EXPR_GT:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
-      l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l2) {
         rasqal_free_literal(l1);
         goto failed;
@@ -1066,11 +1118,11 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
 
     case RASQAL_EXPR_LE:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
-      l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l2) {
         rasqal_free_literal(l1);
         goto failed;
@@ -1086,11 +1138,11 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;        
 
     case RASQAL_EXPR_GE:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
-      l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l2) {
         rasqal_free_literal(l1);
         goto failed;
@@ -1106,7 +1158,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
 
     case RASQAL_EXPR_UMINUS:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
@@ -1117,38 +1169,38 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
 
     case RASQAL_EXPR_BOUND:
-      result = rasqal_expression_evaluate_bound(e, eval_context);
+      result = rasqal_expression_evaluate_bound(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_STR:
-      result = rasqal_expression_evaluate_str(e, eval_context);
+      result = rasqal_expression_evaluate_str(e, eval_context, error_p);
       break;
       
     case RASQAL_EXPR_LANG:
-      result = rasqal_expression_evaluate_lang(e, eval_context);
+      result = rasqal_expression_evaluate_lang(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_LANGMATCHES:
-      result = rasqal_expression_evaluate_langmatches(e, eval_context);
+      result = rasqal_expression_evaluate_langmatches(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_DATATYPE:
-      result = rasqal_expression_evaluate_datatype(e, eval_context);
+      result = rasqal_expression_evaluate_datatype(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_ISURI:
     case RASQAL_EXPR_ISBLANK:
     case RASQAL_EXPR_ISLITERAL:
     case RASQAL_EXPR_ISNUMERIC:
-      result = rasqal_expression_evaluate_istype(e, eval_context);
+      result = rasqal_expression_evaluate_istype(e, eval_context, error_p);
       break;
       
     case RASQAL_EXPR_PLUS:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
-      l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l2) {
         rasqal_free_literal(l1);
         goto failed;
@@ -1163,11 +1215,11 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
 
     case RASQAL_EXPR_MINUS:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
-      l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l2) {
         rasqal_free_literal(l1);
         goto failed;
@@ -1182,11 +1234,11 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
       
     case RASQAL_EXPR_STAR:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
-      l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l2) {
         rasqal_free_literal(l1);
         goto failed;
@@ -1201,11 +1253,11 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
       
     case RASQAL_EXPR_SLASH:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
-      l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l2) {
         rasqal_free_literal(l1);
         goto failed;
@@ -1220,11 +1272,11 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
       
     case RASQAL_EXPR_REM:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
-      l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l2) {
         rasqal_free_literal(l1);
         goto failed;
@@ -1246,11 +1298,11 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
       
     case RASQAL_EXPR_STR_EQ:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
-      l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l2) {
         rasqal_free_literal(l1);
         goto failed;
@@ -1267,11 +1319,11 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
       
     case RASQAL_EXPR_STR_NEQ:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
-      l2 = rasqal_expression_evaluate2(e->arg2, eval_context);
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
       if(!l2) {
         rasqal_free_literal(l1);
         goto failed;
@@ -1288,7 +1340,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
 
     case RASQAL_EXPR_TILDE:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
@@ -1301,7 +1353,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
 
     case RASQAL_EXPR_BANG:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
@@ -1316,7 +1368,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
     case RASQAL_EXPR_REGEX:
-      result = rasqal_expression_evaluate_strmatch(e, eval_context);
+      result = rasqal_expression_evaluate_strmatch(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_LITERAL:
@@ -1336,7 +1388,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
       
     case RASQAL_EXPR_CAST:
-      l1 = rasqal_expression_evaluate2(e->arg1, eval_context);
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       if(!l1)
         goto failed;
 
@@ -1352,7 +1404,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
     case RASQAL_EXPR_ORDER_COND_DESC:
     case RASQAL_EXPR_GROUP_COND_ASC:
     case RASQAL_EXPR_GROUP_COND_DESC:
-      result = rasqal_expression_evaluate2(e->arg1, eval_context);
+      result = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_COUNT:
@@ -1374,44 +1426,44 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
       
     case RASQAL_EXPR_SAMETERM:
-      result = rasqal_expression_evaluate_sameterm(e, eval_context);
+      result = rasqal_expression_evaluate_sameterm(e, eval_context, error_p);
       break;
       
     case RASQAL_EXPR_CONCAT:
-      result = rasqal_expression_evaluate_concat(e, eval_context);
+      result = rasqal_expression_evaluate_concat(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_COALESCE:
-      result = rasqal_expression_evaluate_coalesce(e, eval_context);
+      result = rasqal_expression_evaluate_coalesce(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_IF:
-      result = rasqal_expression_evaluate_if(e, eval_context);
+      result = rasqal_expression_evaluate_if(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
-      result = rasqal_expression_evaluate_uri_constructor(e, eval_context);
+      result = rasqal_expression_evaluate_uri_constructor(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_STRLANG:
-      result = rasqal_expression_evaluate_strlang(e, eval_context);
+      result = rasqal_expression_evaluate_strlang(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_STRDT:
-      result = rasqal_expression_evaluate_strdt(e, eval_context);
+      result = rasqal_expression_evaluate_strdt(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_BNODE:
-      result = rasqal_expression_evaluate_bnode_constructor(e, eval_context);
+      result = rasqal_expression_evaluate_bnode_constructor(e, eval_context, error_p);
       break;
       
     case RASQAL_EXPR_IN:
-      result = rasqal_expression_evaluate_in_set(e, eval_context);
+      result = rasqal_expression_evaluate_in_set(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_NOT_IN:
-      result = rasqal_expression_evaluate_in_set(e, eval_context);
+      result = rasqal_expression_evaluate_in_set(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_YEAR:
@@ -1420,51 +1472,51 @@ rasqal_expression_evaluate2(rasqal_expression* e,
     case RASQAL_EXPR_HOURS:
     case RASQAL_EXPR_MINUTES:
     case RASQAL_EXPR_SECONDS:
-      result = rasqal_expression_evaluate_datetime_part(e, eval_context);
+      result = rasqal_expression_evaluate_datetime_part(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_CURRENT_DATETIME:
     case RASQAL_EXPR_NOW:
-      result = rasqal_expression_evaluate_now(e, eval_context);
+      result = rasqal_expression_evaluate_now(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_TO_UNIXTIME:
-      result = rasqal_expression_evaluate_to_unixtime(e, eval_context);
+      result = rasqal_expression_evaluate_to_unixtime(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_FROM_UNIXTIME:
-      result = rasqal_expression_evaluate_from_unixtime(e, eval_context);
+      result = rasqal_expression_evaluate_from_unixtime(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_STRLEN:
-      result = rasqal_expression_evaluate_strlen(e, eval_context);
+      result = rasqal_expression_evaluate_strlen(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_UCASE:
     case RASQAL_EXPR_LCASE:
-      result = rasqal_expression_evaluate_set_case(e, eval_context);
+      result = rasqal_expression_evaluate_set_case(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_STRSTARTS:
     case RASQAL_EXPR_STRENDS:
     case RASQAL_EXPR_CONTAINS:
-      result = rasqal_expression_evaluate_str_prefix_suffix(e, eval_context);
+      result = rasqal_expression_evaluate_str_prefix_suffix(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_TIMEZONE:
-      result = rasqal_expression_evaluate_datetime_timezone(e, eval_context);
+      result = rasqal_expression_evaluate_datetime_timezone(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_TZ:
-      result = rasqal_expression_evaluate_datetime_tz(e, eval_context);
+      result = rasqal_expression_evaluate_datetime_tz(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_ENCODE_FOR_URI:
-      result = rasqal_expression_evaluate_encode_for_uri(e, eval_context);
+      result = rasqal_expression_evaluate_encode_for_uri(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_SUBSTR:
-      result = rasqal_expression_evaluate_substr(e, eval_context);
+      result = rasqal_expression_evaluate_substr(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_UNKNOWN:
@@ -1489,7 +1541,9 @@ rasqal_expression_evaluate2(rasqal_expression* e,
   return result;
 
   failed:
-
+  if(error_p)
+    *error_p = 1;
+  
   if(result) {
     rasqal_free_literal(result);
     result = NULL;
@@ -1517,7 +1571,9 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
                            rasqal_expression* e, int flags)
 {
   rasqal_evaluation_context context; /* static */
-
+  int error;
+  rasqal_literal* l;
+  
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(e, rasqal_expression, NULL);
 
@@ -1526,5 +1582,9 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
   context.locator = locator;
   context.flags = flags;
 
-  return rasqal_expression_evaluate2(e, &context);
+  l = rasqal_expression_evaluate2(e, &context, &error);
+  if(error)
+    return NULL;
+  
+  return l;
 }
