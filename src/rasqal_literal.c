@@ -3005,12 +3005,10 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
 rasqal_literal*
 rasqal_literal_value(rasqal_literal* l)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
+  if(!l)
+    return NULL;
   
-  while(l) {
-    if(l->type != RASQAL_LITERAL_VARIABLE)
-      break;
-
+  while(l && l->type == RASQAL_LITERAL_VARIABLE) {
     l = l->value.variable->value;
   }
   
