@@ -1442,7 +1442,7 @@ RASQAL_API
 int rasqal_expression_visit(rasqal_expression* e, rasqal_expression_visit_fn fn, void *user_data);
 
 RASQAL_API
-int rasqal_expression_context_init(rasqal_evaluation_context* eval_context, rasqal_world* world, raptor_uri* base_uri, raptor_locator* locator, int flags);
+int rasqal_evaluation_context_init(rasqal_evaluation_context* eval_context, rasqal_world* world, raptor_uri* base_uri, raptor_locator* locator, int flags);
 
 
 /* Literal class */

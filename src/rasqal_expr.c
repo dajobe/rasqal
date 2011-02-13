@@ -2132,7 +2132,7 @@ rasqal_expression_convert_aggregate_to_variable(rasqal_expression* e_in,
 
 
 /**
- * rasqal_expression_context_init:
+ * rasqal_evaluation_context_init:
  * @eval_context: expression context
  * @world: rasqal world
  * @base_uri: base URI of expression context (or NULL)
@@ -2145,7 +2145,7 @@ rasqal_expression_convert_aggregate_to_variable(rasqal_expression* e_in,
  * Return value: non-0 on failure
  */
 int
-rasqal_expression_context_init(rasqal_evaluation_context* eval_context,
+rasqal_evaluation_context_init(rasqal_evaluation_context* eval_context,
                                rasqal_world* world,
                                raptor_uri* base_uri,
                                raptor_locator* locator,
@@ -2203,7 +2203,7 @@ main(int argc, char *argv[])
 
   rasqal_xsd_init(world);
   
-  rasqal_expression_context_init(&eval_context, 
+  rasqal_evaluation_context_init(&eval_context, 
                                  world,
                                  /* base uri */ NULL,
                                  /* locator */ NULL, 
