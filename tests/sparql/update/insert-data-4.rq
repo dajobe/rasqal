@@ -1,0 +1,6 @@
+# From bug http://bugs.librdf.org/mantis/view.php?id=427
+#
+# Ensure """ and lang tags work
+INSERT DATA {
+ <x> <y> """foo"""@en-GB 
+}

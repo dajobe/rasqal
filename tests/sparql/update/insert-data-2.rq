@@ -1,0 +1,8 @@
+# From bug http://bugs.librdf.org/mantis/view.php?id=427
+#
+# Ensure 2 triples are returned
+INSERT DATA
+{
+  <x> <y> """foo""" .
+  <x> <y> """bar""" 
+}
