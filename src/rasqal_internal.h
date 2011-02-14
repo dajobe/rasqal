@@ -996,9 +996,16 @@ rasqal_graph_pattern* rasqal_new_2_group_graph_pattern(rasqal_query* query, rasq
 int rasqal_init_query_language_rdql(rasqal_world*);
 
 /* sparql_parser.y */
+typedef struct 
+{
+  raptor_uri* uri;
+  rasqal_update_graph_applies applies;
+} sparql_uri_applies;
+
 int rasqal_init_query_language_sparql(rasqal_world*);
 int rasqal_init_query_language_sparql11(rasqal_world*);
 int rasqal_init_query_language_laqrs(rasqal_world*);
+
 
 /* rasqal_query_transform.c */
 int rasqal_query_expand_triple_qnames(rasqal_query* rq);
