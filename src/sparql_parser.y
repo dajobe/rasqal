@@ -1682,7 +1682,7 @@ ClearQuery: CLEAR SilentOpt GraphRefAll
   }
 
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CLEAR,
-                                       raptor_uri_copy($3->uri) /* graph uri or NULL */, 
+                                       $3->uri ? raptor_uri_copy($3->uri) : NULL /* graph uri or NULL */,
                                        NULL /* document uri */,
                                        NULL, NULL,
                                        NULL /*where */,
