@@ -856,7 +856,7 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
   re=pcre_compile((const char*)pattern, options, 
                   &re_error, &erroffset, NULL);
   if(!re) {
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, eval_context->locator,
                             "Regex compile of '%s' failed - %s", pattern, re_error);
     rc= -1;
   } else {
@@ -870,7 +870,7 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
     if(rc >= 0)
       b=1;
     else if(rc != PCRE_ERROR_NOMATCH) {
-      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, eval_context->locator,
                               "Regex match failed - returned code %d", rc);
       rc= -1;
     } else
@@ -911,7 +911,7 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
 #ifdef RASQAL_REGEX_NONE
   rasqal_log_error_simple(world,
                           RAPTOR_LOG_LEVEL_WARN,
-                          locator,
+                          eval_context->locator,
                           "Regex support missing, cannot compare '%s' to '%s'", match_string, pattern);
   b=1;
   rc= -1;
