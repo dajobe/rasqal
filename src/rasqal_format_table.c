@@ -229,7 +229,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
       raptor_iostream_counted_string_write(VSEP, VSEP_LEN, iostr);
       for(i = 0; i < bindings_count; i++) {
         char *value = values[i];
-        int w = strlen((const char*)value);
+        int w = value ? strlen((const char*)value) : 0;
     
         raptor_iostream_counted_string_write(PAD, PAD_LEN, iostr);
         rasqal_iostream_write_counted_string_padded(iostr, value, w,
