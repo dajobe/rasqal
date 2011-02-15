@@ -141,7 +141,8 @@ typedef enum {
 static int rasqal_sparql_name_check(unsigned char *string, size_t length, sparql_name_check_flags check_flags);
 static unsigned char *sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len, sparql_name_check_flags check_flags);
 static raptor_uri* sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len);
-static int sparql_copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
+static unsigned char *sparql_copy_string_token(rasqal_query* rq, unsigned char *text, size_t len, int delim);
+static int sparql_stringbuffer_append_sparql_string(rasqal_query* rq, raptor_stringbuffer* stringbuffer, const unsigned char *text, size_t len, int delim);
 
 #ifdef RASQAL_DEBUG
 const char * sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval);
@@ -449,6 +450,19 @@ EXPONENT [eE][+-]?[0-9]+
 
 ":="         { return ASSIGN; }
 
+"@"{LANGUAGETOKEN} {
+			sparql_parser_lval->name = (unsigned char*)RASQAL_MALLOC(cstring, yyleng);
+                        if(!sparql_parser_lval->name)
+                          YY_FATAL_ERROR("Out of memory");
+
+                        memcpy(sparql_parser_lval->name, yytext + 1, yyleng - 1);
+                        sparql_parser_lval->name[yyleng - 1] = '\0';
+                  return LANG_TAG;
+		}
+
+"^^"         { return HATHAT; }
+
+
 [-+]?{INTEGER}   { c = *yytext;
                   sparql_parser_lval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_INTEGER, (const unsigned char*)yytext);
                   if(!sparql_parser_lval->literal)
@@ -484,48 +498,123 @@ EXPONENT [eE][+-]?[0-9]+
 "+"         { return '+'; }
 "-"         { return '-'; }
 
-'([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
-                        if(sparql_copy_string_token(rq, sparql_parser_lval,
-                           (const unsigned char*)yytext+1, yyleng-1, '\''))
+'([^'\\\n\r]|\\[^\n\r])*'    { /*' */
+                        sparql_parser_lval->name = sparql_copy_string_token(rq, (unsigned char*)yytext+1, yyleng-2, '\'');
+                        if(!sparql_parser_lval->name)
                           YY_FATAL_ERROR_EOF("sparql_copy_string_token failed");
-                        return STRING_LITERAL; }
+                        return STRING; }
 
-\"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
-                        if(sparql_copy_string_token(rq, sparql_parser_lval,
-                           (const unsigned char*)yytext+1, yyleng-1, '"'))
+\"([^"\\\n\r]|\\[^\n\r])*\"   { /* " */
+                        sparql_parser_lval->name = sparql_copy_string_token(rq, (unsigned char*)yytext+1, yyleng-2, '"');
+                        if(!sparql_parser_lval->name)
                           YY_FATAL_ERROR_EOF("sparql_copy_string_token failed");
-                        return STRING_LITERAL; }
+                        return STRING; }
 
-\"\"\"				{ BEGIN(LITERAL); }
+\"\"\"				{ BEGIN(LITERAL); 
+                                  rqe->sb = raptor_new_stringbuffer();
+                                  if(!rqe->sb)
+                                    YY_FATAL_ERROR("raptor_new_stringbuffer failed");
+                          }
 
-<LITERAL>(.|\n)*\"\"\"(^^({QUOTEDURI}|{QNAME}))?	{ if(sparql_copy_string_token(rq, sparql_parser_lval, 
-                            (unsigned char*)yytext, yyleng, '"')) /* ' */
-                            YY_FATAL_ERROR_EOF("sparql_copy_string_token failed");
-                          BEGIN(INITIAL);
-                          return STRING_LITERAL; }
+<LITERAL>\"\"\"			{
+		  size_t len;
+     
+		  BEGIN(INITIAL);
+                  len = raptor_stringbuffer_length(rqe->sb);
+                  sparql_parser_lval->name = (unsigned char *)RASQAL_MALLOC(cstring, len+1);
+                  if(!sparql_parser_lval->name)
+                    YY_FATAL_ERROR("Out of memory");
 
-<LITERAL>(.|\n)	{ BEGIN(INITIAL);
-		  if(!*yytext)
+                  raptor_stringbuffer_copy_to_string(rqe->sb,
+                                                     (unsigned char*)sparql_parser_lval->name, len);
+                  sparql_parser_lval->name[len]='\0';
+
+                  raptor_free_stringbuffer(rqe->sb);
+                  rqe->sb = NULL;
+                  return STRING; }
+
+<LITERAL>\"|(\\.|[^\"\\]|\n)*	{
+		  char *p;
+
+		  if(*yytext == EOF) {
+                    BEGIN(INITIAL);
+                    sparql_syntax_error(rq, "End of file in middle of literal");
+                    raptor_free_stringbuffer(rqe->sb);
+                    rqe->sb = NULL;
                     return EOF;
+                  }
 
-                  sparql_syntax_error(rq, "syntax error at %c - \"\"\"string was not terminated", *yytext);
-                  yyterminate();  }
+		  for(p = yytext; *p; p++) {
+                    if(*p == '\n')
+                      rqe->lineno++;
+                  }
 
+                  if(sparql_stringbuffer_append_sparql_string(rq, rqe->sb, (unsigned char*)yytext, yyleng, '"')) { /* " */
+                    BEGIN(INITIAL);
+                    raptor_free_stringbuffer(rqe->sb);
+                    rqe->sb = NULL;
+                    YY_FATAL_ERROR_EOF("sparql_stringbuffer_append_sparql_string failed");
+                  }
+                  
+   }
 
-\'\'\'				{ BEGIN(LITERAL2); }
+<LITERAL>\\	{
+     		/* this should only happen if \ is at the end of the file so the Turtle doc is illegal anyway */
+                sparql_syntax_error(rq, "End of file in middle of literal");
+}
 
-<LITERAL2>(.|\n)*\'\'\'(^^({QUOTEDURI}|{QNAME}))?	{ if(sparql_copy_string_token(rq, sparql_parser_lval, 
-                            (unsigned char*)yytext, yyleng, '\''))
-                            YY_FATAL_ERROR_EOF("sparql_copy_string_token failed");
-                          BEGIN(INITIAL);
-                          return STRING_LITERAL; }
+\'\'\'				{ BEGIN(LITERAL2); 
+                                  rqe->sb = raptor_new_stringbuffer();
+                                  if(!rqe->sb)
+                                    YY_FATAL_ERROR("raptor_new_stringbuffer failed");
+                          }
 
-<LITERAL2>(.|\n)	{ BEGIN(INITIAL);
-		  if(!*yytext)
+<LITERAL2>\'\'\'			{
+		  size_t len;
+     
+		  BEGIN(INITIAL);
+                  len = raptor_stringbuffer_length(rqe->sb);
+                  sparql_parser_lval->name = (unsigned char *)RASQAL_MALLOC(cstring, len+1);
+                  if(!sparql_parser_lval->name)
+                    YY_FATAL_ERROR("Out of memory");
+
+                  raptor_stringbuffer_copy_to_string(rqe->sb, (unsigned char*)sparql_parser_lval->name, len);
+                  sparql_parser_lval->name[len]='\0';
+
+                  raptor_free_stringbuffer(rqe->sb);
+                  rqe->sb = NULL;
+                  return STRING; }
+
+<LITERAL2>\'|(\\.|[^\'\\]|\n)*	{
+		  char *p;
+
+		  if(*yytext == EOF) {
+                    BEGIN(INITIAL);
+                    sparql_syntax_error(rq, "End of file in middle of \"\"\" literal");
+                    raptor_free_stringbuffer(rqe->sb);
+                    rqe->sb = NULL;
                     return EOF;
+                  }
 
-                  sparql_syntax_error(rq, "syntax error at %c - '''string was not terminated", *yytext);
-                  yyterminate();  }
+		  for(p = yytext; *p; p++) {
+                    if(*p == '\n')
+                      rqe->lineno++;
+                  }
+
+                  if(sparql_stringbuffer_append_sparql_string(rq, rqe->sb, (unsigned char*)yytext, yyleng, '\'')) {
+                    BEGIN(INITIAL);
+                    raptor_free_stringbuffer(rqe->sb);
+                    rqe->sb = NULL;
+                    YY_FATAL_ERROR_EOF("sparql_stringbuffer_append_sparql_string failed");
+                  }
+                  
+   }
+
+<LITERAL2>\\	{
+     		/* this should only happen if \ is at the end of the file so the Turtle doc is illegal anyway */
+                sparql_syntax_error(rq, "End of file in middle of ''' literal");
+}
+
 
 
 [Tt][Rr][Uu][Ee]	{ sparql_parser_lval->literal = rasqal_new_boolean_literal(rq->world, 1);
@@ -756,197 +845,38 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len)
 }
 
 
-static int
-sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
-                         const unsigned char *text, size_t len, int delim)
+static unsigned char*
+sparql_copy_string_token(rasqal_query* rq,
+                         unsigned char *string, size_t len, int delim)
 {
-  unsigned int i;
-  const unsigned char *s;
-  unsigned char *d;
-  unsigned char *string;
-  char *language = NULL;
-  unsigned char *dt = NULL;
-  raptor_uri *dt_uri = NULL;
-  unsigned char *dt_qname = NULL;
-
-  string = (unsigned char *)RASQAL_MALLOC(cstring, len+1);
-  if(!string)
-    return 1;
-
-  for(s = text, d = string, i = 0; i<len; s++, i++) {
-    unsigned char c = *s;
-
-    if(c == '\\' ) {
-      s++; i++;
-      c = *s;
-      if(c == 'n')
-        *d++ =  '\n';
-      else if(c == 'r')
-        *d++ =  '\r';
-      else if(c == 'f')
-        *d++ =  '\f';
-      else if(c == 'b')
-        *d++ =  '\b';
-      else if(c == 't')
-        *d++ =  '\t';
-      else if(c == '\\' || c == '\'' || c == '"')
-        *d++ = c;
-      else if(c == 'u' || c == 'U') {
-        int ulen = (c == 'u') ? 4 : 8;
-        unsigned long unichar = 0;
-        int n;
-        
-        s++; i++;
-        if(i + ulen > len) {
-          printf("\\%c over end of line", c);
-          RASQAL_FREE(cstring, string);
-          return 1;
-        }
-        
-        n = sscanf((const char*)s, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
-        if(n != 1) {
-          sparql_syntax_error(rq, "SPARQL syntax error - Illegal Uncode escape '%c%s...'", c, s);
-          RASQAL_FREE(cstring, string);
-          return 1;
-        }
-
-        s += ulen - 1;
-        i += ulen - 1;
-        
-        if(unichar > 0x10ffff) {
-          sparql_syntax_error(rq, "SPARQL syntax error - Illegal Unicode character with code point #x%lX.", unichar);
-          RASQAL_FREE(cstring, string);
-          return 1;
-        }
-          
-        d += raptor_unicode_utf8_string_put_char(unichar, d, len-(d-string));
-      } else {
-        /* Ignore \x where x isn't the one of: \n \r \t \\ (delim) \u \U */
-        sparql_syntax_warning(rq, "Unknown SPARQL string escape \\%c in \"%s\"", c, text);
-        *d++ = c;
-      }
-    } else if(c== delim) {
-      *d++ = '\0';
-
-      /* skip delims (', ", ''' or """) */
-      while(c == delim) {
-        c = *s++; i++;
-      }
-      
-      if(c=='@') {
-        language = (char*)d;
-        while(i <= len) {
-          c = *s++; i++;
-          if(!isalpha(c) && !isdigit(c) && c != '-')
-            break;
-          *d++ = c;
-        }
-        *d++ = '\0';
-      }
-      if(c=='^') {
-        /* skip second char of ^^ */
-        s++; i++;
-
-        dt = d;
-        while(i++ <= len)
-          *d++ = *s++;
-        /* *d='\0' below */
-      } else if(language)
-        *d = '\0';
-      
-      break;
-   } else
-    *d++ = c;
-  } /* end of for */
-
-  *d = '\0';
-
-  if(language) {
-    char *new_language;
-    size_t new_language_len = strlen((const char*)language);
+  raptor_stringbuffer* sb = NULL;
+  int rc;
+  
+  if(len) {
+    sb = raptor_new_stringbuffer();
+    if(!sb)
+      return NULL;
     
-    new_language = (char*)RASQAL_MALLOC(cstring, new_language_len + 1);
-    if(!new_language) {
-      RASQAL_FREE(cstring, string);
-      return 1;
+    rc = sparql_stringbuffer_append_sparql_string(rq, sb, string, len, delim);
+    if(rc) {
+      raptor_free_stringbuffer(sb);
+      return NULL;
     }
-    memcpy(new_language, language, new_language_len + 1);
-    language = new_language;
+
+    len = raptor_stringbuffer_length(sb);
   }
   
-  if(dt) {
-    /* dt can be a URI or qname */
-    if(*dt == '<') {
-      dt[strlen((const char*)dt)-1] = '\0';
-      dt_uri = raptor_new_uri(rq->world->raptor_world_ptr, dt+1);
-      if(!dt_uri) {
-        if(language)
-          RASQAL_FREE(cstring, language);
-        RASQAL_FREE(cstring, string);
-        return 1;
-      }
-    } else {
-      unsigned char *dt_p;
-      size_t dest_len = 0;
-      unsigned char *dt_s;
-      
-      dt_s = rasqal_escaped_name_to_utf8_string(dt,
-                                                strlen((const char*)dt),
-                                                &dest_len,
-                                                sparql_syntax_error, rq);
-      if(!dt_s) {
-        if(language)
-          RASQAL_FREE(cstring, language);
-        RASQAL_FREE(cstring, string);
-        return 1;
-      }
-
-      dt_p = (unsigned char*)strchr((const char*)dt_s, ':');
-      if(!rasqal_sparql_name_check(dt_s, dt_p-dt_s, SPARQL_NAME_CHECK_PREFIX))
-        sparql_syntax_error(rq, "Invalid SPARQL prefix name \"%s\"", dt_s);
-      if(!rasqal_sparql_name_check(dt_p+1, dest_len-((dt_p+1)-dt_s), 
-                                   SPARQL_NAME_CHECK_NCNAME))
-        sparql_syntax_error(rq, "Invalid SPARQL local name \"%s\"", dt_p+1);
-
-#ifdef STANDALONE
-      /* lexer test cannot declare namespaces - so just ignore expansion */
-      dt_qname = dt_s;
-#else
-      if(!rq->namespaces) {
-        sparql_syntax_error(rq, "SPARQL syntax error - no namespaces declared");
-        RASQAL_FREE(cstring, dt_s);
-        if(language)
-          RASQAL_FREE(cstring, language);
-        RASQAL_FREE(cstring, string);
-        return 1;
-      }
-
-      dt_uri = raptor_qname_string_to_uri(rq->namespaces,
-                                          dt_s, dest_len);
-      RASQAL_FREE(cstring, dt_s);
-
-      if(!dt_uri) {
-        if(language)
-          RASQAL_FREE(cstring, language);
-        RASQAL_FREE(cstring, string);
-        return 1;
-      }
-#endif
-    }
+  string = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  if(string) {
+    if(sb) 
+      raptor_stringbuffer_copy_to_string(sb, string, len + 1);
+    string[len]='\0';
   }
 
-#if RASQAL_DEBUG >3
-  fprintf(stderr, "string='%s', language='%s'\n", 
-          string, (language ? language : ""));
-  fprintf(stderr, "datatype uri='%s'\n",
-          (dt_uri ? (const char*)raptor_uri_as_string(dt_uri) : ""));
-#endif
-
-  lval->literal = rasqal_new_string_literal(rq->world, string, language, dt_uri, dt_qname);
-  if(!lval->literal)
-    return 1;
-
-  return 0;
+  if(sb)
+    raptor_free_stringbuffer(sb);
+  
+  return string;
 }
 
 
@@ -986,6 +916,114 @@ sparql_skip_c_comment(rasqal_query *rq)
     lastc =  c;
   }
   return lines;
+}
+
+
+const raptor_unichar rasqal_unicode_max_codepoint = 0x10FFFF;
+
+/**
+ * sparql_stringbuffer_append_sparql_string:
+ * @rq: rasqal query
+ * @stringbuffer: String buffer to add to
+ * @text: turtle string to decode
+ * @len: length of string
+ * @delim: terminating delimiter for string - only ', " or &gt; are allowed
+ *
+ * INTERNAL - Append to a stringbuffer a SPARQL-escaped string.
+ *
+ * The passed in string is handled according to the SPARQL string
+ * escape rules giving a UTF-8 encoded output of the Unicode codepoints.
+ *
+ * The SPARQL escapes are \n \r \f \b \t \\
+ * \uXXXX \UXXXXXXXX where X is [A-F0-9]
+ * and \ followed by the @delim char
+ * 
+ * Return value: non-0 on failure
+ **/
+static int
+sparql_stringbuffer_append_sparql_string(rasqal_query* rq,
+                                         raptor_stringbuffer* stringbuffer,
+                                         const unsigned char *text,
+                                         size_t len, int delim)
+{
+  size_t i;
+  const unsigned char *s;
+  unsigned char *d;
+  unsigned char *string;
+
+  string = (unsigned char *)RASQAL_MALLOC(cstring, len + 1);
+  
+  if(!string)
+    return -1;
+
+  for(s = text, d = string, i = 0; i < len; s++, i++) {
+    unsigned char c = *s;
+
+    if(c == '\\' ) {
+      s++; i++;
+      c = *s;
+      if(c == 'n')
+        *d++ = '\n';
+      else if(c == 'r')
+        *d++ = '\r';
+      else if(c == 'f')
+        *d++ = '\f';
+      else if(c == 'b')
+        *d++ = '\b';
+      else if(c == 't')
+        *d++ = '\t';
+      else if(c == '\\' || c == delim)
+        *d++ = c;
+      else if(c == 'u' || c == 'U') {
+        size_t ulen = (c == 'u') ? 4 : 8;
+        unsigned long unichar = 0;
+        int n;
+        
+        s++; i++;
+        if(i + ulen > len) {
+          sparql_syntax_error(rq, "SPARQL string \\%c over end of line", c);
+          RASQAL_FREE(cstring, string);
+          return 1;
+        }
+        
+        n = sscanf((const char*)s, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
+        if(n != 1) {
+          sparql_syntax_error(rq, "Bad SPARQL string Uncode escape '%c%s...'",
+                              c, s);
+          RASQAL_FREE(cstring, string);
+          return 1;
+        }
+
+        s += ulen - 1;
+        i += ulen - 1;
+        
+        if(unichar > rasqal_unicode_max_codepoint) {
+          sparql_syntax_error(rq,
+                              "Bad SPARQL string Unicode character with code point #x%lX (max #x%lX).", 
+                              unichar, rasqal_unicode_max_codepoint);
+          RASQAL_FREE(cstring, string);
+          return 1;
+        }
+          
+        d += raptor_unicode_utf8_string_put_char(unichar, d, len - (d - string));
+
+      } else {
+        /* Ignore \x where x isn't the one of: \n \r \t \\ (delim) \u \U */
+        sparql_syntax_warning(rq, "Unknown SPARQL string escape \\%c in \"%s\"", c, text);
+        *d++ = c;
+      }
+    } else
+      *d++ = c;
+  }
+  *d='\0';
+
+  /* calculate output string size */
+  len = d-string;
+  
+  /* string gets owned by the stringbuffer after this */
+  return raptor_stringbuffer_append_counted_string(stringbuffer, 
+                                                   string, len, 0);
+
 }
 
 
@@ -1636,25 +1674,8 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
       sprintf(buffer, "DOUBLE_LITERAL(%g)", lval->floating);
       return buffer;
 
-    case STRING_LITERAL:
-      if(lval->literal->language) {
-        if(lval->literal->datatype)
-          sprintf(buffer, "STRING_LITERAL(\"%s\"@%s^^%s)",
-                  lval->literal->string, lval->literal->language,
-                  raptor_uri_as_string(lval->literal->datatype)
-                  );
-        else
-          sprintf(buffer, "STRING_LITERAL(\"%s\"@%s)",
-                  lval->literal->string, lval->literal->language);
-      } else {
-        if(lval->literal->datatype)
-          sprintf(buffer, "STRING_LITERAL(\"%s\"^^%s)", 
-                  lval->literal->string,
-                  raptor_uri_as_string(lval->literal->datatype)
-                  );
-        else
-          sprintf(buffer, "STRING_LITERAL(\"%s\")", lval->literal->string);
-      }
+    case STRING:
+      sprintf(buffer, "STRING(\"%s\")", lval->name);
       return buffer;
 
     case BOOLEAN_LITERAL:
@@ -1694,6 +1715,13 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
       sprintf(buffer, "DECIMAL_LITERAL(%s)", lval->literal->string);
       return buffer;
 
+    case LANG_TAG:
+      sprintf(buffer, "LANG_TAG(%s)", lval->name);
+      return buffer;
+
+    case HATHAT:
+      return "HATHAT";
+
    default:
      RASQAL_DEBUG2("UNKNOWN token %d - add a new case\n", token);
      abort();
@@ -1711,7 +1739,6 @@ sparql_token_free(rasqal_world* world, int token, YYSTYPE *lval)
     return;
   
   switch(token) {
-    case STRING_LITERAL:
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
     case INTEGER_NEGATIVE_LITERAL:
@@ -1728,6 +1755,7 @@ sparql_token_free(rasqal_world* world, int token, YYSTYPE *lval)
     case URI_LITERAL_BRACE:
       raptor_free_uri(lval->uri);
       break;
+    case STRING:
     case IDENTIFIER:
     case BLANK_LITERAL:
     case PREFIX:

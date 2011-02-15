@@ -70,6 +70,9 @@ struct rasqal_sparql_query_language_s {
 
   /* count of errors in current query parse */
   int error_count;
+
+  /* for creating long literals */
+  raptor_stringbuffer* sb;
 };
 
 

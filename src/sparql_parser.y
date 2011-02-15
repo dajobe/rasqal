@@ -210,6 +210,8 @@ free_uri_applies(sparql_uri_applies* ua)
 %token ',' '(' ')' '[' ']' '{' '}'
 %token '?' '$'
 
+%token HATHAT
+
 /* SC booleans */
 %left SC_OR
 %left SC_AND
@@ -230,8 +232,11 @@ free_uri_applies(sparql_uri_applies* ua)
 /* laqrs operations */
 %token ASSIGN ":="
 
+/* string */
+%token <name> STRING "string"
+%token <name> LANG_TAG "language tag"
+
 /* literals */
-%token <literal> STRING_LITERAL "string literal"
 %token <literal> DOUBLE_LITERAL "double literal"
 %token <literal> DOUBLE_POSITIVE_LITERAL "double positive literal"
 %token <literal> DOUBLE_NEGATIVE_LITERAL "double negative literal"
@@ -300,7 +305,7 @@ free_uri_applies(sparql_uri_applies* ua)
 %type <expr> CoalesceExpression GroupConcatAggregateExpression
 %type <expr> SampleAggregateExpression ExpressionOrStar
 
-%type <literal> GraphTerm IRIref BlankNode
+%type <literal> GraphTerm IRIref RDFLiteral BlankNode
 %type <literal> VarOrIRIref
 %type <literal> IRIrefBrace SourceSelector
 %type <literal> NumericLiteral NumericLiteralUnsigned
@@ -334,7 +339,6 @@ free_uri_applies(sparql_uri_applies* ua)
   if($$)
     rasqal_free_literal($$);
 }
-STRING_LITERAL 
 DOUBLE_LITERAL INTEGER_LITERAL DECIMAL_LITERAL
 DOUBLE_POSITIVE_LITERAL DOUBLE_NEGATIVE_LITERAL
 INTEGER_POSITIVE_LITERAL INTEGER_NEGATIVE_LITERAL
@@ -356,7 +360,7 @@ URI_LITERAL URI_LITERAL_BRACE
   if($$)
     RASQAL_FREE(cstring, $$);
 }
-QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
+STRING QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
 
 %destructor {
   if($$)
@@ -424,7 +428,7 @@ SampleAggregateExpression ExpressionOrStar
   if($$)
     rasqal_free_literal($$);
 }
-GraphTerm IRIref BlankNode BindingValue
+GraphTerm IRIref RDFLiteral BlankNode BindingValue
 VarOrIRIref
 IRIrefBrace SourceSelector
 NumericLiteral NumericLiteralUnsigned
@@ -968,9 +972,11 @@ MaxAggregateExpression: MAX '(' DistinctOpt Expression ')'
 ;
 
 
-SeparatorOpt: ';' SEPARATOR EQ STRING_LITERAL
+SeparatorOpt: ';' SEPARATOR EQ STRING
 {
-  $$ = $4;
+  $$ = rasqal_new_string_literal(((rasqal_query*)rq)->world, $4, 
+	                         NULL /* language */,
+                                 NULL /* dt uri */, NULL /* dt_qname */);
 }
 | /* empty */
 {
@@ -2666,12 +2672,35 @@ BindingValueList: BindingValueList BindingValue
 ;
 
 
+RDFLiteral: STRING
+{
+  $$ = rasqal_new_string_literal(((rasqal_query*)rq)->world, $1, 
+	                         NULL /* language */,
+                                 NULL /* dt uri */, NULL /* dt_qname */);
+}
+| STRING LANG_TAG
+{
+  $$ = rasqal_new_string_literal(((rasqal_query*)rq)->world, $1, 
+	                         (const char*)$2,
+                                 NULL /* dt uri */, NULL /* dt_qname */);
+}
+| STRING HATHAT IRIref
+{
+  raptor_uri* dt_uri = raptor_uri_copy(rasqal_literal_as_uri($3));
+  $$ = rasqal_new_string_literal(((rasqal_query*)rq)->world, $1, 
+	                         NULL /* language */,
+                                 dt_uri, NULL /* dt_qname */);
+  rasqal_free_literal($3);
+}
+;
+
+
 /* SPARQL Grammar: BindingValue */
 BindingValue: IRIref
 {
   $$ = $1;
 }
-| STRING_LITERAL
+| RDFLiteral
 {
   $$ = $1;
 }
@@ -4187,7 +4216,7 @@ GraphTerm: IRIref
 {
   $$ = $1;
 }
-| STRING_LITERAL
+| RDFLiteral
 {
   $$ = $1;
 }
