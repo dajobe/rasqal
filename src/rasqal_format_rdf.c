@@ -943,15 +943,19 @@ rasqal_query_results_turtle_write(rasqal_query_results_formatter* formatter,
         raptor_iostream_counted_string_write("; \n                      ",
                                              25, iostr);
 
-      /* binding */
-      raptor_iostream_counted_string_write("rs:binding    [ ", 16, iostr);
-
-      /* only emit rs:value and rs:variable triples if there is a value */
       if(l) {
+        /* only emit binding rs:value and rs:variable triples if
+         * there is a value 
+         */
+
+        /* binding */
+        raptor_iostream_counted_string_write("rs:binding    [ ", 16, iostr);
+
         raptor_iostream_counted_string_write("rs:variable   \"", 15, iostr);
         raptor_iostream_string_write(name, iostr);
         raptor_iostream_counted_string_write("\" ;\n                                      rs:value      ", 56, iostr);
         rasqal_literal_write_turtle(l, iostr);
+
         raptor_iostream_counted_string_write("\n                                    ] ", 39, iostr);
         column_semicolon = 1;
       }
