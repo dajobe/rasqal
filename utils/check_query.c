@@ -421,6 +421,22 @@ compare_query_results_compare(compare_query_results* cqr)
 {
   int differences = 0;
   int i;
+  int size1;
+  int size2;
+
+  size1 = rasqal_query_results_get_bindings_count(cqr->qr1);
+  size2 = rasqal_query_results_get_bindings_count(cqr->qr2);
+  
+  if(size1 != size2) {
+    cqr->message.level = RAPTOR_LOG_LEVEL_ERROR;
+    cqr->message.text = "Projections have different numbers of bindings";
+    if(cqr->log_handler)
+      cqr->log_handler(cqr->log_user_data, &cqr->message);
+
+    differences++;
+    goto done;
+  }
+  
   
   /* check variables in each results project the same variables */
   for(i = 0; 1; i++) {
