@@ -356,6 +356,8 @@ check_query_read_results(rasqal_world* world,
 
 typedef struct 
 {
+  rasqal_world* world;
+  
   rasqal_query_results* qr1;
   const char* qr1_label;
   rasqal_query_results* qr2;
@@ -368,7 +370,8 @@ typedef struct
 
 
 static compare_query_results*
-new_compare_query_results(rasqal_query_results* qr1, const char* qr1_label,
+new_compare_query_results(rasqal_world* world,
+                          rasqal_query_results* qr1, const char* qr1_label,
                           rasqal_query_results* qr2, const char* qr2_label) 
 {
   compare_query_results* cqr;
@@ -377,6 +380,8 @@ new_compare_query_results(rasqal_query_results* qr1, const char* qr1_label,
                                               1, sizeof(*cqr));
   if(!cqr)
     return NULL;
+
+  cqr->world = world;
   
   cqr->qr1 = qr1;
   cqr->qr1_label = qr1_label;
@@ -421,15 +426,17 @@ compare_query_results_compare(compare_query_results* cqr)
 {
   int differences = 0;
   int i;
+  int rowi;
   int size1;
   int size2;
-
+  int row_differences_count = 0;
+  
   size1 = rasqal_query_results_get_bindings_count(cqr->qr1);
   size2 = rasqal_query_results_get_bindings_count(cqr->qr2);
   
   if(size1 != size2) {
     cqr->message.level = RAPTOR_LOG_LEVEL_ERROR;
-    cqr->message.text = "Projections have different numbers of bindings";
+    cqr->message.text = "Results have different numbers of bindings";
     if(cqr->log_handler)
       cqr->log_handler(cqr->log_user_data, &cqr->message);
 
@@ -460,7 +467,7 @@ compare_query_results_compare(compare_query_results* cqr)
 
   if(differences) {
     cqr->message.level = RAPTOR_LOG_LEVEL_ERROR;
-    cqr->message.text = "Projections are different";
+    cqr->message.text = "Results have different binding names";
     if(cqr->log_handler)
       cqr->log_handler(cqr->log_user_data, &cqr->message);
 
@@ -469,7 +476,6 @@ compare_query_results_compare(compare_query_results* cqr)
   
 
   /* set results to be stored? */
-  /* need rewindable query results? */
 
   /* sort rows by something ?  As long as the sort is the same it
    * probably does not matter what the method is. */
@@ -477,17 +483,94 @@ compare_query_results_compare(compare_query_results* cqr)
   /* what to do about blank nodes? */
 
   /* for each row */
-  for(i = 0; 1; i++) {
-    rasqal_row* row1 = rasqal_query_results_get_row_by_offset(cqr->qr1, i);
-    rasqal_row* row2 = rasqal_query_results_get_row_by_offset(cqr->qr2, i);
+  for(rowi = 0; 1; rowi++) {
+    int bindingi;
+    rasqal_row* row1 = rasqal_query_results_get_row_by_offset(cqr->qr1, rowi);
+    rasqal_row* row2 = rasqal_query_results_get_row_by_offset(cqr->qr2, rowi);
+    int this_row_different = 0;
     
     if(!row1 && !row2)
       break;
     
     /* for each variable in row1 (== same variables in row2) */
-     /* if variable in row2 has same value, do nothing */
-     /* if variable in row2 has different value, do nothing */
+    for(bindingi = 0; bindingi < size1; bindingi++) {
+      /* we know the binding names are the same */
+      const unsigned char* name;
+      rasqal_literal *value1;
+      rasqal_literal *value2;
+
+      name = rasqal_query_results_get_binding_name(cqr->qr1, bindingi);
+
+      value1 = rasqal_query_results_get_binding_value(cqr->qr1, bindingi);
+      value2 = rasqal_query_results_get_binding_value(cqr->qr2, bindingi);
+
+      if(!rasqal_literal_equals(value1, value2)) {
+        /* if different report it */
+        raptor_world* raptor_world_ptr;
+        void *string;
+        size_t length;
+        raptor_iostream* string_iostr;
+
+        raptor_world_ptr = rasqal_world_get_raptor(cqr->world);
+
+        string_iostr = raptor_new_iostream_to_string(raptor_world_ptr, 
+                                                     &string, &length,
+                                                     (raptor_data_malloc_handler)malloc);
+
+        raptor_iostream_counted_string_write("Difference in row ", 18,
+                                             string_iostr);
+        raptor_iostream_decimal_write(rowi + 1,
+                                      string_iostr);
+        raptor_iostream_counted_string_write(" binding '", 10, 
+                                             string_iostr);
+        raptor_iostream_string_write(name,
+                                     string_iostr);
+        raptor_iostream_counted_string_write("' ", 2, 
+                                             string_iostr);
+        raptor_iostream_string_write(cqr->qr1_label, string_iostr);
+        raptor_iostream_counted_string_write(" value ", 7,
+                                             string_iostr);
+        rasqal_literal_write(value1,
+                             string_iostr);
+        raptor_iostream_write_byte(' ',
+                                   string_iostr);
+        raptor_iostream_string_write(cqr->qr2_label,
+                                     string_iostr);
+        raptor_iostream_counted_string_write(" value ", 7,
+                                             string_iostr);
+        rasqal_literal_write(value2,
+                             string_iostr);
+        raptor_iostream_write_byte(' ',
+                                   string_iostr);
+
+        /* this allocates and copies result into 'string' */
+        raptor_free_iostream(string_iostr);
+
+        cqr->message.level = RAPTOR_LOG_LEVEL_ERROR;
+        cqr->message.text = string;
+        if(cqr->log_handler)
+          cqr->log_handler(cqr->log_user_data, &cqr->message);
+
+        free(string);
+        
+        differences++;
+        this_row_different = 1;
+      }
+    } /* end for each var */
+
+    if(this_row_different)
+      row_differences_count++;
+
+    rasqal_query_results_next(cqr->qr1);
+    rasqal_query_results_next(cqr->qr2);
   } /* end for each row */
+
+  if(row_differences_count) {
+    cqr->message.level = RAPTOR_LOG_LEVEL_ERROR;
+    cqr->message.text = "Results have different values";
+    if(cqr->log_handler)
+      cqr->log_handler(cqr->log_user_data, &cqr->message);
+  }
 
   done:
   return (differences == 0);
@@ -884,8 +967,12 @@ main(int argc, char *argv[])
   }
 
 
+  /* save results for query execution so we can print and rewind */
+  rasqal_query_set_store_results(rq, 1);
+
   results = rasqal_query_execute(rq);
   if(results) {
+
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
         fprintf(stderr, "%s: Expected bindings results:\n", program);
@@ -894,9 +981,13 @@ main(int argc, char *argv[])
         fprintf(stderr, "%s: Actual bindings results:\n", program);
         print_bindings_result_simple(results, stderr, 1);
 
+        rasqal_query_results_rewind(expected_results);
+        rasqal_query_results_rewind(results);
+
         if(1) {
           compare_query_results* cqr;
-          cqr = new_compare_query_results(expected_results, "expected",
+          cqr = new_compare_query_results(world,
+                                          expected_results, "expected",
                                           results, "actual");
           compare_query_results_set_log_handler(cqr, world,
                                                 check_query_log_handler);
