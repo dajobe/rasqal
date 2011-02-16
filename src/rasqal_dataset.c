@@ -84,6 +84,15 @@ struct rasqal_dataset_term_iterator_s {
 };
 
 
+
+/*
+ * rasqal_new_dataset:
+ * @world: rasqal world
+ *
+ * INTERNAL - Constructor - Create a new dataset
+ *
+ * Return value: new dataset or NULL on failure
+ */
 rasqal_dataset*
 rasqal_new_dataset(rasqal_world* world)
 {
@@ -102,6 +111,12 @@ rasqal_new_dataset(rasqal_world* world)
 }
 
 
+/*
+ * rasqal_free_dataset:
+ * @ds: dataset
+ *
+ * INTERNAL - Destructor - destroy a dataset
+ */
 void
 rasqal_free_dataset(rasqal_dataset* ds) 
 {
@@ -159,6 +174,17 @@ rasqal_dataset_statement_handler(void *user_data,
 }
 
 
+/*
+ * rasqal_dataset_load_graph_iostream:
+ * @ds: dataset
+ * @format_name: query result format name (or NULL to guess)
+ * @iostr: iostream to read query result format from
+ * @base_uri: base URI for reading from stream (or NULL)
+ *
+ * INTERNAL - Load a query result format from an iostream into a dataset
+ *
+ * Return value: non-0 on failure
+ */
 int
 rasqal_dataset_load_graph_iostream(rasqal_dataset* ds,
                                    const char* format_name,
@@ -251,6 +277,12 @@ rasqal_dataset_init_match_internal(rasqal_dataset* ds,
 }
 
 
+/*
+ * rasqal_free_dataset_term_Iterator:
+ * @ds: dataset
+ *
+ * INTERNAL - Destructor - destroy a dataset term iterator
+ */
 void
 rasqal_free_dataset_term_iterator(rasqal_dataset_term_iterator* iter)
 {
@@ -261,6 +293,14 @@ rasqal_free_dataset_term_iterator(rasqal_dataset_term_iterator* iter)
 }
 
 
+/*
+ * rasqal_dataset_term_iterator_get:
+ * @iter: rasqal dataset term iterator
+ *
+ * INTERNAL - Get the current literal term from the iterator
+ *
+ * Return value: literal or NULL on failure / iterator is exhausted
+ */
 rasqal_literal*
 rasqal_dataset_term_iterator_get(rasqal_dataset_term_iterator* iter)
 {
@@ -279,6 +319,14 @@ rasqal_dataset_term_iterator_get(rasqal_dataset_term_iterator* iter)
 }
 
 
+/*
+ * rasqal_dataset_term_iterator_next:
+ * @iter: rasqal dataset term iterator
+ *
+ * INTERNAL - Move the iterator to the next object
+ *
+ * Return value: non-0 on error or if the iterator is exhausted
+ */
 int
 rasqal_dataset_term_iterator_next(rasqal_dataset_term_iterator* iter)
 {
@@ -312,6 +360,16 @@ rasqal_dataset_term_iterator_next(rasqal_dataset_term_iterator* iter)
 
 
 
+/*
+ * rasqal_dataset_get_sources_iterator:
+ * @ds: dataset
+ * @predicate: literal predicate
+ * @object: literal object
+ *
+ * INTERNAL - Get the sources / subjects of all triples matching (?, @predicate, @object)
+ *
+ * Return value: iterator or NULL on error or failure
+ */
 rasqal_dataset_term_iterator*
 rasqal_dataset_get_sources_iterator(rasqal_dataset* ds,
                                     rasqal_literal* predicate,
@@ -324,6 +382,16 @@ rasqal_dataset_get_sources_iterator(rasqal_dataset* ds,
 }
 
 
+/*
+ * rasqal_dataset_get_targets_iterator:
+ * @ds: dataset
+ * @subject: literal subject
+ * @object: literal object
+ *
+ * INTERNAL - Get the targets / objects of all triples matching (@subject, @predicate, ?)
+ *
+ * Return value: iterator or NULL on error or failure
+ */
 rasqal_dataset_term_iterator*
 rasqal_dataset_get_targets_iterator(rasqal_dataset* ds,
                                     rasqal_literal* subject,
@@ -336,6 +404,16 @@ rasqal_dataset_get_targets_iterator(rasqal_dataset* ds,
 }
 
 
+/*
+ * rasqal_dataset_get_source:
+ * @ds: dataset
+ * @predicate: literal predicate
+ * @object: literal object
+ *
+ * INTERNAL - Get the first source / subject of the triple that matches (?, @predicate, @object)
+ *
+ * Return value: iterator or NULL on error or failure
+ */
 rasqal_literal*
 rasqal_dataset_get_source(rasqal_dataset* ds,
                           rasqal_literal* predicate,
@@ -356,6 +434,16 @@ rasqal_dataset_get_source(rasqal_dataset* ds,
 }
 
 
+/*
+ * rasqal_dataset_get_target:
+ * @ds: dataset
+ * @subject: literal subject
+ * @object: literal object
+ *
+ * INTERNAL - Get the first target / object of the triple that matches (@subject, @predicate, ?)
+ *
+ * Return value: iterator or NULL on error or failure
+ */
 rasqal_literal*
 rasqal_dataset_get_target(rasqal_dataset* ds,
                           rasqal_literal* subject,
