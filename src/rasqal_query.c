@@ -1905,7 +1905,7 @@ rasqal_query_set_store_results(rasqal_query* query, int store_results)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
 
-  if(query->prepared)
+  if(!query->prepared)
     return 1;
 
   query->store_results = store_results;
