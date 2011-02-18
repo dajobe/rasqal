@@ -878,7 +878,7 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_ENCODE_FOR_URI:
     case RASQAL_EXPR_TZ:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
-      return (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 1;
+      return (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 0;
       break;
 
     case RASQAL_EXPR_STR_MATCH:
