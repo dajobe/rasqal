@@ -296,7 +296,7 @@ AC_SUBST(RASQAL_VERSION_DECIMAL)
 
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf srandomdev gmtime_r)
+AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf srandomdev gmtime_r rand_r)
 
 AM_CONDITIONAL(STRCASECMP, test $ac_cv_func_stricmp = no -a $ac_cv_func_strcasecmp = no)
 AM_CONDITIONAL(GETOPT, test $ac_cv_func_getopt = no -a $ac_cv_func_getopt_long = no)

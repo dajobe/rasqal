@@ -1063,6 +1063,9 @@ rasqal_literal* rasqal_expression_evaluate_datetime_part(rasqal_expression *e, r
 rasqal_literal* rasqal_expression_evaluate_datetime_timezone(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 rasqal_literal* rasqal_expression_evaluate_datetime_tz(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 
+/* rasqal_expr_numerics.c */
+rasqal_literal* rasqal_expression_evaluate_rand(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+
 /* rasqal_expr_strings.c */
 rasqal_literal* rasqal_expression_evaluate_substr(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 rasqal_literal* rasqal_expression_evaluate_set_case(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
@@ -1308,6 +1311,9 @@ struct rasqal_world_s {
   struct timeval now;
   /* set when now is a cached value */
   unsigned int now_set : 1;
+
+  /* used for rand_r if it exists or to store seed otherwise */
+  unsigned int seed;
 };
 
 

@@ -1483,6 +1483,10 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       result = rasqal_expression_evaluate_from_unixtime(e, eval_context, error_p);
       break;
 
+    case RASQAL_EXPR_RAND:
+      result = rasqal_expression_evaluate_rand(e, eval_context, error_p);
+      break;
+
     case RASQAL_EXPR_STRLEN:
       result = rasqal_expression_evaluate_strlen(e, eval_context, error_p);
       break;

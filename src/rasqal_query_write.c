@@ -319,6 +319,7 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
   switch(e->op) {
     case RASQAL_EXPR_CURRENT_DATETIME:
     case RASQAL_EXPR_NOW:
+    case RASQAL_EXPR_RAND:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_counted_string_write("()", 2, iostr);
       break;

@@ -419,6 +419,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Cc][Oo][Pp][Yy] { return COPY; }
 [Aa][Ll][Ll] { return ALL; }
 [Tt][Zz] { return TZ; }
+[Rr][Aa][Nn][Dd] { return RAND; }
 
 "a" { return A; }
 
@@ -1661,6 +1662,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case TZ:
       return "TZ";
+
+    case RAND:
+      return "RAND";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:

@@ -595,6 +595,7 @@ rasqal_expression_clear(rasqal_expression* e)
   switch(e->op) {
     case RASQAL_EXPR_CURRENT_DATETIME:
     case RASQAL_EXPR_NOW:
+    case RASQAL_EXPR_RAND:
       break;
       
     case RASQAL_EXPR_AND:
@@ -794,6 +795,7 @@ rasqal_expression_visit(rasqal_expression* e,
   switch(e->op) {
     case RASQAL_EXPR_CURRENT_DATETIME:
     case RASQAL_EXPR_NOW:
+    case RASQAL_EXPR_RAND:
       return 0;
       break;
 
@@ -1004,7 +1006,8 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "strends",
   "contains",
   "encode_for_uri",
-  "tz"
+  "tz",
+  "rand"
 };
 
 
@@ -1084,6 +1087,7 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
   switch(e->op) {
     case RASQAL_EXPR_CURRENT_DATETIME:
     case RASQAL_EXPR_NOW:
+    case RASQAL_EXPR_RAND:
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
       raptor_iostream_counted_string_write("()", 2, iostr);
@@ -1385,6 +1389,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_LCASE:
     case RASQAL_EXPR_ENCODE_FOR_URI:
     case RASQAL_EXPR_TZ:
+    case RASQAL_EXPR_RAND:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
@@ -1498,6 +1503,11 @@ rasqal_expression_is_constant(rasqal_expression* e)
       result = 1;
       break;
       
+    case RASQAL_EXPR_RAND:
+      /* Never a constant */
+      result = 0;
+      break;
+
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
     case RASQAL_EXPR_EQ:
@@ -1962,6 +1972,11 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
       rc = 0;
       break;
       
+    case RASQAL_EXPR_RAND:
+      /* 0-args: always different */
+      rc = 1;
+      break;
+
     case RASQAL_EXPR_GROUP_CONCAT:
       rc = (e2->flags - e1->flags);
       if(rc)

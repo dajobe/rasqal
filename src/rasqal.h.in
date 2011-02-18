@@ -607,6 +607,7 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_ENCODE_FOR_URI: Expression for SPARQL 1.1 ENCODE_FOR_URI(str)
  * @RASQAL_EXPR_TZ: Expression for SPARQL 1.1 TZ()
  * @RASQAL_EXPR_UNKNOWN: Internal
+ * @RASQAL_EXPR_RAND: Expression for SPARQL 1.1 RAND()
  * @RASQAL_EXPR_LAST: Internal
  *
  * Rasqal expression operators.  A mixture of unary, binary and
@@ -692,8 +693,9 @@ typedef enum {
   RASQAL_EXPR_CONTAINS,
   RASQAL_EXPR_ENCODE_FOR_URI,
   RASQAL_EXPR_TZ,
+  RASQAL_EXPR_RAND,
   /* internal */
-  RASQAL_EXPR_LAST = RASQAL_EXPR_TZ
+  RASQAL_EXPR_LAST = RASQAL_EXPR_RAND
 } rasqal_op;
 
 

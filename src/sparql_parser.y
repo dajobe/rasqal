@@ -201,6 +201,8 @@ free_uri_applies(sparql_uri_applies* ua)
 %token BINDINGS UNDEF SERVICE MINUS
 %token YEAR MONTH DAY HOURS MINUTES SECONDS TIMEZONE TZ
 %token STRLEN SUBSTR UCASE LCASE STRSTARTS STRENDS CONTAINS ENCODE_FOR_URI CONCAT
+%token RAND
+
 /* LAQRS */
 %token EXPLAIN LET
 %token CURRENT_DATETIME NOW FROM_UNIXTIME TO_UNIXTIME
@@ -4563,6 +4565,13 @@ BuiltInCall: STR '(' Expression ')'
                                  RASQAL_EXPR_BNODE, NULL);
   if(!$$)
     YYERROR_MSG("BuiltInCall 7d: cannot create expr");
+}
+| RAND '(' ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world, 
+                                 RASQAL_EXPR_RAND, NULL);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 7e: cannot create expr");
 }
 | StringExpression
 {
