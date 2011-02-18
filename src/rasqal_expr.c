@@ -118,8 +118,13 @@ rasqal_new_1op_expression(rasqal_world* world, rasqal_op op,
 {
   rasqal_expression* e = NULL;
 
-  if(!world || !arg)
-    goto tidy;
+  if(op == RASQAL_EXPR_BNODE) {
+    if(!world)
+      goto tidy;
+  } else {
+    if(!world || !arg)
+      goto tidy;
+  }
   
   e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
   if(e) {
