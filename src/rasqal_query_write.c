@@ -285,7 +285,8 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "STRENDS",
   "CONTAINS",
   "ENCODE_FOR_URI",
-  "TZ"
+  "TZ",
+  "RAND"
 };
 
 
