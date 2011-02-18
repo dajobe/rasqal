@@ -3372,7 +3372,7 @@ CoalesceExpression: COALESCE ArgList
   $$ = NULL;
   if(!sparql->sparql11_query) {
     sparql_syntax_error((rasqal_query*)rq,
-                        "COALESCE cannote be used with SPARQL 1.0");
+                        "COALESCE cannot be used with SPARQL 1.0");
     YYERROR;
   }
   
@@ -4852,16 +4852,16 @@ DatetimeExtensions: CURRENT_DATETIME '(' ')'
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
   
   $$ = NULL;
-  if(sparql->experimental) {
-    $$ = rasqal_new_0op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_NOW);
-    if(!$$)
-      YYERROR_MSG("DatetimeExtensions: cannot create NOW()");
-  } else {
-    sparql_syntax_error((rasqal_query*)rq, 
-                        "NOW() can only used with LAQRS");
+  if(!sparql->sparql11_query) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "NOW() cannot be used with SPARQL 1.0");
     YYERROR;
   }
+  
+  $$ = rasqal_new_0op_expression(((rasqal_query*)rq)->world,
+                                   RASQAL_EXPR_NOW);
+  if(!$$)
+    YYERROR_MSG("DatetimeExtensions: cannot create NOW()");
 
 }
 | FROM_UNIXTIME '(' Expression ')'
