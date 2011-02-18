@@ -387,6 +387,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Ii][Nn] { return IN; }
 [Gg][Rr][Oo][Uu][Pp]_[Cc][Oo][Nn][Cc][Aa][Tt] { return GROUP_CONCAT; }
 [Ss][Ee][Pp][Aa][Rr][Aa][Tt][Oo][Rr] { return SEPARATOR; }
+[Bb][Ii][Nn][Dd] { return BIND; }
 [Bb][Ii][Nn][Dd][Ii][Nn][Gg][Ss] { return BINDINGS; }
 [Uu][Nn][Dd][Ee][Ff] { return UNDEF; }
 [Ss][Ee][Rr][Vv][Ii][Cc][Ee] { return SERVICE; }
@@ -1665,6 +1666,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case RAND:
       return "RAND";
+
+    case BIND:
+      return "BIND";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:

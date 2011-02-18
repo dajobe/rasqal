@@ -162,14 +162,14 @@ free_uri_applies(sparql_uri_applies* ua)
 /*
  * shift/reduce conflicts
  * FIXME: document this
- *  33 total
+ *  34 total
  *
  *   7 shift/reduce are OPTIONAL/GRAPH/FILTER/SERVICE/MINUS/LET/{
  *      after a TriplesBlockOpt has been accepted but before a
  *      GraphPatternListOpt.  Choice is made to reduce with GraphPatternListOpt.
  * 
  */
-%expect 33
+%expect 34
 
 /* word symbols */
 %token SELECT FROM WHERE
@@ -201,7 +201,7 @@ free_uri_applies(sparql_uri_applies* ua)
 %token BINDINGS UNDEF SERVICE MINUS
 %token YEAR MONTH DAY HOURS MINUTES SECONDS TIMEZONE TZ
 %token STRLEN SUBSTR UCASE LCASE STRSTARTS STRENDS CONTAINS ENCODE_FOR_URI CONCAT
-%token RAND
+%token RAND BIND
 
 /* LAQRS */
 %token EXPLAIN LET
@@ -291,7 +291,7 @@ free_uri_applies(sparql_uri_applies* ua)
 %type <graph_pattern> GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
 %type <graph_pattern> GraphPatternNotTriples
 %type <graph_pattern> GraphPatternListOpt GraphPatternList GraphPatternListFilter
-%type <graph_pattern> LetGraphPattern ServiceGraphPattern
+%type <graph_pattern> LetGraphPattern BindGraphPattern ServiceGraphPattern
 %type <graph_pattern> WhereClause WhereClauseOpt
 
 %type <expr> Expression ConditionalOrExpression ConditionalAndExpression
@@ -407,7 +407,7 @@ GraphGraphPattern OptionalGraphPattern MinusGraphPattern
 GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
 GraphPatternNotTriples
 GraphPatternListOpt GraphPatternList GraphPatternListFilter
-LetGraphPattern ServiceGraphPattern
+LetGraphPattern BindGraphPattern ServiceGraphPattern
 
 %destructor {
   if($$)
@@ -3036,6 +3036,10 @@ GraphPatternNotTriples: GroupOrUnionGraphPattern
 {
   $$ = $1;
 }
+| BindGraphPattern
+{
+  $$ = $1;
+}
 ;
 
 
@@ -3223,6 +3227,27 @@ LetGraphPattern: LET '(' Var ASSIGN Expression ')'
       sparql_syntax_error((rasqal_query*)rq,
                           "LET can only be used with LAQRS");
       YYERROR;
+    }
+  } else
+    $$ = NULL;
+}
+;
+
+
+/* SPARQL 1.1: BIND (expression AS ?Var ) . */
+BindGraphPattern: BIND '(' Expression AS Var ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  $$ = NULL;
+  if($3 && $5) {
+    if(!sparql->sparql11_query) {
+      sparql_syntax_error((rasqal_query*)rq,
+                          "BIND cannot be used with SPARQL 1.0");
+      YYERROR;
+    } else {
+      $$ = rasqal_new_let_graph_pattern((rasqal_query*)rq, $5, $3);
     }
   } else
     $$ = NULL;
