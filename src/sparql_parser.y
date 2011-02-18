@@ -4593,8 +4593,8 @@ BuiltInCall: STR '(' Expression ')'
 }
 | RAND '(' ')'
 {
-  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world, 
-                                 RASQAL_EXPR_RAND, NULL);
+  $$ = rasqal_new_0op_expression(((rasqal_query*)rq)->world, 
+                                 RASQAL_EXPR_RAND);
   if(!$$)
     YYERROR_MSG("BuiltInCall 7e: cannot create expr");
 }
