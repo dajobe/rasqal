@@ -225,7 +225,7 @@ boolean, double, floating, integer, regex pattern and variables.
 @l: 
 @len_p: 
 @flags: 
-@error: 
+@error_p: 
 @Returns: 
 
 
@@ -245,7 +245,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 @l: 
 @flags: 
-@error: 
+@error_p: 
 @Returns: 
 
 
@@ -266,7 +266,7 @@ boolean, double, floating, integer, regex pattern and variables.
 @l1: 
 @l2: 
 @flags: 
-@error: 
+@error_p: 
 @Returns: 
 
 
