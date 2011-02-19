@@ -1223,7 +1223,7 @@ rasqal_query_prepare(rasqal_query* query,
   /* FIXME - use a mix of these integers */
   seed = clock() | time(NULL);
 #ifdef HAVE_UNISTD_H
- seed =| getpid();
+  seed |= getpid();
 #endif
   
 #ifdef HAVE_RAND_R
