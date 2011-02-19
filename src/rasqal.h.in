@@ -1450,7 +1450,7 @@ rasqal_evaluation_context* rasqal_new_evaluation_context(rasqal_world* world, ra
 RASQAL_API
 void rasqal_free_evaluation_context(rasqal_evaluation_context* eval_context);
 RASQAL_API
-int rasqal_evaluation_context_set_base_uri(rasqal_world* world, raptor_uri *base_uri);
+int rasqal_evaluation_context_set_base_uri(rasqal_evaluation_context* eval_context, raptor_uri *base_uri);
 
 
 /* Literal class */
