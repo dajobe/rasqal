@@ -51,7 +51,7 @@
  *
  * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_RAND (integer expr) expression.
  *
- * Return value: A #rasqal_literal integer value or NULL on failure.
+ * Return value: A #rasqal_literal xsd:double value in range [0, 1) or NULL on failure.
  */
 rasqal_literal*
 rasqal_expression_evaluate_rand(rasqal_expression *e,
@@ -59,12 +59,12 @@ rasqal_expression_evaluate_rand(rasqal_expression *e,
                                 int *error_p)
 {
   rasqal_world* world = eval_context->world;
-  int r;
+  double d;
   
 #ifdef HAVE_RAND_R
-  r = rand_r(&eval_context->seed);
+  d = (double)rand_r(&eval_context->seed) / (double)RAND_MAX;
 #else
-  r = rand();
+  d = (double)rand() / (double)RAND_MAX;
 #endif
-  return rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, r);
+  return rasqal_new_double_literal(world, d);
 }
