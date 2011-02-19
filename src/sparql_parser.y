@@ -2158,7 +2158,7 @@ SourceSelector: IRIref
 ;
 
 
-/* SPARQL 1.1 Grammar: [17] WhereClause - remained for clarity */
+/* SPARQL 1.1 Grammar: WhereClause */
 WhereClause:  WHERE GroupGraphPattern
 {
   $$ = $2;
@@ -2170,7 +2170,7 @@ WhereClause:  WHERE GroupGraphPattern
 ;
 
 
-/* NEW Grammar Term pulled out of [17] WhereClause */
+/* NEW Grammar Term pulled out of DescribeQuery */
 WhereClauseOpt:  WhereClause
 {
   $$ = $1;
