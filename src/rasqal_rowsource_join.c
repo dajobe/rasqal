@@ -107,7 +107,7 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     int bresult;
     int error = 0;
     
-    result = rasqal_expression_evaluate2(con->expr, &query->eval_context,
+    result = rasqal_expression_evaluate2(con->expr, query->eval_context,
                                          &error);
 
 #ifdef RASQAL_DEBUG
@@ -372,7 +372,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       rasqal_literal *result;
       int error = 0;
       
-      result = rasqal_expression_evaluate2(con->expr, &query->eval_context,
+      result = rasqal_expression_evaluate2(con->expr, query->eval_context,
                                            &error);
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG1("join expression result: ");

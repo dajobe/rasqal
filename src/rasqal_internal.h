@@ -489,7 +489,7 @@ struct rasqal_query_s {
   rasqal_bindings* bindings;
 
   /* INTERNAL static structure for expresion evaluation*/
-  rasqal_evaluation_context eval_context;
+  rasqal_evaluation_context *eval_context;
 };
 
 
@@ -1311,9 +1311,6 @@ struct rasqal_world_s {
   struct timeval now;
   /* set when now is a cached value */
   unsigned int now_set : 1;
-
-  /* used for rand_r if it exists or to store seed otherwise */
-  unsigned int seed;
 };
 
 

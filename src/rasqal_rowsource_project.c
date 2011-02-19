@@ -172,7 +172,7 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
             rasqal_free_literal(v->value);
           
           v->value = rasqal_expression_evaluate2(v->expression,
-                                                 &query->eval_context,
+                                                 query->eval_context,
                                                  &error);
           if(error) {
             /* FIXME: Errors are ignored - check this */

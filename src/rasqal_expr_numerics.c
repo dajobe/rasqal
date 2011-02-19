@@ -62,7 +62,7 @@ rasqal_expression_evaluate_rand(rasqal_expression *e,
   int r;
   
 #ifdef HAVE_RAND_R
-  r = rand_r(&world->seed);
+  r = rand_r(&eval_context->seed);
 #else
   r = rand();
 #endif

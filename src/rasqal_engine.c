@@ -734,7 +734,7 @@ rasqal_engine_check_constraint(rasqal_engine_execution_data* execution_data,
 #endif
     
   result = rasqal_expression_evaluate2(gp->filter_expression, 
-                                       &query->eval_context, &error);
+                                       query->eval_context, &error);
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("filter expression result: ");
   if(error)

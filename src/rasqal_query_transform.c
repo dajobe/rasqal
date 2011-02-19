@@ -1079,7 +1079,7 @@ rasqal_expression_foreach_fold(void *user_data, rasqal_expression *e)
 #endif
   
   query = st->query;
-  l = rasqal_expression_evaluate2(e, &query->eval_context, &error);
+  l = rasqal_expression_evaluate2(e, query->eval_context, &error);
   if(error) {
     st->failed++;
     return 1;

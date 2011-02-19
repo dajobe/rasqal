@@ -1372,6 +1372,7 @@ typedef enum {
  * @world: rasqal world
  * @base_uri: base URI of expression context (or NULL)
  * @locator: locator or NULL
+ * @seed: used for rand_r() (if available) or srand()
  * @flags: expression comparison flags
  *
  * A context for evaluating an expression such as with
@@ -1383,6 +1384,7 @@ typedef struct
   raptor_uri* base_uri;
   raptor_locator *locator;
   int flags;
+  unsigned int seed;
 } rasqal_evaluation_context;
 
 
@@ -1444,7 +1446,11 @@ RASQAL_API
 int rasqal_expression_visit(rasqal_expression* e, rasqal_expression_visit_fn fn, void *user_data);
 
 RASQAL_API
-int rasqal_evaluation_context_init(rasqal_evaluation_context* eval_context, rasqal_world* world, raptor_uri* base_uri, raptor_locator* locator, int flags);
+rasqal_evaluation_context* rasqal_new_evaluation_context(rasqal_world* world, raptor_locator* locator, int flags);
+RASQAL_API
+void rasqal_free_evaluation_context(rasqal_evaluation_context* eval_context);
+RASQAL_API
+int rasqal_evaluation_context_set_base_uri(rasqal_world* world, raptor_uri *base_uri);
 
 
 /* Literal class */

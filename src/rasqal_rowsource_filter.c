@@ -124,7 +124,7 @@ rasqal_filter_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     if(!row)
       break;
 
-    result = rasqal_expression_evaluate2(con->expr, &query->eval_context,
+    result = rasqal_expression_evaluate2(con->expr, query->eval_context,
                                          &error);
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("filter expression result: ");

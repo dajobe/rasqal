@@ -150,6 +150,12 @@ rasqal_new_query(rasqal_world *world, const char *name,
   if(!query->results)
     goto tidy;
 
+  query->eval_context = rasqal_new_evaluation_context(query->world,
+                                                      &query->locator,
+                                                      query->compare_flags);
+  if(!query->eval_context)
+    goto tidy;
+
   if(factory->init(query, name))
     goto tidy;
   
@@ -179,6 +185,9 @@ rasqal_free_query(rasqal_query* query)
   
   if(query->factory)
     query->factory->terminate(query);
+
+  if(query->eval_context)
+    rasqal_free_evaluation_context(query->eval_context);
 
   if(query->context)
     RASQAL_FREE(rasqal_query_context, query->context);
@@ -1201,15 +1210,9 @@ rasqal_query_prepare(rasqal_query* query,
   rasqal_query_set_base_uri(query, base_uri);
   query->locator.line = query->locator.column = query->locator.byte = -1;
 
-  rc = rasqal_evaluation_context_init(&query->eval_context,
-                                      query->world,
-                                      query->base_uri,
-                                      &query->locator,
-                                      query->compare_flags);
-  if(rc) {
-    query->failed = 1;
-    return rc;
-  }
+  /* set evaluaton context with latest copies of query fields */
+  query->eval_context->flags = query->compare_flags;
+  rasqal_evaluation_context_set_base_uri(query->eval_context, query->base_uri);
 
   rc = query->factory->prepare(query);
   if(rc) {

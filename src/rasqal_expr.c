@@ -1778,7 +1778,7 @@ rasqal_expression_sequence_evaluate(rasqal_query* query,
     int error = 0;
     
     e = (rasqal_expression*)raptor_sequence_get_at(exprs_seq, i);
-    l = rasqal_expression_evaluate2(e, &query->eval_context, &error);
+    l = rasqal_expression_evaluate2(e, query->eval_context, &error);
     if(error) {
       if(ignore_errors)
         continue;
@@ -2152,34 +2152,79 @@ rasqal_expression_convert_aggregate_to_variable(rasqal_expression* e_in,
 }
 
 
+
 /**
- * rasqal_evaluation_context_init:
- * @eval_context: expression context
+ * rasqal_new_evaluation_context:
  * @world: rasqal world
- * @base_uri: base URI of expression context (or NULL)
  * @locator: locator or NULL
  * @flags: expression comparison flags
  *
- * Initialise a static rasqal_evaluation_context for use
- * with rasqal_expression_evaluate2()
+ * Constructor - create a #rasqal_evaluation_context for use with
+ * rasqal_expression_evaluate2()
+ *
+ * Return value: non-0 on failure
+ */
+rasqal_evaluation_context*
+rasqal_new_evaluation_context(rasqal_world* world, 
+                              raptor_locator* locator,
+                              int flags)
+{
+  rasqal_evaluation_context* eval_context;
+  
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
+  eval_context = (rasqal_evaluation_context*)RASQAL_CALLOC(rasqal_evaluation_context, 1, sizeof(*eval_context));
+  if(!eval_context)
+    return NULL;
+  
+  eval_context->world = world;
+  eval_context->locator = locator;
+  eval_context->flags = flags;
+
+  return eval_context;
+}
+
+
+/**
+ * rasqal_free_evaluation_context:
+ * @eval_context: #rasqal_evaluation_context object
+ * 
+ * Destructor - destroy a #rasqal_evaluation_context object.
+ *
+ **/
+void
+rasqal_free_evaluation_context(rasqal_evaluation_context* eval_context)
+{
+  if(!eval_context)
+    return;
+  
+  if(eval_context->base_uri)
+    raptor_free_uri(eval_context->base_uri);
+
+  RASQAL_FREE(rasqal_evaluation_context, eval_context);
+}
+
+
+/**
+ * rasqal_evaluation_context_set_base_uri:
+ * @eval_context: #rasqal_evaluation_context object
+ * @base_uri: base URI
+ *
+ * Set the URI for a #rasqal_evaluation_context
  *
  * Return value: non-0 on failure
  */
 int
-rasqal_evaluation_context_init(rasqal_evaluation_context* eval_context,
-                               rasqal_world* world,
-                               raptor_uri* base_uri,
-                               raptor_locator* locator,
-                               int flags)
+rasqal_evaluation_context_set_base_uri(rasqal_evaluation_context* eval_context,
+                                       raptor_uri *base_uri)
 {
+  
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(eval_context, rasqal_evaluation_context, 1);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
 
-  memset(eval_context, sizeof(*eval_context), '\0');
-  eval_context->world = world;
-  eval_context->base_uri = base_uri;
-  eval_context->locator = locator;
-  eval_context->flags = flags;
+  if(eval_context->base_uri)
+    raptor_free_uri(eval_context->base_uri);
+
+  eval_context->base_uri = raptor_uri_copy(base_uri);
 
   return 0;
 }
@@ -2209,7 +2254,7 @@ main(int argc, char *argv[])
   rasqal_literal* result;
   int error=0;
   rasqal_world *world;
-  rasqal_evaluation_context eval_context; /* static */
+  rasqal_evaluation_context *eval_context = NULL;
 
   raptor_world* raptor_world_ptr;
   raptor_world_ptr = raptor_new_world();
@@ -2224,11 +2269,7 @@ main(int argc, char *argv[])
 
   rasqal_xsd_init(world);
   
-  rasqal_evaluation_context_init(&eval_context, 
-                                 world,
-                                 /* base uri */ NULL,
-                                 /* locator */ NULL, 
-                                 /* flags */ 0);
+  eval_context = rasqal_new_evaluation_context(world, NULL /* locator */, 0);
 
   lit1=rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);
   expr1=rasqal_new_literal_expression(world, lit1);
@@ -2240,7 +2281,7 @@ main(int argc, char *argv[])
   rasqal_expression_print(expr, stderr);
   fputc('\n', stderr);
 
-  result = rasqal_expression_evaluate2(expr, &eval_context, &error);
+  result = rasqal_expression_evaluate2(expr, eval_context, &error);
 
   if(error) {
     fprintf(stderr, "%s: expression evaluation FAILED with error\n", program);
@@ -2268,6 +2309,8 @@ main(int argc, char *argv[])
 
   rasqal_uri_finish(world);
   
+  rasqal_free_evaluation_context(eval_context);
+
   RASQAL_FREE(rasqal_world, world);
 
   raptor_free_world(raptor_world_ptr);
