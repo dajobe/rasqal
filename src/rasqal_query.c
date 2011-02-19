@@ -35,6 +35,9 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -1163,7 +1166,6 @@ rasqal_query_prepare(rasqal_query* query,
                      raptor_uri *base_uri)
 {
   int rc = 0;
-  unsigned int seed;
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
 
@@ -1218,19 +1220,42 @@ rasqal_query_prepare(rasqal_query* query,
   query->eval_context->flags = query->compare_flags;
   rasqal_evaluation_context_set_base_uri(query->eval_context, query->base_uri);
 
-  /* FIXME - allow user to set seed and override this; move it elsewhere? */
 
-  /* FIXME - use a mix of these integers */
-  seed = clock() | time(NULL);
+  /* FIXME - allow user to set seed and override this; move it
+   * elsewhere? 
+   */
+
+
+  /* Mix seed sources using public domain code from
+   * http://www.burtleburtle.net/bob/c/lookup3.c
+   */
+  if(1) {
+    uint32_t a = clock();
+    uint32_t b = time(NULL);
+    uint32_t c;
 #ifdef HAVE_UNISTD_H
-  seed |= getpid();
-#endif
-  
-#ifdef HAVE_RAND_R
-  query->eval_context->seed = seed;
+    c = getpid();
 #else
-  srand(seed):
+    c = 0;
 #endif
+    
+#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
+
+    /* inlined mix(a, b, c) macro */
+    a -= c;  a ^= rot(c, 4);  c += b;
+    b -= a;  b ^= rot(a, 6);  a += c;
+    c -= b;  c ^= rot(b, 8);  b += a;
+    a -= c;  a ^= rot(c,16);  c += b;
+    b -= a;  b ^= rot(a,19);  a += c;
+    c -= b;  c ^= rot(b, 4);  b += a;
+
+#ifdef HAVE_RAND_R
+    query->eval_context->seed = c;
+#else
+    srand(c):
+#endif
+  }
+  
 
   rc = query->factory->prepare(query);
   if(rc) {
