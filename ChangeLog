@@ -1,3 +1,271 @@
+2011-02-18  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: NOW() is part of SPARQL 1.1
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_visit): Do not fail when visiting BNODE()
+
+	* src/rasqal.h.in, src/rasqal_expr.c: Support BNODE() with no
+	args.
+
+	Note RASQAL_EXPR_BNODE handles BNODE()
+
+	(rasqal_new_1op_expression): Allow BNODE() to have a NULL arg.
+
+	* src/sparql_parser.y: Use rasqal_new_0op_expression to make
+	RASQAL_EXPR_RAND
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Add SPARQL 1.1 BIND()
+
+	* src/rasqal_query_write.c: Add BIND to rasqal_sparql_op_labels.
+
+	* docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-literal.sgml:	Update tmpls
+
+2011-02-15  Dave Beckett <dave@dajobe.org>
+
+	* utils/check_query.c: Find and print differences in query result
+	rows
+
+	(new_compare_query_results): Add world parameter
+
+	(compare_query_results_compare): Check number of bindings match.
+	For each row, check values match for each binding and print out a
+	formatted message with the difference.  Print an error message
+	once if there were any row differences.  Tidy the other error
+	messages.
+
+	(main): Set executed query results to be stored/rewindable.  Set
+	the expected results to be stored/rewindable.
+
+2011-02-15  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query.c:
+	(rasqal_query_set_store_results): Make this actually work after a
+	prepare.
+
+	* utils/check_query.c: check rows are the same width
+
+	* src/rasqal_dataset.c: autodocs
+
+2011-02-14  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_rdf.c: Do not emit rs:binding if there is no
+	value.
+
+	* src/rasqal_format_table.c: Handle printing NULL values
+
+	* src/sparql_common.h, src/sparql_lexer.l, src/sparql_parser.y:
+	Update SPARQL """-quoted and '''-quoted strings to Turtle spec.
+
+	Now support @lang suffix and do not suffer from grabbing too much 
+	data.
+
+	(STRING_LITERAL): Removed token from lexer.
+
+	(STRING): Added as a simple lexer string
+
+	(HATHAT): Added lexer token for '^^'.
+
+	(RDFLiteral): Added to parser handling the string, lang string or
+	datatyped string alternatives.  Uses STRING
+
+	(SeparatorOpt): Updated to use STRING.
+
+	(BindingValue, GraphTerm): Updated to use RDFLiteral.
+
+	(sparql_stringbuffer_append_sparql_string): Added based on
+	turtle_stringbuffer_append_turtle_string adding \f and \b escapes
+	and adjusting error handling to go direct to a rasqal function.
+
+	Fixes Issue#0000427
+	http://bugs.librdf.org/mantis/view.php?id=427
+	and Issue#0000428
+	http://bugs.librdf.org/mantis/view.php?id=428
+
+	* tests/sparql/update/Makefile.am,
+	tests/sparql/update/insert-data-2.rq,
+	tests/sparql/update/insert-data-3.rq,
+	tests/sparql/update/insert-data-4.rq: Add tests from Issue#0000427
+	http://bugs.librdf.org/mantis/view.php?id=427
+
+2011-02-14  Lauri Aalto <laalto@iki.fi>
+
+	* src/sparql_parser.y:
+	(ClearQuery): Quick fix to avoid raptor_uri_copy(NULL) assertion
+	failures and make tests pass.
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_strmatch): Fixed build with
+	RASQAL_REGEX_{NONE,PCRE}
+
+2011-02-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/sparql_parser.y: Fix SPARQL 1.1 CLEAR
+	and DROP to allow optional SILENT
+
+	Add internal sparql_uri_applies typedef to hold the pair of URI
+	and applies destination enum.
+
+	(new_uri_applies, free_uri_applies): Added internal to sparql
+	parser.
+
+	(GraphRefAll): Returns a sparql_uri_applies value token.  Merge in
+	the legacy GRAPH DEFAULT check here.
+
+	(ClearQuery, DropQuery): Simplify using GraphRefAll returning both
+	the optional graph URI and the applies enum.
+
+	* tests/sparql/check-sparql: fix GIT earl output
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c: Add support
+	for FILTER graph pattern execution on it's own.
+
+	Previously all FILTER GPs were merged with Basic GP and then
+	executed as part of the triples rowsource.  This fails when FILTER
+	is used alone like ... ASK WHERE { FILTER TRUE } which returns
+	TRUE.
+
+	(rasqal_new_filter_algebra_node): May now take NULL node.
+
+	(rasqal_algebra_filter_graph_pattern_to_algebra): Added to use
+	above to make a FILTER over no node.
+
+	(rasqal_algebra_graph_pattern_to_algebra): Turn FILTER GP into
+	algebra with above function.
+
+	(rasqal_algebra_filter_algebra_node_to_rowsource): if the inner
+	node is NULL, use an empty rowsource to 'filter' over.  This could
+	be optimized out in future but is sufficient and correct.
+
+	* src/rasqal_expr_datetimes.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c: Guard all returns from
+	rasqal_expression_evaluate2() to check handle NULL value if not
+	supported
+
+	* src/rasqal_rowsource_project.c:
+	(rasqal_project_rowsource_read_row): Ignore errors in project AS
+	Vars.
+
+	Need to check this against the spec, but tests seem to require it
+	such as SPARQL 1.1 project-expression test 'Expression raise an
+	error'
+
+	* src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_literal.c:
+	Update literal type error returns.
+
+	(rasqal_literal_as_integer, rasqal_literal_as_floating): NULL
+	evaluated is a type error not an assertion failure/abort (debug
+	mode).
+
+	(rasqal_literal_as_counted_string, rasqal_literal_as_string_flags,
+	rasqal_literal_compare, rasqal_literal_as_boolean,
+	rasqal_literal_as_integer, rasqal_literal_as_floating): Alter
+	parameter names for error return to be error_p and update
+	autodocs.
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_as_boolean): NULL evaluated is a type error.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate2): Handle AND, OR literal error returns
+
+2011-02-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_datetimes.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c:
+	Replace literal NULL test with error_p
+	return tests
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_value): Return NULL on NULL arg; tidy code
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_compare): Return error on any NULL pointer arg
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_str): Return on success
+
+	* src/rasqal.h.in, src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_expr.c,
+	src/rasqal_expr_datetimes.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c, src/rasqal_internal.h,
+	src/rasqal_query_transform.c, src/rasqal_rowsource_assignment.c,
+	src/rasqal_rowsource_filter.c, src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_project.c: rasqal_expression_evaluate2
+	updated to add an error pointer return arg.
+
+	(rasqal_expression_evaluate2): Add an error_p pointer to an error
+	flag to return an error since NULL is a valid expression evalution
+	in some cases; like STRLANG() on non-simple literals.
+
+	Update all callers to set error_p on error/failure case.
+
+	(rasqal_engine_rowsort_calculate_order_values): Tidy cody when an
+	error happens.
+
+	(rasqal_expression_sequence_evaluate): Pass down error return.
+
+	(rasqal_expression_evaluate): If error is returned, pass on NULL.
+
+	(rasqal_expression_foreach_fold): If evaluation fails, break loop
+	and return error.
+
+	(rasqal_project_rowsource_read_row): Add failed cleanup.  On
+	evaluation failure in loop, fail and return.
+
+	* src/rasqal_expr_datetimes.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c: use goto failed on errors
+
+	* src/rasqal_expr_evaluate.c: autodocs
+
+	* src/rasqal_expr_evaluate.c: Rename expr_context to eval_context
+
+	* src/rasqal_expr_datetimes.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c: Update internal autodocs for
+	rasqal_evaluation_context API change
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_query.c:
+	(rasqal_evaluation_context_init): Renamed from
+	rasqal_expression_context_init
+
+2011-02-11  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, src/Makefile.am, src/rasqal.h.in,
+	src/rasqal_expr.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_numerics.c, src/rasqal_internal.h,
+	src/rasqal_query_write.c, src/sparql_lexer.l, src/sparql_parser.y:
+	
+	Add RASQAL_EXPR_RAND for SPARQL 1.1 RAND() rasqal_op gains RASQAL_EXPR_RAND rasqal_world gains seed field.  Check for rand_r and use it if available.  (rasqal_expression_evaluate_rand): Added TODO: Initialise seed with srandom() or with assignment (if srand_r
+	is present) and provide API to do so too.
+
+2011-02-10  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_expr.c,
+	src/rasqal_expr_datetimes.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c, src/rasqal_internal.h,
+	src/rasqal_query.c, src/rasqal_query_transform.c,
+	src/rasqal_rowsource_assignment.c, src/rasqal_rowsource_filter.c,
+	src/rasqal_rowsource_join.c, src/rasqal_rowsource_project.c:
+	Perform all expression evaluation with rasqal_evaluation_context
+
+	Added new typedef rasqal_evaluation_context to wrap context needed
+	for expression evaluation, adding an optional base URI.
+
+	rasqal_query gains a static rasqal_evaluation_context.
+
+	(rasqal_expression_evaluate2): Added taking just an expression and
+	an evaluation context.  Deprecates rasqal_expression_evaluate().
+
+	(rasqal_expression_evaluate): Deprecated for above.
+
+	Change all expression evaluation code to use
+	rasqal_expression_evaluate() and pass around an expression
+	evaluation context eval_context.
+
+	(rasqal_query_prepare): Initialise the query eval_context field.
+
 2011-02-09  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_rowsource_empty.c,
