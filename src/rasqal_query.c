@@ -1537,7 +1537,7 @@ rasqal_query_remove_query_result(rasqal_query* query,
  *
  * Get query user data.
  * 
- * Return value: user data as set by rasqal_query_set_user_data
+ * Return value: user data as set by rasqal_query_set_user_data()
  **/
 void*
 rasqal_query_get_user_data(rasqal_query* query)
