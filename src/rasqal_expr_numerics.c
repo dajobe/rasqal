@@ -62,9 +62,10 @@ rasqal_expression_evaluate_rand(rasqal_expression *e,
   double d;
   
 #ifdef HAVE_RAND_R
-  d = (double)rand_r(&eval_context->seed) / (double)RAND_MAX;
+  d = ((double)rand_r(&eval_context->seed)) / (double)(RAND_MAX + 1.0);
 #else
-  d = (double)rand() / (double)RAND_MAX;
+  d = ((double)rand())  / (double)(RAND_MAX + 1.0);
 #endif
+
   return rasqal_new_double_literal(world, d);
 }

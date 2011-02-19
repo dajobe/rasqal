@@ -35,6 +35,9 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <stdarg.h>
 
 #include "rasqal.h"
@@ -1160,6 +1163,7 @@ rasqal_query_prepare(rasqal_query* query,
                      raptor_uri *base_uri)
 {
   int rc = 0;
+  unsigned int seed;
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
 
@@ -1213,6 +1217,20 @@ rasqal_query_prepare(rasqal_query* query,
   /* set evaluaton context with latest copies of query fields */
   query->eval_context->flags = query->compare_flags;
   rasqal_evaluation_context_set_base_uri(query->eval_context, query->base_uri);
+
+  /* FIXME - allow user to set seed and override this; move it elsewhere? */
+
+  /* FIXME - use a mix of these integers */
+  seed = clock() | time(NULL);
+#ifdef HAVE_UNISTD_H
+ seed =| getpid();
+#endif
+  
+#ifdef HAVE_RAND_R
+  query->eval_context->seed = seed;
+#else
+  srand(seed):
+#endif
 
   rc = query->factory->prepare(query);
   if(rc) {
