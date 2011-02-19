@@ -482,13 +482,18 @@ BindingsClauseOpt
  * except where noted
  */
 
-/* SPARQL Grammar: Query or Update */
+/* NEW Grammar Token: parse both Query and Update in one */
 Sparql: Query
 | Update
 ;
 
 
-Query: Prologue ExplainOpt ReportFormat
+/* SPARQL Query 1.1 Grammar: Query */
+Query: Prologue ExplainOpt ReportFormat BindingsClauseOpt
+{
+  if($4)
+    ((rasqal_query*)rq)->bindings = $4;
+}
 ;
 
 
@@ -513,7 +518,7 @@ ExplainOpt: EXPLAIN
 ;
 
 
-/* NEW Grammar Term pulled out of [1] Query */
+/* NEW Grammar Term pulled out of Query */
 ReportFormat: SelectQuery
 {
   ((rasqal_query*)rq)->selects = $1;
@@ -535,6 +540,8 @@ ReportFormat: SelectQuery
 }
 ;
 
+
+/* SPARQL Update 1.1 Gammar: Update */
 Update: Prologue UpdateOperation UpdateTailOpt
 ;
 
@@ -646,7 +653,7 @@ PrefixDeclListOpt: PrefixDeclListOpt PREFIX IDENTIFIER URI_LITERAL
 
 
 /* SPARQL Grammar: SelectQuery */
-SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier BindingsClauseOpt
+SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -671,9 +678,6 @@ SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier Bind
 
     if($4)
       ((rasqal_query*)rq)->modifier = $4;
-
-    if($5)
-      ((rasqal_query*)rq)->bindings = $5;
   }
 }
 ;
