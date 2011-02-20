@@ -45,6 +45,182 @@
 
 
 /* 
+ * rasqal_expression_evaluate_abs:
+ * @e: The expression to evaluate.
+ * @eval_context: Evaluation context
+ *
+ * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_ABS (numeric) expression.
+ *
+ * Return value: A #rasqal_literal value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_abs(rasqal_expression *e,
+                               rasqal_evaluation_context *eval_context,
+                               int *error_p)
+{
+  rasqal_literal* l1;
+  rasqal_literal* result = NULL;
+
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
+  if(*error_p || !l1)
+    goto failed;
+  
+  if(!rasqal_literal_is_numeric(l1))
+    goto failed;
+
+  result = rasqal_literal_abs(l1, error_p);
+  rasqal_free_literal(l1);
+  l1 = NULL;
+  
+  if(*error_p)
+    goto failed;
+
+  return result;
+
+  failed:
+  if(error_p)
+    *error_p = 1;
+  
+  if(l1)
+    rasqal_free_literal(l1);
+
+  return NULL;
+}
+
+
+/* 
+ * rasqal_expression_evaluate_round:
+ * @e: The expression to evaluate.
+ * @eval_context: Evaluation context
+ *
+ * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_ROUND (numeric) expression.
+ *
+ * Return value: A #rasqal_literal value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_round(rasqal_expression *e,
+                                 rasqal_evaluation_context *eval_context,
+                                 int *error_p)
+{
+  rasqal_literal* l1;
+  rasqal_literal* result = NULL;
+
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
+  if(*error_p || !l1)
+    goto failed;
+  
+  if(!rasqal_literal_is_numeric(l1))
+    goto failed;
+
+  result = rasqal_literal_round(l1, error_p);
+  rasqal_free_literal(l1);
+  l1 = NULL;
+  
+  if(*error_p)
+    goto failed;
+
+  return result;
+
+  failed:
+  if(error_p)
+    *error_p = 1;
+  
+  if(l1)
+    rasqal_free_literal(l1);
+
+  return NULL;
+}
+
+
+/* 
+ * rasqal_expression_evaluate_ceil:
+ * @e: The expression to evaluate.
+ * @eval_context: Evaluation context
+ *
+ * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_CEIL (numeric) expression.
+ *
+ * Return value: A #rasqal_literal value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_ceil(rasqal_expression *e,
+                                rasqal_evaluation_context *eval_context,
+                                int *error_p)
+{
+  rasqal_literal* l1;
+  rasqal_literal* result = NULL;
+
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
+  if(*error_p || !l1)
+    goto failed;
+  
+  if(!rasqal_literal_is_numeric(l1))
+    goto failed;
+
+  result = rasqal_literal_ceil(l1, error_p);
+  rasqal_free_literal(l1);
+  l1 = NULL;
+  
+  if(*error_p)
+    goto failed;
+
+  return result;
+
+  failed:
+  if(error_p)
+    *error_p = 1;
+  
+  if(l1)
+    rasqal_free_literal(l1);
+
+  return NULL;
+}
+
+
+/* 
+ * rasqal_expression_evaluate_floor:
+ * @e: The expression to evaluate.
+ * @eval_context: Evaluation context
+ *
+ * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_FLOOR (numeric) expression.
+ *
+ * Return value: A #rasqal_literal value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_floor(rasqal_expression *e,
+                                rasqal_evaluation_context *eval_context,
+                                int *error_p)
+{
+  rasqal_literal* l1;
+  rasqal_literal* result = NULL;
+
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
+  if(*error_p || !l1)
+    goto failed;
+  
+  if(!rasqal_literal_is_numeric(l1))
+    goto failed;
+
+  result = rasqal_literal_floor(l1, error_p);
+  rasqal_free_literal(l1);
+  l1 = NULL;
+  
+  if(*error_p)
+    goto failed;
+
+  return result;
+
+  failed:
+  if(error_p)
+    *error_p = 1;
+  
+  if(l1)
+    rasqal_free_literal(l1);
+
+  return NULL;
+}
+
+
+/* 
  * rasqal_expression_evaluate_rand:
  * @e: The expression to evaluate.
  * @eval_context: Evaluation context

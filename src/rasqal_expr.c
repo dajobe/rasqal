@@ -676,6 +676,10 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_LCASE:
     case RASQAL_EXPR_ENCODE_FOR_URI:
     case RASQAL_EXPR_TZ:
+    case RASQAL_EXPR_ABS:
+    case RASQAL_EXPR_ROUND:
+    case RASQAL_EXPR_CEIL:
+    case RASQAL_EXPR_FLOOR:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       if(e->arg1)
         rasqal_free_expression(e->arg1);
@@ -877,6 +881,10 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_LCASE:
     case RASQAL_EXPR_ENCODE_FOR_URI:
     case RASQAL_EXPR_TZ:
+    case RASQAL_EXPR_ABS:
+    case RASQAL_EXPR_ROUND:
+    case RASQAL_EXPR_CEIL:
+    case RASQAL_EXPR_FLOOR:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       return (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 0;
       break;
@@ -1012,7 +1020,11 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "contains",
   "encode_for_uri",
   "tz",
-  "rand"
+  "rand",
+  "abs",
+  "round",
+  "ceil",
+  "floor"
 };
 
 
@@ -1187,6 +1199,10 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_LCASE:
     case RASQAL_EXPR_ENCODE_FOR_URI:
     case RASQAL_EXPR_TZ:
+    case RASQAL_EXPR_ABS:
+    case RASQAL_EXPR_ROUND:
+    case RASQAL_EXPR_CEIL:
+    case RASQAL_EXPR_FLOOR:
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
       raptor_iostream_write_byte('(', iostr);
@@ -1395,6 +1411,10 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_ENCODE_FOR_URI:
     case RASQAL_EXPR_TZ:
     case RASQAL_EXPR_RAND:
+    case RASQAL_EXPR_ABS:
+    case RASQAL_EXPR_ROUND:
+    case RASQAL_EXPR_CEIL:
+    case RASQAL_EXPR_FLOOR:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
@@ -1591,6 +1611,10 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_LCASE:
     case RASQAL_EXPR_ENCODE_FOR_URI:
     case RASQAL_EXPR_TZ:
+    case RASQAL_EXPR_ABS:
+    case RASQAL_EXPR_ROUND:
+    case RASQAL_EXPR_CEIL:
+    case RASQAL_EXPR_FLOOR:
       /* arg1 is optional for RASQAL_EXPR_BNODE and result is always constant */
       result = (e->arg1) ? rasqal_expression_is_constant(e->arg1) : 1;
       break;
@@ -1934,6 +1958,10 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
     case RASQAL_EXPR_LCASE:
     case RASQAL_EXPR_ENCODE_FOR_URI:
     case RASQAL_EXPR_TZ:
+    case RASQAL_EXPR_ABS:
+    case RASQAL_EXPR_ROUND:
+    case RASQAL_EXPR_CEIL:
+    case RASQAL_EXPR_FLOOR:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       rc = rasqal_expression_compare(e1->arg1, e2->arg1, flags, error_p);
       break;

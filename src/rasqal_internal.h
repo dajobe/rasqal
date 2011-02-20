@@ -1064,6 +1064,10 @@ rasqal_literal* rasqal_expression_evaluate_datetime_timezone(rasqal_expression *
 rasqal_literal* rasqal_expression_evaluate_datetime_tz(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 
 /* rasqal_expr_numerics.c */
+rasqal_literal* rasqal_expression_evaluate_abs(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_round(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_ceil(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_floor(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 rasqal_literal* rasqal_expression_evaluate_rand(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 
 /* rasqal_expr_strings.c */

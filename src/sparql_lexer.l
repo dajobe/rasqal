@@ -421,6 +421,10 @@ EXPONENT [eE][+-]?[0-9]+
 [Aa][Ll][Ll] { return ALL; }
 [Tt][Zz] { return TZ; }
 [Rr][Aa][Nn][Dd] { return RAND; }
+[Aa][Bb][Ss] { return ABS; }
+[Rr][Oo][Uu][Nn][Dd] { return ROUND; }
+[Cc][Ee][Ii][Ll] { return CEIL; }
+[Ff][Ll][Oo][Oo][Rr] { return FLOOR; }
 
 "a" { return A; }
 
@@ -1669,6 +1673,18 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case BIND:
       return "BIND";
+
+    case ABS:
+      return "ABS";
+
+    case ROUND:
+      return "ROUND";
+
+    case CEIL:
+      return "CEIL";
+
+    case FLOOR:
+      return "FLOOR";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:

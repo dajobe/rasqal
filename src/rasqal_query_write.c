@@ -286,7 +286,11 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "CONTAINS",
   "ENCODE_FOR_URI",
   "TZ",
-  "RAND"
+  "RAND",
+  "ABS",
+  "ROUND",
+  "CEIL",
+  "FLOOR"
 };
 
 
@@ -390,6 +394,10 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_LCASE:
     case RASQAL_EXPR_ENCODE_FOR_URI:
     case RASQAL_EXPR_TZ:
+    case RASQAL_EXPR_ABS:
+    case RASQAL_EXPR_ROUND:
+    case RASQAL_EXPR_CEIL:
+    case RASQAL_EXPR_FLOOR:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);

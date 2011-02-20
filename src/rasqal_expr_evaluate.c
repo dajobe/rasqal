@@ -1518,6 +1518,22 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       result = rasqal_expression_evaluate_substr(e, eval_context, error_p);
       break;
 
+    case RASQAL_EXPR_ABS:
+      result = rasqal_expression_evaluate_abs(e, eval_context, error_p);
+      break;
+      
+    case RASQAL_EXPR_ROUND:
+      result = rasqal_expression_evaluate_round(e, eval_context, error_p);
+      break;
+      
+    case RASQAL_EXPR_CEIL:
+      result = rasqal_expression_evaluate_ceil(e, eval_context, error_p);
+      break;
+      
+    case RASQAL_EXPR_FLOOR:
+      result = rasqal_expression_evaluate_floor(e, eval_context, error_p);
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL3("Unknown operation %s (%d)",
