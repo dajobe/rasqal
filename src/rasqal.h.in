@@ -1611,6 +1611,14 @@ RASQAL_API
 int rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
 RASQAL_API
 int rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d);
+RASQAL_API
+int rasqal_xsd_decimal_abs(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a);
+RASQAL_API
+int rasqal_xsd_decimal_round(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a);
+RASQAL_API
+int rasqal_xsd_decimal_ceil(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a);
+RASQAL_API
+int rasqal_xsd_decimal_floor(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a);
 
 
 /* datetime functions */

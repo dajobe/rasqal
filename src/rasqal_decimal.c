@@ -34,6 +34,9 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
 #include <stdarg.h>
 
 #include "rasqal.h"
@@ -658,6 +661,126 @@ rasqal_xsd_decimal_negate(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   mpf_neg(result->raw, a->raw);
+#endif
+
+  return rc;
+}
+
+
+/**
+ * rasqal_xsd_decimal_abs:
+ * @result: result variable
+ * @a: argment decimal
+ * 
+ * Return the absolute value of an XSD Decimal
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_xsd_decimal_abs(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
+{
+  int rc = 0;
+  
+  rasqal_xsd_decimal_clear_string(result);
+  
+#if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
+  result->raw = abs(a->raw);
+#endif
+#ifdef RASQAL_DECIMAL_MPFR
+  mpfr_abs(result->raw, a->raw, result->rounding);
+#endif
+#ifdef RASQAL_DECIMAL_GMP
+  mpf_abs(result->raw, a->raw);
+#endif
+
+  return rc;
+}
+
+
+/**
+ * rasqal_xsd_decimal_round:
+ * @result: result variable
+ * @a: argment decimal
+ * 
+ * Return the number with no fractional part closes to argument for an XSD Decimal
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_xsd_decimal_round(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
+{
+  int rc = 0;
+  
+  rasqal_xsd_decimal_clear_string(result);
+  
+#if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
+  result->raw = round(a->raw);
+#endif
+#ifdef RASQAL_DECIMAL_MPFR
+  mpfr_round(result->raw, a->raw, result->rounding);
+#endif
+#ifdef RASQAL_DECIMAL_GMP
+  mpf_round(result->raw, a->raw);
+#endif
+
+  return rc;
+}
+
+
+/**
+ * rasqal_xsd_decimal_ceil:
+ * @result: result variable
+ * @a: argment decimal
+ * 
+ * Return the number with no fractional part closes to argument for an XSD Decimal
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_xsd_decimal_ceil(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
+{
+  int rc = 0;
+  
+  rasqal_xsd_decimal_clear_string(result);
+  
+#if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
+  result->raw = ceil(a->raw);
+#endif
+#ifdef RASQAL_DECIMAL_MPFR
+  mpfr_ceil(result->raw, a->raw, result->rounding);
+#endif
+#ifdef RASQAL_DECIMAL_GMP
+  mpf_ceil(result->raw, a->raw);
+#endif
+
+  return rc;
+}
+
+
+/**
+ * rasqal_xsd_decimal_floor:
+ * @result: result variable
+ * @a: argment decimal
+ * 
+ * Return the number with no fractional part closes to argument for an XSD Decimal
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_xsd_decimal_floor(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
+{
+  int rc = 0;
+  
+  rasqal_xsd_decimal_clear_string(result);
+  
+#if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
+  result->raw = floor(a->raw);
+#endif
+#ifdef RASQAL_DECIMAL_MPFR
+  mpfr_floor(result->raw, a->raw, result->rounding);
+#endif
+#ifdef RASQAL_DECIMAL_GMP
+  mpf_floor(result->raw, a->raw);
 #endif
 
   return rc;
