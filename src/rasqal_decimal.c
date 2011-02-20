@@ -717,7 +717,7 @@ rasqal_xsd_decimal_round(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
   result->raw = round(a->raw);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  mpfr_round(result->raw, a->raw, result->rounding);
+  mpfr_round(result->raw, a->raw);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   mpf_round(result->raw, a->raw);
@@ -747,7 +747,7 @@ rasqal_xsd_decimal_ceil(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
   result->raw = ceil(a->raw);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  mpfr_ceil(result->raw, a->raw, result->rounding);
+  mpfr_ceil(result->raw, a->raw);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   mpf_ceil(result->raw, a->raw);
@@ -777,7 +777,7 @@ rasqal_xsd_decimal_floor(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
   result->raw = floor(a->raw);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  mpfr_floor(result->raw, a->raw, result->rounding);
+  mpfr_floor(result->raw, a->raw);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   mpf_floor(result->raw, a->raw);
