@@ -1133,6 +1133,10 @@ rasqal_literal* rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, 
 rasqal_literal* rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error);
 rasqal_literal* rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error);
 rasqal_literal* rasqal_literal_negate(rasqal_literal* l, int *error_p);
+rasqal_literal* rasqal_literal_abs(rasqal_literal* l1,  int *error_p);
+rasqal_literal* rasqal_literal_round(rasqal_literal* l1, int *error_p);
+rasqal_literal* rasqal_literal_ceil(rasqal_literal* l1,  int *error_p);
+rasqal_literal* rasqal_literal_floor(rasqal_literal* l1, int *error_p);
 int rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2, int flags, int* error);
 int rasqal_literal_not_equals_flags(rasqal_literal* l1, rasqal_literal* l2, int flags, int* error);
 void rasqal_literal_write_type(rasqal_literal* l, raptor_iostream* iostr);
