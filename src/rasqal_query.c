@@ -1252,7 +1252,7 @@ rasqal_query_prepare(rasqal_query* query,
 #ifdef HAVE_RAND_R
     query->eval_context->seed = c;
 #else
-    srand(c):
+    srand(c);
 #endif
   }
   
