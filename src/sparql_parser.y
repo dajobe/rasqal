@@ -542,7 +542,7 @@ ReportFormat: SelectQuery
 ;
 
 
-/* SPARQL Update 1.1 Gammar: Update */
+/* SPARQL Update 1.1 Grammar: Update */
 Update: Prologue UpdateOperation UpdateTailOpt
 ;
 
