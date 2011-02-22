@@ -1306,15 +1306,12 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
       break;
   }
 
-#if RASQAL_DEBUG
-  if(!node)
-    abort();
-#endif
-  
 #if RASQAL_DEBUG > 1
-  RASQAL_DEBUG1("Resulting node:\n");
-  rasqal_algebra_node_print(node, stderr);
-  fputc('\n', stderr);
+  if(node) {
+    RASQAL_DEBUG1("Resulting node:\n");
+    rasqal_algebra_node_print(node, stderr);
+    fputc('\n', stderr);
+  }
 #endif
 
   return node;
