@@ -376,9 +376,10 @@ struct rasqal_query_s {
   /* WAS: result offset OFFSET (>=0) or <0 if not given */
   int unused5;
 
-  /* non-0 if '*' was seen after a verb (the appropriate list such as selects or constructs will be NULL) */
+  /* flag: non-0 if '*' was seen after a verb (the appropriate list such as selects or constructs will be NULL) */
   int wildcard;
 
+  /* flag: non-0 if query has been prepared */
   int prepared;
 
   rasqal_variables_table* vars_table;
@@ -450,7 +451,7 @@ struct rasqal_query_s {
    */
   const char* query_results_formatter_name;
 
-  /* EXPLAIN was given */
+  /* flag: non-0 if EXPLAIN was given */
   int explain;
 
   /* generated counter - increments at every generation */
@@ -459,7 +460,7 @@ struct rasqal_query_s {
   /* INTERNAL lexer internal data */
   void* lexer_user_data;
 
-  /* INTERNAL for now: non-0 to store results otherwise lazy eval results */
+  /* INTERNAL flag for now: non-0 to store results otherwise lazy eval results */
   int store_results;
 
   /* INTERNAL 2D array of:
