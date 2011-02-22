@@ -120,6 +120,10 @@ constants and #rasqal_variable values bound in some
 @RASQAL_EXPR_ENCODE_FOR_URI: 
 @RASQAL_EXPR_TZ: 
 @RASQAL_EXPR_RAND: 
+@RASQAL_EXPR_ABS: 
+@RASQAL_EXPR_ROUND: 
+@RASQAL_EXPR_CEIL: 
+@RASQAL_EXPR_FLOOR: 
 @RASQAL_EXPR_LAST: 
 
 <!-- ##### ENUM rasqal_compare_flags ##### -->

@@ -171,6 +171,7 @@ their names, labels and URI.
 </para>
 
 @RASQAL_FEATURE_NO_NET: 
+@RASQAL_FEATURE_RAND_SEED: 
 @RASQAL_FEATURE_LAST: 
 
 <!-- ##### FUNCTION rasqal_language_name_check ##### -->
