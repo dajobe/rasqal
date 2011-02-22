@@ -312,6 +312,11 @@ rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value)
 
   switch(feature) {
     case RASQAL_FEATURE_NO_NET:
+    case RASQAL_FEATURE_RAND_SEED:
+
+      if(feature == RASQAL_FEATURE_RAND_SEED)
+        query->user_set_rand = 1;
+      
       query->features[(int)feature] = value;
       break;
       
@@ -374,6 +379,7 @@ rasqal_query_get_feature(rasqal_query *query, rasqal_feature feature)
 
   switch(feature) {
     case RASQAL_FEATURE_NO_NET:
+    case RASQAL_FEATURE_RAND_SEED:
       result = (query->features[(int)feature] != 0);
       break;
 
@@ -1220,40 +1226,17 @@ rasqal_query_prepare(rasqal_query* query,
   query->eval_context->flags = query->compare_flags;
   rasqal_evaluation_context_set_base_uri(query->eval_context, query->base_uri);
 
-
-  /* FIXME - allow user to set seed and override this; move it
-   * elsewhere? 
-   */
-
-
-  /* Mix seed sources using public domain code from
-   * http://www.burtleburtle.net/bob/c/lookup3.c
-   */
+  /* set random seed */
   if(1) {
-    uint32_t a = clock();
-    uint32_t b = time(NULL);
-    uint32_t c;
-#ifdef HAVE_UNISTD_H
-    c = getpid();
-#else
-    c = 0;
-#endif
+    unsigned int seed;
+
+    /* get seed either from user or system sources */
+    if(query->user_set_rand)
+      seed = (unsigned int)query->features[(int)RASQAL_FEATURE_RAND_SEED];
+    else
+      seed = rasqal_random_get_system_seed(query->world);
     
-#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
-
-    /* inlined mix(a, b, c) macro */
-    a -= c;  a ^= rot(c, 4);  c += b;
-    b -= a;  b ^= rot(a, 6);  a += c;
-    c -= b;  c ^= rot(b, 8);  b += a;
-    a -= c;  a ^= rot(c,16);  c += b;
-    b -= a;  b ^= rot(a,19);  a += c;
-    c -= b;  c ^= rot(b, 4);  b += a;
-
-#ifdef HAVE_RAND_R
-    query->eval_context->seed = c;
-#else
-    srand(c);
-#endif
+    rasqal_evaluation_context_set_rand_seed(query->eval_context, seed);
   }
   
 

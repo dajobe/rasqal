@@ -2258,6 +2258,32 @@ rasqal_evaluation_context_set_base_uri(rasqal_evaluation_context* eval_context,
 }
 
 
+/**
+ * rasqal_evaluation_context_set_rand_seed:
+ * @eval_context: #rasqal_evaluation_context object
+ * @seed: random seed
+ *
+ * Set the random seed for a #rasqal_evaluation_context
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_evaluation_context_set_rand_seed(rasqal_evaluation_context* eval_context,
+                                        unsigned int seed)
+{
+  
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(eval_context, rasqal_evaluation_context, 1);
+
+#ifdef HAVE_RAND_R
+  eval_context->seed = seed;
+#else
+  srand(seed);
+#endif
+
+  return 0;
+}
+
+
 #endif /* not STANDALONE */
 
 

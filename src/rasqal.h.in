@@ -208,6 +208,7 @@ typedef struct rasqal_variables_table_s rasqal_variables_table;
 /**
  * rasqal_feature:
  * @RASQAL_FEATURE_NO_NET: Deny network requests.
+ * @RASQAL_FEATURE_RAND_SEED: Set rand() / rand_r() seed
  * @RASQAL_FEATURE_LAST: Internal.
  *
  * Query features.
@@ -216,7 +217,8 @@ typedef struct rasqal_variables_table_s rasqal_variables_table;
  */
 typedef enum {
   RASQAL_FEATURE_NO_NET,
-  RASQAL_FEATURE_LAST = RASQAL_FEATURE_NO_NET
+  RASQAL_FEATURE_RAND_SEED,
+  RASQAL_FEATURE_LAST = RASQAL_FEATURE_RAND_SEED
 } rasqal_feature;
 
 
@@ -1459,6 +1461,8 @@ RASQAL_API
 void rasqal_free_evaluation_context(rasqal_evaluation_context* eval_context);
 RASQAL_API
 int rasqal_evaluation_context_set_base_uri(rasqal_evaluation_context* eval_context, raptor_uri *base_uri);
+RASQAL_API
+int rasqal_evaluation_context_set_rand_seed(rasqal_evaluation_context* eval_context, unsigned int seed);
 
 
 /* Literal class */

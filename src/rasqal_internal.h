@@ -491,6 +491,9 @@ struct rasqal_query_s {
 
   /* INTERNAL static structure for expresion evaluation*/
   rasqal_evaluation_context *eval_context;
+
+  /* INTERNAL flag: non-0 if user set a random seed via RASQAL_FEATURE_RAND_SEED */
+  unsigned int user_set_rand : 1;
 };
 
 
@@ -1632,6 +1635,8 @@ void rasqal_free_solution_modifier(rasqal_solution_modifier* sm);
 /* rasqal_triples.c */
 int rasqal_triples_sequence_set_origin(raptor_sequence* dest_seq, raptor_sequence* src_seq, rasqal_literal* origin);
 
+/* rasqal_random.c */
+unsigned int rasqal_random_get_system_seed(rasqal_world* world);
 
 /* end of RASQAL_INTERNAL */
 #endif

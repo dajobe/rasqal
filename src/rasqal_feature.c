@@ -55,8 +55,9 @@ static const struct
   int flags;
   const char *name;
   const char *label;
-} rasqal_features_list [RASQAL_FEATURE_LAST+1]= {
-  { RASQAL_FEATURE_NO_NET, 1,  "noNet", "Deny network requests." }
+} rasqal_features_list [RASQAL_FEATURE_LAST + 1]= {
+  { RASQAL_FEATURE_NO_NET,    1,  "noNet",    "Deny network requests." } ,
+  { RASQAL_FEATURE_RAND_SEED, 1,  "randSeed", "Set rand() seed." }
 };
 
 
