@@ -13,6 +13,55 @@
 <p>Not yet released.
 </p>
 
+<!-- Updated to end of 2011-02-09 -->
+
+<h3>Datetime Changes</h3>
+
+<p>
+Added <code>rasqal_xsd_datetime_get_tz_as_counted_string()</code> to
+get back the TZ string component of a datetime.
+</p>
+
+<h3>Expression Changes</h3>
+
+<p>Added <code>RASQAL_EXPR_TZ</code> for SPARQL 1.1 TZ() including
+evaluation using new
+<code>rasqal_xsd_datetime_get_tz_as_counted_string()</code>
+method.</p>
+
+
+<h3>Query Engine Changes</h3>
+
+<p>Handle support executing empty graph patterns such as in queries
+like <code>SELECT (expr AS ?var) WHERE {}</code> which just evaluates
+<code>expr</code> and returns a single row with a single result.
+</p>
+
+
+<h3>SPARQL Changes</h3>
+
+<p>Added support for SPARQL 1.1 TZ()</p>
+
+<p>Updated SPARQL 1.1 <code>ENCODE_FOR_URI()</code> to not preserve
+language and datatype of input.
+</p>
+
+<p>
+Allow SPARQL 1.1 <code>GROUP BY</code> to have an optional
+<code>AS ?var</code>.
+</p>
+
+
+<h3>Internal Changes</h3>
+
+<p>Removed remaining raptor_syntax_description mime_types_count and
+uri_strings_count initialization.
+</p>
+
+<p>
+Make GPL V2 or newer explicit in LICENSE.html.
+</p>
+
 
 <h2 id="rel0_9_24"><a name="rel0_9_24">Rasqal 0.9.24 Changes</a></h2>
 
