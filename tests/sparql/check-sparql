@@ -593,8 +593,14 @@ while($list_node) {
   warn "Entry node is '$entry_node'\n"
     if $debug > 1;
 
+  if(!defined $triples{$entry_node}) {
+    warn "$program: No triples in manifest for test URI $entry_node\n";
+    goto next_list_node;
+  }
+
   my $name=$triples{$entry_node}->{"<${mf}name>"}->[0];
-  $name =~ s/^\"(.*)\"$/$1/;
+  $name =~ s/^\"(.*)\"$/$1/
+    if defined $name;
 
   warn "Entry name=$name\n"
     if $debug > 1;
