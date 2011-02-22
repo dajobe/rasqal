@@ -1427,6 +1427,11 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
     src_gp->origin = NULL;
   }
 
+  if(src_gp->var) {
+    dest_gp->var = src_gp->var;
+    src_gp->var = NULL;
+  }
+
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG2("Result graph pattern #%d\n  ", dest_gp->gp_index);
   rasqal_graph_pattern_print(dest_gp, stdout);
