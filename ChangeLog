@@ -1,4 +1,124 @@
+2011-02-21  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/rasqal.h.in, src/rasqal_expr.c,
+	src/rasqal_feature.c, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_random.c: Add user API to set random seed for a query
+
+	rasqal_feature gains RASQAL_FEATURE_RAND_SEED for setting the seed
+	for use with rand() or rand_r().
+
+	(rasqal_evaluation_context_set_rand_seed): Added for setting seed
+	in a standalone expression evaluation context.
+
+	(rasqal_random_get_system_seed): Added as an internal function for
+	getting a seed from system sources.
+
+	* src/rasqal_internal.h: docs for internal query fields
+
+	* tests/sparql/check-sparql:
+	warnings for bad manifest data
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_graph_pattern_to_algebra): Remove abort() in debug
+	mode.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_graph_pattern_join): Handle join of var field (OK when
+	merging with empty GP)
+
+2011-02-21  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query.c:
+	(rasqal_query_prepare): Fixed build without HAVE_RAND_R.
+
+	* src/sparql_parser.y: #comment typo
+
+2011-02-19  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_decimal.c:
+	Fix MPFR floor, round, trunc
+
+	* configure.ac, src/rasqal.h.in, src/rasqal_expr.c,
+	src/rasqal_expr_evaluate.c, src/rasqal_expr_numerics.c,
+	src/rasqal_internal.h, src/rasqal_query_write.c,
+	src/sparql_lexer.l, src/sparql_parser.y: Added ABS, ROUND, CEIL,
+	FLOOR expression support and execution.
+
+	rasqal_op gains RASQAL_EXPR_ABS, RASQAL_EXPR_ROUND,
+	RASQAL_EXPR_CEIL, and RASQAL_EXPR_FLOOR
+
+	Update all expression callers.
+
+	(rasqal_expression_evaluate_abs, rasqal_expression_evaluate_round,
+	rasqal_expression_evaluate_ceil
+	,rasqal_expression_evaluate_floor): Added.
+
+	* src/rasqal_internal.h, src/rasqal_literal.c: Add abs, round,
+	ceil, floor methods to literal class.
+
+	(rasqal_literal_abs, rasqal_literal_round, rasqal_literal_ceil,
+	rasqal_literal_floor): Added.
+
+	* src/rasqal.h.in, src/rasqal_decimal.c: Add abs, round, ceil and
+	floor for decimal class
+
+	(rasqal_xsd_decimal_abs, rasqal_xsd_decimal_round,
+	rasqal_xsd_decimal_ceil, rasqal_xsd_decimal_floor): Added.
+
+	* configure.ac: Add test for stdint.h
+
+	* src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_format_double): Numbers with no trailing 0s no longer
+	fail
+
 2011-02-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query.c:
+	Mix random seed sources for RAND()
+
+	(rasqal_query_prepare): Use mix public domain code from
+	http://www.burtleburtle.net/bob/c/lookup3.c to mix processor
+	clock, wall clock time and process ID to get a better random seed.
+	This code should definitely be elsewhere rather than in query
+	prepare!
+
+	* src/rasqal_query.c: syntax
+
+	* src/rasqal_query.c: autodocs
+
+	* src/rasqal_expr_numerics.c, src/rasqal_query.c: Init random seed
+	from some C standard function sources
+
+	* src/rasqal_expr_numerics.c:
+	(rasqal_expression_evaluate_rand): Generate a double in range [0, 1)
+
+	* src/rasqal.h.in: fix rasqal_evaluation_context_set_base_uri
+	prototype
+
+	* src/rasqal.h.in, src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_expr.c,
+	src/rasqal_expr_numerics.c, src/rasqal_internal.h,
+	src/rasqal_query.c, src/rasqal_query_transform.c,
+	src/rasqal_rowsource_assignment.c, src/rasqal_rowsource_filter.c,
+	src/rasqal_rowsource_join.c, src/rasqal_rowsource_project.c: Turn
+	rasqal_evaluation_context into a simple class.
+
+	(rasqal_new_evaluation_context, rasqal_free_evaluation_context,
+	rasqal_evaluation_context_set_base_uri): Added.  The constructor
+	takes the simple common args - world, locator and flags (none of
+	which are shared).  Most fields such as seed can be set
+	directly (not referenced counted; shared).
+
+	The single method rasqal_new_evaluation_context_set_base_uri
+	manages the reference counted base URI.
+
+	Updated callers and initialise when a query is constructed in
+	rasqal_new_query()
+
+	* src/sparql_parser.y:
+	(Query): Move BindingsClauseOpt here to allow with any verb
+
+	* src/sparql_parser.y: docs
 
 	* src/sparql_parser.y: NOW() is part of SPARQL 1.1
 
