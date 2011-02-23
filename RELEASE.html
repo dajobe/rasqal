@@ -13,24 +13,105 @@
 <p>Not yet released.
 </p>
 
-<!-- Updated to end of 2011-02-09 -->
+<!-- Updated to end of 2011-02-21 -->
+
+<h3>Datatype Changes</h3>
+
+<p><code>rasqal_xsd_format_double()</code> now correctly formats
+numbers that have no trailing 0s.
+</p>
+
 
 <h3>Datetime Changes</h3>
 
-<p>
-Added <code>rasqal_xsd_datetime_get_tz_as_counted_string()</code> to
-get back the TZ string component of a datetime.
+<p>Added <code>rasqal_xsd_datetime_get_tz_as_counted_string()</code>
+to get back the timezone string component of a datetime.
 </p>
+
+
+<h3>Decimal Class Changes</h3>
+
+<p>Added <code>rasqal_xsd_decimal_abs()</code>,
+<code>rasqal_xsd_decimal_round()</code>,
+<code>rasqal_xsd_decimal_ceil()</code> and
+<code>rasqal_xsd_decimal_floor()</code> to support the ABS(),
+ROUND(), CEIL() and FLOOR() functions for decimals.
+</p>
+
 
 <h3>Expression Changes</h3>
 
+<p>rasqal_op gains
+<code>RASQAL_EXPR_ABS</code>,
+<code>RASQAL_EXPR_ROUND</code>,
+<code>RASQAL_EXPR_CEIL</code> and
+<code>RASQAL_EXPR_FLOOR</code>.
+</p>
+
+<p>Added an evaluation context structure
+<code>rasqal_evaluation_context</code> for the information needed to
+evaluate any <code>rasqal_expression</code> tree.  This makes
+expression evaluation independent of a query, but still tied to a
+rasqal world and (via variables) a variables table. Added constructor
+<code>rasqal_new_evaluation_context()</code> to set the locator and
+flags, destructor <code>rasqal_free_evaluation_context()</code>,
+method <code>rasqal_evaluation_context_set_base_uri()</code> to
+set/reset the shared reference to the context base URI
+and method <code>rasqal_evaluation_context_set_rand_seed()</code>
+to set the random seed for the evaluation.
+</p>
+
+<p>Added <code>rasqal_expression_evaluate2()</code> taking just an
+expression and an evaluation context.
+</p>
+
+<p><code>rasqal_expression_evaluate()</code> is deprecated for the above.
+</p>
+
+<p>Added <code>RASQAL_EXPR_RAND</code> for SPARQL 1.1
+<code>RAND()</code> including evaluation.
+</p>
+
 <p>Added <code>RASQAL_EXPR_TZ</code> for SPARQL 1.1 TZ() including
-evaluation using new
+evaluation busing new
 <code>rasqal_xsd_datetime_get_tz_as_counted_string()</code>
 method.</p>
 
 
 <h3>Query Engine Changes</h3>
+
+<p>Initialise seed for RAND() from a mixture of system sources or
+from value set by user with new query feature
+<code>RASQAL_FEATURE_RAND_SEED</code>.  Uses
+<code>rasqal_evaluation_context_set_rand_seed()</code> on the query's
+internal evaluation context.
+</p>
+
+<p>Make <code>rasqal_query_set_store_results() </code> actually work
+after a query prepare.
+</p>
+
+<p>Handle evaluation of FILTER over an empty inner graph pattern
+like in <code>ASK WHERE { FILTER ( TRUE ) }</code>
+</p>
+
+<p>Ignore errors in executing SPARQL 1.1 project AS Variables.</p>
+
+<p><code>rasqal_literal_as_boolean()</code>,
+<code>rasqal_literal_as_integer</code> and
+<code>rasqal_literal_as_floating</code> evaluating NULL is a type
+error not an assertion failure or abort (in debug mode).
+</p>
+
+<p>Change internal error handling to separate a NULL return from an
+error return when evaluating expressions.  Updated lots of callers of
+expression evaluation to handle a NULL expression response.  Needed
+since now NULL is a valid expression evalution in some cases; like
+STRLANG() on non-simple literals.
+</p>
+
+<p>Updated to use <code>rasqal_evaluation_context</code> for
+expression evaluation.</p>
 
 <p>Handle support executing empty graph patterns such as in queries
 like <code>SELECT (expr AS ?var) WHERE {}</code> which just evaluates
@@ -38,7 +119,41 @@ like <code>SELECT (expr AS ?var) WHERE {}</code> which just evaluates
 </p>
 
 
+<h3>Query Result Changes</h3>
+
+<p>Handle NULL values for RDF and Tables results.
+</p>
+
+
 <h3>SPARQL Changes</h3>
+
+<p>Added support for SPARQL 1.1 numeric functions <code>ABS()</code>,
+<code>ROUND()</code>, <code>CEIL()</code> and <code>FLOOR()</code>.
+</p>
+
+
+<p>Added support for SPARQL 1.1 <code>BIND(expr as ?var)</code>
+using existing <code>RASQAL_GRAPH_PATTERN_OPERATOR_LET</code>.
+</p>
+
+<p>Fixed support for SPARQL 1.1 <code>BNODE()</code> to work with no
+argument.
+</p>
+
+
+<p>Fixed support for """-quoted and '''-quoted strings not over-quoting
+and adding support for optional language.
+Fixes
+<a href="http://bugs.librdf.org/mantis/view.php?id=427">Issue #0000427</a>
+and
+<a href="http://bugs.librdf.org/mantis/view.php?id=428">Issue #0000428</a>.
+</p>
+
+<p>Added support for SPARQL 1.1 CLEAR and DROP to use optional SILENT.
+</p>
+
+<p>Added support for SPARQL 1.1 RAND() along with a query API feature
+for user setting of the random seed.</p>
 
 <p>Added support for SPARQL 1.1 TZ()</p>
 
@@ -58,9 +173,13 @@ Allow SPARQL 1.1 <code>GROUP BY</code> to have an optional
 uri_strings_count initialization.
 </p>
 
-<p>
-Make GPL V2 or newer explicit in LICENSE.html.
-</p>
+
+<h3>Other Changes</h3>
+
+<p>More fixes to check-query test script.</p>
+
+<p>Make GPL V2 or newer explicit in LICENSE.html.</p>
+
 
 
 <h2 id="rel0_9_24"><a name="rel0_9_24">Rasqal 0.9.24 Changes</a></h2>
