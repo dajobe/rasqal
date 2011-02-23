@@ -138,6 +138,16 @@ floating point decimals.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_xsd_datetime_get_tz_as_counted_string ##### -->
+<para>
+
+</para>
+
+@dt: 
+@len_p: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_xsd_datetime_set_from_timeval ##### -->
 <para>
 
@@ -200,6 +210,16 @@ floating point decimals.
 </para>
 
 
+<!-- ##### FUNCTION rasqal_xsd_decimal_abs ##### -->
+<para>
+
+</para>
+
+@result: 
+@a: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_xsd_decimal_add ##### -->
 <para>
 
@@ -227,6 +247,16 @@ floating point decimals.
 </para>
 
 @dec: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_decimal_ceil ##### -->
+<para>
+
+</para>
+
+@result: 
+@a: 
 @Returns: 
 
 
@@ -261,6 +291,16 @@ floating point decimals.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_xsd_decimal_floor ##### -->
+<para>
+
+</para>
+
+@result: 
+@a: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_xsd_decimal_get_double ##### -->
 <para>
 
@@ -290,6 +330,16 @@ floating point decimals.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_xsd_decimal_negate ##### -->
+<para>
+
+</para>
+
+@result: 
+@a: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_xsd_decimal_print ##### -->
 <para>
 
@@ -297,6 +347,16 @@ floating point decimals.
 
 @dec: 
 @stream: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_decimal_round ##### -->
+<para>
+
+</para>
+
+@result: 
+@a: 
 @Returns: 
 
 
@@ -338,16 +398,6 @@ floating point decimals.
 @result: 
 @a: 
 @b: 
-@Returns: 
-
-
-<!-- ##### FUNCTION rasqal_xsd_decimal_negate ##### -->
-<para>
-
-</para>
-
-@result: 
-@a: 
 @Returns: 
 
 

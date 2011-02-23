@@ -84,6 +84,16 @@ their names, labels and URI.
 @raptor_world_ptr: 
 
 
+<!-- ##### FUNCTION rasqal_world_get_query_language_description ##### -->
+<para>
+
+</para>
+
+@world: 
+@counter: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_world_get_query_results_format_description ##### -->
 <para>
 

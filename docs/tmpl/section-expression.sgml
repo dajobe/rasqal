@@ -326,6 +326,17 @@ constants and #rasqal_variable values bound in some
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_expression_evaluate2 ##### -->
+<para>
+
+</para>
+
+@e: 
+@eval_context: 
+@error_p: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_expression_op_label ##### -->
 <para>
 
@@ -372,6 +383,45 @@ constants and #rasqal_variable values bound in some
 @e: 
 @fn: 
 @user_data: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_evaluation_context ##### -->
+<para>
+
+</para>
+
+@world: 
+@locator: 
+@flags: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_evaluation_context ##### -->
+<para>
+
+</para>
+
+@eval_context: 
+
+
+<!-- ##### FUNCTION rasqal_evaluation_context_set_base_uri ##### -->
+<para>
+
+</para>
+
+@eval_context: 
+@base_uri: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_evaluation_context_set_rand_seed ##### -->
+<para>
+
+</para>
+
+@eval_context: 
+@seed: 
 @Returns: 
 
 

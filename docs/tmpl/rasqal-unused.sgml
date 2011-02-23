@@ -52,17 +52,6 @@ rasqal
 </para>
 
 
-<!-- ##### FUNCTION rasqal_expression_evaluate2 ##### -->
-<para>
-
-</para>
-
-@world: 
-@locator: 
-@e: 
-@flags: 
-@Returns: 
-
 <!-- ##### FUNCTION rasqal_expression_evaluate_v2 ##### -->
 <para>
 
