@@ -50,6 +50,7 @@ rasqal_data_graph_print
 <FILE>section-expression</FILE>
 rasqal_expression
 rasqal_expression_flags
+rasqal_evaluation_context
 rasqal_op
 rasqal_compare_flags
 rasqal_pattern_flags
@@ -69,11 +70,16 @@ rasqal_new_expr_seq_expression
 rasqal_free_expression
 rasqal_expression_compare
 rasqal_expression_evaluate
+rasqal_expression_evaluate2
 rasqal_expression_op_label
 rasqal_expression_print
 rasqal_expression_print_op
 rasqal_expression_visit_fn
 rasqal_expression_visit
+rasqal_new_evaluation_context
+rasqal_free_evaluation_context
+rasqal_evaluation_context_set_base_uri
+rasqal_evaluation_context_set_rand_seed
 </SECTION>
 
 <SECTION>
@@ -343,6 +349,7 @@ rasqal_xsd_datetime_get_as_timeval
 rasqal_xsd_datetime_get_as_unixtime
 rasqal_xsd_datetime_get_seconds_as_decimal
 rasqal_xsd_datetime_get_timezone_as_counted_string
+rasqal_xsd_datetime_get_tz_as_counted_string
 rasqal_xsd_datetime_set_from_timeval
 rasqal_xsd_datetime_set_from_unixtime
 rasqal_xsd_datetime_to_counted_string
@@ -350,21 +357,25 @@ rasqal_xsd_datetime_to_string
 rasqal_free_xsd_decimal
 rasqal_new_xsd_decimal
 rasqal_xsd_decimal
+rasqal_xsd_decimal_abs
 rasqal_xsd_decimal_add
 rasqal_xsd_decimal_as_counted_string
 rasqal_xsd_decimal_as_string
+rasqal_xsd_decimal_ceil
 rasqal_xsd_decimal_compare
 rasqal_xsd_decimal_divide
 rasqal_xsd_decimal_equals
+rasqal_xsd_decimal_floor
 rasqal_xsd_decimal_get_double
 rasqal_xsd_decimal_is_zero
 rasqal_xsd_decimal_multiply
+rasqal_xsd_decimal_negate
 rasqal_xsd_decimal_print
+rasqal_xsd_decimal_round
 rasqal_xsd_decimal_set_double
 rasqal_xsd_decimal_set_long
 rasqal_xsd_decimal_set_string
 rasqal_xsd_decimal_subtract
-rasqal_xsd_decimal_negate
 </SECTION>
 
 

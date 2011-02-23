@@ -50,8 +50,8 @@
 	Update all expression callers.
 
 	(rasqal_expression_evaluate_abs, rasqal_expression_evaluate_round,
-	rasqal_expression_evaluate_ceil
-	,rasqal_expression_evaluate_floor): Added.
+	rasqal_expression_evaluate_ceil,
+	rasqal_expression_evaluate_floor): Added.
 
 	* src/rasqal_internal.h, src/rasqal_literal.c: Add abs, round,
 	ceil, floor methods to literal class.
@@ -243,7 +243,7 @@
 
 	Previously all FILTER GPs were merged with Basic GP and then
 	executed as part of the triples rowsource.  This fails when FILTER
-	is used alone like ... ASK WHERE { FILTER TRUE } which returns
+	is used alone like ... ASK WHERE { FILTER ( TRUE ) } which returns
 	TRUE.
 
 	(rasqal_new_filter_algebra_node): May now take NULL node.
@@ -293,8 +293,7 @@
 2011-02-12  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_expr_datetimes.c, src/rasqal_expr_evaluate.c,
-	src/rasqal_expr_strings.c:
-	Replace literal NULL test with error_p
+	src/rasqal_expr_strings.c: Replace literal NULL test with error_p
 	return tests
 
 	* src/rasqal_literal.c:
@@ -356,8 +355,16 @@
 	src/rasqal_expr_numerics.c, src/rasqal_internal.h,
 	src/rasqal_query_write.c, src/sparql_lexer.l, src/sparql_parser.y:
 	
-	Add RASQAL_EXPR_RAND for SPARQL 1.1 RAND() rasqal_op gains RASQAL_EXPR_RAND rasqal_world gains seed field.  Check for rand_r and use it if available.  (rasqal_expression_evaluate_rand): Added TODO: Initialise seed with srandom() or with assignment (if srand_r
-	is present) and provide API to do so too.
+	Add RASQAL_EXPR_RAND for SPARQL 1.1 RAND()
+
+	rasqal_op gains RASQAL_EXPR_RAND
+
+	rasqal_world gains seed field.  Check for rand_r and use it if
+	available.
+
+	(rasqal_expression_evaluate_rand): Added TODO: Initialise seed
+	with srandom() or with assignment (if srand_r is present) and
+	provide API to do so too.
 
 2011-02-10  Dave Beckett <dave@dajobe.org>
 
@@ -472,7 +479,7 @@
 	raptor_syntax_description mime_types_count and uri_strings_count
 	initialization after commit e8d0043.
 
-	he counts are initialized by raptor_syntax_description_validate().
+	The counts are initialized by raptor_syntax_description_validate().
 	Changed mime_types/uri_strings arrays to be implicitly sized.
 
 2011-02-06  Dave Beckett <dave@dajobe.org>
