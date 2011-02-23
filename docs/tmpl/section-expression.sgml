@@ -37,6 +37,17 @@ constants and #rasqal_variable values bound in some
 @RASQAL_EXPR_FLAG_DISTINCT: 
 @RASQAL_EXPR_FLAG_AGGREGATE: 
 
+<!-- ##### STRUCT rasqal_evaluation_context ##### -->
+<para>
+
+</para>
+
+@world: 
+@base_uri: 
+@locator: 
+@flags: 
+@seed: 
+
 <!-- ##### ENUM rasqal_op ##### -->
 <para>
 
