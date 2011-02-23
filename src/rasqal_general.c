@@ -444,7 +444,7 @@ rasqal_get_query_language_factory(rasqal_world *world, const char *name,
  **/
 const raptor_syntax_description*
 rasqal_world_get_query_language_description(rasqal_world* world,
-                                                  unsigned int counter)
+                                            unsigned int counter)
 {
   rasqal_query_language_factory *factory;
 
