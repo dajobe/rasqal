@@ -8,28 +8,71 @@
 
   <h1>Rasqal RDF Query Library - Release Notes</h1>
 
-<h2 id="rel0_9_25"><a name="rel0_9_25">Rasqal 0.9.25 Changes</a></h2>
+<h2 id="rel0_9_25"><a name="rel0_9_25">Rasqal 0.9.25 changes</a></h2>
 
-<p>Not yet released.
+<p>Issues Fixed:</p>
+<ul>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=421">Issue #0000421</a>: Use raptor_syntax_description_validate() to validate Query Results formats</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=427">Issue #0000427</a>: INSERT/DELETE with &quot;&quot;&quot; quoting doesn't quite work</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=428">Issue #0000428</a>: @lang doesn't work with &quot;&quot;&quot;:</li>
+</ul>
+
+
+<h3>SPARQL 1.1 Query draft language changes</h3>
+
+<p>Added support for SPARQL 1.1 numeric functions <code>ABS()</code>,
+<code>ROUND()</code>, <code>CEIL()</code> and <code>FLOOR()</code>.
 </p>
 
-<!-- Updated to end of 2011-02-21 -->
+<p>Added support for SPARQL 1.1 <code>BIND(expr as ?var)</code>
+using existing <code>RASQAL_GRAPH_PATTERN_OPERATOR_LET</code>.
+</p>
 
-<h3>Datatype Changes</h3>
+<p>Added support for SPARQL 1.1 <code>CLEAR</code> and
+<code>DROP</code> to use optional <code>SILENT</code> keyword.
+</p>
 
-<p><code>rasqal_xsd_format_double()</code> now correctly formats
-numbers that have no trailing 0s.
+<p>Added support for SPARQL 1.1 <code>RAND()</code> along with a
+query API feature for user setting of the random seed.</p>
+
+<p>Added support for SPARQL 1.1 TZ()</p>
+
+<p>Fixed SPARQL 1.1 <code>ENCODE_FOR_URI()</code> to not preserve
+language and datatype of input.
+</p>
+
+<p>Fixed support for SPARQL 1.1 <code>BNODE()</code> to work with no
+argument given.
+</p>
+
+<p>Fixed SPARQL 1.1 <code>GROUP BY</code> to allow an optional
+<code>AS ?var</code>.
+</p>
+
+<p>Fixed support for """-quoted and '''-quoted strings not over-quoting
+and adding support for optional language.
+Fixes
+<a href="http://bugs.librdf.org/mantis/view.php?id=427">Issue #0000427</a>
+and
+<a href="http://bugs.librdf.org/mantis/view.php?id=428">Issue #0000428</a>.
 </p>
 
 
-<h3>Datetime Changes</h3>
+<h3>DateTime class changes</h3>
 
 <p>Added <code>rasqal_xsd_datetime_get_tz_as_counted_string()</code>
 to get back the timezone string component of a datetime.
 </p>
 
 
-<h3>Decimal Class Changes</h3>
+<h3>Datatype class changes</h3>
+
+<p><code>rasqal_xsd_format_double()</code> now correctly formats
+numbers that have no trailing 0s.
+</p>
+
+
+<h3>Decimal class changes</h3>
 
 <p>Added <code>rasqal_xsd_decimal_abs()</code>,
 <code>rasqal_xsd_decimal_round()</code>,
@@ -39,20 +82,22 @@ ROUND(), CEIL() and FLOOR() functions for decimals.
 </p>
 
 
-<h3>Expression Changes</h3>
+<h3>Expression class changes</h3>
 
 <p>rasqal_op gains
 <code>RASQAL_EXPR_ABS</code>,
 <code>RASQAL_EXPR_ROUND</code>,
 <code>RASQAL_EXPR_CEIL</code> and
-<code>RASQAL_EXPR_FLOOR</code>.
+<code>RASQAL_EXPR_FLOOR</code> for numeric operations,
+<code>RASQAL_EXPR_RAND</code> for SPARQL 1.1 <code>RAND()</code>
+and <code>RASQAL_EXPR_TZ</code> for SPARQL 1.1 TZ() timezone accessor.
 </p>
 
 <p>Added an evaluation context structure
 <code>rasqal_evaluation_context</code> for the information needed to
 evaluate any <code>rasqal_expression</code> tree.  This makes
 expression evaluation independent of a query, but still tied to a
-rasqal world and (via variables) a variables table. Added constructor
+rasqal world and (via variables) a variables table.  Added constructor
 <code>rasqal_new_evaluation_context()</code> to set the locator and
 flags, destructor <code>rasqal_free_evaluation_context()</code>,
 method <code>rasqal_evaluation_context_set_base_uri()</code> to
@@ -65,42 +110,42 @@ to set the random seed for the evaluation.
 expression and an evaluation context.
 </p>
 
-<p><code>rasqal_expression_evaluate()</code> is deprecated for the above.
+<p><code>rasqal_expression_evaluate()</code> is deprecated for the
+above.
 </p>
 
-<p>Added <code>RASQAL_EXPR_RAND</code> for SPARQL 1.1
-<code>RAND()</code> including evaluation.
+<p>Added new method
+<code>rasqal_xsd_datetime_get_tz_as_counted_string()</code> for
+executing <code>RASQAL_EXPR_TZ</code> for SPARQL 1.1 TZ().
 </p>
 
-<p>Added <code>RASQAL_EXPR_TZ</code> for SPARQL 1.1 TZ() including
-evaluation using new
-<code>rasqal_xsd_datetime_get_tz_as_counted_string()</code>
-method.</p>
 
+<h3>Query Engine changes</h3>
 
-<h3>Query Engine Changes</h3>
-
-<p>Initialise seed for RAND() from a mixture of system sources or
-from value set by user with new query feature
-<code>RASQAL_FEATURE_RAND_SEED</code>.  Uses
+<p>Initialise seed for RAND() from either a mixture of system sources
+or from a value set by user.  The user value can be set with new
+query feature <code>RASQAL_FEATURE_RAND_SEED</code>.  Uses
 <code>rasqal_evaluation_context_set_rand_seed()</code> on the query's
 internal evaluation context.
 </p>
 
-<p>Make <code>rasqal_query_set_store_results() </code> actually work
-after a query prepare.
+<p>Enable <code>rasqal_query_set_store_results()</code> to actually
+work after a query prepare.
 </p>
 
-<p>Handle evaluation of FILTER over an empty inner graph pattern
-like in <code>ASK WHERE { FILTER ( TRUE ) }</code>
+<p>Handle evaluation of <code>FILTER</code> over an empty inner graph
+pattern such as in a query like <code>ASK WHERE { FILTER ( TRUE ) }</code>
 </p>
 
-<p>Ignore errors in executing SPARQL 1.1 project AS Variables.</p>
+<p>Ignore errors in executing SPARQL 1.1 project expression
+<code>AS</code> variables.
+</p>
 
-<p><code>rasqal_literal_as_boolean()</code>,
+<p>Update <code>rasqal_literal_as_boolean()</code>,
 <code>rasqal_literal_as_integer</code> and
-<code>rasqal_literal_as_floating</code> evaluating NULL is a type
-error not an assertion failure or abort (in debug mode).
+<code>rasqal_literal_as_floating</code> when evaluating NULL to
+return a type error not an assertion failure or abort (in debug
+mode).
 </p>
 
 <p>Change internal error handling to separate a NULL return from an
@@ -111,7 +156,8 @@ STRLANG() on non-simple literals.
 </p>
 
 <p>Updated to use <code>rasqal_evaluation_context</code> for
-expression evaluation.</p>
+expression evaluation.
+</p>
 
 <p>Handle support executing empty graph patterns such as in queries
 like <code>SELECT (expr AS ?var) WHERE {}</code> which just evaluates
@@ -119,66 +165,24 @@ like <code>SELECT (expr AS ?var) WHERE {}</code> which just evaluates
 </p>
 
 
-<h3>Query Result Changes</h3>
+<h3>Query Result Formatter class changes</h3>
 
 <p>Handle NULL values for RDF and Tables results.
 </p>
 
 
-<h3>SPARQL Changes</h3>
+<h3>Other changes</h3>
 
-<p>Added support for SPARQL 1.1 numeric functions <code>ABS()</code>,
-<code>ROUND()</code>, <code>CEIL()</code> and <code>FLOOR()</code>.
+<p>Added <code>rasqal_world_get_query_language_description()</code>
+to get a description of a query language replacing and deprecating
+<code>rasqal_languages_enumerate()</code>.
 </p>
 
-
-<p>Added support for SPARQL 1.1 <code>BIND(expr as ?var)</code>
-using existing <code>RASQAL_GRAPH_PATTERN_OPERATOR_LET</code>.
+<p>More fixes to check-query test script.
 </p>
 
-<p>Fixed support for SPARQL 1.1 <code>BNODE()</code> to work with no
-argument.
+<p>Make GPL V2 or newer explicit in LICENSE.html.
 </p>
-
-
-<p>Fixed support for """-quoted and '''-quoted strings not over-quoting
-and adding support for optional language.
-Fixes
-<a href="http://bugs.librdf.org/mantis/view.php?id=427">Issue #0000427</a>
-and
-<a href="http://bugs.librdf.org/mantis/view.php?id=428">Issue #0000428</a>.
-</p>
-
-<p>Added support for SPARQL 1.1 CLEAR and DROP to use optional SILENT.
-</p>
-
-<p>Added support for SPARQL 1.1 RAND() along with a query API feature
-for user setting of the random seed.</p>
-
-<p>Added support for SPARQL 1.1 TZ()</p>
-
-<p>Updated SPARQL 1.1 <code>ENCODE_FOR_URI()</code> to not preserve
-language and datatype of input.
-</p>
-
-<p>
-Allow SPARQL 1.1 <code>GROUP BY</code> to have an optional
-<code>AS ?var</code>.
-</p>
-
-
-<h3>Internal Changes</h3>
-
-<p>Removed remaining raptor_syntax_description mime_types_count and
-uri_strings_count initialization.
-</p>
-
-
-<h3>Other Changes</h3>
-
-<p>More fixes to check-query test script.</p>
-
-<p>Make GPL V2 or newer explicit in LICENSE.html.</p>
 
 
 

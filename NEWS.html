@@ -9,9 +9,24 @@
 <h1>Rasqal RDF Query Library - News</h1>
 
 
-<h2 id="D2011-02-XX-V0.9.25">2011-02-XX Rasqal Version 0.9.25 Released</h2>
+<h2 id="D2011-02-22-V0.9.25">2011-02-22 Rasqal Version 0.9.25 Released</h2>
 
-<p>Not yet released.
+<p>
+Added SPARQL 1.1 query draft support for: <code>ABS()</code>, <code>CEIL()</code>, <code>FLOOR()</code> and <code>RAND()</code>, <code>ROUND()</code> and <code>TZ()</code><br />
+Added SPARQL 1.1 query draft support for <code>BIND(</code><em>expr</em><code> AS ?</code><em>var</em><code>)</code><br />
+Fixed SPARQL 1.1 update draft <code>SILENT</code> with <code>DROP</code> and <code>CLEAR</code><br />
+Fixed SPARQL 1.1 query draft <code>ENCODE_FOR_URI()</code> to not preserve language and datatype of input<br />
+Fixed SPARQL 1.1 query draft <code>GROUP BY</code> to allow an optional <code>AS ?var</code><br />
+Added expression evaluation context class to use with evaluating expressions<br />
+Fixed triple-quoted literals and their use with language and datatypes<br />
+Added support for initialising random seed from system sources or user value from API<br />
+Fixed several query execution cases<br />
+Query engine now handles NULL as a valid return value separate from an error<br />
+Made <code>rasqal_query_set_store_results() </code> actually work<br />
+Fixed Issues
+<a href="http://bugs.librdf.org/mantis/view.php?id=421">#0000421</a>,
+<a href="http://bugs.librdf.org/mantis/view.php?id=427">#0000427</a> and
+<a href="http://bugs.librdf.org/mantis/view.php?id=428">#0000428</a>.
 </p>
 
 
