@@ -110,5 +110,5 @@
 0.9.24	-	-	-	0.9.25	int	rasqal_evaluation_context_set_base_uri	(rasqal_evaluation_context* eval_context, raptor_uri *base_uri)	-
 0.9.24	-	-	-	0.9.25	int	rasqal_evaluation_context_set_rand_seed	(rasqal_evaluation_context* eval_context, unsigned int seed)	-
 0.9.24	-	-	-	0.9.25	rasqal_literal*	rasqal_expression_evaluate2	(rasqal_expression *e, rasqal_evaluation_context* eval_context, int *error_p)	-
-0.9.24	-	-	-	0.9.25	const raptor_syntax_description*	rasqal_world_get_query_language_description	(rasqal_world* world, unsigned int counter)	-	-
+0.9.24	-	-	-	0.9.25	const raptor_syntax_description*	rasqal_world_get_query_language_description	(rasqal_world* world, unsigned int counter)	-
 0.9.24	type	-	-	0.9.25	type	rasqal_evaluation_context	-	Evaluation context for rasqal_expression_evaluate2()
