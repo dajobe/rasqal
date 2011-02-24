@@ -710,6 +710,10 @@ int
 rasqal_xsd_decimal_round(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
 {
   int rc = 0;
+#ifdef RASQAL_DECIMAL_GMP
+  mpf_t b;
+  mpf_t c;
+#endif
   
   rasqal_xsd_decimal_clear_string(result);
   
@@ -720,7 +724,16 @@ rasqal_xsd_decimal_round(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
   mpfr_round(result->raw, a->raw);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
-  mpf_round(result->raw, a->raw);
+  /* GMP has no mpf_round so use result := floor(a + 0.5) */
+  mpf_init2(b, a->precision_bits);
+  mpf_init2(c, a->precision_bits);
+
+  mpf_set_d(b, 0.5);
+  mpf_add(c, a->raw, b);
+  mpf_floor(result->raw, c);
+
+  mpf_clear(b);
+  mpf_clear(c);
 #endif
 
   return rc;
