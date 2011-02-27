@@ -203,7 +203,7 @@ free_uri_applies(sparql_uri_applies* ua)
 %token STRLEN SUBSTR UCASE LCASE STRSTARTS STRENDS CONTAINS ENCODE_FOR_URI CONCAT
 %token BIND
 %token ABS ROUND CEIL FLOOR RAND
-
+%token MD5 SHA1 SHA224 SHA256 SHA384 SHA512
 /* LAQRS */
 %token EXPLAIN LET
 %token CURRENT_DATETIME NOW FROM_UNIXTIME TO_UNIXTIME
@@ -4630,6 +4630,48 @@ BuiltInCall: STR '(' Expression ')'
                                  RASQAL_EXPR_ROUND, $3);
   if(!$$)
     YYERROR_MSG("BuiltInCall 7i: cannot create expr");
+}
+| MD5 '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world, 
+                                 RASQAL_EXPR_MD5, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 7j: cannot create expr");
+}
+| SHA1 '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world, 
+                                 RASQAL_EXPR_SHA1, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 7k: cannot create expr");
+}
+| SHA224 '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world, 
+                                 RASQAL_EXPR_SHA224, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 7l: cannot create expr");
+}
+| SHA256 '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world, 
+                                 RASQAL_EXPR_SHA256, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 7m: cannot create expr");
+}
+| SHA384 '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world, 
+                                 RASQAL_EXPR_SHA384, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 7n: cannot create expr");
+}
+| SHA512 '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world, 
+                                 RASQAL_EXPR_SHA512, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 7o: cannot create expr");
 }
 | StringExpression
 {

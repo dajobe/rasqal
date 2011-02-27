@@ -310,9 +310,9 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
     char c = output[i];
 
     hex = (c & 0xf0) >> 4;
-    *p++ = (hex < 10) ? ('0' + hex) : ('A' + hex - 10);
+    *p++ = (hex < 10) ? ('0' + hex) : ('a' + hex - 10);
     hex = (c & 0x0f);
-    *p++ = (hex < 10) ? ('0' + hex) : ('A' + hex - 10);
+    *p++ = (hex < 10) ? ('0' + hex) : ('a' + hex - 10);
   }
   *p = '\0';
 
