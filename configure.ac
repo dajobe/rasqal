@@ -553,7 +553,7 @@ AC_ARG_WITH(mhash,
 
 oCPPFLAGS="$CPPFLAGS"
 oLIBS="$LIBS"
-if test "Xmhash_dir" != "X" ; then
+if test "X$mhash_dir" != "X" ; then
   CPPFLAGS="$CPPFLAGS -I$mhash_dir/include"
   LIBS="$LIBS -L$mhash_dir/lib"
 fi
