@@ -106,9 +106,6 @@ static struct option long_options[] =
   {"exec", 1, 0, 'e'},
   {"feature", 1, 0, 'f'},
   {"format", 1, 0, 'F'},
-#ifdef RASQAL_INTERNAL
-  {"engine", 1, 0, 'g'},
-#endif
   {"named", 1, 0, 'G'},
   {"help", 0, 0, 'h'},
   {"input", 1, 0, 'i'},
@@ -760,7 +757,6 @@ main(int argc, char *argv[])
   raptor_world* raptor_world_ptr = NULL;
 #ifdef RASQAL_INTERNAL
   int store_results = -1;
-  const rasqal_query_execution_factory* engine = NULL;
 #endif
   char* data_graph_parser_name = NULL;
   raptor_iostream* iostr = NULL;
@@ -1081,12 +1077,6 @@ main(int argc, char *argv[])
         break;
 #endif
 
-#ifdef RASQAL_INTERNAL
-      case 'g':
-        engine = rasqal_query_get_engine_by_name(optarg);
-        break;
-#endif
-
     }
     
   }
@@ -1196,9 +1186,6 @@ main(int argc, char *argv[])
              query_output_format_labels[i][1]);
     puts(HELP_TEXT("f FEATURE(=VALUE)", "feature FEATURE(=VALUE)", HELP_PAD "Set query features" HELP_PAD "Use `-f help' for a list of valid features"));
     puts(HELP_TEXT("F", "format NAME       ", "Set data source format name (default: guess)"));
-#ifdef RASQAL_INTERNAL
-    puts(HELP_TEXT("g", "engine NAME       ", "INTERNAL: Pick execution engine NAME"));
-#endif
     puts(HELP_TEXT("G", "named URI         ", "RDF named graph data source URI"));
     puts(HELP_TEXT("h", "help              ", "Print this help, then exit"));
     puts(HELP_TEXT("n", "dryrun            ", "Prepare but do not run the query"));
@@ -1405,11 +1392,7 @@ main(int argc, char *argv[])
       roqet_print_query(rq, raptor_world_ptr, output_format, base_uri);
     
     if(!dryrun) {
-#ifdef RASQAL_INTERNAL
-      results = rasqal_query_execute_with_engine(rq, engine);
-#else
       results = rasqal_query_execute(rq);
-#endif
     }
 
   }
