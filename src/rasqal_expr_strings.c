@@ -265,6 +265,11 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
   if(dt_uri)
     dt_uri = raptor_uri_copy(dt_uri);
 
+  rasqal_free_literal(l1);
+  rasqal_free_literal(l2);
+  if(l3)
+    rasqal_free_literal(l3);
+
   /* after this new_s, new_lang and dt_uri become owned by result */
   return rasqal_new_string_literal(world, new_s, new_lang, dt_uri,
                                    /* qname */ NULL);
@@ -354,6 +359,8 @@ rasqal_expression_evaluate_set_case(rasqal_expression *e,
   dt_uri = l1->datatype;
   if(dt_uri)
     dt_uri = raptor_uri_copy(dt_uri);
+
+  rasqal_free_literal(l1);
 
   /* after this new_s, new_lang and dt_uri become owned by result */
   return rasqal_new_string_literal(world, new_s, new_lang, dt_uri,
