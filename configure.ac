@@ -777,21 +777,6 @@ AM_CONDITIONAL(RASQAL_QUERY_LAQRS, test $laqrs_query_language = yes)
 AM_CONDITIONAL(RASQAL_QUERY_SPARQL, test $sparql_query_language = yes)
 
 
-AC_MSG_CHECKING(query engine version)
-default_query_engine_version=2
-query_engine_version=$default_query_engine_version
-AC_ARG_WITH(query-engine-version, [  --with-query-engine-version=VERSION   Select default query engine (default 2)], query_engine_version="$withval", query_engine_version=$default_query_engine_version) 
-if test $query_engine_version = 1; then
-  AC_MSG_WARN(Using old query engine.  NOTE: The choice of query engine V1 will go away)
-elif test $query_engine_version = 2; then
-  :
-else
-  AC_MSG_WARN(No such query engine version $query_engine_version - using default version $default_query_engine_version)
-  query_engine_version=$default_query_engine_version
-fi
-AC_MSG_RESULT($query_engine_version)
-AC_DEFINE_UNQUOTED(RASQAL_QUERY_ENGINE_VERSION, $query_engine_version, [Query engine version])
-
 
 RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS `$PKG_CONFIG raptor2 --cflags`"
 RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$PKG_CONFIG raptor2 --libs`"
@@ -1098,5 +1083,4 @@ Rasqal build summary:
   Decimal library               : $decimal_library
   Regex library                 : $regex_library
   Message digest library        : $digest_library
-  Query engine                  : V$query_engine_version
 ])

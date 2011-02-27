@@ -1527,10 +1527,6 @@ typedef enum {
 } rasqal_engine_error;
 
 
-#ifdef RASQAL_DEBUG
-const char* rasqal_engine_error_as_string(rasqal_engine_error error);
-#endif
-
 /*
  * A query execution engine factory
  *
@@ -1587,9 +1583,11 @@ struct rasqal_query_execution_factory_s {
 
 
 /* rasqal_engine.c */
+#ifdef RASQAL_DEBUG
+const char* rasqal_engine_get_parts_string(rasqal_triple_parts parts);
+const char* rasqal_engine_error_as_string(rasqal_engine_error error);
+#endif
 
-/* Original Rasqal 0.9.16 query engine executing over graph patterns */
-extern const rasqal_query_execution_factory rasqal_query_engine_1;
 
 /* rasqal_engine_sort.c */
 rasqal_map* rasqal_engine_new_rowsort_map(int is_distinct, int compare_flags, raptor_sequence* order_conditions_sequence);
@@ -1597,9 +1595,6 @@ int rasqal_engine_rowsort_map_add_row(rasqal_map* map, rasqal_row* row);
 raptor_sequence* rasqal_engine_rowsort_map_to_sequence(rasqal_map* map, raptor_sequence* seq);
 int rasqal_engine_rowsort_calculate_order_values(rasqal_query* query, rasqal_row* row);
 
-#ifdef RASQAL_DEBUG
-const char* rasqal_engine_get_parts_string(rasqal_triple_parts parts);
-#endif
 
 /* rasqal_engine_algebra.c */
 

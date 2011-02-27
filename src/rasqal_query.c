@@ -1268,25 +1268,14 @@ rasqal_query_get_engine_by_name(const char* name)
 {
   const rasqal_query_execution_factory* engine;
 
-#if RASQAL_QUERY_ENGINE_VERSION == 1
-  engine = &rasqal_query_engine_1;
-#else
+  /* default */
   engine = &rasqal_query_engine_algebra;
-#endif
-
-#ifdef RASQAL_DEBUG
-  if(1) {
-    char* n = getenv("RASQAL_DEBUG_ENGINE");
-    if(n)
-      name = n;
-  }
-#endif
 
   if(name) {
-    if(!strcmp(name, "1") || !strcmp(name, "original"))
-      engine = &rasqal_query_engine_1;
-    else if(!strcmp(name, "2") || !strcmp(name, "algebra"))
+    if(!strcmp(name, "2") || !strcmp(name, "algebra"))
       engine = &rasqal_query_engine_algebra;
+    else
+      engine = NULL;
   }
 
   return engine;
