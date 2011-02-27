@@ -1534,6 +1534,15 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       result = rasqal_expression_evaluate_floor(e, eval_context, error_p);
       break;
 
+    case RASQAL_EXPR_MD5:
+    case RASQAL_EXPR_SHA1:
+    case RASQAL_EXPR_SHA224:
+    case RASQAL_EXPR_SHA256:
+    case RASQAL_EXPR_SHA384:
+    case RASQAL_EXPR_SHA512:
+      result = rasqal_expression_evaluate_digest(e, eval_context, error_p);
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL3("Unknown operation %s (%d)",

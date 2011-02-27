@@ -245,3 +245,88 @@ rasqal_expression_evaluate_rand(rasqal_expression *e,
 
   return rasqal_new_double_literal(world, d);
 }
+
+
+/* 
+ * rasqal_expression_evaluate_digest:
+ * @e: The expression to evaluate.
+ * @eval_context: Evaluation context
+ *
+ * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_MD5, RASQAL_EXPR_SHA1,
+ * RASQAL_EXPR_SHA224, RASQAL_EXPR_SHA256, RASQAL_EXPR_SHA384,
+ * RASQAL_EXPR_SHA512 (string) expression.
+ *
+ * Return value: A #rasqal_literal xsd:string value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_digest(rasqal_expression *e,
+                                  rasqal_evaluation_context *eval_context,
+                                  int *error_p)
+{
+  rasqal_world* world = eval_context->world;
+  rasqal_digest_type md_type = RASQAL_DIGEST_NONE;
+  rasqal_literal* l1;
+  const unsigned char *s;
+  unsigned char *new_s;
+  size_t len;
+  int output_len;
+  const unsigned char *output = NULL;
+  unsigned int i;
+  unsigned char* p;
+  
+  /* Turn EXPR enum into DIGEST enum - we know they are ordered the same */
+  if(e->op >= RASQAL_EXPR_MD5 && e->op <= RASQAL_EXPR_SHA512)
+    md_type = (rasqal_digest_type)(e->op - RASQAL_EXPR_MD5 + RASQAL_DIGEST_MD5);
+  else
+    return NULL;
+
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
+  if(*error_p || !l1)
+    goto failed;
+  
+  s = rasqal_literal_as_counted_string(l1, &len, eval_context->flags, error_p);
+  if(*error_p)
+    goto failed;
+
+  output_len = rasqal_digest_buffer(md_type, NULL, NULL, 0);
+  if(output_len < 0)
+    return NULL;
+
+  output = (unsigned char *)RASQAL_MALLOC(char, output_len);
+  if(!output)
+    return NULL;
+  
+  output_len = rasqal_digest_buffer(md_type, output, s, len);
+  if(output_len < 0)
+    goto failed;
+
+  new_s = (unsigned char*)RASQAL_MALLOC(cstring, (output_len * 2) + 1);
+  if(!new_s)
+    goto failed;
+  
+  p = new_s;
+  for(i = 0; i < (unsigned int)output_len; i++) {
+    unsigned short hex;
+    char c = output[i];
+
+    hex = (c & 0xf0) >> 4;
+    *p++ = (hex < 10) ? ('0' + hex) : ('A' + hex - 10);
+    hex = (c & 0x0f);
+    *p++ = (hex < 10) ? ('0' + hex) : ('A' + hex - 10);
+  }
+  *p = '\0';
+
+  RASQAL_FREE(char, output);
+  rasqal_free_literal(l1);
+
+  /* after this new_s becomes owned by result */
+  return rasqal_new_string_literal(world, new_s, NULL, NULL, NULL);
+  
+  failed:
+  if(output)
+    RASQAL_FREE(char, output);
+  if(l1)
+    rasqal_free_literal(l1);
+  
+  return NULL;
+}

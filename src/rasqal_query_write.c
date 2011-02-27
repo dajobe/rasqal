@@ -290,7 +290,13 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "ABS",
   "ROUND",
   "CEIL",
-  "FLOOR"
+  "FLOOR",
+  "MD5",
+  "SHA1",
+  "SHA224",
+  "SHA256",
+  "SHA384",
+  "SHA512",
 };
 
 
@@ -398,6 +404,12 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_ROUND:
     case RASQAL_EXPR_CEIL:
     case RASQAL_EXPR_FLOOR:
+    case RASQAL_EXPR_MD5:
+    case RASQAL_EXPR_SHA1:
+    case RASQAL_EXPR_SHA224:
+    case RASQAL_EXPR_SHA256:
+    case RASQAL_EXPR_SHA384:
+    case RASQAL_EXPR_SHA512:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
