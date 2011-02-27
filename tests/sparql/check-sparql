@@ -499,7 +499,8 @@ sub run_test {
     # graph
     open(OUT, ">result.out")
       or die "$program: Cannot create pipe to result.out - $!\n";
-    print OUT $results->{graph_ntriples};
+    print OUT $results->{graph_ntriples}
+      if exists $results->{graph_ntriples};
     close(OUT);
   }   
 
