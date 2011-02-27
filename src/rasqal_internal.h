@@ -1638,6 +1638,40 @@ int rasqal_triples_sequence_set_origin(raptor_sequence* dest_seq, raptor_sequenc
 /* rasqal_random.c */
 unsigned int rasqal_random_get_system_seed(rasqal_world* world);
 
+/*
+ * rasqal_digest_type:
+ * RASQAL_DIGEST_NONE: No digest
+ * RASQAL_DIGEST_MD5: MD5
+ * RASQAL_DIGEST_SHA1: SHA1
+ * RASQAL_DIGEST_SHA224: SHA224
+ * RASQAL_DIGEST_SHA256: SHA256
+ * RASQAL_DIGEST_SHA384: SHA384
+ * RASQAL_DIGEST_SHA512: SHA512
+ * RASQAL_DIGEST_LAST: Internal
+ *
+ * INTERNAL - Message digest algorithm for rasqal_digest_buffer()
+*/
+typedef enum {
+  RASQAL_DIGEST_NONE,
+  RASQAL_DIGEST_MD5,
+  RASQAL_DIGEST_SHA1,
+  RASQAL_DIGEST_SHA224,
+  RASQAL_DIGEST_SHA256,
+  RASQAL_DIGEST_SHA384,
+  RASQAL_DIGEST_SHA512,
+  RASQAL_DIGEST_LAST = RASQAL_DIGEST_SHA512
+} rasqal_digest_type;
+
+int rasqal_digest_buffer(rasqal_digest_type type, const unsigned char *output, const unsigned char * const input, size_t len);
+#ifdef RASQAL_DIGEST_INTERNAL
+
+int rasqal_digest_sha1_buffer(const unsigned char *output,
+                              const unsigned char *input, size_t len);
+int rasqal_digest_md5_buffer(const unsigned char *output,
+                             const unsigned char *input, size_t len);
+#endif
+
+
 /* end of RASQAL_INTERNAL */
 #endif
 

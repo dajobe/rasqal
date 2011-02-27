@@ -522,18 +522,115 @@ for regex_library_name in $regex_library posix pcre; do
 esac
 done
 
+
+
 AC_MSG_CHECKING(regex library to use)
-result=
+regex_library=
 if test $need_regex_pcre = 1; then
-  result=pcre
+  regex_library=pcre
 elif test $need_regex_posix = 1; then
-  result=posix
+  regex_library=posix
 else
-  result=none
+  regex_library=none
   AC_DEFINE(RASQAL_REGEX_NONE, 1, [Use no regex library])
   AC_MSG_WARN(No regex library available - please install pcre or a POSIX regex library)
 fi
-AC_MSG_RESULT($result)
+AC_MSG_RESULT($regex_library)
+
+
+dnl Checks for message digest libraries
+have_digest_mhash=no
+have_digest_gcrypt=no
+dnl always available
+have_digest_internal=yes
+need_digest_mhash=no
+need_digest_gcrypt=no
+need_digest_internal=no
+
+AC_ARG_WITH(mhash,
+        [  --with-mhash=DIR  mhash installation prefix (no default)],
+	[mhash_dir=$withval], [mhash_dir=""])
+
+oCPPFLAGS="$CPPFLAGS"
+oLIBS="$LIBS"
+if test "Xmhash_dir" != "X" ; then
+  CPPFLAGS="$CPPFLAGS -I$mhash_dir/include"
+  LIBS="$LIBS -L$mhash_dir/lib"
+fi
+LIBS="$LIBS -lmhash"
+
+AC_CHECK_HEADERS(mhash.h)
+
+AC_MSG_CHECKING(for mhash)
+
+AC_TRY_LINK([
+#undef PACKAGE
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef VERSION
+#include <mhash.h>],
+[ MHASH m; mhash_init(MHASH_MD5); ],
+  have_digest_mhash=yes,
+  have_digest_mhash=no)
+
+CPPFLAGS="$LIBRDF_CPPFLAGS"
+LIBS="$oLIBS"
+
+AC_MSG_RESULT($have_digest_mhash)
+
+
+AC_ARG_WITH(digest-library, [  --with-digest-library=NAME   Use message digest library - mhash, gcrypt, internal (auto)], digest_library="$withval", digest_library="")
+
+for digest_library_name in $digest_library mhash gcrypt internal; do
+  case $digest_library_name in
+    mhash)
+      if test $have_digest_mhash = yes; then
+        need_digest_mhash=yes
+        AC_DEFINE(RASQAL_DIGEST_MHASH, 1, [Use mhash library for message digests])
+        break
+      fi
+      ;;
+
+    gcrypt)
+      if test $have_digest_gcrypt = yes; then
+        need_digest_gcrypt=yes
+        AC_DEFINE(RASQAL_DIGEST_GCRYPT, 1, [Use gcrypt library for message digests])
+        break
+      fi
+      ;;
+
+    internal)
+      need_digest_internal=yes
+      AC_DEFINE(RASQAL_DIGEST_INTERNAL, 1, [Use internal routines for message digests])
+      break
+      ;;
+
+    *)
+      AC_MSG_ERROR(No such message digest library $digest_library_name)
+      ;;
+esac
+done
+
+AC_MSG_CHECKING(message digest library to use)
+digest_library=
+if test $need_digest_mhash = yes; then
+  digest_library=mhash
+elif test $need_digest_gcrypt = yes; then
+  digest_library=gcrypt
+elif test $need_digest_internal = yes; then
+  digest_library=internal
+else
+  digest_library=none
+  AC_DEFINE(RASQAL_DIGEST_NONE, 1, [Use no message digest library])
+  AC_MSG_WARN(No message digest library selected - no message digest support will work)
+fi
+AC_MSG_RESULT($digest_library)
+
+AM_CONDITIONAL(RASQAL_DIGEST_INTERNAL, test $digest_library = internal)
+
 
 
 have_libxml=0
@@ -708,6 +805,22 @@ if test $need_regex_pcre = 1; then
 
   PKGCONFIG_CFLAGS="$PKGCONFIG_CFLAGS $C"
   PKGCONFIG_LIBS="$PKGCONFIG_LIBS $L"
+  unset C
+  unset L
+fi
+
+
+if test $need_digest_mhash = yes; then
+  C=""
+  L="-lmhash"
+  if test "Xmhash_dir" != "X" ; then
+    C="-I$mhash_dir/include"
+    L="-L$mhash_dir/lib $L"
+  fi
+
+  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $C"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
+
   unset C
   unset L
 fi
@@ -983,5 +1096,7 @@ Rasqal build summary:
   RDF query languages enabled   :$rdf_query_languages_enabled
   Triples source                : $triples_source_library
   Decimal library               : $decimal_library
+  Regex library                 : $regex_library
+  Message digest library        : $digest_library
   Query engine                  : V$query_engine_version
 ])

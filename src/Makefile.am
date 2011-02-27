@@ -100,7 +100,8 @@ rasqal_triple.c rasqal_data_graph.c rasqal_prefix.c \
 rasqal_solution_modifier.c rasqal_projection.c rasqal_bindings.c \
 rasqal_service.c \
 rasqal_dataset.c \
-rasqal_random.c
+rasqal_random.c \
+rasqal_digest.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
@@ -114,6 +115,10 @@ endif
 if STRCASECMP
 librasqal_la_SOURCES += strcasecmp.c
 endif
+if RASQAL_DIGEST_INTERNAL
+librasqal_la_SOURCES += rasqal_digest_md5.c rasqal_digest_sha1.c
+endif
+
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 librasqal_la_LIBADD = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 librasqal_la_DEPENDENCIES = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@
