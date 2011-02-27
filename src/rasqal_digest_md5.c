@@ -53,7 +53,8 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-#include <rasqal.h>
+#include "rasqal.h"
+#include "rasqal_internal.h"
 
 #define u32 uint32_t
 

@@ -95,7 +95,9 @@ A million repetitions of "a"
 #include <stdarg.h>
 #include <stdint.h>
 
-#include <rasqal.h>
+#include "rasqal.h"
+#include "rasqal_internal.h"
+
 
 #define u32 uint32_t
 
