@@ -135,6 +135,12 @@ constants and #rasqal_variable values bound in some
 @RASQAL_EXPR_ROUND: 
 @RASQAL_EXPR_CEIL: 
 @RASQAL_EXPR_FLOOR: 
+@RASQAL_EXPR_MD5: 
+@RASQAL_EXPR_SHA1: 
+@RASQAL_EXPR_SHA224: 
+@RASQAL_EXPR_SHA256: 
+@RASQAL_EXPR_SHA384: 
+@RASQAL_EXPR_SHA512: 
 @RASQAL_EXPR_LAST: 
 
 <!-- ##### ENUM rasqal_compare_flags ##### -->
