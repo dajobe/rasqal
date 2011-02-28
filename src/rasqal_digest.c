@@ -257,7 +257,7 @@ int
 rasqal_digest_buffer(rasqal_digest_type type, const unsigned char *output,
                      const unsigned char *input, size_t len)
 {
-  unsigned int output_len = -1;
+  int output_len = -1;
   
   if(type != RASQAL_DIGEST_SHA1 && type != RASQAL_DIGEST_MD5)
     return -1;
