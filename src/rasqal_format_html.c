@@ -47,7 +47,7 @@ rasqal_iostream_write_html_literal(rasqal_world* world,
                                    rasqal_literal* l)
 {
   if(!l) {
-    raptor_iostream_counted_string_write("<span class=\"unbound\">", 17, iostr);
+    raptor_iostream_counted_string_write("<span class=\"unbound\">", 22, iostr);
     raptor_iostream_counted_string_write("unbound", 7, iostr);
   } else switch(l->type) {
     const unsigned char* str;
