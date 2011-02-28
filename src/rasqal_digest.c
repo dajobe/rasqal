@@ -71,9 +71,9 @@
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
 #undef VERSION
-#ifdef HAVE_MHASH_H
+
 #include <mhash.h>
-#endif
+
 
 static hashid rasqal_digest_to_hashid[RASQAL_DIGEST_LAST + 1]={
   (hashid)-1,
