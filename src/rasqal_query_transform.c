@@ -1267,7 +1267,6 @@ rasqal_query_prepare_common(rasqal_query *query)
      * Not the case for a legal query like 'DESCRIBE <uri>'
      */
 
-#ifndef RASQAL_NO_GP_MERGE
     int modified;
     
 #if RASQAL_DEBUG > 1
@@ -1315,7 +1314,6 @@ rasqal_query_prepare_common(rasqal_query *query)
     if(rc)
       goto done;
 
-#endif /* !RASQAL_NO_GP_MERGE */
 
     /* Label all graph patterns with an index 0.. for use in discovering
      * the size of the graph pattern execution data array

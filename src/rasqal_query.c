@@ -73,13 +73,6 @@
 
 #define DEBUG_FH stderr
 
-#if 0
-#undef RASQAL_NO_GP_MERGE
-#else
-#define RASQAL_NO_GP_MERGE 1
-#endif
-
-
 static int rasqal_query_add_query_result(rasqal_query* query, rasqal_query_results* query_results);
 
 
