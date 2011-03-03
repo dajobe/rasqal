@@ -199,9 +199,13 @@ main(int argc, char *argv[])
   
   rc = rasqal_query_results_formatter_read(world, iostr, read_formatter,
                                            results, base_uri);
-  if(rc)
+  if(rc) {
+    fprintf(stderr,
+            "%s: Failed to read query results with read formatter '%s'\n",
+            program, read_formatter_name);
     goto tidy;
-
+  }
+  
   write_formatter = rasqal_new_query_results_formatter(world, 
                                                        write_formatter_name,
                                                        NULL, NULL);
