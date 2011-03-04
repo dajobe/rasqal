@@ -1934,24 +1934,6 @@ rasqal_query_get_variable_by_offset(rasqal_query* query, int idx)
 }
 
 
-int
-rasqal_query_variable_bound_in_triple(rasqal_query *query,
-                                      rasqal_variable *v,
-                                      int column) 
-{
-  int v_column;
-
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 0);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(v, rasqal_variable, 0);
-
-  v_column = query->variables_bound_in[v->offset];
-  if(v_column < 0)
-    return 0;
-
-  return v_column == column;
-}
-
-
 /*
  * rasqal_query_add_update_operation:
  * @query: #rasqal_query query object

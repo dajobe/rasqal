@@ -467,7 +467,7 @@ rasqal_query_graph_pattern_build_bound_in(rasqal_query* query,
 
 
 /**
- * rasqal_query_build_bound_in:
+ * rasqal_query_build_bound_in_triples:
  * @query: the #rasqal_query to find the variables in
  *
  * INTERNAL - Record the triple columns where variables are bound in a query
@@ -479,7 +479,7 @@ rasqal_query_graph_pattern_build_bound_in(rasqal_query* query,
  * Return value: non-0 on failure
  **/
 static int
-rasqal_query_build_bound_in(rasqal_query* query)
+rasqal_query_build_bound_in_triples(rasqal_query* query)
 {
   int i;
   int size;
@@ -515,7 +515,6 @@ rasqal_query_build_bound_in(rasqal_query* query)
 /**
  * rasqal_query_check_unused_variables:
  * @query: the #rasqal_query to check
- * @bound_in: array of columns where variables are bound as created by rasqal_query_build_bound_in()
  *
  * INTERNAL - warn variables that are selected but not bound in a triple
  *
@@ -524,20 +523,22 @@ rasqal_query_build_bound_in(rasqal_query* query)
  * Return value: non-0 on failure
  */
 static int
-rasqal_query_check_unused_variables(rasqal_query* query, int *bound_in)
+rasqal_query_check_unused_variables(rasqal_query* query)
 {
   int i;
   int size;
   
-  /* check bound_in only for named variables since only they can
+  /* check only for named variables since only they can
    * appear in SELECT $vars 
    */
   size = rasqal_variables_table_get_named_variables_count(query->vars_table);
   for(i = 0; i < size; i++) {
-    int column = bound_in[i];
+    int column;
     rasqal_variable *v;
 
     v = rasqal_variables_table_get(query->vars_table, i);
+
+    column = rasqal_query_get_bound_in_column_for_variable(query, v);
     if(column == BOUND_IN_UNBOUND)
       rasqal_log_error_simple(query->world,
                               RAPTOR_LOG_LEVEL_WARN,
@@ -1190,7 +1191,7 @@ rasqal_query_build_variables_use(rasqal_query* query)
    * which parts of a triple pattern need to bind to a variable:
    * only the first reference to it.
    */
-  rc = rasqal_query_build_bound_in(query);
+  rc = rasqal_query_build_bound_in_triples(query);
   
   return rc;
 }
@@ -1303,7 +1304,7 @@ rasqal_query_prepare_common(rasqal_query *query)
       goto done;
     
     /* warn if any of the selected named variables are not in a triple */
-    rc = rasqal_query_check_unused_variables(query, query->variables_bound_in);
+    rc = rasqal_query_check_unused_variables(query);
     if(rc)
       goto done;
 
