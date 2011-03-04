@@ -361,24 +361,22 @@ rasqal_query_remove_duplicate_select_vars(rasqal_query* rq)
 
 
 /**
- * rasqal_query_triples_build_bound_in_internal:
+ * rasqal_query_graph_pattern_bgp_build_bound_in:
  * @query: the #rasqal_query to find the variables in
  * @bound_in: array to write bound_in
- * @start_column: first column in triples array
- * @end_column: last column in triples array
+ * @gp: The basic graph pattern
  *
- * INTERNAL - Mark triples where variables are bound in a sequence of triples
+ * INTERNAL - Mark bound variables in a basic graph pattern of triple patterns.
  * 
  **/
 static void
-rasqal_query_triples_build_bound_in_internal(rasqal_query* query,
-                                             int *bound_in,
-                                             int start_column,
-                                             int end_column)
+rasqal_query_graph_pattern_bgp_build_bound_in(rasqal_query* query,
+                                              int *bound_in,
+                                              rasqal_graph_pattern* gp) 
 {
   int col;
   
-  for(col = start_column; col <= end_column; col++) {
+  for(col = gp->start_column; col <= gp->end_column; col++) {
     rasqal_triple *t;
     rasqal_variable *v;
     
@@ -436,6 +434,7 @@ rasqal_query_graph_pattern_build_bound_in(rasqal_query* query,
                                           int *bound_in,
                                           rasqal_graph_pattern *gp)
 {
+  /* Graph (over 1 GP), Group, Optional (over 1 GP) and Union graph patterns */
   if(gp->graph_patterns) {
     int i;
 
@@ -455,13 +454,14 @@ rasqal_query_graph_pattern_build_bound_in(rasqal_query* query,
     if(v)
       bound_in[v->offset] = BOUND_IN_ELSEWHERE;
   }
-  
-  if(!gp->triples)
-    return 0;
 
-  rasqal_query_triples_build_bound_in_internal(query, bound_in,
-                                               gp->start_column,
-                                               gp->end_column);
+  /* Basic Graph Pattern only */
+  if(gp->triples) {
+    rasqal_query_graph_pattern_bgp_build_bound_in(query, bound_in, gp);
+  }
+
+  /* FIXME - add BIND / LET */
+
   return 0;
 }
 
