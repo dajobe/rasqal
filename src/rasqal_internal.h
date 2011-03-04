@@ -1025,7 +1025,6 @@ int rasqal_query_prepare_common(rasqal_query *query);
 int rasqal_query_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
 int rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
 int rasqal_graph_pattern_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
-int* rasqal_query_triples_build_bound_in(rasqal_query* query, int size, int start_column, int end_column);
 
 /* rasqal_expr.c */
 rasqal_literal* rasqal_new_string_literal_node(rasqal_world*, const unsigned char *string, const char *language, raptor_uri *datatype);

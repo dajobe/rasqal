@@ -423,40 +423,6 @@ rasqal_query_triples_build_bound_in_internal(rasqal_query* query,
 
 
 /**
- * rasqal_query_triples_build_bound_in:
- * @query: the #rasqal_query to find the variables in
- * @size: number of variables / size of return bound_in array
- * @start_column: first column in triples array
- * @end_column: last column in triples array
- *
- * INTERNAL - Mark where variables are bound in a graph_pattern tree walk
- *
- * Return value: array of integers (column numbers) marking in which triple pattern a variable is bound
- **/
-int*
-rasqal_query_triples_build_bound_in(rasqal_query* query,
-                                    int size,
-                                    int start_column,
-                                    int end_column)
-{
-  int i;
-  int *bound_in;
-  
-  bound_in = (int*)RASQAL_CALLOC(intarray, size+1, sizeof(int));
-  if(!bound_in)
-    return NULL;
-
-  for(i = 0; i < size; i++)
-    bound_in[i] = BOUND_IN_UNBOUND;
-
-  rasqal_query_triples_build_bound_in_internal(query, bound_in,
-                                               start_column,
-                                               end_column);
-  return bound_in;
-}
-
-
-/**
  * rasqal_query_graph_pattern_build_bound_in:
  * @query: the #rasqal_query to find the variables in
  * @bound_in: array to write bound_in
