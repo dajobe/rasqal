@@ -1432,18 +1432,34 @@ rasqal_query_triples_build_variables_use_map_row(raptor_sequence *triples,
     
     t = (rasqal_triple*)raptor_sequence_get_at(triples, col);
 
-    if((v = rasqal_literal_as_variable(t->subject)))
-      use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+    if((v = rasqal_literal_as_variable(t->subject))) {
+      if(!(use_map_row[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE))
+        use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
+      else
+        use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+    }
+    
+    if((v = rasqal_literal_as_variable(t->predicate))) {
+      if(!(use_map_row[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE))
+        use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
+      else
+        use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+    }
 
-    if((v = rasqal_literal_as_variable(t->predicate)))
-      use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
-
-    if((v = rasqal_literal_as_variable(t->object)))
-      use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+    if((v = rasqal_literal_as_variable(t->object))) {
+      if(!(use_map_row[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE))
+        use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
+      else
+        use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+    }
 
     if(t->origin) {
-      if((v = rasqal_literal_as_variable(t->origin)))
-        use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+      if((v = rasqal_literal_as_variable(t->origin))) {
+        if(!(use_map_row[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE))
+          use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
+        else
+          use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+      }
     }
 
   }
@@ -1459,7 +1475,7 @@ rasqal_query_triples_build_variables_use_map_row(raptor_sequence *triples,
  * @width: width of array (num. variables)
  * @gp: graph pattern to use
  *
- * INTERNAL - Mark where variables are first mentioned in a graph_pattern tree walk
+ * INTERNAL - Mark where variables are bound or mentioned in a graph_pattern tree walk
  * 
  **/
 static int
