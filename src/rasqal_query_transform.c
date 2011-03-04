@@ -1584,7 +1584,7 @@ rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
 
   for(i = 0; i < width; i++) {
     rasqal_variable* v = rasqal_variables_table_get(query->vars_table, i);
-    fprintf(fh, "%-10s ", v->name);
+    fprintf(fh, "%-12s ", v->name);
   }
 
   fputc('\n', fh);
@@ -1594,11 +1594,11 @@ rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
     int gp_index = row_index - (RASQAL_VAR_USE_MAP_OFFSET_LAST + 1);
 
     if(gp_index < 0)
-      fprintf(fh, "--   %-8s ", use_map_offset_labels[row_index]);
+      fprintf(fh, "--   %-8s  ", use_map_offset_labels[row_index]);
     else {
       rasqal_graph_pattern* gp;
       gp = (rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns_sequence, gp_index);
-      fprintf(fh, "%-2d   %-8s ", gp_index, 
+      fprintf(fh, "%-2d   %-8s  ", gp_index, 
               rasqal_graph_pattern_operator_as_string(gp->op));
     }
     
@@ -1608,7 +1608,7 @@ rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
       /* Turn unknown flags into "???" */
       if(flag_index > N_MAP_FLAGS_LABELS - 1)
         flag_index = N_MAP_FLAGS_LABELS;
-      fprintf(fh, "%-10s ", use_map_flags_labels[flag_index]);
+      fprintf(fh, "%-12s ", use_map_flags_labels[flag_index]);
     }
     fputc('\n', fh);
   }
