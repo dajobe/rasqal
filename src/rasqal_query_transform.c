@@ -1433,32 +1433,20 @@ rasqal_query_triples_build_variables_use_map_row(raptor_sequence *triples,
     t = (rasqal_triple*)raptor_sequence_get_at(triples, col);
 
     if((v = rasqal_literal_as_variable(t->subject))) {
-      if(!(use_map_row[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE))
-        use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
-      else
-        use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+      use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
     }
     
     if((v = rasqal_literal_as_variable(t->predicate))) {
-      if(!(use_map_row[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE))
-        use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
-      else
-        use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+      use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
     }
 
     if((v = rasqal_literal_as_variable(t->object))) {
-      if(!(use_map_row[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE))
-        use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
-      else
-        use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+      use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
     }
 
     if(t->origin) {
       if((v = rasqal_literal_as_variable(t->origin))) {
-        if(!(use_map_row[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE))
-          use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
-        else
-          use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+        use_map_row[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
       }
     }
 
