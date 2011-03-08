@@ -109,6 +109,7 @@ rasqal_iostream_write_html_literal(rasqal_world* world,
       rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
                               "Cannot turn literal type %d into HTML", 
                               l->type);
+      return 1;
   }
 
   raptor_iostream_counted_string_write("</span>", 7, iostr);
