@@ -69,7 +69,18 @@ rasqal_iostream_write_html_literal(rasqal_world* world,
       raptor_xml_escape_string_write(l->string, l->string_len, 0, iostr);
       break;
 
+    case RASQAL_LITERAL_XSD_STRING:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UDT:
+    case RASQAL_LITERAL_INTEGER_SUBTYPE:
       raptor_iostream_counted_string_write("<span class=\"literal\">", 22, iostr);
       raptor_iostream_counted_string_write("<span class=\"value\"", 19, iostr);
       if(l->language) {
@@ -91,18 +102,8 @@ rasqal_iostream_write_html_literal(rasqal_world* world,
       }
       break;
 
-    case RASQAL_LITERAL_PATTERN:
-    case RASQAL_LITERAL_QNAME:
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_XSD_STRING:
-    case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_DOUBLE:
-    case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_VARIABLE:
-    case RASQAL_LITERAL_DECIMAL:
-    case RASQAL_LITERAL_DATETIME:
-    case RASQAL_LITERAL_UDT:
-    case RASQAL_LITERAL_INTEGER_SUBTYPE:
+      return rasqal_iostream_write_html_literal(world, iostr, l->value.variable->value);
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
