@@ -1702,6 +1702,41 @@ rasqal_graph_pattern_tree_binds_variable(rasqal_graph_pattern* gp,
 }
 
 
+
+/**
+ * rasqal_graph_pattern_promote_variable_mention_to_bind:
+ * @gp: graph pattern
+ * @v: variable
+ * 
+ * INTERNAL - Promote a variable from a mention to a bind - for a basic graph pattenr
+ *
+ * Return value: non-0 on failure
+ */
+static int
+rasqal_graph_pattern_promote_variable_mention_to_bind(rasqal_graph_pattern* gp,
+                                                      rasqal_variable* v)
+{
+  rasqal_query* query = gp->query;
+  int width;
+  int gp_offset;
+  short* row;
+
+  RASQAL_DEBUG3("Converting variable %s from mention to bound in GP #%d\n",
+                v->name, gp->gp_index);
+  
+  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  gp_offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
+  row = &query->variables_use_map[gp_offset];
+
+  /* new variable - bind it */
+  row[v->offset] &= ~RASQAL_VAR_USE_MENTIONED_HERE;
+  row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
+
+  return 0;
+}
+
+
+/**
  * rasqal_query_graph_pattern_build_variables_use_map_binds:
  * @query: the #rasqal_query to find the variables in
  * @use_map: 2D array of (num. variables x num. GPs) to write
