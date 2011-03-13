@@ -2,7 +2,7 @@
  *
  * rasqal_query_transform.c - Rasqal query transformations
  *
- * Copyright (C) 2004-2010, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2011, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -1621,6 +1621,87 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
 
 
 /**
+ * rasqal_graph_pattern_binds_variable:
+ * @gp: graph pattern
+ * @v: variable
+ *
+ * INTERNAL - test if a variable is bound in a graph pattern directly
+ *
+ * Return value: non-0 if variable is bound in the given graph pattern
+ */
+static int
+rasqal_graph_pattern_binds_variable(rasqal_graph_pattern* gp,
+                                    rasqal_variable* v)
+{
+  rasqal_query* query = gp->query;
+  int width;
+  int gp_offset;
+  short *row;
+  
+  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  gp_offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
+  row = &query->variables_use_map[gp_offset];
+
+  return (row[v->offset] & RASQAL_VAR_USE_BOUND_HERE);
+}
+
+
+/**
+ * rasqal_graph_pattern_mentions_variable:
+ * @gp: graph pattern
+ * @v: variable
+ *
+ * INTERNAL - test if a variable is mentioned in a graph pattern directly
+ *
+ * Return value: non-0 if variable is mentioned in the given graph pattern
+ */
+static int
+rasqal_graph_pattern_mentions_variable(rasqal_graph_pattern* gp,
+                                       rasqal_variable* v)
+{
+  rasqal_query* query = gp->query;
+  int width;
+  int gp_offset;
+  short *row;
+  
+  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  gp_offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
+  row = &query->variables_use_map[gp_offset];
+
+  return (row[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE);
+}
+
+
+/**
+ * rasqal_graph_pattern_tree_binds_variable:
+ * @query: query
+ * @gp: graph pattern
+ * @v: variable
+ *
+ * INTERNAL - test if a variable is bound in a graph pattern tree
+ *
+ * Return value: non-0 if variable is bound in GP tree
+ */
+static int
+rasqal_graph_pattern_tree_binds_variable(rasqal_graph_pattern* gp,
+                                         rasqal_variable* v)
+{
+  if(gp->graph_patterns) {
+    int size = raptor_sequence_size(gp->graph_patterns);
+    int i;
+
+    for(i = 0; i < size; i++) {
+      rasqal_graph_pattern *sgp;
+      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      if(rasqal_graph_pattern_tree_binds_variable(sgp, v))
+        return 1;
+    }
+  }
+
+  return rasqal_graph_pattern_binds_variable(gp, v);
+}
+
+
  * rasqal_query_graph_pattern_build_variables_use_map_binds:
  * @query: the #rasqal_query to find the variables in
  * @use_map: 2D array of (num. variables x num. GPs) to write
@@ -1629,6 +1710,7 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
  *
  * INTERNAL - Mark where variables are bound in a graph_pattern tree walk
  * 
+ * Return value: non-0 on failure
  **/
 static int
 rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
