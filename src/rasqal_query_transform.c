@@ -1756,10 +1756,10 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
   int offset;
 
   if(gp->graph_patterns) {
+    int gp_size = raptor_sequence_size(gp->graph_patterns);
     int i;
     int size;
-    short* vars_seen;
-    int sgp_offset;
+    short* var_is_bound;
     
     /* keep a boolean for each variable seen in sub-graph pattern
      * BGPs and use it to turn MENTIONs into BINDs for newly seen
@@ -1767,49 +1767,52 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
      */
 
     size = rasqal_variables_table_get_total_variables_count(query->vars_table);
-    vars_seen = (short*)RASQAL_CALLOC(intarray, size, sizeof(short*));
 
-    for(i = 0; i < raptor_sequence_size(gp->graph_patterns); i++) {
+    /* recursively call binds */
+    for(i = 0; i < gp_size; i++) {
       rasqal_graph_pattern *sgp;
-      short* sgp_row;
-      int var_index;
       
       sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
       if(rasqal_query_graph_pattern_build_variables_use_map_binds(query,
                                                                   use_map,
                                                                   width, sgp)) {
-        RASQAL_FREE(intarray, vars_seen);
+        RASQAL_FREE(intarray, var_is_bound);
         return 1;
       }
+    }
 
-      sgp_offset = (sgp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
-      sgp_row = &use_map[sgp_offset];
+    /* now check all GPs and turn an remaining mentioned variables into binds */
+    var_is_bound = (short*)RASQAL_CALLOC(intarray, size, sizeof(short*));
+    for(i = 0; i < gp_size; i++) {
+      rasqal_graph_pattern *sgp;
+      int var_index;
+      
+      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
 
       for(var_index = 0; var_index < size; var_index++) {
         rasqal_variable *v;
+
+        if(var_is_bound[var_index])
+          continue;
+        
         v = rasqal_variables_table_get(query->vars_table, var_index);
 
-        if(sgp_row[var_index] & RASQAL_VAR_USE_BOUND_HERE) {
-          RASQAL_DEBUG3("Variable %s was bound in Sub-GP #%d\n", v->name,
+        if(rasqal_graph_pattern_tree_binds_variable(sgp, v)) {
+          /* Report information - no action needed */
+          RASQAL_DEBUG3("Variable %s was bound in Tree GP #%d\n", v->name,
                         sgp->gp_index);
-
-          vars_seen[var_index] = 1;
-        } else if(sgp_row[var_index] & RASQAL_VAR_USE_MENTIONED_HERE) {
-          if(!vars_seen[var_index]) {
-            RASQAL_DEBUG3("Converting variable %s from mention to bound in Sub-GP #%d\n", v->name, sgp->gp_index);
-
-            /* new variable - bind it */
-            sgp_row[var_index] &= ~RASQAL_VAR_USE_MENTIONED_HERE;
-            sgp_row[var_index] |= RASQAL_VAR_USE_BOUND_HERE;
-            vars_seen[var_index] = 1;
-          }
+          var_is_bound[var_index] = 1;
+        } else if(rasqal_graph_pattern_mentions_variable(sgp, v)) {
+          /* Need to bind a variable in this sub-GP since it was mentioned */
+          rasqal_graph_pattern_promote_variable_mention_to_bind(sgp, v);
+          var_is_bound[var_index] = 1;
         }
 
       } /* end var index */
 
     } /* end for sub-gp */
 
-    RASQAL_FREE(intarray, vars_seen);
+    RASQAL_FREE(intarray, var_is_bound);
   }
 
 
@@ -1817,7 +1820,26 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
   offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
   switch(gp->op) {
     case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC:
-      /* BGP (Part 2) - do nothing. Parent GP will turn mentions into binds */
+      /* BGP (Part 2)
+       * a) parent GROUP GP will turn mentions into binds (above)
+       */
+
+      /* b) if there is no parent, bind now. */
+      if(query->query_graph_pattern == gp) {
+        int size;
+        int var_index;
+        
+        size = rasqal_variables_table_get_total_variables_count(query->vars_table);
+
+        for(var_index = 0; var_index < size; var_index++) {
+          rasqal_variable *v;
+          v = rasqal_variables_table_get(query->vars_table, var_index);
+
+          if(rasqal_graph_pattern_mentions_variable(gp, v) &&
+             !rasqal_graph_pattern_binds_variable(gp, v))
+            rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v);
+        }
+      }
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
@@ -2170,7 +2192,28 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
                                                                 query->query_graph_pattern);
   if(rc)
     goto done;
-  
+
+  /* finally turn any SELECTed variables that are never mentioned into binds */
+  if(1) {
+    int var_index;
+    short *row = &query->variables_use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS];
+
+    for(var_index = 0; var_index < width; var_index++) {
+      rasqal_variable *v;
+      v = rasqal_variables_table_get(query->vars_table, var_index);
+
+      if(!(row[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE))
+        continue;
+    
+      if(rasqal_graph_pattern_tree_binds_variable(query->query_graph_pattern, v))
+        continue;
+
+      RASQAL_DEBUG2("Marking SELECT variable %s as also bound\n", v->name);
+
+      row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
+    }
+  }
+
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("use map after binds and mentions: ");
   rasqal_query_print_variables_use_map(stderr, query);
