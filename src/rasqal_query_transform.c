@@ -1207,6 +1207,7 @@ rasqal_query_prepare_count_graph_patterns(rasqal_query* query,
  * Should be called if the query variable usage is modified such as
  * a variable added during query planning.
  *
+ * Return value: non-0 on failure
  */
 int
 rasqal_query_build_variables_use(rasqal_query* query)
@@ -1223,6 +1224,7 @@ rasqal_query_build_variables_use(rasqal_query* query)
   if(1) {
     short* agg_row;
     int i;
+    int errors = 0;
     
     agg_row = rasqal_query_build_variable_agg_use(query);
     if(!agg_row)
@@ -1247,6 +1249,7 @@ rasqal_query_build_variables_use(rasqal_query* query)
                                 &query->locator,
                                 "Variable %s was used but is not bound in the query.", 
                                 v->name);
+        errors++;
       } else if(!(agg_row[i] & RASQAL_VAR_USE_BOUND_HERE) &&
                 !(agg_row[i] & RASQAL_VAR_USE_MENTIONED_HERE)) {
         rasqal_log_error_simple(query->world,
@@ -1254,10 +1257,14 @@ rasqal_query_build_variables_use(rasqal_query* query)
                                 &query->locator,
                                 "Variable %s was not bound and not used in the query (where is it from?)", 
                                 v->name);
+        errors++;
       }
     }
 
     RASQAL_FREE(intarray, agg_row);
+
+    if(errors)
+      return 1;
   }
   
 
@@ -1380,7 +1387,8 @@ rasqal_query_prepare_common(rasqal_query *query)
                                      rasqal_query_prepare_count_graph_patterns,
                                      query->graph_patterns_sequence);
 
-    if(rasqal_query_build_variables_use(query))
+    rc = rasqal_query_build_variables_use(query);
+    if(rc)
       goto done;
     
     /* warn if any of the selected named variables are not in a triple */
