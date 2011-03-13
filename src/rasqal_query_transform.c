@@ -513,6 +513,44 @@ rasqal_query_build_bound_in_triples(rasqal_query* query)
 
 
 /**
+ * rasqal_query_build_variable_agg_use:
+ * @query: the query 
+ *
+ * INTERNAL - calculate the usage of variables across all parts of the query
+ *
+ * Return value: array of variable usage info or NULL on failure
+ */
+static short*
+rasqal_query_build_variable_agg_use(rasqal_query* query)
+{
+  int width;
+  int height;
+  short* agg_row;
+  int row_index;
+  
+  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  height = RASQAL_VAR_USE_MAP_OFFSET_LAST + 1 + query->graph_pattern_count;
+
+  agg_row = (short*)RASQAL_CALLOC(intarray, width, sizeof(short));
+  if(!agg_row)
+    return NULL;
+
+  for(row_index = 0; row_index < height; row_index++) {
+    short *row;
+    int i;
+
+    row = &query->variables_use_map[row_index * width];
+
+    for(i = 0; i < width; i++)
+      agg_row[i] |= row[i];
+  }
+  
+  return agg_row;
+}
+
+
+
+/**
  * rasqal_query_check_unused_variables:
  * @query: the #rasqal_query to check
  *
@@ -1181,6 +1219,48 @@ rasqal_query_build_variables_use(rasqal_query* query)
   rc = rasqal_query_build_variables_use_map(query); 
   if(rc)
     return rc;
+  
+  if(1) {
+    short* agg_row;
+    int i;
+    
+    agg_row = rasqal_query_build_variable_agg_use(query);
+    if(!agg_row)
+      return 1;
+
+    for(i = 0; 1; i++) {
+      rasqal_variable* v = rasqal_variables_table_get(query->vars_table, i);
+      if(!v)
+        break;
+
+      if( (agg_row[i] & RASQAL_VAR_USE_BOUND_HERE) && 
+         !(agg_row[i] & RASQAL_VAR_USE_MENTIONED_HERE)) {
+        rasqal_log_error_simple(query->world,
+                                RAPTOR_LOG_LEVEL_WARN,
+                                &query->locator,
+                                "Variable %s was bound but is unused in the query.", 
+                                v->name);
+      } else if(!(agg_row[i] & RASQAL_VAR_USE_BOUND_HERE) && 
+                 (agg_row[i] & RASQAL_VAR_USE_MENTIONED_HERE)) {
+        rasqal_log_error_simple(query->world,
+                                RAPTOR_LOG_LEVEL_ERROR,
+                                &query->locator,
+                                "Variable %s was used but is not bound in the query.", 
+                                v->name);
+      } else if(!(agg_row[i] & RASQAL_VAR_USE_BOUND_HERE) &&
+                !(agg_row[i] & RASQAL_VAR_USE_MENTIONED_HERE)) {
+        rasqal_log_error_simple(query->world,
+                                RAPTOR_LOG_LEVEL_ERROR,
+                                &query->locator,
+                                "Variable %s was not bound and not used in the query (where is it from?)", 
+                                v->name);
+      }
+    }
+
+    RASQAL_FREE(intarray, agg_row);
+  }
+  
+
   
   /* create query->variables_bound_in to find triples where a variable
    * is bound and look for variables selected that are not used
