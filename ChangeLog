@@ -1,3 +1,154 @@
+2011-03-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c: Fix mention / bind walking to
+	handle single triple BGPs that are not in a Group GP
+
+	(rasqal_query_graph_pattern_build_variables_use_map_binds): Split
+	recursive walk and walk to bind vars.  Use utility functions to
+	make code more readable.  Rename 'seen' to 'var_is_bound' to match
+	the variable use.  On second round of binding if the query graph
+	pattern is a BGP, bind the variables now.
+
+	(rasqal_query_build_variables_use_map): After calculating map, if
+	there are variables SELECTEd but never bound, mark them as bound
+	in the verb so that no error is reported.
+
+2011-03-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_graph_pattern_promote_variable_mention_to_bind): Added
+	utility function to turn a mention into a bind.
+
+	* src/rasqal_query_transform.c: Add utility functions to test var
+	bound / mentioned in GP tree
+
+	(rasqal_graph_pattern_binds_variable)
+	(rasqal_graph_pattern_mentions_variable): Added to test if a
+	variable is bound/mentioned in this GP, not any sub-GP
+
+	(rasqal_graph_pattern_tree_binds_variable): Added to test if a
+	variable is bound in this GP or any lower sub-GP.
+
+	* src/rasqal_query_transform.c: Split variable mention and binding
+	marking into 2 steps
+
+	(rasqal_query_graph_pattern_build_variables_use_map): Remove
+	binding marking.
+
+	(rasqal_query_graph_pattern_build_variables_use_map_binds): Added,
+	doing recording of variables that bind.  For basic graph patterns
+	(BGPs), do that work in the group that surrounds them, which
+	leaves just single BGPs to do.
+
+	(rasqal_query_build_variables_use_map): Call
+	rasqal_query_graph_pattern_build_variables_use_map_binds() after
+	rasqal_query_graph_pattern_build_variables_use_map().
+
+	(rasqal_query_graph_build_variables_use_map_binds): Renamed from
+	rasqal_query_graph_build_variables_use_map_in_internal.
+
+	(rasqal_query_let_build_variables_use_map): Renamed from
+	rasqal_query_let_build_variables_use_map_in_internal.
+
+	(rasqal_query_let_build_variables_use_map_binds): Added to do
+	binding for LET/BIND GPs.
+
+	(rasqal_query_select_build_variables_use_map): Renamed from
+	rasqal_query_select_build_variables_use_map_in_internal.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_variables_use): Return number of errors
+
+2011-03-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c: Use query->variables_use_map to
+	find unused, unbound or both vars.
+
+	(rasqal_query_build_variable_agg_use): Added.
+
+	(rasqal_query_build_variables_use): Call above and walk returned
+	list to find variables that are bound+not used, used and not bound
+	or neither used nor bound which is probably a parsing error.
+
+2011-03-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_html.c:
+	(rasqal_iostream_write_html_literal): Support writing additional
+	literal types.
+	Fixes issue #0000431
+	http://bugs.librdf.org/mantis/view.php?id=431
+
+2011-03-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_html.c:
+	(rasqal_iostream_write_html_literal): Fixed incorrect HTML
+	generated with unknown literal types.
+	Fixes Issue #0000430
+	http://bugs.librdf.org/mantis/view.php?id=430
+
+2011-03-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_variables_use_map_row): Set
+	RASQAL_VAR_USE_MENTIONED_HERE to make tests work.
+
+2011-03-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_print_variables_use_map): Tidy formatting
+
+	* src/rasqal_query_transform.c: Generate bind flags for triple
+	pattern in query variables use-map
+
+	(rasqal_query_triples_build_variables_use_map_row): Set bound or
+	mentioned for variables for this triple pattern.
+
+	* src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_transform.c: Tidy query transforming code
+	building "bound-in-triple" array.
+
+	(rasqal_query_variable_bound_in_triple): Removed, unused
+
+	(rasqal_query_check_unused_variables): Use
+	rasqal_query_get_bound_in_column_for_variable() instead of
+	accessing query fields.
+
+	(rasqal_query_build_bound_in_triples): Renamed from
+	rasqal_query_build_bound_in
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_graph_pattern_bgp_build_bound_in): renamed from
+	rasqal_query_triples_build_bound_in_internal
+
+	* src/rasqal_internal.h, src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_bound_in): Removed, unused
+
+2011-03-02  Dave Beckett <dave@dajobe.org>
+
+	* utils/srxread.c:
+	report error with failure to read format
+
+2011-03-01  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query.c, src/rasqal_query_transform.c: Remove unused,
+	undefined RASQAL_NO_GP_MERGE
+
+2011-02-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_digest.c: Include mhash.h unconditionally for
+	RASQAL_DIGEST_MHASH
+
+2011-02-28  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_digest.c:
+	(rasqal_digest_buffer): Fixed integer conversion warning
+
+2011-02-28  Nicholas J Humfrey <njh@aelius.com>
+
+	* src/rasqal_format_html.c: Corrected incorrect string length in
+	rasqal_iostream_write_html_literal() that was causing it to
+	generate invalid HTML.
+
 2011-02-27  Dave Beckett <dave@dajobe.org>
 
 	* utils/roqet.c: Remove internal -g/ --engine NAME for selecting
