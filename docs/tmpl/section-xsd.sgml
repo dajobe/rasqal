@@ -1,13 +1,14 @@
 <!-- ##### SECTION Title ##### -->
-XML Schema Decimals
+XML Schema Datetime and Decimals
 
 <!-- ##### SECTION Short_Description ##### -->
-XML Schema decimal number arithmetic.
+XML Schema datetime and arbitrary length decimal number arithmetic.
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
-A class for providing XSD Decimals with arbitrary length
-floating point decimals.
+Classes for providing XSD datatypes for Datetimes plus Decimals with
+arbitrary length floating point decimals and standard
+operators on the Decimals suitable for SPARQL.
 </para>
 
 <!-- ##### SECTION See_Also ##### -->
