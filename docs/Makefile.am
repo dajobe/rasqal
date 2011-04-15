@@ -87,6 +87,9 @@ HTML_IMAGES =
 # Extra options to supply to gtkdoc-fixref
 FIXXREF_OPTIONS=
 
+# gtkdoc might not define this
+DISTCLEANFILES=
+
 include $(top_srcdir)/gtk-doc.make
 
 man_MANS = librasqal.3
@@ -96,7 +99,7 @@ $(man_MANS) \
 version.xml.in \
 rasqal-changes.tsv
 
-CLEANFILES += README \
+DISTCLEANFILES += README \
 rasqal-fake.i
 
 # Create some text files from HTML sources
