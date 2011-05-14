@@ -261,6 +261,7 @@ static const char* const json_uri_strings[] = {
 };
 
 static const raptor_type_q json_types[] = {
+  { "application/sparql-results+json", 31, 10},
   { "application/json", 16, 10}, 
   { NULL, 0, 0}
 };
