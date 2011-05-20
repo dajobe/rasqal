@@ -144,8 +144,12 @@ roqet_log_handler(void* user_data, raptor_log_message *message)
     return;
 
   fprintf(stderr, "%s: Error - ", program);
-  raptor_locator_print(message->locator, stderr);
-  fprintf(stderr, " - %s\n", message->text);
+  if(message->locator) {
+    raptor_locator_print(message->locator, stderr);
+    fwrite((void*)" - ", sizeof(char), 3, stderr);
+  }
+  fputs(message->text, stderr);
+  fputc('\n',stderr);
 
   error_count++;
 }
