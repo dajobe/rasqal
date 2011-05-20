@@ -649,7 +649,8 @@ EXPONENT [eE][+-]?[0-9]+
 
 <ID>{VARNAME}	{ sparql_parser_lval->name = sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
 		  if(!sparql_parser_lval->name)
-                    YY_REPORT_ERROR_EOF("sparql_copy_name failed");
+                    yyterminate();
+
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 <ID>(.|\n)	{	BEGIN(INITIAL);
@@ -671,7 +672,8 @@ EXPONENT [eE][+-]?[0-9]+
 
 <SPID>{VARNAME}	{ sparql_parser_lval->name = sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
 		  if(!sparql_parser_lval->name)
-                    YY_REPORT_ERROR_EOF("sparql_copy_name failed");
+                    yyterminate();
+
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 
@@ -684,7 +686,8 @@ EXPONENT [eE][+-]?[0-9]+
 <PREF>{NCNAME_PREFIX}":"	{ BEGIN(INITIAL);
 		  	  sparql_parser_lval->name = sparql_copy_name(rq, (const unsigned char*)yytext, yyleng-1, SPARQL_NAME_CHECK_PREFIX);
 			  if(!sparql_parser_lval->name)
-			    YY_REPORT_ERROR_EOF("sparql_copy_name failed");
+			    yyterminate();
+
                           return IDENTIFIER; }
 <PREF>":"	{ BEGIN(INITIAL);
 		  sparql_parser_lval->name = NULL;
@@ -704,15 +707,22 @@ EXPONENT [eE][+-]?[0-9]+
 			yyleng--;
 		sparql_parser_lval->uri = sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
 		if(!sparql_parser_lval->uri)
-		  YY_REPORT_ERROR_EOF("sparql_copy_qname failed");
+		  yyterminate();
+
  		return have_brace ? URI_LITERAL_BRACE : URI_LITERAL;
 }
 
 {BNAME}	{	sparql_parser_lval->name = sparql_copy_name(rq, (unsigned char*)yytext+2, yyleng-2, SPARQL_NAME_CHECK_NCNAME);
+		if(!sparql_parser_lval->name)
+		  yyterminate();
+
 		return BLANK_LITERAL;
 }
 
 {BNAME2}	{	sparql_parser_lval->name = sparql_copy_name(rq, (unsigned char*)yytext+3, yyleng-4, SPARQL_NAME_CHECK_NCNAME);
+		if(!sparql_parser_lval->name)
+		  yyterminate();
+
 		return BLANK_LITERAL;
 }
 
@@ -817,8 +827,10 @@ sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len,
   s = rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
                                          &dest_len,
                                          sparql_syntax_error, rq);
-  if(!s)
+  if(!s) {
+    sparql_syntax_error(rq, "Failed to decode SPARQL string \"%s\"", text);
     return s;
+  }
 
   if(!rasqal_sparql_name_check(s, dest_len, check_flags))
     sparql_syntax_error(rq, "Invalid SPARQL name \"%s\"", s);
@@ -838,8 +850,10 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len)
   s = rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
                                          &dest_len,
                                          sparql_syntax_error, rq);
-  if(!s)
+  if(!s) {
+    sparql_syntax_error(rq, "Failed to decode SPARQL ID \"%s\"", text);
     return NULL;
+  }
 
   p = (unsigned char*)strchr((const char*)s, ':');
   if(!rasqal_sparql_name_check(s, p-s, SPARQL_NAME_CHECK_PREFIX))
