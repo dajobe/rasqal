@@ -167,27 +167,33 @@ void sparql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 
 static void sparql_lexer_cleanup(yyscan_t yyscanner);
 
-#ifdef HAVE_SETJMP
-static jmp_buf sparql_lexer_fatal_error_longjmp_env;
+/* Log error handler wrapper */
+static void sparql_lexer_log_error(yyconst char *msg, raptor_log_level level, yyscan_t yyscanner);
 
-/* fatal error handler declaration */
+
+/* fatal error handler declaration 
+ * If we have a setjmp / longjmp then report an ERROR and do not abort.
+ *
+ * Flex's use of this macro makes doing a return impossible since some
+ * uses require a return NULL, some an int and some no value :(
+ */
+#ifdef HAVE_SETJMP
+static jmp_buf sparql_lexer_log_error_longjmp_env;
 #define YY_FATAL_ERROR(msg) do {		\
-    sparql_lexer_fatal_error(msg, yyscanner);   \
-    longjmp(sparql_lexer_fatal_error_longjmp_env, 1);        \
+    sparql_lexer_log_error(msg, RAPTOR_LOG_LEVEL_ERROR, yyscanner);      \
+    longjmp(sparql_lexer_log_error_longjmp_env, 1);        \
 } while(0)
 #else
 #define YY_FATAL_ERROR(msg) do {		\
-    sparql_lexer_fatal_error(msg, yyscanner);   \
+    sparql_lexer_log_error(msg, RAPTOR_LOG_LEVEL_FATAL, yyscanner);   \
     abort();                                    \
 } while(0)
 #endif
  
-static void sparql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner);
-
-/* Fatal error handler that returns EOF instead of abort()/longjmp()
+/* Error handler that returns EOF instead of abort() / longjmp()
  * so that parser can clean up properly */
-#define YY_FATAL_ERROR_EOF(msg) do { \
-    sparql_lexer_fatal_error(msg, yyscanner); \
+#define YY_REPORT_ERROR_EOF(msg) do { \
+    sparql_lexer_log_error(msg, RAPTOR_LOG_LEVEL_ERROR, yyscanner); \
     yyterminate(); \
 } while(0)
 %}
@@ -301,7 +307,7 @@ EXPONENT [eE][+-]?[0-9]+
   rqe = (rasqal_sparql_query_language*)rq->context;
 
 #ifdef HAVE_SETJMP
-  if(setjmp(sparql_lexer_fatal_error_longjmp_env))
+  if(setjmp(sparql_lexer_log_error_longjmp_env))
     return 1;
 #endif
   
@@ -465,7 +471,7 @@ EXPONENT [eE][+-]?[0-9]+
 "@"{LANGUAGETOKEN} {
 			sparql_parser_lval->name = (unsigned char*)RASQAL_MALLOC(cstring, yyleng);
                         if(!sparql_parser_lval->name)
-                          YY_FATAL_ERROR("Out of memory");
+                          YY_REPORT_ERROR_EOF("Out of memory");
 
                         memcpy(sparql_parser_lval->name, yytext + 1, yyleng - 1);
                         sparql_parser_lval->name[yyleng - 1] = '\0';
@@ -478,7 +484,7 @@ EXPONENT [eE][+-]?[0-9]+
 [-+]?{INTEGER}   { c = *yytext;
                   sparql_parser_lval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_INTEGER, (const unsigned char*)yytext);
                   if(!sparql_parser_lval->literal)
-                    YY_FATAL_ERROR_EOF("rasqal_new_typed_literal failed");
+                    YY_REPORT_ERROR_EOF("rasqal_new_typed_literal failed");
  		  return (c=='+' ? INTEGER_POSITIVE_LITERAL : (c == '-' ? INTEGER_NEGATIVE_LITERAL : INTEGER_LITERAL));
 }
 
@@ -491,7 +497,7 @@ EXPONENT [eE][+-]?[0-9]+
                         }
                         sparql_parser_lval->literal = rasqal_new_decimal_literal(rq->world, (const unsigned char*)yytext);
                         if(!sparql_parser_lval->literal)
-                          YY_FATAL_ERROR_EOF("rasqal_new_decimal_literal failed");
+                          YY_REPORT_ERROR_EOF("rasqal_new_decimal_literal failed");
                         return (c=='+' ? DECIMAL_POSITIVE_LITERAL : (c == '-' ? DECIMAL_NEGATIVE_LITERAL : DECIMAL_LITERAL));
 }
 
@@ -503,7 +509,7 @@ EXPONENT [eE][+-]?[0-9]+
                         }
                         sparql_parser_lval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext);
                         if(!sparql_parser_lval->literal)
-                          YY_FATAL_ERROR_EOF("rasqal_new_typed_literal failed");
+                          YY_REPORT_ERROR_EOF("rasqal_new_typed_literal failed");
                         return (c=='+' ? DOUBLE_POSITIVE_LITERAL : (c == '-' ? DOUBLE_NEGATIVE_LITERAL : DOUBLE_LITERAL));
 }
 
@@ -513,19 +519,19 @@ EXPONENT [eE][+-]?[0-9]+
 '([^'\\\n\r]|\\[^\n\r])*'    { /*' */
                         sparql_parser_lval->name = sparql_copy_string_token(rq, (unsigned char*)yytext+1, yyleng-2, '\'');
                         if(!sparql_parser_lval->name)
-                          YY_FATAL_ERROR_EOF("sparql_copy_string_token failed");
+                          YY_REPORT_ERROR_EOF("sparql_copy_string_token failed");
                         return STRING; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"   { /* " */
                         sparql_parser_lval->name = sparql_copy_string_token(rq, (unsigned char*)yytext+1, yyleng-2, '"');
                         if(!sparql_parser_lval->name)
-                          YY_FATAL_ERROR_EOF("sparql_copy_string_token failed");
+                          YY_REPORT_ERROR_EOF("sparql_copy_string_token failed");
                         return STRING; }
 
 \"\"\"				{ BEGIN(LITERAL); 
                                   rqe->sb = raptor_new_stringbuffer();
                                   if(!rqe->sb)
-                                    YY_FATAL_ERROR("raptor_new_stringbuffer failed");
+                                    YY_REPORT_ERROR_EOF("raptor_new_stringbuffer failed");
                           }
 
 <LITERAL>\"\"\"			{
@@ -535,7 +541,7 @@ EXPONENT [eE][+-]?[0-9]+
                   len = raptor_stringbuffer_length(rqe->sb);
                   sparql_parser_lval->name = (unsigned char *)RASQAL_MALLOC(cstring, len+1);
                   if(!sparql_parser_lval->name)
-                    YY_FATAL_ERROR("Out of memory");
+                    YY_REPORT_ERROR_EOF("Out of memory");
 
                   raptor_stringbuffer_copy_to_string(rqe->sb,
                                                      (unsigned char*)sparql_parser_lval->name, len);
@@ -565,7 +571,7 @@ EXPONENT [eE][+-]?[0-9]+
                     BEGIN(INITIAL);
                     raptor_free_stringbuffer(rqe->sb);
                     rqe->sb = NULL;
-                    YY_FATAL_ERROR_EOF("sparql_stringbuffer_append_sparql_string failed");
+                    YY_REPORT_ERROR_EOF("sparql_stringbuffer_append_sparql_string failed");
                   }
                   
    }
@@ -577,8 +583,10 @@ EXPONENT [eE][+-]?[0-9]+
 
 \'\'\'				{ BEGIN(LITERAL2); 
                                   rqe->sb = raptor_new_stringbuffer();
-                                  if(!rqe->sb)
-                                    YY_FATAL_ERROR("raptor_new_stringbuffer failed");
+                                  if(!rqe->sb) {
+                                    BEGIN(INITIAL);
+                                    YY_REPORT_ERROR_EOF("raptor_new_stringbuffer failed");
+                                  }
                           }
 
 <LITERAL2>\'\'\'			{
@@ -588,7 +596,7 @@ EXPONENT [eE][+-]?[0-9]+
                   len = raptor_stringbuffer_length(rqe->sb);
                   sparql_parser_lval->name = (unsigned char *)RASQAL_MALLOC(cstring, len+1);
                   if(!sparql_parser_lval->name)
-                    YY_FATAL_ERROR("Out of memory");
+                    YY_REPORT_ERROR_EOF("Out of memory");
 
                   raptor_stringbuffer_copy_to_string(rqe->sb, (unsigned char*)sparql_parser_lval->name, len);
                   sparql_parser_lval->name[len]='\0';
@@ -617,7 +625,7 @@ EXPONENT [eE][+-]?[0-9]+
                     BEGIN(INITIAL);
                     raptor_free_stringbuffer(rqe->sb);
                     rqe->sb = NULL;
-                    YY_FATAL_ERROR_EOF("sparql_stringbuffer_append_sparql_string failed");
+                    YY_REPORT_ERROR_EOF("sparql_stringbuffer_append_sparql_string failed");
                   }
                   
    }
@@ -631,17 +639,17 @@ EXPONENT [eE][+-]?[0-9]+
 
 [Tt][Rr][Uu][Ee]	{ sparql_parser_lval->literal = rasqal_new_boolean_literal(rq->world, 1);
                     if(!sparql_parser_lval->literal)
-                      YY_FATAL_ERROR_EOF("rasqal_new_boolean_literal failed");
+                      YY_REPORT_ERROR_EOF("rasqal_new_boolean_literal failed");
                   return BOOLEAN_LITERAL; }
 
 [Ff][Aa][Ll][Ss][Ee]	{ sparql_parser_lval->literal = rasqal_new_boolean_literal(rq->world, 0);
                         if(!sparql_parser_lval->literal)
-                          YY_FATAL_ERROR_EOF("rasqal_new_boolean_literal failed");
+                          YY_REPORT_ERROR_EOF("rasqal_new_boolean_literal failed");
                   return BOOLEAN_LITERAL; }
 
 <ID>{VARNAME}	{ sparql_parser_lval->name = sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
 		  if(!sparql_parser_lval->name)
-                    YY_FATAL_ERROR_EOF("sparql_copy_name failed");
+                    YY_REPORT_ERROR_EOF("sparql_copy_name failed");
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 <ID>(.|\n)	{	BEGIN(INITIAL);
@@ -663,7 +671,7 @@ EXPONENT [eE][+-]?[0-9]+
 
 <SPID>{VARNAME}	{ sparql_parser_lval->name = sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
 		  if(!sparql_parser_lval->name)
-                    YY_FATAL_ERROR_EOF("sparql_copy_name failed");
+                    YY_REPORT_ERROR_EOF("sparql_copy_name failed");
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 
@@ -676,7 +684,7 @@ EXPONENT [eE][+-]?[0-9]+
 <PREF>{NCNAME_PREFIX}":"	{ BEGIN(INITIAL);
 		  	  sparql_parser_lval->name = sparql_copy_name(rq, (const unsigned char*)yytext, yyleng-1, SPARQL_NAME_CHECK_PREFIX);
 			  if(!sparql_parser_lval->name)
-			    YY_FATAL_ERROR_EOF("sparql_copy_name failed");
+			    YY_REPORT_ERROR_EOF("sparql_copy_name failed");
                           return IDENTIFIER; }
 <PREF>":"	{ BEGIN(INITIAL);
 		  sparql_parser_lval->name = NULL;
@@ -696,7 +704,7 @@ EXPONENT [eE][+-]?[0-9]+
 			yyleng--;
 		sparql_parser_lval->uri = sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
 		if(!sparql_parser_lval->uri)
-		  YY_FATAL_ERROR_EOF("sparql_copy_qname failed");
+		  YY_REPORT_ERROR_EOF("sparql_copy_qname failed");
  		return have_brace ? URI_LITERAL_BRACE : URI_LITERAL;
 }
 
@@ -723,12 +731,12 @@ EXPONENT [eE][+-]?[0-9]+
                                                                   NULL,
                                                                   sparql_syntax_error, rq);
                   if(!uri_string)
-                    YY_FATAL_ERROR_EOF("rasqal_escaped_name_to_utf8_string failed");
+                    YY_REPORT_ERROR_EOF("rasqal_escaped_name_to_utf8_string failed");
 
                   sparql_parser_lval->uri = raptor_new_uri_relative_to_base(rq->world->raptor_world_ptr, rq->base_uri, uri_string);
                   RASQAL_FREE(cstring, uri_string);
                   if(!sparql_parser_lval->uri)
-                    YY_FATAL_ERROR_EOF("raptor_new_uri_relative_to_base failed");
+                    YY_REPORT_ERROR_EOF("raptor_new_uri_relative_to_base failed");
                  }
                  return have_brace ? URI_LITERAL_BRACE : URI_LITERAL; }
 
@@ -1040,14 +1048,17 @@ sparql_stringbuffer_append_sparql_string(rasqal_query* rq,
 
 
 /*
- * sparql_lexer_fatal_error:
- * @msg:
- * @yyscanner:
+ * sparql_lexer_log_error:
+ * @msg: message string
+ * @level: log level
+ * @yyscanner: scanner context
  *
  * INTERNAL - replacement for the generated error handler.
- * Uses rasqal_query_fatal_error() when possible.
+ * Uses rasqal_log_error_simple() when possible.
  */
-static void sparql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner)
+static void sparql_lexer_log_error(yyconst char *msg,
+                                   raptor_log_level level,
+                                   yyscan_t yyscanner)
 {
   rasqal_query *rq = NULL;
 
@@ -1057,8 +1068,7 @@ static void sparql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner)
   if(rq) {
     /* avoid "format not a string literal and no format arguments" warning with %s */
     rq->failed = 1;
-    rasqal_log_error_simple(rq->world, RAPTOR_LOG_LEVEL_FATAL,
-                            &rq->locator, "%s", msg); 
+    rasqal_log_error_simple(rq->world, level, &rq->locator, "%s", msg); 
   } else {
     fputs(msg, stderr);
     fputc('\n', stderr);
