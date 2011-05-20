@@ -293,6 +293,9 @@ rasqal_world_get_raptor(rasqal_world* world)
  * @handler: log handler function
  *
  * Set the log handler for this rasqal_world.
+ *
+ * Also sets the raptor log handler to the same @user_data and
+ * @handler via raptor_world_set_log_handler(). (Rasqal 0.9.26+)
  **/
 void
 rasqal_world_set_log_handler(rasqal_world* world, void *user_data,
@@ -302,6 +305,8 @@ rasqal_world_set_log_handler(rasqal_world* world, void *user_data,
 
   world->log_handler = handler;
   world->log_handler_user_data = user_data;
+
+  raptor_world_set_log_handler(world->raptor_world_ptr, user_data, handler);
 }
 
 
