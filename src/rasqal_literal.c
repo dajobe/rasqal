@@ -2580,8 +2580,9 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     case RASQAL_LITERAL_VARIABLE:
       /* both are variables */
       result = rasqal_literal_equals(l1_p->value.variable->value,
-                                   l2_p->value.variable->value);
-      
+                                     l2_p->value.variable->value);
+      break;
+
     case RASQAL_LITERAL_UNKNOWN:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
