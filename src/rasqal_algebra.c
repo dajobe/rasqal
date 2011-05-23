@@ -830,7 +830,6 @@ rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node,
     raptor_iostream_string_write("origin ", iostr);
     rasqal_literal_write(node->graph, iostr);
     raptor_iostream_write_byte('\n', iostr);
-    arg_count++;
   }
 
   raptor_iostream_write_byte('\n', iostr);
@@ -1703,7 +1702,7 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
                             &modified);
 
 #if RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("modified=%d after remove zones, algebra node now:\n  ", modified);
+  RASQAL_DEBUG1("modified after remove zones, algebra node now:\n  ");
   rasqal_algebra_node_print(node, stderr);
   fputs("\n", stderr);
 #endif
@@ -1775,7 +1774,6 @@ rasqal_algebra_aggregate*
 rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
                                         rasqal_algebra_node* node)
 {
-  int modified = 0;
   rasqal_algebra_aggregate* ae;
   
   ae = (rasqal_algebra_aggregate*)RASQAL_CALLOC(rasqal_algebra_aggregate,
@@ -1825,8 +1823,6 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
     }
   }
   
-  modified = 0;
-  
   return ae;
 }
 
@@ -1845,7 +1841,6 @@ rasqal_algebra_query_add_group_by(rasqal_query* query,
                                   rasqal_algebra_node* node)
 {
   raptor_sequence* modifier_seq;
-  int modified;
   
   if(!query->modifier)
     return node;
@@ -1866,11 +1861,9 @@ rasqal_algebra_query_add_group_by(rasqal_query* query,
     }
     
     node = rasqal_new_groupby_algebra_node(query, node, seq);
-    modified = 1;
-    
     
 #if RASQAL_DEBUG > 1
-    RASQAL_DEBUG2("modified=%d after adding group node, algebra node now:\n  ", modified);
+    RASQAL_DEBUG1("modified after adding group node, algebra node now:\n  ");
     rasqal_algebra_node_print(node, stderr);
     fputs("\n", stderr);
 #endif
@@ -1894,7 +1887,6 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
                                    rasqal_algebra_node* node)
 {
   raptor_sequence* modifier_seq;
-  int modified;
   
   if(!query->modifier)
     return node;
@@ -1914,10 +1906,9 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
     }
     
     node = rasqal_new_orderby_algebra_node(query, node, seq);
-    modified = 1;
     
 #if RASQAL_DEBUG > 1
-    RASQAL_DEBUG2("modified=%d after adding orderby node, algebra node now:\n  ", modified);
+    RASQAL_DEBUG1("modified after adding orderby node, algebra node now:\n  ");
     rasqal_algebra_node_print(node, stderr);
     fputs("\n", stderr);
 #endif
@@ -1944,7 +1935,6 @@ rasqal_algebra_query_add_aggregation(rasqal_query* query,
                                      rasqal_algebra_aggregate* ae,
                                      rasqal_algebra_node* node)
 {
-  int modified = 0;
   raptor_sequence* exprs_seq;
   raptor_sequence* vars_seq;
   
@@ -1969,10 +1959,8 @@ rasqal_algebra_query_add_aggregation(rasqal_query* query,
     goto tidy;
   }
   
-  modified = 1;
-  
 #if RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("modified=%d after adding aggregation node, algebra node now:\n  ", modified);
+  RASQAL_DEBUG1("modified after adding aggregation node, algebra node now:\n  ");
   rasqal_algebra_node_print(node, stderr);
   fputs("\n", stderr);
 #endif
@@ -2003,7 +1991,6 @@ rasqal_algebra_node*
 rasqal_algebra_query_add_projection(rasqal_query* query,
                                    rasqal_algebra_node* node)
 {
-  int modified = 0;
   int vars_size = 0;
   raptor_sequence* seq = NULL;  /* sequence of rasqal_variable* */
   raptor_sequence* vars_seq;
@@ -2044,10 +2031,9 @@ rasqal_algebra_query_add_projection(rasqal_query* query,
   }
   
   node = rasqal_new_project_algebra_node(query, node, vars_seq);
-  modified = 1;
   
 #if RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("modified=%d after adding project node, algebra node now:\n  ", modified);
+  RASQAL_DEBUG1("modified after adding project node, algebra node now:\n  ");
   rasqal_algebra_node_print(node, stderr);
   fputs("\n", stderr);
 #endif
@@ -2072,14 +2058,11 @@ rasqal_algebra_node*
 rasqal_algebra_query_add_distinct(rasqal_query* query,
                                   rasqal_algebra_node* node)
 {
-  int modified;
-  
   if(query->distinct) {
     node = rasqal_new_distinct_algebra_node(query, node);
-    modified = 1;
 
 #if RASQAL_DEBUG > 1
-    RASQAL_DEBUG2("modified=%d after adding distinct node, algebra node now:\n  ", modified);
+    RASQAL_DEBUG1("modified after adding distinct node, algebra node now:\n  ");
     rasqal_algebra_node_print(node, stderr);
     fputs("\n", stderr);
 #endif
@@ -2103,7 +2086,6 @@ rasqal_algebra_query_add_having(rasqal_query* query,
                                 rasqal_algebra_node* node)
 {
   raptor_sequence* modifier_seq;
-  int modified;
   
   if(!query->modifier)
     return node;
@@ -2123,10 +2105,9 @@ rasqal_algebra_query_add_having(rasqal_query* query,
     }
     
     node = rasqal_new_having_algebra_node(query, node, exprs_seq);
-    modified = 1;
     
 #if RASQAL_DEBUG > 1
-    RASQAL_DEBUG2("modified=%d after adding having node, algebra node now:\n  ", modified);
+    RASQAL_DEBUG1("modified after adding having node, algebra node now:\n  ");
     rasqal_algebra_node_print(node, stderr);
     fputs("\n", stderr);
 #endif
