@@ -99,7 +99,9 @@ $(man_MANS) \
 version.xml.in \
 rasqal-changes.tsv
 
-DISTCLEANFILES += README \
+CLEANFILES += README
+
+DISTCLEANFILES += \
 rasqal-fake.i
 
 # Create some text files from HTML sources
