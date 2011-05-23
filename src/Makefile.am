@@ -62,7 +62,9 @@ endif
 
 EXTRA_PROGRAMS=$(TESTS)
 
-CLEANFILES=$(TESTS)
+CLEANFILES=$(TESTS) \
+*.plist
+
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
 rdql_parser.c rdql_parser.h rdql_parser.output \
 sparql_lexer.c sparql_lexer.h \
@@ -73,6 +75,14 @@ MEM_LIBS=@MEM_LIBS@
 
 AM_CFLAGS= @RASQAL_INTERNAL_CPPFLAGS@ @STANDARD_CFLAGS@ $(MEM)
 LIBS= @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
+
+ANALYZE = clang
+ANALYZE_FLAGS = "--analyze"
+# Based on COMPILE target
+ANALYZE_COMMAND = $(ANALYZE) \
+	$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) \
+	$(ANALYZE_FLAGS)
 
 librasqal_la_SOURCES = \
 rasqal_algebra.c \
@@ -262,3 +272,22 @@ rasqal_literal_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
+
+
+if MAINTAINER_MODE
+# Run Clang static analyzer over sources.
+analyze: $(SOURCES)
+	@list='$(SOURCES)'; \
+	result=0; \
+	for file in $$list; do \
+	  if echo $$file | grep '\.c$$' >/dev/null 2>&1; then \
+	    $(RECHO) "Analyzing $$file"; \
+	    $(ANALYZE_COMMAND) $(srcdir)/$$file; \
+	    status=$$?; \
+	    if test $$status != 0; then \
+	      result=1; \
+	    fi; \
+	  fi; \
+	done; \
+	set -e; exit $$result
+endif
