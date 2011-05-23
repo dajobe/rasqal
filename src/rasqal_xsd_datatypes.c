@@ -183,10 +183,9 @@ rasqal_xsd_check_double_format(const unsigned char* string, int flags)
   /* FIXME validate using
    * http://www.w3.org/TR/xmlschema-2/#double
    */
-  double d = 0.0;
   char* eptr = NULL;
 
-  d = strtod((const char*)string, &eptr);
+  (void)strtod((const char*)string, &eptr);
   if((unsigned char*)eptr != string && *eptr == '\0')
     return 1;
 
@@ -209,10 +208,9 @@ rasqal_xsd_check_float_format(const unsigned char* string, int flags)
   /* FIXME validate using
    * http://www.w3.org/TR/xmlschema-2/#float
    */
-  double d = 0.0;
   char* eptr = NULL;
 
-  d = strtod((const char*)string, &eptr);
+  (void)strtod((const char*)string, &eptr);
   if((unsigned char*)eptr != string && *eptr == '\0')
     return 1;
 
@@ -232,14 +230,13 @@ rasqal_xsd_check_float_format(const unsigned char* string, int flags)
 static int
 rasqal_xsd_check_integer_format(const unsigned char* string, int flags)
 {
-  long int v;
   char* eptr = NULL;
 
   /* This should be correct according to 
    * http://www.w3.org/TR/xmlschema-2/#integer
    */
 
-  v = (int)strtol((const char*)string, &eptr, 10);
+  (void)strtol((const char*)string, &eptr, 10);
 
   if((unsigned char*)eptr != string && *eptr == '\0')
     return 1;
