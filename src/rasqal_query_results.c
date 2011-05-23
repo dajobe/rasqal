@@ -1572,10 +1572,7 @@ rasqal_query_results_add_row(rasqal_query_results* query_results,
 static int
 rasqal_query_results_execute_and_store_results(rasqal_query_results* query_results)
 {
-  rasqal_query* query;
   raptor_sequence* seq = NULL;
-
-  query = query_results->query;
 
   if(query_results->results_sequence)
      raptor_free_sequence(query_results->results_sequence);
