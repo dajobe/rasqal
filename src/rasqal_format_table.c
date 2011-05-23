@@ -254,7 +254,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
   if(seq)
     raptor_free_sequence(seq);
   
-  return 0;
+  return rc;
 }
 
 static int
