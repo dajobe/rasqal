@@ -1775,10 +1775,8 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
       sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
       if(rasqal_query_graph_pattern_build_variables_use_map_binds(query,
                                                                   use_map,
-                                                                  width, sgp)) {
-        RASQAL_FREE(intarray, var_is_bound);
+                                                                  width, sgp))
         return 1;
-      }
     }
 
     /* now check all GPs and turn an remaining mentioned variables into binds */
