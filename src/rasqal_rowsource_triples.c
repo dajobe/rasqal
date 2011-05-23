@@ -346,11 +346,8 @@ static raptor_sequence*
 rasqal_triples_rowsource_read_all_rows(rasqal_rowsource* rowsource,
                                        void *user_data)
 {
-  rasqal_triples_rowsource_context *con;
   raptor_sequence *seq = NULL;
   
-  con = (rasqal_triples_rowsource_context*)user_data;
-
   return seq;
 }
 
