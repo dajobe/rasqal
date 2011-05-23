@@ -4010,29 +4010,22 @@ rasqal_literal_array_compare(rasqal_literal** values_a,
     fputs("\n", DEBUG_FH);
 #endif
 
+    /* NULLs order first */
     if(!literal_a || !literal_b) {
-      if(!literal_a && !literal_b)
+      if(!literal_a && !literal_b) {
         result = 0;
-      else {
-        result = literal_a ? 1 : -1;
+      } else {
+        result = (!literal_a) ? -1 : 1;
 #ifdef RASQAL_DEBUG
         RASQAL_DEBUG2("Got one NULL literal comparison, returning %d\n", result);
 #endif
-        break;
       }
+      break;
     }
     
-    /* NULLs order first */
-    if(!literal_a || !literal_b) {
-      if(!literal_a && !literal_b)
-        result = 0;
-      else
-        result = (!literal_a) ? -1 : 1;
-    } else
-      result = rasqal_literal_compare(literal_a, literal_b,
-                                      compare_flags | RASQAL_COMPARE_URI,
-                                      &error);
-
+    result = rasqal_literal_compare(literal_a, literal_b,
+                                    compare_flags | RASQAL_COMPARE_URI,
+                                    &error);
     if(error) {
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG2("Got literal comparison error at expression %d, returning 0\n", i);
@@ -4045,7 +4038,7 @@ rasqal_literal_array_compare(rasqal_literal** values_a,
       continue;
 
     if(e && e->op == RASQAL_EXPR_ORDER_COND_DESC)
-      result= -result;
+      result = -result;
     /* else Order condition is RASQAL_EXPR_ORDER_COND_ASC so nothing to do */
     
 #ifdef RASQAL_DEBUG
