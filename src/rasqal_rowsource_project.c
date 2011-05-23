@@ -63,10 +63,6 @@ typedef struct
 static int
 rasqal_project_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 {
-  rasqal_project_rowsource_context *con;
-
-  con = (rasqal_project_rowsource_context*)user_data;
-  
   return 0;
 }
 
