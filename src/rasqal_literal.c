@@ -3862,16 +3862,16 @@ rasqal_literal_sequence_compare(int compare_flags,
 #endif
 
     if(!literal_a || !literal_b) {
-      if(!literal_a && !literal_b)
+      if(!literal_a && !literal_b) {
         result = 0;
-      else {
+      } else {
         result = literal_a ? 1 : -1;
 #if RASQAL_DEBUG > 1
         RASQAL_DEBUG2("Got one NULL literal comparison, returning %d\n",
                       result);
 #endif
-        break;
       }
+      break;
     }
     
     result = rasqal_literal_compare(literal_a, literal_b,
