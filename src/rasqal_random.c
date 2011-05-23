@@ -66,8 +66,8 @@ rasqal_random_get_system_seed(rasqal_world* world)
   b -= a;  b ^= rot(a, 6);  a += c;
   c -= b;  c ^= rot(b, 8);  b += a;
   a -= c;  a ^= rot(c,16);  c += b;
-  b -= a;  b ^= rot(a,19);  a += c;
-  c -= b;  c ^= rot(b, 4);  b += a;
+  b -= a;  b ^= rot(a,19);  /* a += c; */ /* CLANG: not needed because of below */
+  c -= b;  c ^= rot(b, 4);  /* b += a; */ /* CLANG: last calculation not needed */
   
   return (unsigned int)c;
 }
