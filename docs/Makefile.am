@@ -99,8 +99,6 @@ $(man_MANS) \
 version.xml.in \
 rasqal-changes.tsv
 
-CLEANFILES += README
-
 DISTCLEANFILES += \
 rasqal-fake.i
 
