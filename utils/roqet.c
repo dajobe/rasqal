@@ -86,9 +86,9 @@ static char *program=NULL;
 
 #ifdef RASQAL_INTERNAL
 /* add 'g:' */
-#define GETOPT_STRING "cd:D:e:f:F:g:G:hi:np:r:qs:v"
+#define GETOPT_STRING "cd:D:e:Ef:F:g:G:hi:np:r:qs:vW"
 #else
-#define GETOPT_STRING "cd:D:e:f:F:G:hi:np:r:qs:v"
+#define GETOPT_STRING "cd:D:e:Ef:F:G:hi:np:r:qs:vW"
 #endif
 
 #ifdef HAVE_GETOPT_LONG
@@ -104,6 +104,7 @@ static struct option long_options[] =
   {"dump-query", 1, 0, 'd'},
   {"data", 1, 0, 'D'},
   {"exec", 1, 0, 'e'},
+  {"ignore-errors", 0, 0, 'E'},
   {"feature", 1, 0, 'f'},
   {"format", 1, 0, 'F'},
   {"named", 1, 0, 'G'},
@@ -115,6 +116,7 @@ static struct option long_options[] =
   {"results", 1, 0, 'r'},
   {"source", 1, 0, 's'},
   {"version", 0, 0, 'v'},
+  {"ignore-warnings", 0, 0, 'W'},
 #ifdef STORE_RESULTS_FLAG
   {"store-results", 1, 0, STORE_RESULTS_FLAG},
 #endif
@@ -124,6 +126,10 @@ static struct option long_options[] =
 
 
 static int error_count = 0;
+static int warning_count = 0;
+
+static int ignore_warnings = 0;
+static int ignore_errors = 0;
 
 static const char *title_format_string = "Rasqal RDF query utility %s\n";
 
@@ -137,21 +143,42 @@ static const char *title_format_string = "Rasqal RDF query utility %s\n";
 
 
 static void
-roqet_log_handler(void* user_data, raptor_log_message *message)
+roqet_log_handler(void *data, raptor_log_message *message)
 {
-  /* Only interested in errors and more severe */
-  if(message->level < RAPTOR_LOG_LEVEL_ERROR)
-    return;
+  switch(message->level) {
+    case RAPTOR_LOG_LEVEL_FATAL:
+    case RAPTOR_LOG_LEVEL_ERROR:
+      if(!ignore_errors) {
+        fprintf(stderr, "%s: Error - ", program);
+        raptor_locator_print(message->locator, stderr);
+        fprintf(stderr, " - %s\n", message->text);
+      }
 
-  fprintf(stderr, "%s: Error - ", program);
-  if(message->locator) {
-    raptor_locator_print(message->locator, stderr);
-    fwrite((void*)" - ", sizeof(char), 3, stderr);
+      error_count++;
+      break;
+
+    case RAPTOR_LOG_LEVEL_WARN:
+      if(!ignore_warnings) {
+        fprintf(stderr, "%s: Warning - ", program);
+        raptor_locator_print(message->locator, stderr);
+        fprintf(stderr, " - %s\n", message->text);
+      }
+
+      warning_count++;
+      break;
+
+    case RAPTOR_LOG_LEVEL_NONE:
+    case RAPTOR_LOG_LEVEL_TRACE:
+    case RAPTOR_LOG_LEVEL_DEBUG:
+    case RAPTOR_LOG_LEVEL_INFO:
+
+      fprintf(stderr, "%s: Unexpected %s message - ", program,
+              raptor_log_level_get_label(message->level));
+      raptor_locator_print(message->locator, stderr);
+      fprintf(stderr, " - %s\n", message->text);
+      break;
   }
-  fputs(message->text, stderr);
-  fputc('\n',stderr);
 
-  error_count++;
 }
 
 #define SPACES_LENGTH 80
@@ -1069,6 +1096,14 @@ main(int argc, char *argv[])
         }
         break;
 
+      case 'W':
+        ignore_warnings = 1;
+        break;
+
+      case 'E':
+        ignore_errors = 1;
+        break;
+
       case 'v':
         fputs(rasqal_version_string, stdout);
         fputc('\n', stdout);
@@ -1188,6 +1223,7 @@ main(int argc, char *argv[])
     for(i = 1; i <= QUERY_OUTPUT_LAST; i++)
       printf("      %-15s         %s\n", query_output_format_labels[i][0],
              query_output_format_labels[i][1]);
+    puts(HELP_TEXT("E", "ignore-errors     ", "Ignore error messages"));
     puts(HELP_TEXT("f FEATURE(=VALUE)", "feature FEATURE(=VALUE)", HELP_PAD "Set query features" HELP_PAD "Use `-f help' for a list of valid features"));
     puts(HELP_TEXT("F", "format NAME       ", "Set data source format name (default: guess)"));
     puts(HELP_TEXT("G", "named URI         ", "RDF named graph data source URI"));
@@ -1197,6 +1233,7 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("s", "source URI        ", "Same as `-G URI'"));
     puts(HELP_TEXT("v", "version           ", "Print the Rasqal version"));
     puts(HELP_TEXT("w", "walk-query        ", "Print query.  Same as '-d structure'"));
+    puts(HELP_TEXT("W", "ignore-warnings ","Ignore warning messages"));
 #ifdef STORE_RESULTS_FLAG
     puts(HELP_TEXT_LONG("store-results BOOL", "DEBUG: Set store results yes/no BOOL"));
 #endif
@@ -1462,6 +1499,12 @@ main(int argc, char *argv[])
     raptor_free_uri(service_uri);
 
   rasqal_free_world(world);
+
+  if(error_count && !ignore_errors)
+    return 1;
+
+  if(warning_count && !ignore_warnings)
+    return 2;
   
   return (rc);
 }
