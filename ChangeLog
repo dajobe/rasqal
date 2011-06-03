@@ -1,3 +1,150 @@
+2011-05-24  Dave Beckett <dave@dajobe.org>
+
+	* docs/Makefile.am: Remove README from CLEANFILES.
+
+2011-05-22  Dave Beckett <dave@dajobe.org>
+
+	* docs/Makefile.am: Restore README to CLEANFILES after
+	f1749351cb30de99efc6c0f0819c1a4a7da8b6f0
+
+	* src/rasqal_literal.c:
+	Fix rasqal_literal_string_compare [CLANG]
+
+	(rasqal_literal_string_compare): Simplyify calling convention; no
+	need to ever return incomparable.  Adjust logic to match
+	raptor_term_compare() order.
+
+	(rasqal_literal_compare): Protect error_p assignment [CLANG] Call
+	rasqal_literal_string_compare to get result - no error arg.
+
+	* src/rasqal_literal.c: Fix rasqal_literal_array_compare with
+	NULLs. [CLANG]
+
+	(rasqal_literal_array_compare): Remove duplicate NULL compare code
+	and return NULL literal results earlier.
+
+	* src/rasqal_literal.c: Fix rasqal_literal_sequence_compare
+	literal NULL case [CLANG]
+
+	(rasqal_literal_sequence_compare): calculate equality result earlier
+	if both are NULL literals in the sequence.
+
+	* src/rasqal_literal.c: Fix rasqal_literal_equals_flags with
+	RASQAL_LITERAL_VARIABLE [CLANG]
+
+	(rasqal_literal_equals_flags): In RASQAL_LITERAL_VARIABLE case,
+	break case when result is calculated rather than fallthrough.
+	This can never have worked; this case may have always been handled
+	before calling this internal function.
+
+	* src/rasqal_xsd_datatypes.c: Fixes [CLANG]
+
+	(rasqal_xsd_check_double_format, rasqal_xsd_check_float_format)
+	(rasqal_xsd_check_integer_format): Cast unused results to void and
+	remove assignment to unused vars.
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_init): Remove unused 'con' var [CLANG]
+
+	* src/rasqal_rowsource_project.c:
+	(rasqal_project_rowsource_init): Remove unused 'con' var [CLANG]
+
+	* src/rasqal_rowsource_having.c:
+	(rasqal_having_rowsource_init): Remove unused 'con' var [CLANG]
+
+	* src/rasqal_rowsource_filter.c:
+	(rasqal_filter_rowsource_init): Remove unused 'con' var [CLANG]
+
+	* src/rasqal_random.c:
+	Fixes [CLANG]
+
+	(rasqal_random_get_system_seed): Removed un-necessary final
+	variable calculations and assignments that never get used
+
+	* src/rasqal_query_transform.c:
+	Fixes [CLANG]
+
+	(rasqal_query_graph_pattern_build_variables_use_map_binds): Remove
+	bad error freeing of 'var_is_bound' array that is never allocated
+	before this point.
+
+	* src/rasqal_query_results.c: Fixes [CLANG]
+
+	(rasqal_query_results_execute_and_store_results): Remove unused
+	'query' var
+
+	* src/rasqal_format_table.c:
+	(rasqal_query_results_write_table_bindings): Return rc [CLANG]
+
+	* src/rasqal_digest_sha1.c: Fixes [CLANG]
+
+	(SHA1Transform): Removed useless zeroing out locals at end of
+	scope (SHA1Final): Removed usless assignment to i
+
+	* src/rasqal_algebra.c: Fixes [CLANG]
+
+	(rasqal_algebra_algebra_node_write_internal): Remove useless final
+	arg_count++
+
+	(rasqal_algebra_query_to_algebra)
+	(rasqal_algebra_query_prepare_aggregates)
+	(rasqal_algebra_query_add_group_by)
+	(rasqal_algebra_query_add_modifiers)
+	(rasqal_algebra_query_add_aggregation)
+	(rasqal_algebra_query_add_projection)
+	(rasqal_algebra_query_add_distinct)
+	(rasqal_algebra_query_add_having): Removed useless 'modified'
+	variable that always has the same value in the debug message.
+
+	* src/Makefile.am: Add analyze target for maintainer to run clang
+	on sources
+
+	* src/.gitignore: Ignore clang .plist files
+
+2011-05-20  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l: Do not report failure twice for
+	sparql_copy_name
+
+	(sparql_copy_name, sparql_copy_qname): Report failure to decode
+	once and end
+
+	* utils/roqet.c:
+	(roqet_log_handler): Handle output with no locator nicer
+
+	* src/rasqal_general.c:
+	(rasqal_world_set_log_handler): Set raptor log handler too.
+
+2011-05-19  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l: Make lexing failing a regular error, not
+	fatal with abort().
+
+	Adjust flex error returns as much as possible to return a regular
+	log error event and setjmp / longjmp to start of lexing.
+
+	(sparql_lexer_log_error): Renamed from sparql_lexer_fatal_error
+	and takes a log level.  Use YY_FATAL_ERROR_EOF in lexing failures
+	to return an error and then yyterminate() the lexing.  No abort.
+	That mostly leaves fatal errors in out of memory situations or
+	when the lexer is jammed.  Hard to fix futrher without
+	post-processing the flex generated C.
+
+2011-05-14  Nicholas J Humfrey <njh@aelius.com>
+
+	* src/rasqal_format_json.c: Added the
+	'application/sparql-results+json' mime type, as specified in
+	http://www.w3.org/TR/rdf-sparql-json-res/
+
+2011-04-15  Nicholas J Humfrey <njh@aelius.com>
+
+	* docs/Makefile.am: Moved rasqal-fake.i from CLEANFILES to
+	DISTCLEANFILES.
+
+2011-04-06  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-xsd.sgml: datetime and decimal
+
 2011-03-13  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_query_transform.c: Fix mention / bind walking to
