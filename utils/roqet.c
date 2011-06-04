@@ -1233,7 +1233,7 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("s", "source URI        ", "Same as `-G URI'"));
     puts(HELP_TEXT("v", "version           ", "Print the Rasqal version"));
     puts(HELP_TEXT("w", "walk-query        ", "Print query.  Same as '-d structure'"));
-    puts(HELP_TEXT("W", "ignore-warnings ","Ignore warning messages"));
+    puts(HELP_TEXT("W", "ignore-warnings   ", "Ignore warning messages"));
 #ifdef STORE_RESULTS_FLAG
     puts(HELP_TEXT_LONG("store-results BOOL", "DEBUG: Set store results yes/no BOOL"));
 #endif
