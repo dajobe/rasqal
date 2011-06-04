@@ -5,7 +5,7 @@
 .\" Copyright (C) 2004-2011 David Beckett - http://www.dajobe.org/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH roqet 1 "2011-01-12"
+.TH roqet 1 "2011-06-04"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 roqet \- Rasqal RDF query utility
@@ -94,6 +94,9 @@ Add RDF data source URI (not a named graph).  If no data sources
 are given, the query itself must point to the data such as via
 SPARQL or RDQL FROM \fIuri\fP statements.
 .TP
+.B \-E, \-\-ignore\-errors
+Do not print error messages and do not exit with a non-0 status.
+.TP
 .B \-f, \-\-feature NAME(=VALUE)
 Set query feature
 .I NAME
@@ -129,6 +132,9 @@ to 'simple' (default) or 'xml' (an experimental XML format)
 .TP
 .B \-v, \-\-version
 Print the rasqal library version and exit.
+.TP
+.B \-W, \-\-ignore\-warnings
+Do not print warning messages and do not exit with a non-0 status.
 .SH EXAMPLES
 .IP
 .B roqet sparql-query-file.rq
