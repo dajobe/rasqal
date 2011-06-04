@@ -646,7 +646,9 @@ while($list_node) {
   my $expect_fail=0;
   my $execute=1;
 
-  if(defined $query_type && $query_type eq "<${mf}UpdateEvaluationTest>") {
+  if(defined $query_type &&
+     ($query_type eq "<${ut}UpdateEvaluationTest>" ||
+      $query_type eq "<${mf}UpdateEvaluationTest>")) {
     warn "Skipping query type $query_type - not supported\n"
       if $debug > 1;
     goto next_list_node;
