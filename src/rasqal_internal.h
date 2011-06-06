@@ -1099,6 +1099,13 @@ int rasqal_strncasecmp(const char* s1, const char* s2, size_t n);
 #  endif
 #endif
 
+/* timegm.c */
+#ifdef HAVE_TIMEGM
+#define rasqal_timegm timegm
+#else
+time_t rasqal_timegm(struct tm *tm);
+#endif
+
 /* rasqal_raptor.c */
 int rasqal_raptor_init(rasqal_world*);
 

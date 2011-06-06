@@ -125,6 +125,10 @@ endif
 if STRCASECMP
 librasqal_la_SOURCES += strcasecmp.c
 endif
+if TIMEGM
+librasqal_la_SOURCES += timegm.c
+endif
+
 if RASQAL_DIGEST_INTERNAL
 librasqal_la_SOURCES += rasqal_digest_md5.c rasqal_digest_sha1.c
 endif

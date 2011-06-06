@@ -1184,7 +1184,7 @@ rasqal_xsd_datetime_get_as_unixtime(rasqal_xsd_datetime* dt)
     time_buf.tm_gmtoff = dt->timezone_minutes * 60;
 #endif
 
-  return timegm(&time_buf);
+  return rasqal_timegm(&time_buf);
 }
 
 
