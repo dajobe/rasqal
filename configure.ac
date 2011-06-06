@@ -927,6 +927,8 @@ fi
 AC_MSG_RESULT($decimal_libraries_available)
 
 
+need_ceil_floor_round=0
+need_libm=0
 AC_MSG_CHECKING(decimal library to use)
 decimal_library=
 if test $need_mpfr = 1; then
@@ -935,8 +937,41 @@ elif test $need_gmp = 1; then
   decimal_library="gmp $GMP_VERSION"
 else
   decimal_library=none
+  need_ceil_floor_round=1
 fi
 AC_MSG_RESULT($decimal_library)
+
+if test $need_ceil_floor_round = 1; then
+  AC_MSG_CHECKING(for ceil floor round)
+  ceil_lib=none
+  AC_TRY_LINK([
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
+], [double d = ceil(1.0F) + floor(1.0F) + round(1.0F);],
+     AC_MSG_RESULT(yes)
+     ceil_lib=libc,
+     AC_MSG_RESULT(no))
+  if test $ceil_lib = none; then
+    LIBS="$LIBS -lm"
+    AC_MSG_CHECKING(for ceil floor round with -lm)
+  AC_TRY_LINK([
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
+], [double d = ceil(1.0F) + floor(1.0F) + round(1.0F);],
+       AC_MSG_RESULT(yes)
+       need_libm=1
+       ceil_lib=libm,
+       AC_MSG_RESULT(no))
+    LIBS="$oLIBS"
+  fi
+
+  if test $ceil_lib = none; then
+    AC_MSG_ERROR(Could not find ceil, floor, round in libc or libm)
+  fi
+fi
+
 
 DECIMAL_INCLUDES=
 DECIMAL_LIBS=
@@ -946,6 +981,9 @@ if test $need_mpfr = 1; then
 fi
 if test $need_gmp = 1; then
   DECIMAL_LIBS="-lgmp"
+fi
+if test $need_libm = 1; then
+  DECIMAL_LIBS="-lm"
 fi
 RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $DECIMAL_INCLUDES"
 RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $DECIMAL_LIBS"
