@@ -942,7 +942,7 @@ fi
 AC_MSG_RESULT($decimal_library)
 
 if test $need_ceil_floor_round = 1; then
-  AC_MSG_CHECKING(for ceil floor round)
+  AC_MSG_CHECKING(for ceil, floor and round in default libs)
   ceil_lib=none
   AC_RUN_IFELSE([AC_LANG_PROGRAM([[
 #ifdef HAVE_MATH_H
@@ -957,7 +957,7 @@ double d = ceil(1.0F) + floor(1.0F) + round(1.0F);
      ceil_lib=none)
   if test $ceil_lib = none; then
     LIBS="$LIBS -lm"
-    AC_MSG_CHECKING(for ceil floor round with -lm)
+    AC_MSG_CHECKING(for ceil, floor and round with -lm)
   AC_RUN_IFELSE([AC_LANG_PROGRAM([[
 #ifdef HAVE_MATH_H
 #include <math.h>
@@ -973,7 +973,7 @@ double d = ceil(1.0F) + floor(1.0F) + round(1.0F);
   fi
 
   if test $ceil_lib = none; then
-    AC_MSG_ERROR(Could not find ceil, floor, round in libc or libm)
+    AC_MSG_ERROR(Could not find ceil, floor, round in default libs or with -lm)
   fi
 fi
 
