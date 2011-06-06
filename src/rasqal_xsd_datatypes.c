@@ -36,7 +36,12 @@
 #include <stdlib.h>
 #endif
 #include <stdarg.h>
+#ifdef HAVE_LIMITS_H
 #include <limits.h>
+#endif
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
 
 #include "rasqal.h"
 #include "rasqal_internal.h"
@@ -238,7 +243,8 @@ rasqal_xsd_check_integer_format(const unsigned char* string, int flags)
 
   (void)strtol((const char*)string, &eptr, 10);
 
-  if((unsigned char*)eptr != string && *eptr == '\0')
+  if((unsigned char*)eptr != string && *eptr == '\0' &&
+     errno != ERANGE)
     return 1;
 
   return 0;
