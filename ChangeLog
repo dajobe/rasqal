@@ -1,3 +1,25 @@
+2011-06-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_service.c: warning text
+
+2011-06-04  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: skip both types of
+	UpdateEvaluationTest
+
+	* tests/sparql/check-sparql: Ignore update tests
+
+	* utils/roqet.c: tidy help
+
+	* utils/roqet.1: Document -W and -E
+
+2011-06-03  Nicholas J Humfrey <njh@aelius.com>
+
+	* Added -W and -E command line options to ignore warning and
+	errors respectively.
+
+	Made the roqet error log handling behave more like rapper.
+
 2011-05-24  Dave Beckett <dave@dajobe.org>
 
 	* docs/Makefile.am: Remove README from CLEANFILES.
