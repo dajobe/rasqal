@@ -37,7 +37,17 @@
 #endif
 #include <stdarg.h>
 /* for isnan() */
+#ifdef HAVE_MATH_H
 #include <math.h>
+#endif
+/* for INT_MIN and INT_MAX */
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
 
 #ifdef RASQAL_REGEX_PCRE
 #include <pcre.h>
@@ -542,6 +552,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 1);
 
+retype:
   l->valid = rasqal_xsd_datatype_check(type, string ? string : l->string,
                                        0 /* no flags set */);
   if(!l->valid) {
@@ -581,12 +592,26 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   switch(type) {
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
-      eptr = NULL;
-      i = (int)strtol((const char*)l->string, &eptr, 10);
-      if(*eptr)
-        return 1;
+      if(1) {
+        long long_i;
 
-      l->value.integer = i;
+        eptr = NULL;
+        long_i = strtol((const char*)l->string, &eptr, 10);
+        if(*eptr)
+          return 1;
+
+        if(errno == ERANGE) {
+          /* under or overflow of strtol() so fallthrough to DECIMAL */
+
+        } else if(long_i >= INT_MIN && long_i <= INT_MAX) {
+          l->value.integer = (int)long_i;
+          break;
+        }
+      }
+      
+      /* Will not fit in an int so turn it into a decimal */
+      type = RASQAL_LITERAL_DECIMAL;
+      goto retype;
       break;
 
     case RASQAL_LITERAL_DOUBLE:
@@ -1403,12 +1428,14 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
       {
         char *eptr;
         double  d;
-        int v;
+        long long_i;
 
         eptr = NULL;
-        v = (int)strtol((const char*)l->string, &eptr, 10);
-        if((unsigned char*)eptr != l->string && *eptr=='\0')
-          return v;
+        long_i = strtol((const char*)l->string, &eptr, 10);
+        /* If formatted correctly and no under or overflow */
+        if((unsigned char*)eptr != l->string && *eptr=='\0' &&
+           errno != ERANGE)
+          return (int)long_i;
 
         eptr = NULL;
         d = strtod((const char*)l->string, &eptr);
