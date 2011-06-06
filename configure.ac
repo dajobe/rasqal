@@ -968,7 +968,8 @@ double d = ceil(1.0F) + floor(1.0F) + round(1.0F);
        AC_MSG_RESULT(yes)
        need_libm=1
        ceil_lib=libm,
-       AC_MSG_RESULT(no))
+       AC_MSG_RESULT(no),
+       ceil_lib=none)
     LIBS="$oLIBS"
   fi
 
