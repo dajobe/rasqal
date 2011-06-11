@@ -54,6 +54,7 @@
 0.9.21	-	-	-	0.9.22	char*	rasqal_xsd_datetime_get_timezone_as_counted_string	(rasqal_xsd_datetime *dt, size_t *len_p)	-
 0.9.22	-	-	-	0.9.23	raptor_sequence*	rasqal_graph_pattern_get_flattened_triples	(rasqal_query* query, rasqal_graph_pattern* graph_pattern)	-
 0.9.23	-	-	-	0.9.24	raptor_sequence*	rasqal_graph_pattern_get_flattened_triples	(rasqal_query* query, rasqal_graph_pattern* graph_pattern)	-
+0.9.25	-	-	-	0.9.26	int	rasqal_world_set_warning_level	(rasqal_world* world, unsigned int warning_level)	-
 #
 # Types
 #

@@ -1375,10 +1375,9 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
 
     case RASQAL_EXPR_FUNCTION:
-      rasqal_log_error_simple(world,
-                              RAPTOR_LOG_LEVEL_WARN,
-                              eval_context->locator,
-                              "No function expressions support at present.  Returning false.");
+      rasqal_log_warning_simple(world, RASQAL_WARNING_LEVEL_NOT_IMPLEMENTED,
+                                eval_context->locator,
+                                "No function expressions support at present.  Returning false.");
       result = rasqal_new_boolean_literal(world, 0);
       break;
       

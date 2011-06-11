@@ -52,7 +52,7 @@ char *optarg;		/* option parameter if any */
  * defective option letter
  */
 static int
-Err (char *name, char *mess, int c)		/* returns '?' */
+Err (char *name, const char *mess, int c)		/* returns '?' */
 {
   optopt = c;
   if (opterr)

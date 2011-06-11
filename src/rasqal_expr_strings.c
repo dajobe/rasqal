@@ -916,10 +916,9 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
 #endif
 
 #ifdef RASQAL_REGEX_NONE
-  rasqal_log_error_simple(world,
-                          RAPTOR_LOG_LEVEL_WARN,
-                          eval_context->locator,
-                          "Regex support missing, cannot compare '%s' to '%s'", match_string, pattern);
+  rasqal_log_warning_simple(world, RASQAL_WARNING_LEVEL_MISSING_SUPPORT,
+                            eval_context->locator,
+                            "Regex support missing, cannot compare '%s' to '%s'", match_string, pattern);
   b=1;
   rc= -1;
 #endif

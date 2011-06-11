@@ -365,8 +365,10 @@ rasqal_service_execute(rasqal_service* svc)
         if(bg_graph_count++) {
           if(bg_graph_count == 2) {
             /* Warn once, only when the second BG is seen */
-            rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_WARN, NULL,
-                                    "Attempted to add multiple background graphs");
+            rasqal_log_warning_simple(svc->world,
+                                      RASQAL_WARNING_LEVEL_MULTIPLE_BG_GRAPHS,
+                                      NULL,
+                                      "Attempted to add multiple background graphs");
           }
           /* always skip after first BG */
           continue;

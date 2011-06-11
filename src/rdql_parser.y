@@ -811,22 +811,25 @@ rdql_syntax_error(rasqal_query *rq, const char *message, ...)
 int
 rdql_syntax_warning(rasqal_query *rq, const char *message, ...)
 {
-  rasqal_rdql_query_language *rqe=(rasqal_rdql_query_language*)rq->context;
+  rasqal_rdql_query_language *rqe;
   va_list arguments;
 
-  rq->locator.line=rqe->lineno;
+  if(RASQAL_WARNING_LEVEL_QUERY_SYNTAX >= rq->world->warning_level)
+    return 0;
+  
+  rqe = (rasqal_rdql_query_language*)rq->context;
+
+  rq->locator.line = rqe->lineno;
 #ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
   /*  rq->locator.column=rdql_lexer_get_column(yyscanner);*/
 #endif
 
   va_start(arguments, message);
-  rasqal_log_error_varargs(rq->world,
-                           RAPTOR_LOG_LEVEL_WARN,
-                           &rq->locator,
-                           message, arguments);
+  rasqal_log_error_varargs(rq->world, RAPTOR_LOG_LEVEL_WARN,
+                           &rq->locator, message, arguments);
   va_end(arguments);
 
-   return (0);
+  return 0;
 }
 
 

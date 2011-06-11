@@ -976,12 +976,38 @@ unsigned char* rasqal_world_generate_bnodeid(rasqal_world* world, unsigned char 
 int rasqal_world_reset_now(rasqal_world* world);
 struct timeval* rasqal_world_get_now_timeval(rasqal_world* world);
 
+
+typedef enum {
+  /* Warnings in 0..100 range.  Warn if LEVEL < world->warning_level */
+  RASQAL_WARNING_LEVEL_PROBABLY_BAD = 30,
+  RASQAL_WARNING_LEVEL_STYLE        = 60,
+  RASQAL_WARNING_LEVEL_STRICT_STYLE = 90,
+
+  /* Default warning level */
+  RASQAL_WARNING_LEVEL_DEFAULT      = 50,
+  RASQAL_WARNING_LEVEL_MAX          = 100,
+
+  /* Warnings level in code base */
+  RASQAL_WARNING_LEVEL_NOT_IMPLEMENTED    = RASQAL_WARNING_LEVEL_PROBABLY_BAD,
+  RASQAL_WARNING_LEVEL_MISSING_SUPPORT    = RASQAL_WARNING_LEVEL_PROBABLY_BAD,
+  RASQAL_WARNING_LEVEL_BAD_TRIPLE         = RASQAL_WARNING_LEVEL_PROBABLY_BAD,
+
+  RASQAL_WARNING_LEVEL_DUPLICATE_VARIABLE = RASQAL_WARNING_LEVEL_STYLE,
+  RASQAL_WARNING_LEVEL_VARIABLE_UNUSED    = RASQAL_WARNING_LEVEL_STYLE,
+  RASQAL_WARNING_LEVEL_MULTIPLE_BG_GRAPHS = RASQAL_WARNING_LEVEL_STYLE,
+  RASQAL_WARNING_LEVEL_QUERY_SYNTAX       = RASQAL_WARNING_LEVEL_STYLE,
+
+  RASQAL_WARNING_LEVEL_UNUSED_SELECTED_VARIABLE = RASQAL_WARNING_LEVEL_STRICT_STYLE,
+} rasqal_warning_level;
+
+
 rasqal_query_language_factory* rasqal_query_language_register_factory(rasqal_world *world, int (*factory) (rasqal_query_language_factory*));
 rasqal_query_language_factory* rasqal_get_query_language_factory (rasqal_world*, const char* name, const unsigned char* uri);
 void rasqal_log_error_simple(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, ...) RASQAL_PRINTF_FORMAT(4, 5);
 void rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, va_list arguments) RASQAL_PRINTF_FORMAT(4, 0);
 void rasqal_query_simple_error(void* user_data /* query */, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
 void rasqal_world_simple_error(void* user_data /* world */, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
+void rasqal_log_warning_simple(rasqal_world* world, rasqal_warning_level warn_level, raptor_locator* locator, const char* message, ...) RASQAL_PRINTF_FORMAT(4, 5);
 
 const char* rasqal_basename(const char* name);
 unsigned char* rasqal_world_default_generate_bnodeid_handler(void *user_data, unsigned char *user_bnodeid);
@@ -1329,6 +1355,8 @@ struct rasqal_world_s {
   struct timeval now;
   /* set when now is a cached value */
   unsigned int now_set : 1;
+
+  rasqal_warning_level warning_level;
 };
 
 

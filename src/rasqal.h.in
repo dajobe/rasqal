@@ -1052,6 +1052,9 @@ RASQAL_API
 int rasqal_world_set_generate_bnodeid_handler(rasqal_world* world, void *user_data, rasqal_generate_bnodeid_handler handler);
 
 RASQAL_API
+int rasqal_world_set_warning_level(rasqal_world* world, unsigned int warning_level);
+
+RASQAL_API
 const raptor_syntax_description* rasqal_world_get_query_results_format_description(rasqal_world* world, unsigned int counter);
 
 RASQAL_API

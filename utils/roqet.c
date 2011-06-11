@@ -86,9 +86,9 @@ static char *program=NULL;
 
 #ifdef RASQAL_INTERNAL
 /* add 'g:' */
-#define GETOPT_STRING "cd:D:e:Ef:F:g:G:hi:np:r:qs:vW"
+#define GETOPT_STRING "cd:D:e:Ef:F:g:G:hi:np:r:qs:vW:"
 #else
-#define GETOPT_STRING "cd:D:e:Ef:F:G:hi:np:r:qs:vW"
+#define GETOPT_STRING "cd:D:e:Ef:F:G:hi:np:r:qs:vW:"
 #endif
 
 #ifdef HAVE_GETOPT_LONG
@@ -116,7 +116,7 @@ static struct option long_options[] =
   {"results", 1, 0, 'r'},
   {"source", 1, 0, 's'},
   {"version", 0, 0, 'v'},
-  {"ignore-warnings", 0, 0, 'W'},
+  {"warnings", 1, 0, 'W'},
 #ifdef STORE_RESULTS_FLAG
   {"store-results", 1, 0, STORE_RESULTS_FLAG},
 #endif
@@ -128,7 +128,7 @@ static struct option long_options[] =
 static int error_count = 0;
 static int warning_count = 0;
 
-static int ignore_warnings = 0;
+static int warning_level = -1;
 static int ignore_errors = 0;
 
 static const char *title_format_string = "Rasqal RDF query utility %s\n";
@@ -158,7 +158,7 @@ roqet_log_handler(void *data, raptor_log_message *message)
       break;
 
     case RAPTOR_LOG_LEVEL_WARN:
-      if(!ignore_warnings) {
+      if(warning_level > 0) {
         fprintf(stderr, "%s: Warning - ", program);
         raptor_locator_print(message->locator, stderr);
         fprintf(stderr, " - %s\n", message->text);
@@ -1097,7 +1097,11 @@ main(int argc, char *argv[])
         break;
 
       case 'W':
-        ignore_warnings = 1;
+        if(optarg)
+          warning_level = atoi(optarg);
+        else
+          warning_level = 0;
+        rasqal_world_set_warning_level(world, warning_level);
         break;
 
       case 'E':
@@ -1218,22 +1222,22 @@ main(int argc, char *argv[])
     }
     puts("\nAdditional options:");
     puts(HELP_TEXT("c", "count             ", "Count triples - no output"));
-    puts(HELP_TEXT("d", "dump-query FORMAT ", "Print the parsed query out in FORMAT:"));
-    puts(HELP_TEXT("D", "data URI          ", "RDF data source URI"));
+    puts(HELP_TEXT("d FORMAT", "dump-query FORMAT", HELP_PAD "Print the parsed query out in FORMAT:"));
+    puts(HELP_TEXT("D URI", "data URI      ", "RDF data source URI"));
     for(i = 1; i <= QUERY_OUTPUT_LAST; i++)
       printf("      %-15s         %s\n", query_output_format_labels[i][0],
              query_output_format_labels[i][1]);
     puts(HELP_TEXT("E", "ignore-errors     ", "Ignore error messages"));
     puts(HELP_TEXT("f FEATURE(=VALUE)", "feature FEATURE(=VALUE)", HELP_PAD "Set query features" HELP_PAD "Use `-f help' for a list of valid features"));
-    puts(HELP_TEXT("F", "format NAME       ", "Set data source format name (default: guess)"));
-    puts(HELP_TEXT("G", "named URI         ", "RDF named graph data source URI"));
+    puts(HELP_TEXT("F NAME", "format NAME  ", "Set data source format name (default: guess)"));
+    puts(HELP_TEXT("G URI", "named URI     ", "RDF named graph data source URI"));
     puts(HELP_TEXT("h", "help              ", "Print this help, then exit"));
     puts(HELP_TEXT("n", "dryrun            ", "Prepare but do not run the query"));
     puts(HELP_TEXT("q", "quiet             ", "No extra information messages"));
-    puts(HELP_TEXT("s", "source URI        ", "Same as `-G URI'"));
+    puts(HELP_TEXT("s URI", "source URI    ", "Same as `-G URI'"));
     puts(HELP_TEXT("v", "version           ", "Print the Rasqal version"));
     puts(HELP_TEXT("w", "walk-query        ", "Print query.  Same as '-d structure'"));
-    puts(HELP_TEXT("W", "ignore-warnings   ", "Ignore warning messages"));
+    puts(HELP_TEXT("W LEVEL", "warnings LEVEL", HELP_PAD "Set warning message LEVEL from 0: none to 100: all"));
 #ifdef STORE_RESULTS_FLAG
     puts(HELP_TEXT_LONG("store-results BOOL", "DEBUG: Set store results yes/no BOOL"));
 #endif
@@ -1503,7 +1507,7 @@ main(int argc, char *argv[])
   if(error_count && !ignore_errors)
     return 1;
 
-  if(warning_count && !ignore_warnings)
+  if(warning_count && warning_level != 0)
     return 2;
   
   return (rc);

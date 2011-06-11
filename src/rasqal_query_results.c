@@ -1098,10 +1098,10 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
     s = rasqal_literal_as_node(t->subject);
     if(!s) {
-      rasqal_log_error_simple(query_results->world,
-                              RAPTOR_LOG_LEVEL_WARN,
-                              &query->locator,
-                              "Triple with unbound subject skipped");
+      rasqal_log_warning_simple(query_results->world,
+                                RASQAL_WARNING_LEVEL_BAD_TRIPLE,
+                                &query->locator,
+                                "Triple with unbound subject skipped");
       skipped = 1;
       continue;
     }
@@ -1162,8 +1162,8 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
       case RASQAL_LITERAL_UNKNOWN:
       default:
         /* case RASQAL_LITERAL_STRING: */
-        rasqal_log_error_simple(query_results->world,
-                                RAPTOR_LOG_LEVEL_WARN,
+      rasqal_log_warning_simple(query_results->world,
+                                RASQAL_WARNING_LEVEL_BAD_TRIPLE,
                                 &query->locator,
                                 "Triple with non-URI/blank node subject skipped");
         skipped = 1;
@@ -1178,10 +1178,10 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
     p = rasqal_literal_as_node(t->predicate);
     if(!p) {
-      rasqal_log_error_simple(query_results->world,
-                              RAPTOR_LOG_LEVEL_WARN,
-                              &query->locator,
-                              "Triple with unbound predicate skipped");
+      rasqal_log_warning_simple(query_results->world,
+                                RASQAL_WARNING_LEVEL_BAD_TRIPLE,
+                                &query->locator,
+                                "Triple with unbound predicate skipped");
       rasqal_free_literal(s);
       skipped = 1;
       continue;
@@ -1219,8 +1219,8 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
       case RASQAL_LITERAL_UNKNOWN:
       default:
-        rasqal_log_error_simple(query_results->world,
-                                RAPTOR_LOG_LEVEL_WARN,
+      rasqal_log_warning_simple(query_results->world,
+                                RASQAL_WARNING_LEVEL_BAD_TRIPLE,
                                 &query->locator,
                                 "Triple with non-URI predicate skipped");
         skipped = 1;
@@ -1235,10 +1235,10 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
     o = rasqal_literal_as_node(t->object);
     if(!o) {
-      rasqal_log_error_simple(query_results->world,
-                              RAPTOR_LOG_LEVEL_WARN,
-                              &query->locator,
-                              "Triple with unbound object skipped");
+      rasqal_log_warning_simple(query_results->world,
+                                RASQAL_WARNING_LEVEL_BAD_TRIPLE,
+                                &query->locator,
+                                "Triple with unbound object skipped");
       rasqal_free_literal(s);
       rasqal_free_literal(p);
       skipped = 1;
@@ -1308,10 +1308,10 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
       case RASQAL_LITERAL_UNKNOWN:
       default:
-        rasqal_log_error_simple(query_results->world,
-                                RAPTOR_LOG_LEVEL_WARN,
-                                &query->locator,
-                                "Triple with unknown object skipped");
+        rasqal_log_warning_simple(query_results->world,
+                                  RASQAL_WARNING_LEVEL_BAD_TRIPLE,
+                                  &query->locator,
+                                  "Triple with unknown object skipped");
         skipped = 1;
         break;
     }
