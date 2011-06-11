@@ -693,50 +693,6 @@ if test "x$enable_xml2" != "xno" ; then
 
 fi
 
-dnl checks for triples source libraries
-need_redland=0
-
-AC_ARG_WITH(triples-source, [  --with-triples-source=NAME  Use NAME to provide triples - raptor (default), redland], triples_source="$withval", triples_source="raptor") 
-
-for triples_source_name in $triples_source raptor redland; do
-  case $triples_source_name in
-    raptor)
-      AC_DEFINE([RAPTOR_TRIPLES_SOURCE_RAPTOR], 1, [Use raptor to provide triples])
-      break
-      ;;
-
-    redland)
-      if test $have_redland = 1; then
-        need_redland=1
-	AC_DEFINE([RAPTOR_TRIPLES_SOURCE_REDLAND], 1, [Use redland to provide triples])
-        break
-      fi
-      ;;
-
-    *)
-      AC_MSG_ERROR(No known triples source $triples_source_name)
-      ;;
-esac
-done
-
-AC_MSG_CHECKING(triples source libraries available)
-triples_source_libraries_available="raptor $RAPTOR_VERSION"
-if test $have_redland = 1; then
-  triples_source_libraries_available="$triples_source_libraries_available redland $REDLAND_VERSION"
-fi
-AC_MSG_RESULT($triples_source_libraries_available)
-
-
-AC_MSG_CHECKING(triples source library to use)
-triples_source_library=
-if test $need_redland = 1; then
-  triples_source_library="redland $REDLAND_VERSION"
-else
-  triples_source_library="raptor $RAPTOR_VERSION"
-fi
-AC_MSG_RESULT($triples_source_library)
-
-
 
 dnl RDF Query Languages
 rdql_query_language=no
@@ -996,19 +952,6 @@ RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $DECIMAL_INCLUDES"
 RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $DECIMAL_LIBS"
 
 
-if test $need_redland = 1; then
-  AC_LIBOBJ([rasqal_redland])
-
-  if test $with_redland = internal; then
-    RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS `$REDLAND_CONFIG --cflags`"
-    RASQAL_INTERNAL_LIBS="$RASQAL_INTERNAL_LIBS `$REDLAND_CONFIG --libtool-libs`"
-  else
-    RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS `$REDLAND_CONFIG --cflags`"
-    RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$REDLAND_CONFIG --libs`"
-    PKGCONFIG_REQUIRES="$PKGCONFIG_REQUIRES, redland >= $REDLAND_MIN_VERSION"
-  fi
-fi
-
 if test $need_libxml = 1; then
   RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS `$XML_CONFIG --cflags`"
   RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$XML_CONFIG --libs`"
@@ -1124,7 +1067,6 @@ AC_MSG_RESULT([
 Rasqal build summary:
   RDF query languages available : $rdf_query_languages_available
   RDF query languages enabled   :$rdf_query_languages_enabled
-  Triples source                : $triples_source_library
   Decimal library               : $decimal_library
   Regex library                 : $regex_library
   Message digest library        : $digest_library

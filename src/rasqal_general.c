@@ -195,16 +195,9 @@ rasqal_world_open(rasqal_world *world)
 #endif
 
 
-#ifdef RAPTOR_TRIPLES_SOURCE_RAPTOR
   rc = rasqal_raptor_init(world);
   if(rc)
     return rc;
-#endif
-#ifdef RAPTOR_TRIPLES_SOURCE_REDLAND
-  rc = rasqal_redland_init(world);
-  if(rc)
-    return rc;
-#endif
 
   rc = rasqal_init_query_results();
   if(rc)
