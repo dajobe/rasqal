@@ -226,12 +226,6 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
 
   rtsc = (rasqal_raptor_triples_source_user_data*)user_data;
 
-  if(!rdf_query->data_graphs) {
-    if(handler)
-      handler(rdf_query, /* locator */ NULL, "Query has no data graphs.");
-    return -1;  /* no data */
-  }
-
   /* Max API version this triples source generates */
   rts->version = 2;
   
@@ -240,17 +234,18 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
   rts->free_triples_source = rasqal_raptor_free_triples_source;
   rts->support_feature = rasqal_raptor_support_feature;
 
-  rtsc->sources_count = raptor_sequence_size(rdf_query->data_graphs);
-  /* no default triple source possible */
-  if(!rtsc->sources_count) {
-    if(handler)
-      handler(rdf_query, /* locator */ NULL, "Query has no data graphs.");
-    return -1;  /* no data */
-  }
-
-  rtsc->source_literals = (rasqal_literal**)RASQAL_CALLOC(rasqal_literal_ptr,
-                                                          rtsc->sources_count,
-                                                          sizeof(rasqal_literal*));
+  if(rdf_query->data_graphs)
+    rtsc->sources_count = raptor_sequence_size(rdf_query->data_graphs);
+  else
+    /* No data graph - assume there is just a background graph */
+    rtsc->sources_count = 0;
+  
+  if(rtsc->sources_count)
+    rtsc->source_literals = (rasqal_literal**)RASQAL_CALLOC(rasqal_literal_ptr,
+                                                            rtsc->sources_count,
+                                                            sizeof(rasqal_literal*));
+  else
+    rtsc->source_literals = NULL;
 
   rtsc->query = rdf_query;
 
@@ -475,7 +470,8 @@ rasqal_raptor_free_triples_source(void *user_data)
     if(rtsc->source_literals[i])
       rasqal_free_literal(rtsc->source_literals[i]);
   }
-  RASQAL_FREE(raptor_literal_ptr, rtsc->source_literals);
+  if(rtsc->source_literals)
+    RASQAL_FREE(raptor_literal_ptr, rtsc->source_literals);
 }
 
 
