@@ -5361,7 +5361,7 @@ sparql_syntax_warning(rasqal_query *rq, const char *message, ...)
   rasqal_sparql_query_language *rqe;
   va_list arguments;
 
-  if(RASQAL_WARNING_LEVEL_QUERY_SYNTAX >= rq->world->warning_level)
+  if(RASQAL_WARNING_LEVEL_QUERY_SYNTAX < rq->world->warning_level)
     return 0;
   
   rqe = (rasqal_sparql_query_language*)rq->context;
