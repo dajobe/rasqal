@@ -1,4 +1,84 @@
+2011-06-11  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-general.sgml, docs/tmpl/section-unused.sgml:
+	Update tmpls
+
+	* docs/rasqal-sections.txt: Add support_feature to unused section.
+
+	* src/rasqal_general.c: autodocs
+
+	* INSTALL.html, configure.ac, src/rasqal_general.c,
+	src/rasqal_redland.c: Remove redland triples store that has not
+	worked for some time.
+
+	configure: Remove --with-triples-source and --with-redland-config
+	options
+
+	Removed src/rasqal_redland.c module.
+
+	* src/rasqal_raptor.c: Allow no data graphs in the query
+
+	* src/rasqal_general.c, src/rasqal_internal.h, src/rdql_parser.y,
+	src/sparql_parser.y: Adjust warning levels so 50 does not warn
+	strict.  Invert tests so that 0 does nothing
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt,
+	src/rasqal.h.in, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c, src/rasqal_general.c,
+	src/rasqal_internal.h, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c, src/rasqal_service.c,
+	src/rdql_parser.y, src/sparql_parser.y, tests/sparql/check-sparql,
+	utils/getopt.c, utils/roqet.1, utils/roqet.c: Add
+	rasqal_world_set_warning_level() and use with roqet -W LEVEL
+
+	(rasqal_world_set_warning_level): Added to set warning level in
+	0...100 range where 0 is no warnings, 50 is the default and 100 is
+	all warnings.
+
+	roqet gains a -W LEVEL argument check-sparql: use roqet -W 0
+
+2011-06-06  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, src/Makefile.am, src/rasqal_datetime.c,
+	src/rasqal_internal.h, src/timegm.c: Add portable version of
+	timegm when not present
+
+	Fixes Issue#0000438
+	http://bugs.librdf.org/mantis/view.php?id=438
+
 2011-06-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_xsd_datatypes.c: Check for int overflow in strtol()
+	and turn into a decimal.
+
+	(rasqal_xsd_check_integer_format): Check for overflow when checking
+	string and return failure for integers that are too large.
+
+	* src/rasqal_literal.c: Check for int overflow in strtol() and
+	turn into a decimal.
+
+	(rasqal_literal_set_typed_value): Check for overflow when
+	converting a string to int and if resulting long won't fit in an
+	int, turn it into a decimal.
+
+	Fixes Issue#0000436
+	http://bugs.librdf.org/mantis/view.php?id=436
+
+	* configure.ac: Check for limits.h and error.h
+
+	* configure.ac:
+	Add cross-compile case to AC_RUN_IFELSE
+
+	* configure.ac:
+
+	* configure.ac: Use AC_RUN_IFELSE to actually run ceil, floor,
+	round test
+
+	* configure.ac: Add tests for ceil, floor and round that look in
+	libc or libm
+
+	Fixes Issue#0000446
+	http://bugs.librdf.org/mantis/view.php?id=446
 
 	* src/rasqal_service.c: warning text
 
