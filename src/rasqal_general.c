@@ -1056,7 +1056,7 @@ rasqal_world_get_now_timeval(rasqal_world* world)
 }
 
 
-/*
+/**
  * rasqal_world_set_warning_level:
  * @world: world
  * @warning_level: warning level 0..100
@@ -1067,18 +1067,15 @@ rasqal_world_get_now_timeval(rasqal_world* world)
  * <orderedlist>
  * <listitem><para>Level 10 is used for serious warnings that may be errors.
  * </para></listitem>
- *
  * <listitem><para>Level 30 is used for moderate style warnings.
  * </para></listitem>
- *
  * <listitem><para>Level 90 is used for strict conformance warnings.
  * </para></listitem>
- *
  * </orderedlist>
  *
  * When this method is called to set a warning level, only warnings
  * of less than @warning_level are reported.  The default warning
- * level is 50..
+ * level is 50.
  *
  * Return value: pointer to timeval or NULL on failure
  */
