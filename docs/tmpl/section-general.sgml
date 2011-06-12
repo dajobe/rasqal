@@ -66,6 +66,16 @@ their names, labels and URI.
 @handler: 
 
 
+<!-- ##### FUNCTION rasqal_world_set_warning_level ##### -->
+<para>
+
+</para>
+
+@world: 
+@warning_level: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_world_get_raptor ##### -->
 <para>
 
