@@ -395,4 +395,5 @@ next_match
 rasqal_expression_s
 triple_present
 RASQAL_LITERAL_UDT_DEFINED
+support_feature
 </SECTION>
