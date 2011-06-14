@@ -582,7 +582,7 @@ rasqal_query_check_unused_variables(rasqal_query* query)
       rasqal_log_warning_simple(query->world,
                                 RASQAL_WARNING_LEVEL_UNUSED_SELECTED_VARIABLE,
                                 &query->locator,
-                                "Variable %s was selected but is unused in the query.", 
+                                "Variable %s was selected but is unused in the query", 
                                 v->name);
 #if RASQAL_DEBUG > 1
     else if(column >= 0) {
@@ -1241,7 +1241,7 @@ rasqal_query_build_variables_use(rasqal_query* query)
           rasqal_log_warning_simple(query->world,
                                     RASQAL_WARNING_LEVEL_VARIABLE_UNUSED,
                                     &query->locator,
-                                    "Variable %s was bound but is unused in the query.", 
+                                    "Variable %s was bound but is unused in the query", 
                                 v->name);
       } else if(!(agg_row[i] & RASQAL_VAR_USE_BOUND_HERE) && 
                  (agg_row[i] & RASQAL_VAR_USE_MENTIONED_HERE)) {
