@@ -1429,7 +1429,7 @@ rasqal_algebra_get_variables_mentioned_in(rasqal_query* query,
 {
   raptor_sequence* seq; /* sequence of rasqal_variable* */
   int width;
-  short *row;
+  unsigned short *row;
   int i;
   
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,

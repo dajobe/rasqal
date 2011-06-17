@@ -473,7 +473,7 @@ struct rasqal_query_s {
    *   2  RASQAL_USE_MENTIONED_HERE
    *   4  RASQAL_USE_BOUND_HERE
    */
-  short* variables_use_map;
+  unsigned short* variables_use_map;
 
   /* sequence of #rasqal_update_operation when @verb is
    * INSERT (deprecated), DELETE (deprecated) or UPDATE
