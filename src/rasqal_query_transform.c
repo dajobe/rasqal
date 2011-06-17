@@ -1730,7 +1730,6 @@ rasqal_graph_pattern_promote_variable_mention_to_bind(rasqal_graph_pattern* gp,
   row = &query->variables_use_map[gp_offset];
 
   /* new variable - bind it */
-  row[v->offset] &= ~RASQAL_VAR_USE_MENTIONED_HERE;
   row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
 
   return 0;
