@@ -1592,13 +1592,10 @@ rasqal_query_triples_build_variables_use_map_binds(rasqal_query* query,
                                                    rasqal_graph_pattern* gp,
                                                    unsigned short* vars_scope)
 {
-  int gp_offset;
   int start_column = gp->start_column;
   int end_column = gp->end_column;
   int col;
   
-  gp_offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
-
   for(col = start_column; col <= end_column; col++) {
     rasqal_triple *t;
     rasqal_variable *v;
