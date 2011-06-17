@@ -50,11 +50,11 @@
 
 /* prototype for later */
 static int rasqal_query_build_variables_use_map(rasqal_query* query);
-static void rasqal_query_graph_build_variables_use_map_binds(rasqal_query* query, short *use_map, rasqal_literal *origin);
-static void rasqal_query_expression_build_variables_use_map(short *use_map, rasqal_expression* e);
-static void rasqal_query_let_build_variables_use_map(rasqal_query* query, short *use_map, rasqal_expression* e);
-static void rasqal_query_let_build_variables_use_map_binds(rasqal_query* query, short *use_map_row, rasqal_variable *var);
-static void rasqal_query_select_build_variables_use_map(rasqal_query* query, short *use_map);
+static void rasqal_query_graph_build_variables_use_map_binds(rasqal_query* query, unsigned short *use_map, rasqal_literal *origin);
+static void rasqal_query_expression_build_variables_use_map(unsigned short *use_map, rasqal_expression* e);
+static void rasqal_query_let_build_variables_use_map(rasqal_query* query, unsigned short *use_map, rasqal_expression* e);
+static void rasqal_query_let_build_variables_use_map_binds(rasqal_query* query, unsigned short *use_map_row, rasqal_variable *var);
+static void rasqal_query_select_build_variables_use_map(rasqal_query* query, unsigned short *use_map);
 
 
 int
@@ -521,23 +521,24 @@ rasqal_query_build_bound_in_triples(rasqal_query* query)
  *
  * Return value: array of variable usage info or NULL on failure
  */
-static short*
+static unsigned short*
 rasqal_query_build_variable_agg_use(rasqal_query* query)
 {
   int width;
   int height;
-  short* agg_row;
+  unsigned short* agg_row;
   int row_index;
   
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   height = RASQAL_VAR_USE_MAP_OFFSET_LAST + 1 + query->graph_pattern_count;
 
-  agg_row = (short*)RASQAL_CALLOC(intarray, width, sizeof(short));
+  agg_row = (unsigned short*)RASQAL_CALLOC(shortarray, width,
+                                           sizeof(unsigned short));
   if(!agg_row)
     return NULL;
 
   for(row_index = 0; row_index < height; row_index++) {
-    short *row;
+    unsigned short *row;
     int i;
 
     row = &query->variables_use_map[row_index * width];
@@ -1223,7 +1224,7 @@ rasqal_query_build_variables_use(rasqal_query* query)
     return rc;
   
   if(1) {
-    short* agg_row;
+    unsigned short* agg_row;
     int i;
     int errors = 0;
     
@@ -1262,7 +1263,7 @@ rasqal_query_build_variables_use(rasqal_query* query)
       }
     }
 
-    RASQAL_FREE(intarray, agg_row);
+    RASQAL_FREE(shortarray, agg_row);
 
     if(errors)
       return 1;
@@ -1508,7 +1509,7 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
  **/
 static int
 rasqal_query_triples_build_variables_use_map_row(raptor_sequence *triples,
-                                                 short *use_map_row,
+                                                 unsigned short *use_map_row,
                                                  int start_column,
                                                  int end_column)
 {
@@ -1557,7 +1558,7 @@ rasqal_query_triples_build_variables_use_map_row(raptor_sequence *triples,
  **/
 static int
 rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
-                                                   short *use_map,
+                                                   unsigned short *use_map,
                                                    int width,
                                                    rasqal_graph_pattern *gp)
 {
@@ -1636,7 +1637,7 @@ rasqal_graph_pattern_binds_variable(rasqal_graph_pattern* gp,
   rasqal_query* query = gp->query;
   int width;
   int gp_offset;
-  short *row;
+  unsigned short *row;
   
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   gp_offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
@@ -1662,7 +1663,7 @@ rasqal_graph_pattern_mentions_variable(rasqal_graph_pattern* gp,
   rasqal_query* query = gp->query;
   int width;
   int gp_offset;
-  short *row;
+  unsigned short *row;
   
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   gp_offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
@@ -1719,7 +1720,7 @@ rasqal_graph_pattern_promote_variable_mention_to_bind(rasqal_graph_pattern* gp,
   rasqal_query* query = gp->query;
   int width;
   int gp_offset;
-  short* row;
+  unsigned short* row;
 
   RASQAL_DEBUG3("Converting variable %s from mention to bound in GP #%d\n",
                 v->name, gp->gp_index);
@@ -1749,7 +1750,7 @@ rasqal_graph_pattern_promote_variable_mention_to_bind(rasqal_graph_pattern* gp,
  **/
 static int
 rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
-                                                         short *use_map,
+                                                         unsigned short *use_map,
                                                          int width,
                                                          rasqal_graph_pattern *gp)
 {
@@ -1759,7 +1760,7 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
     int gp_size = raptor_sequence_size(gp->graph_patterns);
     int i;
     int size;
-    short* var_is_bound;
+    unsigned short* var_is_bound;
     
     /* keep a boolean for each variable seen in sub-graph pattern
      * BGPs and use it to turn MENTIONs into BINDs for newly seen
@@ -1780,7 +1781,8 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
     }
 
     /* now check all GPs and turn an remaining mentioned variables into binds */
-    var_is_bound = (short*)RASQAL_CALLOC(intarray, size, sizeof(short*));
+    var_is_bound = (unsigned short*)RASQAL_CALLOC(shortarray, size,
+                                                  sizeof(unsigned short*));
     for(i = 0; i < gp_size; i++) {
       rasqal_graph_pattern *sgp;
       int var_index;
@@ -1810,7 +1812,7 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
 
     } /* end for sub-gp */
 
-    RASQAL_FREE(intarray, var_is_bound);
+    RASQAL_FREE(shortarray, var_is_bound);
   }
 
 
@@ -1918,7 +1920,7 @@ rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
   fputc('\n', fh);
 
   for(row_index = 0; row_index < height; row_index++) {
-    short *row = &query->variables_use_map[row_index * width];
+    unsigned short *row = &query->variables_use_map[row_index * width];
     int gp_index = row_index - (RASQAL_VAR_USE_MAP_OFFSET_LAST + 1);
 
     if(gp_index < 0)
@@ -1946,7 +1948,7 @@ rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
 
 /* for use with rasqal_expression_visit and user_data=rasqal_query */
 static int
-rasqal_query_expression_build_variables_use_map_row(short *use_map_row,
+rasqal_query_expression_build_variables_use_map_row(unsigned short *use_map_row,
                                                     rasqal_expression *e)
 {
   if(e->literal) {
@@ -1966,7 +1968,7 @@ rasqal_query_expression_build_variables_use_map_row(short *use_map_row,
  * Mark variables seen in a sequence of variables (with optional expression)
  */
 static int
-rasqal_query_build_variables_sequence_use_map_row(short* use_map_row,
+rasqal_query_build_variables_sequence_use_map_row(unsigned short* use_map_row,
                                                   raptor_sequence *vars_seq)
 {
   int rc = 0;
@@ -1998,7 +2000,7 @@ rasqal_query_build_variables_sequence_use_map_row(short* use_map_row,
  * Mark variables seen in a sequence of literals
  */
 static int
-rasqal_query_build_literals_sequence_use_map_row(short* use_map_row,
+rasqal_query_build_literals_sequence_use_map_row(unsigned short* use_map_row,
                                                  raptor_sequence *lits_seq)
 {
   int idx;
@@ -2024,7 +2026,7 @@ rasqal_query_build_literals_sequence_use_map_row(short* use_map_row,
  * Mark variables seen in a sequence of expressions
  */
 static int
-rasqal_query_build_expressions_sequence_use_map_row(short* use_map_row,
+rasqal_query_build_expressions_sequence_use_map_row(unsigned short* use_map_row,
                                                     raptor_sequence *exprs_seq)
 {
   int rc = 0;
@@ -2081,19 +2083,20 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   int width;
   int height;
   int rc = 0;
-  short *use_map;
+  unsigned short *use_map;
   raptor_sequence* seq;
-  short *use_map_row;
+  unsigned short *use_map_row;
   
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   height = RASQAL_VAR_USE_MAP_OFFSET_LAST + 1 + query->graph_pattern_count;
   
-  use_map = (short*)RASQAL_CALLOC(intarray,  width * height, sizeof(short));
+  use_map = (unsigned short*)RASQAL_CALLOC(shortarray,  width * height,
+                                           sizeof(unsigned short));
   if(!use_map)
     return 1;
 
   if(query->variables_use_map)
-    RASQAL_FREE(intarray, query->variables_use_map);
+    RASQAL_FREE(shortarray, query->variables_use_map);
 
   query->variables_use_map = use_map;
 
@@ -2194,7 +2197,7 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   /* finally turn any SELECTed variables that are never mentioned into binds */
   if(1) {
     int var_index;
-    short *row = &query->variables_use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS];
+    unsigned short *row = &query->variables_use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS];
 
     for(var_index = 0; var_index < width; var_index++) {
       rasqal_variable *v;
@@ -2233,7 +2236,7 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
  **/
 static void
 rasqal_query_graph_build_variables_use_map_binds(rasqal_query* query,
-                                                 short *use_map_row,
+                                                 unsigned short *use_map_row,
                                                  rasqal_literal *origin)
 {
   rasqal_variable *v;
@@ -2253,7 +2256,7 @@ rasqal_query_graph_build_variables_use_map_binds(rasqal_query* query,
  * 
  **/
 static void
-rasqal_query_expression_build_variables_use_map(short *use_map_row,
+rasqal_query_expression_build_variables_use_map(unsigned short *use_map_row,
                                                 rasqal_expression* e)
 {
   rasqal_expression_visit(e, 
@@ -2273,7 +2276,7 @@ rasqal_query_expression_build_variables_use_map(short *use_map_row,
  **/
 static void
 rasqal_query_let_build_variables_use_map(rasqal_query* query,
-                                         short *use_map_row,
+                                         unsigned short *use_map_row,
                                          rasqal_expression* e)
 {
   rasqal_expression_visit(e, 
@@ -2293,7 +2296,7 @@ rasqal_query_let_build_variables_use_map(rasqal_query* query,
  **/
 static void
 rasqal_query_let_build_variables_use_map_binds(rasqal_query* query,
-                                               short *use_map_row,
+                                               unsigned short *use_map_row,
                                                rasqal_variable *var)
 {
   use_map_row[var->offset] |= RASQAL_VAR_USE_BOUND_HERE;
@@ -2311,7 +2314,7 @@ rasqal_query_let_build_variables_use_map_binds(rasqal_query* query,
  **/
 static void
 rasqal_query_select_build_variables_use_map(rasqal_query* query,
-                                            short *use_map_row)
+                                            unsigned short *use_map_row)
 {
   rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
                           "Evaluation of Sub SELECT is not implemented.");
