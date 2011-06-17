@@ -327,9 +327,32 @@ typedef enum {
 } rasqal_var_use_map_offset;
 
 
-/* Magic (non-column number) values for query->variables_bound_in */
-#define BOUND_IN_UNBOUND   -1
-#define BOUND_IN_ELSEWHERE -2
+/**
+ * rasqal_triples_use_map_flags:
+ * @RASQAL_TRIPLES_USE_SUBJECT: variable used in subject of this triple
+ * @RASQAL_TRIPLES_USE_PREDICATE: ditto predicate
+ * @RASQAL_TRIPLES_USE_OBJECT: ditto object
+ * @RASQAL_TRIPLES_USE_GRAPH: ditto graph
+ * @RASQAL_TRIPLES_BOUND_SUBJECT: variable bound in subject of this triple
+ * @RASQAL_TRIPLES_BOUND_PREDICATE: ditto predicate
+ * @RASQAL_TRIPLES_BOUND_OBJECT: ditto object
+ * @RASQAL_TRIPLES_BOUND_GRAPH: ditto graph
+ * @RASQAL_TRIPLES_USE_MASK: mask to check if variable is used in any part of TP
+ * @RASQAL_TRIPLES_BOUND_MASK: mask to check if variable is bound in any part of TP (a single variable can be bound at most once in a triple pattern)
+ */
+typedef enum {
+  RASQAL_TRIPLES_USE_SUBJECT     = RASQAL_TRIPLE_SUBJECT,
+  RASQAL_TRIPLES_USE_PREDICATE   = RASQAL_TRIPLE_PREDICATE,
+  RASQAL_TRIPLES_USE_OBJECT      = RASQAL_TRIPLE_OBJECT,
+  RASQAL_TRIPLES_USE_GRAPH       = RASQAL_TRIPLE_GRAPH,
+  RASQAL_TRIPLES_BOUND_SUBJECT   = RASQAL_TRIPLE_SUBJECT   << 4,
+  RASQAL_TRIPLES_BOUND_PREDICATE = RASQAL_TRIPLE_PREDICATE << 4,
+  RASQAL_TRIPLES_BOUND_OBJECT    = RASQAL_TRIPLE_OBJECT    << 4,
+  RASQAL_TRIPLES_BOUND_GRAPH     = RASQAL_TRIPLE_GRAPH     << 4,
+  RASQAL_TRIPLES_USE_MASK        = (RASQAL_TRIPLES_USE_SUBJECT | RASQAL_TRIPLES_USE_PREDICATE | RASQAL_TRIPLES_USE_OBJECT | RASQAL_TRIPLES_USE_GRAPH),
+  RASQAL_TRIPLES_BOUND_MASK      = (RASQAL_TRIPLES_BOUND_SUBJECT | RASQAL_TRIPLES_BOUND_PREDICATE | RASQAL_TRIPLES_BOUND_OBJECT | RASQAL_TRIPLES_BOUND_GRAPH)
+} rasqal_triples_use_map_flags;
+
 
 /*
  * A query in some query language
@@ -389,13 +412,14 @@ struct rasqal_query_s {
    */
   int select_variables_count;
 
-  /* array of size (number of total variables)
-   * pointing to either:
-   *   a) triple column where a variable[offset] is bound (0 or larger)
-   *   b) -1 if not bound anywhere (BOUND_IN_UNBOUND)
-   *   c) -2 if bound outside a triple (e.g. GRAPH, LET ) (BOUND_IN_ELSEWHERE)
+  /* INTERNAL 2D array of:
+   *   width (number of total variables)
+   *   height (number of triples)
+   * marking how a variable is mentioned/used in a TRIPLE PATTERN
+   * Each triple pattern has a row and the short values are per-variable
+   * with flags from #rasqal_triples_use_map_flags
    */
-  int* variables_bound_in;
+  unsigned short* triples_use_map;
 
   /* can be filled with error location information */
   raptor_locator locator;
@@ -1213,7 +1237,8 @@ unsigned char* rasqal_query_get_genid(rasqal_query* query, const unsigned char* 
 void rasqal_query_set_base_uri(rasqal_query* rq, raptor_uri* base_uri);
 rasqal_variable* rasqal_query_get_variable_by_offset(rasqal_query* query, int idx);
 const rasqal_query_execution_factory* rasqal_query_get_engine_by_name(const char* name);
-int rasqal_query_get_bound_in_column_for_variable(rasqal_query* query, rasqal_variable* v);
+int rasqal_query_variable_is_bound(rasqal_query* query, rasqal_variable* v);
+rasqal_triple_parts rasqal_query_variable_bound_in_triple(rasqal_query* query, rasqal_variable* v, int column);
 
 /* rasqal_query_results.c */
 int rasqal_init_query_results(void);

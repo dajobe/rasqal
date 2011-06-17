@@ -1062,17 +1062,18 @@ rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp,
                                        rasqal_variable *v) 
 {
   rasqal_query* query;
-  int column;
+  int width;
+  int gp_offset;
+  unsigned short *row;
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, 0);
-
-  query = gp->query;
-  column = query->variables_bound_in[v->offset];
-
-  if(column < 0)
-    return 0;
   
-  return (column >= gp->start_column && column <= gp->end_column);
+  query = gp->query;
+  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  gp_offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
+  row = &query->variables_use_map[gp_offset];
+
+  return ((row[v->offset] & RASQAL_VAR_USE_BOUND_HERE) != 0);
 }
 
 

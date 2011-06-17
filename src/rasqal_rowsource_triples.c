@@ -101,13 +101,14 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     rasqal_variable *v;
     v = rasqal_variables_table_get(rowsource->vars_table, i);
     
-    column = rasqal_query_get_bound_in_column_for_variable(query, v);
-
-    if(column >= con->start_column && column <= con->end_column) {
-      v = rasqal_new_variable_from_variable(v);
-      if(raptor_sequence_push(rowsource->variables_sequence, v))
-        return -1;
-      con->size++;
+    for(column = con->start_column; column <= con->end_column; column++) {
+      if(rasqal_query_variable_bound_in_triple(query, v, column)) {
+          v = rasqal_new_variable_from_variable(v);
+          if(raptor_sequence_push(rowsource->variables_sequence, v))
+            return -1;
+          con->size++;
+          break; /* end column search loop */
+        }
     }
   }
 
@@ -125,15 +126,15 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     t = (rasqal_triple*)raptor_sequence_get_at(con->triples, column);
     
     if((v = rasqal_literal_as_variable(t->subject)) &&
-       rasqal_query_get_bound_in_column_for_variable(query, v) == column)
+       rasqal_query_variable_bound_in_triple(query, v, column) & RASQAL_TRIPLE_SUBJECT)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_SUBJECT);
     
     if((v = rasqal_literal_as_variable(t->predicate)) &&
-       rasqal_query_get_bound_in_column_for_variable(query, v) == column)
+       rasqal_query_variable_bound_in_triple(query, v, column) & RASQAL_TRIPLE_PREDICATE)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_PREDICATE);
     
     if((v = rasqal_literal_as_variable(t->object)) &&
-       rasqal_query_get_bound_in_column_for_variable(query, v) == column)
+       rasqal_query_variable_bound_in_triple(query, v, column) & RASQAL_TRIPLE_OBJECT)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_OBJECT);
 
     RASQAL_DEBUG4("triple pattern column %d has parts %s (%d)\n", column,

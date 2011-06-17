@@ -50,13 +50,13 @@
 
 /* prototype for later */
 static int rasqal_query_build_variables_use_map(rasqal_query* query);
-static int rasqal_query_graph_build_variables_use_map_binds(rasqal_graph_pattern* gp, short* vars_scope);
-static void rasqal_query_expression_build_variables_use_map(short *use_map, rasqal_expression* e);
-static void rasqal_query_let_build_variables_use_map(rasqal_query* query, short *use_map, rasqal_expression* e);
-static int rasqal_query_let_build_variables_use_map_binds(rasqal_graph_pattern* gp, short* vars_scope);
-static int rasqal_query_select_build_variables_use_map(rasqal_query* query, short *use_map, int width, rasqal_graph_pattern* gp);
-static int rasqal_query_select_build_variables_use_map_binds(rasqal_query* query, short *use_map, int width, rasqal_graph_pattern* gp, short* vars_scope);
-static int rasqal_query_union_build_variables_use_map_binds(rasqal_query* query, short *use_map, int width, rasqal_graph_pattern* gp, short* vars_scope);
+static int rasqal_query_graph_build_variables_use_map_binds(rasqal_graph_pattern* gp, unsigned short* vars_scope);
+static void rasqal_query_expression_build_variables_use_map(unsigned short *use_map, rasqal_expression* e);
+static void rasqal_query_let_build_variables_use_map(rasqal_query* query, unsigned short *use_map, rasqal_expression* e);
+static int rasqal_query_let_build_variables_use_map_binds(rasqal_graph_pattern* gp, unsigned short* vars_scope);
+static int rasqal_query_select_build_variables_use_map(rasqal_query* query, unsigned short *use_map, int width, rasqal_graph_pattern* gp);
+static int rasqal_query_select_build_variables_use_map_binds(rasqal_query* query, unsigned short *use_map, int width, rasqal_graph_pattern* gp, unsigned short* vars_scope);
+static int rasqal_query_union_build_variables_use_map_binds(rasqal_query* query, unsigned short *use_map, int width, rasqal_graph_pattern* gp, unsigned short* vars_scope);
 
 
 int
@@ -364,161 +364,6 @@ rasqal_query_remove_duplicate_select_vars(rasqal_query* rq)
 
 
 /**
- * rasqal_query_graph_pattern_bgp_build_bound_in:
- * @query: the #rasqal_query to find the variables in
- * @bound_in: array to write bound_in
- * @gp: The basic graph pattern
- *
- * INTERNAL - Mark bound variables in a basic graph pattern of triple patterns.
- * 
- **/
-static void
-rasqal_query_graph_pattern_bgp_build_bound_in(rasqal_query* query,
-                                              int *bound_in,
-                                              rasqal_graph_pattern* gp) 
-{
-  int col;
-  
-  RASQAL_DEBUG3("Calculating triple binds for GP #%d (%d triples)\n",
-                gp->gp_index, (gp->end_column - gp->start_column + 1));
-  
-  for(col = gp->start_column; col <= gp->end_column; col++) {
-    rasqal_triple *t;
-    rasqal_variable *v;
-    
-    t = (rasqal_triple*)raptor_sequence_get_at(query->triples, col);
-
-    if((v = rasqal_literal_as_variable(t->subject))) {
-      if(bound_in[v->offset] == BOUND_IN_UNBOUND) {
-        RASQAL_DEBUG4("Triple %d binds subject to variable %s (var #%d)\n",
-                      col, v->name, v->offset);
-        bound_in[v->offset] = col;
-      }
-    }
-
-    if((v = rasqal_literal_as_variable(t->predicate))) {
-      if(bound_in[v->offset] == BOUND_IN_UNBOUND) {
-        RASQAL_DEBUG4("Triple %d binds predicate to variable %s (var #%d)\n",
-                      col, v->name, v->offset);
-        bound_in[v->offset] = col;
-      }
-    }
-
-    if((v = rasqal_literal_as_variable(t->object))) {
-      if(bound_in[v->offset] == BOUND_IN_UNBOUND) {
-        RASQAL_DEBUG4("Triple %d binds object to variable %s (var #%d)\n",
-                      col, v->name, v->offset);
-        bound_in[v->offset] = col;
-      }
-    }
-
-    if(t->origin) {
-      if((v = rasqal_literal_as_variable(t->origin))) {
-        if(bound_in[v->offset] == BOUND_IN_UNBOUND) {
-          RASQAL_DEBUG4("Triple %d binds graph to variable %s (var #%d)\n",
-                        col, v->name, v->offset);
-          bound_in[v->offset] = col;
-        }
-      }
-    }
-
-  }
-}
-
-
-/**
- * rasqal_query_graph_pattern_build_bound_in:
- * @query: the #rasqal_query to find the variables in
- * @bound_in: array to write bound_in
- * @gp: graph pattern to use
- *
- * INTERNAL - Mark where variables are bound in a graph_pattern tree walk
- * 
- **/
-static int
-rasqal_query_graph_pattern_build_bound_in(rasqal_query* query,
-                                          int *bound_in,
-                                          rasqal_graph_pattern *gp)
-{
-  /* Graph (over 1 GP), Group, Optional (over 1 GP) and Union graph patterns */
-  if(gp->graph_patterns) {
-    int i;
-
-    for(i = 0; i < raptor_sequence_size(gp->graph_patterns); i++) {
-      rasqal_graph_pattern *sgp;
-
-      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
-      if(rasqal_query_graph_pattern_build_bound_in(query, bound_in, sgp))
-        return 1;
-    }
-  }
-
-  if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH && gp->origin) {
-    rasqal_variable* v;
-
-    v = rasqal_literal_as_variable(gp->origin);
-    if(v)
-      bound_in[v->offset] = BOUND_IN_ELSEWHERE;
-  }
-
-  /* Basic Graph Pattern only */
-  if(gp->triples) {
-    rasqal_query_graph_pattern_bgp_build_bound_in(query, bound_in, gp);
-  }
-
-  /* FIXME - add BIND / LET */
-
-  return 0;
-}
-
-
-/**
- * rasqal_query_build_bound_in_triples:
- * @query: the #rasqal_query to find the variables in
- *
- * INTERNAL - Record the triple columns where variables are bound in a query
- *
- * Constructs an array indexed by variable offset of columns where
- * the variable is bound.  The order used is a tree walk of
- * the graph patterns.  Later mentions of the variable are not marked.
- *
- * Return value: non-0 on failure
- **/
-static int
-rasqal_query_build_bound_in_triples(rasqal_query* query)
-{
-  int i;
-  int size;
-
-  size = rasqal_variables_table_get_total_variables_count(query->vars_table);
-
-  if(query->variables_bound_in)
-    RASQAL_FREE(intarray, query->variables_bound_in);
-  
-  query->variables_bound_in = (int*)RASQAL_CALLOC(intarray, size+1, sizeof(int));
-  if(!query->variables_bound_in)
-    return 1;
-
-  for(i = 0; i < size; i++)
-    query->variables_bound_in[i] = BOUND_IN_UNBOUND;
-
-  size = rasqal_variables_table_get_named_variables_count(query->vars_table);
-  for(i = 0; i < size; i++) {
-    rasqal_variable *v;
-
-    v = rasqal_variables_table_get(query->vars_table, i);
-
-    if(v->expression)
-      query->variables_bound_in[v->offset] = BOUND_IN_ELSEWHERE;
-  }
-
-  return rasqal_query_graph_pattern_build_bound_in(query,
-                                                   query->variables_bound_in,
-                                                   query->query_graph_pattern);
-}
-
-
-/**
  * rasqal_query_build_variable_agg_use:
  * @query: the query 
  *
@@ -537,7 +382,7 @@ rasqal_query_build_variable_agg_use(rasqal_query* query)
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   height = RASQAL_VAR_USE_MAP_OFFSET_LAST + 1 + query->graph_pattern_count;
 
-  agg_row = (unsigned short*)RASQAL_CALLOC(shortarray, width,
+  agg_row = (unsigned short*)RASQAL_CALLOC(intarray, width,
                                            sizeof(unsigned short));
   if(!agg_row)
     return NULL;
@@ -572,31 +417,23 @@ rasqal_query_check_unused_variables(rasqal_query* query)
 {
   int i;
   int size;
-  
+
   /* check only for named variables since only they can
    * appear in SELECT $vars 
    */
   size = rasqal_variables_table_get_named_variables_count(query->vars_table);
   for(i = 0; i < size; i++) {
-    int column;
     rasqal_variable *v;
 
     v = rasqal_variables_table_get(query->vars_table, i);
 
-    column = rasqal_query_get_bound_in_column_for_variable(query, v);
-    if(column == BOUND_IN_UNBOUND)
+    if(!rasqal_query_variable_is_bound(query, v)) {
       rasqal_log_warning_simple(query->world,
                                 RASQAL_WARNING_LEVEL_UNUSED_SELECTED_VARIABLE,
                                 &query->locator,
                                 "Variable %s was selected but is unused in the query", 
                                 v->name);
-#if RASQAL_DEBUG > 1
-    else if(column >= 0) {
-      RASQAL_DEBUG4("Variable %s (%d) was bound in column %d\n",
-                    v->name, i, column);
     }
-#endif
-
   }
 
   return 0;
@@ -1276,17 +1113,6 @@ rasqal_query_build_variables_use(rasqal_query* query)
   
 
   
-  /* create query->variables_bound_in to find triples where a variable
-   * is bound and look for variables selected that are not used
-   * in the execution order (graph pattern tree walk order).
-   *
-   * The query->variables_bound_in array is used in
-   * rasqal_engine_graph_pattern_init() when trying to figure out
-   * which parts of a triple pattern need to bind to a variable:
-   * only the first reference to it.
-   */
-  rc = rasqal_query_build_bound_in_triples(query);
-  
   return rc;
 }
 
@@ -1560,7 +1386,7 @@ rasqal_query_triples_build_variables_use_map_row(raptor_sequence *triples,
  * 
  **/
 static int
-rasqal_query_graph_build_variables_use_map(short *use_map_row,
+rasqal_query_graph_build_variables_use_map(unsigned short *use_map_row,
                                            rasqal_literal *origin)
 {
   rasqal_variable* v = rasqal_literal_as_variable(origin);
@@ -1678,32 +1504,6 @@ rasqal_graph_pattern_binds_variable(rasqal_graph_pattern* gp,
 
 
 /**
- * rasqal_graph_pattern_mentions_variable:
- * @gp: graph pattern
- * @v: variable
- *
- * INTERNAL - test if a variable is mentioned in a graph pattern directly
- *
- * Return value: non-0 if variable is mentioned in the given graph pattern
- */
-static int
-rasqal_graph_pattern_mentions_variable(rasqal_graph_pattern* gp,
-                                       rasqal_variable* v)
-{
-  rasqal_query* query = gp->query;
-  int width;
-  int gp_offset;
-  unsigned short *row;
-  
-  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
-  gp_offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
-  row = &query->variables_use_map[gp_offset];
-
-  return (row[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE);
-}
-
-
-/**
  * rasqal_graph_pattern_tree_binds_variable:
  * @query: query
  * @gp: graph pattern
@@ -1747,7 +1547,7 @@ rasqal_graph_pattern_tree_binds_variable(rasqal_graph_pattern* gp,
 static int
 rasqal_graph_pattern_promote_variable_mention_to_bind(rasqal_graph_pattern* gp,
                                                       rasqal_variable* v,
-                                                      short* vars_scope)
+                                                      unsigned short* vars_scope)
 {
   rasqal_query* query = gp->query;
   int width;
@@ -1776,6 +1576,103 @@ rasqal_graph_pattern_promote_variable_mention_to_bind(rasqal_graph_pattern* gp,
 
 
 /**
+ * rasqal_query_triples_build_variables_use_map_binds:
+ * @use_map: 2D array of (num. variables x num. GPs) to READ and WRITE
+ * @width: width of array (num. variables)
+ * @gp: graph pattern to use
+ * @vars_scope: variables bound in current scope
+ *
+ * INTERNAL - Mark variables bound in a BASIC graph pattern (triple pattern)
+ * 
+ **/
+static int
+rasqal_query_triples_build_variables_use_map_binds(rasqal_query* query,
+                                                   unsigned short *use_map,
+                                                   int width,
+                                                   rasqal_graph_pattern* gp,
+                                                   unsigned short* vars_scope)
+{
+  int gp_offset;
+  int start_column = gp->start_column;
+  int end_column = gp->end_column;
+  int col;
+  unsigned short *row;
+  
+  gp_offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
+  row = &query->variables_use_map[gp_offset];
+
+  for(col = start_column; col <= end_column; col++) {
+    rasqal_triple *t;
+    rasqal_variable *v;
+    unsigned short* triple_row = &query->triples_use_map[col * width];
+    
+    t = (rasqal_triple*)raptor_sequence_get_at(gp->triples, col);
+
+    if((v = rasqal_literal_as_variable(t->subject))) {
+      if(!vars_scope[v->offset]) {
+        /* v needs binding in this triple as SUBJECT */
+        triple_row[v->offset] |= RASQAL_TRIPLES_BOUND_SUBJECT;
+      } else
+        triple_row[v->offset] |= RASQAL_TRIPLES_USE_SUBJECT;
+    }
+    
+    if((v = rasqal_literal_as_variable(t->predicate))) {
+      if(!vars_scope[v->offset]) {
+        /* v needs binding in this triple as PREDICATE */
+        triple_row[v->offset] |= RASQAL_TRIPLES_BOUND_PREDICATE;
+      } else
+        triple_row[v->offset] |= RASQAL_TRIPLES_USE_PREDICATE;
+    }
+
+    if((v = rasqal_literal_as_variable(t->object))) {
+      if(!vars_scope[v->offset]) {
+        /* v needs binding in this triple as OBJECT */
+        triple_row[v->offset] |= RASQAL_TRIPLES_BOUND_OBJECT;
+      } else
+        triple_row[v->offset] |= RASQAL_TRIPLES_USE_OBJECT;
+    }
+
+    if(t->origin) {
+      if((v = rasqal_literal_as_variable(t->origin))) {
+        if(!vars_scope[v->offset]) {
+          /* v needs binding in this triple as GRAPH */
+          triple_row[v->offset] |= RASQAL_TRIPLES_BOUND_GRAPH;
+        } else
+          triple_row[v->offset] |= RASQAL_TRIPLES_USE_GRAPH;
+      }
+    }
+
+
+    /* Promote bound variables for triples in one go */
+    if((v = rasqal_literal_as_variable(t->subject)) &&
+       triple_row[v->offset] == RASQAL_TRIPLES_BOUND_SUBJECT) {
+      rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v, vars_scope);
+    }
+    
+    if((v = rasqal_literal_as_variable(t->predicate)) &&
+       triple_row[v->offset] == RASQAL_TRIPLES_BOUND_PREDICATE) {
+      rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v, vars_scope);
+    }
+
+    if((v = rasqal_literal_as_variable(t->object)) &&
+       triple_row[v->offset] == RASQAL_TRIPLES_BOUND_OBJECT) {
+      rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v, vars_scope);
+    }
+
+    if(t->origin) {
+      if((v = rasqal_literal_as_variable(t->origin)) &&
+         triple_row[v->offset] == RASQAL_TRIPLES_BOUND_GRAPH) {
+        rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v, vars_scope);
+      }
+    }
+
+  }
+
+  return 0;
+}
+
+
+/**
  * rasqal_query_graph_pattern_build_variables_use_map_binds:
  * @use_map: 2D array of (num. variables x num. GPs) to READ and WRITE
  * @width: width of array (num. variables)
@@ -1791,9 +1688,8 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
                                                          unsigned short *use_map,
                                                          int width,
                                                          rasqal_graph_pattern *gp,
-                                                         short *vars_scope)
+                                                         unsigned short *vars_scope)
 {
-  int var_index;
   int rc = 0;
   
   /* This a query in-order walk so SELECT ... AS ?var, BIND .. AS
@@ -1802,15 +1698,10 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
 
   switch(gp->op) {
     case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC: 
-      /* Triple patterns */
-      for(var_index = 0; var_index < width; var_index++) {
-        rasqal_variable *v;
-        v = rasqal_variables_table_get(query->vars_table, var_index);
-        
-        if(rasqal_graph_pattern_mentions_variable(gp, v))
-          rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v,
-                                                                vars_scope);
-      }
+      rc = rasqal_query_triples_build_variables_use_map_binds(query,
+                                                              use_map,
+                                                              width,
+                                                              gp, vars_scope);
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
@@ -1885,13 +1776,14 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
  **/
 static int
 rasqal_query_build_variables_use_map_binds(rasqal_query* query,
-                                           short *use_map,
+                                           unsigned short *use_map,
                                            int width)
 {
   int rc;
-  short* vars_scope;
+  unsigned short* vars_scope;
 
-  vars_scope = (short*)RASQAL_CALLOC(intarray,  width, sizeof(short));
+  vars_scope = (unsigned short*)RASQAL_CALLOC(intarray,  width,
+                                              sizeof(unsigned short));
   if(!vars_scope)
     return 1;
   
@@ -1940,7 +1832,7 @@ rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   height = (RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) + query->graph_pattern_count;
   
-  fprintf(fh, "Query variables-use map (B=bound, M=mentioned, U=used):\n");
+  fprintf(fh, "Query GP variables-use map (B=bound, M=mentioned, U=used):\n");
   fputs("GP#  Type      ", fh);
 
   for(i = 0; i < width; i++) {
@@ -1970,7 +1862,59 @@ rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
       if(flag_index > N_MAP_FLAGS_LABELS - 1)
         flag_index = N_MAP_FLAGS_LABELS;
       fprintf(fh, "%-12s ", use_map_flags_labels[flag_index]);
+
     }
+    fputc('\n', fh);
+  }
+}
+
+
+static char bit_label[9] = "spogSPOG";
+
+static void
+rasqal_query_print_triples_use_map(FILE* fh, rasqal_query* query)
+{
+  int width;
+  int height;
+  int i;
+  int column;
+
+  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  height = raptor_sequence_size(query->triples);
+  
+  fprintf(fh,
+          "Query triples variables-use map (mentioned: spog, bound: SPOG):\n");
+
+  fputs("Triple# ", fh);
+  for(i = 0; i < width; i++) {
+    rasqal_variable* v = rasqal_variables_table_get(query->vars_table, i);
+    fprintf(fh, "%-12s ", v->name);
+  }
+  fputc('\n', fh);
+
+  for(column = 0; column < height; column++) {
+    unsigned short *row = &query->triples_use_map[column * width];
+    rasqal_triple* t;
+
+    fprintf(fh, "%-7d ", column);
+    for(i = 0; i < width; i++) {
+      int flag = row[i];
+      char label[13]="            \0";
+      int bit;
+      
+      /* bit 0: RASQAL_TRIPLES_USE_SUBJECT
+       * to
+       * bit 7: RASQAL_TRIPLES_BOUND_GRAPH 
+       */
+      for(bit = 0; bit < 8; bit++) {
+        if(flag & (1 << bit))
+          label[(bit & 3)] = bit_label[bit];
+      }
+      fputs(label, fh);
+    }
+    fputc(' ', fh);
+    t = (rasqal_triple*)raptor_sequence_get_at(query->triples, column);
+    rasqal_triple_print(t, fh);
     fputc('\n', fh);
   }
 }
@@ -2131,6 +2075,21 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
 
   query->variables_use_map = use_map;
 
+  height = raptor_sequence_size(query->triples);
+  use_map = (unsigned short*)RASQAL_CALLOC(shortarray, width * height,
+                                           sizeof(unsigned short));
+  if(!use_map) {
+    RASQAL_FREE(shortarray, query->variables_use_map);
+    query->variables_use_map = NULL;
+    return 1;
+  }
+
+  if(query->triples_use_map)
+    RASQAL_FREE(shortarray, query->triples_use_map);
+
+  query->triples_use_map = use_map;
+
+  use_map = query->variables_use_map;
   use_map_row = &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS * width];
   
   /* record variable use for 1) Query verbs */
@@ -2212,7 +2171,7 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
     goto done;
   
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("use map after mentions: ");
+  RASQAL_DEBUG1("variables use map after mentions: ");
   rasqal_query_print_variables_use_map(stderr, query);
   fputs("\n", DEBUG_FH); 
 #endif    
@@ -2249,6 +2208,10 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   RASQAL_DEBUG1("use map after binds and mentions: ");
   rasqal_query_print_variables_use_map(stderr, query);
   fputs("\n", DEBUG_FH); 
+
+  RASQAL_DEBUG1("triples use map after binds and mentions: ");
+  rasqal_query_print_triples_use_map(stderr, query);
+  fputs("\n", DEBUG_FH); 
 #endif    
 
   done:
@@ -2266,7 +2229,7 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
  **/
 static int
 rasqal_query_graph_build_variables_use_map_binds(rasqal_graph_pattern* gp,
-                                                 short* vars_scope)
+                                                 unsigned short* vars_scope)
 {
   rasqal_variable *v;
 
@@ -2328,7 +2291,7 @@ rasqal_query_let_build_variables_use_map(rasqal_query* query,
  **/
 static int
 rasqal_query_let_build_variables_use_map_binds(rasqal_graph_pattern* gp,
-                                               short* vars_scope)
+                                               unsigned short* vars_scope)
 {
   rasqal_variable* v = gp->var;
 
@@ -2351,7 +2314,7 @@ rasqal_query_let_build_variables_use_map_binds(rasqal_graph_pattern* gp,
  **/
 static int
 rasqal_query_select_build_variables_use_map(rasqal_query* query,
-                                            short *use_map_row,
+                                            unsigned short *use_map_row,
                                             int width,
                                             rasqal_graph_pattern* gp)
 {
@@ -2394,24 +2357,24 @@ rasqal_query_select_build_variables_use_map(rasqal_query* query,
  **/
 static int
 rasqal_query_select_build_variables_use_map_binds(rasqal_query* query,
-                                                  short *use_map,
+                                                  unsigned short *use_map,
                                                   int width,
                                                   rasqal_graph_pattern* gp,
-                                                  short* vars_scope)
+                                                  unsigned short* vars_scope)
 {
-  short* inner_vars_scope;
+  unsigned short* inner_vars_scope;
   raptor_sequence* seq;
-  int gp_size;
+  int size;
   int i;
 
-  inner_vars_scope = (short*)RASQAL_CALLOC(intarray,  width, sizeof(short));
+  inner_vars_scope = (unsigned short*)RASQAL_CALLOC(intarray,  width, 
+                                                    sizeof(unsigned short));
   if(!inner_vars_scope)
     return 1;
 
   seq = gp->graph_patterns;
-  gp_size = raptor_sequence_size(seq);
-  
-  for(i = 0; i < gp_size; i++) {
+  size = raptor_sequence_size(seq);
+  for(i = 0; i < size; i++) {
     rasqal_graph_pattern *sgp;
     
     sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(seq, i);
@@ -2429,7 +2392,8 @@ rasqal_query_select_build_variables_use_map_binds(rasqal_query* query,
    * in the INNER SELECT projection
    */
   seq = rasqal_projection_get_variables_sequence(gp->projection);
-  for(i = 0; i < width; i++) {
+  size = raptor_sequence_size(seq);
+  for(i = 0; i < size; i++) {
     rasqal_variable * v;
     
     v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
@@ -2453,12 +2417,12 @@ rasqal_query_select_build_variables_use_map_binds(rasqal_query* query,
  **/
 static int
 rasqal_query_union_build_variables_use_map_binds(rasqal_query* query,
-                                                 short *use_map,
+                                                 unsigned short *use_map,
                                                  int width,
                                                  rasqal_graph_pattern* gp,
-                                                 short* vars_scope)
+                                                 unsigned short* vars_scope)
 {
-  short* inner_vars_scope;
+  unsigned short* inner_vars_scope;
   raptor_sequence* seq;
   int gp_size;
   int i;
@@ -2467,7 +2431,8 @@ rasqal_query_union_build_variables_use_map_binds(rasqal_query* query,
   seq = gp->graph_patterns;
   gp_size = raptor_sequence_size(seq);
   
-  inner_vars_scope = (short*)RASQAL_CALLOC(intarray,  width, sizeof(short));
+  inner_vars_scope = (unsigned short*)RASQAL_CALLOC(intarray,  width,
+                                                    sizeof(unsigned short));
   if(!inner_vars_scope)
     return 1;
 
@@ -2494,4 +2459,34 @@ rasqal_query_union_build_variables_use_map_binds(rasqal_query* query,
   RASQAL_FREE(intarray, inner_vars_scope);
   
   return rc;
+}
+
+
+/*
+ * rasqal_query_variable_is_bound:
+ * @gp: #rasqal_graph_pattern object
+ * @variable: variable
+ * 
+ * INTERNAL - Test if a variable is bound in the given GP
+ *
+ * Return value: non-0 if bound
+ */
+int
+rasqal_query_variable_is_bound(rasqal_query* query, rasqal_variable* v)
+{
+  unsigned short *use_map = query->variables_use_map;
+  int width;
+  int height;
+  int row_index;
+  
+  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  height = (RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) + query->graph_pattern_count;
+
+  for(row_index = 0; row_index < height; row_index++) {
+    unsigned short *row = &use_map[row_index * width];
+    if(row[v->offset])
+      return 1;
+  }
+  
+  return 0;
 }

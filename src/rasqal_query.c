@@ -218,11 +218,11 @@ rasqal_free_query(rasqal_query* query)
   if(query->results)
     raptor_free_sequence(query->results);
 
-  if(query->variables_bound_in)
-    RASQAL_FREE(intarray, query->variables_bound_in);
+  if(query->triples_use_map)
+    RASQAL_FREE(shortarray, query->triples_use_map);
 
   if(query->variables_use_map)
-    RASQAL_FREE(intarray, query->variables_use_map);
+    RASQAL_FREE(shortarray, query->variables_use_map);
 
   if(query->query_graph_pattern)
     rasqal_free_graph_pattern(query->query_graph_pattern);
@@ -2107,19 +2107,29 @@ rasqal_query_get_bindings_row(rasqal_query* query, int idx)
 
 
 /*
- * rasqal_query_get_bound_in_column_for_variable:
+ * rasqal_query_variable_bound_in_triple:
  * @query: #rasqal_query query object
  * @variable: variable
+ * @column: triple column
  * 
- * INTERNAL - Get the column number [triple] that a variable is bound in
+ * INTERNAL - Test if variable is bound in given triple
  *
- * Return value: column or < 0 if not bound
+ * Return value: part of triple the variable is bound in
  */
-int
-rasqal_query_get_bound_in_column_for_variable(rasqal_query* query,
-                                              rasqal_variable* v)
+rasqal_triple_parts
+rasqal_query_variable_bound_in_triple(rasqal_query* query,
+                                      rasqal_variable* v,
+                                      int column)
 {
-  return query->variables_bound_in[v->offset];
+  int width;
+  unsigned short *triple_row;
+  
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 0);
+  
+  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  triple_row = &query->triples_use_map[column * width];
+
+  return (rasqal_triple_parts)((triple_row[v->offset] & RASQAL_TRIPLES_BOUND_MASK) >> 4);
 }
 
 
