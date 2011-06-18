@@ -1318,6 +1318,16 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
     src_gp->var = NULL;
   }
 
+  if(src_gp->projection) {
+    dest_gp->projection = src_gp->projection;
+    src_gp->projection = NULL;
+  }
+
+  if(src_gp->modifier) {
+    dest_gp->modifier = src_gp->modifier;
+    src_gp->modifier = NULL;
+  }
+
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG2("Result graph pattern #%d\n  ", dest_gp->gp_index);
   rasqal_graph_pattern_print(dest_gp, stdout);
