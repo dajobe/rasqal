@@ -322,10 +322,15 @@ sub run_test {
     if $debug;
   system($roqet_cmd);
   my $rc=$? >>8;
+  my $core_dumped = `grep code.*dumped roqet.err | wc -l`; chomp $core_dumped;
+  if($core_dumped) {
+      $rc = "core dumped: $rc";
+  }
+
   warn "$program: roqet returned code $rc\n"
-    if $debug;
+      if $debug;
   if($rc) {
-    if($expect_fail) {
+    if($expect_fail && !$core_dumped) {
       warn "$program: '$name' OK (got expected failure)\n";
       return 1;
     }
