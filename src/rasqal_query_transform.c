@@ -1545,6 +1545,63 @@ rasqal_graph_pattern_tree_binds_variable(rasqal_graph_pattern* gp,
 
 
 /**
+ * rasqal_graph_pattern_mentions_variable:
+ * @gp: graph pattern
+ * @v: variable
+ *
+ * INTERNAL - test if a variable is bound in a graph pattern directly
+ *
+ * Return value: non-0 if variable is bound in the given graph pattern
+ */
+static int
+rasqal_graph_pattern_mentions_variable(rasqal_graph_pattern* gp,
+                                    rasqal_variable* v)
+{
+  rasqal_query* query = gp->query;
+  int width;
+  int gp_offset;
+  unsigned short *row;
+  
+  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  gp_offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
+  row = &query->variables_use_map[gp_offset];
+
+  return (row[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE);
+}
+
+
+/**
+ * rasqal_graph_pattern_tree_mentions_variable:
+ * @query: query
+ * @gp: graph pattern
+ * @v: variable
+ *
+ * INTERNAL - test if a variable is mentioned in a graph pattern tree
+ *
+ * Return value: non-0 if variable is mentioned in GP tree
+ */
+static int
+rasqal_graph_pattern_tree_mentions_variable(rasqal_graph_pattern* gp,
+                                            rasqal_variable* v)
+{
+  if(gp->graph_patterns) {
+    int size = raptor_sequence_size(gp->graph_patterns);
+    int i;
+
+    for(i = 0; i < size; i++) {
+      rasqal_graph_pattern *sgp;
+      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      if(rasqal_graph_pattern_tree_mentions_variable(sgp, v))
+        return 1;
+    }
+  }
+
+  return rasqal_graph_pattern_mentions_variable(gp, v);
+}
+
+
+
+/**
  * rasqal_graph_pattern_promote_variable_mention_to_bind:
  * @gp: graph pattern
  * @v: variable
@@ -2322,12 +2379,53 @@ rasqal_query_select_build_variables_use_map(rasqal_query* query,
                                             int width,
                                             rasqal_graph_pattern* gp)
 {
+  int rc = 0;
   raptor_sequence* seq;
 
   /* mention any variables in the projection */
   seq = rasqal_projection_get_variables_sequence(gp->projection);
 
-  return rasqal_query_build_variables_sequence_use_map_row(use_map_row, seq);
+  if(!seq && gp->graph_patterns) {
+    int var_index;
+    int gp_size;
+    
+    seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                              (raptor_data_print_handler)rasqal_variable_print);
+
+    gp_size = raptor_sequence_size(gp->graph_patterns);
+
+    /* No variables; must be SELECT * so form it from all mentioned
+     * variables in the sub graph patterns
+     */
+    for(var_index = 0; var_index < width; var_index++) {
+      rasqal_variable *v;
+      int gp_index;
+
+      v = rasqal_variables_table_get(query->vars_table, var_index);
+      
+      for(gp_index = 0; gp_index < gp_size; gp_index++) {
+        rasqal_graph_pattern *sgp;
+        
+        sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns,
+                                                            gp_index);
+        if(rasqal_graph_pattern_tree_mentions_variable(sgp, v)) {
+          raptor_sequence_push(seq, rasqal_new_variable_from_variable(v));
+  
+          /* if any sub-GP mentions the variable we can end the SGP loop */
+          break;
+        }
+      }
+    }
+
+    /* FIXME: uses internal knowledge of projection structure */
+    gp->projection->variables = seq;
+  }
+  
+  rc = rasqal_query_build_variables_sequence_use_map_row(use_map_row, seq);
+  if(rc)
+    return rc;
+  
+  return rc;
 }
 
 
