@@ -2312,30 +2312,12 @@ rasqal_query_select_build_variables_use_map(rasqal_query* query,
                                             int width,
                                             rasqal_graph_pattern* gp)
 {
-  int rc = 0;
   raptor_sequence* seq;
 
   /* mention any variables in the projection */
   seq = rasqal_projection_get_variables_sequence(gp->projection);
 
-  rc = rasqal_query_build_variables_sequence_use_map_row(use_map_row, seq);
-  if(rc)
-    return rc;
-  
-  /* Walk all graph patterns in the sub-SELECT */
-  if(gp->graph_patterns) {
-    int i;
-
-    for(i = 0; i < raptor_sequence_size(gp->graph_patterns); i++) {
-      rasqal_graph_pattern *sgp;
-      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
-      if(rasqal_query_graph_pattern_build_variables_use_map(query, use_map_row,
-                                                            width, sgp))
-        return 1;
-    }
-  }
-
-  return rc;
+  return rasqal_query_build_variables_sequence_use_map_row(use_map_row, seq);
 }
 
 
