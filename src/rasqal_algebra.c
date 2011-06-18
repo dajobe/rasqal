@@ -931,7 +931,7 @@ rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
     rasqal_expression* e;
     e = rasqal_new_expression_from_expression(gp->filter_expression);
     if(!e) {
-      RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed");
+      RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed\n");
       goto fail;
     }
     fs = fs ? rasqal_new_2op_expression(query->world, RASQAL_EXPR_AND, fs, e) : e;
@@ -941,7 +941,7 @@ rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
     node = rasqal_new_filter_algebra_node(query, fs, node);
     fs = NULL; /* now owned by node */
     if(!node) {
-      RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed");
+      RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed\n");
       goto fail;
     }
   }
@@ -968,14 +968,14 @@ rasqal_algebra_filter_graph_pattern_to_algebra(rasqal_query* query,
 
   e = rasqal_new_expression_from_expression(gp->filter_expression);
   if(!e) {
-    RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed");
+    RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed\n");
     goto fail;
   }
 
   node = rasqal_new_filter_algebra_node(query, e, NULL);
   e = NULL; /* now owned by node */
   if(!node) {
-    RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed");
+    RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed\n");
     goto fail;
   }
 
@@ -1008,7 +1008,7 @@ rasqal_algebra_union_graph_pattern_to_algebra(rasqal_query* query,
     
     gnode = rasqal_algebra_graph_pattern_to_algebra(query, sgp);
     if(!gnode) {
-      RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed");
+      RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed\n");
       goto fail;
     }
     
@@ -1018,7 +1018,7 @@ rasqal_algebra_union_graph_pattern_to_algebra(rasqal_query* query,
       node = rasqal_new_2op_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_UNION,
                                          node, gnode);
       if(!node) {
-        RASQAL_DEBUG1("rasqal_new_2op_algebra_node() failed");
+        RASQAL_DEBUG1("rasqal_new_2op_algebra_node() failed\n");
         goto fail;
       }
     }
@@ -1049,7 +1049,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
 
   gnode = rasqal_new_empty_algebra_node(query);
   if(!gnode) {
-    RASQAL_DEBUG1("rasqal_new_empty_algebra_node() failed");
+    RASQAL_DEBUG1("rasqal_new_empty_algebra_node() failed\n");
     goto fail;
   }
 
@@ -1069,7 +1069,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
       /* add all gp->conditions_sequence to FS */
       e = rasqal_new_expression_from_expression(egp->filter_expression);
       if(!e) {
-        RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed");
+        RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed\n");
         goto fail;
       }
       fs = fs ? rasqal_new_2op_expression(query->world, RASQAL_EXPR_AND, fs, e) : e;
@@ -1093,7 +1093,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
         /* Let A := Transform(P) */
         anode = rasqal_algebra_graph_pattern_to_algebra(query, sgp);
         if(!anode) {
-          RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed");
+          RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed\n");
           goto fail;
         }
         
@@ -1109,7 +1109,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
           anode->node1 = NULL;
           rasqal_free_algebra_node(anode);
           if(!gnode) {
-            RASQAL_DEBUG1("rasqal_new_leftjoin_algebra_node() failed");
+            RASQAL_DEBUG1("rasqal_new_leftjoin_algebra_node() failed\n");
             goto fail;
           }
         } else  {
@@ -1118,14 +1118,14 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
 
           true_lit = rasqal_new_boolean_literal(query->world, 1);
           if(!true_lit) {
-            RASQAL_DEBUG1("rasqal_new_boolean_literal() failed");
+            RASQAL_DEBUG1("rasqal_new_boolean_literal() failed\n");
             rasqal_free_algebra_node(anode);
             goto fail;
           }
           
           true_expr = rasqal_new_literal_expression(query->world, true_lit);
           if(!true_expr) {
-            RASQAL_DEBUG1("rasqal_new_literal_expression() failed");
+            RASQAL_DEBUG1("rasqal_new_literal_expression() failed\n");
             rasqal_free_algebra_node(anode);
             goto fail;
           }
@@ -1135,7 +1135,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
           gnode = rasqal_new_leftjoin_algebra_node(query, gnode, anode,
                                                    true_expr);
           if(!gnode) {
-            RASQAL_DEBUG1("rasqal_new_leftjoin_algebra_node() failed");
+            RASQAL_DEBUG1("rasqal_new_leftjoin_algebra_node() failed\n");
             goto fail;
           }
 
@@ -1149,7 +1149,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
       /* Let A := Transform(E) */
       anode = rasqal_algebra_graph_pattern_to_algebra(query, egp);
       if(!anode) {
-        RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed");
+        RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed\n");
         goto fail;
       }
 
@@ -1157,7 +1157,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
       gnode = rasqal_new_2op_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_JOIN,
                                           gnode, anode);
       if(!gnode) {
-        RASQAL_DEBUG1("rasqal_new_2op_algebra_node() failed");
+        RASQAL_DEBUG1("rasqal_new_2op_algebra_node() failed\n");
         goto fail;
       }
     }
@@ -1175,7 +1175,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
     gnode = rasqal_new_filter_algebra_node(query, fs, gnode);
     fs = NULL; /* now owned by gnode */
     if(!gnode) {
-      RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed");
+      RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed\n");
       goto fail;
     }
   }
@@ -1211,7 +1211,7 @@ rasqal_algebra_graph_graph_pattern_to_algebra(rasqal_query* query,
   
   gnode = rasqal_algebra_graph_pattern_to_algebra(query, sgp);
   if(!gnode) {
-    RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed");
+    RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed\n");
     goto fail;
   }
     
@@ -1782,7 +1782,7 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
     return NULL;
 
   if(rasqal_algebra_extract_aggregate_expressions(query, node, ae)) {
-    RASQAL_DEBUG1("rasqal_algebra_extract_aggregate_expressions() failed");
+    RASQAL_DEBUG1("rasqal_algebra_extract_aggregate_expressions() failed\n");
     rasqal_free_algebra_aggregate(ae);
     rasqal_free_algebra_node(node);
     return NULL;
@@ -1816,7 +1816,7 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
     if(rasqal_algebra_replace_aggregate_expressions(query, 
                                                     query->modifier->having_conditions,
                                                     ae)) {
-      RASQAL_DEBUG1("rasqal_algebra_replace_aggregate_expressions() failed");
+      RASQAL_DEBUG1("rasqal_algebra_replace_aggregate_expressions() failed\n");
       rasqal_free_algebra_aggregate(ae);
       rasqal_free_algebra_node(node);
       return NULL;
@@ -1955,7 +1955,7 @@ rasqal_algebra_query_add_aggregation(rasqal_query* query,
   node = rasqal_new_aggregation_algebra_node(query, node, exprs_seq, vars_seq);
   exprs_seq = NULL; vars_seq = NULL;
   if(!node) {
-    RASQAL_DEBUG1("rasqal_new_aggregation_algebra_node() failed");
+    RASQAL_DEBUG1("rasqal_new_aggregation_algebra_node() failed\n");
     goto tidy;
   }
   
