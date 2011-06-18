@@ -665,14 +665,18 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
 
     raptor_iostream_counted_string_write("select-variables: [", 19, iostr);
     vars_seq = rasqal_projection_get_variables_sequence(gp->projection);
-    for(i = 0; i < raptor_sequence_size(vars_seq); i++) {
-      rasqal_variable* v;
-      v = (rasqal_variable*)raptor_sequence_get_at(vars_seq, i);
+    if(!vars_seq) {
+      raptor_iostream_write_byte('*', iostr);
+    } else {
+      for(i = 0; i < raptor_sequence_size(vars_seq); i++) {
+        rasqal_variable* v;
+        v = (rasqal_variable*)raptor_sequence_get_at(vars_seq, i);
 
-      if(i > 0)
-        raptor_iostream_counted_string_write(", ", 2, iostr);
+        if(i > 0)
+          raptor_iostream_counted_string_write(", ", 2, iostr);
 
-      rasqal_variable_write(v, iostr);
+        rasqal_variable_write(v, iostr);
+      }
     }
     raptor_iostream_counted_string_write("]", 1, iostr);
     
