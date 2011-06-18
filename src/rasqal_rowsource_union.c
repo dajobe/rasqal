@@ -54,6 +54,9 @@ typedef struct
   /* array of size (number of variables in @right) with this row offset value */
   int* right_map;
 
+  /* array of size (number of variables in @right) holding right row temporarily */
+  rasqal_literal** right_tmp_values;
+
   /* 0 = reading from left rs, 1 = reading from right rs, 2 = finished */
   int state;
 
@@ -91,6 +94,9 @@ rasqal_union_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   if(con->right_map)
     RASQAL_FREE(int, con->right_map);
   
+  if(con->right_tmp_values)
+    RASQAL_FREE(ptrarray, con->right_tmp_values);
+  
   RASQAL_FREE(rasqal_union_rowsource_context, con);
 
   return 0;
@@ -116,6 +122,11 @@ rasqal_union_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   map_size = rasqal_rowsource_get_size(con->right);
   con->right_map = (int*)RASQAL_MALLOC(int, sizeof(int) * map_size);
   if(!con->right_map)
+    return 1;
+
+  con->right_tmp_values = (rasqal_literal**)RASQAL_MALLOC(ptrarray,
+                                                          sizeof(rasqal_literal*) * map_size);
+  if(!con->right_tmp_values)
     return 1;
 
   rowsource->size = 0;
@@ -144,16 +155,25 @@ rasqal_union_rowsource_ensure_variables(rasqal_rowsource* rowsource,
 
 
 static void
-rasqal_union_rowsource_adjust_right_row(rasqal_union_rowsource_context* con,
+rasqal_union_rowsource_adjust_right_row(rasqal_rowsource *rowsource,
+                                        rasqal_union_rowsource_context* con,
                                         rasqal_row *row)
 {
-  rasqal_rowsource *rowsource = con->right;
+  rasqal_rowsource *right_rowsource = con->right;
   int i;
-  
-  for(i = rowsource->size - 1; i >= 0; i--) {
-    int offset = con->right_map[i];
-    row->values[offset] = row->values[i];
+
+  /* save right row values */
+  for(i = 0; i < right_rowsource->size; i++)
+    con->right_tmp_values[i] = row->values[i];
+
+  /* NULL out other pointers */
+  for(i = 0; i < rowsource->size; i++)
     row->values[i] = NULL;
+
+  /* map them into correct order in result row */
+  for(i = 0; i < right_rowsource->size; i++) {
+    int offset = con->right_map[i];
+    row->values[offset] = con->right_tmp_values[i];
   }
 }
 
@@ -192,7 +212,7 @@ rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         return NULL;
       }
       /* transform row from right to match new projection */
-      rasqal_union_rowsource_adjust_right_row(con, row);
+      rasqal_union_rowsource_adjust_right_row(rowsource, con, row);
     }
   }
 
@@ -258,7 +278,7 @@ rasqal_union_rowsource_read_all_rows(rasqal_rowsource* rowsource,
     rasqal_row *row = (rasqal_row*)raptor_sequence_get_at(seq2, i);
     /* rows from right need resizing and adjusting by offset */
     rasqal_row_expand_size(row, rowsource->size);
-    rasqal_union_rowsource_adjust_right_row(con, row);
+    rasqal_union_rowsource_adjust_right_row(rowsource, con, row);
     row->offset += left_size;
     row->rowsource = rowsource;
   }

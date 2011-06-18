@@ -689,6 +689,6 @@ main(int argc, char *argv[])
   if(world)
     rasqal_free_world(world);
 
-  return 0;
+  return rc;
 }
 #endif
