@@ -315,16 +315,29 @@ sub run_test {
 
   my $args_s=join(" ",@args);
   my $roqet_tmp='roqet.tmp';
-  my $roqet_cmd="$roqet -d debug -W 0 -i $language $args_s $test_file 2>roqet.err > $roqet_tmp";
+  my $roqet_err='roqet.err';
+  my $roqet_cmd="$roqet -d debug -W 0 -i $language $args_s $test_file 2>$roqet_err > $roqet_tmp";
   my $sort="sort";
 
   warn "$program: Running '$roqet_cmd'\n"
     if $debug;
   system($roqet_cmd);
   my $rc=$? >>8;
-  my $core_dumped = `grep code.*dumped roqet.err | wc -l`; chomp $core_dumped;
+
+  my $core_dumped = undef;
+  open(CD, "<$roqet_err") or die "$program: Could not open '$roqet_err' - $!\n";
+  while(<CD>) {
+    chomp;
+    if(/core.dumped/i) {
+      $core_dumped = $_;
+      last;
+    }
+  }
+  close(CD);
   if($core_dumped) {
-      $rc = "core dumped: $rc";
+      warn "$program: roqet core dumped: $core_dumped\n"
+          if $debug;
+      $rc = "core dumped ($core_dumped): $rc";
   }
 
   warn "$program: roqet returned code $rc\n"
