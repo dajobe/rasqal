@@ -294,9 +294,12 @@ sub read_rdf_graph_file($$) {
 
 sub run_test {
   my($config)=@_;
-  my($name,$dir,$test_file,$result_file,$expect_fail,$language)=
+  my($name,$dir,$test_file,$result_file,$expect_fail,$language,
+     $warning_level)
+      =
     ($config->{name}, $config->{dir}, $config->{test_file}, 
-     $config->{result_file}, $config->{expect_fail}, $config->{language});
+     $config->{result_file}, $config->{expect_fail}, $config->{language},
+     $config->{warning_level});
   my($test_uri)=$config->{test_uri};
   my(@data_files)=@{$config->{data_files}};
   my(@named_data_files)=@{$config->{named_data_files}};
@@ -316,7 +319,7 @@ sub run_test {
   my $args_s=join(" ",@args);
   my $roqet_tmp='roqet.tmp';
   my $roqet_err='roqet.err';
-  my $roqet_cmd="$roqet -d debug -W 0 -i $language $args_s $test_file 2>$roqet_err > $roqet_tmp";
+  my $roqet_cmd="$roqet -d debug -W $warning_level -i $language $args_s $test_file 2>$roqet_err > $roqet_tmp";
   my $sort="sort";
 
   warn "$program: Running '$roqet_cmd'\n"
@@ -554,6 +557,7 @@ my $manifest_file=undef;
 my $earl_report_file=undef;
 my $approved=0;
 my $language='sparql';
+my $warning_level=0;
 
 GetOptions(
   'debug|d+'   => \$debug, # incremental
@@ -562,7 +566,8 @@ GetOptions(
   'manifest|m=s' => \$manifest_file,
   'earl|e=s' => \$earl_report_file,
   'help|h|?' => \$usage,
-  'approved|a' => \$approved
+  'approved|a' => \$approved,
+  'warnings|W=i' => \$warning_level, # integer 0..100
 ) || pod2usage(2);
 
 pod2usage(-verbose => 2) if $usage;
@@ -759,6 +764,7 @@ for my $test (@tests) {
   my($config)=$test;
 
   $config->{language} = $language;
+  $config->{warning_level} = $warning_level;
 
   my $rc = run_test($config);
 
