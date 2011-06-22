@@ -1930,7 +1930,7 @@ rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
 }
 
 
-static char bit_label[9] = "spogSPOG";
+static const char bit_label[9] = "spogSPOG";
 
 static void
 rasqal_query_print_triples_use_map(FILE* fh, rasqal_query* query)
