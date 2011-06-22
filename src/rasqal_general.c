@@ -1077,7 +1077,7 @@ rasqal_world_get_now_timeval(rasqal_world* world)
  * of less than @warning_level are reported.  The default warning
  * level is 50.
  *
- * Return value: pointer to timeval or NULL on failure
+ * Return value: non-0 on failure
  */
 int
 rasqal_world_set_warning_level(rasqal_world* world,
