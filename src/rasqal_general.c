@@ -564,7 +564,7 @@ rasqal_log_warning_simple(rasqal_world* world,
 {
   va_list arguments;
 
-  if(warn_level < world->warning_level)
+  if(warn_level > world->warning_level)
     return;
 
   va_start(arguments, message);
