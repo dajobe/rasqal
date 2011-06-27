@@ -1088,12 +1088,11 @@ rasqal_query_build_variables_use(rasqal_query* query)
                                 v->name);
       } else if(!(agg_row[i] & RASQAL_VAR_USE_BOUND_HERE) && 
                  (agg_row[i] & RASQAL_VAR_USE_MENTIONED_HERE)) {
-        rasqal_log_error_simple(query->world,
-                                RAPTOR_LOG_LEVEL_ERROR,
-                                &query->locator,
-                                "Variable %s was used but is not bound in the query.", 
-                                v->name);
-        errors++;
+        rasqal_log_warning_simple(query->world,
+                                  RASQAL_WARNING_LEVEL_SELECTED_NEVER_BOUND,
+                                  &query->locator,
+                                  "Variable %s was used but is not bound in the query",
+                                  v->name);
       } else if(!(agg_row[i] & RASQAL_VAR_USE_BOUND_HERE) &&
                 !(agg_row[i] & RASQAL_VAR_USE_MENTIONED_HERE)) {
         rasqal_log_error_simple(query->world,
