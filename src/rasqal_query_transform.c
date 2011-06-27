@@ -1660,7 +1660,13 @@ rasqal_query_triples_build_variables_use_map_binds(rasqal_query* query,
   int start_column = gp->start_column;
   int end_column = gp->end_column;
   int col;
-  
+  int gp_offset;
+  unsigned short* gp_use_map_row;
+
+  gp_offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
+  gp_use_map_row = &query->variables_use_map[gp_offset];
+
+  /* Scan all triples and mark per-triple use/bind and for entire BGP use*/  
   for(col = start_column; col <= end_column; col++) {
     rasqal_triple *t;
     rasqal_variable *v;
@@ -1702,27 +1708,37 @@ rasqal_query_triples_build_variables_use_map_binds(rasqal_query* query,
       }
     }
 
-
-    /* Promote bound variables for triples in one go */
+  
+    /* Promote first use of a variable into a bind.
+     * Mark that variable as bound in the entire BGP
+     */
     if((v = rasqal_literal_as_variable(t->subject)) &&
-       triple_row[v->offset] == RASQAL_TRIPLES_BOUND_SUBJECT) {
+       triple_row[v->offset] & RASQAL_TRIPLES_BOUND_SUBJECT) {
       rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v, vars_scope);
+
+      gp_use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
     }
     
     if((v = rasqal_literal_as_variable(t->predicate)) &&
-       triple_row[v->offset] == RASQAL_TRIPLES_BOUND_PREDICATE) {
+       triple_row[v->offset] & RASQAL_TRIPLES_BOUND_PREDICATE) {
       rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v, vars_scope);
+
+      gp_use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
     }
 
     if((v = rasqal_literal_as_variable(t->object)) &&
-       triple_row[v->offset] == RASQAL_TRIPLES_BOUND_OBJECT) {
+       triple_row[v->offset] & RASQAL_TRIPLES_BOUND_OBJECT) {
       rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v, vars_scope);
+
+      gp_use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
     }
 
     if(t->origin) {
       if((v = rasqal_literal_as_variable(t->origin)) &&
-         triple_row[v->offset] == RASQAL_TRIPLES_BOUND_GRAPH) {
+         triple_row[v->offset] & RASQAL_TRIPLES_BOUND_GRAPH) {
         rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v, vars_scope);
+
+        gp_use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
       }
     }
 
