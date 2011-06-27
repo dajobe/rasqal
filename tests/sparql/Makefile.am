@@ -28,7 +28,8 @@ update \
 bugs \
 aggregate \
 sparql11 \
-federated
+federated \
+warnings
 
 EXTRA_DIST=check-sparql
 

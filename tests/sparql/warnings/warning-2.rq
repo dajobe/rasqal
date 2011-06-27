@@ -1,0 +1,3 @@
+# Binding variable (?b) that is never selected
+SELECT ?s ?p
+WHERE { ?s ?p ?b }

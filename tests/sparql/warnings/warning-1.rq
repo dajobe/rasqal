@@ -1,0 +1,4 @@
+# Selecting a variable (?a) that is never bound
+PREFIX : <http://example.org/foo#>
+SELECT ?a
+WHERE { : : : }
