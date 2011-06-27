@@ -22,7 +22,7 @@
 SPARQL_MANIFEST_FILES= manifest.ttl
 
 SPARQL_MODEL_FILES= \
-data-1.ttl
+empty.nt
 
 SPARQL_TEST_FILES= \
 warning-1.rq warning-2.rq warning-3.rq
