@@ -1,3 +1,279 @@
+2011-06-26  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: Handle var=xsdstring(val) roqet
+	output
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_union_build_variables_use_map_binds): Restore outer
+	var scope each time.
+
+	* tests/sparql/warnings/Makefile.am: data is empty.nt
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_variables_use_map_binds): Recalculate
+	triple BGP after selecting variables to bind
+
+	* tests/sparql/warnings/Makefile.am,
+	tests/sparql/warnings/warning-4.rq: Remove unsupported check for
+	multiple FROM
+
+	* tests/improve: count expected fails
+
+	* tests/improve: Handle countiing expecting failures
+
+	* tests/sparql/examples/Makefile.am:
+	sparql-query-example-Testing-Values-bound (UNION) passes
+
+	* tests/sparql/survey/Makefile.am: test survey-3 UNION passes
+
+	* src/rasqal_query_transform.c: Calculate binds for BGPs correctly
+
+	(rasqal_query_triples_build_variables_use_map_binds); Bind s/p/o/g
+	if bit flag set not when ONLY that bit set.  Update row to mark
+	bound here.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_variables_use_map): Do not turn any SELECTed
+	variables that are never mentioned into binds
+
+	* src/rasqal_internal.h, src/rasqal_query_transform.c: Made
+	selecting an unbound a serious warning
+
+	(RDQL, SPARQL 1.0 require not-error) Added internal
+	RASQAL_WARNING_LEVEL_SELECTED_NEVER_BOUND warning level.
+
+	* configure.ac, tests/sparql/Makefile.am,
+	tests/sparql/warnings/Makefile.am, tests/sparql/warnings/empty.nt,
+	tests/sparql/warnings/manifest.ttl,
+	tests/sparql/warnings/warning-1.rq,
+	tests/sparql/warnings/warning-2.rq,
+	tests/sparql/warnings/warning-3.rq,
+	tests/sparql/warnings/warning-4.rq: Add warnings tests
+
+	* src/rasqal_general.c:
+	(rasqal_log_warning_simple): Invert test again
+
+2011-06-23  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query_transform.c: const qualified for const data
+
+2011-06-22  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_general.c: #docs
+
+2011-06-20  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: Add -W/--warnings option to set
+	warning level (default none: 0)
+
+	* tests/sparql/check-sparql: Use perl to find any core dumps in
+	output portably.
+
+	* configure.ac: Really remove --with-redland-config and
+	--with-redland from configure
+
+2011-06-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c: nl
+
+	* src/rasqal_query_transform.c:
+	Expand sub-SELECT * to variables
+
+	(rasqal_graph_pattern_mentions_variable): Added
+
+	(rasqal_graph_pattern_tree_mentions_variable): Added using above
+	to return if a GP tree mentions a variable
+
+	(rasqal_query_select_build_variables_use_map): Expand sub-SELECT *
+	into list of variables during use_map walk.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_graph_patterns_join): Handle select GP merging
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_write_internal): Handle sub-SELECT *
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_select_build_variables_use_map): Do not scan sub-GPs
+
+	* tests/sparql/check-sparql:
+	look for core dump
+
+2011-06-17  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_graph_pattern_promote_variable_mention_to_bind): Add bind
+	flag Should stop some of the unused variable warnings.
+
+2011-06-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_variable.c:
+	(main): use rc [clang]
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_variables_use_map_binds): Remove
+	unused gp_offset var.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_variables_use_map_binds): Remove
+	unused row var.
+
+	* src/rasqal_graph_pattern.c, src/rasqal_internal.h,
+	src/rasqal_query.c, src/rasqal_query_transform.c,
+	src/rasqal_rowsource_triples.c: Replace triples bound_in with more
+	accurate triples_use_map
+
+	Removes assumption that a variable can be only bound in one triple.
+
+	struct rasqal_query: array triples_use_map replaces variables_bound_in
+
+	(rasqal_graph_pattern_variable_bound_in): Use the variables_use_map
+	to calculate result.
+
+	(rasqal_free_query): Free triples_use_map replacing
+	variables_bound_in.
+
+	(rasqal_query_variable_is_bound): Added to partially replace
+	rasqal_graph_pattern_variable_bound_in().
+
+	(rasqal_query_variable_bound_in_triple): Added to replace rest of
+	rasqal_query_get_bound_in_column_for_variable.
+
+	(rasqal_query_get_bound_in_column_for_variable): Deleted
+
+	(rasqal_query_graph_pattern_bgp_build_bound_in): Deleted
+
+	(rasqal_query_graph_pattern_build_bound_in): Deleted
+
+	(rasqal_query_build_bound_in_triples): Deleted.
+
+	(rasqal_query_check_unused_variables): Use
+	rasqal_query_variable_is_bound() and simplify.
+
+	(rasqal_query_build_variables_use): Remove call to deleted
+	rasqal_query_build_bound_in_triples().
+
+	(rasqal_query_graph_build_variables_use_map): Added to build
+	variables use in a GRAPH GP.
+
+	(rasqal_query_select_build_variables_use_map): Add width and gp
+	args.  (rasqal_query_graph_pattern_build_variables_use_map): Call
+	above for GRAPH GP.  Update call to
+	rasqal_query_select_build_variables_use_map() for changed args.
+
+	(rasqal_graph_pattern_mentions_variable): Deleted
+
+	(rasqal_graph_pattern_promote_variable_mention_to_bind): Add
+	vars_scope arg and use it to test and set scope flag.
+
+	(rasqal_query_triples_build_variables_use_map_binds): Added to
+	mark variables bound in a triple/basic GP.  Rewrote body to use
+	scope and calculate mention, use and handle cases where a triple
+	pattern binds the same variable more than 1 time.
+
+	(rasqal_query_triples_build_variables_use_map_binds): Added to
+	bind variables for triples/basic GP.
+
+	(rasqal_query_graph_pattern_build_variables_use_map_binds): Added
+	pulled out of older
+	rasqal_query_build_variables_use_map_binds. Use
+	rasqal_query_triples_build_variables_use_map_binds() and
+	rasqal_query_union_build_variables_use_map_binds().  Bind sub
+	graph patterns after doing variables at head (such as UNION) so
+	that binding is in query document order.
+
+	(rasqal_query_build_variables_use_map_binds): Added to wrap
+	rasqal_query_graph_pattern_build_variables_use_map_binds().
+
+	(rasqal_query_print_triples_use_map): Added debug function to
+	print triples variable use map.
+
+	(rasqal_query_build_variables_use_map): Allocate triples_use_map.
+	Use rasqal_query_build_variables_use_map_binds().  Print triples
+	use map after binding is done.
+
+	(rasqal_query_graph_build_variables_use_map_binds): Make bound
+	variables in GRAPH gp.
+
+	(rasqal_query_let_build_variables_use_map_binds): Add vars_scope
+	args.
+
+	(rasqal_query_select_build_variables_use_map): Add width and gp
+	args.
+
+	(rasqal_query_select_build_variables_use_map_binds): Added to bind
+	sub-SELECT patterns using an inner scope.  Mark projected
+	variables into outer scope.
+
+	(rasqal_query_union_build_variables_use_map_binds0: Added to bind
+	UNION patterns with inner scopes for each sub-graph pattern.
+
+	* src/rasqal_algebra.c, src/rasqal_internal.h)
+	(src/rasqal_query_transform.c: Switch short maps to unsigned short
+	maps
+
+	* src/rasqal_algebra.c, src/rasqal_internal.h)
+	(src/rasqal_query_transform.c: Switch short maps to unsigned short
+	maps
+
+	* src/rasqal_query_transform.c: Build variable scoping in two pass
+	USE and BIND scans
+
+	Remove all binding code from the rasqal_query_graph*_use_map
+	functions.
+
+	Add new binding marking approach; pass down an array of in-scope
+	variables in current context and mark first variable unseen as
+	binding it.  UNION and sub-SELECT introduce new scopes.
+
+	FIXME: bound_in code still does a separate and wrong calculation
+	that assumes a variable can only be bound in one GP; that is no
+	longer true and never has been as long as UNION existed.
+
+	(rasqal_query_graph_build_variables_use_map): Added to mark
+	variables mentioned in GRAPH GP (zero one one)
+
+	(rasqal_query_graph_pattern_build_variables_use_map): Call above
+	for GRAPH gp and adjust call to
+	rasqal_query_select_build_variables_use_map().
+
+	(rasqal_graph_pattern_promote_variable_mention_to_bind): Add
+	vars_scope param to know when to bind; does nothing if variable
+	passed in is already bound in scope.
+
+	(rasqal_query_graph_pattern_build_variables_use_map_binds): Added
+	based on older rasqal_query_build_variables_use_map_binds() to
+	perform the binding approach as above moving most code into per-GP
+	type functions.  Move binding sub graph patterns to AFTER binding
+	variables in the GP itself; so GRAPH ?var etc. works.
+
+	(rasqal_query_build_variables_use_map_binds): Made a skeleton
+	around above function.
+
+	(rasqal_query_build_variables_use_map): Call
+	rasqal_query_build_variables_use_map_binds().
+
+	(rasqal_query_graph_build_variables_use_map_binds): Use vars
+	scope.
+
+	(rasqal_query_let_build_variables_use_map): Use vars scope.
+
+	(rasqal_query_select_build_variables_use_map): Scan
+	selected / projected variables for mentions.
+
+	(rasqal_query_select_build_variables_use_map_binds): Added to use
+	vars scope, make an inner scope for the sub-SELECT and mark
+	project variables for binding if unbound in outer scope.
+
+	(rasqal_query_union_build_variables_use_map_binds): Added to use
+	vars scope and and make a new scope for each sub-UNION GP tree.
+
+2011-06-14  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Add --enable-debug option like raptor has
+
+	* src/rasqal_query_transform.c: Lose the .
+
 2011-06-11  Dave Beckett <dave@dajobe.org>
 
 	* docs/tmpl/section-general.sgml, docs/tmpl/section-unused.sgml:
