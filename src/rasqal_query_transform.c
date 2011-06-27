@@ -2528,9 +2528,8 @@ rasqal_query_union_build_variables_use_map_binds(rasqal_query* query,
   for(i = 0; i < gp_size; i++) {
     rasqal_graph_pattern *sgp;
     
-    /* Empty inner scope for next union */
-    if(i > 0)
-      memset(inner_vars_scope, '\0', width * sizeof(short));
+    /* UNION starts with a copy of all scoped outer variables */
+    memcpy(inner_vars_scope, vars_scope, width * sizeof(unsigned short));
 
     sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(seq, i);
 
