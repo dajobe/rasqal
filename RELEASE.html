@@ -13,6 +13,123 @@
 <p>Not yet released.
 </p>
 
+<p>Issues Fixed:</p>
+<ul>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=430">Issue #0000430</a>: Incorrect HTML generated with unknown literal types</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=431">Issue #0000431</a>: Only a limited number of literal datatypes are displayable in a HTML format.</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=436">Issue #0000436</a>: queries involving calculations with large numbers return incorrect results unless scientific notation is used</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=438">Issue #0000438</a>: timegm not available on solaris</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=439">Issue #0000439</a>: warning when variable is not selected makes 4store tests to fail</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=446">Issue #0000446</a>: rasqal may require -lm for floor, ceil, round on some systems and architectures</li>
+</ul>
+
+<h3>SPARQL 1.1 Query draft language changes</h3>
+
+<p>Added support for SPARQL 1.1 message digest functions
+<code>MD5()</code>, <code>SHA1()</code>, <code>SHA224()</code>,
+<code>SHA256()</code>, <code>SHA384()</code> and <code>SHA512()</code></p>
+
+<h3>Query engine changes</h3>
+
+<p>Many internal query engine changes to more accuractly compute
+variable scope, use and binding to better support more complex
+queries with scopes such as <code>UNION</code> (now mostly working)
+and sub-<code>SELECT</code> (execution is not yet supported).
+</p>
+
+<p>Added <code>rasqal_world_set_warning_level()</code> to set the
+query warning level in the 0...100 range where 0 is no warnings, 50
+is the default and 100 is all warnings.
+</p>
+
+<p>Query errors now fail with regular errors not fatal errors that
+abort().  Query parsing errors are not work killing the process.
+Also adjusted some error paths to prevent reporting 2 errors at once.
+</p>
+
+<p><code>rasqal_op</code> enumeration gains values
+<code>RASQAL_EXPR_MD5</code>, <code>RASQAL_EXPR_SHA1</code>,
+<code>RASQAL_EXPR_SHA224</code>, <code>RASQAL_EXPR_SHA256</code>,
+<code>RASQAL_EXPR_SHA384</code> and <code>RASQAL_EXPR_SHA512</code>
+for message digest expressions corresponding to SPARQL 1.1 message
+digest functions.
+</p>
+
+<p>Added message digest support either built with internal MD5 and
+SHA1 which are always available, or with libmhash which provides the
+full list of message digests that SPARQL 1.1 requires (and is
+optimized).
+</p>
+
+<p>Make <code>ROUND()</code> work with XSD Decimal when compiled
+against <a href="http://gmplib.org/">GNU MP</a>.
+</p>
+
+<p>Check for overflow when converting a string to int and if
+resulting long won't fit in an int, turn it into a decimal.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=436">Issue #0000436</a>.
+</p>
+
+<p>Removed Query Engine V1 that was long disabled.
+<code>configure</code> loses
+the <code>--with-query-engine-version</code> option.
+</p>
+
+
+<h3>Query results formatter class changes</h3>
+
+<p>Fixed HTML query results generating invalid HTML.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=430">Issue #0000430</a>
+</p>
+
+<p>Support writing additional literal types in HTML query results.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=431">Issue #0000431</a>
+</p>
+
+<p>The JSON query result format now accepts the
+<code>application/sparql-results+json</code> mime type, as specified
+in the
+<a href="http://www.w3.org/TR/rdf-sparql-json-res/">Serializing SPARQL Query Results in JSON</a>
+W3C WG Note.
+</p>
+
+
+<h3><code>roqet(1)</code> utility changes</h3>
+
+<p>Added options <code>-W</code>
+/ <code>--warnings</code> <em>level</em> (default 50) to set the
+warning level and <code>-E</code> to ignore errors.
+</p>
+
+
+<h3>Other changes</h3>
+
+<p><code>configure</code> gains a <code>--enable-debug</code> option
+to enable or disable the debugging messages.  Useful for when
+building using <code>autogen.sh</code> from GIT.
+</p>
+
+<p>Removed internal test/debug 'redland' triples store that has not
+worked for some time.  Removed the <code>--with-triples-source</code>
+and <code>--with-redland-config</code> options from <code>configure</code>.
+</p>
+
+<p>Add a portable version of <code>timegm()</code> when it is not
+present in the system (such as Solaris).
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=438">Issue #0000438</a>.
+</p>
+
+<p>Added <code>configure</code> tests
+for <code>ceil()</code>, <code>floor()</code>
+and <code>round()</code> that look for them in libc or libm.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=446">Issue #0000446</a>.
+</p>
+
+<p>Fixed up several code paths with problems found
+by <a href="http://clang.llvm.org/">clang</a>, mostly unused
+variables, unnecessary calculations but a couple of bad accesses.
+</p>
+
 
 <h2 id="rel0_9_25"><a name="rel0_9_25">Rasqal 0.9.25 changes</a></h2>
 
