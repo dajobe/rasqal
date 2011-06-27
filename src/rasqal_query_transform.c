@@ -2243,27 +2243,6 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   if(rc)
     goto done;
 
-  /* finally turn any SELECTed variables that are never mentioned into binds */
-  if(1) {
-    int var_index;
-    unsigned short *row = &query->variables_use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS];
-
-    for(var_index = 0; var_index < width; var_index++) {
-      rasqal_variable *v;
-      v = rasqal_variables_table_get(query->vars_table, var_index);
-
-      if(!(row[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE))
-        continue;
-    
-      if(rasqal_graph_pattern_tree_binds_variable(query->query_graph_pattern, v))
-        continue;
-
-      RASQAL_DEBUG2("Marking SELECT variable %s as also bound\n", v->name);
-
-      row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
-    }
-  }
-
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("use map after binds and mentions: ");
   rasqal_query_print_variables_use_map(stderr, query);
