@@ -38,6 +38,7 @@ result-survey-11.ttl result-survey-12.ttl result-survey-13.ttl
 EXPECTED_SPARQL_CORRECT= \
    survey-1 \
    survey-2 \
+   survey-3 \
    survey-8 \
    survey-9 \
    survey-10 \
@@ -46,10 +47,7 @@ EXPECTED_SPARQL_CORRECT= \
    survey-13
 
 # Test failures
-# survey-3
-#   UNION
-EXPECTED_SPARQL_CORRECT_FAILURES= \
-survey-3
+EXPECTED_SPARQL_CORRECT_FAILURES=
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
