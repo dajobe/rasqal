@@ -1,5 +1,0 @@
-# Adding multiple background graphs
-SELECT ?s ?p ?o
-FROM <fake.nt>
-FROM <fake.nt>
-WHERE { ?s ?p ?o }

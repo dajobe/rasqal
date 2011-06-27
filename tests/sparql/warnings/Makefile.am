@@ -25,7 +25,7 @@ SPARQL_MODEL_FILES= \
 data-1.ttl
 
 SPARQL_TEST_FILES= \
-warning-1.rq warning-2.rq warning-3.rq warning-4.rq
+warning-1.rq warning-2.rq warning-3.rq
 
 SPARQL_TEST_NAMES= \
 $(SPARQL_TEST_FILES)
