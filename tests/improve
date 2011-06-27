@@ -307,6 +307,7 @@ sub run_testsuite($) {
   my(@skipped);
   my(@uxpassed); # Unexpected pass
 
+  my $expected_failures_count = 0;
   print $indent unless $verbose;
 
   my $result=0;
@@ -319,6 +320,8 @@ sub run_testsuite($) {
     } else {
       run_test($testsuite,$test);
     }
+
+    $expected_failures_count++ if $test->{expect_fail};
 
     my $rc=$test->{status};
 
@@ -367,7 +370,7 @@ sub run_testsuite($) {
   my $plan_file= $testsuite->{plan};
   unlink $plan_file;
 
-  my $status=(!@failed) ? 'pass' : 'fail';
+  my $status=(scalar(@failed) == $expected_failures_count) ? 'pass' : 'fail';
 
   return {
     passed => \@passed,
