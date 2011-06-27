@@ -402,6 +402,7 @@ sub run_test {
     if (m/^result: \[(.*)\]$/) {
       s/=INV:/=/g;
       s/=udt/=string/g;
+      s%=xsdstring\((.*?)\)%=string("$1"^^<http://www.w3.org/2001/XMLSchema#string>)%g;
       my $line=$_;
       if(!@vars_order) {
 	my $vars=$1;
