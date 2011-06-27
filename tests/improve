@@ -370,7 +370,7 @@ sub run_testsuite($) {
   my $plan_file= $testsuite->{plan};
   unlink $plan_file;
 
-  my $status=(scalar(@failed) == $expected_failures_count) ? 'pass' : 'fail';
+  my $status=(scalar(@xfailed) == $expected_failures_count) ? 'pass' : 'fail';
 
   return {
     passed => \@passed,
