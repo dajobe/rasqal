@@ -1662,6 +1662,7 @@ rasqal_query_triples_build_variables_use_map_binds(rasqal_query* query,
   int col;
   int gp_offset;
   unsigned short* gp_use_map_row;
+  int var_index;
 
   gp_offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
   gp_use_map_row = &query->variables_use_map[gp_offset];
@@ -1709,39 +1710,49 @@ rasqal_query_triples_build_variables_use_map_binds(rasqal_query* query,
     }
 
   
-    /* Promote first use of a variable into a bind.
-     * Mark that variable as bound in the entire BGP
-     */
+    /* Promote first use of a variable into a bind. */
     if((v = rasqal_literal_as_variable(t->subject)) &&
        triple_row[v->offset] & RASQAL_TRIPLES_BOUND_SUBJECT) {
       rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v, vars_scope);
-
-      gp_use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
     }
     
     if((v = rasqal_literal_as_variable(t->predicate)) &&
        triple_row[v->offset] & RASQAL_TRIPLES_BOUND_PREDICATE) {
       rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v, vars_scope);
-
-      gp_use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
     }
 
     if((v = rasqal_literal_as_variable(t->object)) &&
        triple_row[v->offset] & RASQAL_TRIPLES_BOUND_OBJECT) {
       rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v, vars_scope);
-
-      gp_use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
     }
 
     if(t->origin) {
       if((v = rasqal_literal_as_variable(t->origin)) &&
          triple_row[v->offset] & RASQAL_TRIPLES_BOUND_GRAPH) {
         rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v, vars_scope);
-
-        gp_use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
       }
     }
 
+  }
+
+  /* Scan all triples for USEs of variables and update BGP mentioned bits */
+  for(var_index = 0; var_index < width; var_index++) {
+    int mentioned = 0;
+
+    for(col = start_column; col <= end_column; col++) {
+      unsigned short* triple_row = &query->triples_use_map[col * width];
+      
+      if(triple_row[var_index] & RASQAL_TRIPLES_USE_MASK) {
+        mentioned = 1;
+        break;
+      }
+    }
+
+    if(mentioned)
+      gp_use_map_row[var_index] |= RASQAL_VAR_USE_MENTIONED_HERE;
+    else
+      gp_use_map_row[var_index] &= ~RASQAL_VAR_USE_MENTIONED_HERE;
+    
   }
 
   return 0;
