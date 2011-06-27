@@ -49,12 +49,10 @@ EXPECTED_SPARQL_CORRECT= \
   sparql-query-example-Testing-Values-str \
   sparql-query-example-Testing-Values-lang \
   sparql-query-example-Testing-Values-isBlank \
+  sparql-query-example-Testing-Values-bound \
   sparql-query-example-Testing-Values-bound-2
 
-# sparql-query-example-Testing-Values-bound (ex11.2.3.2_0.rq)
-#   UNION
-EXPECTED_SPARQL_CORRECT_FAILURES= \
-  sparql-query-example-Testing-Values-bound
+EXPECTED_SPARQL_CORRECT_FAILURES=
 
 SPARQL_RESULT_FILES= \
 ex2-1a-result.n3 ex2-2a-result.n3 ex2-3a-result.n3 ex2-4a-result.n3	\
