@@ -591,8 +591,11 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
         v = rasqal_variables_table_add(con->vars_table,
                                        RASQAL_VARIABLE_TYPE_NORMAL,
                                        var_name, NULL);
-        if(v)
+        if(v) {
           rasqal_rowsource_add_variable(con->rowsource, v);
+          /* above function takes a reference to v */
+          rasqal_free_variable(v);
+        }
       }
       break;
       
