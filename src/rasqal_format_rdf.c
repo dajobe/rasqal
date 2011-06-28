@@ -308,6 +308,7 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
     statement.object = raptor_new_term_from_literal(raptor_world_ptr, 
                                                     name, NULL, NULL);
     raptor_serializer_serialize_statement(ser, &statement);
+    raptor_free_term(statement.object); statement.object = NULL;
   }
   raptor_free_term(statement.predicate); statement.predicate = NULL;
 
@@ -399,10 +400,15 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
         raptor_free_term(statement.object); statement.object = NULL;
       }
 
+      raptor_free_term(binding_node);
     }
     
     rasqal_query_results_next(results);
+
+    raptor_free_term(row_node); row_node = NULL;
   }
+
+  raptor_free_term(resultset_node);
 
   raptor_serializer_serialize_end(ser);
 
