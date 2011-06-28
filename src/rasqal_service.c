@@ -245,6 +245,9 @@ rasqal_service_content_type_handler(raptor_www* www, void* userdata,
   rasqal_service* svc = (rasqal_service*)userdata;
   size_t len;
   
+  if(svc->content_type)
+    RASQAL_FREE(cstring, svc->content_type);
+
   len = strlen(content_type) + 1;
   svc->content_type = (char*)RASQAL_MALLOC(cstring, len);
 
