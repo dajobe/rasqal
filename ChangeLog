@@ -1,4 +1,7 @@
-2011-06-27  Dave Beckett <dave@dajobe.org>
+2011-06-27  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_26 for 0.9.26 release (GIT
+	44f4b1d74abe6c741e9a9c4bc8465921d7b3691f)
 
 	* src/rasqal_format_rdf.c: Fix a bunch of lost term objects for
 	'rdfxml' formatter.
