@@ -1,3 +1,28 @@
+2011-06-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_rdf.c: Fix a bunch of lost term objects for
+	'rdfxml' formatter.
+
+	* src/rasqal_format_rdf.c:
+	(rasqal_rowsource_rdf_process): Fix leak of variable.
+
+	* src/rasqal_format_sparql_xml.c:
+	(rasqal_sparql_xml_sax2_start_element_handler): Fix leak of
+	variable.
+
+	* src/rasqal_service.c:
+	(rasqal_service_content_type_handler): Handle getting multiple
+	Content-Type:s
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_count): Handle no query
+
+	* NEWS.html, RELEASE.html: 0.9.26
+
+	* src/rasqal_query_transform.c:
+	(rasqal_graph_pattern_tree_binds_variable,
+	rasqal_graph_pattern_binds_variable): Removed unused functions
+
 2011-06-26  Dave Beckett <dave@dajobe.org>
 
 	* tests/sparql/check-sparql: Handle var=xsdstring(val) roqet
