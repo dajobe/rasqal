@@ -695,7 +695,7 @@ int
 rasqal_query_results_get_count(rasqal_query_results* query_results)
 {
   rasqal_query* query;
-  int offset;
+  int offset = -1;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, -1);
 
@@ -707,7 +707,8 @@ rasqal_query_results_get_count(rasqal_query_results* query_results)
 
   query = query_results->query;
 
-  offset = rasqal_query_get_offset(query);
+  if(query)
+    offset = rasqal_query_get_offset(query);
 
   if(query && offset > 0)
     return query_results->result_count - offset;
