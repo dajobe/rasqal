@@ -1,3 +1,10 @@
+2011-06-28  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Always check for where ceil(), floor() and round()
+	can be found.
+
+	* NEWS.html, RELEASE.html, configure.ac: Bumped version to 0.9.27
+
 2011-06-27  Dave Beckett  <dave@dajobe.org>
 
 	* Snapshotted rasqal_0_9_26 for 0.9.26 release (GIT
