@@ -505,9 +505,23 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
   if(indent >= 0)
     indent += 2;
 
+  if(gp->silent) {
+    raptor_iostream_counted_string_write("silent", 6, iostr);
+    pending_nl = 1;
+  }
+
   if(gp->triples) {
     int size = gp->end_column - gp->start_column + 1;
     int i;
+
+    if(pending_nl) {
+      raptor_iostream_counted_string_write(" ,", 2, iostr);
+
+      if(indent >= 0) {
+        raptor_iostream_write_byte('\n', iostr);
+        rasqal_graph_pattern_write_indent(iostr, indent);
+      }
+    }
 
     raptor_iostream_counted_string_write("over ", 5, iostr);
     rasqal_graph_pattern_write_plurals(iostr, "triple", size);

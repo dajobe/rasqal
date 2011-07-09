@@ -282,6 +282,9 @@ struct rasqal_graph_pattern_s {
 
   /* SELECT modifiers */
   rasqal_solution_modifier* modifier;
+
+  /* SILENT flag for SERVICE graph pattern */
+  unsigned int silent : 1;
 };
 
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
