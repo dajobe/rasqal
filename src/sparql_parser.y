@@ -1694,22 +1694,23 @@ ClearQuery: CLEAR SilentOpt GraphRefAll
     YYERROR;
   }
 
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CLEAR,
-                                       $3->uri ? raptor_uri_copy($3->uri) : NULL /* graph uri or NULL */,
-                                       NULL /* document uri */,
-                                       NULL, NULL,
-                                       NULL /*where */,
-                                       $2 /* flags */,
-                                       $3->applies /* applies */);
-  free_uri_applies($3);
-  if(update)
-    update->applies = (rasqal_update_graph_applies)$3;
-  
-  if(!update) {
-    YYERROR_MSG("ClearQuery: rasqal_new_update_operation failed");
-  } else {
-    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
-      YYERROR_MSG("ClearQuery: rasqal_query_add_update_operation failed");
+  if($3) {
+    update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CLEAR,
+                                         $3->uri ? raptor_uri_copy($3->uri) : NULL /* graph uri or NULL */,
+                                         NULL /* document uri */,
+                                         NULL, NULL,
+                                         NULL /*where */,
+                                         $2 /* flags */,
+                                         $3->applies /* applies */);
+    free_uri_applies($3);
+    $3 = NULL;
+
+    if(!update) {
+      YYERROR_MSG("ClearQuery: rasqal_new_update_operation failed");
+    } else {
+      if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
+        YYERROR_MSG("ClearQuery: rasqal_query_add_update_operation failed");
+    }
   }
 }
 | CLEAR
@@ -1825,7 +1826,7 @@ DropQuery: DROP SilentOpt GraphRefAll
 {
   rasqal_sparql_query_language* sparql;
   rasqal_update_operation* update;
-
+  
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->sparql11_update) {
@@ -1834,19 +1835,23 @@ DropQuery: DROP SilentOpt GraphRefAll
     YYERROR;
   }
 
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_DROP,
-                                       raptor_uri_copy($3->uri) /* graph uri */, 
-                                       NULL /* document uri */,
-                                       NULL, NULL,
-                                       NULL /*where */,
-                                       $2 /* flags */,
-                                       $3->applies /* applies */);
-  free_uri_applies($3);
-  if(!update) {
-    YYERROR_MSG("DropQuery: rasqal_new_update_operation failed");
-  } else {
-    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
-      YYERROR_MSG("DropQuery: rasqal_query_add_update_operation failed");
+  if($3) {
+    update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_DROP,
+                                         $3->uri ? raptor_uri_copy($3->uri) : NULL /* graph uri or NULL */,
+                                         NULL /* document uri */,
+                                         NULL, NULL,
+                                         NULL /*where */,
+                                         $2 /* flags */,
+                                         $3->applies /* applies */);
+    free_uri_applies($3);
+    $3 = NULL;
+
+    if(!update) {
+      YYERROR_MSG("DropQuery: rasqal_new_update_operation failed");
+    } else {
+      if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
+        YYERROR_MSG("DropQuery: rasqal_query_add_update_operation failed");
+    }
   }
 }
 ;
