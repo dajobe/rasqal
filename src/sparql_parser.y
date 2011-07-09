@@ -3143,15 +3143,18 @@ GraphGraphPattern: GRAPH VarOrIRIref GroupGraphPattern
 
 
 /* SPARQL Grammar: ServiceGraphPattern */
-ServiceGraphPattern: SERVICE VarOrIRIref GroupGraphPattern
+ServiceGraphPattern: SERVICE SilentOpt VarOrIRIref GroupGraphPattern
 {
   $$ = rasqal_new_single_graph_pattern((rasqal_query*)rq,
                                        RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE,
-                                       $3);
-  if($$)
-    $$->origin = $2;
-  else
-    rasqal_free_literal($2);
+                                       $4);
+  if($$) {
+    $$->silent = ($2 & RASQAL_UPDATE_FLAGS_SILENT) ? 1 : 0;
+
+    $$->origin = $3;
+    $3 = NULL;
+  } else if($3)
+    rasqal_free_literal($3);
 }
 ;
 
