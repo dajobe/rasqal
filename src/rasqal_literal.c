@@ -577,7 +577,7 @@ retype:
     memcpy((void*)l->string, string, l->string_len + 1);
   }
 
-  if(l->type != RASQAL_LITERAL_INTEGER_SUBTYPE) {
+  if(l->type <= RASQAL_LITERAL_LAST_XSD) {
     dt_uri = rasqal_xsd_datatype_type_to_uri(l->world, l->type);
     if(!dt_uri)
       return 1;
@@ -2775,10 +2775,16 @@ rasqal_literal_as_node(rasqal_literal* l)
           return NULL; 
         }
         memcpy((void*)new_l->string, l->string, l->string_len + 1);
-        dt_uri = rasqal_xsd_datatype_type_to_uri(l->world, l->type);
-        if(!dt_uri) {
-          rasqal_free_literal(new_l);
-          return NULL;
+
+        if(l->type <= RASQAL_LITERAL_LAST_XSD) {
+          dt_uri = rasqal_xsd_datatype_type_to_uri(l->world, l->type);
+          if(!dt_uri) {
+            rasqal_free_literal(new_l);
+            return NULL;
+          }
+        } else {
+          /* from the case: above this is UDT and INTEGER_SUBTYPE */
+          dt_uri = l->datatype;
         }
         new_l->datatype = raptor_uri_copy(dt_uri);
         new_l->flags = NULL;

@@ -160,10 +160,10 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
         raptor_iostream_write_byte('"', iostr);
         raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
         raptor_iostream_counted_string_write("\"^^", 3, iostr);
-        if(l->type == RASQAL_LITERAL_UDT) 
-          dt_uri = l->datatype;
-        else
+        if(l->type <= RASQAL_LITERAL_LAST_XSD)
           dt_uri = rasqal_xsd_datatype_type_to_uri(l->world, l->type);
+        else
+          dt_uri = l->datatype;
         rasqal_query_write_sparql_uri(wc, iostr, dt_uri);
       }
       break;
