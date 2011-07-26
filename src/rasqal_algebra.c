@@ -696,18 +696,19 @@ rasqal_algebra_write_indent(raptor_iostream *iostr, int indent)
 
 static int
 rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node, 
-                                           raptor_iostream* iostr, int indent)
+                                           raptor_iostream* iostr,
+                                           unsigned int indent)
 {
   const char* op_string = rasqal_algebra_node_operator_as_string(node->op);
   int arg_count = 0;
-  int indent_delta;
+  unsigned int indent_delta;
   
   if(node->op == RASQAL_ALGEBRA_OPERATOR_BGP && !node->triples) {
     raptor_iostream_write_byte('Z', iostr);
     return 0;
   }
   
-  indent_delta = strlen(op_string);
+  indent_delta = (unsigned int)strlen(op_string);
 
   raptor_iostream_counted_string_write(op_string, indent_delta, iostr);
   raptor_iostream_counted_string_write("(\n", 2, iostr);
