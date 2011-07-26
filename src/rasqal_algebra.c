@@ -1507,7 +1507,7 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
 
 
   /* is expression is in map? */
-  v = rasqal_map_search(ae->agg_vars, e);
+  v = (rasqal_variable*)rasqal_map_search(ae->agg_vars, e);
   if(v) {
     /* Yes: get value => use existing internal variable for it */
     RASQAL_DEBUG2("Found variable %s for existing expression\n", v->name);

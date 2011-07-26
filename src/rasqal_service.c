@@ -106,7 +106,7 @@ rasqal_new_service(rasqal_world* world, raptor_uri* service_uri,
 
   if(query_string) {
     len = strlen(query_string);
-    svc->query_string = RASQAL_MALLOC(cstring, len + 1);
+    svc->query_string = (char*)RASQAL_MALLOC(cstring, len + 1);
     if(!svc->query_string) {
       rasqal_free_service(svc);
       return NULL;
@@ -234,7 +234,8 @@ rasqal_service_write_bytes(raptor_www* www,
     svc->started = 1;
   }
 
-  raptor_stringbuffer_append_counted_string(svc->sb, ptr, len, 1);
+  raptor_stringbuffer_append_counted_string(svc->sb, (const unsigned char*)ptr,
+                                            len, 1);
 }
 
 

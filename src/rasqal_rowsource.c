@@ -315,7 +315,7 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
       
       /* Set group for all rows if there are no groups returned */
 
-      for(i = 0; (row = raptor_sequence_get_at(seq, i)); i++) {
+      for(i = 0; (row = (rasqal_row*)raptor_sequence_get_at(seq, i)); i++) {
         /* if first row has a group ID, end */
         if(!i && row->group_id >= 0)
           break;

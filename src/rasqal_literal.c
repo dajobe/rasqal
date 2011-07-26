@@ -3882,8 +3882,8 @@ rasqal_literal_sequence_compare(int compare_flags,
     size_a = size_b;
   
   for(i = 0; i < size_a; i++) {
-    rasqal_literal* literal_a = raptor_sequence_get_at(values_a, i);
-    rasqal_literal* literal_b = raptor_sequence_get_at(values_b, i);
+    rasqal_literal* literal_a = (rasqal_literal*)raptor_sequence_get_at(values_a, i);
+    rasqal_literal* literal_b = (rasqal_literal*)raptor_sequence_get_at(values_b, i);
     int error = 0;
     
 #if RASQAL_DEBUG > 1

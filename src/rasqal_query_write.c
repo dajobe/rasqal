@@ -549,7 +549,7 @@ rasqal_query_write_sparql_triple_data(sparql_writer_context *wc,
   
   /* look for triples */
   while(1) {
-    rasqal_triple* t = raptor_sequence_get_at(triples, triple_index);
+    rasqal_triple* t = (rasqal_triple*)raptor_sequence_get_at(triples, triple_index);
     if(!t)
       break;
     
@@ -813,7 +813,7 @@ rasqal_write_sparql_bindings(sparql_writer_context* wc,
   
     for(i = 0; i < raptor_sequence_size(bindings->rows); i++) {
       rasqal_row* row;
-      row = raptor_sequence_get_at(bindings->rows, i);
+      row = (rasqal_row*)raptor_sequence_get_at(bindings->rows, i);
       raptor_iostream_counted_string_write("  ", 2, iostr);
       rasqal_write_sparql_row(wc, iostr, row);
       raptor_iostream_counted_string_write("\n", 1, iostr);

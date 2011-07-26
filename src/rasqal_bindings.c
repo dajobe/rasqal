@@ -123,7 +123,7 @@ rasqal_bindings_print(rasqal_bindings* bindings, FILE* fh)
   if(bindings->rows) {
     for(i = 0; i < raptor_sequence_size(bindings->rows); i++) {
       rasqal_row* row;
-      row = raptor_sequence_get_at(bindings->rows, i);
+      row = (rasqal_row*)raptor_sequence_get_at(bindings->rows, i);
       if(i > 0)
         fputs("\n    ", fh);
       rasqal_row_print(row, fh);
