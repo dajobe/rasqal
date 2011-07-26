@@ -96,7 +96,7 @@ rasqal_expression_evaluate_to_unixtime(rasqal_expression *e,
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l;
-  int unixtime = 0;
+  time_t unixtime = 0;
   
   l = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(*error_p || !l)
@@ -110,7 +110,8 @@ rasqal_expression_evaluate_to_unixtime(rasqal_expression *e,
   if(!unixtime)
     goto failed;
 
-  return rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, unixtime);
+  return rasqal_new_numeric_literal_from_long(world, RASQAL_LITERAL_INTEGER,
+                                              unixtime);
 
   failed:
   if(error_p)
