@@ -124,6 +124,49 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type,
 
 
 /**
+ * rasqal_new_numeric_literal_from_long:
+ * @world: rasqal world object
+ * @type: Type of literal such as RASQAL_LITERAL_INTEGER or RASQAL_LITERAL_BOOLEAN
+ * @value: long value
+ *
+ * Constructor - Create a new Rasqal numeric literal from a long.
+ * 
+ * The value is turned into a rasqal integer or decimal literal and
+ * given a datatype of xsd:integer
+ * 
+ * Return value: New #rasqal_literal or NULL on failure
+ **/
+rasqal_literal*
+rasqal_new_numeric_literal_from_long(rasqal_world* world,
+                                     rasqal_literal_type type,
+                                     long value)
+{
+  rasqal_xsd_decimal* d;
+  unsigned char *string;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
+  /* boolean values should always be in range */
+  if(type == RASQAL_LITERAL_BOOLEAN) {
+    int ivalue = value ? 1 : 0;
+    return rasqal_new_integer_literal(world, type, ivalue);
+  }
+  
+  /* For other types, if in int range, make an integer literal */
+  if(value >= INT_MIN && value <= INT_MAX) {
+    return rasqal_new_integer_literal(world, type, (int)value);
+  }
+
+  /* Otherwise turn it into a decimal */
+  d = rasqal_new_xsd_decimal(world);
+  rasqal_xsd_decimal_set_long(d, value);
+  string = (unsigned char*)rasqal_xsd_decimal_as_counted_string(d, NULL);
+
+  return rasqal_new_decimal_literal_from_decimal(world, string, d);
+}
+
+
+/**
  * rasqal_new_typed_literal:
  * @world: rasqal world object
  * @type: Type of literal such as RASQAL_LITERAL_INTEGER or RASQAL_LITERAL_BOOLEAN

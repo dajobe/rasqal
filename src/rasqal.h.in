@@ -1483,6 +1483,8 @@ int rasqal_evaluation_context_set_rand_seed(rasqal_evaluation_context* eval_cont
 RASQAL_API
 rasqal_literal* rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type, int integer);
 RASQAL_API
+rasqal_literal* rasqal_new_numeric_literal_from_long(rasqal_world* world, rasqal_literal_type type, long value);
+RASQAL_API
 rasqal_literal* rasqal_new_typed_literal(rasqal_world* world, rasqal_literal_type type, const unsigned char* string);
 RASQAL_API
 rasqal_literal* rasqal_new_double_literal(rasqal_world* world, double d);
