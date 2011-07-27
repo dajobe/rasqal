@@ -1309,14 +1309,19 @@ main(int argc, char *argv[])
   } else if(query_string) {
     /* NOP - already got it */
   } else if(!uri_string) {
-    size_t size;
+    size_t read_len;
     
     query_string = (unsigned char*)calloc(FILE_READ_BUF_SIZE, 1);
-    size = fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
-    if(ferror(stdin)) {
-      fprintf(stderr, "%s: query string stdin read failed - %s\n",
-              program, strerror(errno));
-      return(1);
+    read_len = fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
+    if(read_len < FILE_READ_BUF_SIZE) {
+      if(ferror(stdin))
+        fprintf(stderr, "%s: query string stdin read failed - %s\n",
+                program, strerror(errno));
+      else
+        fprintf(stderr, "%s: query string stdin read failed - no error\n",
+                program);
+      rc = 1;
+      goto tidy_setup;
     }
 
     query_from_string = 0;
