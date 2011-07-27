@@ -621,13 +621,13 @@ PrefixDeclListOpt: PrefixDeclListOpt PREFIX IDENTIFIER URI_LITERAL
 {
   raptor_sequence *seq = ((rasqal_query*)rq)->prefixes;
   unsigned const char* prefix_string = $3;
-  size_t l = 0;
+  size_t prefix_length = 0;
 
   if(prefix_string)
-    l=strlen((const char*)prefix_string);
+    prefix_length = strlen((const char*)prefix_string);
   
   if(raptor_namespaces_find_namespace(((rasqal_query*)rq)->namespaces,
-                                      prefix_string, l)) {
+                                      prefix_string, (int)prefix_length)) {
     /* A prefix may be defined only once */
     sparql_syntax_warning(((rasqal_query*)rq), 
                           "PREFIX %s can be defined only once.",
