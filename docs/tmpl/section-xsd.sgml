@@ -311,6 +311,16 @@ operators on the Decimals suitable for SPARQL.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_xsd_decimal_get_long ##### -->
+<para>
+
+</para>
+
+@dec: 
+@error_p: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_xsd_decimal_is_zero ##### -->
 <para>
 
