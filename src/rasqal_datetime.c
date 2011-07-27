@@ -1207,7 +1207,7 @@ rasqal_xsd_datetime_get_as_timeval(rasqal_xsd_datetime *dt)
   if(!dt)
     return NULL;
   
-  tv = RASQAL_CALLOC(timeval, 1, sizeof(*tv));
+  tv =(struct timeval*) RASQAL_CALLOC(timeval, 1, sizeof(*tv));
   if(!tv)
     return NULL;
   
@@ -1252,7 +1252,7 @@ rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt,
   if(!dt)
     return NULL;
   
-  tz_str = RASQAL_MALLOC(cstring, TZ_STR_SIZE + 1);
+  tz_str = (char*)RASQAL_MALLOC(cstring, TZ_STR_SIZE + 1);
   if(!tz_str)
     return NULL;
   
