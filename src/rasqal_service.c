@@ -88,7 +88,7 @@ struct rasqal_service_s
  */
 rasqal_service*
 rasqal_new_service(rasqal_world* world, raptor_uri* service_uri,
-                   const char* query_string,
+                   const unsigned char* query_string,
                    raptor_sequence* data_graphs)
 {
   rasqal_service* svc;
@@ -105,7 +105,7 @@ rasqal_new_service(rasqal_world* world, raptor_uri* service_uri,
   svc->service_uri = raptor_uri_copy(service_uri);
 
   if(query_string) {
-    len = strlen(query_string);
+    len = strlen((const char*)query_string);
     svc->query_string = (char*)RASQAL_MALLOC(cstring, len + 1);
     if(!svc->query_string) {
       rasqal_free_service(svc);
@@ -227,7 +227,7 @@ rasqal_service_write_bytes(raptor_www* www,
                            size_t size, size_t nmemb)
 {
   rasqal_service* svc = (rasqal_service*)userdata;
-  int len = size * nmemb;
+  size_t len = size * nmemb;
 
   if(!svc->started) {
     svc->final_uri = raptor_www_get_final_uri(www);

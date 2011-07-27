@@ -1690,7 +1690,7 @@ char* rasqal_xsd_datetime_get_tz_as_counted_string(rasqal_xsd_datetime* dt, size
 typedef struct rasqal_service_s rasqal_service;
   
 RASQAL_API
-rasqal_service* rasqal_new_service(rasqal_world* world, raptor_uri* service_uri, const char* query_string, raptor_sequence* data_graphs);
+rasqal_service* rasqal_new_service(rasqal_world* world, raptor_uri* service_uri, const unsigned char* query_string, raptor_sequence* data_graphs);
 RASQAL_API
 void rasqal_free_service(rasqal_service* svc);
 RASQAL_API
