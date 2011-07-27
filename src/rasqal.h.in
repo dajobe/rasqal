@@ -1614,6 +1614,8 @@ int rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string);
 RASQAL_API
 double rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec);
 RASQAL_API
+long rasqal_xsd_decimal_get_long(rasqal_xsd_decimal* dec, int* error_p);
+RASQAL_API
 char* rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec);
 RASQAL_API
 char* rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* dec, size_t* len_p);

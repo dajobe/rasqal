@@ -333,6 +333,40 @@ rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec)
   return result;
 }
 
+/**
+ * rasqal_xsd_decimal_get_long:
+ * @dec: XSD Decimal
+ * @error_p: pointer to error flag
+ * 
+ * Get an XSD Decimal as a long (may lose precision)
+ * 
+ * Return value: long value or 0 on failure and *error_p is non-0
+ **/
+long
+rasqal_xsd_decimal_get_long(rasqal_xsd_decimal* dec, int* error_p)
+{
+  long result = 0;
+
+#if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
+  result=(long)dec->raw;
+#endif
+#ifdef RASQAL_DECIMAL_MPFR
+  if(!mpfr_fits_slong_p(dec->raw)) {
+    if(error_p)
+      *error_p = 1;
+  } else
+    result = mpfr_get_si(dec->raw, dec->rounding);
+#endif
+#ifdef RASQAL_DECIMAL_GMP
+  if(!mpf_fits_slong_p(dec->raw)) {
+    if(error_p)
+      *error_p = 1;
+  } else
+    result = mpf_get_si(dec->raw);
+#endif
+
+  return result;
+}
 
 #ifdef RASQAL_DECIMAL_C99
 #define DECIMAL_SNPRINTF snprintf
