@@ -355,7 +355,7 @@ rasqal_new_pattern_literal(rasqal_world* world,
     l->world = world;
     l->type = RASQAL_LITERAL_PATTERN;
     l->string = pattern;
-    l->string_len = strlen((const char*)pattern);
+    l->string_len = (unsigned int)strlen((const char*)pattern);
     l->flags = (const unsigned char*)flags;
   } else {
     if(flags)
@@ -613,7 +613,7 @@ retype:
   if(string) {
     if(l->string)
       RASQAL_FREE(cstring, (void*)l->string);
-    l->string_len = strlen((const char*)string);
+    l->string_len = (unsigned int)strlen((const char*)string);
     l->string = (unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
     if(!l->string)
       return 1;
@@ -850,7 +850,7 @@ rasqal_new_string_literal_common(rasqal_world* world,
 
     l->type = RASQAL_LITERAL_STRING;
     l->string = string;
-    l->string_len = strlen((const char*)string);
+    l->string_len = (unsigned int)strlen((const char*)string);
     l->language = language;
     l->datatype = datatype;
     l->flags = datatype_qname;
@@ -956,7 +956,7 @@ rasqal_new_simple_literal(rasqal_world* world,
     l->world = world;
     l->type = type;
     l->string = string;
-    l->string_len = strlen((const char*)string);
+    l->string_len = (unsigned int)strlen((const char*)string);
   } else {
     RASQAL_FREE(cstring, (void*)string);
   }
