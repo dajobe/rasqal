@@ -67,13 +67,13 @@ rasqal_iostream_write_counted_string_padded(raptor_iostream *iostr,
                                             const void *string, size_t len,
                                             const char pad, size_t width)
 {
-  int w = width-len;
+  size_t w = width - len;
 
   if(len)
     raptor_iostream_counted_string_write(string, len, iostr);
   
   if(w > 0) {
-    int i;
+    unsigned int i;
     for(i = 0; i < w; i++)
       raptor_iostream_write_byte(pad, iostr);
   }
@@ -89,17 +89,18 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
 {
   rasqal_world* world = rasqal_query_results_get_world(results);
   raptor_sequence *seq = NULL;
-  int *widths = NULL;
+  size_t *widths = NULL;
   int bindings_count = -1;
   int rows_count = 0;
   int rc = 0;
-  int total_width = -1;
+  size_t total_width = 0;
   int i;
   size_t sep_len;
   char *sep = NULL;
 
   bindings_count = rasqal_query_results_get_bindings_count(results);
-  widths = (int*)RASQAL_CALLOC(intarray, sizeof(int), bindings_count + 1);
+  widths = (size_t*)RASQAL_CALLOC(intarray, sizeof(size_t),
+                                  bindings_count + 1);
   if(!widths) {
     rc = 1;
     goto tidy;
@@ -109,7 +110,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
   
   for(i = 0; i < bindings_count; i++) {
     const unsigned char *name;
-    int w;
+    size_t w;
     
     name = rasqal_query_results_get_binding_name(results, i);
     if(!name)
@@ -152,7 +153,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
       rasqal_literal_write(l, str_iostr);
       raptor_free_iostream(str_iostr);
       
-      if((int)v_len > widths[i])
+      if(v_len > widths[i])
         widths[i] = v_len;
     }
     values[i] = (char*)-1;
@@ -172,7 +173,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
 #define VSEP_LEN 1
 #define PAD " "
 #define PAD_LEN 1
-  sep_len = total_width + ((PAD_LEN+PAD_LEN) * bindings_count) + VSEP_LEN * (bindings_count+1);
+  sep_len = total_width + ((PAD_LEN+PAD_LEN) * bindings_count) + VSEP_LEN * (bindings_count + 1);
   sep = (char*)RASQAL_MALLOC(cstring, sep_len + 1);
   if(!sep) {
     rc = 1;
@@ -202,7 +203,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
   raptor_iostream_counted_string_write(VSEP, VSEP_LEN, iostr);
   for(i = 0; i < bindings_count; i++) {
     const unsigned char *name;
-    int w;
+    size_t w;
     name = rasqal_query_results_get_binding_name(results, i);
     if(!name)
       break;
@@ -229,7 +230,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
       raptor_iostream_counted_string_write(VSEP, VSEP_LEN, iostr);
       for(i = 0; i < bindings_count; i++) {
         char *value = values[i];
-        int w = value ? strlen((const char*)value) : 0;
+        size_t w = value ? strlen((const char*)value) : 0;
     
         raptor_iostream_counted_string_write(PAD, PAD_LEN, iostr);
         rasqal_iostream_write_counted_string_padded(iostr, value, w,
