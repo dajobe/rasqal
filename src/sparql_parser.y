@@ -5249,7 +5249,6 @@ sparql_parse(rasqal_query* rq)
 {
   rasqal_sparql_query_language* rqe;
   raptor_locator *locator=&rq->locator;
-  void *buffer;
 
   rqe = (rasqal_sparql_query_language*)rq->context;
 
@@ -5272,8 +5271,8 @@ sparql_parse(rasqal_query* rq)
 
   sparql_lexer_set_extra(((rasqal_query*)rq), rqe->scanner);
 
-  buffer = sparql_lexer__scan_buffer((char*)rq->query_string,
-                                     rq->query_string_length, rqe->scanner);
+  (void)sparql_lexer__scan_buffer((char*)rq->query_string,
+                                  rq->query_string_length, rqe->scanner);
 
   rqe->error_count = 0;
 
