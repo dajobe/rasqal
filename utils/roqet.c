@@ -623,7 +623,7 @@ print_formatted_query_results(rasqal_world* world,
 
 static rasqal_query_results*
 roqet_call_sparql_service(rasqal_world* world, raptor_uri* service_uri,
-                          const char* query_string,
+                          const unsigned char* query_string,
                           raptor_sequence* data_graphs,
                           const char* format)
 {
@@ -651,7 +651,7 @@ roqet_call_sparql_service(rasqal_world* world, raptor_uri* service_uri,
 static rasqal_query*
 roqet_init_query(rasqal_world *world, 
                  const char* ql_name,
-                 const char* ql_uri, const char* query_string,
+                 const char* ql_uri, const unsigned char* query_string,
                  raptor_uri* base_uri,
                  rasqal_feature query_feature, int query_feature_value,
                  const unsigned char* query_feature_string_value,
@@ -692,7 +692,7 @@ roqet_init_query(rasqal_world *world,
     }
   }
 
-  if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
+  if(rasqal_query_prepare(rq, query_string, base_uri)) {
     size_t len = strlen((const char*)query_string);
     
     fprintf(stderr, "%s: Parsing query '", program);
@@ -760,7 +760,7 @@ int
 main(int argc, char *argv[]) 
 { 
   int query_from_string = 0;
-  void *query_string = NULL;
+  unsigned char *query_string = NULL;
   unsigned char *uri_string = NULL;
   int free_uri_string = 0;
   unsigned char *base_uri_string = NULL;
@@ -871,7 +871,7 @@ main(int argc, char *argv[])
 
       case 'e':
         if(optarg) {
-          query_string = optarg;
+          query_string = (unsigned char*)optarg;
           query_from_string = 1;
         }
         break;
@@ -1309,8 +1309,10 @@ main(int argc, char *argv[])
   } else if(query_string) {
     /* NOP - already got it */
   } else if(!uri_string) {
-    query_string = calloc(FILE_READ_BUF_SIZE, 1);
-    rc = fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
+    size_t size;
+    
+    query_string = (unsigned char*)calloc(FILE_READ_BUF_SIZE, 1);
+    size = fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
     if(ferror(stdin)) {
       fprintf(stderr, "%s: query string stdin read failed - %s\n",
               program, strerror(errno));
@@ -1353,8 +1355,8 @@ main(int argc, char *argv[])
     fclose(fh);
 
     len = raptor_stringbuffer_length(sb);
-    query_string = malloc(len + 1);
-    raptor_stringbuffer_copy_to_string(sb, (unsigned char*)query_string, len);
+    query_string = (unsigned char*)malloc(len + 1);
+    raptor_stringbuffer_copy_to_string(sb, query_string, len);
     raptor_free_stringbuffer(sb);
     query_from_string = 0;
   } else {
@@ -1362,7 +1364,7 @@ main(int argc, char *argv[])
 
     www = raptor_new_www(raptor_world_ptr);
     if(www) {
-      raptor_www_fetch_to_string(www, uri, &query_string, NULL, malloc);
+      raptor_www_fetch_to_string(www, uri, (void**)&query_string, NULL, malloc);
       raptor_free_www(www);
     }
 
@@ -1382,7 +1384,7 @@ main(int argc, char *argv[])
       fprintf(stderr, "%s: Calling SPARQL service at URI %s", program,
               service_uri_string);
       if(query_string)
-        fprintf(stderr, " with query '%s'", (char*)query_string);
+        fprintf(stderr, " with query '%s'", query_string);
 
       if(base_uri_string)
         fprintf(stderr, " with base URI %s\n", base_uri_string);
@@ -1391,10 +1393,10 @@ main(int argc, char *argv[])
     } else if(query_from_string) {
       if(base_uri_string)
         fprintf(stderr, "%s: Running query '%s' with base URI %s\n", program,
-                (char*)query_string, base_uri_string);
+                query_string, base_uri_string);
       else
         fprintf(stderr, "%s: Running query '%s'\n", program,
-                (char*)query_string);
+                query_string);
     } else if(filename) {
       if(base_uri_string)
         fprintf(stderr, "%s: Querying from file %s with base URI %s\n", program,
