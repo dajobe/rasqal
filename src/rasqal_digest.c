@@ -100,7 +100,7 @@ rasqal_digest_buffer(rasqal_digest_type type, const unsigned char *output,
   if(hash_type == (hashid)-1)
     return -1;
   
-  output_len = mhash_get_block_size(hash_type);
+  output_len = (unsigned int)mhash_get_block_size(hash_type);
   if(!input)
     return output_len;
   
@@ -108,7 +108,7 @@ rasqal_digest_buffer(rasqal_digest_type type, const unsigned char *output,
   if(m == MHASH_FAILED)
     return -1;
 
-  mhash(m, (const void *)input, len);
+  mhash(m, (const void *)input, (mutils_word32)len);
   
   mhash_deinit(m, (void*)output);
 
