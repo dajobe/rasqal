@@ -1931,7 +1931,7 @@ rasqal_query_print_triples_use_map(FILE* fh, rasqal_query* query)
     fprintf(fh, "%-7d ", column);
     for(i = 0; i < width; i++) {
       int flag = row[i];
-      char label[13]="            \0";
+      char label[14] = "             ";
       int bit;
       
       /* bit 0: RASQAL_TRIPLES_USE_SUBJECT
