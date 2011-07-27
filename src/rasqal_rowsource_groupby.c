@@ -830,7 +830,7 @@ main(int argc, char *argv[])
     groups_counted = 0;
     last_group_id = -1;
     for(i = 0; i < count; i++) {
-      rasqal_row* row = raptor_sequence_get_at(seq, i);
+      rasqal_row* row = (rasqal_row*)raptor_sequence_get_at(seq, i);
 
       if(row->group_id != last_group_id) {
         groups_counted++;
