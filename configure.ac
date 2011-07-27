@@ -168,6 +168,7 @@ AC_DEFUN([REDLAND_CC_TRY_FLAG], [
 #  -Wmissing-noreturn : functions can be marked with __attribute__((__noreturn__))
 #  -Wformat-nonliteral : variables are used in raptor_rdfxml.c for format strings: fixable with code change
 #  -Wsign-conversion: : many int / unsigned int / size_t
+#  -Wfloat-equal: too many false positives; it's ok to compare with whole small integers like 0.0
 #
 # Apple gcc specific (probably): -Wshorten-64-to-32
 possible_warnings="\
@@ -184,7 +185,6 @@ possible_warnings="\
 -Wdiv-by-zero \
 -Wendif-labels \
 -Werror-implicit-function-declaration \
--Wfloat-equal \
 -Wformat-security \
 -Wframe-larger-than=4096 \
 -Winit-self \
