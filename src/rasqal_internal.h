@@ -42,6 +42,12 @@ extern "C" {
 #define RASQAL_PRINTF_FORMAT(string_index, first_to_check_index)
 #endif
 
+#ifdef __GNUC__
+#define RASQAL_NORETURN __attribute__((noreturn)) 
+#else
+#define RASQAL_NORETURN
+#endif
+
 /* Can be over-ridden or undefined in a config.h file or -Ddefine */
 #ifndef RASQAL_INLINE
 #define RASQAL_INLINE inline
