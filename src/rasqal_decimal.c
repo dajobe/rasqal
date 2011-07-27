@@ -351,7 +351,7 @@ rasqal_xsd_decimal_get_long(rasqal_xsd_decimal* dec, int* error_p)
   result=(long)dec->raw;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  if(!mpfr_fits_slong_p(dec->raw)) {
+  if(!mpfr_fits_slong_p(dec->raw, dec->rounding)) {
     if(error_p)
       *error_p = 1;
   } else
