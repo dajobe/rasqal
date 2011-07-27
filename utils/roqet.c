@@ -1329,6 +1329,7 @@ main(int argc, char *argv[])
     raptor_stringbuffer *sb = raptor_new_stringbuffer();
     size_t len;
     FILE *fh;
+    unsigned char* buffer;
 
     fh = fopen(filename, "r");
     if(!fh) {
@@ -1338,8 +1339,9 @@ main(int argc, char *argv[])
       goto tidy_setup;
     }
     
+    buffer = (unsigned char*)malloc(FILE_READ_BUF_SIZE);
+
     while(!feof(fh)) {
-      unsigned char buffer[FILE_READ_BUF_SIZE];
       size_t read_len;
 
       read_len = fread((char*)buffer, 1, FILE_READ_BUF_SIZE, fh);
@@ -1350,13 +1352,16 @@ main(int argc, char *argv[])
         if(ferror(fh)) {
           fprintf(stderr, "%s: file '%s' read failed - %s\n",
                   program, filename, strerror(errno));
+          free(buffer);
           fclose(fh);
-          return(1);
+          rc = 1;
+          goto tidy_setup;
         }
 
         break;
       }
     }
+    free(buffer);
     fclose(fh);
 
     len = raptor_stringbuffer_length(sb);
