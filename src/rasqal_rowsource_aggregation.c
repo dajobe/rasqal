@@ -1037,7 +1037,7 @@ make_test_expr(rasqal_world* world,
      op == RASQAL_EXPR_SAMPLE) {
     rasqal_expression* arg1;
 
-    arg1 = raptor_sequence_delete_at(expr_vars_seq, 0);
+    arg1 = (rasqal_expression*)raptor_sequence_delete_at(expr_vars_seq, 0);
     raptor_free_sequence(expr_vars_seq);
 
     return rasqal_new_aggregate_function_expression(world, op,
