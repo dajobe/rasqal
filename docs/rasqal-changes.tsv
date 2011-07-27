@@ -55,6 +55,8 @@
 0.9.22	-	-	-	0.9.23	raptor_sequence*	rasqal_graph_pattern_get_flattened_triples	(rasqal_query* query, rasqal_graph_pattern* graph_pattern)	-
 0.9.23	-	-	-	0.9.24	raptor_sequence*	rasqal_graph_pattern_get_flattened_triples	(rasqal_query* query, rasqal_graph_pattern* graph_pattern)	-
 0.9.25	-	-	-	0.9.26	int	rasqal_world_set_warning_level	(rasqal_world* world, unsigned int warning_level)	-
+0.9.26	-	-	-	0.9.27	rasqal_literal*	rasqal_new_numeric_literal_from_long	(rasqal_world* world, rasqal_literal_type type, long value)	-
+0.9.26	-	-	-	0.9.27	long	rasqal_xsd_decimal_get_long	(rasqal_xsd_decimal* dec, int* error_p)	-
 #
 # Types
 #
