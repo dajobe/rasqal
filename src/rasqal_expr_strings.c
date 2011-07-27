@@ -92,7 +92,7 @@ rasqal_unicode_utf8_strlen(const unsigned char *string, size_t length)
  */
 static size_t
 rasqal_unicode_utf8_substr(unsigned char* dest, size_t* dest_length_p,
-                           const unsigned char* src, int src_length,
+                           const unsigned char* src, size_t src_length,
                            int startingLoc, int length)
 {
   size_t dest_length = 0; /* destination unicode characters count */
