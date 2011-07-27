@@ -173,7 +173,8 @@ rasqal_expression_evaluate_strlen(rasqal_expression *e,
     len = rasqal_unicode_utf8_strlen(s, strlen((const char*)s));
   
 
-  result = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, len);
+  result = rasqal_new_numeric_literal_from_long(world, RASQAL_LITERAL_INTEGER,
+                                                len);
   rasqal_free_literal(l1);
   return result;
 
