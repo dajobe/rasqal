@@ -77,7 +77,7 @@ struct rasqal_dataset_term_iterator_s {
   rasqal_triple_parts want;
 
   /* parts to match on - XOR of @want */
-  rasqal_triple_parts parts;
+  unsigned int parts;
 
   /* current triple */
   rasqal_dataset_triple *cursor;
@@ -263,7 +263,7 @@ rasqal_dataset_init_match_internal(rasqal_dataset* ds,
   else
     iter->want = RASQAL_TRIPLE_PREDICATE;
 
-  iter->parts = (rasqal_triple_parts)(RASQAL_TRIPLE_SPO ^ iter->want);
+  iter->parts = (unsigned int)RASQAL_TRIPLE_SPO ^ iter->want;
 
   if(ds->base_uri_literal)
     iter->parts |= RASQAL_TRIPLE_ORIGIN;
