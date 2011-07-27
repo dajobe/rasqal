@@ -1578,7 +1578,7 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error_p)
       break;
 
     case RASQAL_LITERAL_VARIABLE:
-      return rasqal_literal_as_integer(l->value.variable->value, error_p);
+      return rasqal_literal_as_floating(l->value.variable->value, error_p);
       break;
 
     case RASQAL_LITERAL_BLANK:
