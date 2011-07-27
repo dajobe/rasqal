@@ -148,7 +148,7 @@ static jmp_buf rdql_lexer_fatal_error_longjmp_env;
 } while(0)
 #endif
  
-static void rdql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner);
+static void RASQAL_NORETURN rdql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner);
 
 %}
 
@@ -654,7 +654,8 @@ rdql_skip_c_comment(rasqal_query *rq)
  * INTERNAL - replacement for the generated error handler.
  * Uses rasqal_query_fatal_error() when possible.
  */
-static void rdql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner)
+static void RASQAL_NORETURN
+rdql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner)
 {
   rasqal_query *rq = NULL;
 
