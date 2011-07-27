@@ -71,7 +71,7 @@ typedef struct {
   /* genid base for mapping user bnodes */
   unsigned char* mapped_id_base;
   /* length of above string */
-  int mapped_id_base_len;
+  size_t mapped_id_base_len;
 } rasqal_raptor_triples_source_user_data;
 
 
