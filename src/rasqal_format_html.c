@@ -132,7 +132,7 @@ rasqal_query_results_write_html_bindings(raptor_iostream *iostr,
   raptor_iostream_counted_string_write("    <tr>\n", 9, iostr);
   for(i = 0; 1; i++) {
     const unsigned char *name;
-    int len;
+    size_t len;
     
     name = rasqal_query_results_get_binding_name(results, i);
     if(!name)
