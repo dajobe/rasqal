@@ -50,8 +50,8 @@ rasqal_random_get_system_seed(rasqal_world* world)
   /* Mix seed sources using public domain code from
    * http://www.burtleburtle.net/bob/c/lookup3.c
    */
-  uint32_t a = clock();
-  uint32_t b = time(NULL);
+  uint32_t a = (uint32_t)clock();
+  uint32_t b = (uint32_t)time(NULL);
   uint32_t c;
 #ifdef HAVE_UNISTD_H
   c = getpid();
