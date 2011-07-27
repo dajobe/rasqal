@@ -2124,7 +2124,7 @@ rasqal_query_variable_bound_in_triple(rasqal_query* query,
   int width;
   unsigned short *triple_row;
   
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 0);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, (rasqal_triple_parts)0);
   
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   triple_row = &query->triples_use_map[column * width];
