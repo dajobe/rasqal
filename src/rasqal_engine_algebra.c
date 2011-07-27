@@ -496,7 +496,8 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
     case RASQAL_ALGEBRA_OPERATOR_SLICE:
     default:
       RASQAL_DEBUG2("Unsupported algebra node operator %s\n",
-                    rasqal_algebra_node_operator_as_string(node->op));
+                    rasqal_algebra_node_operator_as_counted_string(node->op,
+                                                                   NULL));
       break;
   }
 

@@ -1547,7 +1547,7 @@ rasqal_algebra_node* rasqal_new_having_algebra_node(rasqal_query* query,rasqal_a
 
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);
-const char* rasqal_algebra_node_operator_as_string(rasqal_algebra_node_operator op);
+const char* rasqal_algebra_node_operator_as_counted_string(rasqal_algebra_node_operator op, size_t* length_p);
 int rasqal_algebra_algebra_node_write(rasqal_algebra_node *node, raptor_iostream* iostr);
 int rasqal_algebra_node_print(rasqal_algebra_node* node, FILE* fh);
 int rasqal_algebra_node_visit(rasqal_query *query, rasqal_algebra_node* node, rasqal_algebra_node_visit_fn fn, void *user_data);

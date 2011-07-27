@@ -627,7 +627,7 @@ rasqal_free_algebra_node(rasqal_algebra_node* node)
  * Get the algebra node operator .
  * 
  * The operator for the given algebra node. See also
- * rasqal_algebra_node_operator_as_string().
+ * rasqal_algebra_node_operator_as_counted_string().
  *
  * Return value: algebra node operator
  **/
@@ -638,45 +638,52 @@ rasqal_algebra_node_get_operator(rasqal_algebra_node* node)
 }
 
 
-static const char* const
-rasqal_algebra_node_operator_labels[RASQAL_ALGEBRA_OPERATOR_LAST + 1] = {
-  "UNKNOWN",
-  "BGP",
-  "Filter",
-  "Join",
-  "Diff",
-  "LeftJoin",
-  "Union",
-  "ToList",
-  "OrderBy",
-  "Project",
-  "Distinct",
-  "Reduced",
-  "Slice",
-  "Graph",
-  "Assignment",
-  "Group",
-  "Aggregate",
-  "Having"
+static struct {
+  const char* const label;
+  size_t length;
+} rasqal_algebra_node_operator_labels[RASQAL_ALGEBRA_OPERATOR_LAST + 1] = {
+  { "UNKNOWN", 7 },
+  { "BGP" , 3 },
+  { "Filter", 6 },
+  { "Join", 4 },
+  { "Diff", 4 },
+  { "LeftJoin", 8 },
+  { "Union", 5 },
+  { "ToList", 6 },
+  { "OrderBy", 7 },
+  { "Project", 7 },
+  { "Distinct", 8 },
+  { "Reduced", 7 },
+  { "Slice", 5 },
+  { "Graph", 5 },
+  { "Assignment", 10 },
+  { "Group", 5 },
+  { "Aggregate", 9 },
+  { "Having", 6 }
 };
 
 
 /**
- * rasqal_algebra_node_operator_as_string:
+ * rasqal_algebra_node_operator_as_counted_string:
  * @op: the #rasqal_algebra_node_operator verb of the query
+ * @length_p: pointer to store the length (or NULL)
  *
- * Get a string for the query verb.
+ * INTERNAL - Get a counted string for the query verb.
  * 
  * Return value: pointer to a shared string label for the query verb
  **/
 const char*
-rasqal_algebra_node_operator_as_string(rasqal_algebra_node_operator op)
+rasqal_algebra_node_operator_as_counted_string(rasqal_algebra_node_operator op,
+                                               size_t* length_p)
 {
   if(op <= RASQAL_ALGEBRA_OPERATOR_UNKNOWN || 
      op > RASQAL_ALGEBRA_OPERATOR_LAST)
     op = RASQAL_ALGEBRA_OPERATOR_UNKNOWN;
 
-  return rasqal_algebra_node_operator_labels[(int)op];
+  if(length_p)
+    *length_p = rasqal_algebra_node_operator_labels[(int)op].length;
+
+  return rasqal_algebra_node_operator_labels[(int)op].label;
 }
   
 
@@ -699,20 +706,23 @@ rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node,
                                            raptor_iostream* iostr,
                                            unsigned int indent)
 {
-  const char* op_string = rasqal_algebra_node_operator_as_string(node->op);
+  const char* op_string;
+  size_t op_length;
   int arg_count = 0;
   unsigned int indent_delta;
+
+  op_string = rasqal_algebra_node_operator_as_counted_string(node->op,
+                                                             &op_length);
   
   if(node->op == RASQAL_ALGEBRA_OPERATOR_BGP && !node->triples) {
     raptor_iostream_write_byte('Z', iostr);
     return 0;
   }
-  
-  indent_delta = (unsigned int)strlen(op_string);
 
-  raptor_iostream_counted_string_write(op_string, indent_delta, iostr);
+  raptor_iostream_counted_string_write(op_string, op_length, iostr);
   raptor_iostream_counted_string_write("(\n", 2, iostr);
-  indent_delta++;
+
+  indent_delta = (unsigned int)op_length + 1;
   
   indent += indent_delta;
   rasqal_algebra_write_indent(iostr, indent);
@@ -1393,10 +1403,10 @@ rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
   rasqal_algebra_node_print(node, stderr);
   fprintf(stderr, "\nNode 1 (%s): %s\n", 
           is_z1 ? "empty" : "not empty",
-          rasqal_algebra_node_operator_as_string(node->node1->op));
+          rasqal_algebra_node_operator_as_counted_string(node->node1->op, NULL));
   fprintf(stderr, "Node 2 (%s): %s\n", 
           is_z2 ? "empty" : "not empty",
-          rasqal_algebra_node_operator_as_string(node->node2->op));
+          rasqal_algebra_node_operator_as_counted_string(node->node2->op, NULL));
 #endif
 
   if(is_z1 && !is_z2) {
