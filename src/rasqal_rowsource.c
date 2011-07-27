@@ -632,11 +632,11 @@ rasqal_rowsource_write_internal(rasqal_rowsource *rowsource,
 {
   const char* rs_name = rowsource->handler->name;
   int arg_count = 0;
-  int indent_delta;
+  unsigned int indent_delta;
   int offset;
   rasqal_rowsource* inner_rowsource;
   
-  indent_delta = strlen(rs_name);
+  indent_delta = (unsigned int)strlen(rs_name);
 
   raptor_iostream_counted_string_write(rs_name, indent_delta, iostr);
   raptor_iostream_counted_string_write("(\n", 2, iostr);
