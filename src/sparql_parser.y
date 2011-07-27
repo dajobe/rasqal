@@ -5648,7 +5648,8 @@ main(int argc, char *argv[])
   const char* query_language = "sparql";
   int usage = 0;
   rasqal_world *world;
-  
+  size_t read_len;
+
   world = rasqal_new_world();
   if(!world || rasqal_world_open(world))
     exit(1);
@@ -5718,8 +5719,8 @@ main(int argc, char *argv[])
  }
  
   memset(query_string, 0, SPARQL_FILE_BUF_SIZE);
-  rc=fread(query_string, SPARQL_FILE_BUF_SIZE, 1, fh);
-  if(rc < SPARQL_FILE_BUF_SIZE) {
+  read_len = fread(query_string, SPARQL_FILE_BUF_SIZE, 1, fh);
+  if(read_len < SPARQL_FILE_BUF_SIZE) {
     if(ferror(fh)) {
       fprintf(stderr, "%s: file '%s' read failed - %s\n",
               program, filename, strerror(errno));
