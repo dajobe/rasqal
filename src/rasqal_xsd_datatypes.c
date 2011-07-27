@@ -333,9 +333,9 @@ rasqal_xsd_format_float(float f, size_t *len_p)
 unsigned char*
 rasqal_xsd_format_double(double d, size_t *len_p)
 {
-  size_t e_index = 0;
+  unsigned int e_index = 0;
   int trailing_zero_start = -1;
-  size_t exponent_start;
+  unsigned int exponent_start;
   size_t len = 0;
   unsigned char* buf = NULL;
   
@@ -363,7 +363,7 @@ rasqal_xsd_format_double(double d, size_t *len_p)
 
   for( ; buf[e_index]; ++e_index) {
     if(e_index > 0 && buf[e_index] == '0' && buf[e_index-1] != '0')
-      trailing_zero_start = e_index;
+      trailing_zero_start = (int)e_index;
     else if(buf[e_index] == 'e')
       break;
   }
@@ -380,7 +380,7 @@ rasqal_xsd_format_double(double d, size_t *len_p)
     }
   } else {
     buf[e_index] = 'E';
-    trailing_zero_start = e_index + 1;
+    trailing_zero_start = (int)e_index + 1;
   }
   
   exponent_start = e_index+2;
