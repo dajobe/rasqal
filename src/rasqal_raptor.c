@@ -348,7 +348,7 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
  * @world: rasqal_world object
  * @triple: #rasqal_triple to match against
  * @match: #rasqal_triple with wildcards
- * @parts; parts of the triple to match
+ * @parts: parts of the triple to match - XOR of #rasqal_triple_parts bits
  * .
  * 
  * Match a rasqal_triple against a rasqal_triple with NULL
@@ -360,7 +360,7 @@ int
 rasqal_raptor_triple_match(rasqal_world* world,
                            rasqal_triple *triple,
                            rasqal_triple *match,
-                           rasqal_triple_parts parts)
+                           unsigned int parts)
 {
   int rc = 0;
   
@@ -432,7 +432,7 @@ rasqal_raptor_triple_present(rasqal_triples_source *rts, void *user_data,
 {
   rasqal_raptor_triples_source_user_data* rtsc;
   rasqal_raptor_triple *triple;
-  rasqal_triple_parts parts = RASQAL_TRIPLE_SPO;
+  unsigned int parts = RASQAL_TRIPLE_SPO;
   
   rtsc = (rasqal_raptor_triples_source_user_data*)user_data;
 

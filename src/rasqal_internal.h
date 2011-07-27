@@ -1176,7 +1176,7 @@ void rasqal_redland_finish(void);
 #endif
 
 rasqal_triple* raptor_statement_as_rasqal_triple(rasqal_world* world, const raptor_statement *statement);
-int rasqal_raptor_triple_match(rasqal_world* world, rasqal_triple *triple, rasqal_triple *match, rasqal_triple_parts parts);
+int rasqal_raptor_triple_match(rasqal_world* world, rasqal_triple *triple, rasqal_triple *match, unsigned int parts);
 
 
 /* rasqal_general.c */
