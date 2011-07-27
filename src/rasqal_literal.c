@@ -469,18 +469,20 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
   switch(type) {
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_INTEGER_SUBTYPE:
-      return rasqal_new_integer_literal(world, type, (int)d);
-      break;
-
     case RASQAL_LITERAL_DOUBLE:
       return rasqal_new_double_literal(world, d);
       break;
 
     case RASQAL_LITERAL_FLOAT:
-      return rasqal_new_float_literal(world, d);
+      return rasqal_new_float_literal(world, (float)d);
       break;
+
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_INTEGER_SUBTYPE: 
+      if(d >= (double)INT_MIN && d <= (double)INT_MAX)
+        return rasqal_new_integer_literal(world, type, (int)d);
+
+      /* otherwise FALLTHROUGH and make it a decimal */
 
     case RASQAL_LITERAL_DECIMAL:
       sprintf(buffer, "%g", d);
