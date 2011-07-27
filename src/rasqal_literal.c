@@ -1463,7 +1463,21 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
       break;
 
     case RASQAL_LITERAL_DECIMAL:
-      return (int)rasqal_xsd_decimal_get_double(l->value.decimal);
+      {
+        int error = 0;
+        
+        long lvalue = rasqal_xsd_decimal_get_long(l->value.decimal, &error);
+        if(lvalue < INT_MIN || lvalue > INT_MAX)
+          error = 1;
+
+        if(error) {
+          if(error_p)
+            *error_p = 1;
+          return 0;
+        }
+        
+        return (int)lvalue;
+      }
       break;
 
     case RASQAL_LITERAL_STRING:
