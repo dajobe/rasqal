@@ -1190,7 +1190,7 @@ rasqal_query_prepare(rasqal_query* query,
      * scanned; thus, scanning consists of `base[0]' through
      * `base[size-2]', inclusive.
      */
-    int len = strlen((const char*)query_string)+3; /* +3 for " \0\0" */
+    size_t len = strlen((const char*)query_string)+3; /* +3 for " \0\0" */
     unsigned char *query_string_copy = (unsigned char*)RASQAL_MALLOC(cstring, len);
     if(!query_string_copy) {
       query->failed = 1;
@@ -1858,7 +1858,7 @@ rasqal_query_get_genid(rasqal_query* query, const unsigned char* base,
                        int counter)
 {
   int tmpcounter;
-  int length;
+  size_t length;
   unsigned char *buffer;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
@@ -1867,7 +1867,7 @@ rasqal_query_get_genid(rasqal_query* query, const unsigned char* base,
   if(counter < 0)
     counter= query->genid_counter++;
   
-  length = strlen((const char*)base)+2;  /* base + (int) + "\0" */
+  length = strlen((const char*)base) + 2;  /* base + (int) + "\0" */
   tmpcounter = counter;
   while(tmpcounter /= 10)
     length++;
