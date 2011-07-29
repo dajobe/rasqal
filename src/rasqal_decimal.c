@@ -718,7 +718,7 @@ rasqal_xsd_decimal_abs(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
   rasqal_xsd_decimal_clear_string(result);
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  result->raw = abs(a->raw);
+  result->raw = fabs(a->raw);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   mpfr_abs(result->raw, a->raw, result->rounding);
