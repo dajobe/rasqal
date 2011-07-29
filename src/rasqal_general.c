@@ -960,7 +960,7 @@ rasqal_world_default_generate_bnodeid_handler(void *user_data,
   rasqal_world *world = (rasqal_world*)user_data;
   int id;
   unsigned char *buffer;
-  int length;
+  size_t length;
   int tmpid;
 
   if(user_bnodeid)
