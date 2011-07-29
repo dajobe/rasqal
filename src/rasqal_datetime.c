@@ -205,7 +205,8 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
                           int is_dateTime)
 {
   const char *p, *q; 
-  char b[16];
+#define B_SIZE 16
+  char b[B_SIZE];
   unsigned int l, t, t2, is_neg;
   unsigned long u;
 #define MICROSECONDS_MAX_DIGITS 6
@@ -225,7 +226,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
   }
   for(q = p; ISNUM(*p); p++)
     ;
-  l = p - q;
+  l = (unsigned int)(p - q);
   
   /* error if
      - less than 4 digits in year
@@ -235,7 +236,9 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
   if(l < 4 || (l > 4 && *q=='0') || *p != '-')
     return -1;
 
-  l = (l < sizeof(b)-1 ? l : sizeof(b)-1);
+  if(l >= (B_SIZE - 1))
+     l = (unsigned int)(B_SIZE - 1);
+
   memcpy(b, q, l);
   b[l] = 0; /* ensure nul termination */
   u = strtoul(b, 0, 10);
@@ -255,7 +258,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
   
   for(q = ++p; ISNUM(*p); p++)
     ;
-  l = p - q;
+  l = (unsigned int)(p - q);
   
   /* error if month is not 2 digits or '-' is not the separator */
   if(l != 2 || *p != '-')
@@ -274,7 +277,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
   
   for(q = ++p; ISNUM(*p); p++)
     ;
-  l = p - q;
+  l = (unsigned int)(p - q);
 
   if(is_dateTime) {
     /* xsd:dateTime: error if day is not 2 digits or 'T' is not the separator */
@@ -304,7 +307,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
 
     for(q = ++p; ISNUM(*p); p++)
       ;
-    l = p - q;
+    l = (unsigned int)(p - q);
 
     /* error if hour is not 2 digits or ':' is not the separator */
     if(l != 2 || *p != ':')
@@ -325,7 +328,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
 
     for(q = ++p; ISNUM(*p); p++)
       ;
-    l = p - q;
+    l = (unsigned int)(p - q);
 
     /* error if minute is not 2 digits or ':' is not the separator */
     if(l != 2 || *p != ':')
@@ -346,7 +349,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
 
     for(q = ++p; ISNUM(*p); p++)
       ;
-    l = p - q;
+    l = (unsigned int)(p - q);
 
     /* error if second is not 2 digits or separator is not 
      * '.' (second fraction)
@@ -387,7 +390,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
 
       if(!(*q == '0' && q == p)) {
         /* allow ".0" */
-        l = p - q;
+        l = (unsigned int)(p - q);
 
         if(l < 1) /* need at least 1 num */
           return -8;
@@ -437,7 +440,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
       /* timezone hours */
       for(q = ++p; ISNUM(*p); p++)
         ;
-      l = p - q;
+      l = (unsigned int)(p - q);
       if(l != 2 || *p!=':')
         return -9;
 
@@ -455,7 +458,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
       /* timezone minutes */    
       for(q = ++p; ISNUM(*p); p++)
         ;
-      l = p - q;
+      l = (unsigned int)(p - q);
       if(l != 2)
         return -10;
 
