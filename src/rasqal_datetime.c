@@ -696,7 +696,7 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
   for(i = 0; i < 2; i++) { 
     if(dt->microseconds) {
       char microsecs[9];
-      int j;
+      size_t j;
       
       snprintf(microsecs, 9, "%.6f", ((double)dt->microseconds) / 1000000);
       for(j = strlen(microsecs) - 1; j > 2 && microsecs[j] == '0'; j--)
