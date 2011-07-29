@@ -1529,20 +1529,20 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
 
 
 /*
- * rasqal_literal_as_floating:
+ * rasqal_literal_as_double:
  * @l: #rasqal_literal object
  * @error_p: pointer to error flag
  * 
- * INTERNAL - Return a literal as a floating value
+ * INTERNAL - Return a literal as a double precision floating value
  *
  * Integers, booleans, double and float literals natural are turned into
  * integers. If string values are the lexical form of an floating, that is
  * returned.  Otherwise the error flag is set.
  * 
- * Return value: floating value
+ * Return value: double precision floating value
  **/
 double
-rasqal_literal_as_floating(rasqal_literal* l, int *error_p)
+rasqal_literal_as_double(rasqal_literal* l, int *error_p)
 {
   if(!l) {
     /* type error */
@@ -1580,7 +1580,7 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error_p)
       break;
 
     case RASQAL_LITERAL_VARIABLE:
-      return rasqal_literal_as_floating(l->value.variable->value, error_p);
+      return rasqal_literal_as_double(l->value.variable->value, error_p);
       break;
 
     case RASQAL_LITERAL_BLANK:
@@ -1597,6 +1597,85 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error_p)
     default:
       RASQAL_FATAL2("Unknown literal type %d", l->type);
       return 0.0; /* keep some compilers happy */
+  }
+}
+
+
+/*
+ * rasqal_literal_as_floating:
+ * @l: #rasqal_literal object
+ * @error_p: pointer to error flag
+ * 
+ * INTERNAL - Return a literal as a single precision floating value
+ *
+ * Integers, booleans, double and float literals natural are turned into
+ * integers. If string values are the lexical form of an floating, that is
+ * returned.  Otherwise the error flag is set.
+ * 
+ * Return value: single precision floating value
+ **/
+float
+rasqal_literal_as_floating(rasqal_literal* l, int *error_p)
+{
+  if(!l) {
+    /* type error */
+    *error_p = 1;
+    return 0.0F;
+  }
+  
+  switch(l->type) {
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_INTEGER_SUBTYPE:
+      return (float)l->value.integer;
+      break;
+
+    case RASQAL_LITERAL_DOUBLE:
+      /* FIXME loses precision */
+      return (float)l->value.floating;
+      break;
+
+    case RASQAL_LITERAL_FLOAT:
+      /* No precision loss */
+      return (float)l->value.floating;
+      break;
+
+    case RASQAL_LITERAL_DECIMAL:
+      /* FIXME loses precision */
+      return (float)rasqal_xsd_decimal_get_double(l->value.decimal);
+      break;
+
+    case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_XSD_STRING:
+      {
+        char *eptr = NULL;
+        float  f = strtof((const char*)l->string, &eptr);
+        if((unsigned char*)eptr != l->string && *eptr=='\0')
+          return f;
+      }
+      if(error_p)
+        *error_p = 1;
+      return 0.0F;
+      break;
+
+    case RASQAL_LITERAL_VARIABLE:
+      return rasqal_literal_as_floating(l->value.variable->value, error_p);
+      break;
+
+    case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UDT:
+      if(error_p)
+        *error_p = 1;
+      return 0.0F;
+      
+    case RASQAL_LITERAL_UNKNOWN:
+    default:
+      RASQAL_FATAL2("Unknown literal type %d", l->type);
+      return 0.0F; /* keep some compilers happy */
   }
 }
 
@@ -1878,6 +1957,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
   rasqal_literal* new_lit = NULL;
   int errori = 0;
   double d;
+  float f;
   int i;
   unsigned char *new_s = NULL;
   const unsigned char* s;
@@ -1918,7 +1998,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
     case RASQAL_LITERAL_DECIMAL:
       dec = rasqal_new_xsd_decimal(lit->world);
       if(dec) {
-        d = rasqal_literal_as_floating(lit, &errori);
+        d = rasqal_literal_as_double(lit, &errori);
         if(errori) {
           rasqal_free_xsd_decimal(dec);
           new_lit = NULL;
@@ -1931,7 +2011,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       break;
       
     case RASQAL_LITERAL_DOUBLE:
-      d = rasqal_literal_as_floating(lit, &errori);
+      d = rasqal_literal_as_double(lit, &errori);
       /* failure always means no match */
       if(errori)
         new_lit = NULL;
@@ -1940,12 +2020,12 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       break;
       
     case RASQAL_LITERAL_FLOAT:
-      d = rasqal_literal_as_floating(lit, &errori);
+      f = rasqal_literal_as_floating(lit, &errori);
       /* failure always means no match */
       if(errori)
         new_lit = NULL;
       else
-        new_lit = rasqal_new_float_literal(lit->world, d);
+        new_lit = rasqal_new_float_literal(lit->world, f);
       break;
       
 
@@ -3182,10 +3262,10 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
-      d = rasqal_literal_as_floating(l1, &error);
+      d = rasqal_literal_as_double(l1, &error);
       if(error)
         break;
-      d = d + rasqal_literal_as_floating(l2, &error);
+      d = d + rasqal_literal_as_double(l2, &error);
       if(error)
         break;
 
@@ -3269,10 +3349,10 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
-      d = rasqal_literal_as_floating(l1, &error);
+      d = rasqal_literal_as_double(l1, &error);
       if(error)
         break;
-      d = d - rasqal_literal_as_floating(l2, &error);
+      d = d - rasqal_literal_as_double(l2, &error);
       if(error)
         break;
 
@@ -3356,10 +3436,10 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
-      d = rasqal_literal_as_floating(l1, &error);
+      d = rasqal_literal_as_double(l1, &error);
       if(error)
         break;
-      d = d * rasqal_literal_as_floating(l2, &error);
+      d = d * rasqal_literal_as_double(l2, &error);
       if(error)
         break;
 
@@ -3449,13 +3529,13 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
-      d2 = rasqal_literal_as_floating(l2, &error);
+      d2 = rasqal_literal_as_double(l2, &error);
       if(!d2)
         /* division by zero error */
         error = 1;
       if(error)
         break;
-      d1 = rasqal_literal_as_floating(l1, &error);
+      d1 = rasqal_literal_as_double(l1, &error);
       if(error)
         break;
       d1 = d1 / d2;
@@ -3533,7 +3613,7 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
       
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
-      d = rasqal_literal_as_floating(l, &error);
+      d = rasqal_literal_as_double(l, &error);
       if(!d)
         error = 1;
       d = -d;
@@ -3601,7 +3681,7 @@ rasqal_literal_abs(rasqal_literal* l, int *error_p)
       
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
-      d = rasqal_literal_as_floating(l, &error);
+      d = rasqal_literal_as_double(l, &error);
       if(!d)
         error = 1;
 
@@ -3665,7 +3745,7 @@ rasqal_literal_round(rasqal_literal* l, int *error_p)
       
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
-      d = rasqal_literal_as_floating(l, &error);
+      d = rasqal_literal_as_double(l, &error);
       if(!d)
         error = 1;
 
@@ -3729,7 +3809,7 @@ rasqal_literal_ceil(rasqal_literal* l, int *error_p)
       
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
-      d = rasqal_literal_as_floating(l, &error);
+      d = rasqal_literal_as_double(l, &error);
       if(!d)
         error = 1;
 
@@ -3793,7 +3873,7 @@ rasqal_literal_floor(rasqal_literal* l, int *error_p)
       
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
-      d = rasqal_literal_as_floating(l, &error);
+      d = rasqal_literal_as_double(l, &error);
       if(!d)
         error = 1;
 

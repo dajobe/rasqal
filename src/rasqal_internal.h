@@ -1090,7 +1090,8 @@ int rasqal_graph_pattern_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_
 rasqal_literal* rasqal_new_string_literal_node(rasqal_world*, const unsigned char *string, const char *language, raptor_uri *datatype);
 int rasqal_literal_as_boolean(rasqal_literal* literal, int* error_p);
 int rasqal_literal_as_integer(rasqal_literal* l, int* error_p);
-double rasqal_literal_as_floating(rasqal_literal* l, int* error_p);
+double rasqal_literal_as_double(rasqal_literal* l, int* error_p);
+float rasqal_literal_as_floating(rasqal_literal* l, int* error_p);
 raptor_uri* rasqal_literal_as_uri(rasqal_literal* l);
 int rasqal_literal_string_to_native(rasqal_literal *l, int flags);
 int rasqal_literal_has_qname(rasqal_literal* l);
