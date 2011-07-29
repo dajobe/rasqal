@@ -88,7 +88,7 @@ rasqal_unicode_utf8_strlen(const unsigned char *string, size_t length)
  * If @dest is NULL, returns the number of bytes needed to write and
  * does no work.
  * 
- * Return value: number of bytes used in destination string
+ * Return value: number of bytes used in destination string or 0 on failure
  */
 static size_t
 rasqal_unicode_utf8_substr(unsigned char* dest, size_t* dest_length_p,
@@ -250,8 +250,9 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
     goto failed;
 
   /* adjust starting index to xsd fn:substring initial offset 1 */
-  rasqal_unicode_utf8_substr(new_s, /* dest_length_p */ NULL,
-                             s, len, startingLoc - 1, length);
+  if(!rasqal_unicode_utf8_substr(new_s, /* dest_length_p */ NULL,
+                                 s, len, startingLoc - 1, length))
+    goto failed;
 
   if(l1->language) {
     len = strlen((const char*)l1->language);
