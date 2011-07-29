@@ -35,6 +35,10 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+/* for ptrdiff_t */
+#ifdef HAVE_STDDEF_H
+#include <stddef.h>
+#endif
 #include <stdarg.h>
 /* for isnan() */
 #ifdef HAVE_MATH_H
@@ -4365,12 +4369,19 @@ rasqal_literal_sequence_sort_map_compare(void* user_data,
 
   /* still equal?  make sort stable by using the pointers */
   if(!result) {
+    ptrdiff_t d;
+
     /* Have to cast raptor_sequence* to something with a known type
      * (not void*, not raptor_sequence* whose size is private to
      * raptor) so we can do pointer arithmetic.  We only care about
      * the relative pointer difference.
      */
-    result = (char*)literal_seq_a - (char*)literal_seq_b;
+    d = (char*)literal_seq_a - (char*)literal_seq_b;
+
+    /* copy the sign of the (unknown size) signed integer 'd' into an
+     * int result
+     */
+    result = (d > 0) - (d < 0);
     RASQAL_DEBUG2("Got equality result so using pointers, returning %d\n",
                   result);
   }
