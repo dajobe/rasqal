@@ -92,7 +92,7 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
 
   /* subject */
   if(statement->subject->type == RAPTOR_TERM_TYPE_BLANK) {
-    len = strlen((char*)statement->subject->value.blank.string);
+    len = statement->subject->value.blank.string_len;
     new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
     memcpy(new_str, statement->subject->value.blank.string, len + 1);
     s = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_str);
@@ -109,12 +109,12 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
   if(statement->object->type == RAPTOR_TERM_TYPE_LITERAL) {
     char *language = NULL;
 
-    len = strlen((char*)statement->object->value.literal.string);
+    len = statement->object->value.literal.string_len;
     new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
     memcpy(new_str, statement->object->value.literal.string, len + 1);
 
     if(statement->object->value.literal.language) {
-      len = strlen((const char*)statement->object->value.literal.language);
+      len = statement->object->value.literal.language_len;
       language = (char*)RASQAL_MALLOC(cstring, len + 1);
       memcpy(language, statement->object->value.literal.language, len + 1);
     }
@@ -126,7 +126,7 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
 
     o = rasqal_new_string_literal(world, new_str, language, uri, NULL);
   } else if(statement->object->type == RAPTOR_TERM_TYPE_BLANK) {
-    len = strlen((char*)statement->object->value.blank.string);
+    len = statement->object->value.blank.string_len;
     new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
     memcpy(new_str, statement->object->value.blank.string, len + 1);
     o = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_str);
