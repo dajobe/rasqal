@@ -1,3 +1,265 @@
+2011-07-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_to_counted_string): size_t for strlen result
+
+2011-07-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_parse): Cast small ptr diffs to unsigned int.
+
+2011-07-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_sparql_xml.c:
+	(rasqal_rowsource_sparql_xml_process): Do not bother with locator
+	byte.
+
+2011-07-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_decimal.c:
+	(rasqal_xsd_decimal_abs): use fabs for decimal as double
+
+2011-07-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_sequence_sort_map_compare): Use ptrdiff_t for ptr
+	arithmetic and then convert to int.
+
+2011-07-28  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac:
+	Look for stddef.h
+
+2011-07-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/rasqal_literal.c:
+	(rasqal_literal_as_floating): Added internal method.
+
+2011-07-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_strings.c:
+	Use rasqal_unicode_utf8_substr return (rasqal_unicode_utf8_substr): Document return value 0 is failure..  (rasqal_expression_evaluate_substr): Check for 0.
+
+2011-07-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_general.c:
+	(rasqal_world_default_generate_bnodeid_handler): size_t length
+
+2011-07-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in:
+	Add RASQAL_API for rasqal_row functions (Win32)
+
+2011-07-27  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-literal.sgml, docs/tmpl/section-xsd.sgml:
+	update tmpls
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt: Docs for
+	rasqal_new_numeric_literal_from_long and
+	rasqal_xsd_decimal_get_long
+
+2011-07-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_format_float): Use unsigned int for offsets not lengths.
+
+	* src/sparql_parser.y:
+	(main): use size_t read_len
+
+	* src/rasqal_rowsource_aggregation.c:
+	(make_test_expr): Cast for c++
+
+	* src/rasqal_rowsource_groupby.c:
+	(main): Cast for c++
+
+	* src/rasqal_literal.c:
+	(rasqal_new_numeric_literal): return int if it will fit, otherwise
+	decimal.
+
+	* src/rasqal_literal.c: Cast when assigning to unsigned int
+	string_len
+
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_write_internal): use unsigned int for
+	indent_delta.
+
+	* src/rasqal_raptor.c: rasqal_raptor_triples_source_user_data: use
+	size_t for mapped_id_base_len
+
+	* src/rasqal_internal.h: struct rasqal_query_s uses size_t for
+	query_string_length
+
+	* src/rasqal_format_html.c:
+	(rasqal_query_results_write_html_bindings): Use size_t len
+
+	* src/rasqal_query.c:
+	(rasqal_query_prepare, rasqal_query_get_genid): use size_t for
+	lengths
+
+	* src/rasqal_digest.c:
+	(rasqal_digest_buffer): Cast mhash arg calls/return sizes
+
+	* src/rasqal_random.c:
+	(rasqal_random_get_system_seed): Casts from time_t to uint32_t
+
+	* src/sparql_parser.y:
+	(PrefixDeclListOpt): cast prefix length; will fit into an int.
+
+	* src/rasqal_format_table.c: Use size_t for string lengths and
+	column widths
+
+	(rasqal_iostream_write_counted_string_padded)
+	(rasqal_query_results_write_table_bindings): Replace several int
+	with size_t for string length computations.
+
+	* configure.ac: No -Wundef
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_print_triples_use_map): fix chars array for c++
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Eliminate a strlen() from
+	rasqal_algebra_algebra_node_write_internal
+
+	(rasqal_algebra_node_operator_as_counted_string): Added to replace
+	rasqal_algebra_node_operator_as_string and return length.
+
+	(rasqal_algebra_algebra_node_write_internal): Use above.  Replace
+	other calls.
+
+	* src/rasqal_decimal.c:
+	(rasqal_xsd_decimal_get_long): for mpfr
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_as_floating): Call rasqal_literal_as_floating()
+	inside.
+
+	* src/rasqal_literal.c: make rasqal_xsd_decimal_get_long handle
+	overflow in decimal conversion.
+
+	(rasqal_literal_as_integer): Use rasqal_xsd_decimal_get_long() and
+	set error on overflow.
+
+	* src/rasqal.h.in, src/rasqal_decimal.c:
+	(rasqal_xsd_decimal_get_long): Added to convert decimal to long with
+	overflow error flag
+
+	* src/rasqal_internal.h, src/rasqal_raptor.c:
+	(rasqal_raptor_triple_match): parts arg is now unsigned int as xor
+	of #rasqal_triple_parts enum bits
+
+	* configure.ac:
+	Are using -Wmissing-noreturn
+
+	* configure.ac:
+	No -Wfloat-equal
+
+	* utils/roqet.c:
+	reduce stack size
+
+	* src/sparql_parser.y:
+	(sparql_parse): remove unused bufer var
+
+	* utils/roqet.c: Test stdin fread value.
+
+	* utils/roqet.c: Query string is now unsigned char*
+
+	(main): Casts for C++ and use fread() result as size_t
+
+	* src/rasqal.h.in, src/rasqal_service.c:
+	(rasqal_new_service): query_string arg now unsigned char*
+
+	* src/rdql_parser.y:
+	(rdql_parse): remove unused bufer var
+
+	* src/rasqal_dataset.c: rasqal_dataset_term_iterator_s field parts
+	is unsigned int not enum.
+
+	* src/rasqal_datetime.c: Casts for C++ in rasqal_xsd_datetime
+	module
+
+	(rasqal_xsd_datetime_get_as_timeval)
+	(rasqal_xsd_datetime_get_timezone_as_counted_string): Casts of
+	malloc returns for C++
+
+	* src/rasqal_query.c:
+	(rasqal_query_variable_bound_in_triple): Cast for C++ (when
+	RASQAL_DEBUG)
+
+	* src/rdql_lexer.l:
+	(rdql_lexer_fatal_error): Mark as RASQAL_NORETURN
+
+	* src/rasqal_internal.h:
+	Added RASQAL_NORETURN macro
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_unicode_utf8_substr): Alter arg src_length to a size_t -
+	internal.
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_strlen): Use
+	rasqal_new_numeric_literal_from_long()
+
+	* src/rasqal_expr_numerics.c:
+	(rasqal_expression_evaluate_rand): Force double arithmetic a better
+	way.
+
+	* src/rasqal_expr_datetimes.c: Do not try to fit a potentially
+	truncate a long int time_t into an int.
+
+	(rasqal_expression_evaluate_to_unixtime): Use
+	rasqal_new_numeric_literal_from_long() to avoid potential int
+	range truncation.
+
+	* src/rasqal.h.in, src/rasqal_literal.c:
+	(rasqal_new_numeric_literal_from_long): Added to make an integer or
+	decimal literal depending if it fits in range
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_algebra_node_write_internal): Use unsigned int
+	indent.
+
+	* src/rasqal_algebra.c, src/rasqal_bindings.c,
+	src/rasqal_data_graph.c, src/rasqal_general.c,
+	src/rasqal_literal.c, src/rasqal_query_write.c,
+	src/rasqal_rowsource.c, src/rasqal_service.c, src/sparql_parser.y:
+	Casts for C++
+
+	* configure.ac: Update compiler warnings like Raptor 2.0.4
+
+2011-07-14  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c, src/rasqal_query_write.c: Handle returning
+	xsd:integer subtypes
+
+	(rasqal_literal_set_typed_value): Call
+	rasqal_xsd_datatype_type_to_uri only for atomic XSD types.
+
+	(rasqal_literal_as_node): Call rasqal_xsd_datatype_type_to_uri only
+	for atomic XSD types.  Otherwise use the datatype from the source
+	literal.
+
+	(rasqal_query_write_sparql_literal): Handle writing non atomic XSD
+	types such as integer subtypes.
+
+	Fixes Issue #0000454
+	http://bugs.librdf.org/mantis/view.php?id=454
+
+2011-07-09  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y:
+	Handle SILENT for SERVICE.
+
+	* src/rasqal_graph_pattern.c, src/rasqal_internal.h,
+	src/rasqal_query_transform.c: Add silent flag to graph pattern
+	rasqal_graph_pattern gains silent bit field.
+	(rasqal_graph_patterns_join): Copy silent flag.
+	(rasqal_graph_pattern_write_internal): Print silent flag.
+
+	* src/sparql_parser.y:
+	(ClearQuery, DropQuery): Handle NULL graph URI for default graph
+
 2011-06-28  Dave Beckett <dave@dajobe.org>
 
 	* configure.ac: Always check for where ceil(), floor() and round()
