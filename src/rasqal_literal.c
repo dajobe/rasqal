@@ -1465,6 +1465,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
+      /* FIXME may loses precision */
       return (int)l->value.floating;
       break;
 
