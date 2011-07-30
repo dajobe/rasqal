@@ -3,49 +3,32 @@
 	* src/rasqal_datetime.c:
 	(rasqal_xsd_datetime_to_counted_string): size_t for strlen result
 
-2011-07-28  Dave Beckett <dave@dajobe.org>
-
 	* src/rasqal_datetime.c:
 	(rasqal_xsd_datetime_parse): Cast small ptr diffs to unsigned int.
-
-2011-07-28  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_format_sparql_xml.c:
 	(rasqal_rowsource_sparql_xml_process): Do not bother with locator
 	byte.
 
-2011-07-28  Dave Beckett <dave@dajobe.org>
-
 	* src/rasqal_decimal.c:
 	(rasqal_xsd_decimal_abs): use fabs for decimal as double
-
-2011-07-28  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_literal.c:
 	(rasqal_literal_sequence_sort_map_compare): Use ptrdiff_t for ptr
 	arithmetic and then convert to int.
 
-2011-07-28  Dave Beckett <dave@dajobe.org>
-
-	* configure.ac:
-	Look for stddef.h
-
-2011-07-28  Dave Beckett <dave@dajobe.org>
+	* configure.ac: Look for stddef.h
 
 	* src/rasqal_internal.h, src/rasqal_literal.c:
 	(rasqal_literal_as_floating): Added internal method.
 
-2011-07-28  Dave Beckett <dave@dajobe.org>
+	* src/rasqal_expr_strings.c: Use rasqal_unicode_utf8_substr return
 
-	* src/rasqal_expr_strings.c:
-	Use rasqal_unicode_utf8_substr return (rasqal_unicode_utf8_substr): Document return value 0 is failure..  (rasqal_expression_evaluate_substr): Check for 0.
-
-2011-07-28  Dave Beckett <dave@dajobe.org>
+	(rasqal_unicode_utf8_substr): Document return value 0 is failure..
+	(rasqal_expression_evaluate_substr): Check for 0.
 
 	* src/rasqal_general.c:
 	(rasqal_world_default_generate_bnodeid_handler): size_t length
-
-2011-07-28  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal.h.in:
 	Add RASQAL_API for rasqal_row functions (Win32)
