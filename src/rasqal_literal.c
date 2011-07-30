@@ -4527,13 +4527,14 @@ rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world,
         const char* str = GET_CELL(row_i, column_i, 0);
         size_t str_len = strlen(str);
         char *eptr = NULL;
-        int integer;
+        long number;
         
-        integer = (int)strtol((const char*)str, &eptr, 10);
+        number = strtol((const char*)str, &eptr, 10);
         if(!*eptr) {
-          /* is an integer */
-          l = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 
-                                         integer);
+          /* is numeric */
+          l = rasqal_new_numeric_literal_from_long(world,
+                                                   RASQAL_LITERAL_INTEGER, 
+                                                   number);
         } else {
           unsigned char *val;
           val = (unsigned char*)RASQAL_MALLOC(cstring, str_len+1);
