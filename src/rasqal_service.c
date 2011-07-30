@@ -210,12 +210,12 @@ rasqal_service_set_format(rasqal_service* svc, const char *format)
   if(!format)
     return 0;
   
-  len = strlen(format) + 1;
-  svc->format = (char*)RASQAL_MALLOC(cstring, len);
+  len = strlen(format);
+  svc->format = (char*)RASQAL_MALLOC(cstring, len + 1);
   if(!svc->format)
     return 1;
 
-  memcpy(svc->format, format, len);
+  memcpy(svc->format, format, len + 1);
 
   return 0;
 }
@@ -249,13 +249,13 @@ rasqal_service_content_type_handler(raptor_www* www, void* userdata,
   if(svc->content_type)
     RASQAL_FREE(cstring, svc->content_type);
 
-  len = strlen(content_type) + 1;
-  svc->content_type = (char*)RASQAL_MALLOC(cstring, len);
+  len = strlen(content_type);
+  svc->content_type = (char*)RASQAL_MALLOC(cstring, len + 1);
 
   if(svc->content_type) {
     char* p;
 
-    memcpy(svc->content_type, content_type, len);
+    memcpy(svc->content_type, content_type, len + 1);
 
     for(p = svc->content_type; *p; p++) {
       if(*p == ';' || *p == ' ') {
