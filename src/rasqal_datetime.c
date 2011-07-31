@@ -532,7 +532,7 @@ rasqal_new_xsd_datetime(rasqal_world* world, const char *datetime_string)
   rasqal_xsd_datetime* dt;
   int rc = 0;
   
-  dt = (rasqal_xsd_datetime*)RASQAL_MALLOC(datetime, sizeof(*dt));
+  dt = RASQAL_MALLOC(rasqal_xsd_datetime*, sizeof(*dt));
   if(!dt)
     return NULL;
   
@@ -563,7 +563,7 @@ rasqal_new_xsd_datetime_from_unixtime(rasqal_world* world, time_t secs)
   rasqal_xsd_datetime* dt;
   int rc = 0;
   
-  dt = (rasqal_xsd_datetime*)RASQAL_MALLOC(datetime, sizeof(*dt));
+  dt = RASQAL_MALLOC(rasqal_xsd_datetime*, sizeof(*dt));
   if(!dt)
     return NULL;
 
@@ -592,7 +592,7 @@ rasqal_new_xsd_datetime_from_timeval(rasqal_world* world, struct timeval *tv)
   rasqal_xsd_datetime* dt;
   int rc = 0;
   
-  dt = (rasqal_xsd_datetime*)RASQAL_MALLOC(datetime, sizeof(*dt));
+  dt = RASQAL_MALLOC(rasqal_xsd_datetime*, sizeof(*dt));
   if(!dt)
     return NULL;
 
@@ -727,7 +727,7 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
     /* error? */
     if(r < 0) {
       if(ret)
-        RASQAL_FREE(cstring, ret);
+        RASQAL_FREE(char*, ret);
       return NULL;
     }
 
@@ -736,7 +736,7 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
       if(len_p)
         *len_p = r;
 
-      ret = (char*)RASQAL_MALLOC(cstring, ++r);
+      ret = RASQAL_MALLOC(char*, ++r);
       if(!ret)
         return NULL;
     }
@@ -953,13 +953,13 @@ rasqal_xsd_date_to_string(const rasqal_xsd_date *d)
     /* error? */
     if(r < 0) {
       if(ret)
-        RASQAL_FREE(cstring, ret);
+        RASQAL_FREE(char*, ret);
       return NULL;
     }
 
     /* alloc return buffer on first pass */
     if(!i) {
-      ret = (char*)RASQAL_MALLOC(cstring, ++r);
+      ret = RASQAL_MALLOC(char*, ++r);
       if(!ret)
         return NULL;
     }
@@ -1210,7 +1210,7 @@ rasqal_xsd_datetime_get_as_timeval(rasqal_xsd_datetime *dt)
   if(!dt)
     return NULL;
   
-  tv =(struct timeval*) RASQAL_CALLOC(timeval, 1, sizeof(*tv));
+  tv = RASQAL_CALLOC(struct timeval*, 1, sizeof(*tv));
   if(!tv)
     return NULL;
   
@@ -1255,7 +1255,7 @@ rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt,
   if(!dt)
     return NULL;
   
-  tz_str = (char*)RASQAL_MALLOC(cstring, TZ_STR_SIZE + 1);
+  tz_str = RASQAL_MALLOC(char*, TZ_STR_SIZE + 1);
   if(!tz_str)
     return NULL;
   
@@ -1330,7 +1330,7 @@ rasqal_xsd_datetime_get_tz_as_counted_string(rasqal_xsd_datetime* dt,
 {
   char* s;
   
-  s = (char*)RASQAL_MALLOC(cstring, TIMEZONE_BUFFER_LEN);
+  s = RASQAL_MALLOC(char*, TIMEZONE_BUFFER_LEN);
   if(!s)
     return NULL;
 
@@ -1343,7 +1343,7 @@ rasqal_xsd_datetime_get_tz_as_counted_string(rasqal_xsd_datetime* dt,
   return s;
 
   failed:
-  RASQAL_FREE(cstring, s);
+  RASQAL_FREE(char*, s);
   return NULL;
 }
 
@@ -1373,7 +1373,7 @@ static int test_datetime_parser_tostring(const char *in_str, const char *out_exp
     r = strcmp((char*)s, out_expected);
     if(r)
       fprintf(stderr, "input dateTime \"%s\" converted to canonical \"%s\", expected \"%s\"\n", in_str, s, out_expected);
-    RASQAL_FREE(cstring, (void*)s);
+    RASQAL_FREE(char*, s);
   } else
     fprintf(stderr, "input dateTime \"%s\" converted to canonical (null), expected \"%s\"\n", in_str, out_expected);
   return r;
@@ -1389,7 +1389,7 @@ static int test_date_parser_tostring(const char *in_str, const char *out_expecte
     r = strcmp((char*)s, out_expected);
     if(r)
       fprintf(stderr, "input date \"%s\" converted to canonical \"%s\", expected \"%s\"\n", in_str, s, out_expected);
-    RASQAL_FREE(cstring, (void*)s);
+    RASQAL_FREE(char*, s);
   } else
     fprintf(stderr, "input date \"%s\" converted to canonical (null), expected \"%s\"\n", in_str, out_expected);
   return r;

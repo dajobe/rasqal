@@ -62,8 +62,7 @@ rasqal_new_graph_pattern(rasqal_query* query,
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
   
-  gp = (rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, 1, 
-                                            sizeof(*gp));
+  gp = RASQAL_CALLOC(rasqal_graph_pattern*, 1, sizeof(*gp));
   if(!gp)
     return NULL;
 

@@ -172,8 +172,7 @@ rasqal_builtin_agg_expression_execute_init(rasqal_world *world,
 {
   rasqal_builtin_agg_expression_execute* b;
 
-  b = (rasqal_builtin_agg_expression_execute*)RASQAL_CALLOC(rasqal_builtin_agg_expression_execute, 
-                                                      sizeof(*b), 1);
+  b = RASQAL_CALLOC(rasqal_builtin_agg_expression_execute*, 1, sizeof(*b));
   if(!b)
     return NULL;
 
@@ -361,12 +360,12 @@ rasqal_builtin_agg_expression_execute_result(void* user_data)
     rasqal_literal* result;
       
     len = raptor_stringbuffer_length(b->sb);
-    str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+    str = RASQAL_MALLOC(unsigned char*, len + 1);
     if(!str)
       return NULL;
     
     if(raptor_stringbuffer_copy_to_string(b->sb, str, len)) {
-      RASQAL_FREE(cstring, str);
+      RASQAL_FREE(char*, str);
       return NULL;
     }
 
@@ -843,7 +842,7 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
   }
 
 
-  con = (rasqal_aggregation_rowsource_context*)RASQAL_CALLOC(rasqal_aggregation_rowsource_context, 1, sizeof(*con));
+  con = RASQAL_CALLOC(rasqal_aggregation_rowsource_context*, 1, sizeof(*con));
   if(!con)
     goto fail;
 
@@ -854,9 +853,8 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
   
   /* allocate per-expr data */
   con->expr_count = size;
-  con->expr_data = (rasqal_agg_expr_data*)RASQAL_CALLOC(rasqal_agg_expr_data, 
-                                                        sizeof(rasqal_agg_expr_data),
-                                                        size);
+  con->expr_data = RASQAL_CALLOC(rasqal_agg_expr_data*, size,
+                                 sizeof(rasqal_agg_expr_data));
   if(!con->expr_data)
     goto fail;
 
@@ -1161,7 +1159,7 @@ main(int argc, char *argv[])
     } /* if vars */
 
 
-    output_var_name = (char*)RASQAL_MALLOC(cstring, 5);
+    output_var_name = RASQAL_MALLOC(char*, 5);
     memcpy(output_var_name, "fake", 5);
     output_var = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_ANONYMOUS, 
                                             (const unsigned char*)output_var_name, NULL);

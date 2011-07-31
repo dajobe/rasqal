@@ -58,7 +58,7 @@ rasqal_timegm(struct tm *tm)
   tzset();
 
   if(zone)
-    RASQAL_FREE(cstring, zone);
+    RASQAL_FREE(char*, zone);
 
   return result;
 }

@@ -47,7 +47,7 @@ rasqal_new_formula(rasqal_world* world)
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
-  f = (rasqal_formula*)RASQAL_CALLOC(rasqal_formula, 1, sizeof(*f));
+  f = RASQAL_CALLOC(rasqal_formula*, 1, sizeof(*f));
   if(!f)
     return NULL;
   

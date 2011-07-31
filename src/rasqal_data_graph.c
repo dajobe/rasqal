@@ -52,7 +52,7 @@ rasqal_new_data_graph_common(rasqal_world* world,
 {
   rasqal_data_graph* dg;
 
-  dg = (rasqal_data_graph*)RASQAL_CALLOC(rasqal_data_graph, 1, sizeof(*dg));
+  dg = RASQAL_CALLOC(rasqal_data_graph*, 1, sizeof(*dg));
   if(dg) {
     dg->world = world;
 
@@ -70,7 +70,7 @@ rasqal_new_data_graph_common(rasqal_world* world,
 
     if(format_type) {
       size_t len = strlen(format_type);
-      dg->format_type = (char*)RASQAL_MALLOC(string, len + 1);
+      dg->format_type = RASQAL_MALLOC(char*, len + 1);
       if(!dg->format_type)
         goto error;
 
@@ -79,7 +79,7 @@ rasqal_new_data_graph_common(rasqal_world* world,
 
     if(format_name) {
       size_t len = strlen(format_name);
-      dg->format_name = (char*)RASQAL_MALLOC(string, len + 1);
+      dg->format_name = RASQAL_MALLOC(char*, len + 1);
       if(!dg->format_name)
         goto error;
 
@@ -213,9 +213,9 @@ rasqal_free_data_graph(rasqal_data_graph* dg)
   if(dg->name_uri)
     raptor_free_uri(dg->name_uri);
   if(dg->format_type)
-    RASQAL_FREE(cstring, dg->format_type);
+    RASQAL_FREE(char*, dg->format_type);
   if(dg->format_name)
-    RASQAL_FREE(cstring, dg->format_name);
+    RASQAL_FREE(char*, dg->format_name);
   if(dg->format_uri)
     raptor_free_uri(dg->format_uri);
   if(dg->base_uri)

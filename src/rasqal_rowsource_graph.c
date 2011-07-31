@@ -310,7 +310,7 @@ rasqal_new_graph_rowsource(rasqal_world *world,
   if(!world || !query || !rowsource || !var)
     return NULL;
   
-  con = (rasqal_graph_rowsource_context*)RASQAL_CALLOC(rasqal_graph_rowsource_context, 1, sizeof(rasqal_graph_rowsource_context));
+  con = RASQAL_CALLOC(rasqal_graph_rowsource_context*, 1, sizeof(*con));
   if(!con)
     return NULL;
 

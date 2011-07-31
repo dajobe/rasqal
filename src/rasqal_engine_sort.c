@@ -57,7 +57,7 @@ rasqal_engine_rowsort_free_compare_data(const void* user_data)
 {
   rowsort_compare_data* rcd = (rowsort_compare_data*)user_data;
 
-  RASQAL_FREE(rowsort_compare_data,  rcd);
+  RASQAL_FREE(rowsort_compare_data, rcd);
 }
 
 
@@ -137,8 +137,7 @@ rasqal_engine_new_rowsort_map(int is_distinct, int compare_flags,
 {
   rowsort_compare_data* rcd;
 
-  rcd = (rowsort_compare_data*)RASQAL_MALLOC(rowsort_compare_data,
-                                             sizeof(rowsort_compare_data));
+  rcd = RASQAL_MALLOC(rowsort_compare_data*, sizeof(*rcd));
   if(!rcd)
     return NULL;
   

@@ -201,8 +201,7 @@ rasqal_new_query_results(rasqal_world* world,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(vars_table, rasqal_variables_table, NULL);
 
-  query_results = (rasqal_query_results*)RASQAL_CALLOC(rasqal_query_results, 
-                                                       1, sizeof(*query_results));
+  query_results = RASQAL_CALLOC(rasqal_query_results*, 1, sizeof(*query_results));
   if(!query_results)
     return NULL;
   
@@ -270,7 +269,7 @@ rasqal_query_results_execute_with_engine(rasqal_query_results* query_results,
   
   ex_data_size = query_results->execution_factory->execution_data_size;
   if(ex_data_size > 0) {
-    query_results->execution_data = RASQAL_CALLOC(data, 1, ex_data_size);
+    query_results->execution_data = RASQAL_CALLOC(void*, 1, ex_data_size);
 
     if(!query_results->execution_data)
       return 1;
@@ -1027,7 +1026,7 @@ rasqal_prefix_id(int prefix_id, unsigned char *string)
   while(tmpid /= 10)
     length++;
   
-  buffer = (unsigned char*)RASQAL_MALLOC(cstring, length);
+  buffer = RASQAL_MALLOC(unsigned char*, length);
   if(!buffer)
     return NULL;
   

@@ -238,7 +238,7 @@ rasqal_new_rowsequence_rowsource(rasqal_world *world,
   if(!raptor_sequence_size(rows_seq) || !raptor_sequence_size(vars_seq))
     return NULL;
   
-  con = (rasqal_rowsequence_rowsource_context*)RASQAL_CALLOC(rasqal_rowsequence_rowsource_context, 1, sizeof(rasqal_rowsequence_rowsource_context));
+  con = RASQAL_CALLOC(rasqal_rowsequence_rowsource_context*, 1, sizeof(*con));
   if(!con)
     return NULL;
 

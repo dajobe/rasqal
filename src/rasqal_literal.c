@@ -97,7 +97,7 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type,
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
-  l  = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
+  l  = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
     l->valid = 1;
     l->usage = 1;
@@ -191,7 +191,7 @@ rasqal_new_typed_literal(rasqal_world* world, rasqal_literal_type type,
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
-  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
+  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(!l)
     return NULL;
 
@@ -231,7 +231,7 @@ rasqal_new_double_literal(rasqal_world* world, double d)
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
-  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
+  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
     l->valid = 1;
     l->usage = 1;
@@ -271,7 +271,7 @@ rasqal_new_float_literal(rasqal_world *world, float f)
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
-  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
+  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
     l->valid = 1;
     l->usage = 1;
@@ -313,7 +313,7 @@ rasqal_new_uri_literal(rasqal_world* world, raptor_uri *uri)
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
-  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
+  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
     l->valid = 1;
     l->usage = 1;
@@ -352,7 +352,7 @@ rasqal_new_pattern_literal(rasqal_world* world,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(pattern, char*, NULL);
 
-  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
+  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
     l->valid = 1;
     l->usage = 1;
@@ -363,8 +363,8 @@ rasqal_new_pattern_literal(rasqal_world* world,
     l->flags = (const unsigned char*)flags;
   } else {
     if(flags)
-      RASQAL_FREE(cstring, (void*)flags);
-    RASQAL_FREE(cstring, (void*)pattern);
+      RASQAL_FREE(char*, flags);
+    RASQAL_FREE(char*, pattern);
   }
   return l;
 }
@@ -410,7 +410,7 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   /* string and decimal NULLness are checked below */
 
-  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
+  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(!l)
     return NULL;
   
@@ -532,7 +532,7 @@ rasqal_new_datetime_literal_from_datetime(rasqal_world* world,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(dt, rasqal_xsd_datetime, NULL);
 
-  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
+  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(!l)
     goto failed;
   
@@ -611,16 +611,16 @@ retype:
   }
             
   if(l->language) {
-    RASQAL_FREE(cstring, (void*)l->language);
+    RASQAL_FREE(char*, l->language);
     l->language = NULL;
   }
   l->type = type;
 
   if(string) {
     if(l->string)
-      RASQAL_FREE(cstring, (void*)l->string);
+      RASQAL_FREE(char*, l->string);
     l->string_len = (unsigned int)strlen((const char*)string);
-    l->string = (unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
+    l->string = RASQAL_MALLOC(unsigned char*, l->string_len + 1);
     if(!l->string)
       return 1;
     memcpy((void*)l->string, string, l->string_len + 1);
@@ -674,16 +674,16 @@ retype:
       l->value.decimal = rasqal_new_xsd_decimal(l->world);
       if(!l->value.decimal) {
         /* free l->string which is not owned by literal yet */
-        RASQAL_FREE(cstring, (void*)l->string); l->string = NULL;
+        RASQAL_FREE(char*, l->string); l->string = NULL;
         return 1;
       }
       if(rasqal_xsd_decimal_set_string(l->value.decimal,
                                        (const char*)l->string)) {
         /* free l->string which is not owned by literal yet */
-        RASQAL_FREE(cstring, (void*)l->string); l->string = NULL;
+        RASQAL_FREE(char*, l->string); l->string = NULL;
         return 1;
       }
-      RASQAL_FREE(cstring, (void*)l->string);
+      RASQAL_FREE(char*, l->string);
 
       /* l->string is now owned by l->value.decimal and will be freed
        * on literal destruction
@@ -702,7 +702,7 @@ retype:
     case RASQAL_LITERAL_BOOLEAN:
       i = rasqal_literal_string_interpreted_as_boolean(l->string);
       /* Free passed in string */
-      RASQAL_FREE(cstring, (void*)l->string);
+      RASQAL_FREE(char*, l->string);
       /* and replace with a static string */
       l->string = i ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
       l->string_len = i ? RASQAL_XSD_BOOLEAN_TRUE_LEN : RASQAL_XSD_BOOLEAN_FALSE_LEN;
@@ -718,10 +718,10 @@ retype:
     l->value.datetime = rasqal_new_xsd_datetime(l->world,
                                                 (const char*)l->string);
     if(!l->value.datetime) {
-      RASQAL_FREE(cstring, (void*)l->string);
+      RASQAL_FREE(char*, l->string);
       return 1;
     }
-    RASQAL_FREE(cstring, (void*)l->string);
+    RASQAL_FREE(char*, l->string);
     l->string = (unsigned char*)rasqal_xsd_datetime_to_counted_string(l->value.datetime,
                                                                       (size_t*)&l->string_len);
     if(!l->string)
@@ -840,7 +840,7 @@ rasqal_new_string_literal_common(rasqal_world* world,
 {
   rasqal_literal* l;
 
-  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
+  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
     rasqal_literal_type datatype_type = RASQAL_LITERAL_STRING;
 
@@ -850,7 +850,7 @@ rasqal_new_string_literal_common(rasqal_world* world,
 
     if(datatype && language) {
       /* RDF typed literal but this is not allowed so delete language */
-      RASQAL_FREE(cstring, (void*)language);
+      RASQAL_FREE(char*, language);
       language = NULL;
     }
 
@@ -871,12 +871,12 @@ rasqal_new_string_literal_common(rasqal_world* world,
     }
   } else {
     if(language)
-      RASQAL_FREE(cstring, (void*)language);
+      RASQAL_FREE(char*, language);
     if(datatype)
       raptor_free_uri(datatype);
     if(datatype_qname)
-      RASQAL_FREE(cstring, (void*)datatype_qname);
-    RASQAL_FREE(cstring, (void*)string);
+      RASQAL_FREE(char*, datatype_qname);
+    RASQAL_FREE(char*, string);
   }
     
   return l;
@@ -955,7 +955,7 @@ rasqal_new_simple_literal(rasqal_world* world,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(string, char*, NULL);
 
-  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
+  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
     l->valid = 1;
     l->usage = 1;
@@ -964,7 +964,7 @@ rasqal_new_simple_literal(rasqal_world* world,
     l->string = string;
     l->string_len = (unsigned int)strlen((const char*)string);
   } else {
-    RASQAL_FREE(cstring, (void*)string);
+    RASQAL_FREE(char*, string);
   }
   return l;
 }
@@ -987,7 +987,7 @@ rasqal_new_boolean_literal(rasqal_world* world, int value)
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
-  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
+  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
     l->valid = 1;
     l->usage = 1;
@@ -1026,7 +1026,7 @@ rasqal_new_variable_literal(rasqal_world* world, rasqal_variable *variable)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(variable, rasqal_variable, NULL);
 
-  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
+  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
     l->valid = 1;
     l->usage = 1;
@@ -1091,20 +1091,20 @@ rasqal_free_literal(rasqal_literal* l)
     case RASQAL_LITERAL_UDT:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
       if(l->string)
-        RASQAL_FREE(cstring, (void*)l->string);
+        RASQAL_FREE(char*, l->string);
       if(l->language)
-        RASQAL_FREE(cstring, (void*)l->language);
+        RASQAL_FREE(char*, l->language);
       if(l->datatype)
         raptor_free_uri(l->datatype);
       if(l->type == RASQAL_LITERAL_STRING ||
          l->type == RASQAL_LITERAL_PATTERN) {
         if(l->flags)
-          RASQAL_FREE(cstring, (void*)l->flags);
+          RASQAL_FREE(char*, l->flags);
       }
       break;
     case RASQAL_LITERAL_DATETIME:
       if(l->string)
-        RASQAL_FREE(cstring, (void*)l->string);
+        RASQAL_FREE(char*, l->string);
       if(l->datatype)
         raptor_free_uri(l->datatype);
       if(l->value.datetime)
@@ -1965,7 +1965,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
   float f;
   int i;
   unsigned char *new_s = NULL;
-  const unsigned char* s;
+  unsigned char* s;
   size_t len;
   rasqal_xsd_decimal* dec = NULL;
   
@@ -1984,8 +1984,8 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
                   rasqal_literal_type_label(lit->type));
 
     if(type == RASQAL_LITERAL_STRING || type ==  RASQAL_LITERAL_UDT) {
-      s = rasqal_literal_as_counted_string(lit, &len, 0, NULL);
-      new_s = (unsigned char*)RASQAL_MALLOC(sstring, len+1);
+      s = (unsigned char*)rasqal_literal_as_counted_string(lit, &len, 0, NULL);
+      new_s = RASQAL_MALLOC(unsigned char*, len + 1);
       if(new_s) {
         raptor_uri* dt_uri = NULL;
         memcpy(new_s, s, len + 1);
@@ -2057,8 +2057,8 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       break;
     
     case RASQAL_LITERAL_STRING:
-      s = rasqal_literal_as_counted_string(lit, &len, 0, NULL);
-      new_s = (unsigned char*)RASQAL_MALLOC(sstring, len + 1);
+      s = (unsigned char*)rasqal_literal_as_counted_string(lit, &len, 0, NULL);
+      new_s = RASQAL_MALLOC(unsigned char*, len + 1);
       if(new_s) {
         memcpy(new_s, s, len + 1);
         new_lit = rasqal_new_string_literal(lit->world, new_s, NULL, NULL, NULL);
@@ -2066,8 +2066,8 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       break;
 
     case RASQAL_LITERAL_XSD_STRING:
-      s = rasqal_literal_as_counted_string(lit, &len, 0, NULL);
-      new_s = (unsigned char*)RASQAL_MALLOC(sstring, len + 1);
+      s = (unsigned char*)rasqal_literal_as_counted_string(lit, &len, 0, NULL);
+      new_s = RASQAL_MALLOC(unsigned char*, len + 1);
       if(new_s) {
         raptor_uri* dt_uri;
         memcpy(new_s, s, len + 1);
@@ -2814,7 +2814,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
                                      l->string, l->string_len);
     if(!uri)
       return 1;
-    RASQAL_FREE(cstring, (void*)l->string);
+    RASQAL_FREE(char*, l->string);
     l->string = NULL;
     l->type = RASQAL_LITERAL_URI;
     l->value.uri = uri;
@@ -2829,11 +2829,11 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
       if(!uri)
         return 1;
       l->datatype = uri;
-      RASQAL_FREE(cstring, (void*)l->flags);
+      RASQAL_FREE(char*, l->flags);
       l->flags = NULL;
 
       if(l->language && uri) {
-        RASQAL_FREE(cstring, (void*)l->language);
+        RASQAL_FREE(char*, l->language);
         l->language = NULL;
       }
 
@@ -2906,14 +2906,14 @@ rasqal_literal_as_node(rasqal_literal* l)
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
-      new_l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*new_l));
+      new_l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*new_l));
       if(new_l) {
         new_l->valid = 1;
         new_l->usage = 1;
         new_l->world = l->world;
         new_l->type = RASQAL_LITERAL_STRING;
         new_l->string_len = l->string_len;
-        new_l->string = (unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
+        new_l->string = RASQAL_MALLOC(unsigned char*, l->string_len + 1);
         if(!new_l->string) {
           rasqal_free_literal(new_l);
           return NULL; 
@@ -3183,7 +3183,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
     return NULL;
   }
 
-  new_string = (unsigned char*)RASQAL_MALLOC(string, len + 1);
+  new_string = RASQAL_MALLOC(unsigned char*, len + 1);
   if(!new_string) {
     *error_p = 1;
     return NULL;
@@ -4414,8 +4414,7 @@ rasqal_new_literal_sequence_sort_map(int is_distinct, int compare_flags)
 {
   literal_sequence_sort_compare_data* lsscd;
 
-  lsscd = (literal_sequence_sort_compare_data*)RASQAL_MALLOC(literal_sequence_sort_compare_data,
-                                                             sizeof(*lsscd));
+  lsscd = RASQAL_MALLOC(literal_sequence_sort_compare_data*, sizeof(*lsscd));
   if(!lsscd)
     return NULL;
   
@@ -4537,7 +4536,7 @@ rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world,
                                                    number);
         } else {
           unsigned char *val;
-          val = (unsigned char*)RASQAL_MALLOC(cstring, str_len+1);
+          val = RASQAL_MALLOC(unsigned char*, str_len + 1);
           if(val) {
             memcpy(val, str, str_len + 1);
 

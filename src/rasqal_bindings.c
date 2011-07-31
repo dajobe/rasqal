@@ -62,8 +62,7 @@ rasqal_new_bindings(rasqal_query* query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(variables, raptor_sequence, NULL);
 
-  bindings = (rasqal_bindings*)RASQAL_CALLOC(rasqal_bindings,
-                                             1, sizeof(*bindings));
+  bindings = RASQAL_CALLOC(rasqal_bindings*, 1, sizeof(*bindings));
   if(!bindings)
     return NULL;
 

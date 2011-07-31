@@ -97,7 +97,7 @@ rasqal_new_service(rasqal_world* world, raptor_uri* service_uri,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(service_uri, raptor_uri, NULL);
   
-  svc = (rasqal_service*)RASQAL_CALLOC(rasqal_service, 1, sizeof(*svc));
+  svc = RASQAL_CALLOC(rasqal_service*, 1, sizeof(*svc));
   if(!svc)
     return NULL;
   
@@ -106,7 +106,7 @@ rasqal_new_service(rasqal_world* world, raptor_uri* service_uri,
 
   if(query_string) {
     len = strlen((const char*)query_string);
-    svc->query_string = (char*)RASQAL_MALLOC(cstring, len + 1);
+    svc->query_string = RASQAL_MALLOC(char*, len + 1);
     if(!svc->query_string) {
       rasqal_free_service(svc);
       return NULL;
@@ -156,7 +156,7 @@ rasqal_free_service(rasqal_service* svc)
     raptor_free_uri(svc->service_uri);
 
   if(svc->query_string)
-    RASQAL_FREE(cstring, svc->query_string);
+    RASQAL_FREE(char*, svc->query_string);
 
   if(svc->data_graphs)
     raptor_free_sequence(svc->data_graphs);
@@ -203,7 +203,7 @@ rasqal_service_set_format(rasqal_service* svc, const char *format)
   size_t len;
   
   if(svc->format) {
-    RASQAL_FREE(cstring, svc->format);
+    RASQAL_FREE(char*, svc->format);
     svc->format = NULL;
   }
 
@@ -211,7 +211,7 @@ rasqal_service_set_format(rasqal_service* svc, const char *format)
     return 0;
   
   len = strlen(format);
-  svc->format = (char*)RASQAL_MALLOC(cstring, len + 1);
+  svc->format = RASQAL_MALLOC(char*, len + 1);
   if(!svc->format)
     return 1;
 
@@ -247,10 +247,10 @@ rasqal_service_content_type_handler(raptor_www* www, void* userdata,
   size_t len;
   
   if(svc->content_type)
-    RASQAL_FREE(cstring, svc->content_type);
+    RASQAL_FREE(char*, svc->content_type);
 
   len = strlen(content_type);
-  svc->content_type = (char*)RASQAL_MALLOC(cstring, len + 1);
+  svc->content_type = RASQAL_MALLOC(char*, len + 1);
 
   if(svc->content_type) {
     char* p;
@@ -491,7 +491,7 @@ rasqal_service_execute(rasqal_service* svc)
   }
 
   if(svc->content_type) {
-    RASQAL_FREE(cstring, svc->content_type);
+    RASQAL_FREE(char*, svc->content_type);
     svc->content_type = NULL;
   }
 

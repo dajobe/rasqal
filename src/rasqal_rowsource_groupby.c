@@ -300,7 +300,7 @@ rasqal_groupby_rowsource_process(rasqal_rowsource* rowsource,
       node = (rasqal_groupby_tree_node*)raptor_avltree_search(con->tree, &key);
       if(!node) {
         /* New Group */
-        node = (rasqal_groupby_tree_node*)RASQAL_CALLOC(rasqal_groupby_tree_node, sizeof(*node), 1);
+        node = RASQAL_CALLOC(rasqal_groupby_tree_node*, 1, sizeof(*node));
         if(!node) {
           raptor_free_sequence(literal_seq);
           return 1;
@@ -474,7 +474,7 @@ rasqal_new_groupby_rowsource(rasqal_world *world,
   if(!world || !query)
     return NULL;
   
-  con = (rasqal_groupby_rowsource_context*)RASQAL_CALLOC(rasqal_groupby_rowsource_context, 1, sizeof(*con));
+  con = RASQAL_CALLOC(rasqal_groupby_rowsource_context*, 1, sizeof(*con));
   if(!con)
     goto fail;
 

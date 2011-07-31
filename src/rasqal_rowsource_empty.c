@@ -133,7 +133,7 @@ rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* query)
   if(!world || !query)
     return NULL;
   
-  con = (rasqal_empty_rowsource_context*)RASQAL_CALLOC(rasqal_empty_rowsource_context, 1, sizeof(rasqal_empty_rowsource_context));
+  con = RASQAL_CALLOC(rasqal_empty_rowsource_context*, 1, sizeof(*con));
   if(!con)
     return NULL;
 

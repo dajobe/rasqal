@@ -574,7 +574,7 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
         unsigned char* var_name;
         rasqal_variable *v;
 
-        var_name = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+        var_name = RASQAL_MALLOC(unsigned char*, len + 1);
         memcpy(var_name, name, len + 1);
 
         v = rasqal_variables_table_add(con->vars_table,
@@ -771,7 +771,7 @@ rasqal_query_results_rdf_get_rowsource(rasqal_query_results_formatter* formatter
 {
   rasqal_rowsource_rdf_context* con;
   
-  con = (rasqal_rowsource_rdf_context*)RASQAL_CALLOC(rasqal_rowsource_rdf_context, 1, sizeof(*con));
+  con = RASQAL_CALLOC(rasqal_rowsource_rdf_context*, 1, sizeof(*con));
   if(!con)
     return NULL;
 

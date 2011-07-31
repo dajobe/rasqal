@@ -210,7 +210,7 @@ rasqal_join_rowsource_ensure_variables(rasqal_rowsource* rowsource,
     return 1;
 
   map_size = rasqal_rowsource_get_size(con->right);
-  con->right_map = (int*)RASQAL_MALLOC(int, sizeof(int) * map_size);
+  con->right_map = RASQAL_MALLOC(int*, sizeof(int) * map_size);
   if(!con->right_map)
     return 1;
 
@@ -574,7 +574,7 @@ rasqal_new_join_rowsource(rasqal_world *world,
      join_type != RASQAL_JOIN_TYPE_NATURAL)
     goto fail;
   
-  con = (rasqal_join_rowsource_context*)RASQAL_CALLOC(rasqal_join_rowsource_context, 1, sizeof(rasqal_join_rowsource_context));
+  con = RASQAL_CALLOC(rasqal_join_rowsource_context*, 1, sizeof(*con));
   if(!con)
     goto fail;
 

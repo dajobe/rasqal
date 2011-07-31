@@ -270,7 +270,7 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
   unsigned char *new_s;
   size_t len;
   int output_len;
-  const unsigned char *output = NULL;
+  unsigned char *output = NULL;
   unsigned int i;
   unsigned char* p;
   
@@ -292,7 +292,7 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
   if(output_len < 0)
     return NULL;
 
-  output = (unsigned char *)RASQAL_MALLOC(char, output_len);
+  output = RASQAL_MALLOC(unsigned char*, output_len);
   if(!output)
     return NULL;
   
@@ -300,7 +300,7 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
   if(output_len < 0)
     goto failed;
 
-  new_s = (unsigned char*)RASQAL_MALLOC(cstring, (output_len * 2) + 1);
+  new_s = RASQAL_MALLOC(unsigned char*, (output_len * 2) + 1);
   if(!new_s)
     goto failed;
   

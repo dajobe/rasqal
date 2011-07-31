@@ -111,7 +111,8 @@ rasqal_world*
 rasqal_new_world(void)
 {
   rasqal_world* world;
-  world = (rasqal_world*)RASQAL_CALLOC(rasqal_world, sizeof(rasqal_world), 1);
+
+  world = RASQAL_CALLOC(rasqal_world*, sizeof(rasqal_world), 1);
   if(!world)
     return NULL;
   
@@ -357,8 +358,7 @@ rasqal_query_language_register_factory(rasqal_world *world,
 {
   rasqal_query_language_factory *query = NULL;
   
-  query = (rasqal_query_language_factory*)RASQAL_CALLOC(rasqal_query_language_factory, 1,
-                                                        sizeof(*query));
+  query = RASQAL_CALLOC(rasqal_query_language_factory*, 1, sizeof(*query));
   if(!query)
     goto tidy;
 
@@ -628,7 +628,7 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
     fputc('\n', stderr);
   }
 
-  RASQAL_FREE(cstring, buffer);
+  RASQAL_FREE(char*, buffer);
 }
 
 
@@ -723,7 +723,7 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
   unsigned char *endp;
   int n;
   
-  result=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
+  result = RASQAL_MALLOC(unsigned char*, len + 1);
   if(!result)
     return NULL;
 
@@ -741,7 +741,7 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
         if(error_handler)
           error_handler(error_data, "UTF-8 encoding error at character %d (0x%02X) found.", c, c);
         /* UTF-8 encoding had an error or ended in the middle of a string */
-        RASQAL_FREE(cstring, result);
+        RASQAL_FREE(char*, result);
         return NULL;
       }
       memcpy(dest, p, unichar_len);
@@ -760,7 +760,7 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
     }
 
     if(!len) {
-      RASQAL_FREE(cstring, result);
+      RASQAL_FREE(char*, result);
       return NULL;
     }
 
@@ -778,7 +778,7 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
         if(len < ulen) {
           if(error_handler)
             error_handler(error_data, "%c over end of line", c);
-          RASQAL_FREE(cstring, result);
+          RASQAL_FREE(char*, result);
           return 0;
         }
         
@@ -804,7 +804,7 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
       default:
         if(error_handler)
           error_handler(error_data, "Illegal string escape \\%c in \"%s\"", c, src);
-        RASQAL_FREE(cstring, result);
+        RASQAL_FREE(char*, result);
         return 0;
     }
 
@@ -903,14 +903,14 @@ rasqal_world_set_default_generate_bnodeid_parameters(rasqal_world* world,
   if(prefix) {
     length = strlen(prefix);
     
-    prefix_copy = (char*)RASQAL_MALLOC(cstring, length + 1);
+    prefix_copy = RASQAL_MALLOC(char*, length + 1);
     if(!prefix_copy)
       return 1;
     memcpy(prefix_copy, prefix, length + 1);
   }
   
   if(world->default_generate_bnodeid_handler_prefix)
-    RASQAL_FREE(cstring, world->default_generate_bnodeid_handler_prefix);
+    RASQAL_FREE(char*, world->default_generate_bnodeid_handler_prefix);
 
   world->default_generate_bnodeid_handler_prefix = prefix_copy;
   world->default_generate_bnodeid_handler_prefix_length = length;
@@ -978,7 +978,7 @@ rasqal_world_default_generate_bnodeid_handler(void *user_data,
   else
     length += 7; /* bnodeid */
   
-  buffer = (unsigned char*)RASQAL_MALLOC(cstring, length);
+  buffer = RASQAL_MALLOC(unsigned char*, length);
   if(!buffer)
     return NULL;
   if(world->default_generate_bnodeid_handler_prefix) {
@@ -1133,7 +1133,7 @@ rasqal_free_memory(void *ptr)
 void*
 rasqal_alloc_memory(size_t size)
 {
-  return RASQAL_MALLOC(void, size);
+  return RASQAL_MALLOC(void*, size);
 }
 
 
@@ -1156,7 +1156,7 @@ rasqal_alloc_memory(size_t size)
 void*
 rasqal_calloc_memory(size_t nmemb, size_t size)
 {
-  return RASQAL_CALLOC(void, nmemb, size);
+  return RASQAL_CALLOC(void*, nmemb, size);
 }
 
 

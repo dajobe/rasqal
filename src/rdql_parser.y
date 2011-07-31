@@ -189,7 +189,7 @@ static void rdql_query_error(rasqal_query* rq, const char *message);
 
 %destructor {
   if($$)
-    RASQAL_FREE(cstring, $$);
+    RASQAL_FREE(char*, $$);
 } QNAME_LITERAL IDENTIFIER
 
 %%

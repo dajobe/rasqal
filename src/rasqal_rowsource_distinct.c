@@ -216,7 +216,7 @@ rasqal_new_distinct_rowsource(rasqal_world *world,
   if(!world || !query || !rowsource)
     goto fail;
   
-  con = (rasqal_distinct_rowsource_context*)RASQAL_CALLOC(rasqal_distinct_rowsource_context, 1, sizeof(rasqal_distinct_rowsource_context));
+  con = RASQAL_CALLOC(rasqal_distinct_rowsource_context*, 1, sizeof(*con));
   if(!con)
     goto fail;
 

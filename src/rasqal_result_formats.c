@@ -61,8 +61,8 @@ rasqal_world_register_query_results_format_factory(rasqal_world* world,
 {
   rasqal_query_results_format_factory *factory = NULL;
   
-  factory = (rasqal_query_results_format_factory*)RASQAL_CALLOC(rasqal_query_factory_factory, 1,
-                                                                sizeof(*factory));
+  factory = RASQAL_CALLOC(rasqal_query_results_format_factory*, 1, 
+                          sizeof(*factory));
   if(!factory)
     return NULL;
 
@@ -287,7 +287,7 @@ rasqal_new_query_results_formatter(rasqal_world* world,
   if(!factory)
     return NULL;
 
-  formatter = (rasqal_query_results_formatter*)RASQAL_CALLOC(rasqal_query_results_formatter, 1, sizeof(*formatter));
+  formatter = RASQAL_CALLOC(rasqal_query_results_formatter*, 1, sizeof(*formatter));
   if(!formatter)
     return NULL;
 
@@ -295,8 +295,7 @@ rasqal_new_query_results_formatter(rasqal_world* world,
 
   formatter->context = NULL;
   if(factory->context_length) {
-    formatter->context = (char*)RASQAL_CALLOC(rasqal_query_results_formatter_context, 1,
-                                              factory->context_length);
+    formatter->context = RASQAL_CALLOC(void*, 1, factory->context_length);
     if(!formatter->context) {
       rasqal_free_query_results_formatter(formatter);
     return NULL;
@@ -537,9 +536,9 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
-  scores = (struct syntax_score*)RASQAL_CALLOC(syntax_scores,
-                                               raptor_sequence_size(world->query_results_formats),
-                                               sizeof(struct syntax_score));
+  scores = RASQAL_CALLOC(struct syntax_score*, 
+                         raptor_sequence_size(world->query_results_formats),
+                         sizeof(struct syntax_score));
   if(!scores)
     return NULL;
   
@@ -549,8 +548,7 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
       unsigned char *from, *to;
 
       p++;
-      suffix = (unsigned char*)RASQAL_MALLOC(cstring,
-                                             strlen((const char*)p) + 1);
+      suffix = RASQAL_MALLOC(unsigned char*, strlen((const char*)p) + 1);
       if(!suffix)
         return NULL;
 
@@ -558,7 +556,7 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
         unsigned char c = *from++;
         /* discard the suffix if it wasn't '\.[a-zA-Z0-9]+$' */
         if(!isalpha(c) && !isdigit(c)) {
-          RASQAL_FREE(cstring, suffix);
+          RASQAL_FREE(char*, suffix);
           suffix = NULL;
           to = NULL;
           break;
@@ -642,7 +640,7 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
   }
 
   if(suffix)
-    RASQAL_FREE(cstring, suffix);
+    RASQAL_FREE(char*, suffix);
 
   RASQAL_FREE(syntax_scores, scores);
   

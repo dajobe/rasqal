@@ -65,8 +65,7 @@ rasqal_new_solution_modifier(rasqal_query* query,
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
-  sm = (rasqal_solution_modifier*)RASQAL_CALLOC(rasqal_solution_modifier,
-                                                1, sizeof(*sm));
+  sm = RASQAL_CALLOC(rasqal_solution_modifier*, 1, sizeof(*sm));
   if(!sm)
     return NULL;
 

@@ -255,7 +255,7 @@ rasqal_new_graph(rasqal_world* world, raptor_uri *uri)
   rasqal_graph* g;
   rasqal_graph_factory *factory = world->graph_factory;
 
-  g = (rasqal_graph*)RASQAL_CALLOC(rasqal_graph, sizeof(rasqal_graph), 1);
+  g = RASQAL_CALLOC(rasqal_graph, sizeof(rasqal_graph), 1);
   if(!g)
     return NULL;
   g->world = world;

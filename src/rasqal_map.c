@@ -70,7 +70,7 @@ rasqal_new_map_node(rasqal_map* map, void *key, void *value)
 {
   rasqal_map_node *node;
 
-  node = (rasqal_map_node*)RASQAL_CALLOC(rasqal_map_node, 1, sizeof(*node));
+  node = RASQAL_CALLOC(rasqal_map_node*, 1, sizeof(*node));
   if(!node)
     return NULL;
 
@@ -129,7 +129,7 @@ rasqal_new_map(rasqal_compare_fn* compare_fn,
 {
   rasqal_map *map;
 
-  map = (rasqal_map*)RASQAL_CALLOC(rasqal_map, 1, sizeof(rasqal_map));
+  map = RASQAL_CALLOC(rasqal_map*, 1, sizeof(*map));
   if(!map) {
     if(free_compare_data_fn)
       free_compare_data_fn(compare_user_data);

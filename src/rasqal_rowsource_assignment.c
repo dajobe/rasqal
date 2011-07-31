@@ -198,7 +198,7 @@ rasqal_new_assignment_rowsource(rasqal_world *world,
   if(!world || !query || !var || !expr)
     return NULL;
   
-  con = (rasqal_assignment_rowsource_context*)RASQAL_CALLOC(rasqal_assignment_rowsource_context, 1, sizeof(rasqal_assignment_rowsource_context));
+  con = RASQAL_CALLOC(rasqal_assignment_rowsource_context*, 1, sizeof(*con));
   if(!con)
     return NULL;
 

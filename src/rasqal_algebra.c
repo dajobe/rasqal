@@ -61,8 +61,7 @@ rasqal_new_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op)
   if(!query)
     return NULL;
   
-  node = (rasqal_algebra_node*)RASQAL_CALLOC(rasqal_algebra, 1, 
-                                             sizeof(rasqal_algebra_node));
+  node = RASQAL_CALLOC(rasqal_algebra_node*, 1, sizeof(*node));
   if(!node)
     return NULL;
 
@@ -1552,7 +1551,7 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
     /* If not an error, create a new internal variable name for it
      * $$agg{id}$$ and add it to the map.
      */
-    var_name = (char*)RASQAL_MALLOC(cstring, 20);
+    var_name = RASQAL_MALLOC(char*, 20);
     if(!var_name) {
       ae->error = 1;
       return 1;
@@ -1787,8 +1786,7 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
 {
   rasqal_algebra_aggregate* ae;
   
-  ae = (rasqal_algebra_aggregate*)RASQAL_CALLOC(rasqal_algebra_aggregate,
-                                                sizeof(*ae), 1);
+  ae = RASQAL_CALLOC(rasqal_algebra_aggregate*, sizeof(*ae), 1);
   if(!ae)
     return NULL;
 

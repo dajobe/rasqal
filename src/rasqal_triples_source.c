@@ -125,12 +125,11 @@ rasqal_new_triples_source(rasqal_query* query)
   rasqal_triples_source* rts;
   int rc = 0;
   
-  rts = (rasqal_triples_source*)RASQAL_CALLOC(rasqal_triples_source, 1,
-                                              sizeof(rasqal_triples_source));
+  rts = RASQAL_CALLOC(rasqal_triples_source*, 1, sizeof(*rts));
   if(!rts)
     return NULL;
 
-  rts->user_data = RASQAL_CALLOC(user_data, 1, rtsf->user_data_size);
+  rts->user_data = RASQAL_CALLOC(void*, 1, rtsf->user_data_size);
   if(!rts->user_data) {
     RASQAL_FREE(rasqal_triples_source, rts);
     return NULL;
@@ -235,8 +234,7 @@ rasqal_new_triples_match(rasqal_query* query,
   if(!triples_source)
     return NULL;
 
-  rtm = (rasqal_triples_match *)RASQAL_CALLOC(rasqal_triples_match, 1,
-                                              sizeof(rasqal_triples_match));
+  rtm = RASQAL_CALLOC(rasqal_triples_match*, 1, sizeof(*rtm));
   if(rtm) {
     rtm->world = query->world;
 

@@ -264,7 +264,7 @@ rasqal_new_sort_rowsource(rasqal_world *world,
   if(!world || !query || !rowsource)
     goto fail;
   
-  con = (rasqal_sort_rowsource_context*)RASQAL_CALLOC(rasqal_sort_rowsource_context, 1, sizeof(rasqal_sort_rowsource_context));
+  con = RASQAL_CALLOC(rasqal_sort_rowsource_context*, 1, sizeof(*con));
   if(!con)
     goto fail;
 

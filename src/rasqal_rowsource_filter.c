@@ -242,7 +242,7 @@ rasqal_new_filter_rowsource(rasqal_world *world,
   if(!world || !query || !rowsource || !expr)
     goto fail;
   
-  con = (rasqal_filter_rowsource_context*)RASQAL_CALLOC(rasqal_filter_rowsource_context, 1, sizeof(rasqal_filter_rowsource_context));
+  con = RASQAL_CALLOC(rasqal_filter_rowsource_context*, 1, sizeof(*con));
   if(!con)
     goto fail;
 

@@ -60,7 +60,7 @@ rasqal_new_triple(rasqal_literal* subject, rasqal_literal* predicate,
 {
   rasqal_triple* t;
 
-  t = (rasqal_triple*)RASQAL_CALLOC(rasqal_triple, 1, sizeof(*t));
+  t = RASQAL_CALLOC(rasqal_triple*, 1, sizeof(*t));
   if(t) {
     t->subject = subject;
     t->predicate = predicate;
@@ -91,7 +91,7 @@ rasqal_new_triple_from_triple(rasqal_triple* t)
 {
   rasqal_triple* newt;
 
-  newt = (rasqal_triple*)RASQAL_CALLOC(rasqal_triple, 1, sizeof(*newt));
+  newt = RASQAL_CALLOC(rasqal_triple*, 1, sizeof(*newt));
   if(newt) {
     newt->subject = rasqal_new_literal_from_literal(t->subject);
     newt->predicate = rasqal_new_literal_from_literal(t->predicate);

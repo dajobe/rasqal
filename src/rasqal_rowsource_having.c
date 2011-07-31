@@ -265,7 +265,7 @@ rasqal_new_having_rowsource(rasqal_world *world,
   if(!world || !query || !rowsource || !exprs_seq)
     goto fail;
   
-  con = (rasqal_having_rowsource_context*)RASQAL_CALLOC(rasqal_having_rowsource_context, 1, sizeof(*con));
+  con = RASQAL_CALLOC(rasqal_having_rowsource_context*, 1, sizeof(*con));
   if(!con)
     goto fail;
 

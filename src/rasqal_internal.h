@@ -64,14 +64,14 @@ void* rasqal_sign_calloc(size_t nmemb, size_t size);
 void* rasqal_sign_realloc(void *ptr, size_t size);
 void rasqal_sign_free(void *ptr);
   
-#define RASQAL_MALLOC(type, size)   rasqal_sign_malloc(size)
-#define RASQAL_CALLOC(type, nmemb, size) rasqal_sign_calloc(nmemb, size)
-#define RASQAL_REALLOC(type, ptr, size) rasqal_sign_realloc(ptr, size)
-#define RASQAL_FREE(type, ptr)   rasqal_sign_free(ptr)
+#define RASQAL_MALLOC(type, size)   (type)rasqal_sign_malloc(size)
+#define RASQAL_CALLOC(type, nmemb, size) (type)rasqal_sign_calloc(nmemb, size)
+#define RASQAL_REALLOC(type, ptr, size) (type0rasqal_sign_realloc(ptr, size)
+#define RASQAL_FREE(type, ptr)   rasqal_sign_free((void*)ptr)
 
 #else
-#define RASQAL_MALLOC(type, size) malloc(size)
-#define RASQAL_CALLOC(type, size, count) calloc(size, count)
+#define RASQAL_MALLOC(type, size) (type)malloc(size)
+#define RASQAL_CALLOC(type, size, count) (type)calloc(size, count)
 #define RASQAL_FREE(type, ptr)   free((void*)ptr)
 
 #endif
@@ -482,7 +482,7 @@ struct rasqal_query_s {
    * is the name used for constructing a rasqal_query_formatter
    * from the results.
    */
-  const char* query_results_formatter_name;
+  char* query_results_formatter_name;
 
   /* flag: non-0 if EXPLAIN was given */
   int explain;

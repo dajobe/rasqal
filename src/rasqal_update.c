@@ -115,7 +115,7 @@ rasqal_new_update_operation(rasqal_update_type type,
       return NULL;
   }
   
-  update = (rasqal_update_operation*)RASQAL_MALLOC(update_operation, sizeof(*update));
+  update = RASQAL_MALLOC(rasqal_update_operation*, sizeof(*update));
   if(!update)
     return NULL;
   

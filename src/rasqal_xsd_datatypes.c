@@ -280,7 +280,7 @@ rasqal_xsd_format_integer(int i, size_t *len_p)
    * (the lexical form may have leading 0s in non-canonical representations)
    */
 #define INTEGER_BUFFER_SIZE 20
-  string = (unsigned char*)RASQAL_MALLOC(cstring, INTEGER_BUFFER_SIZE + 1);
+  string = RASQAL_MALLOC(unsigned char*, INTEGER_BUFFER_SIZE + 1);
   if(!string)
     return NULL;
   /* snprintf() takes as length the buffer size including NUL */
@@ -308,7 +308,7 @@ rasqal_xsd_format_float(float f, size_t *len_p)
   
   /* FIXME: This is big enough for C float formatted in decimal as %1g */
 #define FLOAT_BUFFER_SIZE 30
-  string = (unsigned char*)RASQAL_MALLOC(cstring, FLOAT_BUFFER_SIZE + 1);
+  string = RASQAL_MALLOC(unsigned char*, FLOAT_BUFFER_SIZE + 1);
   if(!string)
     return NULL;
   /* snprintf() takes as length the buffer size including NUL */
@@ -341,7 +341,7 @@ rasqal_xsd_format_double(double d, size_t *len_p)
   
   if(d == 0.0f) {
     len = 5;
-    buf = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+    buf = RASQAL_MALLOC(unsigned char*, len + 1);
     if(!buf)
       return NULL;
 
@@ -352,7 +352,7 @@ rasqal_xsd_format_double(double d, size_t *len_p)
   }
 
   len = 20;
-  buf = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  buf = RASQAL_MALLOC(unsigned char*, len + 1);
   if(!buf)
     return NULL;
   
@@ -472,10 +472,9 @@ rasqal_xsd_init(rasqal_world* world)
   if(!world->xsd_namespace_uri)
     return 1;
 
-  world->xsd_datatype_uris =
-    (raptor_uri**)RASQAL_CALLOC(ptrarray,
-                                SPARQL_XSD_NAMES_COUNT + 1,
-                                sizeof(raptor_uri*));
+  world->xsd_datatype_uris = RASQAL_CALLOC(raptor_uri**,
+                                           SPARQL_XSD_NAMES_COUNT + 1,
+                                           sizeof(raptor_uri*));
   if(!world->xsd_datatype_uris)
     return 1;
 

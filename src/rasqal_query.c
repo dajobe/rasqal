@@ -107,7 +107,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
   if(!factory)
     return NULL;
 
-  query = (rasqal_query*)RASQAL_CALLOC(rasqal_query, 1, sizeof(rasqal_query));
+  query = RASQAL_CALLOC(rasqal_query*, 1, sizeof(*query));
   if(!query)
     return NULL;
   
@@ -120,8 +120,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
 
   query->genid_counter = 1;
 
-  query->context = (char*)RASQAL_CALLOC(rasqal_query_context, 1,
-                                        factory->context_length);
+  query->context = RASQAL_CALLOC(void*, 1, factory->context_length);
   if(!query->context)
     goto tidy;
   
@@ -198,7 +197,7 @@ rasqal_free_query(rasqal_query* query)
     raptor_free_uri(query->base_uri);
 
   if(query->query_string)
-    RASQAL_FREE(cstring, query->query_string);
+    RASQAL_FREE(char*, query->query_string);
 
   if(query->data_graphs)
     raptor_free_sequence(query->data_graphs);
@@ -231,7 +230,7 @@ rasqal_free_query(rasqal_query* query)
     raptor_free_sequence(query->graph_patterns_sequence);
 
   if(query->query_results_formatter_name)
-    RASQAL_FREE(cstring, query->query_results_formatter_name);
+    RASQAL_FREE(char*, query->query_results_formatter_name);
 
   /* Do this last since most everything above could refer to a variable */
   if(query->vars_table)
@@ -1191,7 +1190,7 @@ rasqal_query_prepare(rasqal_query* query,
      * `base[size-2]', inclusive.
      */
     size_t len = strlen((const char*)query_string)+3; /* +3 for " \0\0" */
-    unsigned char *query_string_copy = (unsigned char*)RASQAL_MALLOC(cstring, len);
+    unsigned char *query_string_copy = RASQAL_MALLOC(unsigned char*, len);
     if(!query_string_copy) {
       query->failed = 1;
       return 1;
@@ -1872,7 +1871,7 @@ rasqal_query_get_genid(rasqal_query* query, const unsigned char* base,
   while(tmpcounter /= 10)
     length++;
   
-  buffer = (unsigned char*)RASQAL_MALLOC(cstring, length);
+  buffer = RASQAL_MALLOC(unsigned char*, length);
   if(!buffer)
     return NULL;
 

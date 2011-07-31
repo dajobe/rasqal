@@ -382,8 +382,7 @@ rasqal_query_build_variable_agg_use(rasqal_query* query)
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   height = RASQAL_VAR_USE_MAP_OFFSET_LAST + 1 + query->graph_pattern_count;
 
-  agg_row = (unsigned short*)RASQAL_CALLOC(intarray, width,
-                                           sizeof(unsigned short));
+  agg_row = RASQAL_CALLOC(unsigned short*, width, sizeof(unsigned short));
   if(!agg_row)
     return NULL;
 
@@ -1814,8 +1813,7 @@ rasqal_query_build_variables_use_map_binds(rasqal_query* query,
   int rc;
   unsigned short* vars_scope;
 
-  vars_scope = (unsigned short*)RASQAL_CALLOC(intarray,  width,
-                                              sizeof(unsigned short));
+  vars_scope = RASQAL_CALLOC(unsigned short*,width, sizeof(unsigned short));
   if(!vars_scope)
     return 1;
   
@@ -2097,8 +2095,8 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   height = RASQAL_VAR_USE_MAP_OFFSET_LAST + 1 + query->graph_pattern_count;
   
-  use_map = (unsigned short*)RASQAL_CALLOC(shortarray,  width * height,
-                                           sizeof(unsigned short));
+  use_map = RASQAL_CALLOC(unsigned short*, width * height,
+                          sizeof(unsigned short));
   if(!use_map)
     return 1;
 
@@ -2108,8 +2106,8 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   query->variables_use_map = use_map;
 
   height = raptor_sequence_size(query->triples);
-  use_map = (unsigned short*)RASQAL_CALLOC(shortarray, width * height,
-                                           sizeof(unsigned short));
+  use_map = RASQAL_CALLOC(unsigned short*, width * height,
+                          sizeof(unsigned short));
   if(!use_map) {
     RASQAL_FREE(shortarray, query->variables_use_map);
     query->variables_use_map = NULL;
@@ -2401,8 +2399,8 @@ rasqal_query_select_build_variables_use_map_binds(rasqal_query* query,
   int size;
   int i;
 
-  inner_vars_scope = (unsigned short*)RASQAL_CALLOC(intarray,  width, 
-                                                    sizeof(unsigned short));
+  inner_vars_scope = RASQAL_CALLOC(unsigned short*,width,
+                                   sizeof(unsigned short));
   if(!inner_vars_scope)
     return 1;
 
@@ -2465,8 +2463,8 @@ rasqal_query_union_build_variables_use_map_binds(rasqal_query* query,
   seq = gp->graph_patterns;
   gp_size = raptor_sequence_size(seq);
   
-  inner_vars_scope = (unsigned short*)RASQAL_CALLOC(intarray,  width,
-                                                    sizeof(unsigned short));
+  inner_vars_scope = RASQAL_CALLOC(unsigned short*, width,
+                                   sizeof(unsigned short));
   if(!inner_vars_scope)
     return 1;
 

@@ -172,7 +172,7 @@ rasqal_expression_evaluate_strdt(rasqal_expression *e,
       goto failed;
   }
   
-  new_s =(unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  new_s =RASQAL_MALLOC(unsigned char*, len + 1);
   if(!new_s)
     goto failed;
   memcpy(new_s, s, len + 1);
@@ -190,7 +190,7 @@ rasqal_expression_evaluate_strdt(rasqal_expression *e,
     *error_p = 1;
   
   if(new_s)
-    RASQAL_FREE(cstring, new_s);
+    RASQAL_FREE(char*, new_s);
   if(l1)
     rasqal_free_literal(l1);
   if(l2)
@@ -247,12 +247,12 @@ rasqal_expression_evaluate_strlang(rasqal_expression *e,
   if(*error_p)
     goto failed;
   
-  new_s = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  new_s = RASQAL_MALLOC(unsigned char*, len + 1);
   if(!new_s)
     goto failed;
   memcpy(new_s, s, len + 1);
   
-  new_lang = (unsigned char*)RASQAL_MALLOC(cstring, lang_len + 1);
+  new_lang = RASQAL_MALLOC(unsigned char*, lang_len + 1);
   if(!new_lang)
     goto failed;
   memcpy(new_lang, lang, lang_len + 1);
@@ -270,7 +270,7 @@ rasqal_expression_evaluate_strlang(rasqal_expression *e,
     *error_p = 1;
   
   if(new_s)
-    RASQAL_FREE(cstring, new_s);
+    RASQAL_FREE(char*, new_s);
   if(l1)
     rasqal_free_literal(l1);
   if(l2)
@@ -610,7 +610,7 @@ rasqal_expression_evaluate_str(rasqal_expression *e,
   if(!s || *error_p)
     goto failed;
   
-  new_s = (unsigned char *)RASQAL_MALLOC(cstring, len + 1);
+  new_s = RASQAL_MALLOC(unsigned char*, len + 1);
   if(!new_s)
     goto failed;
 
@@ -675,13 +675,13 @@ rasqal_expression_evaluate_lang(rasqal_expression *e,
   
   if(l1->language) {
     size_t len = strlen(l1->language);
-    new_s = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+    new_s = RASQAL_MALLOC(unsigned char*, len + 1);
     if(!new_s)
       goto failed;
 
     memcpy((char*)new_s, l1->language, len + 1);
   } else  {
-    new_s = (unsigned char*)RASQAL_MALLOC(cstring, 1);
+    new_s = RASQAL_MALLOC(unsigned char*, 1);
     if(!new_s)
       goto failed;
 
@@ -855,7 +855,7 @@ rasqal_expression_evaluate_bnode_constructor(rasqal_expression *e,
     if(*error_p)
       goto failed;
 
-    new_s = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+    new_s = RASQAL_MALLOC(unsigned char*, len + 1);
     if(!new_s)
       goto failed;
 

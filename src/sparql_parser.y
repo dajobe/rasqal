@@ -105,7 +105,8 @@ static sparql_uri_applies*
 new_uri_applies(raptor_uri* uri, rasqal_update_graph_applies applies) 
 {
   sparql_uri_applies* ua;
-  ua = (sparql_uri_applies*)RASQAL_MALLOC(uri_applies, sizeof(*ua));
+
+  ua = RASQAL_MALLOC(sparql_uri_applies*, sizeof(*ua));
   if(!ua)
     return NULL;
   
@@ -361,7 +362,7 @@ URI_LITERAL URI_LITERAL_BRACE
 
 %destructor {
   if($$)
-    RASQAL_FREE(cstring, $$);
+    RASQAL_FREE(char*, $$);
 }
 STRING QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
 
@@ -632,7 +633,7 @@ PrefixDeclListOpt: PrefixDeclListOpt PREFIX IDENTIFIER URI_LITERAL
     sparql_syntax_warning(((rasqal_query*)rq), 
                           "PREFIX %s can be defined only once.",
                           prefix_string ? (const char*)prefix_string : ":");
-    RASQAL_FREE(cstring, prefix_string);
+    RASQAL_FREE(char*, prefix_string);
     raptor_free_uri($4);
   } else {
     rasqal_prefix *p;

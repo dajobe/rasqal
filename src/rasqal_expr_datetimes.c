@@ -295,7 +295,7 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_expression *e,
     *error_p = 1;
   
   if(s)
-    RASQAL_FREE(cstring, s);
+    RASQAL_FREE(char*, s);
   
   if(l)
     rasqal_free_literal(l);

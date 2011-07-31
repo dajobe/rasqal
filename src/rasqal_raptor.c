@@ -93,7 +93,7 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
   /* subject */
   if(statement->subject->type == RAPTOR_TERM_TYPE_BLANK) {
     len = statement->subject->value.blank.string_len;
-    new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+    new_str = RASQAL_MALLOC(unsigned char*, len + 1);
     memcpy(new_str, statement->subject->value.blank.string, len + 1);
     s = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_str);
   } else {
@@ -110,12 +110,12 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
     char *language = NULL;
 
     len = statement->object->value.literal.string_len;
-    new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+    new_str = RASQAL_MALLOC(unsigned char*, len + 1);
     memcpy(new_str, statement->object->value.literal.string, len + 1);
 
     if(statement->object->value.literal.language) {
       len = statement->object->value.literal.language_len;
-      language = (char*)RASQAL_MALLOC(cstring, len + 1);
+      language = RASQAL_MALLOC(char*, len + 1);
       memcpy(language, statement->object->value.literal.language, len + 1);
     }
 
@@ -127,7 +127,7 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
     o = rasqal_new_string_literal(world, new_str, language, uri, NULL);
   } else if(statement->object->type == RAPTOR_TERM_TYPE_BLANK) {
     len = statement->object->value.blank.string_len;
-    new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+    new_str = RASQAL_MALLOC(unsigned char*, len + 1);
     memcpy(new_str, statement->object->value.blank.string, len + 1);
     o = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_str);
   } else {
@@ -148,8 +148,7 @@ rasqal_raptor_statement_handler(void *user_data,
   
   rtsc = (rasqal_raptor_triples_source_user_data*)user_data;
 
-  triple = (rasqal_raptor_triple*)RASQAL_MALLOC(rasqal_raptor_triple,
-                                                sizeof(rasqal_raptor_triple));
+  triple = RASQAL_MALLOC(rasqal_raptor_triple*, sizeof(rasqal_raptor_triple));
   triple->next = NULL;
   triple->triple = raptor_statement_as_rasqal_triple(rtsc->query->world,
                                                      statement);
@@ -181,9 +180,8 @@ rasqal_raptor_generate_id_handler(void *user_data,
     unsigned char *mapped_id;
     size_t user_bnodeid_len = strlen((const char*)user_bnodeid);
     
-    mapped_id = (unsigned char*)RASQAL_MALLOC(cstring, 
-                                              rtsc->mapped_id_base_len + 1 + 
-                                              user_bnodeid_len + 1);
+    mapped_id = RASQAL_MALLOC(unsigned char*, 
+                              rtsc->mapped_id_base_len + 1 + user_bnodeid_len + 1);
     memcpy(mapped_id, rtsc->mapped_id_base, rtsc->mapped_id_base_len);
     mapped_id[rtsc->mapped_id_base_len] = '_';
     memcpy(mapped_id + rtsc->mapped_id_base_len + 1,
@@ -241,9 +239,8 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
     rtsc->sources_count = 0;
   
   if(rtsc->sources_count)
-    rtsc->source_literals = (rasqal_literal**)RASQAL_CALLOC(rasqal_literal_ptr,
-                                                            rtsc->sources_count,
-                                                            sizeof(rasqal_literal*));
+    rtsc->source_literals = RASQAL_CALLOC(rasqal_literal**, rtsc->sources_count,
+                                          sizeof(rasqal_literal*));
   else
     rtsc->source_literals = NULL;
 
@@ -319,7 +316,7 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
 
     /* This is freed in rasqal_raptor_free_triples_source() */
     /* rasqal_free_literal(rtsc->source_literal); */
-    RASQAL_FREE(cstring, rtsc->mapped_id_base);
+    RASQAL_FREE(char*, rtsc->mapped_id_base);
     
     if(rdf_query->failed) {
       rasqal_raptor_free_triples_source(user_data);
@@ -664,7 +661,7 @@ rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
   rtm->is_end = rasqal_raptor_is_end;
   rtm->finish = rasqal_raptor_finish_triples_match;
 
-  rtmc = (rasqal_raptor_triples_match_context*)RASQAL_CALLOC(rasqal_raptor_triples_match_context, 1, sizeof(rasqal_raptor_triples_match_context));
+  rtmc = RASQAL_CALLOC(rasqal_raptor_triples_match_context*, 1, sizeof(*rtmc));
   if(!rtmc)
     return -1;
 

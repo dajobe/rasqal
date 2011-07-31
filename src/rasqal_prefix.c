@@ -61,13 +61,13 @@ rasqal_new_prefix(rasqal_world* world, const unsigned char *prefix,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(uri, raptor_uri, NULL);
 
-  p = (rasqal_prefix*)RASQAL_CALLOC(rasqal_prefix, 1, sizeof(*p));
+  p = RASQAL_CALLOC(rasqal_prefix*, 1, sizeof(*p));
   if(p) {  
     p->world = world;
     p->prefix = prefix;
     p->uri = uri;
   } else {
-    RASQAL_FREE(cstring, prefix);
+    RASQAL_FREE(char*, prefix);
     raptor_free_uri(uri);
   }
 
@@ -88,7 +88,7 @@ rasqal_free_prefix(rasqal_prefix* p)
     return;
   
   if(p->prefix)
-    RASQAL_FREE(cstring, (void*)p->prefix);
+    RASQAL_FREE(char*, p->prefix);
   if(p->uri)
     raptor_free_uri(p->uri);
   RASQAL_FREE(rasqal_prefix, p);

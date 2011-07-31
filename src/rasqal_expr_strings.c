@@ -245,7 +245,7 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
 
   }
   
-  new_s = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  new_s = RASQAL_MALLOC(unsigned char*, len + 1);
   if(!new_s)
     goto failed;
 
@@ -256,7 +256,7 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
 
   if(l1->language) {
     len = strlen((const char*)l1->language);
-    new_lang = (char*)RASQAL_MALLOC(cstring, len + 1);
+    new_lang = RASQAL_MALLOC(char*, len + 1);
     if(!new_lang)
       goto failed;
 
@@ -324,7 +324,7 @@ rasqal_expression_evaluate_set_case(rasqal_expression *e,
   if(*error_p)
     goto failed;
 
-  new_s =(unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  new_s =RASQAL_MALLOC(unsigned char*, len + 1);
   if(!new_s)
     goto failed;
 
@@ -351,7 +351,7 @@ rasqal_expression_evaluate_set_case(rasqal_expression *e,
 
   if(l1->language) {
     len = strlen((const char*)l1->language);
-    new_lang = (char*)RASQAL_MALLOC(cstring, len + 1);
+    new_lang = RASQAL_MALLOC(char*, len + 1);
     if(!new_lang)
       goto failed;
 
@@ -374,9 +374,9 @@ rasqal_expression_evaluate_set_case(rasqal_expression *e,
     *error_p = 1;
   
   if(new_s)
-    RASQAL_FREE(cstring, new_s);
+    RASQAL_FREE(char*, new_s);
   if(new_lang)
-    RASQAL_FREE(cstring, new_lang);
+    RASQAL_FREE(char*, new_lang);
   if(l1)
     rasqal_free_literal(l1);
 
@@ -566,7 +566,7 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_expression *e,
     goto failed;
 
   /* pessimistically assume every UTF-8 byte is %XX 3 x len */
-  new_s = (unsigned char*)RASQAL_MALLOC(cstring, (3 * len) + 1);
+  new_s = RASQAL_MALLOC(unsigned char*, (3 * len) + 1);
   if(!new_s)
     goto failed;
 
@@ -608,7 +608,7 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_expression *e,
     *error_p = 1;
   
   if(new_s)
-    RASQAL_FREE(cstring, new_s);
+    RASQAL_FREE(char*, new_s);
   if(l1)
     rasqal_free_literal(l1);
 
@@ -694,7 +694,7 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
   
   
   len = raptor_stringbuffer_length(sb);
-  result_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  result_str = RASQAL_MALLOC(unsigned char*, len + 1);
   if(!result_str)
     goto failed;
   
@@ -714,7 +714,7 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
   if(dt)
     raptor_free_uri(dt);
   if(result_str)
-    RASQAL_FREE(cstring, result_str);
+    RASQAL_FREE(char*, result_str);
   if(sb)
     raptor_free_stringbuffer(sb);
   if(result)

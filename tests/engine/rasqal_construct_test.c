@@ -110,7 +110,7 @@ main(int argc, char **argv) {
 
   data_dir_string = raptor_uri_filename_to_uri_string(argv[1]);
 
-  query_string = (unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)data_dir_string)+strlen(data_file)+strlen(query_format)+1);
+  query_string = RASQAL_MALLOC(unsigned char*, strlen((const char*)data_dir_string) + strlen(data_file) + strlen(query_format) + 1);
   sprintf((char*)query_string, query_format, data_dir_string, data_file);
   raptor_free_memory(data_dir_string);
 
@@ -130,7 +130,7 @@ main(int argc, char **argv) {
     goto done;
   }
   
-  RASQAL_FREE(cstring, query_string);
+  RASQAL_FREE(char*, query_string);
   
   printf("%s: executing query\n", program);
   results = rasqal_query_execute(query);

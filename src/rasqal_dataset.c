@@ -101,7 +101,7 @@ rasqal_new_dataset(rasqal_world* world)
   if(!world)
     return NULL;
 
-  ds = (rasqal_dataset*)RASQAL_CALLOC(rasqal_dataset, 1, sizeof(*ds));
+  ds = RASQAL_CALLOC(rasqal_dataset*, 1, sizeof(*ds));
   if(!ds)
     return NULL;
   
@@ -153,8 +153,7 @@ rasqal_dataset_statement_handler(void *user_data,
   
   ds = (rasqal_dataset*)user_data;
 
-  triple = (rasqal_dataset_triple*)RASQAL_MALLOC(rasqal_dataset_triple,
-                                                 sizeof(*triple));
+  triple = RASQAL_MALLOC(rasqal_dataset_triple*, sizeof(*triple));
   triple->next = NULL;
   triple->triple = raptor_statement_as_rasqal_triple(ds->world,
                                                      statement);
@@ -242,8 +241,7 @@ rasqal_dataset_init_match_internal(rasqal_dataset* ds,
   if(!ds)
     return NULL;
   
-  iter = (rasqal_dataset_term_iterator*)RASQAL_CALLOC(rasqal_dataset_term_iterator,
-                                                      1, sizeof(*iter));
+  iter = RASQAL_CALLOC(rasqal_dataset_term_iterator*, 1, sizeof(*iter));
 
   if(!iter)
     return NULL;

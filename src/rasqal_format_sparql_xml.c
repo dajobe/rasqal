@@ -585,7 +585,7 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
         unsigned char* var_name;
         rasqal_variable *v;
         
-        var_name = (unsigned char*)RASQAL_MALLOC(cstring, con->name_length+1);
+        var_name = RASQAL_MALLOC(unsigned char*, con->name_length + 1);
         memcpy(var_name, con->name, con->name_length + 1);
 
         v = rasqal_variables_table_add(con->vars_table,
@@ -647,7 +647,7 @@ rasqal_sparql_xml_sax2_characters_handler(void *user_data,
      con->state == STATE_uri ||
      con->state == STATE_bnode) {
     con->value_len=len;
-    con->value=(char*)RASQAL_MALLOC(cstring, len+1);
+    con->value = RASQAL_MALLOC(char*, len + 1);
     memcpy(con->value, s, len);
     con->value[len]='\0';
   }
@@ -703,13 +703,13 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
         raptor_uri* datatype_uri=NULL;
         char* language_str=NULL;
 
-        lvalue=(unsigned char*)RASQAL_MALLOC(cstring, con->value_len+1);
+        lvalue = RASQAL_MALLOC(unsigned char*, con->value_len + 1);
         memcpy(lvalue, con->value, con->value_len + 1);
         if(con->datatype)
           datatype_uri = raptor_new_uri(con->world->raptor_world_ptr, (const unsigned char*)con->datatype);
         if(con->language) {
           size_t language_len = strlen(con->language);
-          language_str=(char*)RASQAL_MALLOC(cstring, language_len + 1);
+          language_str = RASQAL_MALLOC(char*, language_len + 1);
           memcpy(language_str, con->language, language_len + 1);
         }
         l = rasqal_new_string_literal_node(con->world, lvalue, language_str,
@@ -725,7 +725,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
       if(1) {
         rasqal_literal* l;
         unsigned char* lvalue;
-        lvalue=(unsigned char*)RASQAL_MALLOC(cstring, con->value_len+1);
+        lvalue = RASQAL_MALLOC(unsigned char*, con->value_len + 1);
         memcpy(lvalue, con->value, con->value_len + 1);
         l = rasqal_new_simple_literal(con->world, RASQAL_LITERAL_BLANK, lvalue);
         rasqal_row_set_value_at(con->row, con->result_offset, l);
@@ -766,7 +766,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
   }
 
   if(con->value) {
-    RASQAL_FREE(cstring, con->value);
+    RASQAL_FREE(char*, con->value);
     con->value=NULL;
   }
 }
@@ -922,7 +922,7 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* fo
 {
   rasqal_rowsource_sparql_xml_context* con;
   
-  con=(rasqal_rowsource_sparql_xml_context*)RASQAL_CALLOC(rasqal_rowsource_sparql_xml_context, 1, sizeof(rasqal_rowsource_sparql_xml_context));
+  con = RASQAL_CALLOC(rasqal_rowsource_sparql_xml_context*, 1, sizeof(*con));
   if(!con)
     return NULL;
 

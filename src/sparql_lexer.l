@@ -469,7 +469,7 @@ EXPONENT [eE][+-]?[0-9]+
 ":="         { return ASSIGN; }
 
 "@"{LANGUAGETOKEN} {
-			sparql_parser_lval->name = (unsigned char*)RASQAL_MALLOC(cstring, yyleng);
+			sparql_parser_lval->name = RASQAL_MALLOC(unsigned char*, yyleng);
                         if(!sparql_parser_lval->name)
                           YY_REPORT_ERROR_EOF("Out of memory");
 
@@ -539,7 +539,7 @@ EXPONENT [eE][+-]?[0-9]+
      
 		  BEGIN(INITIAL);
                   len = raptor_stringbuffer_length(rqe->sb);
-                  sparql_parser_lval->name = (unsigned char *)RASQAL_MALLOC(cstring, len+1);
+                  sparql_parser_lval->name = RASQAL_MALLOC(unsigned char*, len + 1);
                   if(!sparql_parser_lval->name)
                     YY_REPORT_ERROR_EOF("Out of memory");
 
@@ -594,7 +594,7 @@ EXPONENT [eE][+-]?[0-9]+
      
 		  BEGIN(INITIAL);
                   len = raptor_stringbuffer_length(rqe->sb);
-                  sparql_parser_lval->name = (unsigned char *)RASQAL_MALLOC(cstring, len+1);
+                  sparql_parser_lval->name = RASQAL_MALLOC(unsigned char*, len + 1);
                   if(!sparql_parser_lval->name)
                     YY_REPORT_ERROR_EOF("Out of memory");
 
@@ -744,7 +744,7 @@ EXPONENT [eE][+-]?[0-9]+
                     YY_REPORT_ERROR_EOF("rasqal_escaped_name_to_utf8_string failed");
 
                   sparql_parser_lval->uri = raptor_new_uri_relative_to_base(rq->world->raptor_world_ptr, rq->base_uri, uri_string);
-                  RASQAL_FREE(cstring, uri_string);
+                  RASQAL_FREE(char*, uri_string);
                   if(!sparql_parser_lval->uri)
                     YY_REPORT_ERROR_EOF("raptor_new_uri_relative_to_base failed");
                  }
@@ -873,7 +873,7 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len)
   uri = raptor_qname_string_to_uri(rq->namespaces,
                                    s, dest_len);
 #endif
-  RASQAL_FREE(cstring, s);
+  RASQAL_FREE(char*, s);
   
   return uri;
 }
@@ -900,7 +900,7 @@ sparql_copy_string_token(rasqal_query* rq,
     len = raptor_stringbuffer_length(sb);
   }
   
-  string = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  string = RASQAL_MALLOC(unsigned char*, len + 1);
   if(string) {
     if(sb) 
       raptor_stringbuffer_copy_to_string(sb, string, len + 1);
@@ -985,7 +985,7 @@ sparql_stringbuffer_append_sparql_string(rasqal_query* rq,
   unsigned char *d;
   unsigned char *string;
 
-  string = (unsigned char *)RASQAL_MALLOC(cstring, len + 1);
+  string = RASQAL_MALLOC(unsigned char*, len + 1);
   
   if(!string)
     return -1;
@@ -1016,7 +1016,7 @@ sparql_stringbuffer_append_sparql_string(rasqal_query* rq,
         s++; i++;
         if(i + ulen > len) {
           sparql_syntax_error(rq, "SPARQL string \\%c over end of line", c);
-          RASQAL_FREE(cstring, string);
+          RASQAL_FREE(char*, string);
           return 1;
         }
         
@@ -1024,7 +1024,7 @@ sparql_stringbuffer_append_sparql_string(rasqal_query* rq,
         if(n != 1) {
           sparql_syntax_error(rq, "Bad SPARQL string Uncode escape '%c%s...'",
                               c, s);
-          RASQAL_FREE(cstring, string);
+          RASQAL_FREE(char*, string);
           return 1;
         }
 
@@ -1035,7 +1035,7 @@ sparql_stringbuffer_append_sparql_string(rasqal_query* rq,
           sparql_syntax_error(rq,
                               "Bad SPARQL string Unicode character with code point #x%lX (max #x%lX).", 
                               unichar, rasqal_unicode_max_codepoint);
-          RASQAL_FREE(cstring, string);
+          RASQAL_FREE(char*, string);
           return 1;
         }
           
@@ -1831,11 +1831,11 @@ sparql_token_free(rasqal_world* world, int token, YYSTYPE *lval)
     case IDENTIFIER:
     case BLANK_LITERAL:
     case PREFIX:
-      RASQAL_FREE(cstring, lval->name);
+      RASQAL_FREE(char*, lval->name);
       break;
     case QNAME_LITERAL:
       if(lval->name)
-        RASQAL_FREE(cstring, lval->name);
+        RASQAL_FREE(char*, lval->name);
       break;
     default:
       break;
@@ -1880,7 +1880,7 @@ main(int argc, char *argv[])
     filename = argv[1];
   }
   
-  query_string = (char*)RASQAL_CALLOC(cstring, FILE_READ_BUF_SIZE, 1);
+  query_string = RASQAL_CALLOC(char*, FILE_READ_BUF_SIZE, 1);
   fh = fopen(filename, "r");
   if(fh) {
     fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
@@ -1899,7 +1899,7 @@ main(int argc, char *argv[])
   scanner = sparql.scanner;
 
   len =  strlen((const char*)query_string);
-  buf =  (char *)RASQAL_MALLOC(cstring, len+3);
+  buf =  RASQAL_MALLOC(char*, len + 3);
   memcpy(buf, query_string, len);
   buf[len] =  ' ';
   buf[len+1] =  buf[len+2] = '\0'; /* YY_END_OF_BUFFER_CHAR; */
@@ -1933,13 +1933,13 @@ main(int argc, char *argv[])
   }
 
   if(buf)
-    RASQAL_FREE(cstring, buf);
+    RASQAL_FREE(char*, buf);
   
   yylex_destroy(scanner);
 
   raptor_free_uri(rq.base_uri);
 
-  RASQAL_FREE(cstring, query_string);
+  RASQAL_FREE(char*, query_string);
 
   rasqal_free_world(world);
 

@@ -60,8 +60,7 @@ rasqal_new_projection(rasqal_query* query,
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
-  projection = (rasqal_projection*)RASQAL_CALLOC(rasqal_projection,
-                                                 1, sizeof(*projection));
+  projection = RASQAL_CALLOC(rasqal_projection*, 1, sizeof(*projection));
   if(!projection)
     return NULL;
 

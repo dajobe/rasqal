@@ -92,7 +92,7 @@ rasqal_free_variable(rasqal_variable* v)
     return;
   
   if(v->name)
-    RASQAL_FREE(cstring, (void*)v->name);
+    RASQAL_FREE(char*, v->name);
 
   if(v->value)
     rasqal_free_literal(v->value);
@@ -254,8 +254,7 @@ rasqal_new_variables_table(rasqal_world* world)
 {
   rasqal_variables_table* vt;
   
-  vt = (rasqal_variables_table*)RASQAL_CALLOC(rasqal_variables_table, 1,
-                                              sizeof(rasqal_variables_table));
+  vt = RASQAL_CALLOC(rasqal_variables_table*, 1, sizeof(*vt));
   if(!vt)
     return NULL;
 
@@ -370,14 +369,13 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
 
     if(!strcmp((const char*)v->name, (const char*)name)) {
       /* variable with this name already present */
-      RASQAL_FREE(cstring, name);
+      RASQAL_FREE(char*, name);
       return rasqal_new_variable_from_variable(v);
     }
   }
 
   
-  v = (rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1,
-                                      sizeof(rasqal_variable));
+  v = RASQAL_CALLOC(rasqal_variable*, 1, sizeof(*v));
   if(v) {
     v->usage = 1;
     
@@ -415,7 +413,7 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
       vt->variable_names = NULL;
     }
   } else {
-    RASQAL_FREE(cstring, name);
+    RASQAL_FREE(char*, name);
     if(value)
       rasqal_free_literal(value);
   }
@@ -538,7 +536,8 @@ rasqal_variables_table_get_names(rasqal_variables_table* vt)
   if(!vt->variable_names && size) {
     int i;
     
-    vt->variable_names = (const unsigned char**)RASQAL_CALLOC(cstrings, sizeof(unsigned char*), (size + 1));
+    vt->variable_names = RASQAL_CALLOC(const unsigned char**,
+                                       sizeof(unsigned char*), (size + 1));
     if(!vt->variable_names)
       return NULL;
 

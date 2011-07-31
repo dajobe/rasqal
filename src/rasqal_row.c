@@ -48,7 +48,7 @@ rasqal_new_row_common(rasqal_world* world, int size, int order_size)
 {
   rasqal_row* row;
   
-  row = (rasqal_row*)RASQAL_CALLOC(rasqal_row, 1, sizeof(rasqal_row));
+  row = RASQAL_CALLOC(rasqal_row*, 1, sizeof(*row));
   if(!row)
     return NULL;
 
@@ -56,16 +56,16 @@ rasqal_new_row_common(rasqal_world* world, int size, int order_size)
   row->size = size;
   row->order_size = order_size;
   
-  row->values = (rasqal_literal**)RASQAL_CALLOC(array, row->size,
-                                                sizeof(rasqal_literal*));
+  row->values = RASQAL_CALLOC(rasqal_literal**, row->size,
+                              sizeof(rasqal_literal*));
   if(!row->values) {
     rasqal_free_row(row);
     return NULL;
   }
 
   if(row->order_size > 0) {
-    row->order_values = (rasqal_literal**)RASQAL_CALLOC(array,  row->order_size,
-                                                        sizeof(rasqal_literal*));
+    row->order_values = RASQAL_CALLOC(rasqal_literal**,row->order_size,
+                                      sizeof(rasqal_literal*));
     if(!row->order_values) {
       rasqal_free_row(row);
       return NULL;
@@ -330,7 +330,7 @@ rasqal_new_row_sequence(rasqal_world* world,
     const unsigned char* name;
     rasqal_variable* v;
     
-    name = (unsigned char*)RASQAL_MALLOC(cstring, var_name_len+1);
+    name = RASQAL_MALLOC(unsigned char*, var_name_len + 1);
     if(!name) {
       failed = 1;
       goto tidy;
@@ -387,7 +387,7 @@ rasqal_new_row_sequence(rasqal_world* world,
                                                    number);
         } else {
           unsigned char *val;
-          val = (unsigned char*)RASQAL_MALLOC(cstring, str_len + 1);
+          val = RASQAL_MALLOC(unsigned char*, str_len + 1);
           if(val) {
             memcpy(val, str, str_len + 1);
 
@@ -515,7 +515,7 @@ rasqal_row_set_order_size(rasqal_row *row, int order_size)
 {
   row->order_size = order_size;
   if(row->order_size > 0) {
-    row->order_values = (rasqal_literal**)RASQAL_CALLOC(array,  row->order_size,
+    row->order_values = RASQAL_CALLOC(rasqal_literal**,  row->order_size,
                                                         sizeof(rasqal_literal*));
     if(!row->order_values) {
       row->order_size = -1;
@@ -545,8 +545,7 @@ rasqal_row_expand_size(rasqal_row *row, int size)
   if(row->size > size)
     return 1;
   
-  nvalues = (rasqal_literal**)RASQAL_CALLOC(array, size,
-                                            sizeof(rasqal_literal*));
+  nvalues = RASQAL_CALLOC(rasqal_literal**, size, sizeof(rasqal_literal*));
   if(!nvalues)
     return 1;
   memcpy(nvalues, row->values, sizeof(rasqal_literal*) * row->size);

@@ -127,7 +127,7 @@ main(int argc, char **argv) {
     unsigned char *query_string;
     
     data_string=raptor_uri_filename_to_uri_string(argv[1]);
-    query_string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)data_string)+strlen(query_format)+1);
+    query_string = RASQAL_MALLOC(unsigned char*, strlen((const char*)data_string) + strlen(query_format) + 1);
     sprintf((char*)query_string, query_format, data_string);
     raptor_free_memory(data_string);
 
@@ -240,7 +240,7 @@ main(int argc, char **argv) {
     } /* end test loop */
 
 
-    RASQAL_FREE(cstring, query_string);
+    RASQAL_FREE(char*, query_string);
 
   } /* end query loop */
   

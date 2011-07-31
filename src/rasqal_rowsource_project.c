@@ -84,7 +84,7 @@ rasqal_project_rowsource_ensure_variables(rasqal_rowsource* rowsource,
 
   size = raptor_sequence_size(con->projection_variables);
 
-  con->projection = (int*)RASQAL_MALLOC(array, sizeof(int*) * size);
+  con->projection = RASQAL_MALLOC(int*, sizeof(int*) * size);
   if(!con->projection)
     return 1;
   
@@ -272,7 +272,7 @@ rasqal_new_project_rowsource(rasqal_world *world,
   if(!world || !query || !rowsource || !projection_variables)
     goto fail;
   
-  con = (rasqal_project_rowsource_context*)RASQAL_CALLOC(rasqal_project_rowsource_context, 1, sizeof(rasqal_project_rowsource_context));
+  con = RASQAL_CALLOC(rasqal_project_rowsource_context*, 1, sizeof(*con));
   if(!con)
     goto fail;
 

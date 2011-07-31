@@ -420,10 +420,10 @@ rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim)
 
       if(new_buffer_len < 10)
         new_buffer_len = 10;
-      new_buffer = (unsigned char*)RASQAL_CALLOC(cstring, 1, new_buffer_len + 1);
+      new_buffer = RASQAL_CALLOC(unsigned char*, 1, new_buffer_len + 1);
       if(buffer_len) {
         memcpy(new_buffer, buffer, buffer_len);
-        RASQAL_FREE(cstring, buffer);
+        RASQAL_FREE(char*, buffer);
       }
       buffer=new_buffer;
       buffer_len = new_buffer_len;
@@ -437,7 +437,7 @@ rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim)
 
   if(!buffer) {
     buffer_len = 0;
-    buffer = (unsigned char *)RASQAL_CALLOC(cstring, 1, buffer_len + 1);
+    buffer = RASQAL_CALLOC(unsigned char*, 1, buffer_len + 1);
   }
   buffer[ind] = '\0';
 
@@ -455,10 +455,10 @@ rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim)
 
       if(new_flags_len<5)
         new_flags_len = 5;
-      new_flags = (unsigned char*)RASQAL_CALLOC(cstring, 1, new_flags_len + 1);
+      new_flags = RASQAL_CALLOC(unsigned char*, 1, new_flags_len + 1);
       if(flags_len) {
         memcpy(new_flags, flags, flags_len);
-        RASQAL_FREE(cstring, flags);
+        RASQAL_FREE(char*, flags);
       }
       flags = new_flags;
       flags_len = new_flags_len;
@@ -487,7 +487,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
   raptor_uri *dt_uri = NULL;
   unsigned char *dt_qname = NULL;
 
-  string = (unsigned char *)RASQAL_MALLOC(cstring, len + 1);
+  string = RASQAL_MALLOC(unsigned char*, len + 1);
 
   for(s = text, d = string, i = 0; i < len; s++, i++) {
     unsigned char c = *s;
@@ -511,14 +511,14 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         s++; i++;
         if(i + ulen > len) {
           printf("\\%c over end of line", c);
-          RASQAL_FREE(cstring, string);
+          RASQAL_FREE(char*, string);
           return 1;
         }
         
         n = sscanf((const char*)s, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
         if(n != 1) {
           rdql_syntax_error(rq, "RDQL syntax error - Illegal Unicode escape '%c%s...'", c, s);
-          RASQAL_FREE(cstring, string);
+          RASQAL_FREE(char*, string);
           return 1;
         }
 
@@ -527,7 +527,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         
         if(unichar > 0x10ffff) {
           rdql_syntax_error(rq, "RDQL syntax error - Illegal Unicode character with code point #x%lX.", unichar);
-          RASQAL_FREE(cstring, string);
+          RASQAL_FREE(char*, string);
           return 1;
         }
           
@@ -576,7 +576,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
   if(language) {
     char *new_language;
     size_t new_language_len = strlen((const char*)language);
-    new_language = (char*)RASQAL_MALLOC(cstring, new_language_len + 1);
+    new_language = RASQAL_MALLOC(char*, new_language_len + 1);
     memcpy(new_language, language, new_language_len + 1);
     language = new_language;
   }
@@ -593,7 +593,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         rdql_syntax_warning(rq, "Invalid RDQL name \"%s\"", dt);
       
       /* the qname is expanded later */
-      dt_qname = (unsigned char*)RASQAL_MALLOC(cstring, dt_qname_len + 1);
+      dt_qname = RASQAL_MALLOC(unsigned char*, dt_qname_len + 1);
       memcpy(dt_qname, dt, dt_qname_len + 1);
     }
   }
@@ -1092,11 +1092,11 @@ rdql_token_free(rasqal_world* world, int token, YYSTYPE *lval)
       raptor_free_uri(lval->uri);
       break;
     case IDENTIFIER:
-      RASQAL_FREE(cstring, lval->name);
+      RASQAL_FREE(char*, lval->name);
       break;
     case QNAME_LITERAL:
       if(lval->name)
-        RASQAL_FREE(cstring, lval->name);
+        RASQAL_FREE(char*, lval->name);
       break;
     default:
       break;
@@ -1141,7 +1141,7 @@ main(int argc, char *argv[])
     filename = argv[1];
   }
   
-  query_string = (char*)RASQAL_CALLOC(cstring, FILE_READ_BUF_SIZE, 1);
+  query_string = RASQAL_CALLOC(char*, FILE_READ_BUF_SIZE, 1);
   fh = fopen(filename, "r");
   if(fh) {
     fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
@@ -1168,7 +1168,7 @@ main(int argc, char *argv[])
 #endif
   
   len = strlen((const char*)query_string);
-  buf = (char *)RASQAL_MALLOC(cstring, len + 3);
+  buf = RASQAL_MALLOC(char*, len + 3);
   memcpy(buf, query_string, len);
   buf[len] = ' ';
   buf[len + 1] = buf[len + 2] = '\0'; /* YY_END_OF_BUFFER_CHAR; */
@@ -1202,13 +1202,13 @@ main(int argc, char *argv[])
   }
 
   if(buf)
-    RASQAL_FREE(cstring, buf);
+    RASQAL_FREE(char*, buf);
   
   yylex_destroy(scanner);
 
   raptor_free_uri(rq.base_uri);
 
-  RASQAL_FREE(cstring, query_string);
+  RASQAL_FREE(char*, query_string);
 
   rasqal_free_world(world);
 

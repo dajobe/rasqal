@@ -456,7 +456,7 @@ rasqal_new_triples_rowsource(rasqal_world *world,
   if(!triples)
     return rasqal_new_empty_rowsource(world, query);
   
-  con = (rasqal_triples_rowsource_context*)RASQAL_CALLOC(rasqal_triples_rowsource_context, 1, sizeof(rasqal_triples_rowsource_context));
+  con = RASQAL_CALLOC(rasqal_triples_rowsource_context*, 1, sizeof(*con));
   if(!con)
     return NULL;
 
@@ -468,9 +468,8 @@ rasqal_new_triples_rowsource(rasqal_world *world,
 
   con->triples_count = con->end_column - con->start_column + 1;
 
-  con->triple_meta = (rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta,
-                                                        con->triples_count,
-                                                        sizeof(rasqal_triple_meta));
+  con->triple_meta = RASQAL_CALLOC(rasqal_triple_meta*, con->triples_count,
+                                   sizeof(rasqal_triple_meta));
   if(!con->triple_meta) {
     rasqal_triples_rowsource_finish(NULL, con);
     return NULL;
@@ -546,7 +545,7 @@ main(int argc, char *argv[])
   query = rasqal_new_query(world, "sparql", NULL);
   
   data_string = raptor_uri_filename_to_uri_string(data_file);
-  query_string = (unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)data_string)+strlen(query_format)+1);
+  query_string = RASQAL_MALLOC(unsigned char*, strlen((const char*)data_string) + strlen(query_format) + 1);
   sprintf((char*)query_string, query_format, data_string);
   raptor_free_memory(data_string);
   
@@ -571,7 +570,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  RASQAL_FREE(cstring, query_string);
+  RASQAL_FREE(char*, query_string);
   query_string = NULL;
 
   triples = rasqal_query_get_triple_sequence(query);

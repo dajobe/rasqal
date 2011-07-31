@@ -113,7 +113,8 @@ rasqal_xsd_decimal*
 rasqal_new_xsd_decimal(rasqal_world* world)
 {
   rasqal_xsd_decimal* dec;
-  dec = (rasqal_xsd_decimal*)RASQAL_MALLOC(decimal, sizeof(rasqal_xsd_decimal));
+
+  dec = RASQAL_MALLOC(rasqal_xsd_decimal*, sizeof(*dec));
   if(dec)
     rasqal_xsd_decimal_init(dec);
   return dec;
@@ -178,7 +179,7 @@ static void
 rasqal_xsd_decimal_clear_string(rasqal_xsd_decimal* dec)
 {
   if(dec->string) {
-    RASQAL_FREE(cstring, dec->string);
+    RASQAL_FREE(char*, dec->string);
     dec->string=NULL;
   }
   dec->string_len=0;
@@ -224,7 +225,7 @@ rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string)
   rasqal_xsd_decimal_clear_string(dec);
 
   len = strlen(string);
-  dec->string = (char*)RASQAL_MALLOC(cstring, len+1);
+  dec->string = RASQAL_MALLOC(char*, len + 1);
   if(!dec->string)
     return 1;
 
@@ -428,7 +429,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
   /* decimal snprintf with no buffer to get buffer length */
   len = DECIMAL_SNPRINTF(NULL, 0, fmt, dec->raw);
 
-  s = (char*)RASQAL_MALLOC(cstring, len + 1);
+  s = RASQAL_MALLOC(char*, len + 1);
   if(!s)
     return NULL;
   

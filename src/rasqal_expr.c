@@ -78,7 +78,7 @@ rasqal_new_0op_expression(rasqal_world* world, rasqal_op op)
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
-  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  e = RASQAL_CALLOC(rasqal_expression*, 1, sizeof(*e));
   if(e) {
     e->usage = 1;
     e->world = world;
@@ -126,7 +126,7 @@ rasqal_new_1op_expression(rasqal_world* world, rasqal_op op,
       goto tidy;
   }
   
-  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  e = RASQAL_CALLOC(rasqal_expression*, 1, sizeof(*e));
   if(e) {
     e->usage = 1;
     e->world = world;
@@ -175,7 +175,7 @@ rasqal_new_2op_expression(rasqal_world* world,
   if(!world || !arg1 || !arg2)
     goto tidy;
   
-  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  e = RASQAL_CALLOC(rasqal_expression*, 1, sizeof(*e));
   if(e) {
     e->usage = 1;
     e->world = world;
@@ -222,7 +222,7 @@ rasqal_new_3op_expression(rasqal_world* world,
   if(!world || !arg1 || !arg2) /* arg3 may be NULL */
     goto tidy;
 
-  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  e = RASQAL_CALLOC(rasqal_expression*, 1, sizeof(*e));
   if(e) {
     e->usage = 1;
     e->world = world;
@@ -271,7 +271,7 @@ rasqal_new_string_op_expression(rasqal_world* world,
   if(!world || !arg1 || !literal)
     goto tidy;
   
-  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  e = RASQAL_CALLOC(rasqal_expression*, 1, sizeof(*e));
   if(e) {
     e->usage = 1;
     e->world = world;
@@ -308,7 +308,7 @@ rasqal_new_literal_expression(rasqal_world* world, rasqal_literal *literal)
   if(!world || !literal)
     return NULL;
   
-  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  e = RASQAL_CALLOC(rasqal_expression*, 1, sizeof(*e));
   if(e) {  
     e->usage = 1;
     e->world = world;
@@ -335,7 +335,7 @@ rasqal_new_function_expression_common(rasqal_world* world,
   if(!world || (arg1 && args) || (name && !args)|| (!name && args))
     goto tidy;
   
-  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  e = RASQAL_CALLOC(rasqal_expression*, 1, sizeof(*e));
   if(e) {
     e->usage = 1;
     e->world = world;
@@ -437,7 +437,7 @@ rasqal_new_cast_expression(rasqal_world* world, raptor_uri* name,
   if(!world || !name || !value)
     goto tidy;
   
-  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  e = RASQAL_CALLOC(rasqal_expression*, 1, sizeof(*e));
   if(e) {
     e->usage = 1;
     e->world = world;
@@ -478,7 +478,7 @@ rasqal_new_expr_seq_expression(rasqal_world* world,
   if(!world || !args)
     goto tidy;
   
-  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  e = RASQAL_CALLOC(rasqal_expression*, 1, sizeof(*e));
   if(e) {
     e->usage = 1;
     e->world = world;
@@ -517,7 +517,7 @@ rasqal_new_set_expression(rasqal_world* world, rasqal_op op,
   if(!world || !arg1 || !args)
     goto tidy;
   
-  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  e = RASQAL_CALLOC(rasqal_expression*, 1, sizeof(*e));
   if(e) {
     e->usage = 1;
     e->world = world;
@@ -562,7 +562,7 @@ rasqal_new_group_concat_expression(rasqal_world* world,
   if(!world || !args)
     goto tidy;
   
-  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  e = RASQAL_CALLOC(rasqal_expression*, 1, sizeof(*e));
   if(e) {
     e->usage = 1;
     e->world = world;
@@ -2187,8 +2187,7 @@ rasqal_expression_convert_aggregate_to_variable(rasqal_expression* e_in,
   world = e_in->world;
   
   if(e_out) {
-    *e_out = (rasqal_expression*)RASQAL_MALLOC(rasqal_expression,
-                                               sizeof(**e_out));
+    *e_out = RASQAL_MALLOC(rasqal_expression*, sizeof(**e_out));
     if(!*e_out)
       goto tidy;
   }
@@ -2243,7 +2242,7 @@ rasqal_new_evaluation_context(rasqal_world* world,
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
-  eval_context = (rasqal_evaluation_context*)RASQAL_CALLOC(rasqal_evaluation_context, 1, sizeof(*eval_context));
+  eval_context = RASQAL_CALLOC(rasqal_evaluation_context*, 1, sizeof(*eval_context));
   if(!eval_context)
     return NULL;
   

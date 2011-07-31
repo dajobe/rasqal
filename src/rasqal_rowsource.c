@@ -74,8 +74,7 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
   if(handler->version < 1 || handler->version > 1)
     return NULL;
 
-  rowsource = (rasqal_rowsource*)RASQAL_CALLOC(rasqal_rowsource, 1,
-                                               sizeof(rasqal_rowsource));
+  rowsource = RASQAL_CALLOC(rasqal_rowsource*, 1, sizeof(*rowsource));
   if(!rowsource) {
     if(handler->finish)
       handler->finish(NULL, user_data);
