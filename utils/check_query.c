@@ -90,7 +90,7 @@ static char *program = NULL;
 #define HELP_PAD "\n      "
 #endif
 
-#define GETOPT_STRING "dD:F:hl:N:q:r:v"
+#define GETOPT_STRING "dD:F:hl:N:q:Q:r:v"
 
 #ifdef HAVE_GETOPT_LONG
 
@@ -101,11 +101,11 @@ static struct option long_options[] =
   {"default-graph", 1, 0, 'D'},
   {"format", 1, 0, 'F'},
   {"help", 0, 0, 'h'},
-  {"language", 0, 0, 'l'},
+  {"language", 1, 0, 'l'},
   {"named-graph", 1, 0, 'N'},
-  {"query", 0, 0, 'q'},
-  {"query-base-uri", 0, 0, 'Q'},
-  {"result", 0, 0, 'r'},
+  {"query", 1, 0, 'q'},
+  {"query-base-uri", 1, 0, 'Q'},
+  {"result", 1, 0, 'r'},
   {"version", 0, 0, 'v'},
   {NULL, 0, 0, 0}
 };
@@ -814,11 +814,14 @@ main(int argc, char *argv[])
     puts(rasqal_home_url_string);
 
     puts("\nNormal operation is to execute the query in the QUERY-FILE and\ncompare to the query results in RESULT-FILE.");
-    puts("\nMain options:");
+    puts("\nOptions:");
     puts(HELP_TEXT("d", "debug              ", "Increase debug message level"));
-    puts(HELP_TEXT("q", "query QUERY-FILE   ", "Execute query in file QUERY-FILE"));
-    puts(HELP_TEXT("Q", "query-base-uri URI ", "Set the base URI for the query"));
-    puts(HELP_TEXT("r", "result RESULTS-FILE", "Compare to result in file RESULTS-FILE"));
+    puts(HELP_TEXT("D URI", "default-graph URI ", "Use URI as the default graph in the dataset"));
+    puts(HELP_TEXT("F", "format NAME        ", "Set the data source format NAME (default: guess)"));
+    puts(HELP_TEXT("N URI", "named-graph URI    ", "Add named graph URI to dataset"));
+    puts(HELP_TEXT("q FILE", "query QUERY-FILE   ", "Execute query in file QUERY-FILE"));
+    puts(HELP_TEXT("Q URI", "query-base-uri URI ", "Set the base URI for the query"));
+    puts(HELP_TEXT("r FILE", "result FILE", "Compare to result in file RESULTS-FILE"));
     puts(HELP_TEXT("h", "help               ", "Print this help, then exit"));
     puts(HELP_TEXT("v", "version            ", "Print the Rasqal version"));
 
