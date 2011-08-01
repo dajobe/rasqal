@@ -376,8 +376,7 @@ new_compare_query_results(rasqal_world* world,
 {
   compare_query_results* cqr;
   
-  cqr = (compare_query_results*)RASQAL_CALLOC(compare_query_results, 
-                                              1, sizeof(*cqr));
+  cqr = RASQAL_CALLOC(compare_query_results*, 1, sizeof(*cqr));
   if(!cqr)
     return NULL;
 
@@ -547,7 +546,7 @@ compare_query_results_compare(compare_query_results* cqr)
         raptor_free_iostream(string_iostr);
 
         cqr->message.level = RAPTOR_LOG_LEVEL_ERROR;
-        cqr->message.text = string;
+        cqr->message.text = (const char*)string;
         if(cqr->log_handler)
           cqr->log_handler(cqr->log_user_data, &cqr->message);
 
