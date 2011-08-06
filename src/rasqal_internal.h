@@ -1670,6 +1670,9 @@ int rasqal_engine_rowsort_calculate_order_values(rasqal_query* query, rasqal_row
 /* New query engine based on executing over query algebra */
 extern const rasqal_query_execution_factory rasqal_query_engine_algebra;
 
+/* rasqal_iostream.c */
+raptor_iostream* rasqal_new_iostream_from_stringbuffer(raptor_world *raptor_world_ptr, raptor_stringbuffer* sb);
+
 /* rasqal_triples_source.c */
 void rasqal_triples_source_error_handler(rasqal_query* rdf_query, raptor_locator* locator, const char* message);
 
