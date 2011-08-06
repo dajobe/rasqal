@@ -269,28 +269,26 @@ rasqal_service_content_type_handler(raptor_www* www, void* userdata,
 
 
 /**
- * rasqal_service_execute:
+ * rasqal_service_execute_as_rowsource:
  * @svc: rasqal service
  *
- * Execute a rasqal sparql protocol service
+ * INTERNAL - Execute a rasqal sparql protocol service to a rowsurce
  *
  * Return value: query results or NULL on failure
  */
-rasqal_query_results*
-rasqal_service_execute(rasqal_service* svc)
+rasqal_rowsource*
+rasqal_service_execute_as_rowsource(rasqal_service* svc,
+                                    rasqal_variables_table* vars_table)
 {
-  rasqal_query_results* results = NULL;
-  unsigned char* result_string = NULL;
-  size_t result_length;
   raptor_iostream* read_iostr = NULL;
   raptor_uri* read_base_uri = NULL;
-  rasqal_variables_table* vars_table = NULL;
   rasqal_query_results_formatter* read_formatter = NULL;
   raptor_uri* retrieval_uri = NULL;
   raptor_stringbuffer* uri_sb = NULL;
   size_t len;
   unsigned char* str;
   raptor_world* raptor_world_ptr = rasqal_world_get_raptor(svc->world);
+  rasqal_rowsource* rowsource = NULL;
   
   if(!svc->www) {
     svc->www = raptor_new_www(raptor_world_ptr);
@@ -413,6 +411,90 @@ rasqal_service_execute(rasqal_service* svc)
     goto error;
   }
 
+  /* Takes ownership of svc->sb */
+  read_iostr = rasqal_new_iostream_from_stringbuffer(raptor_world_ptr,
+                                                     svc->sb);
+  svc->sb = NULL;
+  if(!read_iostr) {
+    rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                            "Failed to create iostream from string");
+    goto error;
+  }
+    
+  read_base_uri = svc->final_uri ? svc->final_uri : svc->service_uri;
+  read_formatter = rasqal_new_query_results_formatter(svc->world,
+                                                      /* format name */ NULL,
+                                                      svc->content_type,
+                                                      /* format URI */ NULL);
+  if(!read_formatter) {
+    rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                            "Failed to create query formatter for type %s",
+                            svc->content_type);
+    goto error;
+  }
+
+  /* Takes ownership of read_iostr with flags = 1 */
+  rowsource = rasqal_query_results_formatter_get_read_rowsource(svc->world,
+                                                                read_iostr,
+                                                                read_formatter,
+                                                                vars_table,
+                                                                read_base_uri,
+                                                                /* flags */ 1);
+  read_iostr = NULL;
+  if(!rowsource) {
+    rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                            "Failed to get rowsource from query formatter");
+    goto error;
+  }
+
+
+  error:
+  if(retrieval_uri)
+    raptor_free_uri(retrieval_uri);
+
+  if(uri_sb)
+    raptor_free_stringbuffer(uri_sb);
+
+  if(read_formatter)
+    rasqal_free_query_results_formatter(read_formatter);
+
+  if(read_iostr)
+    raptor_free_iostream(read_iostr);
+
+  if(svc->final_uri) {
+    raptor_free_uri(svc->final_uri);
+    svc->final_uri = NULL;
+  }
+
+  if(svc->content_type) {
+    RASQAL_FREE(char*, svc->content_type);
+    svc->content_type = NULL;
+  }
+
+  if(svc->sb) {
+    raptor_free_stringbuffer(svc->sb);
+    svc->sb = NULL;
+  }
+  
+  return rowsource;
+}
+
+
+/**
+ * rasqal_service_execute:
+ * @svc: rasqal service
+ *
+ * Execute a rasqal sparql protocol service
+ *
+ * Return value: query results or NULL on failure
+ */
+rasqal_query_results*
+rasqal_service_execute(rasqal_service* svc)
+{
+  rasqal_query_results* results = NULL;
+  rasqal_variables_table* vars_table = NULL;
+  rasqal_rowsource* rowsource = NULL;
+
   vars_table = rasqal_new_variables_table(svc->world);
   if(!vars_table) {
     rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
@@ -432,73 +514,20 @@ rasqal_service_execute(rasqal_service* svc)
     goto error;
   }
   
-  result_length = raptor_stringbuffer_length(svc->sb);  
-  result_string = raptor_stringbuffer_as_string(svc->sb);
-  read_iostr = raptor_new_iostream_from_string(raptor_world_ptr,
-                                               result_string, result_length);
-  if(!read_iostr) {
-    rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Failed to create iostream from string");
-    rasqal_free_query_results(results);
-    results = NULL;
-    goto error;
-  }
-    
-  read_base_uri = svc->final_uri ? svc->final_uri : svc->service_uri;
-  read_formatter = rasqal_new_query_results_formatter(svc->world,
-                                                      /* format name */ NULL,
-                                                      svc->content_type,
-                                                      /* format URI */ NULL);
-  if(!read_formatter) {
-    rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Failed to create query formatter for type %s",
-                            svc->content_type);
-    rasqal_free_query_results(results);
-    results = NULL;
-    goto error;
-  }
+  vars_table = rasqal_query_results_get_variables_table(results);
 
-  if(rasqal_query_results_formatter_read(svc->world,
-                                         read_iostr, read_formatter,
-                                         results, read_base_uri)) {
-    rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Failed to read from query formatter");
-    rasqal_free_query_results(results);
-    results = NULL;
-    goto error;
+  rowsource = rasqal_service_execute_as_rowsource(svc, vars_table);
+  while(1) {
+    rasqal_row* row = rasqal_rowsource_read_row(rowsource);
+    if(!row)
+      break;
+    rasqal_query_results_add_row(results, row);
   }
 
 
   error:
-  if(retrieval_uri)
-    raptor_free_uri(retrieval_uri);
+  if(rowsource)
+    rasqal_free_rowsource(rowsource);
 
-  if(uri_sb)
-    raptor_free_stringbuffer(uri_sb);
-
-  if(read_formatter)
-    rasqal_free_query_results_formatter(read_formatter);
-  
-  if(read_iostr)
-    raptor_free_iostream(read_iostr);
-  
-  if(vars_table)
-    rasqal_free_variables_table(vars_table);
-
-  if(svc->final_uri) {
-    raptor_free_uri(svc->final_uri);
-    svc->final_uri = NULL;
-  }
-
-  if(svc->content_type) {
-    RASQAL_FREE(char*, svc->content_type);
-    svc->content_type = NULL;
-  }
-
-  if(svc->sb) {
-    raptor_free_stringbuffer(svc->sb);
-    svc->sb = NULL;
-  }
-  
   return results;
 }
