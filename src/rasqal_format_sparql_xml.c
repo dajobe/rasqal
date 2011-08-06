@@ -45,7 +45,7 @@
 
 
 static int rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter, raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
-static rasqal_rowsource* rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* formatter, rasqal_world *world, rasqal_variables_table* vars_table, raptor_iostream *iostr, raptor_uri *base_uri);
+static rasqal_rowsource* rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* formatter, rasqal_world *world, rasqal_variables_table* vars_table, raptor_iostream *iostr, raptor_uri *base_uri, unsigned int flags);
 
 
 #if RASQAL_DEBUG > 1
@@ -496,6 +496,8 @@ typedef struct
   /* Variables table allocated for variables in the result set */
   rasqal_variables_table* vars_table;
   int variables_count;
+
+  unsigned int flags;
 } rasqal_rowsource_sparql_xml_context;
   
 
@@ -813,6 +815,11 @@ rasqal_rowsource_sparql_xml_finish(rasqal_rowsource* rowsource, void *user_data)
   if(con->vars_table)
     rasqal_free_variables_table(con->vars_table);
 
+  if(con->flags) {
+    if(con->iostr)
+      raptor_free_iostream(con->iostr);
+  }
+
   RASQAL_FREE(rasqal_rowsource_sparql_xml_context, con);
 
   return 0;
@@ -918,7 +925,8 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* fo
                                               rasqal_world *world,
                                               rasqal_variables_table* vars_table,
                                               raptor_iostream *iostr,
-                                              raptor_uri *base_uri)
+                                              raptor_uri *base_uri,
+                                              unsigned int flags)
 {
   rasqal_rowsource_sparql_xml_context* con;
   
@@ -935,6 +943,8 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* fo
   con->sax2 = raptor_new_sax2(world->raptor_world_ptr, &con->locator, con);
   if(!con->sax2)
     return NULL;
+
+  con->flags = flags;
   
   raptor_sax2_set_start_element_handler(con->sax2,
                                         rasqal_sparql_xml_sax2_start_element_handler);

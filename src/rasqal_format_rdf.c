@@ -115,6 +115,8 @@ typedef struct
   /* Variables table allocated for variables in the result set */
   rasqal_variables_table* vars_table;
   int variables_count;
+
+  unsigned int flags;
 } rasqal_rowsource_rdf_context;
 
 
@@ -463,6 +465,11 @@ rasqal_rowsource_rdf_finish(rasqal_rowsource* rowsource, void *user_data)
   if(con->ds)
     rasqal_free_dataset(con->ds);
 
+  if(con->flags) {
+    if(con->iostr)
+      raptor_free_iostream(con->iostr);
+  }
+
   RASQAL_FREE(rasqal_rowsource_rdf_context, con);
 
   return 0;
@@ -767,7 +774,8 @@ rasqal_query_results_rdf_get_rowsource(rasqal_query_results_formatter* formatter
                                        rasqal_world *world,
                                        rasqal_variables_table* vars_table,
                                        raptor_iostream *iostr,
-                                       raptor_uri *base_uri)
+                                       raptor_uri *base_uri,
+                                       unsigned int flags)
 {
   rasqal_rowsource_rdf_context* con;
   
@@ -779,6 +787,7 @@ rasqal_query_results_rdf_get_rowsource(rasqal_query_results_formatter* formatter
   con->formatter = formatter;
   con->base_uri = base_uri ? raptor_uri_copy(base_uri) : NULL;
   con->iostr = iostr;
+  con->flags = flags;
 
   con->results_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, (raptor_data_print_handler)rasqal_row_print);
 
