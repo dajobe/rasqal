@@ -207,7 +207,7 @@ typedef struct {
 
   int wildcard:1;
 
-  int distinct;
+  unsigned int distinct;
 } rasqal_projection;  
 
 
