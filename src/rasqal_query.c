@@ -2243,7 +2243,6 @@ rasqal_query_store_select_graph_pattern(rasqal_query* query,
 
   query->verb = RASQAL_QUERY_VERB_SELECT;
 
-  /* FIXME - this entire function peeks inside 'gp' */
   rasqal_query_set_projection(query, gp->projection);
   gp->projection = NULL;
 
