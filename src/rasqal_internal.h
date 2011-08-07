@@ -1256,7 +1256,7 @@ rasqal_variable* rasqal_query_get_variable_by_offset(rasqal_query* query, int id
 const rasqal_query_execution_factory* rasqal_query_get_engine_by_name(const char* name);
 int rasqal_query_variable_is_bound(rasqal_query* query, rasqal_variable* v);
 rasqal_triple_parts rasqal_query_variable_bound_in_triple(rasqal_query* query, rasqal_variable* v, int column);
-int rasqal_query_store_select_graph_pattern(rasqal_query* query, rasqal_graph_pattern *gp);
+int rasqal_query_store_select_query(rasqal_query* query, rasqal_projection* projection, raptor_sequence* data_graphs, rasqal_graph_pattern* where_gp, rasqal_solution_modifier* modifier);
 rasqal_projection* rasqal_query_get_projection(rasqal_query* query);
 int rasqal_query_set_projection(rasqal_query* query, rasqal_projection* projection);
 

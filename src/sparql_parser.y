@@ -525,7 +525,23 @@ ExplainOpt: EXPLAIN
 /* NEW Grammar Term pulled out of Query */
 ReportFormat: SelectQuery
 {
-  rasqal_query_store_select_graph_pattern(((rasqal_query*)rq), $1);
+  raptor_sequence* seq;
+  rasqal_graph_pattern* where_gp;
+
+  /* Query graph pattern is first GP inside sequence of sub-GPs */
+  seq = rasqal_graph_pattern_get_sub_graph_pattern_sequence($1);
+  where_gp = (rasqal_graph_pattern*)raptor_sequence_delete_at(seq, 0);
+
+  rasqal_query_store_select_query(((rasqal_query*)rq),
+                                  $1->projection,
+                                  $1->data_graphs,
+                                  where_gp,
+                                  $1->modifier);
+  $1->projection = NULL;
+  $1->data_graphs = NULL;
+  $1->modifier = NULL;
+
+  rasqal_free_graph_pattern($1);
 }
 |  ConstructQuery
 {
