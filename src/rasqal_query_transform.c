@@ -308,7 +308,7 @@ rasqal_query_remove_duplicate_select_vars(rasqal_query* rq,
   
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG1("bound variables before deduping: "); 
-  raptor_sequence_print(rq->selects, DEBUG_FH);
+  raptor_sequence_print(seq, DEBUG_FH);
   fputs("\n", DEBUG_FH); 
 #endif
 
@@ -1136,7 +1136,7 @@ rasqal_query_prepare_common(rasqal_query *query)
   if(!query->triples)
     goto done;
   
-  /* turn SELECT $a, $a into SELECT $a - editing query->selects */
+  /* turn SELECT $a, $a into SELECT $a - editing the projection */
   projection = rasqal_query_get_projection(query);
   if(projection) {
     if(rasqal_query_remove_duplicate_select_vars(query, projection))
