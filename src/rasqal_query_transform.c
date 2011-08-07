@@ -49,7 +49,7 @@
 #define DEBUG_FH stderr
 
 /* prototype for later */
-static int rasqal_query_build_variables_use_map(rasqal_query* query);
+static int rasqal_query_build_variables_use_map(rasqal_query* query, rasqal_projection* projection);
 static int rasqal_query_graph_build_variables_use_map_binds(rasqal_graph_pattern* gp, unsigned short* vars_scope);
 static void rasqal_query_expression_build_variables_use_map(unsigned short *use_map, rasqal_expression* e);
 static void rasqal_query_let_build_variables_use_map(rasqal_query* query, unsigned short *use_map, rasqal_expression* e);
@@ -254,26 +254,17 @@ rasqal_query_expand_wildcards(rasqal_query* rq)
 {
   int i;
   int size;
-  
+
   if(rq->verb != RASQAL_QUERY_VERB_SELECT || !rq->wildcard)
     return 0;
   
   /* If 'SELECT *' was given, make the selects be a list of all variables */
-  rq->selects = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
-                                    (raptor_data_print_handler)rasqal_variable_print);
-  if(!rq->selects)
-    return 1;
-  
   size = rasqal_variables_table_get_named_variables_count(rq->vars_table);
   for(i = 0; i < size; i++) {
     rasqal_variable* v = rasqal_variables_table_get(rq->vars_table, i);
 
-    v = rasqal_new_variable_from_variable(v);
-    if(raptor_sequence_push(rq->selects, v))
-      return 1;
+    rasqal_query_add_variable(rq, v);
   }
-
-  rq->select_variables_count = size;
 
   return 0;
 }
@@ -290,14 +281,19 @@ rasqal_query_expand_wildcards(rasqal_query* rq)
  * Return value: non-0 on failure
  */
 int
-rasqal_query_remove_duplicate_select_vars(rasqal_query* rq)
+rasqal_query_remove_duplicate_select_vars(rasqal_query* rq,
+                                          rasqal_projection* projection)
 {
   int i;
   int modified = 0;
   int size;
-  raptor_sequence* seq = rq->selects;
+  raptor_sequence* seq;
   raptor_sequence* new_seq;
-  
+
+  if(!projection)
+    return 1;
+
+  seq = projection->variables;
   if(!seq)
     return 1;
 
@@ -353,9 +349,8 @@ rasqal_query_remove_duplicate_select_vars(rasqal_query* rq)
     raptor_sequence_print(new_seq, DEBUG_FH);
     fputs("\n", DEBUG_FH); 
 #endif
-    raptor_free_sequence(rq->selects);
-    rq->selects = new_seq;
-    rq->select_variables_count = raptor_sequence_size(rq->selects);
+    raptor_free_sequence(projection->variables);
+    projection->variables = new_seq;
   } else
     raptor_free_sequence(new_seq);
 
@@ -1053,14 +1048,15 @@ rasqal_query_prepare_count_graph_patterns(rasqal_query* query,
  * Return value: non-0 on failure
  */
 int
-rasqal_query_build_variables_use(rasqal_query* query)
+rasqal_query_build_variables_use(rasqal_query* query,
+                                 rasqal_projection* projection)
 {
   int rc;
   
   /* create query->variables_use_map that marks where a variable is 
    * mentioned, bound or used in a graph pattern.
    */
-  rc = rasqal_query_build_variables_use_map(query); 
+  rc = rasqal_query_build_variables_use_map(query, projection);
   if(rc)
     return rc;
   
@@ -1135,13 +1131,15 @@ int
 rasqal_query_prepare_common(rasqal_query *query)
 {
   int rc = 1;
+  rasqal_projection* projection;
 
   if(!query->triples)
     goto done;
   
   /* turn SELECT $a, $a into SELECT $a - editing query->selects */
-  if(query->selects) {
-    if(rasqal_query_remove_duplicate_select_vars(query))
+  projection = rasqal_query_get_projection(query);
+  if(projection) {
+    if(rasqal_query_remove_duplicate_select_vars(query, projection))
       goto done;
   }
 
@@ -1218,7 +1216,7 @@ rasqal_query_prepare_common(rasqal_query *query)
                                      rasqal_query_prepare_count_graph_patterns,
                                      query->graph_patterns_sequence);
 
-    rc = rasqal_query_build_variables_use(query);
+    rc = rasqal_query_build_variables_use(query, projection);
     if(rc)
       goto done;
     
@@ -2083,7 +2081,8 @@ rasqal_query_build_expressions_sequence_use_map_row(unsigned short* use_map_row,
  * Return value: non-0 on failure
  **/
 static int
-rasqal_query_build_variables_use_map(rasqal_query* query)
+rasqal_query_build_variables_use_map(rasqal_query* query,
+                                     rasqal_projection* projection)
 {
   int width;
   int height;
@@ -2127,7 +2126,7 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
     case RASQAL_QUERY_VERB_SELECT:
       /* This also handles 1a) select/project expressions */
       rc = rasqal_query_build_variables_sequence_use_map_row(use_map_row,
-                                                             query->selects);
+                                                             projection->variables);
       break;
   
     case RASQAL_QUERY_VERB_DESCRIBE:

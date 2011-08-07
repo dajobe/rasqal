@@ -201,8 +201,7 @@ rasqal_free_query(rasqal_query* query)
 
   if(query->data_graphs)
     raptor_free_sequence(query->data_graphs);
-  if(query->selects)
-    raptor_free_sequence(query->selects);
+
   if(query->describes)
     raptor_free_sequence(query->describes);
 
@@ -737,18 +736,7 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
     if(!query->projection)
       return 1;
   }
-  rasqal_projection_add_variable(query->projection, var);
-
-  /* reference to var for sequence */
-  var = rasqal_new_variable_from_variable(var);
-  if(!query->selects) {
-    query->selects = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
-                                         (raptor_data_print_handler)rasqal_variable_print);
-    if(!query->selects)
-      return 1;
-  }
-
-  return raptor_sequence_push(query->selects, (void*)var);
+  return rasqal_projection_add_variable(query->projection, var);
 }
 
 
@@ -2216,7 +2204,6 @@ int
 rasqal_query_store_select_graph_pattern(rasqal_query* query,
                                         rasqal_graph_pattern *gp)
 {
-  rasqal_projection *projection;
   raptor_sequence* seq;
   rasqal_graph_pattern *where_gp;
 
@@ -2227,17 +2214,13 @@ rasqal_query_store_select_graph_pattern(rasqal_query* query,
     return 1;
 
   query->verb = RASQAL_QUERY_VERB_SELECT;
-  
+
   /* FIXME - this entire function peeks inside 'projection' and 'gp' */
-  projection = gp->projection;
-
-  query->selects = projection->variables;
-  projection->variables = NULL;
-
-  if(projection->wildcard)
+  if(gp->projection->wildcard)
     query->wildcard = 1;
 
-  rasqal_query_set_distinct(query, projection->distinct);
+  rasqal_query_set_projection(query, gp->projection);
+  gp->projection = NULL;
 
   /* Query graph pattern is first GP inside sequence of sub-GPs */
   seq = rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);

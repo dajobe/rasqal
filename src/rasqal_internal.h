@@ -384,9 +384,11 @@ struct rasqal_query_s {
   
   /* the query verb - in SPARQL terms: SELECT, CONSTRUCT, DESCRIBE or ASK */
   rasqal_query_verb verb;
-  
+
+  /* WAS: selects - sequence of rasqal_variable# */
+  raptor_sequence* unused10;     /* ... rasqal_variable* names only */
+
   /* sequences of ... */
-  raptor_sequence* selects;     /* ... rasqal_variable* names only */
   raptor_sequence* data_graphs; /* ... rasqal_data_graph*          */
   /* NOTE: Cannot assume that triples are in any of 
    * graph pattern use / query execution / document order 
@@ -414,10 +416,10 @@ struct rasqal_query_s {
 
   rasqal_variables_table* vars_table;
 
-  /* The number of selected variables: these are always the first
+  /* WAS: The number of selected variables: these are always the first
    * in the variables table and are the ones returend to the user.
    */
-  int select_variables_count;
+  int unused11;
 
   /* INTERNAL 2D array of:
    *   width (number of total variables)
@@ -1083,8 +1085,8 @@ int rasqal_query_expand_graph_pattern_constraints_qnames(rasqal_query* rq, rasqa
 int rasqal_query_expand_query_constraints_qnames(rasqal_query* rq);
 int rasqal_query_build_anonymous_variables(rasqal_query* rq);
 int rasqal_query_expand_wildcards(rasqal_query* rq);
-int rasqal_query_remove_duplicate_select_vars(rasqal_query* rq);
-int rasqal_query_build_variables_use(rasqal_query* query);
+int rasqal_query_remove_duplicate_select_vars(rasqal_query* rq, rasqal_projection* projection);
+int rasqal_query_build_variables_use(rasqal_query* query, rasqal_projection* projection);
 int rasqal_query_prepare_common(rasqal_query *query);
 int rasqal_query_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
 int rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
