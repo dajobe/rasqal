@@ -842,9 +842,9 @@ rasqal_query_has_variable(rasqal_query* query, const unsigned char *name)
  * @name: #rasqal_variable variable
  * @value: #rasqal_literal value to set or NULL
  *
- * Add a binding variable to the query.
+ * Bind an existing variable to a value to the query.
  *
- * See also rasqal_query_add_variable which adds a new binding variable
+ * See also rasqal_query_add_variable() which adds a new binding variable
  * and must be called before this method is invoked.
  *
  * Return value: non-0 on failure
@@ -853,26 +853,11 @@ int
 rasqal_query_set_variable(rasqal_query* query, const unsigned char *name,
                           rasqal_literal* value)
 {
-  int i;
-
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(name, char*, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(value, rasqal_literal, 1);
 
-  if(!query->selects)
-    return 1;
-  
-  for(i = 0; i< raptor_sequence_size(query->selects); i++) {
-    rasqal_variable* v;
-    v = (rasqal_variable*)raptor_sequence_get_at(query->selects, i);
-    if(!strcmp((const char*)v->name, (const char*)name)) {
-      if(v->value)
-        rasqal_free_literal(v->value);
-      v->value = value;
-      return 0;
-    }
-  }
-  return 1;
+  return rasqal_variables_table_set(query->vars_table, name, value);
 }
 
 
