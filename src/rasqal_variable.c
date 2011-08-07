@@ -323,32 +323,29 @@ rasqal_free_variables_table(rasqal_variables_table* vt)
 
 
 /**
- * rasqal_variables_table_add:
+ * rasqal_variables_table_add_variable:
  * @vt: #rasqal_variables_table to associate the variable with
- * @type: variable type defined by enumeration rasqal_variable_type
- * @name: variable name
- * @value: variable #rasqal_literal value (or NULL)
+ * @variable: existing variable to add
  *
- * Constructor - Create a new variable and add it to the variables table
- * 
- * The @name and @value become owned by the rasqal_variable structure
+ * Constructor - Add an existing variable to the variables table
  *
- * Return value: a new #rasqal_variable or NULL on failure.
+ * The variables table @vt takes a reference to @variable.  This
+ * function will fail if the variable is already in the table.  Use
+ * rasqal_variables_table_has() to check before calling.
+ *
+ * Return value: non-0 on failure (such as name already exists)
  **/
-rasqal_variable*
-rasqal_variables_table_add(rasqal_variables_table* vt,
-                           rasqal_variable_type type, 
-                           const unsigned char *name, rasqal_literal *value)
+int
+rasqal_variables_table_add_variable(rasqal_variables_table* vt,
+                                    rasqal_variable* variable)
 {
-  int i;
-  rasqal_variable* v;
   raptor_sequence* seq = NULL;
   int* count_p = NULL;
 
   if(!vt)
-    return NULL;
+    return 1;
   
-  switch(type) {
+  switch(variable->type) {
     case RASQAL_VARIABLE_TYPE_ANONYMOUS:
       seq = vt->anon_variables_sequence;
       count_p = &vt->anon_variables_count;
@@ -360,67 +357,106 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
       
     case RASQAL_VARIABLE_TYPE_UNKNOWN:
     default:
-      RASQAL_DEBUG2("Unknown variable type %d", type);
-      return NULL;
+      RASQAL_DEBUG2("Unknown variable type %d", variable->type);
+      return 1;
   }
   
-  for(i = 0; i < raptor_sequence_size(seq); i++) {
-    v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
-
-    if(!strcmp((const char*)v->name, (const char*)name)) {
-      /* variable with this name already present */
-      RASQAL_FREE(char*, name);
-      return rasqal_new_variable_from_variable(v);
-    }
-  }
-
+  if(rasqal_variables_table_has(vt, variable->name))
+    /* variable with this name already present - error */
+    return 1;
   
-  v = RASQAL_CALLOC(rasqal_variable*, 1, sizeof(*v));
-  if(v) {
-    v->usage = 1;
-    
-    v->vars_table = vt;
-    v->type = type;
-    v->name = name;
-    v->value = value;
-    if(count_p)
-      v->offset = (*count_p);
+  /* add a new v reference for the variables table's sequence */
+  variable = rasqal_new_variable_from_variable(variable);
+  if(raptor_sequence_push(seq, variable))
+    return 1;
 
-    /* add one v reference for sequence, leaving one reference for returned v */
-    v = rasqal_new_variable_from_variable(v);
-    if(seq && raptor_sequence_push(seq, v))
-      return NULL;
+  variable->offset = (*count_p);
 
-    if(type == RASQAL_VARIABLE_TYPE_ANONYMOUS) {
-      /* new anon variable: add base offset */
-      v->offset += vt->variables_count;
-    } else {
-      /* new normal variable: move all anon variable offsets up 1 */
-      for(i = 0; i < vt->anon_variables_count; i++) {
-        rasqal_variable* anon_v;
-        anon_v = (rasqal_variable*)raptor_sequence_get_at(vt->anon_variables_sequence, i);
-        anon_v->offset++;
-      }
-    }
-    
+  (*count_p)++;
 
-    /* Increment count and free var names only after sequence push succeeded */
-    if(count_p)
-      (*count_p)++;
-
-    if(vt->variable_names) {
-      RASQAL_FREE(cstrings, vt->variable_names);
-      vt->variable_names = NULL;
-    }
+  if(variable->type == RASQAL_VARIABLE_TYPE_ANONYMOUS) {
+    /* new anon variable: add base offset */
+    variable->offset += vt->variables_count;
   } else {
+    int i;
+
+    /* new normal variable: move all anon variable offsets up 1 */
+    for(i = 0; i < vt->anon_variables_count; i++) {
+      rasqal_variable* anon_v;
+      anon_v = (rasqal_variable*)raptor_sequence_get_at(vt->anon_variables_sequence, i);
+      anon_v->offset++;
+    }
+  }
+
+  if(vt->variable_names) {
+    RASQAL_FREE(cstrings, vt->variable_names);
+    vt->variable_names = NULL;
+  }
+    
+  return 0;
+}
+
+
+/**
+ * rasqal_variables_table_add:
+ * @vt: #rasqal_variables_table to associate the variable with
+ * @type: variable type defined by enumeration rasqal_variable_type
+ * @name: variable name
+ * @value: variable #rasqal_literal value (or NULL)
+ *
+ * Constructor - Create a new variable and add it to the variables table
+ * 
+ * The @name and @value become owned by the rasqal_variable
+ * structure.  If a variable with the name already exists, that is
+ * returned and the new @value is ignored.
+ *
+ * Return value: a new #rasqal_variable or NULL on failure.
+ **/
+rasqal_variable*
+rasqal_variables_table_add(rasqal_variables_table* vt,
+                           rasqal_variable_type type, 
+                           const unsigned char *name, rasqal_literal *value)
+{
+  rasqal_variable* v = NULL;
+
+  if(!vt)
+    goto failed;
+
+  /* If already present, just return a new reference to it */
+  v = rasqal_variables_table_get_by_name(vt, name);
+  if(v) {
     RASQAL_FREE(char*, name);
     if(value)
       rasqal_free_literal(value);
+    return rasqal_new_variable_from_variable(v);
   }
-  
-  return v;
-}
 
+  v = RASQAL_CALLOC(rasqal_variable*, 1, sizeof(*v));
+  if(!v)
+    goto failed;
+
+  v->offset = -1;
+  v->usage = 1;
+  v->vars_table = vt;
+  v->type = type;
+  v->name = name;
+  v->value = value;
+  
+  if(rasqal_variables_table_add_variable(vt, v))
+    goto failed;
+
+  return v;
+
+
+  failed:
+  if(v)
+    RASQAL_FREE(rasqal_variable*, v);
+  
+  RASQAL_FREE(char*, name);
+  if(value)
+    rasqal_free_literal(value);
+  return NULL;
+}
 
 
 rasqal_variable*
