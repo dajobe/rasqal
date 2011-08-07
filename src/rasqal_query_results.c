@@ -941,11 +941,12 @@ rasqal_query_results_get_binding_name(rasqal_query_results* query_results,
     return NULL;
   
   if(query_results->query) {
+    raptor_sequence* seq;
     /* If there is a query, take variable names from the order in the
      * projection not the order inserted into the variables table.
      */
-    v = (rasqal_variable*)raptor_sequence_get_at(query_results->query->selects,
-                                                 offset);
+    seq = rasqal_query_get_bound_variable_sequence(query_results->query);
+    v = (rasqal_variable*)raptor_sequence_get_at(seq, offset);
   } else 
     v = rasqal_variables_table_get(query_results->vars_table, offset);
   

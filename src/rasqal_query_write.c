@@ -1047,7 +1047,8 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
       rasqal_query_write_sparql_literal(&wc, iostr, l);
     }
   } else if(verb == RASQAL_QUERY_VERB_SELECT) {
-    rasqal_query_write_sparql_select(&wc, iostr, query->selects);
+    raptor_sequence* seq = rasqal_query_get_bound_variable_sequence(query);
+    rasqal_query_write_sparql_select(&wc, iostr, seq);
   }
   raptor_iostream_write_byte('\n', iostr);
 

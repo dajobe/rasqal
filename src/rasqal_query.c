@@ -768,7 +768,10 @@ rasqal_query_get_bound_variable_sequence(rasqal_query* query)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
-  return query->selects;
+  if(!query->projection)
+    return NULL;
+  
+  return rasqal_projection_get_variables_sequence(query->projection);
 }
 
 
@@ -1430,9 +1433,10 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
     fputs("\nanonymous variables: ", fh); 
     raptor_sequence_print(seq, fh);
   }
-  if(query->selects) {
+  seq = rasqal_query_get_bound_variable_sequence(query);
+  if(seq) {
     fputs("\nbound variables: ", fh); 
-    raptor_sequence_print(query->selects, fh);
+    raptor_sequence_print(seq, fh);
   }
   if(query->describes) {
     fputs("\ndescribes: ", fh);

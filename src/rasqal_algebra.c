@@ -1659,7 +1659,7 @@ rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
    * expressions into the ae->agg_vars map, replacing them with
    * internal variable names.
    */
-  for(seq = query->selects, i = 0;
+  for(seq = rasqal_query_get_bound_variable_sequence(query), i = 0;
       (v = (rasqal_variable*)raptor_sequence_get_at(seq, i));
       i++) {
     rasqal_expression* expr = v->expression;
@@ -1803,9 +1803,11 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
   
 #if RASQAL_DEBUG
   if(ae->counter) {
-    if(query->selects) {
+    raptor_sequence* seq = rasqal_query_get_bound_variable_sequence(query);
+
+    if(seq) {
       RASQAL_DEBUG1("after aggregate expressions extracted:\n");
-      raptor_sequence_print(query->selects, stderr);
+      raptor_sequence_print(seq, stderr);
       fputs("\n", stderr);
 
       RASQAL_DEBUG1("aggregate expressions:\n");
@@ -2010,7 +2012,7 @@ rasqal_algebra_query_add_projection(rasqal_query* query,
    */
   if(query->verb == RASQAL_QUERY_VERB_SELECT)
     /* project all selected variables */
-    seq = query->selects;
+    seq = rasqal_query_get_bound_variable_sequence(query);
   else if(query->verb == RASQAL_QUERY_VERB_CONSTRUCT) {
     /* project all variables mentioned in CONSTRUCT  */
     seq = rasqal_algebra_get_variables_mentioned_in(query, 
