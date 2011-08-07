@@ -710,15 +710,8 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(var, rasqal_variable, 1);
 
-  if(!query->selects) {
-    query->selects = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
-                                         (raptor_data_print_handler)rasqal_variable_print);
-    if(!query->selects)
-      return 1;
-  }
-
   var = rasqal_new_variable_from_variable(var);
-  return raptor_sequence_push(query->selects, (void*)var);
+  return rasqal_variables_table_add_variable(query->vars_table, var);
 }
 
 
