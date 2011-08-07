@@ -870,7 +870,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   sparql_writer_context wc;
   int limit, offset;
   rasqal_query_verb verb;
-  unsigned int distinct_mode;
+  rasqal_projection* projection;
   
   wc.world = query->world;
   wc.base_uri = NULL;
@@ -1027,16 +1027,19 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_string_write(rasqal_query_verb_as_string(query->verb),
                                  iostr);
 
-  distinct_mode = rasqal_query_get_distinct(query);
-  if(distinct_mode) {
-    if(distinct_mode == 1)
-      raptor_iostream_counted_string_write(" DISTINCT", 9, iostr);
-    else
-      raptor_iostream_counted_string_write(" REDUCED", 8, iostr);
-  }
+  projection = rasqal_query_get_projection(query);
+  if(projection) {
+    if(projection->distinct) {
+      if(projection->distinct == 1)
+        raptor_iostream_counted_string_write(" DISTINCT", 9, iostr);
+      else
+        raptor_iostream_counted_string_write(" REDUCED", 8, iostr);
+    }
 
-  if(query->wildcard)
-    raptor_iostream_counted_string_write(" *", 2, iostr);
+    if(projection->wildcard)
+      raptor_iostream_counted_string_write(" *", 2, iostr);
+  }
+  
   else if(verb == RASQAL_QUERY_VERB_DESCRIBE) {
     raptor_sequence *lit_seq = query->describes;
     int count = raptor_sequence_size(lit_seq);

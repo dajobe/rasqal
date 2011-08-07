@@ -269,7 +269,7 @@ SelectClause : VarList
 | '*'
 {
   $$=NULL;
-  ((rasqal_query*)rq)->wildcard=1;
+  rasqal_query_set_wildcard((rasqal_query*)rq, 1);
 }
 ;
 
@@ -725,7 +725,8 @@ rasqal_rdql_query_language_prepare(rasqal_query* rdf_query) {
     return 1;
 
   /* RDQL: Expand 'SELECT *' */
-  if(rasqal_query_expand_wildcards(rdf_query))
+  if(rasqal_query_expand_wildcards(rdf_query,
+                                   rasqal_query_get_projection(rdf_query)))
     return 1;
   
   return 0;

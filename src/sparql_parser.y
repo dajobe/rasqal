@@ -5230,7 +5230,8 @@ rasqal_sparql_query_language_prepare(rasqal_query* rdf_query)
     return 1;
   
   /* SPARQL: Expand 'SELECT *' */
-  if(rasqal_query_expand_wildcards(rdf_query))
+  if(rasqal_query_expand_wildcards(rdf_query,
+                                   rasqal_query_get_projection(rdf_query)))
     return 1;
   
   return 0;

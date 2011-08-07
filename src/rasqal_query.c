@@ -1590,7 +1590,35 @@ rasqal_query_get_wildcard(rasqal_query* query)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 0);
 
-  return query->wildcard;
+  if(!query->projection)
+    return 0;
+  
+  return query->projection->wildcard;
+}
+
+
+/**
+ * rasqal_query_set_wildcard:
+ * @query: #rasqal_query query object
+ * @wildcard: wildcard
+ *
+ * Set the query projection wildcard flag
+ *
+ **/
+void
+rasqal_query_set_wildcard(rasqal_query* query, int wildcard)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
+
+  if(!query->projection) {
+    query->projection = rasqal_new_projection(query,
+                                              /* variables */ NULL,
+                                              /* wildcard */ 0,
+                                              /* wildcard */ 0);
+    if(!query->projection)
+      return;
+  }
+  query->projection->wildcard = wildcard;
 }
 
 
@@ -2215,10 +2243,7 @@ rasqal_query_store_select_graph_pattern(rasqal_query* query,
 
   query->verb = RASQAL_QUERY_VERB_SELECT;
 
-  /* FIXME - this entire function peeks inside 'projection' and 'gp' */
-  if(gp->projection->wildcard)
-    query->wildcard = 1;
-
+  /* FIXME - this entire function peeks inside 'gp' */
   rasqal_query_set_projection(query, gp->projection);
   gp->projection = NULL;
 

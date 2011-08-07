@@ -250,12 +250,12 @@ rasqal_query_build_anonymous_variables(rasqal_query* rq)
  * Return value: non-0 on failure
  */
 int
-rasqal_query_expand_wildcards(rasqal_query* rq)
+rasqal_query_expand_wildcards(rasqal_query* rq, rasqal_projection* projection)
 {
   int i;
   int size;
 
-  if(rq->verb != RASQAL_QUERY_VERB_SELECT || !rq->wildcard)
+  if(rq->verb != RASQAL_QUERY_VERB_SELECT || !projection->wildcard)
     return 0;
   
   /* If 'SELECT *' was given, make the selects be a list of all variables */

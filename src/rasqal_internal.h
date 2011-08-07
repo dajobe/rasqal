@@ -408,8 +408,8 @@ struct rasqal_query_s {
   /* WAS: result offset OFFSET (>=0) or <0 if not given */
   int unused5;
 
-  /* flag: non-0 if '*' was seen after a verb (the appropriate list such as selects or constructs will be NULL) */
-  int wildcard;
+  /* WAS: wildcard flag; now projection->wildcard  */
+  int unused12;
 
   /* flag: non-0 if query has been prepared */
   int prepared;
@@ -1084,7 +1084,7 @@ int rasqal_query_constraints_has_qname(rasqal_query* gp);
 int rasqal_query_expand_graph_pattern_constraints_qnames(rasqal_query* rq, rasqal_graph_pattern* gp);
 int rasqal_query_expand_query_constraints_qnames(rasqal_query* rq);
 int rasqal_query_build_anonymous_variables(rasqal_query* rq);
-int rasqal_query_expand_wildcards(rasqal_query* rq);
+int rasqal_query_expand_wildcards(rasqal_query* rq, rasqal_projection* projection);
 int rasqal_query_remove_duplicate_select_vars(rasqal_query* rq, rasqal_projection* projection);
 int rasqal_query_build_variables_use(rasqal_query* query, rasqal_projection* projection);
 int rasqal_query_prepare_common(rasqal_query *query);

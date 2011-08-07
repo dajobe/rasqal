@@ -1112,6 +1112,8 @@ rasqal_query_verb rasqal_query_get_verb(rasqal_query* query);
 RASQAL_API
 int rasqal_query_get_wildcard(rasqal_query* query);
 RASQAL_API
+void rasqal_query_set_wildcard(rasqal_query* query, int wildcard);
+RASQAL_API
 int rasqal_query_get_distinct(rasqal_query* query);
 RASQAL_API
 void rasqal_query_set_distinct(rasqal_query* query, int distinct_mode);
