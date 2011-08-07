@@ -689,7 +689,10 @@ SubSelect: SelectClause WhereClause SolutionModifier
 {
   if($1 && $2 && $3)
     $$ = rasqal_new_select_graph_pattern((rasqal_query*)rq,
-                                         $1, $2, $3);
+                                         $1,
+                                         /* data graphs */ NULL,
+                                         $2,
+                                         $3);
   else
     $$ = NULL;
 }

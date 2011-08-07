@@ -219,16 +219,27 @@ rasqal_new_let_graph_pattern(rasqal_query *query,
  * rasqal_new_select_graph_pattern:
  * @query: #rasqal_graph_pattern query object
  * @projection: projection object
+ * @data_graphs: sequence of #rasqal_data_graph (or NULL)
  * @where: WHERE graph pattern
- * @modifiers: solution modifier
+ * @modifier: solution modifier
  *
  * INTERNAL - Create a new SELECT graph pattern
- * 
+ *
+ * The @projection, @data_graphs, @where and @modifier all become owned
+ * by the new graph pattern object.
+ *
+ * Roughly corresponds to:
+ *   SELECT DISTINCT [in @projection] {@projection}
+ *   FROM @data_graphs
+ *   WHERE @where
+ *   GROUP BY (HAVING)/ORDER BY [in @modifier]
+ *
  * Return value: a new #rasqal_graph_pattern object or NULL on failure
  **/
 rasqal_graph_pattern*
 rasqal_new_select_graph_pattern(rasqal_query *query,
                                 rasqal_projection* projection,
+                                raptor_sequence* data_graphs,
                                 rasqal_graph_pattern* where,
                                 rasqal_solution_modifier* modifier)
 {
@@ -251,6 +262,7 @@ rasqal_new_select_graph_pattern(rasqal_query *query,
   }
 
   gp->projection = projection;
+  gp->data_graphs = data_graphs;
   gp->modifier = modifier;
   
   if(rasqal_graph_pattern_add_sub_graph_pattern(gp, where)) {
@@ -324,6 +336,9 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->modifier)
     rasqal_free_solution_modifier(gp->modifier);
 
+  if(gp->data_graphs)
+    raptor_free_sequence(gp->data_graphs);
+  
   RASQAL_FREE(rasqal_graph_pattern, gp);
 }
 
