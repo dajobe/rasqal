@@ -2181,3 +2181,62 @@ rasqal_query_get_result_type(rasqal_query* query)
 
   return type;
 }
+
+
+/*
+ * rasqal_query_store_select_graph_pattern:
+ * @query: query
+ * @gp: SELECT graph pattern
+ *
+ * INTERNAL - store a select graph pattern and write the fields needed
+ *
+ * The query object owns the @gp after this call.
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_query_store_select_graph_pattern(rasqal_query* query,
+                                        rasqal_graph_pattern *gp)
+{
+  rasqal_projection *projection;
+  raptor_sequence* seq;
+  rasqal_graph_pattern *where_gp;
+
+  if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_SELECT)
+    return 1;
+
+  if(!gp->projection || !gp->modifier)
+    return 1;
+
+  query->verb = RASQAL_QUERY_VERB_SELECT;
+  
+  /* FIXME - this entire function peeks inside 'projection' and 'gp' */
+  projection = gp->projection;
+
+  query->selects = projection->variables;
+  projection->variables = NULL;
+
+  if(projection->wildcard)
+    query->wildcard = 1;
+
+  query->distinct = projection->distinct;
+
+  /* Query graph pattern is first GP inside sequence of sub-GPs */
+  seq = rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);
+  where_gp = (rasqal_graph_pattern*)raptor_sequence_delete_at(seq, 0);
+  query->query_graph_pattern = where_gp;
+  
+  if(gp->data_graphs) {
+    rasqal_query_add_data_graphs(query, gp->data_graphs);
+    gp->data_graphs = NULL;
+  }
+
+  if(gp->modifier) {
+    query->modifier = gp->modifier;
+    gp->modifier = NULL;
+  }
+
+  rasqal_free_graph_pattern(gp);
+
+  return 0;
+}

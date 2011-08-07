@@ -1256,6 +1256,7 @@ rasqal_variable* rasqal_query_get_variable_by_offset(rasqal_query* query, int id
 const rasqal_query_execution_factory* rasqal_query_get_engine_by_name(const char* name);
 int rasqal_query_variable_is_bound(rasqal_query* query, rasqal_variable* v);
 rasqal_triple_parts rasqal_query_variable_bound_in_triple(rasqal_query* query, rasqal_variable* v, int column);
+int rasqal_query_store_select_graph_pattern(rasqal_query* query, rasqal_graph_pattern *gp);
 
 /* rasqal_query_results.c */
 int rasqal_init_query_results(void);
