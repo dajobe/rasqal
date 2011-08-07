@@ -245,6 +245,9 @@ rasqal_free_query(rasqal_query* query)
   if(query->bindings)
     rasqal_free_bindings(query->bindings);
   
+  if(query->projection)
+    rasqal_free_projection(query->projection);
+  
   RASQAL_FREE(rasqal_query, query);
 }
 
@@ -2216,5 +2219,48 @@ rasqal_query_store_select_graph_pattern(rasqal_query* query,
 
   rasqal_free_graph_pattern(gp);
 
+  return 0;
+}
+
+
+/*
+ * rasqal_query_get_projection:
+ * @query: #rasqal_query
+ *
+ * INTERNAL - Get the query variable projection
+ *
+ * This may be NULL if the query does not project any variables such
+ * as for CONSTRUCT or ASK queries.
+ *
+ * Return value: projection or NULL.
+ **/
+rasqal_projection*
+rasqal_query_get_projection(rasqal_query* query)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+
+  return query->projection;
+}
+
+
+/*
+ * rasqal_query_set_projection:
+ * @query: #rasqal_query
+ * @projection: variable projection and flags
+ *
+ * INTERNAL - Set the query projection
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_query_set_projection(rasqal_query* query, rasqal_projection* projection)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
+
+  if(query->projection)
+    rasqal_free_projection(query->projection);
+
+  query->projection = projection;
+  
   return 0;
 }
