@@ -697,7 +697,7 @@ rasqal_query_dataset_contains_named_graph(rasqal_query* query,
  * @query: #rasqal_query query object
  * @var: #rasqal_variable variable
  *
- * Add a binding (projected) variable to the query.
+ * Add a projected variable to the query.
  *
  * See also rasqal_query_set_variable() which assigns or removes a value to
  * a previously added variable in the query.
@@ -722,7 +722,7 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
  * rasqal_query_get_bound_variable_sequence:
  * @query: #rasqal_query query object
  *
- * Get the sequence of bound (projected) variables in the query.
+ * Get the sequence of projected variables in the query.
  *
  * This returns the sequence of variables that are explicitly chosen
  * via SELECT in RDQL, SPARQL.  Or all variables mentioned with SELECT *
@@ -797,7 +797,7 @@ rasqal_query_get_all_variable_sequence(rasqal_query* query)
  * @query: #rasqal_query query object
  * @idx: index into the sequence (0 or larger)
  *
- * Get a variable in the sequence of variables to bind.
+ * Get a variable in the query
  *
  * Return value: a #rasqal_variable pointer or NULL if out of range
  **/
@@ -806,9 +806,6 @@ rasqal_query_get_variable(rasqal_query* query, int idx)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
-  if(idx < 0 || idx >= query->select_variables_count)
-    return NULL;
-  
   return rasqal_variables_table_get(query->vars_table, idx);
 }
 
@@ -818,7 +815,7 @@ rasqal_query_get_variable(rasqal_query* query, int idx)
  * @query: #rasqal_query query object
  * @name: variable name
  *
- * Find if the named variable is in the sequence of variables to bind.
+ * Find if the named variable is in the query
  *
  * Return value: non-0 if the variable name was found.
  **/
