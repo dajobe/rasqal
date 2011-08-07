@@ -82,7 +82,7 @@ rasqal_sort_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
   if(con->order_size > 0 ) {
     /* make a row:NULL map in order to sort or do distinct */
-    con->map = rasqal_engine_new_rowsort_map(query->distinct,
+    con->map = rasqal_engine_new_rowsort_map(rasqal_query_get_distinct(query),
                                              query->compare_flags,
                                              order_seq);
     if(!con->map)

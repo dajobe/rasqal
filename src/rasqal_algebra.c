@@ -2067,7 +2067,7 @@ rasqal_algebra_node*
 rasqal_algebra_query_add_distinct(rasqal_query* query,
                                   rasqal_algebra_node* node)
 {
-  if(query->distinct) {
+  if(rasqal_query_get_distinct(query)) {
     node = rasqal_new_distinct_algebra_node(query, node);
 
 #if RASQAL_DEBUG > 1

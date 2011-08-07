@@ -397,13 +397,8 @@ struct rasqal_query_s {
   raptor_sequence* optional_triples; /* ... rasqal_triple*  SPARQL */
   raptor_sequence* describes;   /* ... rasqal_literal* (var or URIs) SPARQL */
 
-  /* DISTINCT mode:
-   * 0 if not given
-   * 1 if DISTINCT: ensure solutions are unique
-   * 2 if SPARQL REDUCED: permit elimination of some non-unique solutions 
-   * otherwise undefined
-   */
-  unsigned int distinct;
+  /* WAS: distinct 0..2; now projection->distinct */
+  unsigned int unused9;
 
   /* WAS: result limit LIMIT (>=0) or <0 if not given */
   int unused4;

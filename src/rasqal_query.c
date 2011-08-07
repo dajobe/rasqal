@@ -428,7 +428,10 @@ rasqal_query_get_distinct(rasqal_query* query)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 0);
 
-  return query->distinct;
+  if(!query->projection)
+    return 0;
+  
+  return query->projection->distinct;
 }
 
 
@@ -450,10 +453,18 @@ rasqal_query_set_distinct(rasqal_query* query, int distinct_mode)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
 
-  if(distinct_mode >= 0 && distinct_mode <= 2)
-    query->distinct= distinct_mode;
-  else
-    query->distinct= 0;
+  if(distinct_mode < 0 || distinct_mode > 2)
+    distinct_mode = 0;
+
+  if(!query->projection) {
+    query->projection = rasqal_new_projection(query,
+                                              /* variables */ NULL,
+                                              /* wildcard */ 0,
+                                              /* distinct */ 0);
+    if(!query->projection)
+      return;
+  }
+  query->projection->distinct = distinct_mode;
 }
 
 
@@ -1376,15 +1387,17 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
 {
   rasqal_variables_table* vars_table = query->vars_table;
   raptor_sequence* seq;
+  unsigned int distinct_mode;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(fh, FILE*, 1);
 
   fprintf(fh, "query verb: %s\n", rasqal_query_verb_as_string(query->verb));
   
-  if(query->distinct)
+  distinct_mode = rasqal_query_get_distinct(query);
+  if(distinct_mode)
     fprintf(fh, "query results distinct mode: %s\n",
-            (query->distinct == 1 ? "distinct" : "reduced"));
+            (distinct_mode == 1 ? "distinct" : "reduced"));
   if(query->explain)
     fputs("query results explain: yes\n", fh);
 
@@ -2211,7 +2224,7 @@ rasqal_query_store_select_graph_pattern(rasqal_query* query,
   if(projection->wildcard)
     query->wildcard = 1;
 
-  query->distinct = projection->distinct;
+  rasqal_query_set_distinct(query, projection->distinct);
 
   /* Query graph pattern is first GP inside sequence of sub-GPs */
   seq = rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);
