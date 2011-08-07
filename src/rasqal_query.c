@@ -810,7 +810,7 @@ rasqal_query_get_variable(rasqal_query* query, int idx)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
-  if(!query->selects || idx < 0 || idx >= query->select_variables_count)
+  if(idx < 0 || idx >= query->select_variables_count)
     return NULL;
   
   return rasqal_variables_table_get(query->vars_table, idx);
