@@ -713,7 +713,6 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(var, rasqal_variable, 1);
 
-  var = rasqal_new_variable_from_variable(var);
   if(rasqal_variables_table_add_variable(query->vars_table, var))
     return 1;
 
@@ -726,7 +725,9 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
       return 1;
   }
   rasqal_projection_add_variable(query->projection, var);
-  
+
+  /* reference to var for sequence */
+  var = rasqal_new_variable_from_variable(var);
   return raptor_sequence_push(query->selects, (void*)var);
 }
 
