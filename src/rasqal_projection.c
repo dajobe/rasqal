@@ -108,3 +108,32 @@ rasqal_projection_get_variables_sequence(rasqal_projection* projection)
   
   return projection->variables;
 }
+
+
+/*
+ * rasqal_projection_add_variable:
+ * @projection: #rasqal_projection object
+ * @var: #rasqal_variable variable
+ *
+ * INTERNAL - add a binding variable to the projection.
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_projection_add_variable(rasqal_projection* projection,
+                               rasqal_variable* var)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(projection, rasqal_projection, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(var, rasqal_variable, 1);
+
+  if(!projection->variables) {
+    projection->variables = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                                                (raptor_data_print_handler)rasqal_variable_print);
+    if(!projection->variables)
+      return 1;
+  }
+
+  var = rasqal_new_variable_from_variable(var);
+
+  return raptor_sequence_push(projection->variables, (void*)var);
+}

@@ -1704,6 +1704,7 @@ int rasqal_bindings_print(rasqal_bindings* bindings, FILE* fh);
 rasqal_projection* rasqal_new_projection(rasqal_query* query, raptor_sequence* variables, int wildcard, int distinct);
 void rasqal_free_projection(rasqal_projection* projection);
 raptor_sequence* rasqal_projection_get_variables_sequence(rasqal_projection* projection);
+int rasqal_projection_add_variable(rasqal_projection* projection, rasqal_variable* var);
 
 
 /* rasqal_solution_modifier.c */
