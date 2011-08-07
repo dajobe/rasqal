@@ -716,6 +716,16 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
   var = rasqal_new_variable_from_variable(var);
   if(rasqal_variables_table_add_variable(query->vars_table, var))
     return 1;
+
+  if(!query->projection) {
+    query->projection = rasqal_new_projection(query,
+                                              /* variables */ NULL,
+                                              /* wildcard */ 0,
+                                              /* distinct */ 0);
+    if(!query->projection)
+      return 1;
+  }
+  rasqal_projection_add_variable(query->projection, var);
   
   return raptor_sequence_push(query->selects, (void*)var);
 }
