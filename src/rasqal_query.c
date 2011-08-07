@@ -697,7 +697,7 @@ rasqal_query_dataset_contains_named_graph(rasqal_query* query,
  * @query: #rasqal_query query object
  * @var: #rasqal_variable variable
  *
- * Add a binding variable to the query.
+ * Add a binding (projected) variable to the query.
  *
  * See also rasqal_query_set_variable() which assigns or removes a value to
  * a previously added variable in the query.
@@ -711,7 +711,10 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(var, rasqal_variable, 1);
 
   var = rasqal_new_variable_from_variable(var);
-  return rasqal_variables_table_add_variable(query->vars_table, var);
+  if(rasqal_variables_table_add_variable(query->vars_table, var))
+    return 1;
+  
+  return raptor_sequence_push(query->selects, (void*)var);
 }
 
 
@@ -719,7 +722,7 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
  * rasqal_query_get_bound_variable_sequence:
  * @query: #rasqal_query query object
  *
- * Get the sequence of variables to bind in the query.
+ * Get the sequence of bound (projected) variables in the query.
  *
  * This returns the sequence of variables that are explicitly chosen
  * via SELECT in RDQL, SPARQL.  Or all variables mentioned with SELECT *
