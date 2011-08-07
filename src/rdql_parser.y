@@ -201,13 +201,22 @@ Document : Query
 
 Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClause UsingClause
 {
-  ((rasqal_query*)rq)->selects=$2;
-  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_SELECT;
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_SELECT;
+
+  if($2) {
+    int i;
+
+    for(i = 0; i < raptor_sequence_size($2); i++) {
+      rasqal_variable* var = (rasqal_variable*)raptor_sequence_get_at($2, i);
+      rasqal_query_add_variable((rasqal_query*)rq, var);
+    }
+    raptor_free_sequence($2);
+  }
 
   if($3) {
     int i;
     
-    for(i=0; i < raptor_sequence_size($3); i++) {
+    for(i = 0; i < raptor_sequence_size($3); i++) {
       raptor_uri* uri = (raptor_uri*)raptor_sequence_get_at($3, i);
       rasqal_data_graph* dg;
       
