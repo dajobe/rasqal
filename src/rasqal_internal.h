@@ -403,7 +403,7 @@ struct rasqal_query_s {
    * 2 if SPARQL REDUCED: permit elimination of some non-unique solutions 
    * otherwise undefined
    */
-  int distinct;
+  unsigned int distinct;
 
   /* WAS: result limit LIMIT (>=0) or <0 if not given */
   int unused4;
