@@ -370,7 +370,7 @@ STRING QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
   if($$)
     raptor_free_sequence($$);
 }
-SelectQuery ConstructQuery DescribeQuery
+ConstructQuery DescribeQuery
 VarOrIRIrefList ArgListNoBraces ArgList
 ConstructTriples ConstructTriplesOpt
 ConstructTemplate OrderConditionList GroupConditionList
@@ -404,6 +404,7 @@ TriplesBlock TriplesBlockOpt
   if($$)
     rasqal_free_graph_pattern($$);
 }
+SelectQuery
 GroupGraphPattern SubSelect GroupGraphPatternSub
 GraphGraphPattern OptionalGraphPattern MinusGraphPattern
 GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
@@ -523,8 +524,7 @@ ExplainOpt: EXPLAIN
 /* NEW Grammar Term pulled out of Query */
 ReportFormat: SelectQuery
 {
-  ((rasqal_query*)rq)->selects = $1;
-  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_SELECT;
+  rasqal_query_store_select_graph_pattern(((rasqal_query*)rq), $1);
 }
 |  ConstructQuery
 {
@@ -666,20 +666,8 @@ SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier
                         "SELECT can only be used with a SPARQL query");
     YYERROR;
   } else {
-    /* FIXME - this peeks inside rasqal_projection */
-    $$ = $1->variables; $1->variables = NULL;
-    if($1->wildcard)
-      ((rasqal_query*)rq)->wildcard = 1;
-    ((rasqal_query*)rq)->distinct = $1->distinct;
-    rasqal_free_projection($1);
-
-    if($2)
-      rasqal_query_add_data_graphs((rasqal_query*)rq, $2);
-
-    ((rasqal_query*)rq)->query_graph_pattern = $3;
-
-    if($4)
-      ((rasqal_query*)rq)->modifier = $4;
+    $$ = rasqal_new_select_graph_pattern((rasqal_query*)rq,
+                                         $1, $2, $3, $4);
   }
 }
 ;
