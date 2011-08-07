@@ -295,7 +295,7 @@ rasqal_query_remove_duplicate_select_vars(rasqal_query* rq,
 
   seq = projection->variables;
   if(!seq)
-    return 1;
+    return 0;
 
   size = raptor_sequence_size(seq);
   if(!size)
