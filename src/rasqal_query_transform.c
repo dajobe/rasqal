@@ -2125,8 +2125,9 @@ rasqal_query_build_variables_use_map(rasqal_query* query,
   switch(query->verb) {
     case RASQAL_QUERY_VERB_SELECT:
       /* This also handles 1a) select/project expressions */
-      rc = rasqal_query_build_variables_sequence_use_map_row(use_map_row,
-                                                             projection->variables);
+      if(projection && projection->variables)
+        rc = rasqal_query_build_variables_sequence_use_map_row(use_map_row,
+                                                               projection->variables);
       break;
   
     case RASQAL_QUERY_VERB_DESCRIBE:
