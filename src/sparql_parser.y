@@ -261,7 +261,7 @@ free_uri_applies(sparql_uri_applies* ua)
 %token <name> IDENTIFIER "identifier"
 
 
-%type <seq> SelectQuery ConstructQuery DescribeQuery
+%type <seq> ConstructQuery DescribeQuery
 %type <seq> VarOrIRIrefList ArgListNoBraces ArgList
 %type <seq> ConstructTriples ConstructTriplesOpt
 %type <seq> ConstructTemplate OrderConditionList GroupConditionList
@@ -288,6 +288,7 @@ free_uri_applies(sparql_uri_applies* ua)
 %type <formula> BlankNodePropertyList
 %type <formula> TriplesBlock TriplesBlockOpt
 
+%type <graph_pattern> SelectQuery
 %type <graph_pattern> GroupGraphPattern SubSelect GroupGraphPatternSub
 %type <graph_pattern> GraphGraphPattern OptionalGraphPattern MinusGraphPattern
 %type <graph_pattern> GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
