@@ -1223,10 +1223,10 @@ main(int argc, char *argv[])
     puts("\nAdditional options:");
     puts(HELP_TEXT("c", "count             ", "Count triples - no output"));
     puts(HELP_TEXT("d FORMAT", "dump-query FORMAT", HELP_PAD "Print the parsed query out in FORMAT:"));
-    puts(HELP_TEXT("D URI", "data URI      ", "RDF data source URI"));
     for(i = 1; i <= QUERY_OUTPUT_LAST; i++)
       printf("      %-15s         %s\n", query_output_format_labels[i][0],
              query_output_format_labels[i][1]);
+    puts(HELP_TEXT("D URI", "data URI      ", "RDF data source URI"));
     puts(HELP_TEXT("E", "ignore-errors     ", "Ignore error messages"));
     puts(HELP_TEXT("f FEATURE(=VALUE)", "feature FEATURE(=VALUE)", HELP_PAD "Set query features" HELP_PAD "Use `-f help' for a list of valid features"));
     puts(HELP_TEXT("F NAME", "format NAME  ", "Set data source format name (default: guess)"));
