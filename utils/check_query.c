@@ -90,7 +90,7 @@ static char *program = NULL;
 #define HELP_PAD "\n      "
 #endif
 
-#define GETOPT_STRING "dD:F:hl:N:q:Q:r:v"
+#define GETOPT_STRING "dF:g:hl:n:q:Q:r:R:v"
 
 #ifdef HAVE_GETOPT_LONG
 
@@ -98,14 +98,15 @@ static struct option long_options[] =
 {
   /* name, has_arg, flag, val */
   {"debug", 0, 0, 'd'},
-  {"default-graph", 1, 0, 'D'},
-  {"format", 1, 0, 'F'},
+  {"data-format", 1, 0, 'F'},
+  {"default-graph", 1, 0, 'g'},
   {"help", 0, 0, 'h'},
   {"language", 1, 0, 'l'},
-  {"named-graph", 1, 0, 'N'},
+  {"named-graph", 1, 0, 'n'},
   {"query", 1, 0, 'q'},
   {"query-base-uri", 1, 0, 'Q'},
   {"result", 1, 0, 'r'},
+  {"result-format", 1, 0, 'R'},
   {"version", 0, 0, 'v'},
   {NULL, 0, 0, 0}
 };
@@ -578,7 +579,8 @@ compare_query_results_compare(compare_query_results* cqr)
 
 
 #define DEFAULT_QUERY_LANGUAGE "sparql"
-#define DEFAULT_RESULT_FORMAT_NAME_GRAPH "guess"
+#define DEFAULT_DATA_FORMAT_NAME_GRAPH "guess"
+#define DEFAULT_RESULT_FORMAT_NAME_GRAPH "xml"
 
 
 int
@@ -591,6 +593,7 @@ main(int argc, char *argv[])
   int help = 0;
   const char* query_language = DEFAULT_QUERY_LANGUAGE;
   const char* query_filename = NULL;
+  const char* data_format_name = NULL;
   const char* result_filename = NULL;
   const char* result_format_name = NULL;
   unsigned char* query_string = NULL;
@@ -654,7 +657,7 @@ main(int argc, char *argv[])
 
       case 'F':
         if(optarg) {
-          result_format_name = optarg;
+          data_format_name = optarg;
         }
         break;
         
@@ -662,7 +665,7 @@ main(int argc, char *argv[])
         help = 1;
         break;
 
-      case 'l':
+      case 'i':
         if(optarg) {
           query_language = optarg;
         }
@@ -686,19 +689,25 @@ main(int argc, char *argv[])
         }
         break;
         
+      case 'R':
+        if(optarg) {
+          result_format_name = optarg;
+        }
+        break;
+        
       case 'v':
         fputs(rasqal_version_string, stdout);
         fputc('\n', stdout);
         rasqal_free_world(world);
         exit(0);
 
-      case 'D':
-      case 'N':
+      case 'g':
+      case 'n':
         if(optarg) {
           rasqal_data_graph *dg = NULL;
           rasqal_data_graph_flags type;
 
-          type = (c == 'N') ? RASQAL_DATA_GRAPH_NAMED : 
+          type = (c == 'n') ? RASQAL_DATA_GRAPH_NAMED : 
                               RASQAL_DATA_GRAPH_BACKGROUND;
 
           if(!access((const char*)optarg, R_OK)) {
@@ -719,7 +728,7 @@ main(int argc, char *argv[])
                                                   source_uri,
                                                   graph_name,
                                                   type,
-                                                  NULL, result_format_name,
+                                                  NULL, data_format_name,
                                                   NULL);
 
             if(source_uri)
@@ -739,7 +748,7 @@ main(int argc, char *argv[])
                                                   source_uri,
                                                   graph_name,
                                                   type,
-                                                  NULL, result_format_name,
+                                                  NULL, data_format_name,
                                                   NULL);
 
             if(source_uri)
@@ -803,9 +812,11 @@ main(int argc, char *argv[])
   }
 
   if(help) {
+    int i;
+
     printf(title_format_string, rasqal_version_string);
     puts("Run an RDF query and check it against a known result.");
-    printf("Usage: %s [OPTIONS] -q QUERY-FILE -r RESULT-FILE\n\n", program);
+    printf("Usage: %s [OPTIONS] -g DATA -q QUERY-FILE -r RESULT-FILE\n\n", program);
 
     fputs(rasqal_copyright_string, stdout);
     fputs("\nLicense: ", stdout);
@@ -814,16 +825,66 @@ main(int argc, char *argv[])
     puts(rasqal_home_url_string);
 
     puts("\nNormal operation is to execute the query in the QUERY-FILE and\ncompare to the query results in RESULT-FILE.");
-    puts("\nOptions:");
-    puts(HELP_TEXT("d", "debug              ", "Increase debug message level"));
-    puts(HELP_TEXT("D URI", "default-graph URI ", "Use URI as the default graph in the dataset"));
-    puts(HELP_TEXT("F", "format NAME        ", "Set the data source format NAME (default: guess)"));
-    puts(HELP_TEXT("N URI", "named-graph URI    ", "Add named graph URI to dataset"));
-    puts(HELP_TEXT("q FILE", "query QUERY-FILE   ", "Execute query in file QUERY-FILE"));
-    puts(HELP_TEXT("Q URI", "query-base-uri URI ", "Set the base URI for the query"));
-    puts(HELP_TEXT("r FILE", "result FILE", "Compare to result in file RESULTS-FILE"));
-    puts(HELP_TEXT("h", "help               ", "Print this help, then exit"));
-    puts(HELP_TEXT("v", "version            ", "Print the Rasqal version"));
+    puts("\nMain options:");
+    puts(HELP_TEXT("g URI", "default-graph URI", "Use URI as the default graph in the dataset"));
+    puts(HELP_TEXT("l", "language LANGUAGE    ", "Set query language name to one of:"));
+    for(i = 0; 1; i++) {
+      const raptor_syntax_description* desc;
+
+      desc = rasqal_world_get_query_language_description(world, i);
+      if(!desc)
+         break;
+
+      printf("    %-15s              %s", desc->names[0], desc->label);
+      if(!i)
+        puts(" (default)");
+      else
+        putchar('\n');
+    }
+    puts(HELP_TEXT("n URI", "named-graph URI  ", "Add named graph URI to dataset"));
+    puts(HELP_TEXT("q FILE", "query QUERY-FILE", "Execute query in file QUERY-FILE"));
+    puts(HELP_TEXT("r FILE", "result FILE     ", "Compare to result in file RESULTS-FILE"));
+
+
+    puts("\nAdditional options:");
+    puts(HELP_TEXT("d", "debug                ", "Increase debug message level"));
+    puts(HELP_TEXT("F", "data-format NAME     ", "Set the data source format NAME (default: " DEFAULT_DATA_FORMAT_NAME_GRAPH ")"));
+    puts(HELP_TEXT("h", "help                 ", "Print this help, then exit"));
+    puts(HELP_TEXT("Q URI", "query-base-uri URI", "Set the base URI for the query"));
+    puts(HELP_TEXT("R", "result-format NAME   ", "Set the result format NAME (default: " DEFAULT_RESULT_FORMAT_NAME_GRAPH ")"));
+    puts("    For variable bindings and boolean results:");
+
+    for(i = 0; 1; i++) {
+      const raptor_syntax_description* desc;
+ 
+      desc = rasqal_world_get_query_results_format_description(world, i);
+      if(!desc)
+         break;
+ 
+      if(desc->flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER) {
+        printf("      %-10s     %s", desc->names[0], desc->label);
+        if(!strcmp(desc->names[0], DEFAULT_RESULT_FORMAT_NAME_GRAPH))
+          puts(" (default)");
+        else
+          putchar('\n');
+      }
+    }
+
+    puts("    For RDF graph results:");
+
+    for(i = 0; 1; i++) {
+      const raptor_syntax_description *desc;
+      desc = raptor_world_get_parser_description(raptor_world_ptr, i);
+      if(!desc)
+        break;
+
+      printf("      %-15s%s", desc->names[0], desc->label);
+      if(!strcmp(desc->names[0], DEFAULT_DATA_FORMAT_NAME_GRAPH))
+        puts(" (default)");
+      else
+        putchar('\n');
+    }
+    puts(HELP_TEXT("v", "version              ", "Print the Rasqal version"));
 
     puts("\nReport bugs to http://bugs.librdf.org/");
 
@@ -919,7 +980,7 @@ main(int argc, char *argv[])
             if(!raptor_world_is_parser_name(raptor_world_ptr,
                                             result_format_name)) {
               fprintf(stderr,
-                      "%s: invalid parser name `%s' for `" HELP_ARG(F, format) "'\n\n",
+                      "%s: invalid parser name `%s' for `" HELP_ARG(R, result-format) "'\n\n",
                       program, result_format_name);
             } else
               format_name = result_format_name;
