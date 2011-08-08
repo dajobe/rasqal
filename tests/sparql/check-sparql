@@ -252,6 +252,68 @@ sub read_srx_results_file($) {
 }
 
 
+sub read_sv_results_file($$) {
+  my($result_file, $sv_type)=@_;
+  my $sep = ($sv_type eq 'csv') ? ',' : '\t';
+
+  my(%results)=(rows => []);
+
+  if(!open(IN, "<$result_file")) {
+    warn "$program: Failed to read result file $result_file - $!\n";
+    return undef;
+  }
+  my $data=join('', <IN>);
+  close(IN);
+
+  warn "$program: Reading SV type $sv_type with sep '$sep'\n"
+      if $debug;
+  my(@vars);
+  for my $line (split(/(?:\r\n|\r|\n)/, $data)) {
+    # warn ">>$line<<\n";
+    my(@values)=split(/$sep/, $line);
+    if(!@vars) {
+      @vars = map { s/^\?//; $_ } @values;
+      warn "$program: SV vars are @vars\n"
+	  if $debug;
+      next;
+    }
+
+    my($row) = {};
+    for my $i (0..$#vars) {
+      my($variable) = $vars[$i];
+      my $value = $values[$i];
+      if(defined $value) {
+	if($sv_type eq 'csv') {
+	  if($value =~ /^http/) {
+	    $value="uri<".$value.">";
+	  } elsif($value =~ /^_:/) {
+	    $value = "blank _";
+	  } elsif($value =~ /^[0-9]+$/) {
+	    $value="string(\"$value\"^^<http://www.w3.org/2001/XMLSchema#integer>)";
+	  } elsif($value =~ /^\d+$/) {
+	    $value="string(\"$value\"^^<http://www.w3.org/2001/XMLSchema#decimal>)";
+	  } else {
+	    $value="string(\"".$value."\"^^<http://www.w3.org/2001/XMLSchema#string>)";
+	  }
+	} else {
+	  if($value =~ /^[0-9]+$/) {
+	    $value="string(\"$value\"^^<http://www.w3.org/2001/XMLSchema#integer>)";
+	  } else {
+	    $value = toDebug($value);
+	  }
+	}
+      }
+      $row->{$variable} = $value;
+      warn "$variable : ".(defined $value ? $value : "(undefined)")."\n"
+	  if $debug;
+    }
+    push(@{$results{rows}}, $row);
+  }
+  close(IN);
+
+  return \%results;
+}
+
 sub read_rdf_graph_file($$) {
   my($result_file, $base_uri)=@_;
 
@@ -488,6 +550,11 @@ sub run_test {
       } elsif($result_file =~ /\.srj$/) {
 	warn "$program: Cannot read SPARQL results in JSON yet ($result_file)\n";
 	return 1;
+      } elsif($result_file =~ /\.(csv|tsv)$/) {
+	my $sv_type = $1;
+	warn "$program: Reading CSV/TSV bindings result file $result_file\n"
+	    if $debug;
+	$results = read_sv_results_file($result_file, $sv_type);
       } else {
 	warn "$program: Reading RDF syntax encoding bindings result file $result_file\n"
 	  if $debug;
