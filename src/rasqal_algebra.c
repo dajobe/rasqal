@@ -1899,15 +1899,16 @@ rasqal_algebra_query_add_group_by(rasqal_query* query,
  */
 rasqal_algebra_node*
 rasqal_algebra_query_add_modifiers(rasqal_query* query,
-                                   rasqal_algebra_node* node)
+                                   rasqal_algebra_node* node,
+                                   rasqal_solution_modifier* modifier)
 {
   raptor_sequence* modifier_seq;
   
-  if(!query->modifier)
+  if(!modifier)
     return node;
   
   /* ORDER BY */
-  modifier_seq = query->modifier->order_conditions;
+  modifier_seq = modifier->order_conditions;
   if(modifier_seq) {
     raptor_sequence* seq;
     
