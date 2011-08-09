@@ -861,6 +861,29 @@ rasqal_query_write_graphref(sparql_writer_context* wc,
 }
 
 
+static int
+rasqal_query_write_sparql_projection(sparql_writer_context *wc,
+                                     raptor_iostream *iostr, 
+                                     rasqal_projection* projection)
+{
+  if(!projection)
+    return 1;
+
+  if(projection->distinct) {
+    if(projection->distinct == 1)
+      raptor_iostream_counted_string_write(" DISTINCT", 9, iostr);
+    else
+      raptor_iostream_counted_string_write(" REDUCED", 8, iostr);
+  }
+
+  if(projection->wildcard) {
+    raptor_iostream_counted_string_write(" *", 2, iostr);
+    return 0;
+  }
+
+  return rasqal_query_write_sparql_select(wc, iostr, projection->variables);
+}
+
 
 int
 rasqal_query_write_sparql_20060406(raptor_iostream *iostr, 
@@ -1028,19 +1051,10 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
                                  iostr);
 
   projection = rasqal_query_get_projection(query);
-  if(projection) {
-    if(projection->distinct) {
-      if(projection->distinct == 1)
-        raptor_iostream_counted_string_write(" DISTINCT", 9, iostr);
-      else
-        raptor_iostream_counted_string_write(" REDUCED", 8, iostr);
-    }
-
-    if(projection->wildcard)
-      raptor_iostream_counted_string_write(" *", 2, iostr);
-  }
+  if(projection)
+    rasqal_query_write_sparql_projection(&wc, iostr, projection);
   
-  else if(verb == RASQAL_QUERY_VERB_DESCRIBE) {
+  if(verb == RASQAL_QUERY_VERB_DESCRIBE) {
     raptor_sequence *lit_seq = query->describes;
     int count = raptor_sequence_size(lit_seq);
 
@@ -1049,10 +1063,8 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
       raptor_iostream_write_byte(' ', iostr);
       rasqal_query_write_sparql_literal(&wc, iostr, l);
     }
-  } else if(verb == RASQAL_QUERY_VERB_SELECT) {
-    raptor_sequence* seq = rasqal_query_get_bound_variable_sequence(query);
-    rasqal_query_write_sparql_select(&wc, iostr, seq);
   }
+
   raptor_iostream_write_byte('\n', iostr);
 
   if(query->data_graphs) {
