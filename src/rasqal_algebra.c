@@ -1782,7 +1782,9 @@ rasqal_algebra_replace_aggregate_expressions(rasqal_query* query,
  */
 rasqal_algebra_aggregate*
 rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
-                                        rasqal_algebra_node* node)
+                                        rasqal_algebra_node* node,
+                                        rasqal_projection* projection,
+                                        rasqal_solution_modifier* modifier)
 {
   rasqal_algebra_aggregate* ae;
   
@@ -1798,11 +1800,8 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
   }
 
   /* Update variable use structures since agg variables were created */
-  if(ae->counter) {
-    rasqal_projection* projection;
-    projection = rasqal_query_get_projection(query);
+  if(ae->counter)
     rasqal_query_build_variables_use(query, projection);
-  }
   
 #if RASQAL_DEBUG
   if(ae->counter) {
@@ -1826,9 +1825,9 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
   /* if agg expressions were found, need to walk HAVING list and do a
    * similar replacement substituion in the expressions
    */
-  if(ae->counter && query->modifier && query->modifier->having_conditions) {
+  if(ae->counter && modifier && modifier->having_conditions) {
     if(rasqal_algebra_replace_aggregate_expressions(query, 
-                                                    query->modifier->having_conditions,
+                                                    modifier->having_conditions,
                                                     ae)) {
       RASQAL_DEBUG1("rasqal_algebra_replace_aggregate_expressions() failed\n");
       rasqal_free_algebra_aggregate(ae);

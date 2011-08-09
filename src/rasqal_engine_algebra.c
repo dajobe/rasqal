@@ -519,6 +519,8 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   rasqal_engine_algebra_data* execution_data;
   rasqal_engine_error error;
   int rc = 0;
+  rasqal_projection* projection;
+  rasqal_solution_modifier* modifier;
   rasqal_algebra_node* node;
   rasqal_algebra_aggregate* ae;
   
@@ -536,15 +538,19 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
     }
   }
 
+  projection = rasqal_query_get_projection(query);
+  modifier = query->modifier;
+
   node = rasqal_algebra_query_to_algebra(query);
   if(!node)
     return 1;
 
-  node = rasqal_algebra_query_add_group_by(query, node, query->modifier);
+  node = rasqal_algebra_query_add_group_by(query, node, modifier);
   if(!node)
     return 1;
 
-  ae = rasqal_algebra_query_prepare_aggregates(query, node);
+  ae = rasqal_algebra_query_prepare_aggregates(query, node, projection,
+                                               modifier);
   if(!ae)
     return 1;
 

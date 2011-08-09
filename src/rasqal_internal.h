@@ -1570,7 +1570,7 @@ rasqal_algebra_node* rasqal_algebra_query_add_distinct(rasqal_query* query, rasq
 rasqal_algebra_node* rasqal_algebra_query_add_having(rasqal_query* query, rasqal_algebra_node* node);
 int rasqal_algebra_node_is_empty(rasqal_algebra_node* node);
 
-rasqal_algebra_aggregate* rasqal_algebra_query_prepare_aggregates(rasqal_query* query, rasqal_algebra_node* node);
+rasqal_algebra_aggregate* rasqal_algebra_query_prepare_aggregates(rasqal_query* query, rasqal_algebra_node* node, rasqal_projection* projection, rasqal_solution_modifier* modifier);
 void rasqal_free_algebra_aggregate(rasqal_algebra_aggregate* ae);
 
 /* rasqal_variable.c */
