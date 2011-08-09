@@ -2004,7 +2004,7 @@ rasqal_algebra_query_add_aggregation(rasqal_query* query,
  * @node: node to apply projection to
  * @projection: variable projection to use
  *
- * Apply query projection to query algebra structure
+ * Add a projection to the query algebra structure
  *
  * Return value: non-0 on failure
  */
@@ -2017,23 +2017,17 @@ rasqal_algebra_query_add_projection(rasqal_query* query,
   raptor_sequence* seq = NULL;  /* sequence of rasqal_variable* */
   raptor_sequence* vars_seq;
   int i;
+
+  if(!projection)
+    return NULL;
   
-  /* FIXME - do not always need a PROJECT node when the variables at
-   * the top level node are the same as the projection list.
+  /* FIXME Optimization: do not always need a PROJECT node when the
+   * variables at the top level node are the same as the projection
+   * list.
    */
-  if(projection) /* Must be a subquery OR verb = RASQAL_QUERY_VERB_SELECT */
-    /* project all projection variables */
-    seq = projection->variables;
-  else if(query->verb == RASQAL_QUERY_VERB_CONSTRUCT) {
-    /* project all variables mentioned in CONSTRUCT  */
-    seq = rasqal_algebra_get_variables_mentioned_in(query, 
-                                                    RASQAL_VAR_USE_MAP_OFFSET_VERBS);
-    if(!seq) {
-      rasqal_free_algebra_node(node);
-      return NULL;
-    }
-  }
-  
+
+  /* project all projection variables (may be an empty sequence) */
+  seq = projection->variables;
   if(seq)
     vars_size = raptor_sequence_size(seq);
   
@@ -2060,8 +2054,62 @@ rasqal_algebra_query_add_projection(rasqal_query* query,
   fputs("\n", stderr);
 #endif
   
-  if(query->verb == RASQAL_QUERY_VERB_CONSTRUCT && seq) 
-    raptor_free_sequence(seq);
+  return node;
+}
+
+
+/**
+ * rasqal_algebra_query_add_construct_projection:
+ * @query: #rasqal_query to read from
+ * @node: node to apply projection to
+ *
+ * Add a query projection for a CONSTRUCT to the query algebra structure
+ *
+ * Return value: non-0 on failure
+ */
+rasqal_algebra_node*
+rasqal_algebra_query_add_construct_projection(rasqal_query* query,
+                                              rasqal_algebra_node* node)
+{
+  int vars_size = 0;
+  raptor_sequence* seq = NULL;  /* sequence of rasqal_variable* */
+  raptor_sequence* vars_seq;
+  int i;
+  
+  /* project all variables mentioned in CONSTRUCT */
+  seq = rasqal_algebra_get_variables_mentioned_in(query, 
+                                                  RASQAL_VAR_USE_MAP_OFFSET_VERBS);
+  if(!seq) {
+    rasqal_free_algebra_node(node);
+    return NULL;
+  }
+  
+  vars_size = raptor_sequence_size(seq);
+  
+  vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                                 (raptor_data_print_handler)rasqal_variable_print);
+  if(!vars_seq) {
+    rasqal_free_algebra_node(node);
+    return NULL;
+  }
+  
+  for(i = 0; i < vars_size; i++) {
+    rasqal_variable* v;
+
+    v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
+    v = rasqal_new_variable_from_variable(v);
+    raptor_sequence_push(vars_seq, v);
+  }
+  
+  node = rasqal_new_project_algebra_node(query, node, vars_seq);
+  
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG1("modified after adding construct project node, algebra node now:\n  ");
+  rasqal_algebra_node_print(node, stderr);
+  fputs("\n", stderr);
+#endif
+  
+  raptor_free_sequence(seq);
 
   return node;
 }

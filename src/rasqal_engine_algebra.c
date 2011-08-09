@@ -565,9 +565,15 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   if(!node)
     return 1;
 
-  node = rasqal_algebra_query_add_projection(query, node, projection);
-  if(!node)
-    return 1;
+  if(query->verb == RASQAL_QUERY_VERB_SELECT) {
+    node = rasqal_algebra_query_add_projection(query, node, projection);
+    if(!node)
+      return 1;
+  } else if(query->verb == RASQAL_QUERY_VERB_CONSTRUCT) {
+    node = rasqal_algebra_query_add_construct_projection(query, node);
+    if(!node)
+      return 1;
+  }
 
   node = rasqal_algebra_query_add_modifiers(query, node, modifier);
   if(!node)

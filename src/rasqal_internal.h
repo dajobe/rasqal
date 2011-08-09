@@ -1566,6 +1566,7 @@ rasqal_algebra_node* rasqal_algebra_query_add_group_by(rasqal_query* query, rasq
 rasqal_algebra_node* rasqal_algebra_query_add_modifiers(rasqal_query* query, rasqal_algebra_node* node, rasqal_solution_modifier* modifier);
 rasqal_algebra_node* rasqal_algebra_query_add_aggregation(rasqal_query* query, rasqal_algebra_aggregate* ae, rasqal_algebra_node* node);
 rasqal_algebra_node* rasqal_algebra_query_add_projection(rasqal_query* query, rasqal_algebra_node* node, rasqal_projection* projection);
+rasqal_algebra_node* rasqal_algebra_query_add_construct_projection(rasqal_query* query, rasqal_algebra_node* node);
 rasqal_algebra_node* rasqal_algebra_query_add_distinct(rasqal_query* query, rasqal_algebra_node* node);
 rasqal_algebra_node* rasqal_algebra_query_add_having(rasqal_query* query, rasqal_algebra_node* node, rasqal_solution_modifier* modifier);
 int rasqal_algebra_node_is_empty(rasqal_algebra_node* node);

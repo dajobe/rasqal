@@ -169,10 +169,19 @@ main(int argc, char *argv[])
     FAIL;
   }
 
-  node = rasqal_algebra_query_add_projection(query, node, query->projection);
-  if(!node) {
-    fprintf(stderr, "%s: Failed to add algebra projection\n", program);
+  if(query->verb == RASQAL_QUERY_VERB_SELECT) {
+    node = rasqal_algebra_query_add_projection(query, node, query->projection);
+    if(!node) {
+      fprintf(stderr, "%s: Failed to add algebra projection\n", program);
     FAIL;
+    }
+  } else if (query->verb == RASQAL_QUERY_VERB_CONSTRUCT) {
+    node = rasqal_algebra_query_add_construct_projection(query, node);
+    if(!node) {
+      fprintf(stderr, "%s: Failed to add algebra construct projection\n",
+              program);
+    FAIL;
+    }
   }
 
   node = rasqal_algebra_query_add_distinct(query, node);
