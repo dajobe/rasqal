@@ -163,13 +163,13 @@ main(int argc, char *argv[])
     FAIL;
   }
 
-  node = rasqal_algebra_query_add_modifiers(query, node);
+  node = rasqal_algebra_query_add_modifiers(query, node, query->modifier);
   if(!node) {
     fprintf(stderr, "%s: Failed to add algebra modifiers\n", program);
     FAIL;
   }
 
-  node = rasqal_algebra_query_add_projection(query, node);
+  node = rasqal_algebra_query_add_projection(query, node, query->projection);
   if(!node) {
     fprintf(stderr, "%s: Failed to add algebra projection\n", program);
     FAIL;
