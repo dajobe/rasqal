@@ -561,7 +561,7 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
       return 1;
   }
 
-  node = rasqal_algebra_query_add_having(query, node);
+  node = rasqal_algebra_query_add_having(query, node, modifier);
   if(!node)
     return 1;
 

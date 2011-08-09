@@ -2100,7 +2100,8 @@ rasqal_algebra_query_add_distinct(rasqal_query* query,
  */
 rasqal_algebra_node*
 rasqal_algebra_query_add_having(rasqal_query* query,
-                                rasqal_algebra_node* node)
+                                rasqal_algebra_node* node,
+                                rasqal_solution_modifier* modifier)
 {
   raptor_sequence* modifier_seq;
   
@@ -2108,7 +2109,7 @@ rasqal_algebra_query_add_having(rasqal_query* query,
     return node;
   
   /* HAVING */
-  modifier_seq = query->modifier->having_conditions;
+  modifier_seq = modifier->having_conditions;
   if(modifier_seq) {
     raptor_sequence* exprs_seq;
     
