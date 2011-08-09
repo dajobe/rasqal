@@ -1616,14 +1616,15 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
 static int
 rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
                                              rasqal_algebra_node* node,
-                                             rasqal_algebra_aggregate* ae)
+                                             rasqal_algebra_aggregate* ae,
+                                             rasqal_projection* projection)
 {
   raptor_sequence* seq;
   int i;
   int rc = 0;
   rasqal_variable* v;
   
-  if(query->verb != RASQAL_QUERY_VERB_SELECT)
+  if(!projection)
     return 0;
 
   ae->query = query;
@@ -1659,7 +1660,7 @@ rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
    * expressions into the ae->agg_vars map, replacing them with
    * internal variable names.
    */
-  for(seq = rasqal_query_get_bound_variable_sequence(query), i = 0;
+  for(seq = projection->variables, i = 0;
       (v = (rasqal_variable*)raptor_sequence_get_at(seq, i));
       i++) {
     rasqal_expression* expr = v->expression;
@@ -1794,7 +1795,7 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
   if(!ae)
     return NULL;
 
-  if(rasqal_algebra_extract_aggregate_expressions(query, node, ae)) {
+  if(rasqal_algebra_extract_aggregate_expressions(query, node, ae, projection)) {
     RASQAL_DEBUG1("rasqal_algebra_extract_aggregate_expressions() failed\n");
     rasqal_free_algebra_aggregate(ae);
     rasqal_free_algebra_node(node);
