@@ -1775,6 +1775,8 @@ rasqal_algebra_replace_aggregate_expressions(rasqal_query* query,
  * rasqal_algebra_query_prepare_aggregates:
  * @query: #rasqal_query to read from
  * @node: algebra node to prepare
+ * @projection: variable projection to use
+ * @modifier: solution modifier to use
  *
  * INTERNAL - prepare query aggregates
  *
@@ -1892,6 +1894,7 @@ rasqal_algebra_query_add_group_by(rasqal_query* query,
  * rasqal_algebra_query_add_modifiers:
  * @query: #rasqal_query to read from
  * @node: node to apply modifiers to
+ * @modifier: solution modifier to use
  *
  * Apply any needed modifiers to query algebra structure
  *
@@ -1998,6 +2001,7 @@ rasqal_algebra_query_add_aggregation(rasqal_query* query,
  * rasqal_algebra_query_add_projection:
  * @query: #rasqal_query to read from
  * @node: node to apply projection to
+ * @projection: variable projection to use
  *
  * Apply query projection to query algebra structure
  *
@@ -2093,6 +2097,7 @@ rasqal_algebra_query_add_distinct(rasqal_query* query,
  * rasqal_algebra_query_add_having:
  * @query: #rasqal_query to read from
  * @node: node to apply having to
+ * @modifier: solution modifier to use
  *
  * Apply any needed HAVING expressions to query algebra structure
  *
