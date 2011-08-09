@@ -2004,10 +2004,10 @@ rasqal_algebra_query_add_aggregation(rasqal_query* query,
  */
 rasqal_algebra_node*
 rasqal_algebra_query_add_projection(rasqal_query* query,
-                                   rasqal_algebra_node* node)
+                                    rasqal_algebra_node* node,
+                                    rasqal_projection* projection)
 {
   int vars_size = 0;
-  rasqal_projection* projection;
   raptor_sequence* seq = NULL;  /* sequence of rasqal_variable* */
   raptor_sequence* vars_seq;
   int i;
@@ -2015,8 +2015,7 @@ rasqal_algebra_query_add_projection(rasqal_query* query,
   /* FIXME - do not always need a PROJECT node when the variables at
    * the top level node are the same as the projection list.
    */
-  projection = rasqal_query_get_projection(query);
-  if(projection) /* RASQAL_QUERY_VERB_SELECT only */
+  if(projection) /* Must be a subquery OR verb = RASQAL_QUERY_VERB_SELECT */
     /* project all projection variables */
     seq = projection->variables;
   else if(query->verb == RASQAL_QUERY_VERB_CONSTRUCT) {

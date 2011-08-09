@@ -565,7 +565,7 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   if(!node)
     return 1;
 
-  node = rasqal_algebra_query_add_projection(query, node);
+  node = rasqal_algebra_query_add_projection(query, node, projection);
   if(!node)
     return 1;
 
