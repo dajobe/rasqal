@@ -2110,7 +2110,7 @@ rasqal_algebra_query_add_having(rasqal_query* query,
 {
   raptor_sequence* modifier_seq;
   
-  if(!query->modifier)
+  if(!modifier)
     return node;
   
   /* HAVING */
