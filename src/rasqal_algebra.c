@@ -1808,7 +1808,7 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
   
 #if RASQAL_DEBUG
   if(ae->counter) {
-    raptor_sequence* seq = rasqal_query_get_bound_variable_sequence(query);
+    raptor_sequence* seq = projection->variables;
 
     if(seq) {
       RASQAL_DEBUG1("after aggregate expressions extracted:\n");
