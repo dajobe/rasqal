@@ -53,7 +53,7 @@
 #define DEBUG_FH stderr
 
 
-static size_t
+static int
 rasqal_unicode_utf8_strlen(const unsigned char *string, size_t length)
 {
   size_t unicode_length = 0;
@@ -61,8 +61,10 @@ rasqal_unicode_utf8_strlen(const unsigned char *string, size_t length)
   while(length > 0) {
     int unichar_len;
     unichar_len = raptor_unicode_utf8_string_get_char(string, length, NULL);
-    if(unichar_len < 0 || unichar_len > (int)length)
+    if(unichar_len < 0 || unichar_len > (int)length) {
+      unicode_length = -1;
       break;
+    }
     
     string += unichar_len;
     length -= unichar_len;
@@ -157,7 +159,7 @@ rasqal_expression_evaluate_strlen(rasqal_expression *e,
   rasqal_literal* l1;
   rasqal_literal* result = NULL;
   const unsigned char *s;
-  size_t len = 0;
+  int len = 0;
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(*error_p || !l1)
