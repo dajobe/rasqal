@@ -1,3 +1,420 @@
+2011-08-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_strings.c: Use raptor_unicode_utf8_strlen and
+	raptor_unicode_utf8_substr for raptor 2.0.5+
+
+	* src/rasqal_expr_strings.c: Update utf8 strlen call to match code
+	in raptor2 GIT HEAD
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h, tests/algebra/convert_graph_pattern.c:
+	Split CONSTRUCT projection out of SELECT/projection option
+
+	(rasqal_algebra_query_add_projection): Just do projection, no
+	construct or peeking into query structure.
+
+	(rasqal_algebra_query_add_construct_projection): Add a projection
+	of all mentioned variables for CONSTRUCT.
+
+	(rasqal_query_engine_algebra_execute_init): Call correct function
+	above depending on query verb.
+
+	(convert_graph_pattern main): ditto
+
+2011-08-08  Dave Beckett <dave@dajobe.org>
+
+	* tests/algebra/convert_graph_pattern.c: Update calls to
+	rasqal_algebra_query_add_modifiers/projection
+
+	* src/rasqal_query_write.c: Add
+	rasqal_query_write_sparql_projection to write a formatted
+	projection
+
+	(rasqal_query_write_sparql_projection): Added.
+
+	(rasqal_query_write_sparql_20060406): Use above and fix else if
+	sequence for DESCRIBE that probably never worked
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_prepare_aggregates): Use projection for debug
+	vars.
+
+	* src/rasqal_algebra.c: Pass projection to
+	rasqal_algebra_extract_aggregate_expressions
+
+	(rasqal_algebra_extract_aggregate_expressions): Add projection arg
+	and use that to get list of projection variables.  Lose check for
+	query verb; the projection should be enough
+
+	(rasqal_algebra_query_prepare_aggregates): Call above with
+	projection.
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_add_having): check modifier
+
+	* src/rasqal_algebra.c: docs
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: When constructing order by, pass in
+	modifier arg
+
+	(rasqal_algebra_query_add_modifiers): Add modifier arg.
+
+	(rasqal_query_engine_algebra_execute_init): Call above with
+	modifier arg.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: When constructing projection algebra node,
+	use projection as arg.
+
+	(rasqal_algebra_query_add_projection): Add projection arg.
+
+	(rasqal_query_engine_algebra_execute_init): Call above with query
+	projection.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: When computing HAVING, use modifier as an
+	arg
+
+	(rasqal_algebra_query_add_having): Add modifier arg.
+
+	(rasqal_query_engine_algebra_execute_init): Call above with query
+	modifier.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: When computing aggregation, use projection
+	and modifier as args
+
+	(rasqal_algebra_query_prepare_aggregates): Add projection and
+	modifier args.
+
+	(rasqal_query_engine_algebra_execute_init): Declare and set
+	projection and modifier vars from query structure.  Call
+	rasqal_algebra_query_prepare_aggregates() with those.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Use modifier as arg when transforming
+	algebra GROUP BY
+
+	(rasqal_algebra_query_add_group_by): Add modifier arg; do not look
+	into query->modifier.
+
+	(rasqal_query_engine_algebra_execute_init): Pass in
+	query->modifier.
+
+2011-08-07  Dave Beckett <dave@dajobe.org>
+
+	* utils/check_query.c: options update and help fixes
+
+	* utils/roqet.c: order help so -d/--dump-query list appears after
+	option
+
+	* tests/sparql/check-sparql: Attempt at reading CSV and TSV
+
+	* src/rasqal_internal.h, src/rasqal_query.c, src/sparql_parser.y:
+	Do not mix query and graph pattern internals
+
+	(rasqal_query_store_select_query): Renamed from
+	rasqal_query_store_select_graph_pattern() and just stores args it
+	gets from the sparql parser
+
+	(SPARQL ReportFormat): Decode graph pattern fields and pass to
+	rasqal_query_store_select_query()
+
+	* src/rasqal_query.c:
+	(rasqal_query_store_select_graph_pattern): Approach ok here now
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_expand_wildcards): Do nothing with NULL projection
+
+	* src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_transform.c, src/rasqal_query_write.c,
+	src/rdql_parser.y, src/sparql_parser.y: Eliminated query wildcard
+	field
+
+	rasqal_query loses wildcard field (now unused12)
+
+	(rasqal_query_set_wildcard): Added public API call
+
+	(rasqal_query_expand_wildcards): Gains a projection arg to use for
+	wildcard check.
+
+	(rasqal_query_get_wildcard): returns 0 for no projection.
+
+	(rasqal_query_store_select_graph_pattern): Use projection has
+	wildcard flag too.
+
+	(rasqal_query_write_sparql_20060406): Use projection and if not
+	NULL, check for distinct and wildcard flags)
+
+	(RDQL SelectClause): Use rasqal_query_set_wildcard
+
+	(rasqal_rdql_query_language_prepare)
+
+	(rasqal_sparql_query_language_prepare): Pass in projection to
+	rasqal_query_expand_wildcards.
+
+	* src/rasqal_query_transform.c: kill last selects mentions
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_remove_duplicate_select_vars): Empty selection can
+	have no dups.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_variables_use_map): Only check non-empty
+	projections.
+
+	* tests/improve: fail if there are no failures except expected
+	failures
+
+	* src/rasqal_algebra.c, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_transform.c: Removed query selects field
+
+	rasqal_query loses selects and select_variables_count fields.
+
+	(rasqal_free_query): Remove freeing selects sequence.
+
+	(rasqal_query_add_variable): Remove adding to selects sequence.
+
+	(rasqal_query_remove_duplicate_select_vars): Gains projection arg.
+	Uses projection variables.
+
+	(rasqal_query_build_variables_use_map): Gains projection arg. Use it
+	to call rasqal_query_build_variables_sequence_use_map_row with
+	projected variables.
+
+	(rasqal_query_build_variables_use): Gains projection arg.  Use it
+	to call rasqal_query_build_variables_use_map().
+
+	(rasqal_query_prepare_common): Use projection to call
+	rasqal_query_remove_duplicate_select_vars() and
+	rasqal_query_build_variables_use()
+
+	(rasqal_algebra_query_prepare_aggregates): Use projection when
+	calling rasqal_query_build_variables_use()
+
+	(rasqal_query_store_select_graph_pattern): Set query projection.
+	query->wildcard remains a duplicate for now.
+
+	(rasqal_query_expand_wildcards): Use rasqal_query_add_variable()
+	rather than add to selects.
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_add_projection): Use query projection to get
+	vars.
+
+	* src/rasqal_algebra.c, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_query_write.c: Use
+	rasqal_query_get_bound_variable_sequence() for more query->selects
+
+	(rasqal_algebra_extract_aggregate_expressions)
+	(rasqal_algebra_query_prepare_aggregates)
+	(rasqal_algebra_query_add_projection, rasqal_query_print)
+	(rasqal_query_results_get_binding_name)
+	(rasqal_query_write_sparql_20060406): Use rasqal
+	query_get_bound_variable_sequence()
+
+	(rasqal_query_get_bound_variable_sequence): Return projection
+	variables.
+
+	* src/rdql_parser.y:
+	(RDQL Query): Use rasqal_query_add_variable to form projection.
+
+	* src/rasqal_query.c: Make rasqal_query_add_variable handle empty
+	select, vars cases
+
+	(rasqal_query_add_variable): Add variable if missing and add
+	query->selects if NULL.
+
+	* src/rasqal_algebra.c, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_query_write.c,
+	src/rasqal_rowsource_sort.c: Replace query distinct field with
+	query's projection object distinct
+
+	rasqal_query struct distinct field is now unused9
+
+	(rasqal_query_get_distinct): Get flag from projection object.
+
+	(rasqal_query_set_distinct): Set flag in projection object, creating
+	it if it does not exist.
+
+	(rasqal_algebra_query_add_distinct, rasqal_query_print,
+	rasqal_query_results_execute_with_engine,
+	rasqal_query_write_sparql_20060406, rasqal_sort_rowsource_init):
+	Use rasqal_query_get_distinct()
+
+	(rasqal_query_store_select_graph_pattern): Use
+	rasqal_query_set_distinct().
+
+	* src/rasqal_query.c:
+	(rasqal_query_add_variable): Move var reference taking next to
+	sequence
+
+	* src/rasqal_query.c:
+	(rasqal_query_add_variable): Add projected var to query projection.
+
+	* src/rasqal_internal.h, src/rasqal_query.c: Add projection field
+	to query object
+
+	struct rasqal_query_s gains projection.
+
+	(rasqal_query_get_projection, rasqal_query_set_projection): Added
+
+	* src/rasqal_query.c: Tidy docs to use projected only when it is
+	meant it in rasqal_query methods
+
+	(rasqal_query_get_variable, rasqal_query_has_variable): Return all
+	variables not just projected.
+
+	* src/rasqal_internal.h, src/rasqal_projection.c:
+	(rasqal_projection_add_variable): Added
+
+	* src/rasqal_query.c:
+	(rasqal_query_add_variable): Restore adding var to selects
+
+	* src/rasqal_query.c:
+	(rasqal_query_add_variable): Use rasqal_variables_table_add_variable
+
+	* src/rasqal.h.in, src/rasqal_variable.c:
+	(rasqal_variables_table_add_variable): Added to add an existing
+	variable.
+
+	* src/sparql_parser.y:
+	%type <graph_pattern> SelectQuery
+
+	* src/rasqal_query.c:
+	(rasqal_query_set_variable): Just use rasqal_variables_table_set()
+
+	* src/rasqal_query.c:
+	(rasqal_query_get_variable): Remove irrelevant check for
+	query->selects
+
+	* src/sparql_parser.y:
+	(ReportFormat): Use rasqal_query_store_select_graph_pattern() to
+	store away incoming SELECT rasqal_graph_pattern as main query GP.
+
+	(SelectQuery): returns a SELECT rasqal_graph_pattern.  Moved
+	storing logic to rasqal_query_store_select_graph_pattern()
+
+	* src/rasqal_internal.h, src/rasqal_query.c: Added
+	rasqal_query_store_select_graph_pattern
+
+	(rasqal_query_store_select_graph_pattern): Added to store a select
+	graph pattern as the query's top level graph pattern and write all
+	the old fields, pull apart projection and gp fields.
+
+	* src/rasqal_internal.h:
+	unsigned int distinct flag
+
+	* src/rasqal_graph_pattern.c, src/rasqal_internal.h,
+	src/sparql_parser.y: Select graph pattern now can record an
+	optional data_graphs rasqal_graph_pattern gains data_graphs_field
+
+	(rasqal_new_select_graph_pattern): Added data_graphs arg.  (SPARQL
+	SubSelect): Update to pass in NULL data graph
+
+	* src/rasqal_internal.h: unsigned int for distinct flag in
+	rasqal_projection
+
+2011-08-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/rasqal_result_formats.c,
+	src/rasqal_service.c: Rasqal service can return a read rowsource
+
+	(rasqal_query_results_formatter_get_read_rowsource): Added, pulled
+	out of rasqal_service_execute() that returns a rowsource from a
+	syntax, managing ownership of the intermediate iostream and data
+	via rasqal_new_iostream_from_stringbuffer().
+
+	(rasqal_service_execute): Refactored to call above.
+
+	* src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_internal.h: Enable rowsource factory to own the
+	iostream.  rasqal_query_results_get_rowsource_func function
+	pointer typedef gains an unsigned int arg Updated all rowsource
+	factory implementions of get_rowsource to store flag and if
+	present, close the iostream passed in when the rowsource is
+	destroyed.
+
+	struct rasqal_rowsource_rdf_context gains flags field.
+
+	(rasqal_query_results_rdf_get_rowsource,
+	rasqal_rowsource_rdf_finish): RDF rowsource adds flag arg, closes
+	iostr if set on finish.  struct
+	rasqal_rowsource_sparql_xml_context gains flags field.
+
+	(rasqal_query_results_get_rowsource_sparql_xml,
+	rasqal_rowsource_sparql_xml_finish); SPARQL XML rowsource adds
+	flag arg, closes iostr if set on finish.
+
+	* src/Makefile.am, src/rasqal_internal.h, src/rasqal_iostream.c:
+	(rasqal_new_iostream_from_stringbuffer): Added
+
+2011-07-31  Dave Beckett <dave@dajobe.org>
+
+	* utils/check_query.c:
+	Make help/usage/options string match code
+
+2011-07-31  Dave Beckett <dave@dajobe.org>
+
+	* utils/check_query.c:
+	casts
+
+2011-07-31  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c, src/rasqal_bindings.c,
+	src/rasqal_data_graph.c, src/rasqal_dataset.c,
+	src/rasqal_datetime.c, src/rasqal_decimal.c,
+	src/rasqal_engine_sort.c, src/rasqal_expr.c,
+	src/rasqal_expr_datetimes.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_numerics.c, src/rasqal_expr_strings.c,
+	src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_table.c, src/rasqal_formula.c,
+	src/rasqal_general.c, src/rasqal_graph.c,
+	src/rasqal_graph_pattern.c, src/rasqal_internal.h,
+	src/rasqal_literal.c, src/rasqal_map.c, src/rasqal_prefix.c,
+	src/rasqal_projection.c, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_query_test.c,
+	src/rasqal_query_transform.c, src/rasqal_raptor.c,
+	src/rasqal_result_formats.c, src/rasqal_row.c,
+	src/rasqal_row_compatible.c, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_assignment.c, src/rasqal_rowsource_distinct.c,
+	src/rasqal_rowsource_empty.c, src/rasqal_rowsource_filter.c,
+	src/rasqal_rowsource_graph.c, src/rasqal_rowsource_groupby.c,
+	src/rasqal_rowsource_having.c, src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_project.c, src/rasqal_rowsource_rowsequence.c,
+	src/rasqal_rowsource_sort.c, src/rasqal_rowsource_triples.c,
+	src/rasqal_rowsource_union.c, src/rasqal_service.c,
+	src/rasqal_solution_modifier.c, src/rasqal_triple.c,
+	src/rasqal_triples_source.c, src/rasqal_update.c,
+	src/rasqal_variable.c, src/rasqal_xsd_datatypes.c,
+	src/rdql_lexer.l, src/rdql_parser.y, src/sparql_lexer.l,
+	src/sparql_parser.y, src/timegm.c,
+	tests/engine/rasqal_construct_test.c,
+	tests/engine/rasqal_limit_test.c, tests/engine/rasqal_order_test.c:
+	Code style change and cleanup for alloc/free macros Code style:   1. var = RASQAL_CALLOC(type, nmem, size)   Prefering:     var = RASQAL_CALLOC(type, 1, sizeof(*var))   when nmem = 1   2. var = RASQAL_CALLOC(type, size)   3. RASQAL_FREE(type, var) The consequence here is allocs that mostly fit into 1 line without
+	so much boilerplate and duplication of types.  The RASQAL_MALLOC and RASQAL_CALLOC now do the cast to the return
+	type.  RASQAL_FREE takes the object type too but always casts arg to void
+	This certainly contains many wrong types to the arg but might be
+	used later in some kind of smart type-aware debugging allocator.
+
+2011-07-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_service.c:
+	code style: len = strlen(); malloc(..., len+1) and memcmp(..., len+1)
+
+	* src/rasqal_raptor.c:
+	(raptor_statement_as_rasqal_triple): Use raptor blank and literal
+	length fields
+
+	* src/rasqal_row.c:
+	(rasqal_new_row_sequence): Handle long ints
+
+	* src/rasqal_literal.c:
+	(rasqal_new_literal_sequence_of_sequence_from_data): Handle long
+	ints
+
 2011-07-28  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_datetime.c:
@@ -1381,7 +1798,6 @@
 	src/rasqal_expr.c, src/rasqal_expr_evaluate.c,
 	src/rasqal_expr_numerics.c, src/rasqal_internal.h,
 	src/rasqal_query_write.c, src/sparql_lexer.l, src/sparql_parser.y:
-	
 	Add RASQAL_EXPR_RAND for SPARQL 1.1 RAND()
 
 	rasqal_op gains RASQAL_EXPR_RAND
@@ -1860,7 +2276,6 @@
 	* docs/.gitignore, docs/Makefile.am, docs/rasqal-changes.tsv,
 	docs/rasqal-docs.xml, scripts/Makefile.am,
 	scripts/process-changes.pl: Generate Rasqal changes doc sections
-	
 	Generate the changes using an update version process-changes.pl
 	from raptor V2 that can handle multiple sections for different
 	old/new versions as well as omitting sections that have no
@@ -1873,7 +2288,6 @@
 	src/sparql_parser.y, tests/engine/rasqal_graph_test.c,
 	tests/engine/rasqal_triples_test.c, utils/check_query.c,
 	utils/roqet.1, utils/roqet.c, utils/srxread.c, utils/srxwrite.c:
-	
 	Remove all deprecated functions and rename foo2() to foo()
 
 	rasqal_generate_bnodeid_handler takes a world object (was
