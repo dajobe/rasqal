@@ -53,6 +53,8 @@
 #define DEBUG_FH stderr
 
 
+#if RAPTOR_VERSION < 20005
+
 static int
 rasqal_unicode_utf8_strlen(const unsigned char *string, size_t length)
 {
@@ -140,6 +142,11 @@ rasqal_unicode_utf8_substr(unsigned char* dest, size_t* dest_length_p,
   return dest_bytes;
 }
 
+#define raptor_unicode_utf8_strlen rasqal_unicode_utf8_strlen
+#define raptor_unicode_utf8_substr rasqal_unicode_utf8_substr
+
+#endif
+
 
 /* 
  * rasqal_expression_evaluate_strlen:
@@ -172,7 +179,7 @@ rasqal_expression_evaluate_strlen(rasqal_expression *e,
   if(!s)
     len = 0;
   else
-    len = rasqal_unicode_utf8_strlen(s, strlen((const char*)s));
+    len = raptor_unicode_utf8_strlen(s, strlen((const char*)s));
   
 
   result = rasqal_new_numeric_literal_from_long(world, RASQAL_LITERAL_INTEGER,
@@ -252,7 +259,7 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
     goto failed;
 
   /* adjust starting index to xsd fn:substring initial offset 1 */
-  if(!rasqal_unicode_utf8_substr(new_s, /* dest_length_p */ NULL,
+  if(!raptor_unicode_utf8_substr(new_s, /* dest_length_p */ NULL,
                                  s, len, startingLoc - 1, length))
     goto failed;
 
