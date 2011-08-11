@@ -983,7 +983,8 @@ rasqal_query_results_get_binding_value_by_name(rasqal_query_results* query_resul
   if(!row)
     return NULL;
   
-  v = rasqal_variables_table_get_by_name(query_results->vars_table, name);
+  v = rasqal_variables_table_get_by_name(query_results->vars_table, 
+                                         RASQAL_VARIABLE_TYPE_NORMAL, name);
   if(!v)
     return NULL;
 

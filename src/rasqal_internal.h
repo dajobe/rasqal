@@ -1577,10 +1577,9 @@ void rasqal_free_algebra_aggregate(rasqal_algebra_aggregate* ae);
 /* rasqal_variable.c */
 rasqal_variables_table* rasqal_new_variables_table_from_variables_table(rasqal_variables_table* vt);
 rasqal_variable* rasqal_variables_table_get(rasqal_variables_table* vt, int idx);
-rasqal_variable* rasqal_variables_table_get_by_name(rasqal_variables_table* vt, const unsigned char *name);
 rasqal_literal* rasqal_variables_table_get_value(rasqal_variables_table* vt, int idx);
-int rasqal_variables_table_has(rasqal_variables_table* vt, const unsigned char *name);
-int rasqal_variables_table_set(rasqal_variables_table* vt, const unsigned char *name, rasqal_literal* value);
+int rasqal_variables_table_has(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name);
+int rasqal_variables_table_set(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name, rasqal_literal* value);
 int rasqal_variables_table_get_named_variables_count(rasqal_variables_table* vt);
 int rasqal_variables_table_get_anonymous_variables_count(rasqal_variables_table* vt);
 int rasqal_variables_table_get_total_variables_count(rasqal_variables_table* vt);

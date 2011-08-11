@@ -1139,7 +1139,8 @@ main(int argc, char *argv[])
         rasqal_literal *l = NULL;
         rasqal_expression* e = NULL;
 
-        v = rasqal_variables_table_get_by_name(vt, var_name);
+        v = rasqal_variables_table_get_by_name(vt, RASQAL_VARIABLE_TYPE_NORMAL,
+                                               var_name);
         if(v)
           l = rasqal_new_variable_literal(world, v);
 

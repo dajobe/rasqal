@@ -361,7 +361,7 @@ rasqal_variables_table_add_variable(rasqal_variables_table* vt,
       return 1;
   }
   
-  if(rasqal_variables_table_has(vt, variable->name))
+  if(rasqal_variables_table_has(vt, variable->type, variable->name))
     /* variable with this name already present - error */
     return 1;
   
@@ -423,7 +423,7 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
     goto failed;
 
   /* If already present, just return a new reference to it */
-  v = rasqal_variables_table_get_by_name(vt, name);
+  v = rasqal_variables_table_get_by_name(vt, type, name);
   if(v) {
     RASQAL_FREE(char*, name);
     if(value)
@@ -491,15 +491,32 @@ rasqal_variables_table_get_value(rasqal_variables_table* vt, int idx)
 }
 
 
+/**
+ * rasqal_variables_table_get_by_name:
+ * @vt: the variables table
+ * @type: the variable type to match or #RASQAL_VARIABLE_TYPE_UNKNOWN for any.
+ * @name: the variable type
+ *
+ * Lookup a variable by type and name in the variables table.
+ *
+ * Note that looking up for any type #RASQAL_VARIABLE_TYPE_UNKNOWN
+ * may a name match but for any type so in cases where the query has
+ * both a named and anonymous (extensional) variable, an arbitrary one
+ * will be returned.
+ *
+ * Return value: a shared pointer to the #rasqal_variable or NULL if not found
+ **/
 rasqal_variable*
 rasqal_variables_table_get_by_name(rasqal_variables_table* vt,
+                                   rasqal_variable_type type,
                                    const unsigned char *name)
 {
   int i;
   rasqal_variable* v;
 
   for(i = 0; (v = rasqal_variables_table_get(vt, i)); i++) {
-    if(!strcmp((const char*)v->name, (const char*)name))
+    if(((type != RASQAL_VARIABLE_TYPE_UNKNOWN) && v->type == type) &&
+       !strcmp((const char*)v->name, (const char*)name))
       return v;
   }
   return NULL;
@@ -508,19 +525,21 @@ rasqal_variables_table_get_by_name(rasqal_variables_table* vt,
 
 int
 rasqal_variables_table_has(rasqal_variables_table* vt,
+                           rasqal_variable_type type,
                            const unsigned char *name)
 {
-  return (rasqal_variables_table_get_by_name(vt, name) != NULL);
+  return (rasqal_variables_table_get_by_name(vt, type, name) != NULL);
 }
 
 
 int
 rasqal_variables_table_set(rasqal_variables_table* vt,
+                           rasqal_variable_type type,
                            const unsigned char *name, rasqal_literal* value)
 {
   rasqal_variable* v;
   
-  v = rasqal_variables_table_get_by_name(vt, name);
+  v = rasqal_variables_table_get_by_name(vt, type, name);
   if(!v)
     return 1;
 

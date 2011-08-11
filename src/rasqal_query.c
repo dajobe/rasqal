@@ -710,7 +710,7 @@ rasqal_query_dataset_contains_named_graph(rasqal_query* query,
  * @query: #rasqal_query query object
  * @var: #rasqal_variable variable
  *
- * Add a projected variable to the query.
+ * Add a projected (named) variable to the query.
  *
  * See also rasqal_query_set_variable() which assigns or removes a value to
  * a previously added variable in the query.
@@ -723,7 +723,7 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(var, rasqal_variable, 1);
 
-  if(!rasqal_variables_table_has(query->vars_table, var->name)) {
+  if(!rasqal_variables_table_has(query->vars_table, var->type, var->name)) {
     if(rasqal_variables_table_add_variable(query->vars_table, var))
       return 1;
   }
@@ -836,11 +836,40 @@ rasqal_query_get_variable(rasqal_query* query, int idx)
 
 
 /**
+ * rasqal_query_has_variable2:
+ * @query: #rasqal_query query object
+ * @type: the variable type to match or #RASQAL_VARIABLE_TYPE_UNKNOWN for any.
+ * @name: variable name
+ *
+ * Find if the named variable of the given type is in the query
+ *
+ * Note that looking up for any type #RASQAL_VARIABLE_TYPE_UNKNOWN
+ * may a name match but for any type so in cases where the query has
+ * both a named and anonymous (extensional) variable, an arbitrary one
+ * will be returned.
+ *
+ * Return value: non-0 if the variable name was found.
+ **/
+int
+rasqal_query_has_variable2(rasqal_query* query,
+                           rasqal_variable_type type,
+                           const unsigned char *name)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 0);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(name, char*, 0);
+
+  return rasqal_variables_table_has(query->vars_table, type, name);
+}
+
+
+/**
  * rasqal_query_has_variable:
  * @query: #rasqal_query query object
  * @name: variable name
  *
  * Find if the named variable is in the query
+ *
+ * @Deprecated: Use rasqal_query_has_variable() with the variable type arg
  *
  * Return value: non-0 if the variable name was found.
  **/
@@ -850,7 +879,35 @@ rasqal_query_has_variable(rasqal_query* query, const unsigned char *name)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 0);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(name, char*, 0);
 
-  return rasqal_variables_table_has(query->vars_table, name);
+  return rasqal_query_has_variable2(query, RASQAL_VARIABLE_TYPE_UNKNOWN, name);
+}
+
+
+/**
+ * rasqal_query_set_variable:
+ * @query: #rasqal_query query object
+ * @type: the variable type to match or #RASQAL_VARIABLE_TYPE_UNKNOWN for any.
+ * @name: #rasqal_variable variable
+ * @value: #rasqal_literal value to set or NULL
+ *
+ * Bind an existing typed variable to a value to the query.
+ *
+ * See also rasqal_query_add_variable() which adds a new binding variable
+ * and must be called before this method is invoked.
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_query_set_variable2(rasqal_query* query,
+                           rasqal_variable_type type,
+                           const unsigned char *name,
+                           rasqal_literal* value)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(name, char*, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(value, rasqal_literal, 1);
+
+  return rasqal_variables_table_set(query->vars_table, type, name, value);
 }
 
 
@@ -862,8 +919,7 @@ rasqal_query_has_variable(rasqal_query* query, const unsigned char *name)
  *
  * Bind an existing variable to a value to the query.
  *
- * See also rasqal_query_add_variable() which adds a new binding variable
- * and must be called before this method is invoked.
+ * @Deprecated for rasqal_query_set_variable() that includes a type arg.
  *
  * Return value: non-0 on failure
  **/
@@ -875,7 +931,8 @@ rasqal_query_set_variable(rasqal_query* query, const unsigned char *name,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(name, char*, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(value, rasqal_literal, 1);
 
-  return rasqal_variables_table_set(query->vars_table, name, value);
+  return rasqal_query_set_variable2(query, RASQAL_VARIABLE_TYPE_UNKNOWN,
+                                    name, value);
 }
 
 

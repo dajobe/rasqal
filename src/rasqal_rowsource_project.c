@@ -374,7 +374,8 @@ main(int argc, char *argv[])
   for(i = 0 ; i < EXPECTED_COLUMNS_COUNT; i++) {
     rasqal_variable* v;
     unsigned const char* name=(unsigned const char*)project_1_var_names[i];
-    v = rasqal_variables_table_get_by_name(vt, name);
+    v = rasqal_variables_table_get_by_name(vt, RASQAL_VARIABLE_TYPE_NORMAL,
+                                           name);
     if(v) {
       v = rasqal_new_variable_from_variable(v);
       raptor_sequence_push(projection_seq, v);

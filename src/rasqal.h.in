@@ -1155,9 +1155,13 @@ raptor_sequence* rasqal_query_get_all_variable_sequence(rasqal_query* query);
 RASQAL_API
 rasqal_variable* rasqal_query_get_variable(rasqal_query* query, int idx);
 RASQAL_API
+int rasqal_query_has_variable2(rasqal_query* query, rasqal_variable_type type, const unsigned char *name);
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_has_variable(rasqal_query* query, const unsigned char *name);
 RASQAL_API
-int rasqal_query_set_variable(rasqal_query* query, const unsigned char *name, rasqal_literal* value);
+int rasqal_query_set_variable2(rasqal_query* query, const unsigned char *name, rasqal_literal* value);
+RASQAL_API RASQAL_DEPRECATED
+int rasqal_query_set_variable(rasqal_query* query, rasqal_variable_type type, const unsigned char *name, rasqal_literal* value);
 RASQAL_API
 raptor_sequence* rasqal_query_get_triple_sequence(rasqal_query* query);
 RASQAL_API
@@ -1600,6 +1604,8 @@ RASQAL_API
 rasqal_variable* rasqal_variables_table_add(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name, rasqal_literal *value);
 RASQAL_API
 int rasqal_variables_table_add_variable(rasqal_variables_table* vt, rasqal_variable* variable);
+RASQAL_API
+rasqal_variable* rasqal_variables_table_get_by_name(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name);
 
 /* memory functions */
 RASQAL_API
