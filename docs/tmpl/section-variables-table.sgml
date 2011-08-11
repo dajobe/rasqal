@@ -58,3 +58,24 @@ in which case it might define the order of variables in resulting rows.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_variables_table_add_variable ##### -->
+<para>
+
+</para>
+
+@vt: 
+@variable: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_variables_table_get_by_name ##### -->
+<para>
+
+</para>
+
+@vt: 
+@type: 
+@name: 
+@Returns: 
+
+

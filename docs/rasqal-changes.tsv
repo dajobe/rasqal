@@ -57,6 +57,11 @@
 0.9.25	-	-	-	0.9.26	int	rasqal_world_set_warning_level	(rasqal_world* world, unsigned int warning_level)	-
 0.9.26	-	-	-	0.9.27	rasqal_literal*	rasqal_new_numeric_literal_from_long	(rasqal_world* world, rasqal_literal_type type, long value)	-
 0.9.26	-	-	-	0.9.27	long	rasqal_xsd_decimal_get_long	(rasqal_xsd_decimal* dec, int* error_p)	-
+0.9.26	-	-	-	0.9.27	void	rasqal_query_set_wildcard	(rasqal_query* query, int wildcard)	-
+0.9.26	-	-	-	0.9.27	int	rasqal_query_has_variable2	(rasqal_query* query, rasqal_variable_type type, const unsigned char *name)	-
+0.9.26	-	-	-	0.9.27	int	rasqal_query_set_variable2	(rasqal_query* query, rasqal_variable_type type, const unsigned char *name, rasqal_literal* value)	-
+0.9.26	-	-	-	0.9.27	int	rasqal_variables_table_add_variable	(rasqal_variables_table* vt, rasqal_variable* variable)	-
+0.9.26	-	-	-	0.9.27	rasqal_variable*	rasqal_variables_table_get_by_name	(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name)	-
 #
 # Types
 #

@@ -472,6 +472,17 @@ then retrieved.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_query_has_variable2 ##### -->
+<para>
+
+</para>
+
+@query: 
+@type: 
+@name: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_query_has_variable ##### -->
 <para>
 
@@ -558,6 +569,18 @@ then retrieved.
 @user_data: 
 
 
+<!-- ##### FUNCTION rasqal_query_set_variable2 ##### -->
+<para>
+
+</para>
+
+@query: 
+@type: 
+@name: 
+@value: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_query_set_variable ##### -->
 <para>
 
@@ -577,6 +600,15 @@ then retrieved.
 @query: 
 @store_results: 
 @Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_wildcard ##### -->
+<para>
+
+</para>
+
+@query: 
+@wildcard: 
 
 
 <!-- ##### FUNCTION rasqal_query_verb_as_string ##### -->

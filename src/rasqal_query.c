@@ -884,7 +884,7 @@ rasqal_query_has_variable(rasqal_query* query, const unsigned char *name)
 
 
 /**
- * rasqal_query_set_variable:
+ * rasqal_query_set_variable2:
  * @query: #rasqal_query query object
  * @type: the variable type to match or #RASQAL_VARIABLE_TYPE_UNKNOWN for any.
  * @name: #rasqal_variable variable

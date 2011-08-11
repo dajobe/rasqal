@@ -199,6 +199,7 @@ rasqal_query_get_user_data
 rasqal_query_get_variable
 rasqal_query_get_verb
 rasqal_query_get_wildcard
+rasqal_query_has_variable2
 rasqal_query_has_variable
 rasqal_query_prepare
 rasqal_query_print
@@ -208,8 +209,10 @@ rasqal_query_set_explain
 rasqal_query_set_limit
 rasqal_query_set_offset
 rasqal_query_set_user_data
+rasqal_query_set_variable2
 rasqal_query_set_variable
 rasqal_query_set_store_results
+rasqal_query_set_wildcard
 rasqal_query_verb_as_string
 rasqal_query_write
 rasqal_query_iostream_write_escaped_counted_string
@@ -319,6 +322,8 @@ rasqal_variables_table
 rasqal_new_variables_table
 rasqal_free_variables_table
 rasqal_variables_table_add
+rasqal_variables_table_add_variable
+rasqal_variables_table_get_by_name
 </SECTION>
 
 <SECTION>
