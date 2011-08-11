@@ -1,0 +1,18 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+_:dave
+    a foaf:Person ;
+    foaf:name "Dave" .
+
+_:libby
+    a foaf:Person ;
+    foaf:name "Libby" .
+
+_:nick
+    a foaf:Person ;
+    foaf:name "Nick" .
+
+<mailto:steve@example.net>
+    a foaf:Person ;
+    foaf:knows _:dave, _:libby, _:nick ;
+    foaf:name "Steve" .

@@ -34,5 +34,14 @@
         mf:result  <354-result.ttl>
      ]
 
+     [  mf:name    "459" ;
+        rdfs:comment
+            "Selecting a binding with the same name as a bnode" ;
+        mf:action
+            [ qt:query  <459.rq> ;
+              qt:data   <459.ttl> ] ;
+        mf:result  <459-result.ttl>
+     ]
+
     # End of tests
    ).
