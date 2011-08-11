@@ -1159,9 +1159,9 @@ int rasqal_query_has_variable2(rasqal_query* query, rasqal_variable_type type, c
 RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_has_variable(rasqal_query* query, const unsigned char *name);
 RASQAL_API
-int rasqal_query_set_variable2(rasqal_query* query, const unsigned char *name, rasqal_literal* value);
+int rasqal_query_set_variable2(rasqal_query* query, rasqal_variable_type type, const unsigned char *name, rasqal_literal* value);
 RASQAL_API RASQAL_DEPRECATED
-int rasqal_query_set_variable(rasqal_query* query, rasqal_variable_type type, const unsigned char *name, rasqal_literal* value);
+int rasqal_query_set_variable(rasqal_query* query, const unsigned char *name, rasqal_literal* value);
 RASQAL_API
 raptor_sequence* rasqal_query_get_triple_sequence(rasqal_query* query);
 RASQAL_API
