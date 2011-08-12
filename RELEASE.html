@@ -13,6 +13,143 @@
 <p>Not yet released.
 </p>
 
+<h3>Literal class changes</h3>
+
+<p><code>rasqal_new_numeric_literal_from_long()</code> added to make an
+integer or decimal literal depending if it fits in range.
+</p>
+
+<p><code>rasqal_xsd_decimal_get_long()</code> added to convert an
+arbitrary precision decimal to a C long with an overflow error flag.
+</p>
+
+<p>xsd:integer subtypes are stored and printed correctly.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=454">Issue #0000454</a>.
+</p>
+
+
+<h3>Query class changes</h3>
+
+<p><code>rasqal_query_get_distinct()</code> added to get the distinct
+flag from <code>SELECT DISTINCT ...</code> queries.
+</p>
+
+<p><code>rasqal_query_set_wildcard()</code> added to set the '*' flag
+for <code>SELECT *</code> queries
+</p>
+
+<p><code>rasqal_query_has_variable2()</code> added with variable type
+arg deprecating <code>rasqal_query_has_variable()</code>. Note the
+warning about using <code>RASQAL_VARIABLE_TYPE_UNKNOWN</code> is
+ambiguous.
+</p>
+
+<p>Deprecated <code>rasqal_query_has_variable()</code> for the
+above. Lookup by any type.</p>
+
+<p><code>rasqal_query_set_variable2()</code> added with type arg
+deprecating <code>rasqal_query_set_variable()</code>. Note the
+warning about using <code>RASQAL_VARIABLE_TYPE_UNKNOWN</code> is
+ambiguous.
+</p>
+
+<p>Deprecated <code>rasqal_query_set_variable()</code> for above.
+Lookup by any type.</p>
+
+
+<h3>Variable class changes</h3>
+
+<p><code>rasqal_variables_table_add_variable()</code> added to add an
+existing variable to a variables table.
+</p>
+
+<p><code>rasqal_variables_table_get_by_name()</code> added with
+variable type arg.</p>
+
+
+<h3>SPARQL changes</h3>
+
+<p>The parser now supports the optional <code>SILENT</code> keyword
+for <code>SERVICE</code>.</p>
+
+
+<h3>Query engine changes</h3>
+
+<p>A lot of refactoring to provide the structure to start to enable
+sub-<code>SELECT</code> to be turned into a query algebra structure
+and executed.
+</p>
+
+<p>Pulled new internal function
+<code>rasqal_query_results_formatter_get_read_rowsource()</code> out
+of <code>rasqal_service_execute()</code> to provide the structure for
+executing <code>SERVICE</code> queries in the query engine.
+</p>
+
+
+<h3><code>roqet(1)</code> utility changes</h3>
+
+<p>Correctly order the help so the <code>-d/--dump-query</code> value
+list appears after the option description.
+</p>
+
+
+<h3>Other changes</h3>
+
+<p>Test runner fixed to fail the suite when there are failures as
+well as expected failures.
+</p>
+
+<p>Code style change and cleanup for alloc/free macros. New code style:</p>
+<ol>
+  <li><code>var = RASQAL_CALLOC(type, nmem, size)</code><br />
+  Prefering:<br />
+  <code>var = RASQAL_CALLOC(type, 1, sizeof(*var))</code><br />
+  when nmem = 1</li>
+  <li><code>var = RASQAL_CALLOC(type, size)</code></li>
+  <li><code>RASQAL_FREE(type, var)</code></li>
+</ol>
+<p>The consequence here is allocs that mostly fit into 1 line without
+so much boilerplate and duplication of types.  The
+<code>RASQAL_MALLOC</code> and <code>RASQAL_CALLOC</code> macros now
+do the cast to the return type.  <code>RASQAL_FREE</code> takes the
+object type too but always casts arg to void This
+</p>
+
+<p>Code style change for allocating strings:</p>
+<ol>
+  <li><code>len = strlen(); malloc(..., len + 1)</code></li>
+  <li>and <code>memcmp(..., len + 1)</code></li>
+</ol>
+
+<p>Expanded GCC warnings to take advantage of newer analysis which
+found several issues:</p>
+<ul>
+  <li>Use of int for storing string and buffer lengths: replaced many
+    internal uses with the correct size_t for length computations.</li>
+  <li>Use of int for storing time: replaced with time_t that may be
+    larger</li>
+  <li>Use of <code>void*</code> for pointer differences: replaced
+    with <code>ptrdiff_t</code> where necessary.</li>
+  <li>Precision truncation between int and long, size_t.</li>
+  <li>Precision truncation between float and double.</li>
+</ul>
+
+<p>Made several internal functions to improve the above.  There
+remain some int / size_t errors in the public API that will need new
+API functions to properly fix for 64-bit machines dealing with
+strings more than &gt;32bits in length; which should be rare.
+</p>
+
+<p>Reduced Rasqal's call stack size by ensuring all I/O buffers are
+dynamically allocated.
+</p>
+
+<p>configure now always checks for where <code>ceil()</code>,
+<code>floor()</code> and <code>round()</code> can be found: in libc
+or libm.
+</p>
+
 
 <h2 id="rel0_9_26"><a name="rel0_9_26">Rasqal 0.9.26 changes</a></h2>
 
