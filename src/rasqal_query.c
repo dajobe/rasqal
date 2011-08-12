@@ -917,9 +917,9 @@ rasqal_query_set_variable2(rasqal_query* query,
  * @name: #rasqal_variable variable
  * @value: #rasqal_literal value to set or NULL
  *
- * Bind an existing variable to a value to the query.
+ * Bind an existing named (selected) variable to a value to the query.
  *
- * @Deprecated for rasqal_query_set_variable() that includes a type arg.
+ * @Deprecated for rasqal_query_set_variable2() that includes a type arg.
  *
  * Return value: non-0 on failure
  **/
@@ -931,7 +931,7 @@ rasqal_query_set_variable(rasqal_query* query, const unsigned char *name,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(name, char*, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(value, rasqal_literal, 1);
 
-  return rasqal_query_set_variable2(query, RASQAL_VARIABLE_TYPE_UNKNOWN,
+  return rasqal_query_set_variable2(query, RASQAL_VARIABLE_TYPE_NORMAL,
                                     name, value);
 }
 
