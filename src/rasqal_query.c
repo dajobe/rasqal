@@ -919,7 +919,9 @@ rasqal_query_set_variable2(rasqal_query* query,
  *
  * Bind an existing named (selected) variable to a value to the query.
  *
- * @Deprecated for rasqal_query_set_variable2() that includes a type arg.
+ * @Deprecated for rasqal_query_set_variable2() that includes a type
+ * arg.  This function only sets named variables of type
+ * #RASQAL_VARIABLE_TYPE_NORMAL
  *
  * Return value: non-0 on failure
  **/
