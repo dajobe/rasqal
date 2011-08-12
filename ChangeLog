@@ -1,3 +1,60 @@
+2011-08-11  Dave Beckett <dave@dajobe.org>
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt,
+	docs/tmpl/section-query.sgml,
+	docs/tmpl/section-variables-table.sgml, src/rasqal_query.c: docs
+	for 0.9.27 new functions
+
+	* src/rasqal.h.in:
+	Edit header rasqal.h.in not generated header
+
+	* src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_groupby.c, src/rasqal_rowsource_project.c,
+	src/rasqal_variable.c: Use variable name with type to distinguish
+	_:foo / ?foo in same query
+
+	(rasqal_query_has_variable2): Added with type arg deprecating
+	rasqal_query_has_variable().  Note warning about use of
+	RASQAL_VARIABLE_TYPE_UNKNOWN as ambiguous.
+
+	(rasqal_query_has_variable): Deprecated for above. Lookup by any
+	type.
+
+	(rasqal_query_set_variable2): Added with type arg deprecating
+	rasqal_query_set_variable(). Note warning about use of
+	RASQAL_VARIABLE_TYPE_UNKNOWN as ambiguous.
+
+	(rasqal_query_set_variable): Deprecated for above. Lookup by any
+	type.
+
+	(rasqal_variables_table_get_by_name): Added with type arg.
+
+	(rasqal_variables_table_has, rasqal_variables_table_set): Internal
+	functions for var lookup get type args.
+
+	(rasqal_variables_table_add_variable): pass on type to lookup
+	functions.
+
+	(rasqal_query_add_variable): Always lookup a named variable since
+	this is projection.
+
+	(rasqal_query_results_get_binding_value_by_name): Get named
+	variables since this is in results and thus projected/binding
+	named vars.
+
+	(Various unit tests): Lookup named vars.
+
+	Fixes Issue #0000459
+	http://bugs.librdf.org/mantis/view.php?id=459
+
+2011-08-11  Nicholas J Humfrey <njh@aelius.com>
+
+	* tests/sparql/bugs/459-result.ttl, tests/sparql/bugs/459.rq,
+	tests/sparql/bugs/459.ttl, tests/sparql/bugs/Makefile.am,
+	tests/sparql/bugs/manifest.ttl: Added a test for bug number 459 -
+	selecting a variable with the same name as a bnode
+
 2011-08-09  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_expr_strings.c: Use raptor_unicode_utf8_strlen and
