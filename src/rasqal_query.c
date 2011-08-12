@@ -867,9 +867,9 @@ rasqal_query_has_variable2(rasqal_query* query,
  * @query: #rasqal_query query object
  * @name: variable name
  *
- * Find if the named variable is in the query
+ * Find if the named variable is in the query (of any type)
  *
- * @Deprecated: Use rasqal_query_has_variable() with the variable type arg
+ * @Deprecated: Use rasqal_query_has_variable2() with the variable type arg
  *
  * Return value: non-0 if the variable name was found.
  **/
