@@ -2176,6 +2176,9 @@ rasqal_algebra_query_add_distinct(rasqal_query* query,
                                   rasqal_algebra_node* node,
                                   rasqal_projection* projection)
 {
+  if(!projection)
+    return node;
+
   if(projection->distinct) {
     node = rasqal_new_distinct_algebra_node(query, node);
 
