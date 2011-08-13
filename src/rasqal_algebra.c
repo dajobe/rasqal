@@ -1305,7 +1305,7 @@ rasqal_algebra_select_graph_pattern_to_algebra(rasqal_query* query,
   if(!node)
     goto fail;
 
-  node = rasqal_algebra_query_add_distinct(query,node);
+  node = rasqal_algebra_query_add_distinct(query, node, projection);
 
   return node;
 
@@ -2165,6 +2165,7 @@ rasqal_algebra_query_add_construct_projection(rasqal_query* query,
  * rasqal_algebra_query_add_distinct:
  * @query: #rasqal_query to read from
  * @node: node to apply distinct to
+ * @projection: variable projection to use
  *
  * Apply distinctness to query algebra structure
  *
@@ -2172,9 +2173,10 @@ rasqal_algebra_query_add_construct_projection(rasqal_query* query,
  */
 rasqal_algebra_node*
 rasqal_algebra_query_add_distinct(rasqal_query* query,
-                                  rasqal_algebra_node* node)
+                                  rasqal_algebra_node* node,
+                                  rasqal_projection* projection)
 {
-  if(rasqal_query_get_distinct(query)) {
+  if(projection->distinct) {
     node = rasqal_new_distinct_algebra_node(query, node);
 
 #if RASQAL_DEBUG > 1
