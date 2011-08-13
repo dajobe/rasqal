@@ -1702,6 +1702,25 @@ rasqal_query_triples_build_variables_use_map_binds(rasqal_query* query,
 }
 
 
+#ifdef RASQAL_DEBUG
+static void
+rasqal_query_dump_vars_scope(rasqal_query* query, int width, unsigned short *vars_scope)
+{
+  int j;
+  
+  for(j = 0; j < width; j++) {
+    rasqal_variable* v = rasqal_variables_table_get(query->vars_table, j);
+    fprintf(DEBUG_FH, "%8s ", v->name);
+  }
+  fputs("\n  ", DEBUG_FH);
+  for(j = 0; j < width; j++) {
+    fprintf(DEBUG_FH, "%8d ", vars_scope[j]);
+  }
+  fputc('\n', DEBUG_FH);
+}
+#endif
+
+
 /**
  * rasqal_query_graph_pattern_build_variables_use_map_binds:
  * @use_map: 2D array of (num. variables x num. GPs) to READ and WRITE
@@ -1768,6 +1787,10 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
       break;
   }
   
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG1("vars_scope after query verbs is now:\n  ");
+  rasqal_query_dump_vars_scope(query, width, vars_scope);
+#endif
 
   /* Bind sub-graph patterns */
   if(gp->graph_patterns) {
@@ -1785,6 +1808,11 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
                                                                     vars_scope);
       if(rc)
         goto done;
+
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG2("vars_scope after GP #%d is now:\n  ", sgp->gp_index);
+      rasqal_query_dump_vars_scope(query, width, vars_scope);
+#endif
     }
   }
 
