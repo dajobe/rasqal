@@ -1799,15 +1799,17 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
  * @query: the #rasqal_query to find the variables in
  * @use_map: 2D array of (num. variables x num. GPs) to READ and WRITE
  * @width: width of array (num. variables)
+ * @gp: graph pattern to use
  *
- * INTERNAL - Calculate which GPs bind variables in a graph_pattern query
+ * INTERNAL - Calculate which GPs bind variables in a graph_pattern tree walk
  * 
  * Return value: non-0 on failure
  **/
 static int
 rasqal_query_build_variables_use_map_binds(rasqal_query* query,
                                            unsigned short *use_map,
-                                           int width)
+                                           int width,
+                                           rasqal_graph_pattern *gp)
 {
   int rc;
   unsigned short* vars_scope;
@@ -1819,7 +1821,7 @@ rasqal_query_build_variables_use_map_binds(rasqal_query* query,
   rc = rasqal_query_graph_pattern_build_variables_use_map_binds(query,
                                                                 use_map,
                                                                 width,
-                                                                query->query_graph_pattern,
+                                                                gp,
                                                                 vars_scope);
   RASQAL_FREE(intarray, vars_scope);
 
@@ -2210,7 +2212,8 @@ rasqal_query_build_variables_use_map(rasqal_query* query,
   /* calculate which GPs bind variables for all query graph patterns
    * reading from the use_map
    */
-  rc = rasqal_query_build_variables_use_map_binds(query, use_map, width);
+  rc = rasqal_query_build_variables_use_map_binds(query, use_map, width,
+                                                  query->query_graph_pattern);
   if(rc)
     goto done;
 
