@@ -1793,8 +1793,8 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
   rasqal_query_dump_vars_scope(query, width, vars_scope);
 #endif
 
-  /* Bind sub-graph patterns */
-  if(gp->graph_patterns) {
+  /* Bind sub-graph patterns but not sub-SELECT gp twice */
+  if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_SELECT && gp->graph_patterns) {
     int gp_size = raptor_sequence_size(gp->graph_patterns);
     int i;
     
