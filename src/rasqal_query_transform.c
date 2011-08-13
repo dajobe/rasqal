@@ -1788,7 +1788,8 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
   }
   
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("vars_scope after query verbs is now:\n  ");
+  RASQAL_DEBUG3("vars_scope after %s graph pattern #%d verb is now:\n  ",
+                rasqal_graph_pattern_operator_as_string(gp->op), gp->gp_index);
   rasqal_query_dump_vars_scope(query, width, vars_scope);
 #endif
 
@@ -1802,6 +1803,8 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
       rasqal_graph_pattern *sgp;
       
       sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      RASQAL_DEBUG2("checking vars_scope for SGP #%d\n", sgp->gp_index);
+
       rc = rasqal_query_graph_pattern_build_variables_use_map_binds(query,
                                                                     use_map,
                                                                     width, sgp,
@@ -1810,7 +1813,7 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
         goto done;
 
 #ifdef RASQAL_DEBUG
-      RASQAL_DEBUG2("vars_scope after GP #%d is now:\n  ", sgp->gp_index);
+      RASQAL_DEBUG2("vars_scope after SGP #%d is now:\n  ", sgp->gp_index);
       rasqal_query_dump_vars_scope(query, width, vars_scope);
 #endif
     }
