@@ -2205,7 +2205,7 @@ rasqal_query_build_variables_use_map(rasqal_query* query,
   
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("variables use map after mentions: ");
-  rasqal_query_print_variables_use_map(stderr, query);
+  rasqal_query_print_variables_use_map(DEBUG_FH, query);
   fputs("\n", DEBUG_FH); 
 #endif    
 
@@ -2219,11 +2219,11 @@ rasqal_query_build_variables_use_map(rasqal_query* query,
 
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("use map after binds and mentions: ");
-  rasqal_query_print_variables_use_map(stderr, query);
+  rasqal_query_print_variables_use_map(DEBUG_FH, query);
   fputs("\n", DEBUG_FH); 
 
   RASQAL_DEBUG1("triples use map after binds and mentions: ");
-  rasqal_query_print_triples_use_map(stderr, query);
+  rasqal_query_print_triples_use_map(DEBUG_FH, query);
   fputs("\n", DEBUG_FH); 
 #endif    
 
