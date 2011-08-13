@@ -1261,9 +1261,55 @@ static rasqal_algebra_node*
 rasqal_algebra_select_graph_pattern_to_algebra(rasqal_query* query,
                                                rasqal_graph_pattern* gp)
 {
-  rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
-                          NULL, "Sub SELECT execution is not implemented");
+  rasqal_projection* projection;
+  rasqal_solution_modifier* modifier;
+  rasqal_graph_pattern* where_gp;
+  rasqal_algebra_node* where_node;
+  rasqal_algebra_node* node;
+  rasqal_algebra_aggregate* ae;
+  
+  where_gp = rasqal_graph_pattern_get_sub_graph_pattern(gp, 0);
+  projection = gp->projection;
+  modifier = gp->modifier;
 
+  where_node = rasqal_algebra_graph_pattern_to_algebra(query, where_gp);
+  if(!where_node)
+    goto fail;
+
+  node = rasqal_algebra_query_add_group_by(query, where_node, modifier);
+  where_node = NULL; /* now owned by node */
+  if(!node)
+    goto fail;
+
+  ae = rasqal_algebra_query_prepare_aggregates(query, node, projection,
+                                               modifier);
+  if(!ae)
+    goto fail;
+
+  if(ae) {
+    node = rasqal_algebra_query_add_aggregation(query, ae, node);
+    ae = NULL;
+    if(!node)
+      goto fail;
+  }
+
+  node = rasqal_algebra_query_add_having(query, node, modifier);
+  if(!node)
+    goto fail;
+
+  node = rasqal_algebra_query_add_projection(query, node, projection);
+  if(!node)
+    goto fail;
+
+  node = rasqal_algebra_query_add_modifiers(query, node, modifier);
+  if(!node)
+    goto fail;
+
+  node = rasqal_algebra_query_add_distinct(query,node);
+
+  return node;
+
+  fail:
   return NULL;
 }
 
