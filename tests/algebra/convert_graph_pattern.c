@@ -184,7 +184,7 @@ main(int argc, char *argv[])
     }
   }
 
-  node = rasqal_algebra_query_add_distinct(query, node);
+  node = rasqal_algebra_query_add_distinct(query, node, query->projection);
   if(!node) {
     fprintf(stderr, "%s: Failed to add algebra distinct\n", program);
     FAIL;
