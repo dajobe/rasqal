@@ -1477,12 +1477,12 @@ struct rasqal_algebra_node_s {
   /* types PROJECT, DISTINCT, REDUCED
    * FIXME: sequence of solution mappings */
 
-  /* types PROJECT, SLICE, AGGREGATION: sequence of #rasqal_variable */
+  /* types PROJECT, AGGREGATION: sequence of #rasqal_variable */
   raptor_sequence* vars_seq;
 
-  /* type SLICE: start and length */
-  unsigned int start;
-  unsigned int length;
+  /* type SLICE: limit and offset rows */
+  unsigned int limit;
+  unsigned int offset;
 
   /* type GRAPH */
   rasqal_literal *graph;
@@ -1552,6 +1552,7 @@ rasqal_algebra_node* rasqal_new_2op_algebra_node(rasqal_query* query, rasqal_alg
 rasqal_algebra_node* rasqal_new_leftjoin_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_algebra_node* node2, rasqal_expression* expr);
 rasqal_algebra_node* rasqal_new_join_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_algebra_node* node2, rasqal_expression* expr);
 rasqal_algebra_node* rasqal_new_orderby_algebra_node(rasqal_query* query, rasqal_algebra_node* node, raptor_sequence* seq);
+rasqal_algebra_node* rasqal_new_slice_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, int limit, int offset);
 rasqal_algebra_node* rasqal_new_project_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* vars_seq);
 rasqal_algebra_node* rasqal_new_graph_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_literal *graph);
 rasqal_algebra_node* rasqal_new_let_algebra_node(rasqal_query* query, rasqal_variable *var, rasqal_expression *expr);
@@ -1568,6 +1569,7 @@ int rasqal_algebra_node_visit(rasqal_query *query, rasqal_algebra_node* node, ra
 rasqal_algebra_node* rasqal_algebra_query_to_algebra(rasqal_query* query);
 rasqal_algebra_node* rasqal_algebra_query_add_group_by(rasqal_query* query, rasqal_algebra_node* node, rasqal_solution_modifier* modifier);
 rasqal_algebra_node* rasqal_algebra_query_add_modifiers(rasqal_query* query, rasqal_algebra_node* node, rasqal_solution_modifier* modifier);
+rasqal_algebra_node* rasqal_algebra_query_add_slice(rasqal_query* query, rasqal_algebra_node* node, rasqal_solution_modifier* modifier);
 rasqal_algebra_node* rasqal_algebra_query_add_aggregation(rasqal_query* query, rasqal_algebra_aggregate* ae, rasqal_algebra_node* node);
 rasqal_algebra_node* rasqal_algebra_query_add_projection(rasqal_query* query, rasqal_algebra_node* node, rasqal_projection* projection);
 rasqal_algebra_node* rasqal_algebra_query_add_construct_projection(rasqal_query* query, rasqal_algebra_node* node);

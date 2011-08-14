@@ -416,6 +416,22 @@ rasqal_algebra_having_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
 
 
 static rasqal_rowsource*
+rasqal_algebra_slice_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                                rasqal_algebra_node* node,
+                                                rasqal_engine_error *error_p)
+{
+  rasqal_query *query = execution_data->query;
+  rasqal_rowsource *rs;
+
+  rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
+  if(!rs || *error_p)
+    return NULL;
+
+  return rasqal_new_slice_rowsource(query->world, query, rs, node->limit, node->offset);
+}
+
+
+static rasqal_rowsource*
 rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
                                  rasqal_algebra_node* node,
                                  rasqal_engine_error *error_p)
@@ -488,12 +504,15 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
                                                            node, error_p);
       break;
 
+    case RASQAL_ALGEBRA_OPERATOR_SLICE:
+      rs = rasqal_algebra_slice_algebra_node_to_rowsource(execution_data,
+                                                          node, error_p);
+      break;
 
     case RASQAL_ALGEBRA_OPERATOR_UNKNOWN:
     case RASQAL_ALGEBRA_OPERATOR_DIFF:
     case RASQAL_ALGEBRA_OPERATOR_TOLIST:
     case RASQAL_ALGEBRA_OPERATOR_REDUCED:
-    case RASQAL_ALGEBRA_OPERATOR_SLICE:
     default:
       RASQAL_DEBUG2("Unsupported algebra node operator %s\n",
                     rasqal_algebra_node_operator_as_counted_string(node->op,

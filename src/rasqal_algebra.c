@@ -303,6 +303,47 @@ rasqal_new_orderby_algebra_node(rasqal_query* query,
 
 
 /*
+ * rasqal_new_slice_algebra_node:
+ * @query: #rasqal_query query object
+ * @node1: inner algebra node
+ * @limit: max rows limit (or <0 for no limit)
+ * @offset: start row offset (or <0 for no offset)
+ *
+ * INTERNAL - Create a new SLICE algebra node for selecting a range of rows
+ * 
+ * #node and #seq become owned by the new node
+ *
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
+ **/
+rasqal_algebra_node*
+rasqal_new_slice_algebra_node(rasqal_query* query,
+                              rasqal_algebra_node* node1,
+                              int limit,
+                              int offset)
+{
+  rasqal_algebra_node* node;
+
+  if(!query || !node1)
+    goto fail;
+
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_SLICE);
+  if(node) {
+    node->node1 = node1;
+    node->limit = limit;
+    node->offset = offset;
+    
+    return node;
+  }
+
+  fail:
+  if(node1)
+    rasqal_free_algebra_node(node1);
+
+  return NULL;
+}
+
+
+/*
  * rasqal_new_project_algebra_node:
  * @query: #rasqal_query query object
  * @node1: inner algebra node
@@ -824,10 +865,10 @@ rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node,
       raptor_iostream_counted_string_write(" ,\n", 3, iostr);
       rasqal_algebra_write_indent(iostr, indent);
     }
-    raptor_iostream_string_write("slice start ", iostr);
-    raptor_iostream_decimal_write(node->start, iostr);
-    raptor_iostream_string_write(" length ", iostr);
-    raptor_iostream_decimal_write(node->length, iostr);
+    raptor_iostream_string_write("slice limit ", iostr);
+    raptor_iostream_decimal_write(node->limit, iostr);
+    raptor_iostream_string_write(" offset ", iostr);
+    raptor_iostream_decimal_write(node->offset, iostr);
     raptor_iostream_write_byte('\n', iostr);
     arg_count++;
   }
@@ -1306,6 +1347,10 @@ rasqal_algebra_select_graph_pattern_to_algebra(rasqal_query* query,
     goto fail;
 
   node = rasqal_algebra_query_add_distinct(query, node, projection);
+  if(!node)
+    goto fail;
+
+  node = rasqal_algebra_query_add_slice(query, node, modifier);
 
   return node;
 
@@ -1975,6 +2020,42 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
     
 #if RASQAL_DEBUG > 1
     RASQAL_DEBUG1("modified after adding orderby node, algebra node now:\n  ");
+    rasqal_algebra_node_print(node, stderr);
+    fputs("\n", stderr);
+#endif
+  }
+
+  return node;
+}
+
+
+/**
+ * rasqal_algebra_query_add_slice:
+ * @query: #rasqal_query to read from
+ * @node: node to apply modifiers to
+ * @modifier: solution modifier to use
+ *
+ * Apply any needed slice (LIMIT, OFFSET) modifiers to query algebra structure
+ *
+ * This is separate from rasqal_algebra_query_add_modifiers() since currently
+ * the query results module implements that for the outer result rows.
+ *
+ * Return value: non-0 on failure
+ */
+rasqal_algebra_node*
+rasqal_algebra_query_add_slice(rasqal_query* query,
+                               rasqal_algebra_node* node,
+                               rasqal_solution_modifier* modifier)
+{
+  if(!modifier)
+    return node;
+  
+  /* LIMIT and OFFSET */
+  if(modifier->limit >= 0 || modifier->offset > 0) {
+    node = rasqal_new_slice_algebra_node(query, node, modifier->limit, modifier->offset);
+
+#if RASQAL_DEBUG > 1
+    RASQAL_DEBUG1("modified after adding slice node, algebra node now:\n  ");
     rasqal_algebra_node_print(node, stderr);
     fputs("\n", stderr);
 #endif
