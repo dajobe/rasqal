@@ -267,8 +267,9 @@ rasqal_new_leftjoin_algebra_node(rasqal_query* query,
  * @query: #rasqal_query query object
  * @node1: inner algebra node
  * @seq: sequence of order condition #rasqal_expression
+ * @distinct: distinct flag
  *
- * INTERNAL - Create a new ORDERBY algebra node for a sequence of order conditions
+ * INTERNAL - Create a new ORDERBY algebra node for a sequence of order conditions (with optional DISTINCTness)
  * 
  * #node and #seq become owned by the new node
  *
@@ -277,7 +278,8 @@ rasqal_new_leftjoin_algebra_node(rasqal_query* query,
 rasqal_algebra_node*
 rasqal_new_orderby_algebra_node(rasqal_query* query,
                                 rasqal_algebra_node* node1,
-                                raptor_sequence* seq)
+                                raptor_sequence* seq,
+                                int distinct)
 {
   rasqal_algebra_node* node;
 
@@ -288,6 +290,7 @@ rasqal_new_orderby_algebra_node(rasqal_query* query,
   if(node) {
     node->node1 = node1;
     node->seq = seq;
+    node->distinct = distinct;
     
     return node;
   }
@@ -1342,7 +1345,7 @@ rasqal_algebra_select_graph_pattern_to_algebra(rasqal_query* query,
   if(!node)
     goto fail;
 
-  node = rasqal_algebra_query_add_modifiers(query, node, modifier);
+  node = rasqal_algebra_query_add_orderby(query, node, projection, modifier);
   if(!node)
     goto fail;
 
@@ -1983,9 +1986,10 @@ rasqal_algebra_query_add_group_by(rasqal_query* query,
   
 
 /**
- * rasqal_algebra_query_add_modifiers:
+ * rasqal_algebra_query_add_orderby:
  * @query: #rasqal_query to read from
  * @node: node to apply modifiers to
+ * @projection: variable projection to use
  * @modifier: solution modifier to use
  *
  * Apply any needed modifiers to query algebra structure
@@ -1993,12 +1997,14 @@ rasqal_algebra_query_add_group_by(rasqal_query* query,
  * Return value: non-0 on failure
  */
 rasqal_algebra_node*
-rasqal_algebra_query_add_modifiers(rasqal_query* query,
+rasqal_algebra_query_add_orderby(rasqal_query* query,
                                    rasqal_algebra_node* node,
+                                   rasqal_projection* projection,
                                    rasqal_solution_modifier* modifier)
 {
   raptor_sequence* modifier_seq;
-  
+  int distinct = 0;
+
   if(!modifier)
     return node;
   
@@ -2015,8 +2021,11 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
       rasqal_free_algebra_node(node);
       return NULL;
     }
-    
-    node = rasqal_new_orderby_algebra_node(query, node, seq);
+
+    if(projection)
+      distinct = projection->distinct;
+
+    node = rasqal_new_orderby_algebra_node(query, node, seq, distinct);
     
 #if RASQAL_DEBUG > 1
     RASQAL_DEBUG1("modified after adding orderby node, algebra node now:\n  ");
@@ -2037,7 +2046,7 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
  *
  * Apply any needed slice (LIMIT, OFFSET) modifiers to query algebra structure
  *
- * This is separate from rasqal_algebra_query_add_modifiers() since currently
+ * This is separate from rasqal_algebra_query_add_orderby() since currently
  * the query results module implements that for the outer result rows.
  *
  * Return value: non-0 on failure
@@ -2576,7 +2585,7 @@ main(int argc, char *argv[]) {
   raptor_sequence_push(conditions, expr4);
   expr4 = NULL; /* now owned by conditions */
   
-  node9 = rasqal_new_orderby_algebra_node(query, node7, conditions);
+  node9 = rasqal_new_orderby_algebra_node(query, node7, conditions, 0);
   if(!node9)
     FAIL;
   /* these become owned by node9 */

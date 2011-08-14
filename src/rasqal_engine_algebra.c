@@ -595,7 +595,7 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
       return 1;
   }
 
-  node = rasqal_algebra_query_add_modifiers(query, node, modifier);
+  node = rasqal_algebra_query_add_orderby(query, node, projection, modifier);
   if(!node)
     return 1;
 
