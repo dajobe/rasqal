@@ -163,7 +163,8 @@ main(int argc, char *argv[])
     FAIL;
   }
 
-  node = rasqal_algebra_query_add_modifiers(query, node, query->modifier);
+  node = rasqal_algebra_query_add_orderby(query, node, query->projection,
+                                          query->modifier);
   if(!node) {
     fprintf(stderr, "%s: Failed to add algebra modifiers\n", program);
     FAIL;
