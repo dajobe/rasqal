@@ -1680,7 +1680,7 @@ const char* rasqal_engine_error_as_string(rasqal_engine_error error);
 rasqal_map* rasqal_engine_new_rowsort_map(int is_distinct, int compare_flags, raptor_sequence* order_conditions_sequence);
 int rasqal_engine_rowsort_map_add_row(rasqal_map* map, rasqal_row* row);
 raptor_sequence* rasqal_engine_rowsort_map_to_sequence(rasqal_map* map, raptor_sequence* seq);
-int rasqal_engine_rowsort_calculate_order_values(rasqal_query* query, rasqal_row* row);
+int rasqal_engine_rowsort_calculate_order_values(rasqal_query* query, raptor_sequence* order_seq, rasqal_row* row);
 
 
 /* rasqal_engine_algebra.c */

@@ -207,6 +207,7 @@ rasqal_engine_rowsort_map_to_sequence(rasqal_map* map, raptor_sequence* seq)
 /**
  * rasqal_engine_rowsort_calculate_order_values:
  * @query: query object
+ * @order_seq: order conditions sequence
  * @row: row
  *
  * INTERNAL - Calculate the order condition values for a row
@@ -215,16 +216,14 @@ rasqal_engine_rowsort_map_to_sequence(rasqal_map* map, raptor_sequence* seq)
  */
 int
 rasqal_engine_rowsort_calculate_order_values(rasqal_query* query,
+                                             raptor_sequence* order_seq,
                                              rasqal_row* row)
 {
   int i;
-  raptor_sequence *order_seq;
   
   if(!row->order_size)
     return 1;
   
-  order_seq = rasqal_query_get_order_conditions_sequence(query);
-
   for(i = 0; i < row->order_size; i++) {
     rasqal_expression* e;
     rasqal_literal *l;

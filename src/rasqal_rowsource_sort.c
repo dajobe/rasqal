@@ -127,7 +127,7 @@ rasqal_sort_rowsource_process(rasqal_rowsource* rowsource,
       return 1;
     }
 
-    rasqal_engine_rowsort_calculate_order_values(rowsource->query, row);
+    rasqal_engine_rowsort_calculate_order_values(rowsource->query, con->order_seq, row);
 
     row->offset = offset;
 
