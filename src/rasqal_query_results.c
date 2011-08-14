@@ -465,6 +465,47 @@ rasqal_query_results_is_syntax(rasqal_query_results* query_results)
 
 
 /**
+ * rasqal_query_check_limit_offset_core:
+ * @result_offset: offset to check
+ * @limit: limit
+ * @offset: offset
+ *
+ * INTERNAL - Check the result_offset is in the limit and offset range if any.
+ *
+ * Return value: before range -1, in range 0, after range 1
+ */
+int
+rasqal_query_check_limit_offset_core(int result_offset,
+                                     int limit,
+                                     int offset)
+{
+  if(result_offset < 0)
+    return -1;
+
+  if(offset > 0) {
+    /* offset */
+    if(result_offset <= offset)
+      return -1;
+    
+    if(limit >= 0) {
+      /* offset and limit */
+      if(result_offset > (offset + limit)) {
+        return 1;
+      }
+    }
+    
+  } else if(limit >= 0) {
+    /* limit */
+    if(result_offset > limit) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+
+/**
  * rasqal_query_check_limit_offset:
  * @query_results: query results object
  * @result_offset: offset to check
@@ -494,26 +535,7 @@ rasqal_query_check_limit_offset(rasqal_query* query,
 
   offset = rasqal_query_get_offset(query);
   
-  if(offset > 0) {
-    /* offset */
-    if(result_offset <= offset)
-      return -1;
-    
-    if(limit >= 0) {
-      /* offset and limit */
-      if(result_offset > (offset + limit)) {
-        return 1;
-      }
-    }
-    
-  } else if(limit >= 0) {
-    /* limit */
-    if(result_offset > limit) {
-      return 1;
-    }
-  }
-
-  return 0;
+  return rasqal_query_check_limit_offset_core(result_offset, limit, offset);
 }
 
 

@@ -1264,6 +1264,7 @@ int rasqal_query_set_projection(rasqal_query* query, rasqal_projection* projecti
 int rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
 int rasqal_query_results_execute_with_engine(rasqal_query_results* query_results, const rasqal_query_execution_factory* factory, int store_results);
+int rasqal_query_check_limit_offset_core(int result_offset, int limit, int offset);
 int rasqal_query_check_limit_offset(rasqal_query* query, int result_offset);
 void rasqal_query_results_remove_query_reference(rasqal_query_results* query_results);
 rasqal_variables_table* rasqal_query_results_get_variables_table(rasqal_query_results* query_results);
