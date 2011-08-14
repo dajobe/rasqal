@@ -101,7 +101,7 @@ rasqal_rowsource_sort.c rasqal_engine_sort.c \
 rasqal_rowsource_project.c rasqal_rowsource_join.c \
 rasqal_rowsource_graph.c rasqal_rowsource_distinct.c \
 rasqal_rowsource_groupby.c rasqal_rowsource_aggregation.c \
-rasqal_rowsource_having.c \
+rasqal_rowsource_having.c rasqal_rowsource_slice.c \
 rasqal_row_compatible.c rasqal_format_table.c rasqal_query_write.c \
 rasqal_format_json.c rasqal_format_sv.c rasqal_format_html.c \
 rasqal_format_rdf.c \

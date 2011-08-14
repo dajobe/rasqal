@@ -652,6 +652,9 @@ rasqal_rowsource* rasqal_new_project_rowsource(rasqal_world *world, rasqal_query
 /* rasqal_rowsource_rowsequence.c */
 rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_world *world, rasqal_query* query, rasqal_variables_table* vt, raptor_sequence* rows_seq, raptor_sequence* vars_seq);
 
+/* rasqal_rowsource_slice.c */
+rasqal_rowsource* rasqal_new_slice_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, int limit, int offset);
+
 /* rasqal_rowsource_sort.c */
 rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource *rowsource);
 
