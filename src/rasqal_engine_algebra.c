@@ -122,7 +122,8 @@ rasqal_algebra_orderby_algebra_node_to_rowsource(rasqal_engine_algebra_data* exe
   if(!rs || *error_p)
     return NULL;
 
-  return rasqal_new_sort_rowsource(query->world, query, rs);
+  return rasqal_new_sort_rowsource(query->world, query, rs,
+                                   node->seq, node->distinct);
 }
 
 

@@ -49,14 +49,20 @@ typedef struct
   /* inner rowsource to sort */
   rasqal_rowsource *rowsource;
 
+  /* sequence of order conditions #rasqal_expression (SHARED with query) */
+  raptor_sequence* order_seq;
+
+  /* number of order conditions in order_seq */
+  int order_size;
+
+  /* distinct flag */
+  int distinct;
+
   /* map for sorting */
   rasqal_map* map;
 
-  /* sequence of order conditions #rasqal_expression */
+  /* sequence of rows (owned here) */
   raptor_sequence* seq;
-
-  /* number of order conditions in query->order_conditions_sequence */
-  int order_size;
 } rasqal_sort_rowsource_context;
 
 
@@ -65,14 +71,11 @@ rasqal_sort_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_query *query = rowsource->query;
   rasqal_sort_rowsource_context *con;
-  raptor_sequence *order_seq;
 
   con = (rasqal_sort_rowsource_context*)user_data;
   
-  order_seq = rasqal_query_get_order_conditions_sequence(query);
-
-  if(order_seq)
-    con->order_size = raptor_sequence_size(order_seq);
+  if(con->order_seq)
+    con->order_size = raptor_sequence_size(con->order_seq);
   else {
     RASQAL_DEBUG1("No order conditions for sort rowsource - passing through");
     con->order_size = -1;
@@ -81,10 +84,12 @@ rasqal_sort_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   con->map = NULL;
 
   if(con->order_size > 0 ) {
-    /* make a row:NULL map in order to sort or do distinct */
-    con->map = rasqal_engine_new_rowsort_map(rasqal_query_get_distinct(query),
+    /* make a row:NULL map in order to sort or do distinct
+     * FIXME: should DISTINCT be separate? 
+     */
+    con->map = rasqal_engine_new_rowsort_map(con->distinct,
                                              query->compare_flags,
-                                             order_seq);
+                                             con->order_seq);
     if(!con->map)
       return 1;
   }
@@ -246,6 +251,8 @@ static const rasqal_rowsource_handler rasqal_sort_rowsource_handler = {
  * @world: query world
  * @query: query results object
  * @rowsource: input rowsource
+ * @order_seq: order sequence (shared, may be NULL)
+ * @distinct: distinct flag
  *
  * INTERNAL - create a SORT over rows from input rowsource
  *
@@ -256,7 +263,9 @@ static const rasqal_rowsource_handler rasqal_sort_rowsource_handler = {
 rasqal_rowsource*
 rasqal_new_sort_rowsource(rasqal_world *world,
                           rasqal_query *query,
-                          rasqal_rowsource *rowsource)
+                          rasqal_rowsource *rowsource,
+                          raptor_sequence* order_seq,
+                          int distinct)
 {
   rasqal_sort_rowsource_context *con;
   int flags = 0;
@@ -269,6 +278,8 @@ rasqal_new_sort_rowsource(rasqal_world *world,
     goto fail;
 
   con->rowsource = rowsource;
+  con->order_seq = order_seq;
+  con->distinct = distinct;
 
   return rasqal_new_rowsource_from_handler(world, query,
                                            con,
