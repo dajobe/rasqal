@@ -45,9 +45,11 @@
 
 #ifndef STANDALONE
 
-#define INIT_RIGHT  (0)
-#define READ_RIGHT (1)
-#define FINISHED   (2)
+typedef enum {
+  INIT_RIGHT  = 0,
+  READ_RIGHT  = 1,
+  FINISHED    = 2,
+} rasqal_join_state;
 
 typedef struct 
 {
@@ -62,7 +64,7 @@ typedef struct
   int* right_map;
 
   /* 0 = reading from left rs, 1 = reading from right rs, 2 = finished */
-  int state;
+  rasqal_join_state state;
 
   int failed;
 
