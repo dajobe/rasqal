@@ -89,9 +89,6 @@ typedef struct
 } rasqal_graph_rowsource_context;
 
 
-static int rasqal_graph_rowsource_reset(rasqal_rowsource* rowsource, void *user_data);
-
-
 static int
 rasqal_graph_next_dg(rasqal_graph_rowsource_context *con) 
 {
@@ -138,7 +135,14 @@ rasqal_graph_next_dg(rasqal_graph_rowsource_context *con)
 static int
 rasqal_graph_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 {
-  return rasqal_graph_rowsource_reset(rowsource, user_data);
+  rasqal_graph_rowsource_context *con;
+  con = (rasqal_graph_rowsource_context*)user_data;
+
+  con->finished = 0;
+  con->dg_offset = -1;
+  con->offset = 0;
+
+  return rasqal_graph_next_dg(con);
 }
 
 
