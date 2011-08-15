@@ -46,9 +46,10 @@
 #ifndef STANDALONE
 
 typedef enum {
-  INIT_RIGHT  = 0,
-  READ_RIGHT  = 1,
-  FINISHED    = 2,
+  JS_START,
+  JS_INIT_RIGHT,
+  JS_READ_RIGHT,
+  JS_FINISHED,
 } rasqal_join_state;
 
 typedef struct 
@@ -94,15 +95,9 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   con = (rasqal_join_rowsource_context*)user_data;
 
   con->failed = 0;
+  con->state = JS_START;
 
-  con->left_row  = rasqal_rowsource_read_row(con->left);
-  if(!con->left_row) {
-    con->state = FINISHED;
-    return 0;
-  }
-
-  con->state = INIT_RIGHT;
-
+  /* If join condition is a constant - optimize it away */
   if(con->expr && rasqal_expression_is_constant(con->expr)) {
     rasqal_query *query = rowsource->query;
     rasqal_literal* result;
@@ -140,7 +135,7 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
     if(!bresult) {
       /* Constraint is always false so row source is finished */
-      con->state = FINISHED;
+      con->state = JS_FINISHED;
     }
     /* otherwise always true so no need to evaluate on each row
      * and deleting con->expr will handle that
@@ -308,7 +303,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
   con = (rasqal_join_rowsource_context*)user_data;
 
-  if(con->failed || con->state == FINISHED)
+  if(con->failed || con->state == JS_FINISHED)
     return NULL;
 
   while(1) {
@@ -316,9 +311,18 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     int bresult = 1;
     int compatible = 1;
 
-    if(con->state == INIT_RIGHT) {
+    if(con->state == JS_START) {
+      con->left_row  = rasqal_rowsource_read_row(con->left);
       if(!con->left_row) {
-        con->state = FINISHED;
+        con->state = JS_FINISHED;
+        return NULL;
+      }
+      con->state = JS_INIT_RIGHT;
+    }
+
+    if(con->state == JS_INIT_RIGHT) {
+      if(!con->left_row) {
+        con->state = JS_FINISHED;
         return NULL;
       }
 
@@ -329,7 +333,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
 
     right_row = rasqal_rowsource_read_row(con->right);
-    if(!right_row && con->state == READ_RIGHT) {
+    if(!right_row && con->state == JS_READ_RIGHT) {
       /* right table done */
 
       /* if all right table returned no bindings, return left row */
@@ -350,7 +354,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         rasqal_free_row(right_row);
 
       /* restart left, continue looping */
-      con->state = INIT_RIGHT;
+      con->state = JS_INIT_RIGHT;
       if(con->left_row)
         rasqal_free_row(con->left_row);
       con->left_row = rasqal_rowsource_read_row(con->left);
@@ -358,8 +362,8 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     }
 
 
-    /* state is always READ_RIGHT at this point */
-    con->state = READ_RIGHT;
+    /* state is always JS_READ_RIGHT at this point */
+    con->state = JS_READ_RIGHT;
 
     /* now may have both left and right rows so compute compatibility */
     if(right_row) {
@@ -478,7 +482,7 @@ rasqal_join_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
   
   con = (rasqal_join_rowsource_context*)user_data;
 
-  con->state = INIT_RIGHT;
+  con->state = JS_INIT_RIGHT;
   con->failed = 0;
   
   rc = rasqal_rowsource_reset(con->left);
