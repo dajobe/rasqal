@@ -81,6 +81,9 @@ typedef struct
   /* dataset graph offset */
   int dg_offset;
   
+  /* number of graphs total */
+  int dg_size;
+  
   /* row offset for read_row() */
   int offset;
 
@@ -136,8 +139,16 @@ static int
 rasqal_graph_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_graph_rowsource_context *con;
-  con = (rasqal_graph_rowsource_context*)user_data;
+  raptor_sequence* seq;
 
+  con = (rasqal_graph_rowsource_context*)user_data;
+  
+  seq = rasqal_query_get_data_graph_sequence(rowsource->query);
+  if(!seq)
+    return 1;
+
+  con->dg_size = raptor_sequence_size(seq);
+  
   con->finished = 0;
   con->dg_offset = -1;
   con->offset = 0;
