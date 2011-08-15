@@ -514,6 +514,7 @@ rasqal_rowsource_reset(rasqal_rowsource* rowsource)
   if(rowsource->handler->reset)
     return rowsource->handler->reset(rowsource, rowsource->user_data);
 
+  RASQAL_DEBUG2("WARNING: rowsource %s has no reset", rowsource->handler->name);
   return 0;
 }
 
