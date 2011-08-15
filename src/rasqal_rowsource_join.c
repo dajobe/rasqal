@@ -138,7 +138,7 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
     if(!bresult) {
       /* Constraint is always false so row source is finished */
-      con->state = 2;
+      con->state = FINISHED;
     }
     /* otherwise always true so no need to evaluate on each row
      * and deleting con->expr will handle that
