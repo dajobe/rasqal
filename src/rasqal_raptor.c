@@ -494,6 +494,8 @@ typedef struct {
 
   /* parts of the triple above to match: always (S,P,O) sometimes C */
   rasqal_triple_parts parts;
+
+  unsigned int bind_parts;
 } rasqal_raptor_triples_match_context;
 
 
@@ -601,8 +603,38 @@ rasqal_raptor_next_match(struct rasqal_triples_match_s* rtm, void *user_data)
 
   rtmc = (rasqal_raptor_triples_match_context*)rtm->user_data;
 
+#if 0
+  if(rtmc->bind_parts & RASQAL_TRIPLE_SUBJECT) {
+    rasqal_variable* v = rasqal_literal_as_variable(rtmc->cur->triple->subject);
+    if(v)
+      rasqal_variable_set_value(v, NULL);
+  }
+  if(rtmc->bind_parts & RASQAL_TRIPLE_PREDICATE) {
+    rasqal_variable* v = rasqal_literal_as_variable(rtmc->cur->triple->predicate);
+    if(v)
+      rasqal_variable_set_value(v, NULL);
+  }
+  if(rtmc->bind_parts & RASQAL_TRIPLE_OBJECT) {
+    rasqal_variable* v = rasqal_literal_as_variable(rtmc->cur->triple->object);
+    if(v)
+      rasqal_variable_set_value(v, NULL);
+  }
+  if(rtmc->bind_parts & RASQAL_TRIPLE_ORIGIN) {
+    rasqal_variable* v = rasqal_literal_as_variable(rtmc->cur->triple->origin);
+    if(v)
+      rasqal_variable_set_value(v, NULL);
+  }
+#endif
+
   while(rtmc->cur) {
     rtmc->cur = rtmc->cur->next;
+#ifdef RASQAL_DEBUG
+    if(!rtmc->cur) {
+      RASQAL_DEBUG1("triple match ended when matching ");
+      rasqal_triple_print(&rtmc->match, stderr);
+      fputc('\n', stderr);
+    }
+#endif
     if(rtmc->cur &&
        rasqal_raptor_triple_match(rtm->world, rtmc->cur->triple, &rtmc->match,
                                   rtmc->parts))
@@ -670,12 +702,18 @@ rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
   rtmc->source_context = rtsc;
   rtmc->cur = rtsc->head;
   
+  /* Parts we bind */
+  rtmc->bind_parts = m->parts;
+
   /* at least one of the triple terms is a variable and we need to
    * do a triplesMatching() over the list of stored raptor_statements
    */
 
   if((var = rasqal_literal_as_variable(t->subject))) {
-    if(var->value)
+    if(rtmc->bind_parts & RASQAL_TRIPLE_SUBJECT)
+      /* we bind it so reset it */
+      rasqal_variable_set_value(var, NULL);
+    else if(var->value)
       rtmc->match.subject = rasqal_new_literal_from_literal(var->value);
   } else
     rtmc->match.subject = rasqal_new_literal_from_literal(t->subject);
@@ -684,7 +722,10 @@ rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
   
 
   if((var = rasqal_literal_as_variable(t->predicate))) {
-    if(var->value)
+    if(rtmc->bind_parts & RASQAL_TRIPLE_PREDICATE)
+      /* we bind it so reset it */
+      rasqal_variable_set_value(var, NULL);
+    else if(var->value)
       rtmc->match.predicate = rasqal_new_literal_from_literal(var->value);
   } else
     rtmc->match.predicate = rasqal_new_literal_from_literal(t->predicate);
@@ -693,7 +734,10 @@ rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
   
 
   if((var = rasqal_literal_as_variable(t->object))) {
-    if(var->value)
+    if(rtmc->bind_parts & RASQAL_TRIPLE_OBJECT)
+      /* we bind it so reset it */
+      rasqal_variable_set_value(var, NULL);
+    else if(var->value)
       rtmc->match.object = rasqal_new_literal_from_literal(var->value);
   } else
     rtmc->match.object = rasqal_new_literal_from_literal(t->object);
@@ -704,7 +748,10 @@ rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
 
   if(t->origin) {
     if((var = rasqal_literal_as_variable(t->origin))) {
-      if(var->value)
+    if(rtmc->bind_parts & RASQAL_TRIPLE_ORIGIN)
+      /* we bind it so reset it */
+      rasqal_variable_set_value(var, NULL);
+    else if(var->value)
         rtmc->match.origin = rasqal_new_literal_from_literal(var->value);
     } else
       rtmc->match.origin = rasqal_new_literal_from_literal(t->origin);
