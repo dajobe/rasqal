@@ -71,11 +71,15 @@ static int
 rasqal_union_rowsource_init(rasqal_rowsource* rowsource, void *user_data) 
 {
   rasqal_union_rowsource_context* con;
+
   con = (rasqal_union_rowsource_context*)user_data;
   con->state = 0;
 
   con->failed = 0;
-  
+
+  rasqal_rowsource_set_requirements(con->left, RASQAL_ROWSOURCE_REQUIRE_RESET);
+  rasqal_rowsource_set_requirements(con->right, RASQAL_ROWSOURCE_REQUIRE_RESET);
+
   return 0;
 }
 

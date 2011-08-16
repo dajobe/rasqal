@@ -143,6 +143,8 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
   }
 
+  rasqal_rowsource_set_requirements(con->left, RASQAL_ROWSOURCE_REQUIRE_RESET);
+  rasqal_rowsource_set_requirements(con->right, RASQAL_ROWSOURCE_REQUIRE_RESET);
   
   vars_table = con->left->vars_table;
   con->rc_map = rasqal_new_row_compatible(vars_table, con->left, con->right);

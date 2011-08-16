@@ -598,6 +598,28 @@ rasqal_rowsource_set_origin(rasqal_rowsource* rowsource,
 }
 
 
+static int
+rasqal_rowsource_visitor_set_requirements(rasqal_rowsource* rowsource,
+                                          void *user_data)
+{
+  unsigned int flags = *(unsigned int*)user_data;
+
+  if(rowsource->handler->set_requirements)
+    return rowsource->handler->set_requirements(rowsource, rowsource->user_data,
+                                                flags);
+  return 0;
+}
+
+
+int
+rasqal_rowsource_set_requirements(rasqal_rowsource* rowsource, unsigned int flags)
+{
+  return rasqal_rowsource_visit(rowsource, 
+                                rasqal_rowsource_visitor_set_requirements,
+                                &flags);
+}
+
+
 int
 rasqal_rowsource_request_grouping(rasqal_rowsource* rowsource)
 {

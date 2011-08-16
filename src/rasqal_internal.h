@@ -729,6 +729,9 @@ typedef raptor_sequence* (*rasqal_rowsource_read_all_rows_func) (rasqal_rowsourc
 typedef int (*rasqal_rowsource_reset_func) (rasqal_rowsource* rowsource, void *user_data);
 
 
+/* bit flags */
+#define RASQAL_ROWSOURCE_REQUIRE_RESET (1 << 0)
+
 /**
  * rasqal_rowsource_set_requirements_func
  * @user_data: user data
