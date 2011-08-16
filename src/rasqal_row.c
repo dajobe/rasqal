@@ -594,3 +594,31 @@ rasqal_row_bind_variables(rasqal_row* row,
 }
 
 
+/**
+ * rasqal_row_sequence_copy:
+ * @row_sequence: sequence of #raptor_row
+ *
+ * INTERNAL - Deep copy a sequence of rows
+ *
+ * Return value: new sequence of all rows (may be size 0) or NULL on failure
+ **/
+raptor_sequence*
+rasqal_row_sequence_copy(raptor_sequence *seq)
+{
+  raptor_sequence* new_seq;
+  int i;
+  rasqal_row* row;
+
+  new_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
+                                (raptor_data_print_handler)rasqal_row_print);
+  if(!new_seq)
+    return NULL;
+  
+  for(i = 0; (row = (rasqal_row*)raptor_sequence_get_at(seq, i)); i++) {
+    row = rasqal_new_row_from_row(row);
+      
+    raptor_sequence_push(new_seq, row);
+  }
+  
+  return new_seq;
+}
