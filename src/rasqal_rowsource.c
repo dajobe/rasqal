@@ -551,7 +551,7 @@ rasqal_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource, int offset)
  *
  * If the user function @fn returns 0, the visit is truncated.
  *
- * Return value: 0 if the visit was truncated.
+ * Return value: non-0 if the visit was truncated.
  **/
 int
 rasqal_rowsource_visit(rasqal_rowsource* rowsource,
@@ -563,14 +563,20 @@ rasqal_rowsource_visit(rasqal_rowsource* rowsource,
   rasqal_rowsource* inner_rs;
   
   result = fn(rowsource, user_data);
-  if(result)
+  /* end if failed */
+  if(result < 0)
     return result;
+
+  /* Do not recurse if handled */
+  if(result > 0)
+    return 0;
 
   for(offset = 0;
       (inner_rs = rasqal_rowsource_get_inner_rowsource(rowsource, offset));
       offset++) {
     result = rasqal_rowsource_visit(inner_rs, fn, user_data);
-    if(result)
+    /* end if failed */
+    if(result < 0)
       return result;
   }
 
