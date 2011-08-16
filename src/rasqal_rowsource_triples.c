@@ -73,9 +73,6 @@ typedef struct
   /* number of variables used in variables table  */
   int size;
   
-  /* preserve bindings when all rows are finished - for optional mostly */
-  int preserve_on_all_finished;
-
   /* GRAPH origin to use */
   rasqal_literal *origin;
 } rasqal_triples_rowsource_context;
@@ -221,30 +218,6 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
     if(rasqal_triples_match_is_end(m->triples_match)) {
       RASQAL_DEBUG2("end of pattern triples match for column %d\n",
                     con->column);
-
-#if 0
-      if(con->preserve_on_all_finished && 
-         con->column == con->end_column) {
-        int is_finished = 1;
-        int i;
-          
-        RASQAL_DEBUG1("CHECKING ALL TRIPLE PATTERNS FINISHED\n");
-
-        for(i = con->start_column; i <= con->end_column; i++) {
-          rasqal_triple_meta *m2;
-          m2 = &con->triple_meta[con->column - con->start_column];
-          if(!rasqal_triples_match_is_end(m2->triples_match)) {
-            is_finished = 0;
-            break;
-          }
-        }
-        if(is_finished) {
-          RASQAL_DEBUG1("end of all pattern triples matches\n");
-          error = RASQAL_ENGINE_FINISHED;
-          break;
-        }
-      }
-#endif
 
       /* reset this column and move to next match in previous column */
       rasqal_reset_triple_meta(m);
