@@ -139,17 +139,6 @@ rasqal_slice_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 }
 
 
-static int
-rasqal_slice_rowsource_set_preserve(rasqal_rowsource* rowsource,
-                                     void *user_data, int preserve)
-{
-  rasqal_slice_rowsource_context *con;
-  con = (rasqal_slice_rowsource_context*)user_data;
-
-  return rasqal_rowsource_set_preserve(con->rowsource, preserve);
-}
-
-
 static rasqal_rowsource*
 rasqal_slice_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource,
                                             void *user_data, int offset)
@@ -173,7 +162,7 @@ static const rasqal_rowsource_handler rasqal_slice_rowsource_handler = {
   /* .read_row =         */ rasqal_slice_rowsource_read_row,
   /* .read_all_rows =    */ NULL,
   /* .reset =            */ rasqal_slice_rowsource_reset,
-  /* .set_preserve =     */ rasqal_slice_rowsource_set_preserve,
+  /* .set_requirements = */ NULL,
   /* .get_inner_rowsource = */ rasqal_slice_rowsource_get_inner_rowsource,
   /* .set_origin =       */ NULL,
 };

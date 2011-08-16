@@ -443,7 +443,7 @@ static const rasqal_rowsource_handler rasqal_groupby_rowsource_handler = {
   /* .read_row = */ rasqal_groupby_rowsource_read_row,
   /* .read_all_rows = */ NULL,
   /* .reset = */ rasqal_groupby_rowsource_reset,
-  /* .set_preserve = */ NULL,
+  /* .set_requirements = */ NULL,
   /* .get_inner_rowsource = */ rasqal_groupby_rowsource_get_inner_rowsource,
   /* .set_origin = */ NULL,
 };

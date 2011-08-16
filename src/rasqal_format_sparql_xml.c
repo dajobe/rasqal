@@ -902,7 +902,7 @@ static const rasqal_rowsource_handler rasqal_rowsource_sparql_xml_handler={
   /* .read_row = */ rasqal_rowsource_sparql_xml_read_row,
   /* .read_all_rows = */ NULL,
   /* .reset = */ NULL,
-  /* .set_preserve = */ NULL,
+  /* .set_requirements = */ NULL,
   /* .get_inner_rowsource = */ NULL,
   /* .set_origin = */ NULL,
 };

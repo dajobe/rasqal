@@ -347,19 +347,6 @@ rasqal_triples_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 
 
 static int
-rasqal_triples_rowsource_set_preserve(rasqal_rowsource* rowsource,
-                                      void *user_data, int preserve)
-{
-  rasqal_triples_rowsource_context *con;
-
-  con = (rasqal_triples_rowsource_context*)user_data;
-  con->preserve_on_all_finished = preserve;
-
-  return 0;
-}
-
-
-static int
 rasqal_triples_rowsource_set_origin(rasqal_rowsource *rowsource,
                                     void *user_data,
                                     rasqal_literal *origin)
@@ -393,7 +380,7 @@ static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
   /* .read_row = */ rasqal_triples_rowsource_read_row,
   /* .read_all_rows = */ rasqal_triples_rowsource_read_all_rows,
   /* .reset = */ rasqal_triples_rowsource_reset,
-  /* .set_preserve = */ rasqal_triples_rowsource_set_preserve,
+  /* .set_requirements = */ NULL,
   /* .get_inner_rowsource = */ NULL,
   /* .set_origin = */ rasqal_triples_rowsource_set_origin
 };

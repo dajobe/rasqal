@@ -144,14 +144,6 @@ rasqal_assignment_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 }
 
 
-static int
-rasqal_assignment_rowsource_set_preserve(rasqal_rowsource* rowsource,
-                                         void *user_data, int preserve)
-{
-  return 0;
-}
-
-
 static rasqal_rowsource*
 rasqal_assignment_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource,
                                                 void *user_data, int offset)
@@ -169,7 +161,7 @@ static const rasqal_rowsource_handler rasqal_assignment_rowsource_handler = {
   /* .read_row =         */ rasqal_assignment_rowsource_read_row,
   /* .read_all_rows =    */ NULL,
   /* .reset =            */ rasqal_assignment_rowsource_reset,
-  /* .set_preserve =     */ rasqal_assignment_rowsource_set_preserve,
+  /* .set_requirements = */ NULL,
   /* .get_inner_rowsource = */ rasqal_assignment_rowsource_get_inner_rowsource,
   /* .set_origin =       */ NULL,
 };

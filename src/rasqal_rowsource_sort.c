@@ -230,7 +230,7 @@ rasqal_sort_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource,
   return NULL;
 }
 
-
+ 
 static const rasqal_rowsource_handler rasqal_sort_rowsource_handler = {
   /* .version =          */ 1,
   "sort",
@@ -240,7 +240,7 @@ static const rasqal_rowsource_handler rasqal_sort_rowsource_handler = {
   /* .read_row =         */ NULL,
   /* .read_all_rows =    */ rasqal_sort_rowsource_read_all_rows,
   /* .reset =            */ NULL,
-  /* .set_preserve =     */ NULL,
+  /* .set_requirements = */ NULL,
   /* .get_inner_rowsource = */ rasqal_sort_rowsource_get_inner_rowsource,
   /* .set_origin =       */ NULL,
 };

@@ -730,15 +730,15 @@ typedef int (*rasqal_rowsource_reset_func) (rasqal_rowsource* rowsource, void *u
 
 
 /**
- * rasqal_rowsource_set_preserve_func
+ * rasqal_rowsource_set_requirements_func
  * @user_data: user data
- * @preserve: flag
+ * @flags: bit flags
  *
- * Handler function for setting preserve binding states on a rowsource
+ * Handler function for one rowsource setting requirements on inner rowsources
  *
  * Return value: non-0 on failure
  */
-typedef int (*rasqal_rowsource_set_preserve_func) (rasqal_rowsource* rowsource, void *user_data, int preserve);
+typedef int (*rasqal_rowsource_set_requirements_func) (rasqal_rowsource* rowsource, void *user_data, unsigned int flags);
 
 
 /**
@@ -775,7 +775,7 @@ typedef int (*rasqal_rowsource_set_origin_func) (rasqal_rowsource* rowsource, vo
  * @read_row: read row handler - this or @read_all_rows required (V1)
  * @read_all_rows: read all rows handler - this or @read_row required (V1)
  * @reset: reset rowsource to starting state handler - optional (V1)
- * @set_preserve: set preserve flag handler - optional (V1)
+ * @set_requirements: set requirements flag handler - optional (V1)
  * @get_inner_rowsource: get inner rowsource handler - optional if has no inner rowsources (V1)
  * @set_origin: set origin (GRAPH) handler - optional (V1)
  *
@@ -792,7 +792,7 @@ typedef struct {
   rasqal_rowsource_read_row_func             read_row;
   rasqal_rowsource_read_all_rows_func        read_all_rows;
   rasqal_rowsource_reset_func                reset;
-  rasqal_rowsource_set_preserve_func         set_preserve;
+  rasqal_rowsource_set_requirements_func     set_requirements;
   rasqal_rowsource_get_inner_rowsource_func  get_inner_rowsource;
   rasqal_rowsource_set_origin_func           set_origin;
 } rasqal_rowsource_handler;
@@ -916,7 +916,7 @@ int rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource, co
 int rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource, rasqal_rowsource *src_rowsource);
 void rasqal_rowsource_print_row_sequence(rasqal_rowsource* rowsource,raptor_sequence* seq, FILE* fh);
 int rasqal_rowsource_reset(rasqal_rowsource* rowsource);
-int rasqal_rowsource_set_preserve(rasqal_rowsource* rowsource, int preserve);
+int rasqal_rowsource_set_requirements(rasqal_rowsource* rowsource, unsigned int requirement);
 rasqal_rowsource* rasqal_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource, int offset);
 int rasqal_rowsource_write(rasqal_rowsource *rowsource,  raptor_iostream *iostr);
 void rasqal_rowsource_print(rasqal_rowsource* rs, FILE* fh);

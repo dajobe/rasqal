@@ -751,7 +751,7 @@ static const rasqal_rowsource_handler rasqal_rowsource_rdf_handler={
   /* .read_row = */ rasqal_rowsource_rdf_read_row,
   /* .read_all_rows = */ NULL,
   /* .reset = */ NULL,
-  /* .set_preserve = */ NULL,
+  /* .set_requirements = */ NULL,
   /* .get_inner_rowsource = */ NULL,
   /* .set_origin = */ NULL,
 };
