@@ -59,20 +59,31 @@ typedef struct
 
 
 static int
-rasqal_distinct_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
+rasqal_distinct_rowsource_init_common(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_query *query = rowsource->query;
   rasqal_distinct_rowsource_context *con;
 
   con = (rasqal_distinct_rowsource_context*)user_data;
   
-  con->map = rasqal_engine_new_rowsort_map(1,
-                                           query->compare_flags,
-                                           NULL);
+  con->offset = 0;
+
+  con->map = rasqal_engine_new_rowsort_map(1, query->compare_flags, NULL);
   if(!con->map)
     return 1;
 
   return 0;
+}
+
+
+static int
+rasqal_distinct_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
+{
+  rasqal_distinct_rowsource_context *con;
+
+  con = (rasqal_distinct_rowsource_context*)user_data;
+
+  return rasqal_distinct_rowsource_init_common(rowsource, user_data);
 }
 
 
@@ -148,7 +159,16 @@ static int
 rasqal_distinct_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_distinct_rowsource_context *con;
+  int rc;
+
   con = (rasqal_distinct_rowsource_context*)user_data;
+
+  if(con->map)
+    rasqal_free_map(con->map);
+
+  rc = rasqal_distinct_rowsource_init_common(rowsource, user_data);
+  if(rc)
+    return rc;
 
   return rasqal_rowsource_reset(con->rowsource);
 }
