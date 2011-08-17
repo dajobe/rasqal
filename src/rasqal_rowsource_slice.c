@@ -77,9 +77,23 @@ rasqal_slice_rowsource_ensure_variables(rasqal_rowsource* rowsource,
 
 
 static int
+rasqal_slice_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
+{
+  rasqal_slice_rowsource_context *con;
+
+  con = (rasqal_slice_rowsource_context*)user_data;
+
+  con->result_offset = 1;
+
+  return 0;
+}
+
+
+static int
 rasqal_slice_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_slice_rowsource_context *con;
+
   con = (rasqal_slice_rowsource_context*)user_data;
 
   if(con->rowsource)
@@ -108,6 +122,11 @@ rasqal_slice_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
     check = rasqal_query_check_limit_offset_core(con->result_offset,
                                                  con->row_limit, con->row_offset);
+
+    RASQAL_DEBUG4("slice rowsource %p found row #%d %s\n",
+                  rowsource, con->result_offset,
+                  (check > 0) ? "beyond range" : (!check ? "in range" : "before range"));
+
     /* finished if beyond result range */
     if(check > 0) {
       rasqal_free_row(row); row = NULL;
@@ -133,7 +152,10 @@ static int
 rasqal_slice_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_slice_rowsource_context *con;
+
   con = (rasqal_slice_rowsource_context*)user_data;
+
+  con->result_offset = 1;
 
   return rasqal_rowsource_reset(con->rowsource);
 }
@@ -156,7 +178,7 @@ rasqal_slice_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource,
 static const rasqal_rowsource_handler rasqal_slice_rowsource_handler = {
   /* .version =          */ 1,
   "slice",
-  /* .init =             */ NULL,
+  /* .init =             */ rasqal_slice_rowsource_init,
   /* .finish =           */ rasqal_slice_rowsource_finish,
   /* .ensure_variables = */ rasqal_slice_rowsource_ensure_variables,
   /* .read_row =         */ rasqal_slice_rowsource_read_row,
