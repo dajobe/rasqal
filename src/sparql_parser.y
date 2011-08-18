@@ -1102,6 +1102,47 @@ ConstructQuery: CONSTRUCT ConstructTemplate
   if($5)
     ((rasqal_query*)rq)->modifier = $5;
 }
+| CONSTRUCT DatasetClauseListOpt WHERE '{' ConstructTriples '}' SolutionModifier
+{
+  rasqal_sparql_query_language* sparql;
+  rasqal_graph_pattern* where_gp;
+  raptor_sequence* seq = NULL;
+
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql_query) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "CONSTRUCT can only be used with a SPARQL query");
+    YYERROR;
+  }
+
+  if($5) {
+    int i;
+    int size = raptor_sequence_size($5);
+    
+    seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
+                              (raptor_data_print_handler)rasqal_triple_print);
+    for(i = 0; i < size; i++) {
+      rasqal_triple* t = (rasqal_triple*)raptor_sequence_get_at($5, i);
+      t = rasqal_new_triple_from_triple(t);
+      raptor_sequence_push(seq, t);
+    }
+  }
+  
+  where_gp = rasqal_new_basic_graph_pattern_from_triples((rasqal_query*)rq, seq);
+  seq = NULL;
+  if(!$$)
+    YYERROR_MSG("OptionalGraphPattern: cannot create graph pattern");
+
+  $$ = $5;
+
+  if($2)
+    rasqal_query_add_data_graphs((rasqal_query*)rq, $2);
+  ((rasqal_query*)rq)->query_graph_pattern = where_gp;
+
+  if($7)
+    ((rasqal_query*)rq)->modifier = $7;
+}
 ;
 
 
@@ -2738,6 +2779,7 @@ BindingValue: IRIref
   $$ = NULL;
 }
 ;
+
 
 
 /* SPARQL Grammar: GroupGraphPattern 
