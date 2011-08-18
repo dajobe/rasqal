@@ -1132,7 +1132,7 @@ ConstructQuery: CONSTRUCT ConstructTemplate
   where_gp = rasqal_new_basic_graph_pattern_from_triples((rasqal_query*)rq, seq);
   seq = NULL;
   if(!$$)
-    YYERROR_MSG("OptionalGraphPattern: cannot create graph pattern");
+    YYERROR_MSG("ConstructQuery: cannot create graph pattern");
 
   $$ = $5;
 
