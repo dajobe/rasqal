@@ -992,7 +992,6 @@ rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern,
  * rasqal_new_basic_graph_pattern_from_formula:
  * @query: #rasqal_graph_pattern query object
  * @formula: triples sequence containing the graph pattern
- * @op: enum #rasqal_graph_pattern_operator operator
  *
  * INTERNAL - Create a new graph pattern object over a formula. This function
  * frees the formula passed in.
