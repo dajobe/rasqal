@@ -825,6 +825,17 @@ typedef struct {
 } rasqal_row_compatible;
 
 
+/* 
+ * Rowsource Internal flags
+ *
+ * RASQAL_ROWSOURCE_FLAGS_SAVE_ROWS: need to save all rows in
+ * @rows_sequence for reset operation
+ *
+ * RASQAL_ROWSOURCE_FLAGS_SAVED_ROWS: have saved rows ready for reply
+ */
+#define RASQAL_ROWSOURCE_FLAGS_SAVE_ROWS  0x01
+#define RASQAL_ROWSOURCE_FLAGS_SAVED_ROWS 0x02
+
 /**
  * rasqal_rowsource:
  * @world: rasqal world

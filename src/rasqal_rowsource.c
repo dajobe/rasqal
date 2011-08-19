@@ -226,26 +226,63 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
   if(rowsource->finished)
     return NULL;
 
-  if(rasqal_rowsource_ensure_variables(rowsource))
-    return NULL;
+  if(rowsource->flags & RASQAL_ROWSOURCE_FLAGS_SAVED_ROWS) {
+    /* return row from saved rows sequence at offset */
+    row = (rasqal_row*)raptor_sequence_get_at(rowsource->rows_sequence,
+                                              rowsource->offset++);
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG3("%s rowsource %p returned saved row:  ", rowsource->handler->name, 
+                rowsource);
+  if(row)
+    rasqal_row_print(row, stderr);
+  else
+    fputs("NONE", stderr);
+  fputs("\n", stderr);
+#endif      
+    if(row)
+      row = rasqal_new_row_from_row(row);
+    /* row is owned by us */
+  } else {
+    if(rasqal_rowsource_ensure_variables(rowsource))
+      return NULL;
 
-  if(rowsource->handler->read_row)
-    row = rowsource->handler->read_row(rowsource, rowsource->user_data);
-  else {
-    if(!rowsource->rows_sequence) {
-      rowsource->rows_sequence = rasqal_rowsource_read_all_rows(rowsource);
-      rowsource->offset = 0;
+    if(rowsource->handler->read_row) {
+      row = rowsource->handler->read_row(rowsource, rowsource->user_data);
+      /* row is owned by us */
+
+      if(row && rowsource->flags & RASQAL_ROWSOURCE_FLAGS_SAVE_ROWS) {
+        if(!rowsource->rows_sequence) {
+          rowsource->rows_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
+                                                         (raptor_data_print_handler)rasqal_row_print);
+          rowsource->offset = 0;
+        }
+        /* copy to save it away */
+        row = rasqal_new_row_from_row(row);
+        raptor_sequence_push(rowsource->rows_sequence, row);
+      }
+    } else {
+      if(!rowsource->rows_sequence) {
+        /* rows_sequence now owns all rows */
+        rowsource->rows_sequence = rasqal_rowsource_read_all_rows(rowsource);
+        rowsource->offset = 0;
+      }
+      
+      if(rowsource->rows_sequence) {
+        /* return row from sequence at offset */
+        row = (rasqal_row*)raptor_sequence_get_at(rowsource->rows_sequence,
+                                                  rowsource->offset++);
+        if(row)
+          row = rasqal_new_row_from_row(row);
+        /* row is owned by us */
+      }
     }
-
-    if(rowsource->rows_sequence)
-      /* remove and return row from sequence at offset */
-      row = (rasqal_row*)raptor_sequence_delete_at(rowsource->rows_sequence,
-                                                   rowsource->offset++);
   }
   
-  if(!row)
+  if(!row) {
     rowsource->finished = 1;
-  else {
+    if(rowsource->flags & RASQAL_ROWSOURCE_FLAGS_SAVE_ROWS)
+      rowsource->flags |= RASQAL_ROWSOURCE_FLAGS_SAVED_ROWS;
+  } else {
     rowsource->count++;
 
     /* Generate a group around all rows if there are no groups returned */
@@ -254,7 +291,7 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
   }
 
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG3("%s rowsource %p read row:  ", rowsource->handler->name, 
+  RASQAL_DEBUG3("%s rowsource %p returned row:  ", rowsource->handler->name, 
                 rowsource);
   if(row)
     rasqal_row_print(row, stderr);
@@ -298,6 +335,16 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
 {
   raptor_sequence* seq;
 
+  if(rowsource->flags & RASQAL_ROWSOURCE_FLAGS_SAVED_ROWS) {
+    /* Return a complete copy of all previously saved rows */
+    seq = rowsource->rows_sequence;
+    RASQAL_DEBUG4("%s rowsource %p returning a sequence of %d saved rows\n",
+                  rowsource->handler->name, rowsource,
+                  raptor_sequence_size(seq));
+    return rasqal_row_sequence_copy(seq);
+  }
+
+  /* Execute */
   if(rasqal_rowsource_ensure_variables(rowsource))
     return NULL;
 
@@ -306,9 +353,7 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
     if(!seq) {
       seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
                                 (raptor_data_print_handler)rasqal_row_print);
-    }
-
-    if(seq && rowsource->generate_group) {
+    } else if(rowsource->generate_group) {
       int i;
       rasqal_row* row;
       
@@ -323,14 +368,14 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
       }
     }
 
-    return seq;
+    goto done;
   }
 
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
                             (raptor_data_print_handler)rasqal_row_print);
   if(!seq)
     return NULL;
-  
+
   while(1) {
     rasqal_row* row = rasqal_rowsource_read_row(rowsource);
     if(!row)
@@ -342,7 +387,17 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
 
     raptor_sequence_push(seq, row);
   }
+
+  done:
+  if(seq && rowsource->flags & RASQAL_ROWSOURCE_FLAGS_SAVE_ROWS) {
+    /* Save a complete copy of all rows */
+    rowsource->rows_sequence = rasqal_row_sequence_copy(seq);
+    rowsource->flags |= RASQAL_ROWSOURCE_FLAGS_SAVED_ROWS;
+  }
   
+  RASQAL_DEBUG4("%s rowsource %p returning a sequence of %d rows\n",
+                rowsource->handler->name, rowsource,
+                raptor_sequence_size(seq));
   return seq;
 }
 
@@ -514,7 +569,14 @@ rasqal_rowsource_reset(rasqal_rowsource* rowsource)
   if(rowsource->handler->reset)
     return rowsource->handler->reset(rowsource, rowsource->user_data);
 
-  RASQAL_DEBUG2("WARNING: rowsource %s has no reset", rowsource->handler->name);
+  if(rowsource->flags & RASQAL_ROWSOURCE_FLAGS_SAVED_ROWS) {
+    RASQAL_DEBUG3("%s rowsource %p resetting to use saved rows\n", 
+                  rowsource->handler->name, rowsource);
+    rowsource->offset = 0;
+  } else {
+    RASQAL_DEBUG3("WARNING: %s rowsource %p has no reset and there are no saved rows\n",
+                  rowsource->handler->name, rowsource);
+  }
   return 0;
 }
 
@@ -607,6 +669,19 @@ rasqal_rowsource_visitor_set_requirements(rasqal_rowsource* rowsource,
   if(rowsource->handler->set_requirements)
     return rowsource->handler->set_requirements(rowsource, rowsource->user_data,
                                                 flags);
+
+  if(flags & RASQAL_ROWSOURCE_REQUIRE_RESET) {
+    if(!rowsource->handler->reset) {
+      /* If there is no reset handler, it is handled by this module and it is needed
+       * it is handled by this module
+       */
+      RASQAL_DEBUG3("setting %s rowsource %p to save rows\n",
+                    rowsource->handler->name, rowsource);
+      rowsource->flags |= RASQAL_ROWSOURCE_FLAGS_SAVE_ROWS;
+      return 1;
+    }
+  }
+
   return 0;
 }
 
