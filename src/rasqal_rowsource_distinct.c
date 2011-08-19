@@ -79,9 +79,11 @@ rasqal_distinct_rowsource_init_common(rasqal_rowsource* rowsource, void *user_da
 static int
 rasqal_distinct_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 {
+/*
   rasqal_distinct_rowsource_context *con;
 
   con = (rasqal_distinct_rowsource_context*)user_data;
+*/
 
   return rasqal_distinct_rowsource_init_common(rowsource, user_data);
 }
