@@ -96,16 +96,16 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
                               rasqal_query_results* results,
                               raptor_uri *base_uri,
                               const char* label,
-                              char sep,
+                              const char sep,
                               int csv_escape,
-                              char variable_prefix)
+                              const char variable_prefix,
+                              const char* nl_str,
+                              size_t nl_str_len)
 {
   rasqal_query* query = rasqal_query_results_get_query(results);
   int i;
 #define empty_value_str_len 0
   static const char empty_value_str[empty_value_str_len+1] = "";
-#define nl_str_len 2
-  static const char nl_str[nl_str_len + 1] = "\r\n";
   int vars_count;
   
   if(!rasqal_query_results_is_bindings(results)) {
@@ -249,7 +249,8 @@ rasqal_query_results_write_csv(rasqal_query_results_formatter* formatter,
                                raptor_uri *base_uri)
 {
   return rasqal_query_results_write_sv(iostr, results, base_uri,
-                                       "CSV", ',', 1, '\0');
+                                       "CSV", ',', 1, '\0',
+                                       "\r\n", 2);
 }
 
 
@@ -260,7 +261,8 @@ rasqal_query_results_write_tsv(rasqal_query_results_formatter* formatter,
                                raptor_uri *base_uri)
 {
   return rasqal_query_results_write_sv(iostr, results, base_uri,
-                                       "TSV", '\t', 0, '?');
+                                       "TSV", '\t', 0, '?',
+                                       "\n", 1);
 }
 
 
