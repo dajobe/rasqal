@@ -615,7 +615,9 @@ const char* const join_1_data_2x3_rows[] =
 };
   
 
-const char* const join_2_data_3x4_rows[] =
+/* join on b */
+
+const char* const join_2_data_3x2_rows[] =
 {
   /* 3 variable names and 4 rows */
   "b",     NULL, "c",      NULL, "d",      NULL,
@@ -623,16 +625,11 @@ const char* const join_2_data_3x4_rows[] =
   "red",   NULL, "orange", NULL, "yellow", NULL,
   /* row 2 data */
   "blue",  NULL, "indigo", NULL, "violet", NULL,
-  /* row 3 data */
-  "blue", NULL, "silver", NULL, "gold",   NULL,
-  /* row 4 data */
-  "green", NULL, "tope",   NULL, "bronze", NULL,
   /* end of data */
   NULL, NULL, NULL, NULL, NULL, NULL
 };
 
 
-/* join on b=red: 1 row b=blue: 2 rows and b=green: 1 row */
 typedef struct {
   rasqal_join_type join_type;
   int expected;
@@ -640,8 +637,8 @@ typedef struct {
 
 #define JOIN_TESTS_COUNT 2
 const join_test_config_type join_test_config[JOIN_TESTS_COUNT] = { 
-  { RASQAL_JOIN_TYPE_NATURAL, 4 },
-  { RASQAL_JOIN_TYPE_LEFT, 12 },
+  { RASQAL_JOIN_TYPE_NATURAL, 2 },
+  { RASQAL_JOIN_TYPE_LEFT, 3 },
 };
 
 
@@ -704,9 +701,9 @@ main(int argc, char *argv[])
     /* vars_seq and seq are now owned by left_rs */
     vars_seq = seq = NULL;
 
-    /* 3 variables and 4 rows */
+    /* 3 variables and 2 rows */
     vars_count = 3;
-    seq = rasqal_new_row_sequence(world, vt, join_2_data_3x4_rows, vars_count,
+    seq = rasqal_new_row_sequence(world, vt, join_2_data_3x2_rows, vars_count,
                                   &vars_seq);
     if(!seq) {
       fprintf(stderr,
