@@ -195,6 +195,15 @@ rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
   if(con->state == 0) {
     row = rasqal_rowsource_read_row(con->left);
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG2("rowsource %p read left row : ", rowsource);
+    if(row)
+      rasqal_row_print(row, stderr);
+    else
+      fputs("NONE", stderr);
+    fputs("\n", stderr);
+#endif
+
     if(!row)
       con->state = 1;
     else {
@@ -207,6 +216,15 @@ rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   }
   if(!row && con->state == 1) {
     row = rasqal_rowsource_read_row(con->right);
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG2("rowsource %p read right row : ", rowsource);
+    if(row)
+      rasqal_row_print(row, stderr);
+    else
+      fputs("NONE", stderr);
+    fputs("\n", stderr);
+#endif
+
     if(!row)
       /* finished */
       con->state = 2;
