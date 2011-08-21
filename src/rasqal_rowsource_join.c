@@ -467,6 +467,8 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   if(row) {
     row->rowsource = rowsource;
     row->offset = con->offset++;
+
+    rasqal_row_bind_variables(row, rowsource->query->vars_table);
   }
   
   return row;
