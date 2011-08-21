@@ -13,6 +13,16 @@
 <p>Not yet released.
 </p>
 
+<p>Issues Fixed:</p>
+<ul>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=127">0000127</a>: UNION graph pattern support in query engine</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=423">0000423</a>: SPARQL UNION with shared variables fails</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=434">0000434</a>: OPTIONAL and named graphs don't mix</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=454">0000454</a>: xsd:nonNegativeInteger is parsed as RASQAL_LITERAL_QNAME instead of RASQAL_LITERAL_[INTEGER|UDT|INTEGER_SUBTYPE]</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=459">0000459</a>: Making a query that binds to a variable with the same name as a bnode fails</li>
+</ul>
+
+
 <h3>Literal class changes</h3>
 
 <p><code>rasqal_new_numeric_literal_from_long()</code> added to make an
@@ -75,9 +85,32 @@ for <code>SERVICE</code>.</p>
 
 <h3>Query engine changes</h3>
 
-<p>A lot of refactoring to provide the structure to start to enable
+<p>sub-<code>SELECT</code>s are now supported including those that
+contain sorting, grouping, limiting and offset as well as projection.
+</p>
+
+<p><code>CONSTRUCT</code> works when working over a query with
+optionals. It previously stopped returning results at the first unbound
+variable value.</p>
+
+<p><code>OPTIONAL</code>, sub-graph pattern groups
+and <code>UNION</code> fully execute correctly. Fixes were made to
+the variable scoping and join operations.</p>
+
+<p>A lot of refactoring was done to provide the structure to enable
 sub-<code>SELECT</code> to be turned into a query algebra structure
 and executed.
+</p>
+
+<p>An entirely new variable scoping algorithm was implemented to
+properly compute where a variable is assigned; the assumption was
+removed that a variable with a given name can only be bound in one
+place.
+</p>
+
+<p>Several bugs were fixed in the join implementation which affected
+the sub-graph pattern grouping (natural join) and optional (left
+join).
 </p>
 
 <p>Pulled new internal function

@@ -1,4 +1,356 @@
+2011-08-21  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_sv.c: use eol_str as parameter
+
+	* src/rasqal_format_sv.c: Generate CRLF for TSV and LF for CSV
+	following draft
+
+	* src/rasqal_format_sv.c:
+	Generate CSV/TSV following draft SPARQL
+	1.1 CSV/TSV results format
+	http://www.w3.org/2009/sparql/docs/csv-tsv-results/results-csv-tsv.html
+
+	* src/rasqal_rowsource_union.c: More row debug printing
+
+	* src/rasqal_rowsource_join.c: Made join properly reset when doing
+	extra rows
+
+	(rasqal_join_rowsource_reset): Start at JS_START More row debug
+	printing
+
+	* src/rasqal_rowsource_graph.c: Handle GRAPH ?g returning an empty
+	when there is just the default graph.
+
+	(rasqal_graph_rowsource_init): Do not pass on finished flag state
+	to result of init, it is not an init error to finish now.
+
+2011-08-20  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: fix graph compare with dup triples
+
+	* src/rasqal_query_results.c: Handle skipping unbound variables in
+	CONSTRUCT properly
+
+	(rasqal_query_results_get_triple): Use
+	rasqal_query_results_next_internal to not fail check and Reset
+	skipped flag.
+
+	* src/rasqal_query_results.c: Do not duplicate code for moving to
+	next result (unchecked)
+
+	(rasqal_query_results_next_internal): Added
+
+	(rasqal_query_results_next): Use
+	rasqal_query_results_next_internal() after verb check
+
+	(rasqal_query_results_next_triple): Use
+	rasqal_query_results_next_internal so that CONSTRUCT does not fail
+	after first result row when this check happens.
+
+	* src/rasqal_rowsource_join.c: Fix bogus join test to test natural
+	and left correctly
+
+	It was bad because the join variable 'b' had a full match between
+	left and right tables.  Now the natural join returns 2 rows wheras
+	the left join returns 3 since there are no values for b='green' in
+	the right table.
+
+	* src/rasqal_query_transform.c, src/rasqal_rowsource_join.c:
+	project all variables in group and optional sub-GPs
+
+	(rasqal_query_graph_pattern_build_variables_use_map_binds): Pass
+	GROUP and OPTIONAL through the binding also done for UNION using
+	the existing rasqal_query_union_build_variables_use_map_binds()
+
+	(rasqal_join_rowsource_read_row): Requires a change here to
+	prevent generating too many rows in a left join when rows are not
+	compatible.  Not entirely clear why yet.
+
+2011-08-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_read_row): Bind variables when a row is
+	generated.
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_read_row): Code tidy - no semantic changes.
+
+2011-08-19  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_distinct.c:
+	(rasqal_distinct_rowsource_init): do not set unused var con
+
+2011-08-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c: rowsource class
+	implements saving rows when required
+
+	Added internal flags when the rowsource class must do the work
+	  RASQAL_ROWSOURCE_FLAGS_SAVE_ROWS - in process of saving rows
+	  RASQAL_ROWSOURCE_FLAGS_SAVED_ROWS - have saved rows for replay
+
+	(rasqal_rowsource_read_row): When saving, store the rows in
+	rowsource rows_sequence (and keep a reference).  When replaying,
+	read them out and make a new reference.  When using read_all_rows
+	to implement read_row, copy the entire sequence.  When the last
+	row is seen, set the RASQAL_ROWSOURCE_FLAGS_SAVED_ROWS flag and
+	reset he RASQAL_ROWSOURCE_FLAGS_SAVE_ROWS flag.  Adjust messaging
+	to note when a saved row is being returned
+
+	(rasqal_rowsource_read_all_rows): Implement saving for entire
+	sueqneces of rows copying the entire sequence and copying it again
+	to replay.
+
+	(rasqal_rowsource_reset): If the rowsource does not implement
+	reset and the rows are saved, reset the offset.
+
+	(rasqal_rowsource_visitor_set_requirements): When resets are
+	required but the rowsource does not implement it, set the
+	RASQAL_ROWSOURCE_FLAGS_SAVE_ROWS flag so this module does the
+	work.
+
+	* src/sparql_parser.y: word
+
+	* src/sparql_parser.y: Add syntax support for CONSTRUCT WHERE {
+	triples }
+
+	* src/rasqal_graph_pattern.c: docs
+
+2011-08-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_slice.c: Reset slice rowsource properly and
+	use result numbers (offsets) from 1
+
+	(rasqal_slice_rowsource_init): Added to set initial result offset
+	to 1.
+
+	(rasqal_distinct_rowsource_reset): Reset result offset to 1.
+
+	(rasqal_slice_rowsource_read_row): Some debug messaging
+
+	* src/rasqal_rowsource_distinct.c: Reset distinct rowsource
+	properly; empty map and zero offset
+
+	(rasqal_distinct_rowsource_init_common): Added
+
+	(rasqal_distinct_rowsource_init): Added to call above to make it
+	clear; with calloc()ed memory this is not actually necessary.
+
+	(rasqal_distinct_rowsource_reset): Call above.
+
+2011-08-15  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_join.c, src/rasqal_rowsource_union.c: Allow
+	rowsources to set requirements on inner rowsources.
+
+	(rasqal_rowsource_set_requirements): Added to do the visit using
+	rasqal_rowsource_visitor_set_requirements().
+
+	Added flag RASQAL_ROWSOURCE_REQUIRE_RESET to indicate requiring
+	the ability to do rasqal_rowsource_reset() on an inner rowsource.
+
+	* src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_internal.h, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_assignment.c,
+	src/rasqal_rowsource_distinct.c, src/rasqal_rowsource_empty.c,
+	src/rasqal_rowsource_filter.c, src/rasqal_rowsource_graph.c,
+	src/rasqal_rowsource_groupby.c, src/rasqal_rowsource_having.c,
+	src/rasqal_rowsource_join.c, src/rasqal_rowsource_project.c,
+	src/rasqal_rowsource_rowsequence.c, src/rasqal_rowsource_slice.c,
+	src/rasqal_rowsource_sort.c, src/rasqal_rowsource_triples.c,
+	src/rasqal_rowsource_union.c:
+
+	Replace unused rowsource set_preserve method with set_requirements
+
+	Delete all rowsource implementations of the unused set_preserve
+	method and all calls to rasqal_rowsource_set_preserve() that did
+	nothing.
+
+	* src/rasqal_rowsource_triples.c: Remove unused
+	preserve_on_all_finished from triples rowsource
+
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_visit): Allow truncation of recursive visits.
+
+	* src/rasqal_internal.h, src/rasqal_row.c:
+	(rasqal_row_sequence_copy): Added
+
+2011-08-14  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_graph.c: Store number of data graphs
+	rasqal_graph_rowsource_context gains a dg_size field.
+
+	(rasqal_graph_rowsource_reset): Calculate dg_size once.
+
+	* src/rasqal_rowsource_join.c: Remove reading rows from join
+	rowsource init Label enum states with JS_prefix.
+
+	Add state JS_INIT for once-only setup.
+
+	(rasqal_join_rowsource_init): Set initial state to JS_INIT and
+	delete setup that reads rows
+
+	(rasqal_join_rowsource_read_row): Handle JS_INIT.  Rename states
+	with JS_ prefix.
+
+	(rasqal_join_rowsource_reset): Rename state with JS_ prefix.
+
+	* src/rasqal_rowsource_join.c: Make rasqal_join_state an enum
+
+	* src/rasqal_rowsource_join.c: Use FINISHED not 2 for state
+
+	* src/rasqal_rowsource_graph.c: Do not call reset in graph init
+
+	(rasqal_graph_rowsource_init): Inline and just call
+	rasqal_graph_next_dg()
+
+	* src/rasqal_raptor.c: Save and use which parts of triples are
+	bound and reset those vars
+
+	rasqal_raptor_triples_match_context gains bind_parts field
+
+	(rasqal_raptor_next_match): Add debug print when matches end
+
+	(rasqal_raptor_init_triples_match): Save parts that are bind and
+	then use it to reset variables we are about to bind to NULL, to
+	ensure that the triples match gets the proper NULL values.
+
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_reset): Debug warning when reset cannot be done
+
+	* src/rasqal_engine_sort.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_sort.c: Make
+	rasqal_engine_rowsort_calculate_order_values not use query fields
+
+	(rasqal_engine_rowsort_calculate_order_values): Add order_seq arg
+	rather than use rasqal_query_get_order_conditions_sequence().
+
+	(rasqal_sort_rowsource_process): Pass in order sequence to
+	rasqal_engine_rowsort_calculate_order_values()
+
+	* tests/algebra/convert_graph_pattern.c: Use
+	rasqal_algebra_query_add_orderby with projection arg.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Pass order sequence and distinct flag to
+	algebra nodes
+
+	rasqal_algebra_node: Add distinct field.
+
+	(rasqal_new_orderby_algebra_node): Add distinct flag and store it.
+
+	(rasqal_algebra_query_add_orderby): Renamed from
+	rasqal_algebra_query_add_modifiers since it only does ORDERBY and
+	DISTINCT.  Add projection arg to get distinct info.  Use it to get
+	distinct flag for calling rasqal_new_orderby_algebra_node()
+
+	(rasqal_algebra_select_graph_pattern_to_algebra): Use
+	rasqal_algebra_query_add_orderby with projection arg for distinct.
+
+	(rasqal_query_engine_algebra_execute_init): Pass in projection arg
+	to rasqal_algebra_query_add_orderby.
+
+	* src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_sort.c: rasqal_new_sort_rowsource gets
+	order/distinct from args not query fields
+
+	rasqal_sort_rowsource_context: Add order_seq and distinct fields.
+
+	(rasqal_sort_rowsource_init): Get order seq from context not
+	direct from query object.
+
+	(rasqal_new_sort_rowsource): Add order seq and distinct args and
+	store them.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Implement slice algebra node
+	rasqal_algebra_node: Renamed slice fields to limit, offset
+
+	(rasqal_new_slice_algebra_node): Added
+
+	(rasqal_algebra_algebra_node_write_internal): Adjust for field
+	rename.
+
+	(rasqal_algebra_select_graph_pattern_to_algebra): Apply slices in
+	sub-SELECT.
+
+	(rasqal_algebra_query_add_slice): Added
+
+	(rasqal_algebra_slice_algebra_node_to_rowsource): Added.
+
+	(rasqal_algebra_node_to_rowsource): Call above to handle
+	RASQAL_ALGEBRA_OPERATOR_SLICE.
+
+	* src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_rowsource_slice.c: Add slice rowsource
+	(rasqal_new_slice_rowsource): Added.
+
+	* src/rasqal_internal.h, src/rasqal_query_results.c: Pull
+	limit/offset checkint out of rasqal_query_check_limit_offset()
+
+	(rasqal_query_check_limit_offset_core): Added with just limit and
+	offset parameters.
+
+	(rasqal_query_check_limit_offset): Now calls above with fields
+	from query.
+
+	* tests/algebra/convert_graph_pattern.c:
+	(main): Update call to rasqal_algebra_query_add_distinct
+
+2011-08-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_add_distinct): Handle NULL projection
+
+	* src/rasqal_query_transform.c:
+	Walk sub-SELECT graph pattern once.
+
+	(rasqal_query_graph_pattern_build_variables_use_map_binds): Do not
+	bind SELECT inner GP multiple times; skip the sub-GP loop.
+
+	* src/rasqal_query_transform.c:
+	More debugging of vars scope
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_dump_vars_scope): Added for debuggin vars scope
+
+	* src/rasqal_query_transform.c: DEBUG_FH
+
+	* src/rasqal_query_transform.c: Make
+	rasqal_query_build_variables_use_map_binds take a graph pattern
+	arg
+
+	(rasqal_query_build_variables_use_map_binds): Add gp arg like the
+	use function rasqal_query_build_variables_use_map() does.
+
+	(rasqal_query_build_variables_use_map): Update call to above.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Use projection to get distinct flag
+
+	(rasqal_algebra_query_add_distinct): Add projection arg for
+	distinct flag.
+
+	(rasqal_algebra_select_graph_pattern_to_algebra,
+	rasqal_query_engine_algebra_execute_init): Update callers
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_select_graph_pattern_to_algebra): Implement
+	sub-SELECTs
+
 2011-08-11  Dave Beckett <dave@dajobe.org>
+
+	* RELEASE.html: 0.9.27
+
+	* src/rasqal_query.c: word
+
+	* src/rasqal_query.c:
+	(rasqal_query_set_variable): set named variables like old behaviour
+
+	* src/rasqal_query.c:
+	(rasqal_query_has_variable): autodocs - any type
 
 	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt,
 	docs/tmpl/section-query.sgml,
