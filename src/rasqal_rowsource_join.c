@@ -427,7 +427,8 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         row = rasqal_join_rowsource_build_merged_row(rowsource, con, right_row);
         break;
       }
-    
+
+#if 0    
       /*
        * { mu1 | mu1 in Omega1 and mu2 in Omega2, and mu1 and mu2 are
        * not compatible }
@@ -446,6 +447,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
           }
         }
       }
+#endif
 
       /*
        * { mu1 | mu1 in Omega1 and mu2 in Omega2, and mu1 and mu2 are
