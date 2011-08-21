@@ -1119,8 +1119,12 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
   skipped = 0;
   while(1) {
     if(skipped) {
-      rc = rasqal_query_results_next(query_results);
+      /* Had to move to next triple internally */
+      skipped = 0;
+
+      rc = rasqal_query_results_next_internal(query_results);
       if(rc) {
+        /* end of results or failed */
         rs = NULL;
         break;
       }
