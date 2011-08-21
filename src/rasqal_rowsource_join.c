@@ -317,6 +317,14 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         rasqal_free_row(con->left_row);
 
       con->left_row  = rasqal_rowsource_read_row(con->left);
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG2("rowsource %p read left row : ", rowsource);
+      if(con->left_row)
+        rasqal_row_print(con->left_row, stderr);
+      else
+        fputs("NONE", stderr);
+      fputs("\n", stderr);
+#endif
       con->state = JS_INIT_RIGHT;
     }
 
@@ -335,6 +343,14 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
 
     right_row = rasqal_rowsource_read_row(con->right);
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG2("rowsource %p read right row : ", rowsource);
+    if(right_row)
+      rasqal_row_print(right_row, stderr);
+    else
+      fputs("NONE", stderr);
+    fputs("\n", stderr);
+#endif
 
     if(!right_row && con->state == JS_READ_RIGHT) {
       /* right has finished */
@@ -485,7 +501,7 @@ rasqal_join_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
   
   con = (rasqal_join_rowsource_context*)user_data;
 
-  con->state = JS_INIT_RIGHT;
+  con->state = JS_START;
   con->failed = 0;
   
   rc = rasqal_rowsource_reset(con->left);
