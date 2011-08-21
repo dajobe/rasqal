@@ -15,12 +15,60 @@
 
 <p>Issues Fixed:</p>
 <ul>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=127">0000127</a>: UNION graph pattern support in query engine</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=423">0000423</a>: SPARQL UNION with shared variables fails</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=434">0000434</a>: OPTIONAL and named graphs don't mix</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=454">0000454</a>: xsd:nonNegativeInteger is parsed as RASQAL_LITERAL_QNAME instead of RASQAL_LITERAL_[INTEGER|UDT|INTEGER_SUBTYPE]</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=127">0000127</a>: <code>UNION</code> graph pattern support in query engine</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=423">0000423</a>: SPARQL <code>UNION</code> with shared variables fails</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=434">0000434</a>: <code>OPTIONAL</code> and named graphs don't mix</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=454">0000454</a>: xsd:nonNegativeInteger is parsed as <code>RASQAL_LITERAL_QNAME</code> instead of <code>RASQAL_LITERAL_[INTEGER|UDT|INTEGER_SUBTYPE]</code></li>
 <li><a href="http://bugs.librdf.org/mantis/view.php?id=459">0000459</a>: Making a query that binds to a variable with the same name as a bnode fails</li>
 </ul>
+
+
+<h3>SPARQL changes</h3>
+
+<p>The parser now supports the optional <code>SILENT</code> keyword
+for <code>SERVICE</code>.</p>
+
+<p>The parser now supports the <code>CONSTRUCT WHERE</code>
+abbreviation, expanding the WHERE triples into a triple template
+with the same triples.
+</p>
+
+
+<h3>Query engine changes</h3>
+
+<p>sub-<code>SELECT</code>s are now supported including those that
+contain sorting, grouping, limiting and offset as well as projection.
+</p>
+
+<p><code>CONSTRUCT</code> works when working over a query with
+optionals. It previously stopped returning results at the first unbound
+variable value.</p>
+
+<p><code>OPTIONAL</code>, sub-graph pattern groups
+and <code>UNION</code> fully execute correctly. Fixes were made to
+the variable scoping and join operations.</p>
+
+<p>A lot of refactoring was done to provide the structure to enable
+sub-<code>SELECT</code> to be turned into a query algebra structure
+and executed.
+</p>
+
+<p>An entirely new variable scoping algorithm was implemented to
+properly compute where a variable is assigned; the assumption was
+removed that a variable with a given name can only be bound in one
+place.
+</p>
+
+<p>Several bugs were fixed in the join implementation which affected
+the sub-graph pattern grouping (natural join) and optional (left
+join).
+</p>
+
+<p>Pulled new internal function
+<code>rasqal_query_results_formatter_get_read_rowsource()</code> out
+of <code>rasqal_service_execute()</code> to provide the structure for
+executing <code>SERVICE</code> queries in the query engine.
+</p>
 
 
 <h3>Literal class changes</h3>
@@ -67,6 +115,16 @@ ambiguous.
 Lookup by any type.</p>
 
 
+<h3>Query result format changes</h3>
+
+<p>The CSV and TSV query result formats (names <code>csv</code>
+and <code>tsv</code> respectively) were altered  to match the editor's draft
+<a href="http://www.w3.org/2009/sparql/docs/csv-tsv-results/results-csv-tsv.html">SPARQL 1.1 Query Results CSV and TSV Formats</a>
+which includes no header line, no result number and implementing
+the specified quoting and end of lines in the specification.
+</p>
+
+
 <h3>Variable class changes</h3>
 
 <p><code>rasqal_variables_table_add_variable()</code> added to add an
@@ -75,49 +133,6 @@ existing variable to a variables table.
 
 <p><code>rasqal_variables_table_get_by_name()</code> added with
 variable type arg.</p>
-
-
-<h3>SPARQL changes</h3>
-
-<p>The parser now supports the optional <code>SILENT</code> keyword
-for <code>SERVICE</code>.</p>
-
-
-<h3>Query engine changes</h3>
-
-<p>sub-<code>SELECT</code>s are now supported including those that
-contain sorting, grouping, limiting and offset as well as projection.
-</p>
-
-<p><code>CONSTRUCT</code> works when working over a query with
-optionals. It previously stopped returning results at the first unbound
-variable value.</p>
-
-<p><code>OPTIONAL</code>, sub-graph pattern groups
-and <code>UNION</code> fully execute correctly. Fixes were made to
-the variable scoping and join operations.</p>
-
-<p>A lot of refactoring was done to provide the structure to enable
-sub-<code>SELECT</code> to be turned into a query algebra structure
-and executed.
-</p>
-
-<p>An entirely new variable scoping algorithm was implemented to
-properly compute where a variable is assigned; the assumption was
-removed that a variable with a given name can only be bound in one
-place.
-</p>
-
-<p>Several bugs were fixed in the join implementation which affected
-the sub-graph pattern grouping (natural join) and optional (left
-join).
-</p>
-
-<p>Pulled new internal function
-<code>rasqal_query_results_formatter_get_read_rowsource()</code> out
-of <code>rasqal_service_execute()</code> to provide the structure for
-executing <code>SERVICE</code> queries in the query engine.
-</p>
 
 
 <h3><code>roqet(1)</code> utility changes</h3>
