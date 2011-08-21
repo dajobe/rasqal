@@ -312,15 +312,17 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     int compatible = 1;
 
     if(con->state == JS_START) {
+      /* start / re-start left */
+      if(con->left_row)
+        rasqal_free_row(con->left_row);
+
       con->left_row  = rasqal_rowsource_read_row(con->left);
-      if(!con->left_row) {
-        con->state = JS_FINISHED;
-        return NULL;
-      }
       con->state = JS_INIT_RIGHT;
     }
 
     if(con->state == JS_INIT_RIGHT) {
+      /* start right */
+
       if(!con->left_row) {
         con->state = JS_FINISHED;
         return NULL;
@@ -333,8 +335,12 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
 
     right_row = rasqal_rowsource_read_row(con->right);
+
     if(!right_row && con->state == JS_READ_RIGHT) {
-      /* right table done */
+      /* right has finished */
+
+      /* restart left */
+      con->state = JS_START;
 
       /* if all right table returned no bindings, return left row */
       if(!con->right_rows_joined_count) {
@@ -350,14 +356,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         }
       }
 
-      if(right_row)
-        rasqal_free_row(right_row);
-
-      /* restart left, continue looping */
-      con->state = JS_INIT_RIGHT;
-      if(con->left_row)
-        rasqal_free_row(con->left_row);
-      con->left_row = rasqal_rowsource_read_row(con->left);
+      /* restart left by continuing the loop */
       continue;
     }
 
