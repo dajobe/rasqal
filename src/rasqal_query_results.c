@@ -738,6 +738,31 @@ rasqal_query_results_get_count(rasqal_query_results* query_results)
 }
 
 
+/*
+ * rasqal_query_results_next_internal:
+ * @query_results: #rasqal_query_results query_results
+ *
+ * INTERNAL - Move to the next result without query verb type checking
+ * 
+ * Return value: non-0 if failed or results exhausted
+ **/
+static int
+rasqal_query_results_next_internal(rasqal_query_results* query_results)
+{
+  if(query_results->failed || query_results->finished)
+    return 1;
+  
+  /* Remove any current row */
+  if(query_results->row) {
+    rasqal_free_row(query_results->row);
+    query_results->row = NULL;
+  }
+
+  /* Now try to get a new one */
+  return rasqal_query_results_ensure_have_row_internal(query_results);
+}
+
+
 /**
  * rasqal_query_results_next:
  * @query_results: #rasqal_query_results query_results
@@ -751,20 +776,10 @@ rasqal_query_results_next(rasqal_query_results* query_results)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, 1);
 
-  if(query_results->failed || query_results->finished)
-    return 1;
-  
   if(!rasqal_query_results_is_bindings(query_results))
     return 1;
 
-  /* Remove any current row */
-  if(query_results->row) {
-    rasqal_free_row(query_results->row);
-    query_results->row = NULL;
-  }
-
-  /* Now try to get a new one */
-  return rasqal_query_results_ensure_have_row_internal(query_results);
+  return rasqal_query_results_next_internal(query_results);
 }
 
 
@@ -1399,14 +1414,7 @@ rasqal_query_results_next_triple(rasqal_query_results* query_results)
   }
 
   if(++query_results->current_triple_result >= raptor_sequence_size(query->constructs)) {
-    /* Remove any current row */
-    if(query_results->row) {
-      rasqal_free_row(query_results->row);
-      query_results->row = NULL;
-    }
-    
-    /* Now try to get a new one */
-    if(rasqal_query_results_ensure_have_row_internal(query_results))
+    if(rasqal_query_results_next_internal(query_results))
       return 1;
     
     query_results->current_triple_result = -1;
