@@ -84,6 +84,8 @@ rasqal_iostream_write_csv_string(const unsigned char *string, size_t len,
  * @sep: column sep character
  * @csv_escape: non-0 if values are written escaped with CSV rules, else turtle
  * @variable_prefix: char to print before a variable name or NUL
+ * @eol_str: end of line string
+ * @eol_str_len: length of @eol_str
  *
  * INTERNAL - Write a @sep-separated values version of the query results format to an iostream.
  * 
@@ -99,8 +101,8 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
                               const char sep,
                               int csv_escape,
                               const char variable_prefix,
-                              const char* nl_str,
-                              size_t nl_str_len)
+                              const char* eol_str,
+                              size_t eol_str_len)
 {
   rasqal_query* query = rasqal_query_results_get_query(results);
   int i;
@@ -131,7 +133,7 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
       raptor_iostream_write_byte(variable_prefix, iostr);
     raptor_iostream_string_write(name, iostr);
   }
-  raptor_iostream_counted_string_write(nl_str, nl_str_len, iostr);
+  raptor_iostream_counted_string_write(eol_str, eol_str_len, iostr);
 
 
   /* Variable Binding Results */
@@ -232,7 +234,7 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
     }
 
     /* End Result Row */
-    raptor_iostream_counted_string_write(nl_str, nl_str_len, iostr);
+    raptor_iostream_counted_string_write(eol_str, eol_str_len, iostr);
     
     rasqal_query_results_next(results);
   }
