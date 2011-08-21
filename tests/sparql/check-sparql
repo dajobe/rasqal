@@ -489,11 +489,11 @@ sub run_test {
       $roqet_results++;
     }
 
-    # RDF Graph result - seen N-Triple
+    # RDF Graph result - seen N-Triple; sort -u to attempt to get canonical graph
     if(m/^[_<]/) {
       my $line = $_;
       if($first_result) {
-        open(OUT, "|$sort >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
+        open(OUT, "|$sort -u >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
         $first_result=0;
       }
 
@@ -585,8 +585,8 @@ sub run_test {
     }
     close(OUT);
   } else {
-    # graph
-    open(OUT, ">result.out")
+    # graph: sort N-Triples in attempt to get canonical graph
+    open(OUT, "| sort -u >result.out")
       or die "$program: Cannot create pipe to result.out - $!\n";
     print OUT $results->{graph_ntriples}
       if exists $results->{graph_ntriples};
