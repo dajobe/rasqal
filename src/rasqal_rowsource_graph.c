@@ -153,7 +153,13 @@ rasqal_graph_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   con->dg_offset = -1;
   con->offset = 0;
 
-  return rasqal_graph_next_dg(con);
+  /* Do not care if finished at this stage (it is not an
+   * error). rasqal_graph_rowsource_read_row() will deal with
+   * returning NULL for an empty result.
+   */
+  rasqal_graph_next_dg(con);
+
+  return 0;
 }
 
 
