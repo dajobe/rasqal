@@ -2,7 +2,11 @@
  *
  * rasqal_format_sv.c - Format results in CSV/TSV
  *
- * Copyright (C) 2009, David Beckett http://www.dajobe.org/
+ * Intended to read and write the
+ *   SPARQL 1.1 Query Results CSV and TSV Formats (DRAFT)
+ *   http://www.w3.org/2009/sparql/docs/csv-tsv-results/results-csv-tsv.html
+ * 
+ * Copyright (C) 2009-2011, David Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -40,6 +44,37 @@
 #include "rasqal_internal.h"
 
 
+static int
+rasqal_iostream_write_csv_string(const unsigned char *string, size_t len,
+                                 raptor_iostream *iostr)
+{
+  const char delim = '\x22';
+  int quoting_needed = 0;
+  size_t i;
+
+  for(i = 0; i < len; i++) {
+    char c = string[i];
+    /* Quoting needed for delim (double quote), comma, linefeed or return */
+    if(c == delim   || c == ',' || c == '\r' || c == '\n') {
+      quoting_needed++;
+      break;
+    }
+  }
+  if(!quoting_needed)
+    return raptor_iostream_counted_string_write(string, len, iostr);
+
+  raptor_iostream_write_byte(delim, iostr);
+  for(i = 0; i < len; i++) {
+    char c = string[i];
+    if(c == delim)
+      raptor_iostream_write_byte(delim, iostr);
+    raptor_iostream_write_byte(c, iostr);
+  }
+  raptor_iostream_write_byte(delim, iostr);
+
+  return 0;
+}
+
 /*
  * rasqal_query_results_write_sv:
  * @iostr: #raptor_iostream to write the query to
@@ -47,6 +82,8 @@
  * @base_uri: #raptor_uri base URI of the output format
  * @label: name of this format for errors
  * @sep: column sep character
+ * @csv_escape: non-0 if values are written escaped with CSV rules, else turtle
+ * @variable_prefix: char to print before a variable name or NUL
  *
  * INTERNAL - Write a @sep-separated values version of the query results format to an iostream.
  * 
@@ -59,15 +96,16 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
                               rasqal_query_results* results,
                               raptor_uri *base_uri,
                               const char* label,
-                              char sep)
+                              char sep,
+                              int csv_escape,
+                              char variable_prefix)
 {
   rasqal_query* query = rasqal_query_results_get_query(results);
   int i;
-  int count = 1;
 #define empty_value_str_len 0
   static const char empty_value_str[empty_value_str_len+1] = "";
-#define nl_str_len 1
-  static const char nl_str[nl_str_len+1] = "\n";
+#define nl_str_len 2
+  static const char nl_str[nl_str_len + 1] = "\r\n";
   int vars_count;
   
   if(!rasqal_query_results_is_bindings(results)) {
@@ -79,16 +117,18 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
   }
   
   /* Header */
-  raptor_iostream_counted_string_write("Result", 6, iostr);
- 
   for(i = 0; 1; i++) {
     const unsigned char *name;
     
     name = rasqal_query_results_get_binding_name(results, i);
     if(!name)
       break;
-    
-    raptor_iostream_write_byte(sep, iostr);
+
+    if(i > 0)
+      raptor_iostream_write_byte(sep, iostr);
+
+    if(variable_prefix)
+      raptor_iostream_write_byte(variable_prefix, iostr);
     raptor_iostream_string_write(name, iostr);
   }
   raptor_iostream_counted_string_write(nl_str, nl_str_len, iostr);
@@ -98,12 +138,11 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
   vars_count = rasqal_query_results_get_bindings_count(results);
   while(!rasqal_query_results_finished(results)) {
     /* Result row */
-    raptor_iostream_decimal_write(count++, iostr);
-
     for(i = 0; i < vars_count; i++) {
       rasqal_literal *l = rasqal_query_results_get_binding_value(results, i);
 
-      raptor_iostream_write_byte(sep, iostr);
+      if(i > 0)
+        raptor_iostream_write_byte(sep, iostr);
 
       if(!l) {
         if(empty_value_str_len)
@@ -114,48 +153,56 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
         size_t len;
         
         case RASQAL_LITERAL_URI:
-          raptor_iostream_string_write("uri(", iostr);
-          str = (const unsigned char*)raptor_uri_as_counted_string(l->value.uri, &len);
-          raptor_string_ntriples_write(str, len, '"', iostr);
-          raptor_iostream_write_byte(')', iostr);
+          str = (const unsigned char*)raptor_uri_as_counted_string(l->value.uri,
+                                                                   &len);
+          if(csv_escape)
+            rasqal_iostream_write_csv_string(str, len, iostr);
+          else {
+            raptor_iostream_write_byte('<', iostr);
+            if(str && len > 0)
+              raptor_string_ntriples_write(str, len, '"', iostr);
+            raptor_iostream_write_byte('>', iostr);
+          }
           break;
 
         case RASQAL_LITERAL_BLANK:
-          raptor_iostream_string_write("blank(", iostr);
-          raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
-          raptor_iostream_write_byte(')', iostr);
+          raptor_bnodeid_ntriples_write(l->string, l->string_len, iostr);
           break;
 
         case RASQAL_LITERAL_STRING:
-          if(l->datatype && l->valid) {
-            rasqal_literal_type ltype;
-            ltype = rasqal_xsd_datatype_uri_to_type(l->world, l->datatype);
-            
-            if(ltype >= RASQAL_LITERAL_INTEGER &&
-               ltype <= RASQAL_LITERAL_DECIMAL) {
-              /* write integer, float, double and decimal XSD typed
-               * data without quotes, datatype or language 
-               */
-              raptor_string_ntriples_write(l->string, l->string_len, '\0', iostr);
-              break;
+          if(csv_escape) {
+            rasqal_iostream_write_csv_string(l->string, l->string_len, iostr);
+          } else {
+            if(l->datatype && l->valid) {
+              rasqal_literal_type ltype;
+              ltype = rasqal_xsd_datatype_uri_to_type(l->world, l->datatype);
+              
+              if(ltype >= RASQAL_LITERAL_INTEGER &&
+                 ltype <= RASQAL_LITERAL_DECIMAL) {
+                /* write integer, float, double and decimal XSD typed
+                 * data without quotes, datatype or language 
+                 */
+                raptor_string_ntriples_write(l->string, l->string_len, '\0', iostr);
+                break;
+              }
             }
-          }
-          
-          raptor_iostream_write_byte('"', iostr);
-          raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
-          raptor_iostream_write_byte('"', iostr);
 
-          if(l->language) {
-            raptor_iostream_write_byte('@', iostr);
-            raptor_iostream_string_write((const unsigned char*)l->language,
+            raptor_iostream_write_byte('"', iostr);
+            raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
+            raptor_iostream_write_byte('"', iostr);
+
+            if(l->language) {
+              raptor_iostream_write_byte('@', iostr);
+              raptor_iostream_string_write((const unsigned char*)l->language,
                                          iostr);
-          }
+            }
           
-          if(l->datatype) {
-            raptor_iostream_string_write("^^uri(", iostr);
-            str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype, &len);
-            raptor_string_ntriples_write(str, len, '"', iostr);
-            raptor_iostream_write_byte(')', iostr);
+            if(l->datatype) {
+              raptor_iostream_string_write("^^<", iostr);
+              str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype, &len);
+              raptor_string_ntriples_write(str, len, '"', iostr);
+              raptor_iostream_write_byte('>', iostr);
+            }
           }
           
           break;
@@ -201,7 +248,8 @@ rasqal_query_results_write_csv(rasqal_query_results_formatter* formatter,
                                rasqal_query_results* results,
                                raptor_uri *base_uri)
 {
-  return rasqal_query_results_write_sv(iostr, results, base_uri, "CSV", ',');
+  return rasqal_query_results_write_sv(iostr, results, base_uri,
+                                       "CSV", ',', 1, '\0');
 }
 
 
@@ -211,7 +259,8 @@ rasqal_query_results_write_tsv(rasqal_query_results_formatter* formatter,
                                rasqal_query_results* results,
                                raptor_uri *base_uri)
 {
-  return rasqal_query_results_write_sv(iostr, results, base_uri, "TSV", '\t');
+  return rasqal_query_results_write_sv(iostr, results, base_uri,
+                                       "TSV", '\t', 0, '?');
 }
 
 
@@ -219,6 +268,7 @@ static const char* const csv_names[] = { "csv", NULL};
 
 static const raptor_type_q csv_types[] = {
   { "text/csv", 8, 10}, 
+  { "text/csv; header=present", 24, 10}, 
   { NULL, 0, 0}
 };
 
