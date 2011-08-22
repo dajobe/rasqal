@@ -1,6 +1,9 @@
+/* -*- Mode: c; c-basic-offset: 2 -*-
 /*
- * gettimeofday() - only contains a Windows version
+ * gettimeofday.c - gettimeofday compatibility (Windows)
  *
+ * This file is in the public domain.
+ * 
  */
 
 #ifdef WIN32
@@ -55,4 +58,5 @@ rasqal_gettimeofday(struct timeval *tv, struct timezone *tz)
  
   return 0;
 }
+
 #endif
