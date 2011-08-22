@@ -139,6 +139,11 @@ librasqal_la_SOURCES += rasqal_digest_md5.c rasqal_digest_sha1.c
 endif
 if MAINTAINER_MODE
 librasqal_la_SOURCES += git-version.h
+
+# rasqal_algebra.c is the first source file so this ensures
+# git-version.h is created before it and before the actual file
+# dependencies are calculated as a side-effect of compilation
+rasqal_algebra.c: git-version.h
 endif
 
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
