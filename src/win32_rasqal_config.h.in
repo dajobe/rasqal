@@ -69,8 +69,23 @@ int rasqal_gettimeofday(struct timeval *tv, struct timezone *tz);
 /* no round function available */
 #define round(x) floor(x+0.5)
 
-/* This is a SPARQL token define */
+/* These are SPARQL token definitions */
+#ifdef OPTIONAL
 #undef OPTIONAL
+#endif
+
+#ifdef DELETE
+#undef DELETE
+#endif
+
+#ifdef IN
+#undef IN
+#endif
+
+#ifdef GROUP
+#undef GROUP
+#endif
+
 
 #define HAVE_C99_VSNPRINTF 1
 
