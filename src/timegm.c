@@ -27,6 +27,21 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+#ifdef WIN32
+time_t
+rasqal_timegm(struct tm *tm)
+{
+  struct tm my_tm;
+
+  memcpy(&my_tm, tm, sizeof(struct tm));
+
+  /* _mkgmtime() changes the value of the struct tm* you pass in, so
+   * use a copy
+   */
+  return _mkgmtime(&my_tm);
+}
+
+#else
 
 time_t
 rasqal_timegm(struct tm *tm)
@@ -38,7 +53,7 @@ rasqal_timegm(struct tm *tm)
   if(zone) {
     /* save it so that setenv() does not destroy shared value */
     size_t zone_len = strlen(zone);
-    char *zone_copy = RASQAL_MALLOC(cstring, zone_len + 1);
+    char *zone_copy = RASQAL_MALLOC(char*, zone_len + 1);
     if(!zone_copy)
       return -1;
 
@@ -62,3 +77,4 @@ rasqal_timegm(struct tm *tm)
 
   return result;
 }
+#endif
