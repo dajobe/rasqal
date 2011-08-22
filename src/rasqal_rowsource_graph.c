@@ -241,8 +241,10 @@ rasqal_graph_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       /* Put GRAPH variable value (or NULL) first in result row */
       nrow->values[0] = rasqal_new_literal_from_literal(con->var->value);
 
+      RASQAL_ASSERT(nrow->size != (row->size + 1), "Graph output row is not size of input one + 1");
+
       /* Copy (size-1) remaining variables from input row */
-      for(i = 0; i < row->size - 1; i++)
+      for(i = 0; i < row->size; i++)
         nrow->values[i + 1] = rasqal_new_literal_from_literal(row->values[i]);
       rasqal_free_row(row);
       row = nrow;
