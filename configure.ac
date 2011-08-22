@@ -341,11 +341,13 @@ AC_SUBST(RASQAL_VERSION_DECIMAL)
 
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf srandomdev gmtime_r rand_r timegm)
+AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf srandomdev gmtime_r rand_r timegm gettimeofday)
 
 AM_CONDITIONAL(STRCASECMP, test $ac_cv_func_stricmp = no -a $ac_cv_func_strcasecmp = no)
 AM_CONDITIONAL(GETOPT, test $ac_cv_func_getopt = no -a $ac_cv_func_getopt_long = no)
 AM_CONDITIONAL(TIMEGM, test $ac_cv_func_timegm = no)
+dnl Windows only version
+AM_CONDITIONAL(GETTIMEOFDAY, test $ac_cv_func_gettimeofday = no)
 
 
 AC_MSG_CHECKING(whether need to declare optind)

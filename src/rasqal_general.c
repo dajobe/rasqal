@@ -1031,6 +1031,9 @@ rasqal_world_reset_now(rasqal_world* world)
   return 0;
 }
 
+#ifndef HAVE_GETTIMEOFDAY
+#define gettimeofday(x,y) rasqal_gettimeofday(x,y)
+#endif
 
 /**
  * rasqal_world_get_now_timeval:

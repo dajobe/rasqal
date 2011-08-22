@@ -129,6 +129,9 @@ endif
 if TIMEGM
 librasqal_la_SOURCES += timegm.c
 endif
+if GETTIMEOFDAY
+librasqal_la_SOURCES += gettimeofday.c
+endif
 
 if RASQAL_DIGEST_INTERNAL
 librasqal_la_SOURCES += rasqal_digest_md5.c rasqal_digest_sha1.c
