@@ -46,8 +46,17 @@ extern "C" {
 #define stricmp _stricmp
 #define strnicmp _strnicmp
 
+/* definition from winsock2.h */
+typedef struct timeval {
+  long tv_sec;
+  long tv_usec;
+} timeval;
+
+
 #include <float.h>
-#define isnan _isnan
+#define isnan(n) _isnan(n)
+/* no round function available */
+#define round(x) floor(x+0.5)
 
 /* This is a SPARQL token define */
 #undef OPTIONAL
