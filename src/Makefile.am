@@ -63,7 +63,8 @@ endif
 EXTRA_PROGRAMS=$(TESTS)
 
 CLEANFILES=$(TESTS) \
-*.plist
+*.plist \
+git-version.h
 
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
 rdql_parser.c rdql_parser.h rdql_parser.output \
@@ -135,6 +136,9 @@ endif
 
 if RASQAL_DIGEST_INTERNAL
 librasqal_la_SOURCES += rasqal_digest_md5.c rasqal_digest_sha1.c
+endif
+if MAINTAINER_MODE
+librasqal_la_SOURCES += git-version.h
 endif
 
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
@@ -283,6 +287,30 @@ $(top_builddir)/../raptor/src/libraptor.la:
 
 
 if MAINTAINER_MODE
+git-version.h: check-version
+
+# Always run this in maintainer mode but do not always change git-version.h
+.PHONY: check-version
+check-version:
+	@file="git-version.h" ; \
+	if test -d ../.git; then \
+	  git_version=`cd .. && git rev-parse HEAD`; \
+	else \
+	  git_version="unknown"; \
+	fi; \
+	$(RECHO) "GIT version $$git_version"; \
+	tmp="$$file.tmp"; \
+	$(RECHO) "#define GIT_VERSION \"$$git_version\"" > $$tmp; \
+        if test -f $$file; then \
+          if cmp $$file $$tmp >/dev/null 2>&1; then \
+	    rm $$tmp; \
+	  else \
+	    mv $$tmp $$file; \
+          fi; \
+	else \
+	  mv $$tmp $$file; \
+	fi
+
 # Run Clang static analyzer over sources.
 analyze: $(SOURCES)
 	@list='$(SOURCES)'; \

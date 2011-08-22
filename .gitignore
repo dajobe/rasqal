@@ -38,3 +38,4 @@ setup.sh
 .libs
 *.exe
 *.stackdump
+git-version.h
