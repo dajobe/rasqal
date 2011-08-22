@@ -1,5 +1,21 @@
 2011-08-21  Dave Beckett <dave@dajobe.org>
 
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_rowsource_read_row): Remove temporary assert; not
+	needed.
+
+	* src/rasqal_rowsource_graph.c: Revert previous commit
+	67548342ca93d70d834e10483f3ae9e4974a622a
+
+	(rasqal_graph_rowsource_read_row): Input row size is correct, do
+	not lose last input row var.
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_rowsource_read_row): Copy correct number of input
+	row vars
+
+	* ChangeLog, NEWS.html, RELEASE.html: 0.9.27
+
 	* src/rasqal_format_sv.c: use eol_str as parameter
 
 	* src/rasqal_format_sv.c: Generate CRLF for TSV and LF for CSV
