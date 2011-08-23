@@ -1754,19 +1754,21 @@ rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
    * expressions into the ae->agg_vars map, replacing them with
    * internal variable names.
    */
-  for(seq = projection->variables, i = 0;
-      (v = (rasqal_variable*)raptor_sequence_get_at(seq, i));
-      i++) {
-    rasqal_expression* expr = v->expression;
+  if ((seq = projection->variables)) {
+    for(i = 0;
+	(v = (rasqal_variable*)raptor_sequence_get_at(seq, i));
+	i++) {
+      rasqal_expression* expr = v->expression;
 
-    if(!expr)
-      continue;
+      if(!expr)
+	continue;
 
-    if(rasqal_expression_visit(expr,
-                               rasqal_algebra_extract_aggregate_expression_visit,
-                               ae)) {
-      rc = 1;
-      goto tidy;
+      if(rasqal_expression_visit(expr,
+				 rasqal_algebra_extract_aggregate_expression_visit,
+				 ae)) {
+	rc = 1;
+	goto tidy;
+      }
     }
   }
 
