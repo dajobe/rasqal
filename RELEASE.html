@@ -142,10 +142,19 @@ list appears after the option description.
 </p>
 
 
+<h3>Porting changes</h3>
+
+<p>Several patches were made to aid compiling on MS Windows were
+applied based on those made by the
+<a href="http://techbase.kde.org/Getting_Started/Build/Windows/emerge">KDE Emerge scripts to build KDE on windows</a>.
+This includes a native replacement for the missing gettimeofday()
+and timegm() functions.  MS Windows remains an unsupported target.
+</p>
+
 <h3>Other changes</h3>
 
-<p>Test runner fixed to fail the suite when there are failures as
-well as expected failures.
+<p>The test runner was fixed to fail the suite when there are
+failures as well as expected failures.
 </p>
 
 <p>Code style change and cleanup for alloc/free macros. New code style:</p>
