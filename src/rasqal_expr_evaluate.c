@@ -44,6 +44,9 @@
 
 #define DEBUG_FH stderr
 
+/* Enable evaluation debugging by defining RASQAL_DEBUG_EVAL */
+/* #define RASQAL_DEBUG_EVAL 1 */
+
 
 /* 
  * rasqal_language_matches:
@@ -454,7 +457,7 @@ rasqal_expression_evaluate_sameterm(rasqal_expression *e,
     goto failed;
 
   b = rasqal_literal_same_term(l1, l2);
-#if RASQAL_DEBUG > 1
+#ifdef RASQAL_DEBUG_EVAL
   RASQAL_DEBUG2("rasqal_literal_same_term() returned: %d\n", b);
 #endif
 
@@ -510,7 +513,7 @@ rasqal_expression_evaluate_in_set(rasqal_expression *e,
     
     found = (rasqal_literal_equals_flags(l1, arg_literal, 
                                          eval_context->flags, error_p) != 0);
-#if RASQAL_DEBUG > 1
+#ifdef RASQAL_DEBUG_EVAL
     if(*error_p)
       RASQAL_DEBUG1("rasqal_literal_equals_flags() returned: FAILURE\n");
     else
@@ -934,7 +937,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
   errs.e = 0;
 
-#ifdef RASQAL_DEBUG
+#ifdef RASQAL_DEBUG_EVAL
   RASQAL_DEBUG2("evaluating expression %p: ", e);
   rasqal_expression_print(e, stderr);
   fprintf(stderr, "\n");
@@ -1027,12 +1030,14 @@ rasqal_expression_evaluate2(rasqal_expression* e,
        */
       if(!rasqal_xsd_datatype_check(l1->type, l1->string, flags) ||
          !rasqal_xsd_datatype_check(l2->type, l2->string, flags)) {
+#ifdef RASQAL_DEBUG_EVAL
         RASQAL_DEBUG1("One of the literals was invalid\n");
+#endif
         goto failed;
       }
 
       vars.b = (rasqal_literal_equals_flags(l1, l2, flags, &errs.e) != 0);
-#if RASQAL_DEBUG > 1
+#ifdef RASQAL_DEBUG_EVAL
       if(errs.e)
         RASQAL_DEBUG1("rasqal_literal_equals_flags returned: FAILURE\n");
       else
@@ -1058,7 +1063,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       }
 
       vars.b = (rasqal_literal_not_equals_flags(l1, l2, flags, &errs.e) != 0);
-#if RASQAL_DEBUG > 1
+#ifdef RASQAL_DEBUG_EVAL
       if(errs.e)
         RASQAL_DEBUG1("rasqal_literal_not_equals_flags returned: FAILURE\n");
       else
@@ -1550,7 +1555,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
   got_result:
 
-#ifdef RASQAL_DEBUG
+#ifdef RASQAL_DEBUG_EVAL
   RASQAL_DEBUG2("result of %p: ", e);
   rasqal_expression_print(e, stderr);
   fputs( ": ", stderr);
