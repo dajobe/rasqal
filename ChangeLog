@@ -1,4 +1,37 @@
+2011-08-22  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_evaluate.c: Enable evaluation debugging only if
+	RASQAL_DEBUG_EVAL is set
+
+	* src/Makefile.am:
+	Add rule so git-version.h is always checked/built
+
+	This is found in cases such as a fresh GIT checkout (or a make
+	distclean).  During compilation gcc will add the .deps files that
+	ensure the complete dependencies are recorded.
+
+	* .gitignore, src/Makefile.am, src/rasqal_general.c,
+	src/rasqal_internal.h: Build a git-version.h in maintainer mode
+	and add to string version
+
+	* configure.ac: Define -DMAINTAINER_MODE when in maintainer mode
+
 2011-08-21  Dave Beckett <dave@dajobe.org>
+
+	* src/gettimeofday.c: header
+
+	* src/timegm.c:
+	(rasqal_timegm): Add a Windows version using _mkgmtime()
+
+	* src/win32_rasqal_config.h.in: Undefine DELETE, IN, GROUP tokens
+	for windows
+
+	* configure.ac, src/Makefile.am, src/gettimeofday.c,
+	src/rasqal_general.c, src/win32_rasqal_config.h.in: Add
+	gettimeofday() for windows
+
+	* src/win32_rasqal_config.h.in:
+	Add timeval definition and round()
 
 	* src/rasqal_rowsource_graph.c:
 	(rasqal_graph_rowsource_read_row): Remove temporary assert; not
