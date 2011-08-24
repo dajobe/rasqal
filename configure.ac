@@ -752,6 +752,14 @@ if test $need_digest_mhash = yes; then
 fi
 
 
+gmp_lib_dir=
+gmp_include_dir=
+AC_ARG_WITH(gmp, [  --with-gmp=DIR          GMP install area], gmp_prefix="$withval", gmp_prefix="none") 
+if test "X$gmp_prefix" != "Xnone" ; then
+  gmp_libs="-L$gmp_prefix/lib"
+  gmp_includes="-I$gmp_prefix/include"
+fi
+
 mpfr_lib_dir=
 mpfr_include_dir=
 AC_ARG_WITH(mpfr, [  --with-mpfr=DIR          MPFR install area], mpfr_prefix="$withval", mpfr_prefix="none") 
@@ -761,6 +769,7 @@ if test "X$mpfr_prefix" != "Xnone" ; then
 fi
 
 oCPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $gmp_includes"
 AC_CHECK_HEADERS(gmp.h)
 CPPFLAGS="$oCPPFLAGS"
 
@@ -801,8 +810,8 @@ fi
 
 have_gmp_version=0
 if test "$ac_cv_header_gmp_h" = yes; then
-  CPPFLAGS="$CPPFLAGS "
-  LIBS="$LIBS -lgmp"
+  CPPFLAGS="$CPPFLAGS $gmp_includes"
+  LIBS="$LIBS $gmp_libs -lgmp"
   AC_MSG_CHECKING(for working GNU MP library)
   AC_TRY_LINK([#include <gmp.h>], [mpz_t n; mpz_init(n);],
               have_gmp=1
@@ -926,7 +935,8 @@ if test $need_mpfr = 1; then
   DECIMAL_LIBS="$mpfr_libs -lmpfr"
 fi
 if test $need_gmp = 1; then
-  DECIMAL_LIBS="-lgmp"
+  DECIMAL_INCLUDES="$gmp_includes"
+  DECIMAL_LIBS="$gmp_libs -lgmp"
 fi
 RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $DECIMAL_INCLUDES"
 RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $DECIMAL_LIBS"
