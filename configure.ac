@@ -958,9 +958,6 @@ MEM_LIBS=
 CPPFLAGS="-DRASQAL_INTERNAL=1 $CPPFLAGS"
 
 debug_messages=no
-if test "$USE_MAINTAINER_MODE" = yes; then
-  debug_messages=yes
-fi
 
 AC_ARG_ENABLE(debug, [  --enable-debug          Enable debug messages (default no).  ], debug_messages=$enableval)
 if test "$debug_messages" = "yes"; then
