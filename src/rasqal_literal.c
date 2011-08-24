@@ -3072,7 +3072,9 @@ rasqal_literal*
 rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags, 
                     int* error_p)
 {
+#ifdef RASQAL_DEBUG
   raptor_uri* from_datatype = NULL;
+#endif
   const unsigned char *string = NULL;
   unsigned char *new_string;
   rasqal_literal* result = NULL;
@@ -3086,7 +3088,9 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
   if(!l)
     return NULL;
 
+#ifdef RASQAL_DEBUG
   from_datatype = l->datatype;
+#endif
   from_native_type = l->type;
 
   to_native_type = rasqal_xsd_datatype_uri_to_type(l->world, to_datatype);
