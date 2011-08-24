@@ -42,9 +42,10 @@ architectures.  Rasqal has no known memory leaks.
 <p>Rasqal provides:</p>
 <ul>
 <li>An RDF <a href="docs/api/query.html">query</a> construction and access API.</li>
-<li>Query language support for <a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/">SPARQL 1.0</a> and parts of draft <a href="http://www.w3.org/TR/2010/WD-sparql11-query-20101014/">SPARQL 1.1 Query</a>.</li>
+<li>Query language support for <a href="http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/">SPARQL 1.0</a>  and most of draft <a href="http://www.w3.org/TR/2011/WD-sparql11-query-20110512/">SPARQL 1.1 Query</a>.</li>
 <li>Query language support for <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL</a>.</li>
-<li>A query execution engine including grouping, aggregate expression and filtering evaluation.</li>
+<li>A query execution engine executing sub-queries, aggregate expressions and grouping.</li>
+<li>The complete SPARQL 1.1 (draft) built-in function and operator library</li>
 <li>A query result binding API.</li>
 <li>Query result bindings formatting into SPARQL XML, SPARQL JSON, CSV, TSV, HTML, ASCII tables, RDF/XML, Turtle / N3 and from SPARQL XML, RDF/XML and Turtle / N3.</li>
 <li>Triple store querying APIs to support running over external RDF graphs.</li>
@@ -85,15 +86,20 @@ developed by the W3C
 <a href="http://www.w3.org/2001/sw/DataAccess/">RDF Data Access Working Group</a>,
 as defined in
 <a href="http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115//">SPARQL Query Language for RDF</a>, W3C Recommendation 15 January 2008.
-It currently implements most of the functionality except for
-<code>UNION</code> and nested <code>OPTIONAL</code>s.
+It currently implements most of the functionality except for some
+of the trickier corner cases (<code>FILTER</code> scope, date
+comparison, <code>DISTINCT</code> and <code>REDUCED</code>).
 For detailed information on the implementation state, see the Rasqal
 bugs in the <a href="http://bugs.librdf.org/">Redland issue tracker</a>.
-It also implements some of the
-<a href="http://www.w3.org/TR/2010/WD-sparql11-query-20101014/">SPARQL 1.1 Query</a>
+It also implements most of the
+<a href="http://www.w3.org/TR/2011/WD-sparql11-query-20110512/">SPARQL 1.1 Query</a>
 and
-<a href="http://www.w3.org/TR/2010/WD-sparql11-update-20101014/">SPARQL 1.1 Update</a>
-W3C working drafts of 14 October 2010.
+<a href="http://www.w3.org/TR/2011/WD-sparql11-update-20110512/">SPARQL 1.1 Update</a>
+W3C Working Drafts of 12 May 2011 including aggregates, subqueries,
+expression in SELECT, assignment, short form
+for <code>CONSTRUCT</code> and all the new set of builtin functions
+and operators.  Property Paths will probably never be done since it
+is essentially a new query language.
 </p>
 
 
@@ -101,26 +107,12 @@ W3C working drafts of 14 October 2010.
 
 <p>Rasqal provides a complete implementation of the RDQL language, as defined in
 <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF</a>,
-W3C Member Submission 9 January 2004
-based on the earlier versions in Jena.
-<em>RDQL RDF Data Query Language</em>
-<!--
-<a href="http://www.hpl.hp.com/semweb/rdql.htm">RDQL RDF Data Query Language</a>
--->
-and the
-<em>RDQL Grammar</em>.
-<!--
-<a href="http://www.hpl.hp.com/semweb/rdql-grammar.html">RDQL Grammar</a>.
--->
-The
-<a href="http://jena.sourceforge.net/tutorial/RDQL/">Jena RDQL Tutorial</a>
+
+W3C Member Submission 9 January 2004 based on the earlier versions in
+Jena. <em>RDQL RDF Data Query Language</em> and the <em>RDQL Grammar</em>.
+The <a href="http://jena.sourceforge.net/tutorial/RDQL/">Jena RDQL Tutorial</a>
 gives an introduction on the language.
-Rasqal currently passes all the
-<em>Jena RDQL test suite</em>
-<!--
-<a href="http://jena.hpl.hp.com/2003/07/query/">Jena RDQL test suite</a>
--->
-bar a couple.
+Rasqal currently passes all the <em>Jena RDQL test suite</em> bar a couple.
 Detail of the status of the RDQL support is given in the
 <a href="http://bugs.librdf.org/">Redland issue tracker</a>.</p>
 
@@ -128,13 +120,14 @@ Detail of the status of the RDQL support is given in the
 <h3>LAQRS Adds to Querying RDF in SPARQL (LAQRS)</h3>
 
 <p>
-<a href="http://www.dajobe.org/2007/04/laqrs/">LAQRS</a>
-is an <b>experimental</b> set of syntax extensions for SPARQL.  The
+<a href="http://www.dajobe.org/2007/04/laqrs/">LAQRS</a> is
+an <b>experimental</b> set of syntax extensions for SPARQL.  The
 syntax and features may change at any time.  At present Rasqal
 provides parsing and API support for alternate update syntaxes,
 the <code>EXPLAIN</code> keyword, plus executing a few experimental
-extension functions: NOW() / CURRENT_DATETIME(), FROM_UNIXTIME() and
-TO_UNIXTIME().
+extension functions: <code>NOW()</code>
+/ <code>CURRENT_DATETIME()</code>, <code>FROM_UNIXTIME()</code> and
+<code>TO_UNIXTIME()</code>.
 </p>
 
 
