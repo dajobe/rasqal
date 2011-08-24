@@ -1,5 +1,8 @@
 2011-08-23  Dave Beckett <dave@dajobe.org>
 
+	* Snapshotted rasqal_0_9_27 for 0.9.27 release (GIT
+	2371992e6bc8d4573576dd90ea172626948a11f1)
+
 	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt,
 	docs/tmpl/section-variables-table.sgml, src/rasqal.h.in,
 	src/rasqal_internal.h, src/rasqal_query.c, src/rasqal_variable.c:
