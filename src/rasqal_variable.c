@@ -331,7 +331,7 @@ rasqal_free_variables_table(rasqal_variables_table* vt)
  *
  * The variables table @vt takes a reference to @variable.  This
  * function will fail if the variable is already in the table.  Use
- * rasqal_variables_table_has() to check before calling.
+ * rasqal_variables_table_contains() to check before calling.
  *
  * Return value: non-0 on failure (such as name already exists)
  **/
@@ -361,7 +361,7 @@ rasqal_variables_table_add_variable(rasqal_variables_table* vt,
       return 1;
   }
   
-  if(rasqal_variables_table_has(vt, variable->type, variable->name))
+  if(rasqal_variables_table_contains(vt, variable->type, variable->name))
     /* variable with this name already present - error */
     return 1;
   
@@ -523,10 +523,20 @@ rasqal_variables_table_get_by_name(rasqal_variables_table* vt,
 }
 
 
+/**
+ * rasqal_variables_table_contains:
+ * @vt: #rasqal_variables_table to lookup
+ * @type: variable type
+ * @name: variable name
+ *
+ * Check if there is a variable with the given type and name in the variables table
+ *
+ * Return value: non-0 if the variable is present
+ */
 int
-rasqal_variables_table_has(rasqal_variables_table* vt,
-                           rasqal_variable_type type,
-                           const unsigned char *name)
+rasqal_variables_table_contains(rasqal_variables_table* vt,
+                                rasqal_variable_type type,
+                                const unsigned char *name)
 {
   return (rasqal_variables_table_get_by_name(vt, type, name) != NULL);
 }

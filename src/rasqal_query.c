@@ -723,7 +723,7 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(var, rasqal_variable, 1);
 
-  if(!rasqal_variables_table_has(query->vars_table, var->type, var->name)) {
+  if(!rasqal_variables_table_contains(query->vars_table, var->type, var->name)) {
     if(rasqal_variables_table_add_variable(query->vars_table, var))
       return 1;
   }
@@ -858,7 +858,7 @@ rasqal_query_has_variable2(rasqal_query* query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 0);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(name, char*, 0);
 
-  return rasqal_variables_table_has(query->vars_table, type, name);
+  return rasqal_variables_table_contains(query->vars_table, type, name);
 }
 
 

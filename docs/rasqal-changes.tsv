@@ -62,6 +62,7 @@
 0.9.26	-	-	-	0.9.27	int	rasqal_query_set_variable2	(rasqal_query* query, rasqal_variable_type type, const unsigned char *name, rasqal_literal* value)	-
 0.9.26	-	-	-	0.9.27	int	rasqal_variables_table_add_variable	(rasqal_variables_table* vt, rasqal_variable* variable)	-
 0.9.26	-	-	-	0.9.27	rasqal_variable*	rasqal_variables_table_get_by_name	(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name)	-
+0.9.26	-	-	-	0.9.27	int	rasqal_variables_table_contains	(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name)	-
 #
 # Types
 #

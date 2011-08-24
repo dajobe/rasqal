@@ -324,6 +324,7 @@ rasqal_free_variables_table
 rasqal_variables_table_add
 rasqal_variables_table_add_variable
 rasqal_variables_table_get_by_name
+rasqal_variables_table_contains
 </SECTION>
 
 <SECTION>

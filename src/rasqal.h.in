@@ -1606,6 +1606,8 @@ RASQAL_API
 int rasqal_variables_table_add_variable(rasqal_variables_table* vt, rasqal_variable* variable);
 RASQAL_API
 rasqal_variable* rasqal_variables_table_get_by_name(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name);
+RASQAL_API
+int rasqal_variables_table_contains(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name);
 
 /* memory functions */
 RASQAL_API
