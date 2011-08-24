@@ -74,7 +74,7 @@ rasqal_unicode_utf8_strlen(const unsigned char *string, size_t length)
     unicode_length++;
   }
 
-  return unicode_length;
+  return (int)unicode_length;
 }
 
 
