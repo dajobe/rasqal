@@ -1,4 +1,35 @@
+2011-08-23  Dave Beckett <dave@dajobe.org>
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt,
+	docs/tmpl/section-variables-table.sgml, src/rasqal.h.in,
+	src/rasqal_internal.h, src/rasqal_query.c, src/rasqal_variable.c:
+	Added rasqal_variables_table_contains to the public API
+
+	(rasqal_variables_table_contains): Added, renamed from the
+	internal function rasqal_variables_table_has().
+
+	* configure.ac: Do not enable debug messages by default for
+	--enable-maintainer-mode
+
+	This now requires the extra --enable-debug option to configure or
+	autogen.sh
+
+	* configure.ac: Added --with-gmp option to configure for GMP
+
+	* README.html, RELEASE.html: Document rassqal 0.9.27 requires
+	raptor 2.0.4 or newer
+
+	* configure.ac: RAPTOR_MIN_VERSION is now 2.0.4
+
+2011-08-23  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_extract_aggregate_expressions): Do not attempt to
+	traverse NULL projection->variables
+
 2011-08-22  Dave Beckett <dave@dajobe.org>
+
+	* RELEASE.html: 0.9.27
 
 	* src/rasqal_expr_evaluate.c: Enable evaluation debugging only if
 	RASQAL_DEBUG_EVAL is set

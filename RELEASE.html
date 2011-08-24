@@ -134,6 +134,9 @@ existing variable to a variables table.
 <p><code>rasqal_variables_table_get_by_name()</code> added with
 variable type arg.</p>
 
+<p><code>rasqal_variables_table_contains()</code> added to check
+if a variable with the given type and name is in the variables table.
+</p>
 
 <h3><code>roqet(1)</code> utility changes</h3>
 
@@ -206,9 +209,22 @@ strings more than &gt;32bits in length; which should be rare.
 dynamically allocated.
 </p>
 
-<p>configure now always checks for where <code>ceil()</code>,
+<p><code>configure</code> now always checks for where <code>ceil()</code>,
 <code>floor()</code> and <code>round()</code> can be found: in libc
 or libm.
+</p>
+
+<p>The <code>configure</code> default
+for <code>--enable-maintainer-mode</code> no longer enables the
+debugging symbols.  These can be added
+with <code>--enable-debug</code>
+</p>
+
+<p>The <code>configure</code> gains an option
+<code>--with-gmp=</code><em>PATH</em> to set the installation path
+of the
+<a href="http://gmplib.org/">GNU Multiple Precision Arithmetic Library (GMP)</a>
+if it is not in the standard lib/include prefix.
 </p>
 
 
