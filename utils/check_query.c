@@ -498,13 +498,23 @@ compare_query_results_compare(compare_query_results* cqr)
       const unsigned char* name;
       rasqal_literal *value1;
       rasqal_literal *value2;
+      int error = 0;
 
       name = rasqal_query_results_get_binding_name(cqr->qr1, bindingi);
 
       value1 = rasqal_query_results_get_binding_value(cqr->qr1, bindingi);
+      /* FIXME */
+      if(value1)
+        rasqal_literal_string_to_native(value1, 0);
       value2 = rasqal_query_results_get_binding_value(cqr->qr2, bindingi);
+      /* FIXME */
+      if(value2)
+        rasqal_literal_string_to_native(value2, 0);
 
-      if(!rasqal_literal_equals(value1, value2)) {
+      /* should have compare as native flag? 
+       * RASQAL_COMPARE_XQUERY doesn't compare all values
+       */
+      if(!rasqal_literal_equals_flags(value1, value2, 0, &error)) {
         /* if different report it */
         raptor_world* raptor_world_ptr;
         void *string;
