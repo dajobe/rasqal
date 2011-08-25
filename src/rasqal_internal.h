@@ -1334,6 +1334,7 @@ int rasqal_row_set_order_size(rasqal_row *row, int order_size);
 int rasqal_row_expand_size(rasqal_row *row, int size);
 int rasqal_row_bind_variables(rasqal_row* row, rasqal_variables_table* vars_table);
 raptor_sequence* rasqal_row_sequence_copy(raptor_sequence *seq);
+int rasqal_row_compare(const void *a, const void *b);
 
 /* rasqal_row_compatible.c */
 rasqal_row_compatible* rasqal_new_row_compatible(rasqal_variables_table* vt, rasqal_rowsource *first_rowsource, rasqal_rowsource *second_rowsource);

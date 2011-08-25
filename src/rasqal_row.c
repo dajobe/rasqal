@@ -622,3 +622,43 @@ rasqal_row_sequence_copy(raptor_sequence *seq)
   
   return new_seq;
 }
+
+
+/**
+ * rasqal_row_compare:
+ * @a: pointer to address of first #row
+ * @b: pointer to address of second #row
+ *
+ * INTERNAL - compare two pointers to #row objects
+ *
+ * Suitable for use as a compare function in qsort() or similar.
+ *
+ * Return value: <0, 0 or >1 comparison
+ */
+int
+rasqal_row_compare(const void *a, const void *b)
+{
+  rasqal_row* row_a;
+  rasqal_row* row_b;
+  int result = 0;
+
+  row_a = *(rasqal_row**)a;
+  row_b = *(rasqal_row**)b;
+
+  /* now order it */
+  result = rasqal_literal_array_compare(row_a->values,
+                                        row_b->values,
+                                        NULL,
+                                        row_a->size,
+                                        0);
+
+
+  /* still equal?  make sort stable by using the original order */
+  if(!result) {
+    result = row_a->offset - row_b->offset;
+    RASQAL_DEBUG2("Got equality result so using offsets, returning %d\n",
+                  result);
+  }
+  
+  return result;
+}
