@@ -1291,6 +1291,7 @@ void rasqal_query_results_remove_query_reference(rasqal_query_results* query_res
 rasqal_variables_table* rasqal_query_results_get_variables_table(rasqal_query_results* query_results);
 rasqal_row* rasqal_query_results_get_current_row(rasqal_query_results* query_results);
 rasqal_world* rasqal_query_results_get_world(rasqal_query_results* query_results);
+int rasqal_query_results_sort(rasqal_query_results* query_result, raptor_data_compare_handler compare);
 
 
 /* rasqal_query_write.c */

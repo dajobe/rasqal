@@ -1615,7 +1615,7 @@ rasqal_query_results_execute_and_store_results(rasqal_query_results* query_resul
 
   if(query_results->execution_factory->get_all_rows) {
     rasqal_engine_error execution_error = RASQAL_ENGINE_OK;
-
+    
     seq = query_results->execution_factory->get_all_rows(query_results->execution_data, &execution_error);
     if(execution_error == RASQAL_ENGINE_FAILED)
       query_results->failed = 1;
@@ -1748,4 +1748,22 @@ rasqal_query_results_get_row_by_offset(rasqal_query_results* query_results,
   }
   
   return row;
+}
+
+
+int
+rasqal_query_results_sort(rasqal_query_results* query_results,
+                          raptor_data_compare_handler compare)
+{
+  if(query_results->execution_factory && !query_results->results_sequence) {
+    int rc;
+    
+    rc = rasqal_query_results_execute_and_store_results(query_results);
+    if(rc)
+      return rc;
+  }
+
+  raptor_sequence_sort(query_results->results_sequence, compare);
+  
+  return 0;
 }
