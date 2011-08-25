@@ -49,6 +49,7 @@
 #include <sparql_common.h>
 
 
+/* Set RASQAL_DEBUG to 3 for super verbose parsing - watching the shift/reduces */
 #if 0
 #undef RASQAL_DEBUG
 #define RASQAL_DEBUG 3

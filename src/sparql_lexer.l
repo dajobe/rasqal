@@ -106,6 +106,13 @@
 #include <sparql_common.h>
 
 
+/* Set RASQAL_DEBUG to 2 for verbose lexing (when building this as
+ * sparql_lexer_test) and 3 for super verbose
+ */
+#if 0
+#undef RASQAL_DEBUG
+#define RASQAL_DEBUG 3
+#endif
 
 static int sparql_skip_c_comment(rasqal_query *rq);
 
