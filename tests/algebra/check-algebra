@@ -29,6 +29,8 @@ use File::Basename;
 use Getopt::Long;
 use Pod::Usage;
 
+my $diff_cmd = $ENV{DIFF} || "diff";
+
 my $convert_graph_pattern="convert_graph_pattern";
 my $out="convert.out";
 my $err="convert.err";
@@ -78,7 +80,7 @@ if($rc) {
 }
 
 
-my $cmp_cmd="diff -u $expected $out > $diff 2>&1";
+my $cmp_cmd="$diff_cmd -u $expected $out > $diff 2>&1";
 warn "$program: Running '$cmp_cmd'\n"
   if $debug;
 system $cmp_cmd;

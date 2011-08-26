@@ -40,6 +40,7 @@ use Cwd;
 my $roqet=$ENV{ROQET} || "roqet";
 my $rasqal_url="http://librdf.org/rasqal/";
 my $rapper=$ENV{RAPPER} || "rapper";
+my $diff_cmd=$ENV{DIFF} || "diff";
 
 
 my $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
@@ -594,7 +595,7 @@ sub run_test {
   }   
 
 
-  $cmd="diff -u result.out roqet.out > diff.out";
+  $cmd="$diff_cmd -u result.out roqet.out > diff.out";
   $rc=system($cmd);
   if($rc) {
     warn "$program: '$name' FAILED ($test_uri) \n";
