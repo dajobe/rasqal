@@ -55,17 +55,17 @@ rasqal_new_row_common(rasqal_world* world, int size, int order_size)
   row->usage = 1;
   row->size = size;
   row->order_size = order_size;
-  
-  row->values = RASQAL_CALLOC(rasqal_literal**, row->size,
-                              sizeof(rasqal_literal*));
-  if(!row->values) {
-    rasqal_free_row(row);
-    return NULL;
+
+  if(row->size > 0) {
+    row->values = RASQAL_CALLOC(rasqal_literal**, row->size, sizeof(rasqal_literal*));
+    if(!row->values) {
+      rasqal_free_row(row);
+      return NULL;
+    }
   }
 
   if(row->order_size > 0) {
-    row->order_values = RASQAL_CALLOC(rasqal_literal**,row->order_size,
-                                      sizeof(rasqal_literal*));
+    row->order_values = RASQAL_CALLOC(rasqal_literal**, row->order_size, sizeof(rasqal_literal*));
     if(!row->order_values) {
       rasqal_free_row(row);
       return NULL;
