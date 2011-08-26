@@ -853,8 +853,7 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
   
   /* allocate per-expr data */
   con->expr_count = size;
-  con->expr_data = RASQAL_CALLOC(rasqal_agg_expr_data*, size,
-                                 sizeof(rasqal_agg_expr_data));
+  con->expr_data = RASQAL_CALLOC(rasqal_agg_expr_data*, size, sizeof(rasqal_agg_expr_data));
   if(!con->expr_data)
     goto fail;
 

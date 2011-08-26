@@ -574,12 +574,12 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
   rasqal_query_results_format_factory *factory;
   unsigned char *suffix = NULL;
   struct syntax_score* scores;
-
+  int size;
+  
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
-  scores = RASQAL_CALLOC(struct syntax_score*, 
-                         raptor_sequence_size(world->query_results_formats),
-                         sizeof(struct syntax_score));
+  size = raptor_sequence_size(world->query_results_formats);
+  scores = RASQAL_CALLOC(struct syntax_score*, size, sizeof(struct syntax_score));
   if(!scores)
     return NULL;
   

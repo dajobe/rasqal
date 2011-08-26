@@ -601,8 +601,7 @@ rasqal_variables_table_get_names(rasqal_variables_table* vt)
   if(!vt->variable_names && size) {
     int i;
     
-    vt->variable_names = RASQAL_CALLOC(const unsigned char**,
-                                       sizeof(unsigned char*), (size + 1));
+    vt->variable_names = RASQAL_CALLOC(const unsigned char**, (size + 1), sizeof(unsigned char*));
     if(!vt->variable_names)
       return NULL;
 

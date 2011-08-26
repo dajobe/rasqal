@@ -168,8 +168,6 @@ rasqal_free_graph_factory(rasqal_world *world)
   if(!world)
     return;
   
-  world = world->graph_factory;
-
   if(factory->terminate_factory)
     factory->terminate_factory(world->graph_factory_user_data);
 }
@@ -255,7 +253,7 @@ rasqal_new_graph(rasqal_world* world, raptor_uri *uri)
   rasqal_graph* g;
   rasqal_graph_factory *factory = world->graph_factory;
 
-  g = RASQAL_CALLOC(rasqal_graph, sizeof(rasqal_graph), 1);
+  g = RASQAL_CALLOC(rasqal_graph*, 1, sizeof(*g));
   if(!g)
     return NULL;
   g->world = world;
@@ -347,8 +345,7 @@ rasqal_new_graph_match(rasqal_graph *graph, rasqal_triple *triple)
   rasqal_graph_match* gm;
   rasqal_graph_factory *factory = graph->world->graph_factory;
 
-  gm = (rasqal_graph_match*)RASQAL_CALLOC(rasqal_graph_match,
-                                          sizeof(rasqal_graph_match), 1);
+  gm = RASQAL_CALLOC(rasqal_graph_match*, 1, sizeof(*gm));
   if(!gm)
     return NULL;
 
@@ -425,8 +422,7 @@ rasqal_new_graph_bindings(rasqal_graph *graph,
   rasqal_graph_bindings* gb;
   rasqal_graph_factory *factory = graph->world->graph_factory;
 
-  gb = (rasqal_graph_bindings*)RASQAL_CALLOC(rasqal_graph_bindings,
-                                             sizeof(rasqal_graph_bindings), 1);
+  gb = RASQAL_CALLOC(rasqal_graph_bindings*, 1, sizeof(*gb));
   if(!gb)
     return NULL;
   

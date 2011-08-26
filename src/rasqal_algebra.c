@@ -1887,7 +1887,7 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
 {
   rasqal_algebra_aggregate* ae;
   
-  ae = RASQAL_CALLOC(rasqal_algebra_aggregate*, sizeof(*ae), 1);
+  ae = RASQAL_CALLOC(rasqal_algebra_aggregate*, 1, sizeof(*ae));
   if(!ae)
     return NULL;
 

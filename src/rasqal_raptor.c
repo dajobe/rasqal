@@ -239,8 +239,7 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
     rtsc->sources_count = 0;
   
   if(rtsc->sources_count)
-    rtsc->source_literals = RASQAL_CALLOC(rasqal_literal**, rtsc->sources_count,
-                                          sizeof(rasqal_literal*));
+    rtsc->source_literals = RASQAL_CALLOC(rasqal_literal**, rtsc->sources_count, sizeof(rasqal_literal*));
   else
     rtsc->source_literals = NULL;
 

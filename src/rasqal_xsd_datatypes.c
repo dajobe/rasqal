@@ -472,9 +472,7 @@ rasqal_xsd_init(rasqal_world* world)
   if(!world->xsd_namespace_uri)
     return 1;
 
-  world->xsd_datatype_uris = RASQAL_CALLOC(raptor_uri**,
-                                           SPARQL_XSD_NAMES_COUNT + 1,
-                                           sizeof(raptor_uri*));
+  world->xsd_datatype_uris = RASQAL_CALLOC(raptor_uri**, SPARQL_XSD_NAMES_COUNT + 1, sizeof(raptor_uri*));
   if(!world->xsd_datatype_uris)
     return 1;
 

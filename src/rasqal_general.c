@@ -116,7 +116,7 @@ rasqal_new_world(void)
 {
   rasqal_world* world;
 
-  world = RASQAL_CALLOC(rasqal_world*, sizeof(rasqal_world), 1);
+  world = RASQAL_CALLOC(rasqal_world*, 1, sizeof(*world));
   if(!world)
     return NULL;
   

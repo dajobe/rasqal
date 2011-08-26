@@ -515,8 +515,7 @@ rasqal_row_set_order_size(rasqal_row *row, int order_size)
 {
   row->order_size = order_size;
   if(row->order_size > 0) {
-    row->order_values = RASQAL_CALLOC(rasqal_literal**,  row->order_size,
-                                                        sizeof(rasqal_literal*));
+    row->order_values = RASQAL_CALLOC(rasqal_literal**, row->order_size, sizeof(rasqal_literal*));
     if(!row->order_values) {
       row->order_size = -1;
       return 1;
