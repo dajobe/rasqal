@@ -640,19 +640,41 @@ rasqal_xsd_datetime_timezone_format(const rasqal_xsd_datetime *dt,
 {
   int mins;
   
-  if(!buffer || len < TIMEZONE_BUFFER_LEN)
+  if(!buffer || !len)
     return 1;
   
   mins = abs(dt->timezone_minutes);
-  if(mins == RASQAL_XSD_DATETIME_NO_TZ)
+  if(mins == RASQAL_XSD_DATETIME_NO_TZ) {
+    if(len < 1)
+      return 1;
+
     buffer[0] = '\0';
-  else if(!mins)
-    memcpy(buffer, "Z", 2);
-  else {
-    int hrs = (mins / 60);
-    snprintf(buffer, len, "%c%02d:%02d", 
-             (mins != dt->timezone_minutes ? '-' : '+'),
-             hrs, mins);
+  } else if(!mins) {
+    if(len < 2)
+      return 1;
+
+    buffer[0] = 'Z';
+    buffer[1] = '\0';
+  } else {
+    int hours;
+
+    if(len < TIMEZONE_BUFFER_LEN)
+      return 1;
+
+    buffer[0] = (mins != dt->timezone_minutes ? '-' : '+');
+
+    hours = (mins / 60);
+    buffer[1] = (hours / 10) + '0';
+    hours -= hours * 10;
+    buffer[2] = hours + '0';
+    buffer[3] = ':';
+
+    mins -= hours * 60;
+    buffer[4] = (mins / 10) + '0';
+    mins -= mins * 10;
+    buffer[5] = mins + '0';
+
+    buffer[6] = '\0';
   }
 
   return 0;
