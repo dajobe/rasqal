@@ -939,6 +939,9 @@ rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world,
 }
 
 
+/* xsd:date formatted length excluding formatted year length */
+#define DATE_BUFFER_LEN_NO_YEAR 7
+
 /**
  * rasqal_xsd_date_to_string:
  * @d: date struct
@@ -950,43 +953,65 @@ rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world,
  * Return value: lexical form string or NULL on failure.
  */
 static char*
-rasqal_xsd_date_to_string(const rasqal_xsd_date *d)
+rasqal_xsd_date_to_string(const rasqal_xsd_date *date)
 {
-  char *ret = 0;
-  int is_neg;
-  int r = 0;
-  int i;
-   
-  if(!d)
+  char *buffer = NULL;
+  size_t len = DATE_BUFFER_LEN_NO_YEAR;
+  char *p;
+  int value;
+  unsigned int d;
+  int year_len;
+  int offset;
+  
+  if(!date)
     return NULL;
     
-  is_neg = d->year < 0;
+  value = date->year;
+  if(value < 0)
+    len++;
+  year_len = 1;
+  while(value /= 10)
+    year_len++;
 
-  /* format twice: first with null buffer of zero size to get the
-   * required buffer size second time to the allocated buffer
-   */
-  for(i = 0; i < 2; i++) {
-    r = snprintf((char*)ret, r, "%s%04d-%2.2d-%2.2d",
-                 is_neg ? "-" : "",
-                 is_neg ? -d->year : d->year,
-                 d->month,
-                 d->day);
+  buffer = RASQAL_MALLOC(char*, year_len + len + 1);
+  if(!buffer)
+    return NULL;
 
-    /* error? */
-    if(r < 0) {
-      if(ret)
-        RASQAL_FREE(char*, ret);
-      return NULL;
-    }
+  p = buffer;
 
-    /* alloc return buffer on first pass */
-    if(!i) {
-      ret = RASQAL_MALLOC(char*, ++r);
-      if(!ret)
-        return NULL;
-    }
+  /* value is year; length can vary */
+  value = date->year;
+  if(value < 0) {
+    value = -value;
+    *p++ = '-';
   }
-  return ret;
+  for(offset = year_len - 1; offset >= 0; offset--) {
+    p[offset] = (value % 10) + '0';
+    value /= 10;
+  }
+  p += year_len;
+
+  *p++ = '-';
+
+  /* value is 2-digit month */
+  value = date->month;
+  d = (value / 10);
+  *p++ = d + '0';
+  value -= d * 10;
+  *p++ = value + '0';
+
+  *p++ = '-';
+
+  /* value is 2-digit day */
+  value = date->day;
+  d = (value / 10);
+  *p++ = d + '0';
+  value -= d * 10;
+  *p++ = value + '0';
+
+  *p = '\0';
+
+  return buffer;
 }
 
 
