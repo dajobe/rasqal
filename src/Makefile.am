@@ -113,7 +113,8 @@ rasqal_service.c \
 rasqal_dataset.c \
 rasqal_random.c \
 rasqal_digest.c \
-rasqal_iostream.c
+rasqal_iostream.c \
+snprintf.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \

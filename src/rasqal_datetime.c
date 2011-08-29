@@ -622,44 +622,50 @@ rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt)
 }
 
 
-#define TIMEZONE_BUFFER_LEN 7
+#define TIMEZONE_BUFFER_LEN 6
 
 /*
  * rasqal_xsd_datetime_timezone_format:
  * @dt: datetime
  * @buffer: buffer to write the formatted timezone
- * @len: length of buffer; must be 7 or larger
+ * @bufsize: length of @buffer; must be 7 or larger
  *
  * INTERNAL - format a timezone into the passed in buffer
  *
- * Reutnr value: non-0 on failure
+ * Return value: size of buffer or 0 on failure
  */
 static int
 rasqal_xsd_datetime_timezone_format(const rasqal_xsd_datetime *dt,
-                                    char* buffer, size_t len)
+                                    char* buffer, size_t bufsize)
 {
   int mins;
+  size_t tz_len;
   
-  if(!buffer || !len)
-    return 1;
+  if(!buffer || !bufsize)
+    return -1;
   
   mins = abs(dt->timezone_minutes);
   if(mins == RASQAL_XSD_DATETIME_NO_TZ) {
-    if(len < 1)
-      return 1;
+    tz_len = 0;
+
+    if(bufsize < (tz_len + 1))
+      return -1;
 
     buffer[0] = '\0';
   } else if(!mins) {
-    if(len < 2)
-      return 1;
+    tz_len = 1;
+    if(bufsize < (tz_len + 1))
+      return -1;
 
     buffer[0] = 'Z';
     buffer[1] = '\0';
   } else {
     int hours;
 
-    if(len < TIMEZONE_BUFFER_LEN)
-      return 1;
+    tz_len = TIMEZONE_BUFFER_LEN;
+
+    if(bufsize < (tz_len + 1))
+      return -1;
 
     buffer[0] = (mins != dt->timezone_minutes ? '-' : '+');
 
@@ -677,7 +683,43 @@ rasqal_xsd_datetime_timezone_format(const rasqal_xsd_datetime *dt,
     buffer[6] = '\0';
   }
 
-  return 0;
+  return (int)tz_len;
+}
+
+
+static int
+rasqal_xsd_format_microseconds(char* buffer, size_t bufsize, 
+                               unsigned int microseconds)
+{
+  int len = 0;
+  char *p;
+  unsigned int value;
+  unsigned int base = 10;
+  unsigned int multiplier;
+
+  value = microseconds;
+  multiplier = 100000;
+  do {
+    value = value % multiplier;
+    multiplier /= base;
+    len++;
+  } while(value && multiplier);
+
+  if(!buffer || (int)bufsize < (len + 1)) /* +1 for NUL */
+    return len;
+
+  value = microseconds;
+  multiplier = 100000;
+  p = buffer;
+  do {
+    unsigned digit = value / multiplier;
+    *p++ = '0' + digit;
+    value = value % multiplier;
+    multiplier /= base;
+  } while(value && multiplier);
+  *p = '\0';
+
+  return len;
 }
 
 
@@ -696,74 +738,66 @@ char*
 rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
                                       size_t *len_p)
 {
-  char *ret = 0;
-  int is_neg;
-  int r = 0;
-  int i;
+  size_t len;
+  char *buffer = NULL;
+  char *p;
   /* "[+-]HH:MM\0" */
-  char timezone_string[TIMEZONE_BUFFER_LEN];
+  char timezone_string[TIMEZONE_BUFFER_LEN + 1];
+  int year_len;
+  int tz_string_len;
+  size_t microseconds_len = 0;
   
   if(!dt)
     return NULL;
     
-  is_neg = dt->year < 0;
-
-  if(rasqal_xsd_datetime_timezone_format(dt, timezone_string,
-                                         TIMEZONE_BUFFER_LEN))
+  tz_string_len = rasqal_xsd_datetime_timezone_format(dt, timezone_string,
+                                                      TIMEZONE_BUFFER_LEN + 1);
+  if(tz_string_len < 0)
     return NULL;
 
-  /* format twice: first with null buffer of zero size to get the
-   * required buffer size second time to the allocated buffer
-   */
-  for(i = 0; i < 2; i++) { 
-    if(dt->microseconds) {
-      char microsecs[9];
-      size_t j;
-      
-      snprintf(microsecs, 9, "%.6f", ((double)dt->microseconds) / 1000000);
-      for(j = strlen(microsecs) - 1; j > 2 && microsecs[j] == '0'; j--)
-        microsecs[j] = '\0';
-      
-      r = snprintf(ret, r, "%s%04d-%2.2d-%2.2dT%2.2d:%2.2d:%2.2d%s%s",
-                   is_neg ? "-" : "",
-                   is_neg ? -dt->year : dt->year,
-                   dt->month,
-                   dt->day,
-                   dt->hour,
-                   dt->minute,
-                   dt->second,
-                   microsecs+1,
-                   timezone_string);
-    } else {
-      r = snprintf((char*)ret, r, "%s%04d-%2.2d-%2.2dT%2.2d:%2.2d:%2.2d%s",
-                   is_neg ? "-" : "",
-                   is_neg ? -dt->year : dt->year,
-                   dt->month,
-                   dt->day,
-                   dt->hour,
-                   dt->minute,
-                   dt->second,
-                   timezone_string);
-    }
-    
-    /* error? */
-    if(r < 0) {
-      if(ret)
-        RASQAL_FREE(char*, ret);
-      return NULL;
-    }
-
-    /* alloc return buffer on first pass */
-    if(!i) {
-      if(len_p)
-        *len_p = r;
-
-      ret = RASQAL_MALLOC(char*, ++r);
-      if(!ret)
-        return NULL;
-    }
+  year_len = rasqal_format_integer(NULL, 0, dt->year, 4, '0');
+  
+  len = year_len +
+        15 + /* "-MM-DDTHH:MM:SS" = 15 */
+        tz_string_len;
+  if(dt->microseconds) {
+    microseconds_len = rasqal_xsd_format_microseconds(NULL, 0, dt->microseconds);
+    len += 1 /* . */ + microseconds_len;
   }
-  return ret;
+  
+  if(len_p)
+    *len_p = len;
+    
+  buffer = RASQAL_MALLOC(char*, len + 1);
+  if(!buffer)
+    return NULL;
+
+  p = buffer;
+  p += rasqal_format_integer(p, year_len + 1, dt->year, 4, '0');
+  *p++ = '-';
+  p += rasqal_format_integer(p, 2 + 1, dt->month, 2, '0');
+  *p++ = '-';
+  p += rasqal_format_integer(p, 2 + 1, dt->day, 2, '0');
+  *p++ = 'T';
+
+  p += rasqal_format_integer(p, 2 + 1, dt->hour, 2, '0');
+  *p++ = ':';
+  p += rasqal_format_integer(p, 2 + 1, dt->minute, 2, '0');
+  *p++ = ':';
+  p += rasqal_format_integer(p, 2 + 1, dt->second, 2, '0');
+
+  if(dt->microseconds) {
+    *p++ = '.';
+    p += rasqal_xsd_format_microseconds(p, microseconds_len + 1, dt->microseconds);
+  }
+  if(tz_string_len) {
+    memcpy(p, timezone_string, tz_string_len);
+    p += tz_string_len;
+  }
+
+  *p = '\0';
+
+  return buffer;
 }
 
 
@@ -961,17 +995,11 @@ rasqal_xsd_date_to_string(const rasqal_xsd_date *date)
   int value;
   unsigned int d;
   int year_len;
-  int offset;
   
   if(!date)
     return NULL;
     
-  value = date->year;
-  if(value < 0)
-    len++;
-  year_len = 1;
-  while(value /= 10)
-    year_len++;
+  year_len = rasqal_format_integer(NULL, 0, date->year, -1, '\0');
 
   buffer = RASQAL_MALLOC(char*, year_len + len + 1);
   if(!buffer)
@@ -980,16 +1008,7 @@ rasqal_xsd_date_to_string(const rasqal_xsd_date *date)
   p = buffer;
 
   /* value is year; length can vary */
-  value = date->year;
-  if(value < 0) {
-    value = -value;
-    *p++ = '-';
-  }
-  for(offset = year_len - 1; offset >= 0; offset--) {
-    p[offset] = (value % 10) + '0';
-    value /= 10;
-  }
-  p += year_len;
+  p += rasqal_format_integer(p, year_len + 1, date->year, -1, '\0');
 
   *p++ = '-';
 
@@ -1377,15 +1396,15 @@ rasqal_xsd_datetime_get_tz_as_counted_string(rasqal_xsd_datetime* dt,
 {
   char* s;
   
-  s = RASQAL_MALLOC(char*, TIMEZONE_BUFFER_LEN);
+  s = RASQAL_MALLOC(char*, TIMEZONE_BUFFER_LEN + 1);
   if(!s)
     return NULL;
 
-  if(rasqal_xsd_datetime_timezone_format(dt, s, TIMEZONE_BUFFER_LEN))
+  if(rasqal_xsd_datetime_timezone_format(dt, s, TIMEZONE_BUFFER_LEN + 1) < 0)
     goto failed;
 
   if(len_p)
-    *len_p = (TIMEZONE_BUFFER_LEN - 1); /* \0 is not in the length */
+    *len_p = TIMEZONE_BUFFER_LEN;
   
   return s;
 

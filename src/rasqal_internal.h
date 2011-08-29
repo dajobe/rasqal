@@ -1780,6 +1780,8 @@ int rasqal_digest_md5_buffer(const unsigned char *output,
                              const unsigned char *input, size_t len);
 #endif
 
+/* snprint.c */
+int rasqal_format_integer(char* buffer, size_t bufsize, int integer, int width, char padding);
 
 /* end of RASQAL_INTERNAL */
 #endif
