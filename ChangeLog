@@ -1,4 +1,68 @@
+2011-08-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_date_to_string): Remove use of snprintf
+
+2011-08-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_timezone_format): Remove one snprintf()
+
+2011-08-25  Dave Beckett <dave@dajobe.org>
+
+	* tests/algebra/check-algebra, tests/rdql/testsuite/check-rdql,
+	tests/sparql/check-sparql: Set DIFF envariable for check tests to
+	allow use off GNU Diff
+
+	Thanks to Peter O'Gorman (pogma) for the patch
+
+	Fixes Issue#0000467
+	http://bugs.librdf.org/mantis/view.php?id=467
+
+	* src/rasqal_algebra.c, src/rasqal_general.c, src/rasqal_graph.c,
+	src/rasqal_query_transform.c, src/rasqal_raptor.c,
+	src/rasqal_result_formats.c, src/rasqal_row.c,
+	src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_variable.c,
+	src/rasqal_xsd_datatypes.c: Code style: use calloc(type, count,
+	size) form on one line
+
+	* src/rasqal_row.c:
+	Do not calloc with 0 count - not portable
+
+	(rasqal_new_row_common): Add a condition around the if using code
+	from patch in bug.  Thanks to Peter O'Gorman (pogma)
+
+	Fixes Issue#0000466
+	http://bugs.librdf.org/mantis/view.php?id=466
+
+	* src/sparql_lexer.l, src/sparql_parser.y: debug level doc
+
+2011-08-24  Dave Beckett <dave@dajobe.org>
+
+	* utils/check_query.c: Use rasqal_literal_string_to_native to just
+	make it work
+
+	* utils/check_query.c: Use rasqal_query_results_sort() to sort
+	results.
+
+	* src/rasqal_internal.h, src/rasqal_query_results.c: Added
+	internal function to sort saved rows by some function
+
+	(rasqal_query_results_sort): Added calling
+	rasqal_query_results_execute_and_store_results if there is a
+	factory and no results sequence. Sorts the internal results
+	sequence
+
+	* src/rasqal_internal.h, src/rasqal_row.c: Added
+	rasqal_row_compare() internal function for sorting
+
 2011-08-23  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, RELEASE.html, configure.ac:
+	Bumped version to 0.9.28
+
+	* INSTALL.html: ws
 
 	* Snapshotted rasqal_0_9_27 for 0.9.27 release (GIT
 	2371992e6bc8d4573576dd90ea172626948a11f1)
