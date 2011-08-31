@@ -548,6 +548,8 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
   
   attr_count=raptor_xml_element_get_attributes_count(xml_element);
   con->name=NULL;
+  con->value = NULL;
+  con->value_len = 0;
   con->datatype=NULL;
   con->language=NULL;
   
@@ -648,7 +650,7 @@ rasqal_sparql_xml_sax2_characters_handler(void *user_data,
   if(con->state == STATE_literal ||
      con->state == STATE_uri ||
      con->state == STATE_bnode) {
-    con->value_len=len;
+    con->value_len = len;
     con->value = RASQAL_MALLOC(char*, len + 1);
     memcpy(con->value, s, len);
     con->value[len]='\0';
@@ -706,7 +708,10 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
         char* language_str=NULL;
 
         lvalue = RASQAL_MALLOC(unsigned char*, con->value_len + 1);
-        memcpy(lvalue, con->value, con->value_len + 1);
+        if(!con->value_len)
+          *lvalue = '\0';
+        else
+          memcpy(lvalue, con->value, con->value_len + 1);
         if(con->datatype)
           datatype_uri = raptor_new_uri(con->world->raptor_world_ptr, (const unsigned char*)con->datatype);
         if(con->language) {
