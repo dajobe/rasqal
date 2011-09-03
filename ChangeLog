@@ -1,4 +1,32 @@
+2011-08-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_sparql_xml.c: Handle <literal></literal> as
+	empty literal in reading XML results
+
 2011-08-28  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/rasqal_datetime.c, src/rasqal_internal.h,
+	src/snprintf.c: Remove all use of snprintf for xsd:datetime and
+	xsd:date formatting.
+
+	(rasqal_format_integer): Added like snprintf() args but with
+	options for width and padding.
+
+	(rasqal_xsd_datetime_timezone_format): Now returns bytes or <0 on
+	failure.
+
+	(rasqal_xsd_format_microseconds): Added to format microseconds as
+	fractions of a second with no trailing 0s.
+
+	(rasqal_xsd_datetime_to_counted_string): Use
+	rasqal_format_integer() and rasqal_xsd_format_microseconds() to do
+	the formatting here and remove a loop calling snprintf() twice
+	with a NULL arg first.
+
+	(rasqal_xsd_date_to_string): Use rasqal_format_integer().
+
+	(rasqal_xsd_datetime_get_tz_as_counted_string): Use updated
+	calling convention of rasqal_xsd_datetime_timezone_format().
 
 	* src/rasqal_datetime.c:
 	(rasqal_xsd_date_to_string): Remove use of snprintf
