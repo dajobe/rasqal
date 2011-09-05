@@ -383,7 +383,7 @@ rasqal_query_language_register_factory(rasqal_world *world,
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG3("Registered query language %s with context size %d\n",
-                query->names[0], query->context_length);
+                query->desc.names[0], query->context_length);
 #endif
 
   return query;

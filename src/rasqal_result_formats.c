@@ -90,7 +90,7 @@ rasqal_world_register_query_results_format_factory(rasqal_world* world,
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG3("Registered query result format %s with context size %d\n",
-                factory->names[0], factory->context_length);
+                factory->desc.names[0], factory->context_length);
 #endif
 
   return factory;
