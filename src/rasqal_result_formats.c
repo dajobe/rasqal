@@ -669,7 +669,7 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
     scores[i].score = score < 10 ? score : 10; 
     scores[i].factory = factory;
 #if RASQAL_DEBUG > 2
-    RASQAL_DEBUG3("Score %15s : %d\n", factory->name, score);
+    RASQAL_DEBUG3("Score %15s : %d\n", factory->desc.names[0], score);
 #endif
   }
   
