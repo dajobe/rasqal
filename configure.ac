@@ -897,7 +897,8 @@ AC_RUN_IFELSE([AC_LANG_PROGRAM([[
 #include <math.h>
 #endif
 ]], [[
-double d = ceil(1.0F) + floor(1.0F) + round(1.0F);
+double t = atof("1.234");
+return (int)(ceil(t) + floor(t) + round(t));
 ]])],
    AC_MSG_RESULT(yes)
    ceil_lib=libc,
@@ -911,7 +912,8 @@ if test $ceil_lib = none; then
 #include <math.h>
 #endif
 ]], [[
-double d = ceil(1.0F) + floor(1.0F) + round(1.0F);
+double t = atof("1.234");
+return (int)(ceil(t) + floor(t) + round(t));
 ]])],
      AC_MSG_RESULT(yes)
      need_libm=1
