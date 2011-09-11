@@ -900,7 +900,8 @@ AC_RUN_IFELSE([AC_LANG_PROGRAM([[
 #include <stdlib.h>
 #endif
 ]], [[
-double t = atof("0.000");
+extern char **environ;
+double t = strtod(environ[0], NULL);
 return (int)(ceil(t) * floor(t) * round(t));
 ]])],
    AC_MSG_RESULT(yes)
@@ -918,7 +919,8 @@ if test $ceil_lib = none; then
 #include <stdlib.h>
 #endif
 ]], [[
-double t = atof("0.000");
+extern char **environ;
+double t = strtod(environ[0], NULL);
 return (int)(ceil(t) * floor(t) * round(t));
 ]])],
      AC_MSG_RESULT(yes)
