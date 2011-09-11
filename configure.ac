@@ -896,6 +896,9 @@ AC_RUN_IFELSE([AC_LANG_PROGRAM([[
 #ifdef HAVE_MATH_H
 #include <math.h>
 #endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 ]], [[
 double t = atof("0.000");
 return (int)(ceil(t) * floor(t) * round(t));
@@ -910,6 +913,9 @@ if test $ceil_lib = none; then
   AC_RUN_IFELSE([AC_LANG_PROGRAM([[
 #ifdef HAVE_MATH_H
 #include <math.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
 #endif
 ]], [[
 double t = atof("0.000");
