@@ -1,3 +1,36 @@
+2011-09-11  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Switch language 'sparql' to SPARQL 1.1
+
+	* configure.ac: Use strtod() to convert runtime environ name that
+	can't be optimized away.
+
+	* configure.ac: Need stdlib for atof() in test
+
+2011-09-08  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Use 0.000 to get a 0 exit code
+
+	* configure.ac: Improve ceil, floor and round configure test
+
+	Use a more comprehensive configure build and run test for ceil(),
+	floor() and round() to prevent GCC optimizing it away and getting
+	the wrong answer when checking whether to link with -lm
+
+2011-09-05  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_result_formats.c:
+	(rasqal_world_guess_query_results_format_name): Fix for compiling
+	with RASQAL_DEBUG > 2
+
+	* src/rasqal_general.c, src/rasqal_result_formats.c:
+	(rasqal_query_language_register_factory
+	rasqal_world_register_query_results_format_factory): Fixes for
+	compiling with RASQAL_DEBUG > 1
+
+	Fixes Issue #0000471
+	http://bugs.librdf.org/mantis/view.php?id=471
+
 2011-08-30  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_format_sparql_xml.c: Handle <literal></literal> as
