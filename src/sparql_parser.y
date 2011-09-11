@@ -5216,13 +5216,18 @@ rasqal_sparql_query_language_init(rasqal_query* rdf_query, const char *name)
   /* All the sparql query families support this */
   rqe->sparql10 = 1;
   rqe->sparql_query = 1;
+  /* SPARQL 1.1 is the default */
+  rqe->sparql11_query = 1;
+  rqe->sparql11_aggregates = 1;
+  rqe->sparql11_property_paths = 1;
+  rqe->sparql11_update = 1;
 
-  /* SPARQL 1.1 */
-  if(!strncmp(name, "sparql11", 8) || !strcmp(name, "laqrs")) {
-    rqe->sparql11_query = 1;
-    rqe->sparql11_aggregates = 1;
-    rqe->sparql11_property_paths = 1;
-    rqe->sparql11_update = 1;
+  /* SPARQL 1.0 disables SPARQL 1.1 features */
+  if(!strncmp(name, "sparql10", 8)) {
+    rqe->sparql11_query = 0;
+    rqe->sparql11_aggregates = 0;
+    rqe->sparql11_property_paths = 0;
+    rqe->sparql11_update = 0;
   }
 
   if(!strcmp(name, "sparql11-query")) {
@@ -5458,15 +5463,9 @@ rasqal_sparql_query_language_iostream_write_escaped_counted_string(rasqal_query*
 }
 
 
-static const char* const sparql_names[] = { "sparql", "sparql10", NULL};
-
-static const char* const sparql_uri_strings[] = {
-  "http://www.w3.org/TR/rdf-sparql-query/",
-  NULL
-};
+static const char* const sparql_names[] = { "sparql10", NULL};
 
 static const raptor_type_q sparql_types[] = {
-  { "application/sparql", 18, 10}, 
   { NULL, 0, 0}
 };
 
@@ -5482,7 +5481,7 @@ rasqal_sparql_query_language_register_factory(rasqal_query_language_factory *fac
 
   factory->desc.label = "SPARQL 1.0 W3C RDF Query Language";
 
-  factory->desc.uri_strings = sparql_uri_strings;
+  factory->desc.uri_strings = NULL;
 
   factory->context_length = sizeof(rasqal_sparql_query_language);
 
@@ -5503,9 +5502,16 @@ rasqal_init_query_language_sparql(rasqal_world* world)
 }
 
 
-static const char* const sparql11_names[] = { "sparql11", NULL };
+static const char* const sparql11_names[] = { "sparql", "sparql11", NULL };
+
+
+static const char* const sparql11_uri_strings[] = {
+  "http://www.w3.org/TR/rdf-sparql-query/",
+  NULL
+};
 
 static const raptor_type_q sparql11_types[] = {
+  { "application/sparql", 18, 10}, 
   { NULL, 0, 0}
 };
 
@@ -5522,7 +5528,7 @@ rasqal_sparql11_language_register_factory(rasqal_query_language_factory *factory
   factory->desc.label = "SPARQL 1.1 (DRAFT) Query and Update Languages";
 
   /* What URI describes Query and Update languages? */
-  factory->desc.uri_strings = NULL;
+  factory->desc.uri_strings = sparql11_uri_strings;
 
   factory->context_length = sizeof(rasqal_sparql_query_language);
 
@@ -5537,7 +5543,7 @@ rasqal_sparql11_language_register_factory(rasqal_query_language_factory *factory
 
 static const char* const sparql11_query_names[] = { "sparql11-query", NULL };
 
-static const char* const sparql11_uri_strings[] = {
+static const char* const sparql11_query_uri_strings[] = {
   "http://www.w3.org/TR/2010/WD-sparql11-query-20101014/",
   NULL
 };
@@ -5558,7 +5564,7 @@ rasqal_sparql11_query_language_register_factory(rasqal_query_language_factory *f
 
   factory->desc.label = "SPARQL 1.1 (DRAFT) Query Language";
 
-  factory->desc.uri_strings = sparql11_uri_strings;
+  factory->desc.uri_strings = sparql11_query_uri_strings;
 
   factory->context_length = sizeof(rasqal_sparql_query_language);
 
