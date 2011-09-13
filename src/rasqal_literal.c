@@ -645,6 +645,7 @@ retype:
         long long_i;
 
         eptr = NULL;
+        errno = 0;
         long_i = strtol((const char*)l->string, &eptr, 10);
         if(*eptr)
           return 1;
@@ -1495,6 +1496,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
         long long_i;
 
         eptr = NULL;
+        errno = 0;
         long_i = strtol((const char*)l->string, &eptr, 10);
         /* If formatted correctly and no under or overflow */
         if((unsigned char*)eptr != l->string && *eptr=='\0' &&

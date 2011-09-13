@@ -241,6 +241,7 @@ rasqal_xsd_check_integer_format(const unsigned char* string, int flags)
    * http://www.w3.org/TR/xmlschema-2/#integer
    */
 
+  errno = 0;
   (void)strtol((const char*)string, &eptr, 10);
 
   if((unsigned char*)eptr != string && *eptr == '\0' &&
