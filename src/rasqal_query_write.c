@@ -1165,13 +1165,13 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   offset = rasqal_query_get_offset(query);
   if(limit >= 0 || offset >= 0) {
     if(limit >= 0) {
-      raptor_iostream_counted_string_write("LIMIT ", 7, iostr);
+      raptor_iostream_counted_string_write("LIMIT ", 6, iostr);
       raptor_iostream_decimal_write(limit, iostr);
     }
     if(offset >= 0) {
       if(limit)
         raptor_iostream_write_byte(' ', iostr);
-      raptor_iostream_counted_string_write("OFFSET ", 8, iostr);
+      raptor_iostream_counted_string_write("OFFSET ", 7, iostr);
       raptor_iostream_decimal_write(offset, iostr);
     }
     raptor_iostream_write_byte('\n', iostr);
