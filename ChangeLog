@@ -1,3 +1,14 @@
+2011-09-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c, src/rasqal_xsd_datatypes.c: Clear errno
+	before calling strtol() and checking the result
+
+2011-09-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_20060406): Correct output of LIMIT,
+	OFFSET
+
 2011-09-11  Dave Beckett <dave@dajobe.org>
 
 	* src/sparql_parser.y: Switch language 'sparql' to SPARQL 1.1
