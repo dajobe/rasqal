@@ -205,8 +205,8 @@ tidy:
  * Constructor - create a new 3-operand expression.
  * Takes ownership of the operands.
  * 
- * The only operator is:
- * @RASQAL_EXPR_REGEX
+ * The operators are:
+ * #RASQAL_EXPR_REGEX #RASQAL_EXPR_IF #RASQAL_EXPR_SUBSTR
  *
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
@@ -239,6 +239,61 @@ rasqal_new_3op_expression(rasqal_world* world,
     rasqal_free_expression(arg2);
   if(arg3)
     rasqal_free_expression(arg3);
+
+  return e;
+}
+
+
+/**
+ * rasqal_new_4op_expression:
+ * @world: rasqal_world object
+ * @op: Expression operator
+ * @arg1: Operand 1 
+ * @arg2: Operand 2
+ * @arg3: Operand 3
+ * @arg4: Operand 4 (may be NULL)
+ * 
+ * Constructor - create a new 4-operand expression.
+ * Takes ownership of the operands.
+ * 
+ * The operators are:
+ * #RASQAL_EXPR_REPLACE
+ *
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_4op_expression(rasqal_world* world,
+                          rasqal_op op,
+                          rasqal_expression* arg1, 
+                          rasqal_expression* arg2,
+                          rasqal_expression* arg3,
+                          rasqal_expression* arg4)
+{
+  rasqal_expression* e = NULL;
+
+  if(!world || !arg1 || !arg2 || !arg3) /* arg4 may be NULL */
+    goto tidy;
+
+  e = RASQAL_CALLOC(rasqal_expression*, 1, sizeof(*e));
+  if(e) {
+    e->usage = 1;
+    e->world = world;
+    e->op = op;
+    e->arg1 = arg1; arg1 = NULL;
+    e->arg2 = arg2; arg2 = NULL;
+    e->arg3 = arg3; arg3 = NULL;
+    e->arg4 = arg4; arg4 = NULL;
+  }
+
+  tidy:
+  if(arg1)
+    rasqal_free_expression(arg1);
+  if(arg2)
+    rasqal_free_expression(arg2);
+  if(arg3)
+    rasqal_free_expression(arg3);
+  if(arg4)
+    rasqal_free_expression(arg4);
 
   return e;
 }

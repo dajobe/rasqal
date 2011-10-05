@@ -770,6 +770,7 @@ struct rasqal_expression_s {
 
   raptor_sequence* params;
   unsigned int flags;
+  struct rasqal_expression_s* arg4;
 };
 typedef struct rasqal_expression_s rasqal_expression;
 
@@ -1427,6 +1428,8 @@ RASQAL_API
 rasqal_expression* rasqal_new_2op_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2);
 RASQAL_API
 rasqal_expression* rasqal_new_3op_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1,  rasqal_expression* arg2, rasqal_expression* arg3);
+RASQAL_API
+rasqal_expression* rasqal_new_4op_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2, rasqal_expression* arg3, rasqal_expression* arg4);
 RASQAL_API
 rasqal_expression* rasqal_new_string_op_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1, rasqal_literal* literal);
 RASQAL_API
