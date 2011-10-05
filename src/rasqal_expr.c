@@ -677,6 +677,8 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_SAMETERM:
     case RASQAL_EXPR_STRLANG:
     case RASQAL_EXPR_STRDT:
+    case RASQAL_EXPR_STRBEFORE:
+    case RASQAL_EXPR_STRAFTER:
       rasqal_free_expression(e->arg1);
       rasqal_free_expression(e->arg2);
       break;
@@ -687,10 +689,13 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_STRENDS:
     case RASQAL_EXPR_CONTAINS:
     case RASQAL_EXPR_SUBSTR:
+    case RASQAL_EXPR_REPLACE:
       rasqal_free_expression(e->arg1);
       rasqal_free_expression(e->arg2);
       if(e->arg3)
         rasqal_free_expression(e->arg3);
+      if(e->arg4)
+        rasqal_free_expression(e->arg4);
       break;
 
     case RASQAL_EXPR_TILDE:
@@ -891,6 +896,8 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_STRSTARTS:
     case RASQAL_EXPR_STRENDS:
     case RASQAL_EXPR_CONTAINS:
+    case RASQAL_EXPR_STRBEFORE:
+    case RASQAL_EXPR_STRAFTER:
       return rasqal_expression_visit(e->arg1, fn, user_data) ||
              rasqal_expression_visit(e->arg2, fn, user_data);
       break;
@@ -901,6 +908,13 @@ rasqal_expression_visit(rasqal_expression* e,
       return rasqal_expression_visit(e->arg1, fn, user_data) ||
              rasqal_expression_visit(e->arg2, fn, user_data) ||
              (e->arg3 && rasqal_expression_visit(e->arg3, fn, user_data));
+      break;
+
+    case RASQAL_EXPR_REPLACE:
+      return rasqal_expression_visit(e->arg1, fn, user_data) ||
+             rasqal_expression_visit(e->arg2, fn, user_data) ||
+             rasqal_expression_visit(e->arg3, fn, user_data) ||
+             (e->arg4 && rasqal_expression_visit(e->arg4, fn, user_data));
       break;
 
     case RASQAL_EXPR_TILDE:
@@ -1097,7 +1111,10 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "sha224",
   "sha256",
   "sha384",
-  "sha512"
+  "sha512",
+  "strbefore",
+  "strafter",
+  "replace"
 };
 
 
@@ -1208,17 +1225,27 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_STRENDS:
     case RASQAL_EXPR_SUBSTR:
     case RASQAL_EXPR_CONTAINS:
+    case RASQAL_EXPR_STRBEFORE:
+    case RASQAL_EXPR_STRAFTER:
+    case RASQAL_EXPR_REPLACE:
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
       raptor_iostream_write_byte('(', iostr);
       rasqal_expression_write(e->arg1, iostr);
       raptor_iostream_counted_string_write(", ", 2, iostr);
       rasqal_expression_write(e->arg2, iostr);
-      /* There are three 3-op expressions - both handled here */
+
+      /* There are four 3+ arg expressions - all handled here */
       if((e->op == RASQAL_EXPR_REGEX || e->op == RASQAL_EXPR_IF ||
-          e->op == RASQAL_EXPR_SUBSTR) && e->arg3) {
+          e->op == RASQAL_EXPR_SUBSTR || e->op == RASQAL_EXPR_REPLACE)
+         && e->arg3) {
         raptor_iostream_counted_string_write(", ", 2, iostr);
         rasqal_expression_write(e->arg3, iostr);
+      }
+      /* One 3 or 4 arg expression */
+      if((e->op == RASQAL_EXPR_REPLACE) && e->arg4) {
+        raptor_iostream_counted_string_write(", ", 2, iostr);
+        rasqal_expression_write(e->arg4, iostr);
       }
       raptor_iostream_write_byte(')', iostr);
       break;
@@ -1423,17 +1450,27 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_STRENDS:
     case RASQAL_EXPR_CONTAINS:
     case RASQAL_EXPR_SUBSTR:
+    case RASQAL_EXPR_STRBEFORE:
+    case RASQAL_EXPR_STRAFTER:
+    case RASQAL_EXPR_REPLACE:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
       rasqal_expression_print(e->arg1, fh);
       fputs(", ", fh);
       rasqal_expression_print(e->arg2, fh);
-      /* There are three 3-op expressions - both handled here */
+
+      /* There are four 3+ arg expressions - all handled here */
       if((e->op == RASQAL_EXPR_REGEX || e->op == RASQAL_EXPR_IF ||
-          e->op == RASQAL_EXPR_SUBSTR) && e->arg3) {
+          e->op == RASQAL_EXPR_SUBSTR || e->op == RASQAL_EXPR_REPLACE)
+         && e->arg3) {
         fputs(", ", fh);
         rasqal_expression_print(e->arg3, fh);
+      }
+      /* One 3 or 4 arg expression */
+      if((e->op == RASQAL_EXPR_REPLACE) && e->arg4) {
+        fputs(", ", fh);
+        rasqal_expression_print(e->arg4, fh);
       }
       fputc(')', fh);
       break;
@@ -1640,6 +1677,8 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_STRSTARTS:
     case RASQAL_EXPR_STRENDS:
     case RASQAL_EXPR_CONTAINS:
+    case RASQAL_EXPR_STRBEFORE:
+    case RASQAL_EXPR_STRAFTER:
       result = rasqal_expression_is_constant(e->arg1) &&
                rasqal_expression_is_constant(e->arg2);
       break;
@@ -1650,6 +1689,13 @@ rasqal_expression_is_constant(rasqal_expression* e)
       result = rasqal_expression_is_constant(e->arg1) &&
                rasqal_expression_is_constant(e->arg2) &&
                (e->arg3 && rasqal_expression_is_constant(e->arg3));
+      break;
+
+    case RASQAL_EXPR_REPLACE:
+      result = rasqal_expression_is_constant(e->arg1) &&
+               rasqal_expression_is_constant(e->arg2) &&
+               rasqal_expression_is_constant(e->arg3) &&
+               (e->arg4 && rasqal_expression_is_constant(e->arg4));
       break;
 
     case RASQAL_EXPR_STR_MATCH:
@@ -1987,6 +2033,8 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
     case RASQAL_EXPR_STRENDS:
     case RASQAL_EXPR_CONTAINS:
     case RASQAL_EXPR_SUBSTR:
+    case RASQAL_EXPR_STRBEFORE:
+    case RASQAL_EXPR_STRAFTER:
       rc = rasqal_expression_compare(e1->arg1, e2->arg1, flags, error_p);
       if(rc)
         return rc;
@@ -1995,11 +2043,28 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
       if(rc)
         return rc;
       
-      /* There are two 3-op expressions - both handled here */
+      /* There are three 3-op expressions - both handled here */
       if(e1->op == RASQAL_EXPR_REGEX || e1->op == RASQAL_EXPR_IF ||
          e1->op == RASQAL_EXPR_SUBSTR)
         rc = rasqal_expression_compare(e1->arg3, e2->arg3, flags, error_p);
 
+      break;
+
+    case RASQAL_EXPR_REPLACE:
+      /* 3 or 4 args */
+      rc = rasqal_expression_compare(e1->arg1, e2->arg1, flags, error_p);
+      if(rc)
+        return rc;
+      
+      rc = rasqal_expression_compare(e1->arg2, e2->arg2, flags, error_p);
+      if(rc)
+        return rc;
+      
+      rc = rasqal_expression_compare(e1->arg3, e2->arg3, flags, error_p);
+      if(rc)
+        return rc;
+
+      rc = rasqal_expression_compare(e1->arg4, e2->arg4, flags, error_p);
       break;
 
     case RASQAL_EXPR_STR_MATCH:

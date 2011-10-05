@@ -203,6 +203,7 @@ free_uri_applies(sparql_uri_applies* ua)
 %token BINDINGS UNDEF SERVICE MINUS
 %token YEAR MONTH DAY HOURS MINUTES SECONDS TIMEZONE TZ
 %token STRLEN SUBSTR UCASE LCASE STRSTARTS STRENDS CONTAINS ENCODE_FOR_URI CONCAT
+%token STRBEFORE STRAFTER REPLACE
 %token BIND
 %token ABS ROUND CEIL FLOOR RAND
 %token MD5 SHA1 SHA224 SHA256 SHA384 SHA512
@@ -4881,6 +4882,34 @@ StringExpression: STRLEN '(' Expression ')'
                                       RASQAL_EXPR_CONCAT, $3);
   if(!$$)
     YYERROR_MSG("StringExpression: cannot create CONCAT() expr");
+}
+| STRBEFORE  '(' Expression ',' Expression ')'
+{
+  $$ = rasqal_new_2op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_STRBEFORE, $3, $5);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create STRBEFORE() expr");
+}
+| STRAFTER  '(' Expression ',' Expression ')'
+{
+  $$ = rasqal_new_2op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_STRAFTER, $3, $5);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create STRAFTER() expr");
+}
+| REPLACE '(' Expression ',' Expression ',' Expression ')'
+{
+  $$ = rasqal_new_3op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_REPLACE, $3, $5, $7);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create REPLACE() expr");
+}
+| REPLACE '(' Expression ',' Expression ',' Expression ',' Expression ')'
+{
+  $$ = rasqal_new_4op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_REPLACE, $3, $5, $7, $9);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create REPLACE() expr");
 }
 ;
 

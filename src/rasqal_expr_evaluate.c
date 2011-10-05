@@ -1522,6 +1522,18 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       result = rasqal_expression_evaluate_substr(e, eval_context, error_p);
       break;
 
+    case RASQAL_EXPR_STRBEFORE:
+      result = rasqal_expression_evaluate_strbefore(e, eval_context, error_p);
+      break;
+
+    case RASQAL_EXPR_STRAFTER:
+      result = rasqal_expression_evaluate_strafter(e, eval_context, error_p);
+      break;
+
+    case RASQAL_EXPR_REPLACE:
+      result = rasqal_expression_evaluate_replace(e, eval_context, error_p);
+      break;
+
     case RASQAL_EXPR_ABS:
       result = rasqal_expression_evaluate_abs(e, eval_context, error_p);
       break;

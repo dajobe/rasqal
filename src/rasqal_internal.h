@@ -1171,7 +1171,10 @@ rasqal_literal* rasqal_expression_evaluate_encode_for_uri(rasqal_expression *e, 
 rasqal_literal* rasqal_expression_evaluate_concat(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 rasqal_literal* rasqal_expression_evaluate_langmatches(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 rasqal_literal* rasqal_expression_evaluate_strmatch(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
-  
+rasqal_literal* rasqal_expression_evaluate_strbefore(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_strafter(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_replace(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+
 
 /* strcasecmp.c */
 #ifdef HAVE_STRCASECMP

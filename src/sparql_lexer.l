@@ -444,6 +444,9 @@ EXPONENT [eE][+-]?[0-9]+
 [Ss][Hh][Aa][22][55][66] { return SHA256; }
 [Ss][Hh][Aa][33][88][44] { return SHA384; }
 [Ss][Hh][Aa][55][11][22] { return SHA512; }
+[Ss][Tt][Rr][Bb][Ee][Ff][Oo][Rr][Ee] { return STRBEFORE; }
+[Ss][Tt][Rr][Aa][Ff][Tt][Ee][Rr] { return STRAFTER; }
+[Rr][Ee][Pp][Ll][Aa][Cc][Ee] { return REPLACE; }
 
 "a" { return A; }
 
@@ -1740,6 +1743,15 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case SHA512:
       return "SHA512";
+
+    case STRBEFORE:
+      return "STRBEFORE";
+
+    case STRAFTER:
+      return "STRAFTER";
+
+    case REPLACE:
+      return "REPLACE";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:

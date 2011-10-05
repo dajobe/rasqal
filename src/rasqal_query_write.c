@@ -297,6 +297,9 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "SHA256",
   "SHA384",
   "SHA512",
+  "STRBEFORE",
+  "STRAFTER",
+  "REPLACE"
 };
 
 
@@ -355,6 +358,8 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_STRSTARTS:
     case RASQAL_EXPR_STRENDS:
     case RASQAL_EXPR_CONTAINS:
+    case RASQAL_EXPR_STRBEFORE:
+    case RASQAL_EXPR_STRAFTER:
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
       raptor_iostream_write_byte(' ', iostr);
@@ -420,6 +425,7 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_REGEX:
     case RASQAL_EXPR_IF:
     case RASQAL_EXPR_SUBSTR:
+    case RASQAL_EXPR_REPLACE:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);

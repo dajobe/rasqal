@@ -957,3 +957,210 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
   
   return NULL;
 }
+
+
+/*
+ * rasqal_expression_evaluate_strbefore:
+ * @e: The expression to evaluate.
+ * @eval_context: Evaluation context
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_STRBEFORE(string, needle) expression.
+ *
+ * Return value: A #rasqal_literal string value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_strbefore(rasqal_expression *e,
+                                     rasqal_evaluation_context *eval_context,
+                                     int *error_p)
+{
+  rasqal_world* world = eval_context->world;
+  rasqal_literal* l1 = NULL;
+  rasqal_literal* l2 = NULL;
+  const unsigned char *haystack;
+  const unsigned char *needle;
+  size_t haystack_len;
+  size_t needle_len;
+  char *ptr;
+  unsigned char* result;
+  size_t result_len;
+
+  /* haystack string */
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
+  if(*error_p || !l1)
+    goto failed;
+  
+  /* needle string */
+  l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
+  if(*error_p || !l2)
+    goto failed;
+
+
+  haystack = rasqal_literal_as_counted_string(l1, &haystack_len, 
+                                              eval_context->flags, error_p);
+  if(*error_p || !haystack)
+    goto failed;
+    
+  needle = rasqal_literal_as_counted_string(l2, &needle_len, 
+                                            eval_context->flags, error_p);
+  if(*error_p || !needle)
+    goto failed;
+
+  ptr = strstr((const char*)haystack, (const char*)needle);
+  if(ptr) {
+    result_len = ptr - (const char*)haystack;
+  } else {
+    result_len = 0;
+    haystack = (const unsigned char *)"";
+  }
+
+  result = RASQAL_MALLOC(unsigned char*, result_len + 1);
+  if(result_len)
+    memcpy(result, haystack, result_len);
+  result[result_len] = '\0';
+
+  return rasqal_new_string_literal(world, result, 
+                                   /* language */ NULL,
+                                   /* datatype */ NULL,
+                                   /* qname */ NULL);
+
+  failed:
+  if(l1)
+    rasqal_free_literal(l1);
+
+  if(l2)
+    rasqal_free_literal(l2);
+
+  if(error_p)
+    *error_p = 1;
+  
+  return NULL;
+}
+
+
+/*
+ * rasqal_expression_evaluate_strafter:
+ * @e: The expression to evaluate.
+ * @eval_context: Evaluation context
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_STRAFTER(string, needle) expression.
+ *
+ * Return value: A #rasqal_literal string value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_strafter(rasqal_expression *e,
+                                    rasqal_evaluation_context *eval_context,
+                                    int *error_p)
+{
+  rasqal_world* world = eval_context->world;
+  rasqal_literal* l1 = NULL;
+  rasqal_literal* l2 = NULL;
+  const unsigned char *haystack;
+  const unsigned char *needle;
+  size_t haystack_len;
+  size_t needle_len;
+  char *ptr;
+  unsigned char* result;
+  size_t result_len;
+
+  /* haystack string */
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
+  if(*error_p || !l1)
+    goto failed;
+  
+  /* needle string */
+  l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
+  if(*error_p || !l2)
+    goto failed;
+
+
+  haystack = rasqal_literal_as_counted_string(l1, &haystack_len, 
+                                              eval_context->flags, error_p);
+  if(*error_p || !haystack)
+    goto failed;
+    
+  needle = rasqal_literal_as_counted_string(l2, &needle_len, 
+                                            eval_context->flags, error_p);
+  if(*error_p || !needle)
+    goto failed;
+
+  ptr = strstr((const char*)haystack, (const char*)needle);
+  if(ptr) {
+    ptr += needle_len;
+    result_len = haystack_len - (ptr - (const char*)haystack);
+  } else {
+    ptr = (const unsigned char *)"";
+    result_len = 0;
+  }
+
+  result = RASQAL_MALLOC(unsigned char*, result_len + 1);
+  if(result_len)
+    memcpy(result, ptr, result_len);
+  result[result_len] = '\0';
+
+  return rasqal_new_string_literal(world, result, 
+                                   /* language */ NULL,
+                                   /* datatype */ NULL,
+                                   /* qname */ NULL);
+
+  failed:
+  if(l1)
+    rasqal_free_literal(l1);
+
+  if(l2)
+    rasqal_free_literal(l2);
+
+  if(error_p)
+    *error_p = 1;
+  
+  return NULL;
+}
+
+
+/*
+ * rasqal_expression_evaluate_replace:
+ * @e: The expression to evaluate.
+ * @eval_context: Evaluation context
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_REPLACE(input, pattern, replacement[, flags]) expression.
+ *
+ * Return value: A #rasqal_literal string value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_replace(rasqal_expression *e,
+                                   rasqal_evaluation_context *eval_context,
+                                   int *error_p)
+{
+  rasqal_literal* l1 = NULL;
+  rasqal_literal* pattern = NULL;
+  rasqal_literal* replacement = NULL;
+  
+  l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
+  if(*error_p || !l1)
+    goto failed;
+  
+  pattern = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
+  if(*error_p || !pattern)
+    goto failed;
+
+  replacement = rasqal_expression_evaluate2(e->arg3, eval_context, error_p);
+  if(*error_p || !replacement)
+    goto failed;
+
+
+  /* FIXME */
+
+  failed:
+  if(l1)
+    rasqal_free_literal(l1);
+
+  if(pattern)
+    rasqal_free_literal(pattern);
+
+  if(replacement)
+    rasqal_free_literal(replacement);
+
+  if(error_p)
+    *error_p = 1;
+  
+  return NULL;
+}
