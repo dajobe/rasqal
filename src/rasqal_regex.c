@@ -292,7 +292,7 @@ rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
 #endif
 #ifdef RASQAL_REGEX_POSIX
   regex_t reg;
-  int options = REG_EXTENDED | REG_NOSUB;
+  int options = 0;
   int rc = 0;
 #endif
   char *result_s = NULL;
