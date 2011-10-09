@@ -5722,11 +5722,12 @@ extern char *optarg;
 
 #define SPARQL_FILE_BUF_SIZE 4096
 
+static char query_string[SPARQL_FILE_BUF_SIZE];
+
 int
 main(int argc, char *argv[]) 
 {
   const char *program = rasqal_basename(argv[0]);
-  char query_string[SPARQL_FILE_BUF_SIZE];
   rasqal_query *query;
   FILE *fh;
   int rc;
