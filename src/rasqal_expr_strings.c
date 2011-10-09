@@ -823,7 +823,7 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
 #endif
 #ifdef RASQAL_REGEX_POSIX
   regex_t reg;
-  int options = REG_EXTENDED | REG_NOSUB;
+  int options = 0;
 #endif
   size_t match_len;
     
