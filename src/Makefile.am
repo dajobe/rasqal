@@ -48,7 +48,8 @@ rasqal_rowsource_triples_test$(EXEEXT) \
 rasqal_row_compatible_test$(EXEEXT) \
 rasqal_rowsource_groupby_test$(EXEEXT) \
 rasqal_rowsource_aggregation_test$(EXEEXT) \
-rasqal_literal_test$(EXEEXT)
+rasqal_literal_test$(EXEEXT) \
+rasqal_regex_test$(EXEEXT)
 
 # These 4 test programs are compiled here and run here as 'smoke
 # tests' but mostly used in tests in $(srcdir)/../tests/{rdql,sparql}
@@ -114,6 +115,7 @@ rasqal_dataset.c \
 rasqal_random.c \
 rasqal_digest.c \
 rasqal_iostream.c \
+rasqal_regex.c \
 snprintf.c
 
 if RASQAL_QUERY_RDQL
@@ -287,6 +289,10 @@ rasqal_row_compatible_test_LDADD = librasqal.la
 rasqal_literal_test_SOURCES = rasqal_literal.c
 rasqal_literal_test_CPPFLAGS = -DSTANDALONE
 rasqal_literal_test_LDADD = librasqal.la
+
+rasqal_regex_test_SOURCES = rasqal_regex.c
+rasqal_regex_test_CPPFLAGS = -DSTANDALONE
+rasqal_regex_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
