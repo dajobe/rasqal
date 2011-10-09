@@ -59,6 +59,8 @@
 
 int main(int argc, char *argv[]);
 
+static unsigned char buffer[FILE_READ_BUF_SIZE];
+
 static unsigned char*
 file_read_string(const char* program, const char* filename, const char* label) 
 {
@@ -77,7 +79,6 @@ file_read_string(const char* program, const char* filename, const char* label)
   }
   
   while(!feof(fh)) {
-    unsigned char buffer[FILE_READ_BUF_SIZE];
     size_t read_len;
     read_len=fread((char*)buffer, 1, FILE_READ_BUF_SIZE, fh);
     if(read_len > 0)
