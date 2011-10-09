@@ -1214,7 +1214,7 @@ rasqal_expression_evaluate_replace(rasqal_expression *e,
                             NULL, /* no study */
                             (const char*)match, match_len,
                             0 /* startoffset */,
-                            0 /* options */,
+                            options /* options */,
                             ovector, ovecsize,
                             );
     if(rc >= 0) {
@@ -1281,7 +1281,7 @@ rasqal_expression_evaluate_replace(rasqal_expression *e,
 
     rc = regexec(&reg, (const char*)match, 
                  nmatch, pmatch,
-                 0 /* eflags */
+                 options /* eflags */
                  );
     if(!rc) {
       unsigned char *result_s;
