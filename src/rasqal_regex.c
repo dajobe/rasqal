@@ -64,7 +64,9 @@
  * @subject: input string
  * @subject_len: input string length
  *
- * INTERNAL - SPARQL 1.0 STRMATCH() and STRNMATCH()
+ * INTERNAL - Test if a string matches a regex pattern.
+ *
+ * Intended to be used for RDQL string matches/does not match regex operators =~ and !~
  *
  * Return value: <0 on error, 0 for no match, >0 for match
  *
@@ -371,6 +373,7 @@ rasqal_regex_replace_posix(rasqal_world* world, raptor_locator* locator,
  * rasqal_regex_replace:
  * @world: world
  * @locator: locator
+ * @pattern: regex pattern
  * @options: regex flags string
  * @subject: input string
  * @subject_len: input string length
@@ -378,7 +381,9 @@ rasqal_regex_replace_posix(rasqal_world* world, raptor_locator* locator,
  * @replace_len: Length of replacement string
  * @result_len_p: pointer to store result length (output)
  *
- * INTERNAL - SPARQL 1.1 REPLACE() implementation using PCRE
+ * INTERNAL - Replace all copies of matches to a pattern with a replacement with subsitution
+ *
+ * Intended to be used for SPARQL 1.1 REPLACE() implementation.
  *
  * Return value: result string or NULL on failure
  *
