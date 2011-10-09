@@ -293,8 +293,8 @@ rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
 #ifdef RASQAL_REGEX_POSIX
   regex_t reg;
   int options = REG_EXTENDED | REG_NOSUB;
-#endif
   int rc = 0;
+#endif
   char *result_s = NULL;
 
 #ifdef RASQAL_REGEX_PCRE
@@ -326,7 +326,7 @@ rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
   rc = regcomp(&reg, pattern, options);
   if(rc) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
-                            "Regex compile of '%s' failed", pattern);
+                            "Regex compile of '%s' failed - %d", pattern, rc);
   } else
     result_s = rasqal_string_replace_posix(world, locator,
                                            reg, options,
@@ -340,7 +340,6 @@ rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
   rasqal_log_warning_simple(world, RASQAL_WARNING_LEVEL_MISSING_SUPPORT,
                             locator,
                             "Regex support missing, cannot replace '%s' from '%s' to '%s'", subject, pattern, replace);
-  rc = -1;
 #endif
 
   return result_s;
