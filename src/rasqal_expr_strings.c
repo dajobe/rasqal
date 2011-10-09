@@ -817,13 +817,13 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
   int rc=0;
 #ifdef RASQAL_REGEX_PCRE
   pcre* re;
-  int options=0;
-  const char *re_error=NULL;
-  int erroffset=0;
+  int options = 0;
+  const char *re_error = NULL;
+  int erroffset = 0;
 #endif
 #ifdef RASQAL_REGEX_POSIX
   regex_t reg;
-  int options=REG_EXTENDED | REG_NOSUB;
+  int options = REG_EXTENDED | REG_NOSUB;
 #endif
   size_t match_len;
     
@@ -882,7 +882,7 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
                  NULL, /* no study */
                  (const char*)match_string, match_len,
                  0 /* startoffset */,
-                 0 /* options */,
+                 options /* options */,
                  NULL, 0 /* ovector, ovecsize - no matches wanted */
                  );
     if(rc >= 0)
@@ -911,7 +911,7 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
   } else {
     rc=regexec(&reg, (const char*)match_string, 
                0, NULL, /* nmatch, regmatch_t pmatch[] - no matches wanted */
-               0 /* eflags */
+               options /* eflags */
                );
     if(!rc)
       b=1;
