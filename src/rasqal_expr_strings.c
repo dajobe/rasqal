@@ -1116,6 +1116,42 @@ rasqal_expression_evaluate_strafter(rasqal_expression *e,
 }
 
 
+/*
+ * rasqal_regex_get_ref_number:
+ * @str: pointer to pointer to buffer at '$' symbol
+ *
+ * INTERNAL - Decode a $N or $NN reference at *str and move *str past it
+ *
+ * Return value: reference number or <0 if none found
+ */
+static int
+rasqal_regex_get_ref_number(const char **str)
+{
+  const char *p = *str;
+  int ref_number = 0;
+  
+  if(!p[1])
+    return -1;
+  
+  /* skip $ */
+  p++;
+
+  if(*p >= '0' && *p <= '9') {
+    ref_number = (*p - '0');
+    p++;
+  } else
+    return -1;
+  
+  if(*p && *p >= '0' && *p <= '9') {
+    ref_number = ref_number * 10 + (*p - '0');
+    p++;
+  }
+  
+  *str = p;
+  return ref_number;	
+}
+
+
 #ifdef RASQAL_REGEX_PCRE
 static char*
 rasqal_string_replace_pcre(rasqal_world* world, raptor_locator* locator,
@@ -1127,7 +1163,7 @@ rasqal_string_replace_pcre(rasqal_world* world, raptor_locator* locator,
   int capture_count = 0;
   int ovecsize;
   int* ovector;
-  int rc;
+  int stringcount;
   char* result = NULL;
   
   pcre_fullinfo(re, NULL, PCRE_INFO_CAPTURECOUNT, &capture_count);
@@ -1136,14 +1172,14 @@ rasqal_string_replace_pcre(rasqal_world* world, raptor_locator* locator,
   if(!ovector)
     return NULL;
 
-  rc = pcre_exec(re, 
-                 NULL, /* no study */
-                 (const char*)subject, (int)subject_len,
-                 0 /* startoffset */,
-                 options /* options */,
-                 ovector, ovecsize
-                 );
-  if(rc >= 0) {
+  stringcount = pcre_exec(re, 
+                          NULL, /* no study */
+                          (const char*)subject, (int)subject_len,
+                          0 /* startoffset */,
+                          options /* options */,
+                          ovector, ovecsize
+                          );
+  if(stringcount >= 0) {
     const char *r;
     char *result_p;
     size_t len = subject_len + replace_len;
@@ -1156,16 +1192,18 @@ rasqal_string_replace_pcre(rasqal_world* world, raptor_locator* locator,
     result_p = result;
     while(*r) {
       if (*r == '$') {
-        int stringnumber;
-        size_t copy_len;
-        if(!*++r)
+        int ref_number;
+        if(!*r)
           break;
 
-        stringnumber = *r++ - '0';
-        copy_len = pcre_copy_substring(subject, ovector,
-                                       rc, stringnumber,
-                                       result_p, (int)len);
-        result_p += copy_len; len -= copy_len;
+        ref_number = rasqal_regex_get_ref_number(&r);
+        if(ref_number >= 0) {
+          size_t copy_len;
+          copy_len = pcre_copy_substring(subject, ovector,
+                                         stringcount, ref_number,
+                                         result_p, (int)len);
+          result_p += copy_len; len -= copy_len;
+        }
         continue;
       }
       
@@ -1181,9 +1219,9 @@ rasqal_string_replace_pcre(rasqal_world* world, raptor_locator* locator,
     if(result_len_p)
       *result_len_p = result_p - result;
 
-  } else if(rc != PCRE_ERROR_NOMATCH) {
+  } else if(stringcount != PCRE_ERROR_NOMATCH) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
-                            "Regex match failed with error code %d", rc);
+                            "Regex match failed with error code %d", stringcount);
     goto failed;
   }
 
@@ -1233,16 +1271,16 @@ rasqal_string_replace_posix(rasqal_world* world, raptor_locator* locator,
     result_p = result;
     while(*r) {
       if (*r == '$') {
-        int stringnumber;
+        int ref_number;
         size_t copy_len;
         regmatch_t rm;
         
-        if(!*++r)
+        if(!*r)
           break;
         
-        if(*r >= '0' && *r <= '9') {
-          stringnumber = *r++ - '0';
-          rm = pmatch[stringnumber];
+        ref_number = rasqal_regex_get_ref_number(&r);
+        if(ref_number >= 0) {
+          rm = pmatch[ref_number];
           copy_len = rm.rm_eo - rm.rm_so + 1;
           memcpy(result_p, subject + rm.rm_so, copy_len);
           result_p += copy_len; len -= copy_len;
