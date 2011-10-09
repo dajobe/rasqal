@@ -878,13 +878,13 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
                             "Regex compile of '%s' failed - %s", pattern, re_error);
     rc= -1;
   } else {
-    rc=pcre_exec(re, 
-                 NULL, /* no study */
-                 (const char*)match_string, match_len,
-                 0 /* startoffset */,
-                 options /* options */,
-                 NULL, 0 /* ovector, ovecsize - no matches wanted */
-                 );
+    rc = pcre_exec(re, 
+                   NULL, /* no study */
+                   (const char*)match_string, (int)match_len,
+                   0 /* startoffset */,
+                   options /* options */,
+                   NULL, 0 /* ovector, ovecsize - no matches wanted */
+                   );
     if(rc >= 0)
       b=1;
     else if(rc != PCRE_ERROR_NOMATCH) {
@@ -1124,7 +1124,6 @@ rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
                       const char* replace, size_t replace_len,
                       size_t* result_len) 
 {
-  int flag_i = 0; /* flags contains i */
   const char *p;
 #ifdef RASQAL_REGEX_PCRE
   pcre* re;
@@ -1139,19 +1138,16 @@ rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
   int rc = 0;
   char *result_s = NULL;
   
+#ifdef RASQAL_REGEX_PCRE
   for(p = regex_flags; p && *p; p++) {
     if(*p == 'i')
-      flag_i++;
+      options |= PCRE_CASELESS;
   }
-      
-#ifdef RASQAL_REGEX_PCRE
-  if(flag_i)
-    options |= PCRE_CASELESS;
-    
+
   re = pcre_compile((const char*)pattern, options, 
                     &re_error, &erroffset, NULL);
   if(!re) {
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, eval_context->locator,
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
                             "Regex compile of '%s' failed - %s", pattern, re_error);
     rc = -1;
   } else {
@@ -1166,15 +1162,15 @@ rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
 
     stringcount = pcre_exec(re, 
                             NULL, /* no study */
-                            (const char*)subject, subject_len,
+                            (const char*)subject, (int)subject_len,
                             0 /* startoffset */,
                             options /* options */,
-                            ovector, ovecsize,
+                            ovector, ovecsize
                             );
     if(rc >= 0) {
       const char *r;
       char *result_p;
-      size_t len = match_len + replace_len;
+      size_t len = subject_len + replace_len;
 
       result_s = RASQAL_MALLOC(char*, len + 1);
       r = replace;
@@ -1185,10 +1181,10 @@ rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
           size_t copy_len;
           if(!*++r)
             break;
-          stringnumber = atoi(*r++);
+          stringnumber = *r++ - '0';
           copy_len = pcre_copy_substring(subject, ovector,
                                          stringcount, stringnumber,
-                                         result_p, len);
+                                         result_p, (int)len);
           result_p += copy_len; len -= copy_len;
           continue;
         }
@@ -1203,7 +1199,7 @@ rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
       *result_p = '\0';
 
     } else if(rc != PCRE_ERROR_NOMATCH) {
-      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, eval_context->locator,
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
                               "Regex match failed - returned code %d", rc);
       rc = -1;
     } else
@@ -1216,8 +1212,10 @@ rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
 #endif
     
 #ifdef RASQAL_REGEX_POSIX
-  if(flag_i)
-    options |=REG_ICASE;
+  for(p = regex_flags; p && *p; p++) {
+    if(*p == 'i')
+      options |= REG_ICASE;
+  }
     
   rc = regcomp(&reg, (const char*)pattern, options);
   if(rc) {
