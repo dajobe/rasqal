@@ -1178,12 +1178,15 @@ rasqal_string_replace_pcre(rasqal_world* world, raptor_locator* locator,
     }
     *result_p = '\0';
     
+    if(result_len_p)
+      *result_len_p = result_p - result;
+
   } else if(rc != PCRE_ERROR_NOMATCH) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
                             "Regex match failed with error code %d", rc);
     goto failed;
   }
-   
+
   return result;
 
   failed:
@@ -1256,6 +1259,9 @@ rasqal_string_replace_posix(rasqal_world* world, raptor_locator* locator,
     }
     *result_p = '\0';
     
+    if(result_len_p)
+      *result_len_p = result_p - result;
+
   } else if (rc != REG_NOMATCH) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
                             "Regex match failed - returned code %d", rc);
@@ -1296,7 +1302,7 @@ rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
 #endif
   int rc = 0;
   char *result_s = NULL;
-  
+
 #ifdef RASQAL_REGEX_PCRE
   for(p = regex_flags; p && *p; p++) {
     if(*p == 'i')
