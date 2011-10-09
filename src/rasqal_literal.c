@@ -53,15 +53,6 @@
 #endif
 
 
-#ifdef RASQAL_REGEX_PCRE
-#include <pcre.h>
-#endif
-
-#ifdef RASQAL_REGEX_POSIX
-#include <sys/types.h>
-#include <regex.h>
-#endif
-
 #include "rasqal.h"
 #include "rasqal_internal.h"
 

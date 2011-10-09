@@ -37,15 +37,6 @@
 #endif
 #include <stdarg.h>
 
-#ifdef RASQAL_REGEX_PCRE
-#include <pcre.h>
-#endif
-
-#ifdef RASQAL_REGEX_POSIX
-#include <sys/types.h>
-#include <regex.h>
-#endif
-
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
@@ -807,39 +798,28 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
                                     int *error_p)
 {
   rasqal_world* world = eval_context->world;
-  int b=0;
-  int flag_i=0; /* flags contains i */
-  const unsigned char *p;
-  const unsigned char *match_string;
-  const unsigned char *pattern;
-  const unsigned char *regex_flags;
+  int b = 0;
+  const char *match_string;
+  const char *pattern;
+  const char *regex_flags;
   rasqal_literal *l1, *l2, *l3;
-  int rc=0;
-#ifdef RASQAL_REGEX_PCRE
-  pcre* re;
-  int options = 0;
-  const char *re_error = NULL;
-  int erroffset = 0;
-#endif
-#ifdef RASQAL_REGEX_POSIX
-  regex_t reg;
-  int options = 0;
-#endif
+  int rc = 0;
   size_t match_len;
     
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(*error_p || !l1)
     goto failed;
 
-  match_string = rasqal_literal_as_counted_string(l1, &match_len, 
-                                                  eval_context->flags, error_p);
+  match_string = (const char*)rasqal_literal_as_counted_string(l1, &match_len, 
+                                                               eval_context->flags,
+                                                               error_p);
   if(*error_p || !match_string) {
     rasqal_free_literal(l1);
     goto failed;
   }
     
-  l3=NULL;
-  regex_flags=NULL;
+  l3 = NULL;
+  regex_flags = NULL;
   if(e->op == RASQAL_EXPR_REGEX) {
     l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
     if(*error_p || !l2) {
@@ -854,91 +834,26 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
         rasqal_free_literal(l2);
         goto failed;
       }
-      regex_flags=l3->string;
+      regex_flags = (const char*)(l3->string);
     }
       
   } else {
-    l2=e->literal;
-    regex_flags=l2->flags;
+    l2 = e->literal;
+    regex_flags = (const char*)(l2->flags);
   }
-  pattern=l2->string;
-    
-  for(p=regex_flags; p && *p; p++)
-    if(*p == 'i')
-      flag_i++;
-      
-#ifdef RASQAL_REGEX_PCRE
-  if(flag_i)
-    options |= PCRE_CASELESS;
-    
-  re=pcre_compile((const char*)pattern, options, 
-                  &re_error, &erroffset, NULL);
-  if(!re) {
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, eval_context->locator,
-                            "Regex compile of '%s' failed - %s", pattern, re_error);
-    rc= -1;
-  } else {
-    rc = pcre_exec(re, 
-                   NULL, /* no study */
-                   (const char*)match_string, (int)match_len,
-                   0 /* startoffset */,
-                   options /* options */,
-                   NULL, 0 /* ovector, ovecsize - no matches wanted */
-                   );
-    if(rc >= 0)
-      b=1;
-    else if(rc != PCRE_ERROR_NOMATCH) {
-      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, eval_context->locator,
-                              "Regex match failed - returned code %d", rc);
-      rc= -1;
-    } else
-      rc=0;
-  }
-  pcre_free(re);
+  pattern = (const char*)(l2->string);
+
+  rc = rasqal_regex_match(world, eval_context->locator,
+                          pattern, regex_flags,
+                          match_string, match_len);
+
+#ifdef RASQAL_DEBUG
+  if(rc >= 0)
+    RASQAL_DEBUG5("regex match returned %s for '%s' against '%s' (flags=%s)\n", rc ? "true" : "false", match_string, pattern, l2->flags ? (char*)l2->flags : "");
+  else
+    RASQAL_DEBUG4("regex match returned failed for '%s' against '%s' (flags=%s)\n", match_string, pattern, l2->flags ? (char*)l2->flags : "");
+#endif
   
-#endif
-    
-#ifdef RASQAL_REGEX_POSIX
-  if(flag_i)
-    options |=REG_ICASE;
-    
-  rc=regcomp(&reg, (const char*)pattern, options);
-  if(rc) {
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
-                            eval_context->locator,
-                            "Regex compile of '%s' failed", pattern);
-    rc= -1;
-  } else {
-    rc=regexec(&reg, (const char*)match_string, 
-               0, NULL, /* nmatch, regmatch_t pmatch[] - no matches wanted */
-               options /* eflags */
-               );
-    if(!rc)
-      b=1;
-    else if (rc != REG_NOMATCH) {
-      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
-                              eval_context->locator,
-                              "Regex match failed - returned code %d", rc);
-      rc= -1;
-    } else
-      rc= 0;
-  }
-  regfree(&reg);
-#endif
-
-#ifdef RASQAL_REGEX_NONE
-  rasqal_log_warning_simple(world, RASQAL_WARNING_LEVEL_MISSING_SUPPORT,
-                            eval_context->locator,
-                            "Regex support missing, cannot compare '%s' to '%s'", match_string, pattern);
-  b=1;
-  rc= -1;
-#endif
-
-  RASQAL_DEBUG5("regex match returned %s for '%s' against '%s' (flags=%s)\n", b ? "true" : "false", match_string, pattern, l2->flags ? (char*)l2->flags : "");
-  
-  if(e->op == RASQAL_EXPR_STR_NMATCH)
-    b=1-b;
-
   rasqal_free_literal(l1);
   if(e->op == RASQAL_EXPR_REGEX) {
     rasqal_free_literal(l2);
@@ -946,9 +861,13 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
       rasqal_free_literal(l3);
   }
     
-  if(rc<0)
+  if(rc < 0)
     goto failed;
     
+  b = rc;
+  if(e->op == RASQAL_EXPR_STR_NMATCH)
+    b = 1 - b;
+
   return rasqal_new_boolean_literal(world, b);
 
   failed:

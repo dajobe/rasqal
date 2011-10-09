@@ -55,6 +55,114 @@
 
 #ifndef STANDALONE
 
+
+/**
+ * rasqal_regex_replace:
+ * @world: world
+ * @locator: locator
+ * @regex_flags: regex flags string
+ * @subject: input string
+ * @subject_len: input string length
+ *
+ * INTERNAL - SPARQL 1.0 STRMATCH() and STRNMATCH()
+ *
+ * Return value: <0 on error, 0 for no match, >0 for match
+ *
+ */
+int
+rasqal_regex_match(rasqal_world* world, raptor_locator* locator,
+                   const char* pattern,
+                   const char* regex_flags,
+                   const char* subject, size_t subject_len)
+{
+  int flag_i = 0; /* regex_flags contains i */
+  const char *p;
+#ifdef RASQAL_REGEX_PCRE
+  pcre* re;
+  int options = 0;
+  const char *re_error = NULL;
+  int erroffset = 0;
+#endif
+#ifdef RASQAL_REGEX_POSIX
+  regex_t reg;
+  int options = 0;
+#endif
+  int rc = 0;
+
+  for(p = regex_flags; p && *p; p++)
+    if(*p == 'i')
+      flag_i++;
+      
+#ifdef RASQAL_REGEX_PCRE
+  if(flag_i)
+    options |= PCRE_CASELESS;
+    
+  re = pcre_compile((const char*)pattern, options, 
+                    &re_error, &erroffset, NULL);
+  if(!re) {
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
+                            "Regex compile of '%s' failed - %s", pattern, re_error);
+    rc = -1;
+  } else {
+    rc = pcre_exec(re, 
+                   NULL, /* no study */
+                   subject, (int)subject_len,
+                   0 /* startoffset */,
+                   options /* options */,
+                   NULL, 0 /* ovector, ovecsize - no matches wanted */
+                   );
+    if(rc >= 0)
+      rc = 1;
+    else if(rc != PCRE_ERROR_NOMATCH) {
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
+                              "Regex match failed - returned code %d", rc);
+      rc= -1;
+    } else
+      rc = 0;
+  }
+  pcre_free(re);
+  
+#endif
+    
+#ifdef RASQAL_REGEX_POSIX
+  if(flag_i)
+    options |= REG_ICASE;
+    
+  rc = regcomp(&reg, (const char*)pattern, options);
+  if(rc) {
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                            locator,
+                            "Regex compile of '%s' failed", pattern);
+    rc = -1;
+  } else {
+    rc = regexec(&reg, (const char*)subject, 
+                 0, NULL, /* nmatch, regmatch_t pmatch[] - no matches wanted */
+                 options /* eflags */
+                 );
+    if(!rc)
+      rc = 1;
+    else if (rc != REG_NOMATCH) {
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
+                              "Regex match failed - returned code %d", rc);
+      rc = -1;
+    } else
+      rc = 0;
+  }
+  regfree(&reg);
+#endif
+
+#ifdef RASQAL_REGEX_NONE
+  rasqal_log_warning_simple(world, RASQAL_WARNING_LEVEL_MISSING_SUPPORT, locator,
+                            "Regex support missing, cannot compare '%s' to '%s'",
+                            match_string, pattern);
+  rc = -1;
+#endif
+
+  return rc;
+}
+
+
+
 /*
  * rasqal_regex_get_ref_number:
  * @str: pointer to pointer to buffer at '$' symbol
@@ -94,10 +202,10 @@ rasqal_regex_get_ref_number(const char **str)
 #ifdef RASQAL_REGEX_PCRE
 static char*
 rasqal_regex_replace_pcre(rasqal_world* world, raptor_locator* locator,
-                           pcre* re, int options,
-                           const char *subject, size_t subject_len,
-                           const char *replace, size_t replace_len,
-                           size_t *result_len_p)
+                          pcre* re, int options,
+                          const char *subject, size_t subject_len,
+                          const char *replace, size_t replace_len,
+                          size_t *result_len_p)
 {
   int capture_count = 0;
   int ovecsize;
@@ -277,11 +385,11 @@ rasqal_regex_replace_posix(rasqal_world* world, raptor_locator* locator,
  */
 char*
 rasqal_regex_replace(rasqal_world* world, raptor_locator* locator,
-                      const char* pattern,
-                      const char* regex_flags,
-                      const char* subject, size_t subject_len,
-                      const char* replace, size_t replace_len,
-                      size_t* result_len_p) 
+                     const char* pattern,
+                     const char* regex_flags,
+                     const char* subject, size_t subject_len,
+                     const char* replace, size_t replace_len,
+                     size_t* result_len_p) 
 {
   const char *p;
 #ifdef RASQAL_REGEX_PCRE
