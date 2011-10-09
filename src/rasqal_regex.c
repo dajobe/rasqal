@@ -93,7 +93,7 @@ rasqal_regex_get_ref_number(const char **str)
 
 #ifdef RASQAL_REGEX_PCRE
 static char*
-rasqal_string_replace_pcre(rasqal_world* world, raptor_locator* locator,
+rasqal_regex_replace_pcre(rasqal_world* world, raptor_locator* locator,
                            pcre* re, int options,
                            const char *subject, size_t subject_len,
                            const char *replace, size_t replace_len,
@@ -180,7 +180,7 @@ rasqal_string_replace_pcre(rasqal_world* world, raptor_locator* locator,
 
 #ifdef RASQAL_REGEX_POSIX
 static char*
-rasqal_string_replace_posix(rasqal_world* world, raptor_locator* locator,
+rasqal_regex_replace_posix(rasqal_world* world, raptor_locator* locator,
                            regex_t reg, int options,
                            const char *subject, size_t subject_len,
                            const char *replace, size_t replace_len,
@@ -260,7 +260,7 @@ rasqal_string_replace_posix(rasqal_world* world, raptor_locator* locator,
 
 
 /**
- * rasqal_string_replace:
+ * rasqal_regex_replace:
  * @world: world
  * @locator: locator
  * @options: regex flags string
@@ -276,7 +276,7 @@ rasqal_string_replace_posix(rasqal_world* world, raptor_locator* locator,
  *
  */
 char*
-rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
+rasqal_regex_replace(rasqal_world* world, raptor_locator* locator,
                       const char* pattern,
                       const char* regex_flags,
                       const char* subject, size_t subject_len,
@@ -309,11 +309,11 @@ rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
                             "Regex compile of '%s' failed - %s", pattern, re_error);
   } else
-    result_s = rasqal_string_replace_pcre(world, locator,
-                                          re, options,
-                                          subject, subject_len,
-                                          replace, replace_len,
-                                          result_len_p);
+    result_s = rasqal_regex_replace_pcre(world, locator,
+                                         re, options,
+                                         subject, subject_len,
+                                         replace, replace_len,
+                                         result_len_p);
   pcre_free(re);
 #endif
     
@@ -328,11 +328,11 @@ rasqal_string_replace(rasqal_world* world, raptor_locator* locator,
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
                             "Regex compile of '%s' failed - %d", pattern, rc);
   } else
-    result_s = rasqal_string_replace_posix(world, locator,
-                                           reg, options,
-                                           subject, subject_len,
-                                           replace, replace_len,
-                                           result_len_p);
+    result_s = rasqal_regex_replace_posix(world, locator,
+                                          reg, options,
+                                          subject, subject_len,
+                                          replace, replace_len,
+                                          result_len_p);
   regfree(&reg);
 #endif
 

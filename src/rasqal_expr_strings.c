@@ -1176,12 +1176,12 @@ rasqal_expression_evaluate_replace(rasqal_expression *e,
     regex_flags = (const char*)(l4->string);
   }
 
-  result_s = rasqal_string_replace(world, eval_context->locator,
-                                   pattern,
-                                   regex_flags,
-                                   match, match_len,
-                                   replace, replace_len,
-                                   &result_len);
+  result_s = rasqal_regex_replace(world, eval_context->locator,
+                                  pattern,
+                                  regex_flags,
+                                  match, match_len,
+                                  replace, replace_len,
+                                  &result_len);
   
   RASQAL_DEBUG6("regex replace returned %s for '%s' from '%s' to '%s' (flags=%s)\n", result_s ? result_s : "NULL", match, pattern, replace, regex_flags ? (char*)regex_flags : "");
   
