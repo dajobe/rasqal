@@ -209,70 +209,228 @@ rasqal_regex_replace_pcre(rasqal_world* world, raptor_locator* locator,
                           const char *replace, size_t replace_len,
                           size_t *result_len_p)
 {
-  int capture_count = 0;
+  int capture_count;
+  int *ovector = NULL;
   int ovecsize;
-  int* ovector;
-  int stringcount;
-  char* result = NULL;
-  
-  pcre_fullinfo(re, NULL, PCRE_INFO_CAPTURECOUNT, &capture_count);
-  ovecsize = (capture_count + 1) *3;
-  ovector = RASQAL_CALLOC(int*, ovecsize, sizeof(int));
+  int startoffset;
+  int matched_empty_options;
+  char *result = NULL;
+  size_t result_size; /* allocated size of result (excluding NUL) */
+  size_t result_len; /* used size of result */
+  const char *replace_end = replace + replace_len;
+
+  if(pcre_fullinfo(re, NULL, PCRE_INFO_CAPTURECOUNT, &capture_count) < 0)
+    goto failed;
+
+  ovecsize = (capture_count + 1) * 3; /* +1 for whole pattern match pair */
+  ovector = RASQAL_CALLOC(int *, ovecsize, sizeof(int));
   if(!ovector)
-    return NULL;
+    goto failed;
 
-  stringcount = pcre_exec(re, 
-                          NULL, /* no study */
-                          (const char*)subject, (int)subject_len,
-                          0 /* startoffset */,
-                          options /* options */,
-                          ovector, ovecsize
-                          );
-  if(stringcount >= 0) {
-    const char *r;
-    char *result_p;
-    size_t len = subject_len + replace_len;
+  result_size = subject_len << 1;
+  result = RASQAL_MALLOC(char*, result_size + 1);
+  if(!result)
+    goto failed;
+  result_len = 0;
+
+  /* Match and replace loop; adjusting startoffset each time */
+  startoffset = 0;
+  matched_empty_options = 0;
+  while(1) {
+    int stringcount;
+    const char *subject_piece = subject + startoffset;
+
+    stringcount = pcre_exec(re,
+                            NULL, /* no study */
+                            subject, (int)subject_len,
+                            startoffset,
+                            options | matched_empty_options,
+                            ovector, ovecsize);
+
+    /* "The value returned by pcre_exec() is one more than the
+     * highest numbered pair that has been set. ...  If there are no
+     * capturing subpatterns, the return value from a successful
+     * match is 1, indicating that just the first pair of offsets has
+     * been set." - pcreapi
+     */
+
+    if(!stringcount)
+      /* ovector was too small - how can this happen?.  Use all
+       * the variables available.  Should return an warning? FIXME
+       */
+      stringcount = ovecsize / 3;
     
-    result = RASQAL_MALLOC(char*, len + 1);
-    if(!result)
-      goto failed;
 
-    r = replace;
-    result_p = result;
-    while(*r) {
-      if (*r == '$') {
-        int ref_number;
-        if(!*r)
-          break;
+    if(stringcount > 0) {
+      /* matches have been found */
+      const char *subject_match;
+      size_t piece_len;
+      size_t new_result_len;
+      const char *replace_p;
+      char last_char;
+      char *result_p;
 
-        ref_number = rasqal_regex_get_ref_number(&r);
-        if(ref_number >= 0) {
-          size_t copy_len;
-          copy_len = pcre_copy_substring(subject, ovector,
-                                         stringcount, ref_number,
-                                         result_p, (int)len);
-          result_p += copy_len; len -= copy_len;
+      subject_match = subject + ovector[0];
+
+      /* compute new length of replacement with expanded variables */
+      new_result_len = result_len;
+
+      /* compute size of piece before the match */
+      piece_len = subject_match - subject_piece;
+      new_result_len += piece_len;
+
+      /* compute size of matched piece */
+      replace_p = replace;
+      last_char = '\0';
+      while(replace_p < replace_end) {
+        if(*replace_p == '\\' || *replace_p == '$') {
+          int ref_number;
+
+          if(last_char == '\\') {
+            /* Allow \\ and \$ */
+            replace_p++;
+            last_char = '\0';
+            continue;
+          }
+
+          ref_number = rasqal_regex_get_ref_number(&replace_p);
+          if(ref_number >= 0) {
+            if(ref_number < stringcount)
+              new_result_len += ovector[(ref_number << 1) + 1] - ovector[ref_number << 1];
+            continue;
+          }
         }
+
+        new_result_len++;
+
+        last_char = *replace_p;
+        replace_p++;
+      }
+
+      /* need to expand result buffer? */
+      if(new_result_len > result_size) {
+        char* new_result;
+
+        result_size += new_result_len << 1;
+        new_result = RASQAL_MALLOC(char*, result_size + 1);
+        if(!new_result)
+          goto failed;
+
+        memcpy(new_result, result, result_len);
+        RASQAL_FREE(char*, result);
+        result = new_result;
+      }
+
+      /* copy the piece of the input before the match */
+      piece_len = subject_match - subject_piece;
+      memcpy(&result[result_len], subject_piece, piece_len);
+      result_len += piece_len;
+
+      /* copy replacement into result inserting matched references */
+      result_p = result + result_len;
+      replace_p = replace;
+      last_char = '\0';
+      while(replace_p < replace_end) {
+        if(*replace_p == '\\' || *replace_p == '$') {
+          int ref_number;
+
+          if(last_char == '\\') {
+            /* Allow \\ and \$ */
+            *(result_p - 1) = *replace_p++;
+            last_char = '\0';
+            continue;
+          }
+
+          ref_number = rasqal_regex_get_ref_number(&replace_p);
+          if(ref_number >= 0) {
+            if(ref_number < stringcount) {
+              size_t match_len;
+              int match_start_offset = ovector[ref_number << 1];
+              
+              match_len = ovector[(ref_number << 1) + 1] - match_start_offset;
+              memcpy(result_p, subject + match_start_offset, match_len);
+              result_p += match_len;
+              result_len += match_len;
+            }
+            continue;
+          }
+        }
+
+        *result_p++ = *replace_p;
+        result_len++;
+        
+        last_char = *replace_p;
+        replace_p++;
+      }
+      *result_p = '\0';
+
+      /* continue at offset after all matches */
+      startoffset = ovector[1];
+      
+      /*
+       * "It is possible to emulate Perl's behaviour after matching a
+       * null string by first trying the match again at the same
+       * offset with PCRE_NOTEMPTY and PCRE_ANCHORED, and then if
+       * that fails by advancing the starting offset ... and trying
+       * an ordinary match again." - pcreapi
+       *
+       * The 'and then if' part is implemented by the if() inside
+       * the if(stringcount == PCRE_ERROR_NOMATCH) below.
+       *
+       */
+      matched_empty_options = (ovector[0] == ovector[1]) ?
+                              (PCRE_NOTEMPTY | PCRE_ANCHORED) : 0;
+
+    } else if(stringcount == PCRE_ERROR_NOMATCH) {
+      /* No match */
+      size_t piece_len;
+      size_t new_result_len;
+
+      if(matched_empty_options && (size_t)startoffset < subject_len) {
+        /* If the previous match was an empty string and there is
+         * still some input to try, move on one char and continue
+         * ordinary matches.
+         */
+        result[result_len++] = *subject_piece;
+        startoffset++;
+        matched_empty_options = 0;
         continue;
       }
+
+      /* otherwise we are finished - copy the remaining input */
+      piece_len = subject_len - startoffset;
+      new_result_len = result_len + piece_len;
       
-      if(*r == '\\') {
-        if(!*++r)
-          break;
+      if(new_result_len > result_size) {
+        char* new_result;
+        
+        result_size = new_result_len;
+        new_result = RASQAL_MALLOC(char*, result_size + 1);
+        if(!new_result)
+          goto failed;
+        
+        memcpy(new_result, result, result_len);
+        RASQAL_FREE(char*, result);
+        result = new_result;
       }
       
-      *result_p++ = *r++; len--;
-    }
-    *result_p = '\0';
-    
-    if(result_len_p)
-      *result_len_p = result_p - result;
+      memcpy(&result[result_len], subject_piece, piece_len);
+      result_len += piece_len;
 
-  } else if(stringcount != PCRE_ERROR_NOMATCH) {
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
-                            "Regex match failed with error code %d", stringcount);
-    goto failed;
+      /* NUL terminate the result and end */
+      result[result_len] = '\0';
+      break;
+    } else {
+      /* stringcount < 0 : other failures */
+      RASQAL_DEBUG2("pcre_exec() failed with code %d", stringcount);
+      goto failed;
+    }
   }
+
+  RASQAL_FREE(int*, ovector);
+
+  if(result_len_p)
+    *result_len_p = result_len;
 
   return result;
 
@@ -467,9 +625,72 @@ rasqal_regex_replace(rasqal_world* world, raptor_locator* locator,
 int main(int argc, char *argv[]);
 
 
+#define NTESTS 1
+
 int
 main(int argc, char *argv[])
 {
-  return 0;
+  rasqal_world* world;
+  raptor_locator* locator;
+  const char *program = rasqal_basename(argv[0]);
+#ifdef RASQAL_REGEX_PCRE
+  int test = 0;
+#endif
+  int failures = 0;
+  
+  world = rasqal_new_world();
+  if(!world || rasqal_world_open(world)) {
+    fprintf(stderr, "%s: rasqal_world init failed\n", program);
+    failures++;
+    goto tidy;
+  }
+    
+  locator = NULL;
+
+#if defined(RASQAL_REGEX_POSIX) || defined(RASQAL_REGEX_NONE)
+    fprintf(stderr,
+            "%s: WARNING: Cannot only run regex tests with PCRE regexes\n",
+            program);
+#endif
+
+#ifdef RASQAL_REGEX_PCRE
+  for(test = 0; test < NTESTS; test++) {
+    const char* regex_flags = "";
+    const char* subject = "abcd1234-^";
+    const char* pattern = "[^a-z0-9]";
+    const char* replace = "-";
+    const char* expected_result = "abcd1234--";
+    size_t subject_len = strlen((const char*)subject);
+    size_t replace_len = strlen((const char*)replace);
+    char* result;
+    size_t result_len = 0;
+    
+    fprintf(stderr, "%s: Test %d pattern: '%s' subject '%s'\n",
+            program, test, pattern, subject);
+    
+    result = rasqal_regex_replace(world, locator,
+                                  pattern, regex_flags,
+                                  subject, subject_len,
+                                  replace, replace_len,
+                                  &result_len);
+    
+    if(result) {
+      if(strcmp(result, expected_result)) {
+        fprintf(stderr, "%s: Test %d failed - expected '%s' but got '%s'\n", 
+                program, test, expected_result, result);
+        failures++;
+      }
+      RASQAL_FREE(char*, result);
+    } else {
+      fprintf(stderr, "%s: Test %d failed - result was NULL\n", program, test);
+      failures++;
+    }
+  }
+#endif
+
+  tidy:
+  rasqal_free_world(world);
+
+  return failures;
 }
 #endif
