@@ -1108,7 +1108,9 @@ rasqal_expression_evaluate_replace(rasqal_expression *e,
     goto failed;
 
   result = rasqal_new_string_literal(world, (const unsigned char*)result_s,
-                                     NULL, NULL, NULL);
+                                     l1->language, l1->datatype, NULL);
+  l1->language = NULL;
+  l1->datatype = NULL;
 
   rasqal_free_literal(l1);
   rasqal_free_literal(l2);
