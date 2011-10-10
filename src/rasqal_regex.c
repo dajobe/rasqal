@@ -81,13 +81,15 @@ rasqal_regex_match(rasqal_world* world, raptor_locator* locator,
   const char *p;
 #ifdef RASQAL_REGEX_PCRE
   pcre* re;
-  int options = 0;
+  int compile_options = PCRE_UTF8;
+  int exec_options = 0;
   const char *re_error = NULL;
   int erroffset = 0;
 #endif
 #ifdef RASQAL_REGEX_POSIX
   regex_t reg;
-  int options = 0;
+  int compile_options = 0;
+  int exec_options = 0;
 #endif
   int rc = 0;
 
@@ -97,9 +99,9 @@ rasqal_regex_match(rasqal_world* world, raptor_locator* locator,
       
 #ifdef RASQAL_REGEX_PCRE
   if(flag_i)
-    options |= PCRE_CASELESS;
+    compile_options |= PCRE_CASELESS;
     
-  re = pcre_compile((const char*)pattern, options, 
+  re = pcre_compile((const char*)pattern, compile_options,
                     &re_error, &erroffset, NULL);
   if(!re) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
@@ -110,7 +112,7 @@ rasqal_regex_match(rasqal_world* world, raptor_locator* locator,
                    NULL, /* no study */
                    subject, (int)subject_len,
                    0 /* startoffset */,
-                   options /* options */,
+                   exec_options /* options */,
                    NULL, 0 /* ovector, ovecsize - no matches wanted */
                    );
     if(rc >= 0)
@@ -128,9 +130,9 @@ rasqal_regex_match(rasqal_world* world, raptor_locator* locator,
     
 #ifdef RASQAL_REGEX_POSIX
   if(flag_i)
-    options |= REG_ICASE;
+    compile_options |= REG_ICASE;
     
-  rc = regcomp(&reg, (const char*)pattern, options);
+  rc = regcomp(&reg, (const char*)pattern, compile_options);
   if(rc) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
                             locator,
@@ -139,7 +141,7 @@ rasqal_regex_match(rasqal_world* world, raptor_locator* locator,
   } else {
     rc = regexec(&reg, (const char*)subject, 
                  0, NULL, /* nmatch, regmatch_t pmatch[] - no matches wanted */
-                 options /* eflags */
+                 exec_options /* eflags */
                  );
     if(!rc)
       rc = 1;
@@ -422,7 +424,7 @@ rasqal_regex_replace_pcre(rasqal_world* world, raptor_locator* locator,
       break;
     } else {
       /* stringcount < 0 : other failures */
-      RASQAL_DEBUG2("pcre_exec() failed with code %d", stringcount);
+      RASQAL_DEBUG2("pcre_exec() failed with code %d\n", stringcount);
       goto failed;
     }
   }
@@ -557,13 +559,15 @@ rasqal_regex_replace(rasqal_world* world, raptor_locator* locator,
   const char *p;
 #ifdef RASQAL_REGEX_PCRE
   pcre* re;
-  int options = 0;
+  int compile_options = PCRE_UTF8;
+  int exec_options = 0;
   const char *re_error = NULL;
   int erroffset = 0;
 #endif
 #ifdef RASQAL_REGEX_POSIX
   regex_t reg;
-  int options = 0;
+  int compile_options = 0;
+  int exec_options = 0;
   int rc = 0;
 #endif
   char *result_s = NULL;
@@ -571,17 +575,17 @@ rasqal_regex_replace(rasqal_world* world, raptor_locator* locator,
 #ifdef RASQAL_REGEX_PCRE
   for(p = regex_flags; p && *p; p++) {
     if(*p == 'i')
-      options |= PCRE_CASELESS;
+      exec_options |= PCRE_CASELESS;
   }
 
-  re = pcre_compile(pattern, options, 
+  re = pcre_compile(pattern, compile_options,
                     &re_error, &erroffset, NULL);
   if(!re) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
                             "Regex compile of '%s' failed - %s", pattern, re_error);
   } else
     result_s = rasqal_regex_replace_pcre(world, locator,
-                                         re, options,
+                                         re, exec_options,
                                          subject, subject_len,
                                          replace, replace_len,
                                          result_len_p);
@@ -591,16 +595,16 @@ rasqal_regex_replace(rasqal_world* world, raptor_locator* locator,
 #ifdef RASQAL_REGEX_POSIX
   for(p = regex_flags; p && *p; p++) {
     if(*p == 'i')
-      options |= REG_ICASE;
+      compile_options |= REG_ICASE;
   }
     
-  rc = regcomp(&reg, pattern, options);
+  rc = regcomp(&reg, pattern, compile_options);
   if(rc) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
                             "Regex compile of '%s' failed - %d", pattern, rc);
   } else
     result_s = rasqal_regex_replace_posix(world, locator,
-                                          reg, options,
+                                          reg, exec_options,
                                           subject, subject_len,
                                           replace, replace_len,
                                           result_len_p);
