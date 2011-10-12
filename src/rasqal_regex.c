@@ -88,7 +88,7 @@ rasqal_regex_match(rasqal_world* world, raptor_locator* locator,
 #endif
 #ifdef RASQAL_REGEX_POSIX
   regex_t reg;
-  int compile_options = 0;
+  int compile_options = REG_EXTENDED;
   int exec_options = 0;
 #endif
   int rc = 0;
@@ -456,63 +456,197 @@ rasqal_regex_replace_posix(rasqal_world* world, raptor_locator* locator,
                            const char *replace, size_t replace_len,
                            size_t *result_len_p)
 {
-  size_t nmatch = reg.re_nsub;
+  size_t capture_count;
   regmatch_t* pmatch;
-  int rc;
-  char* result = NULL;
+  off_t startoffset;
+  int matched_empty;
+  char *result = NULL;
+  size_t result_size; /* allocated size of result (excluding NUL) */
+  size_t result_len; /* used size of result */
+  const char *replace_end = replace + replace_len;
 
-  pmatch = RASQAL_CALLOC(regmatch_t*, nmatch + 1, sizeof(regmatch_t));
+  capture_count = reg.re_nsub;
+
+  pmatch = RASQAL_CALLOC(regmatch_t*, capture_count + 1, sizeof(regmatch_t));
   if(!pmatch)
     return NULL;
 
-  rc = regexec(&reg, (const char*)subject,
-               nmatch, pmatch,
-               options /* eflags */
-               );
-
-  if(!rc) {
-    const char *r;
-    char *result_p;
-    size_t len = subject_len + replace_len;
-    
-    result = RASQAL_MALLOC(char*, len + 1);
-    r = replace;
-    result_p = result;
-    while(*r) {
-      if (*r == '$') {
-        int ref_number;
-        size_t copy_len;
-        regmatch_t rm;
-        
-        if(!*r)
-          break;
-        
-        ref_number = rasqal_regex_get_ref_number(&r);
-        if(ref_number >= 0) {
-          rm = pmatch[ref_number];
-          copy_len = rm.rm_eo - rm.rm_so + 1;
-          memcpy(result_p, subject + rm.rm_so, copy_len);
-          result_p += copy_len; len -= copy_len;
-          continue;
-        }
-      }
-      
-      if(*r == '\\') {
-        if(!*++r)
-          break;
-      }
-      
-      *result_p++ = *r++; len--;
-    }
-    *result_p = '\0';
-    
-    if(result_len_p)
-      *result_len_p = result_p - result;
-
-  } else if (rc != REG_NOMATCH) {
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
-                            "Regex match failed - returned code %d", rc);
+  result_size = subject_len << 1;
+  result = RASQAL_MALLOC(char*, result_size + 1);
+  if(!result)
     goto failed;
+  result_len = 0;
+
+  /* Match and replace loop; adjusting startoffset each time */
+  startoffset = 0;
+  matched_empty = 0;
+  while(1) {
+    int rc;
+    const char *subject_piece = subject + startoffset;
+
+    rc = regexec(&reg, (const char*)subject_piece,
+                 capture_count, pmatch,
+                 options /* eflags */
+                 );
+
+    if(!rc) {
+      /* matches have been found */
+      const char *subject_match;
+      size_t piece_len;
+      size_t new_result_len;
+      const char *replace_p;
+      char last_char;
+      char *result_p;
+
+      subject_match = subject_piece + pmatch[0].rm_so;
+
+      /* compute new length of replacement with expanded variables */
+      new_result_len = result_len;
+
+      /* compute size of piece before the match */
+      piece_len = subject_match - subject_piece;
+      new_result_len += piece_len;
+
+      /* compute size of matched piece */
+      replace_p = replace;
+      last_char = '\0';
+      while(replace_p < replace_end) {
+        if(*replace_p == '\\' || *replace_p == '$') {
+          int ref_number;
+
+          if(last_char == '\\') {
+            /* Allow \\ and \$ */
+            replace_p++;
+            last_char = '\0';
+            continue;
+          }
+
+          ref_number = rasqal_regex_get_ref_number(&replace_p);
+          if(ref_number >= 0) {
+            regmatch_t rm;
+            size_t copy_len;
+
+            rm = pmatch[ref_number];
+            copy_len = rm.rm_eo - rm.rm_so + 1;
+            if((size_t)ref_number < capture_count)
+              new_result_len += copy_len;
+            continue;
+          }
+        }
+
+        new_result_len++;
+
+        last_char = *replace_p;
+        replace_p++;
+      }
+
+      /* need to expand result buffer? */
+      if(new_result_len > result_size) {
+        char* new_result;
+
+        result_size += new_result_len << 1;
+        new_result = RASQAL_MALLOC(char*, result_size + 1);
+        if(!new_result)
+          goto failed;
+
+        memcpy(new_result, result, result_len);
+        RASQAL_FREE(char*, result);
+        result = new_result;
+      }
+
+      /* copy the piece of the input before the match */
+      piece_len = subject_match - subject_piece;
+      if(piece_len)
+        memcpy(&result[result_len], subject_piece, piece_len);
+      result_len += piece_len;
+
+      /* copy replacement into result inserting matched references */
+      result_p = result + result_len;
+      replace_p = replace;
+      last_char = '\0';
+      while(replace_p < replace_end) {
+        if(*replace_p == '\\' || *replace_p == '$') {
+          int ref_number;
+
+          if(last_char == '\\') {
+            /* Allow \\ and \$ */
+            *(result_p - 1) = *replace_p++;
+            last_char = '\0';
+            continue;
+          }
+
+          ref_number = rasqal_regex_get_ref_number(&replace_p);
+          if(ref_number >= 0) {
+            if((size_t)ref_number < capture_count) {
+              regmatch_t rm;
+              size_t match_len;
+
+              rm = pmatch[ref_number];
+              match_len = rm.rm_eo - rm.rm_so + 1;
+              memcpy(result_p, subject + rm.rm_so, match_len);
+              result_p += match_len;
+              result_len += match_len;
+            }
+            continue;
+          }
+        }
+
+        *result_p++ = *replace_p;
+        result_len++;
+        
+        last_char = *replace_p;
+        replace_p++;
+      }
+      *result_p = '\0';
+
+      /* continue at offset after all matches */
+      startoffset += pmatch[0].rm_eo;
+
+      matched_empty = (pmatch[0].rm_so == pmatch[0].rm_eo);
+    } else if (rc == REG_NOMATCH) {
+      /* No match */
+      size_t piece_len;
+      size_t new_result_len;
+
+      if(matched_empty && (size_t)startoffset < subject_len) {
+        /* If the previous match was an empty string and there is
+         * still some input to try, move on one char and continue
+         * ordinary matches.
+         */
+        result[result_len++] = *subject_piece;
+        startoffset++;
+        matched_empty = 0;
+        continue;
+      }
+
+      /* otherwise we are finished - copy the remaining input */
+      piece_len = subject_len - startoffset;
+      new_result_len = result_len + piece_len;
+      
+      if(new_result_len > result_size) {
+        char* new_result;
+        
+        result_size = new_result_len;
+        new_result = RASQAL_MALLOC(char*, result_size + 1);
+        if(!new_result)
+          goto failed;
+        
+        memcpy(new_result, result, result_len);
+        RASQAL_FREE(char*, result);
+        result = new_result;
+      }
+      
+      memcpy(&result[result_len], subject_piece, piece_len);
+      result_len += piece_len;
+
+      /* NUL terminate the result and end */
+      result[result_len] = '\0';
+      break;
+    } else {
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
+                              "Regex match failed - returned code %d", rc);
+      goto failed;
+    }
   }
 
   RASQAL_FREE(regmatch_t*, pmatch);
@@ -566,9 +700,11 @@ rasqal_regex_replace(rasqal_world* world, raptor_locator* locator,
 #endif
 #ifdef RASQAL_REGEX_POSIX
   regex_t reg;
-  int compile_options = 0;
+  int compile_options = REG_EXTENDED;
   int exec_options = 0;
   int rc = 0;
+  size_t pattern_len;
+  char* pattern2;
 #endif
   char *result_s = NULL;
 
@@ -593,21 +729,36 @@ rasqal_regex_replace(rasqal_world* world, raptor_locator* locator,
 #endif
     
 #ifdef RASQAL_REGEX_POSIX
+  /* Add an outer capture so we can always find what was matched */
+  pattern_len = strlen(pattern);
+  pattern2 = RASQAL_MALLOC(char*, pattern_len + 3);
+  if(!pattern2)
+    return NULL;
+
+  pattern2[0] = '(';
+  memcpy(pattern2 + 1, pattern, pattern_len);
+  pattern2[pattern_len + 1]=')';
+  pattern2[pattern_len + 2]='\0';
+  
   for(p = regex_flags; p && *p; p++) {
     if(*p == 'i')
       compile_options |= REG_ICASE;
   }
     
-  rc = regcomp(&reg, pattern, compile_options);
+  rc = regcomp(&reg, pattern2, compile_options);
   if(rc) {
+    RASQAL_FREE(char*, pattern2);
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
                             "Regex compile of '%s' failed - %d", pattern, rc);
-  } else
+  } else {
+    RASQAL_FREE(char*, pattern2);
     result_s = rasqal_regex_replace_posix(world, locator,
                                           reg, exec_options,
                                           subject, subject_len,
                                           replace, replace_len,
                                           result_len_p);
+  }
+
   regfree(&reg);
 #endif
 
