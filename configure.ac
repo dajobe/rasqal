@@ -474,7 +474,7 @@ LIBS="$oLIBS"
 
 if test $have_regex_posix = 1; then
   AC_MSG_RESULT(yes)
-  AC_DEFINE(HAVE_REGEX_PCRE, 1, [have PCRE regex - Perl Compatible Regular Expressions])
+  AC_DEFINE(HAVE_REGEX_POSIX, 1, [have POSIX regex library])
 else
   AC_MSG_RESULT(no)
 fi
@@ -496,7 +496,7 @@ for regex_library_name in $regex_library posix pcre; do
     posix)
       if test $have_regex_posix = 1; then
         need_regex_posix=1
-        AC_DEFINE(RASQAL_REGEX_POSIX, 1, [Use posix regex library])
+        AC_DEFINE(RASQAL_REGEX_POSIX, 1, [Use POSIX regex library])
         break
       fi
       ;;
