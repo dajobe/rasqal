@@ -252,6 +252,9 @@ static const char* const json_names[] = { "json", NULL};
 
 static const char* const json_uri_strings[] = {
   "http://www.w3.org/ns/formats/SPARQL_Results_JSON",
+  /* W3C Working Draft */
+  "http://www.w3.org/TR/sparql11-results-json/",
+  /* W3C Working Group Note */
   "http://www.w3.org/TR/rdf-sparql-json-res/",
   /* Released DAWG WG results in JSON */
   "http://www.w3.org/TR/2007/NOTE-rdf-sparql-json-res-20070618/",
