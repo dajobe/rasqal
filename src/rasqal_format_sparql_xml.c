@@ -991,6 +991,7 @@ const char *mime_type)
 static const char* const sparql_xml_names[] = { "xml", NULL};
 
 static const char* const sparql_xml_uri_strings[] = {
+  "http://www.w3.org/ns/formats/SPARQL_Results_XML",
   "http://www.w3.org/TR/rdf-sparql-XMLres/",
   "http://www.w3.org/TR/2008/REC-rdf-sparql-XMLres-20080115/",
   "http://www.w3.org/2005/sparql-results#",
