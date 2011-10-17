@@ -235,13 +235,11 @@ rasqal_expression_evaluate_rand(rasqal_expression *e,
                                 int *error_p)
 {
   rasqal_world* world = eval_context->world;
+  int r;
   double d;
   
-#ifdef HAVE_RAND_R
-  d = (0.0 + rand_r(&eval_context->seed)) / (double)(RAND_MAX + 1.0);
-#else
-  d = (0.0 + rand())  / (double)(RAND_MAX + 1.0);
-#endif
+  r = rasqal_random_rand(eval_context);
+  d = (double)r / (double)(RAND_MAX + 1.0);
 
   return rasqal_new_double_literal(world, d);
 }

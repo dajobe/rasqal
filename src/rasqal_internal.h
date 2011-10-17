@@ -1752,7 +1752,9 @@ void rasqal_free_solution_modifier(rasqal_solution_modifier* sm);
 int rasqal_triples_sequence_set_origin(raptor_sequence* dest_seq, raptor_sequence* src_seq, rasqal_literal* origin);
 
 /* rasqal_random.c */
-unsigned int rasqal_random_get_system_seed(rasqal_world* world);
+unsigned int rasqal_random_get_system_seed(rasqal_evaluation_context *eval_context);
+int rasqal_random_init(rasqal_evaluation_context *eval_context, unsigned int seed);
+int rasqal_random_rand(rasqal_evaluation_context *eval_context);
 
 /*
  * rasqal_digest_type:

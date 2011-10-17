@@ -2426,13 +2426,7 @@ rasqal_evaluation_context_set_rand_seed(rasqal_evaluation_context* eval_context,
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(eval_context, rasqal_evaluation_context, 1);
 
-#ifdef HAVE_RAND_R
-  eval_context->seed = seed;
-#else
-  srand(seed);
-#endif
-
-  return 0;
+  return rasqal_random_init(eval_context, seed);
 }
 
 

@@ -1406,12 +1406,25 @@ typedef enum {
 
 
 /**
+ * RASQAL_RANDOM_STATE_SIZE:
+ *
+ * Size of BSD random state
+ * 
+ * "With 256 bytes of state information, the period of the random
+ * number generator is greater than 2**69 , which should be
+ * sufficient for most purposes." - BSD random(3) man page
+ */
+#define RASQAL_RANDOM_STATE_SIZE 256
+
+
+/**
  * rasqal_evaluation_context:
  * @world: rasqal world
  * @base_uri: base URI of expression context (or NULL)
  * @locator: locator or NULL
- * @seed: used for rand_r() (if available) or srand()
  * @flags: expression comparison flags
+ * @seed: used for rand_r() (if available) or srand()
+ * @random_state: used for BSD initstate(), setstate() and random() (if available)
  *
  * A context for evaluating an expression such as with
  * rasqal_expression_evaluate2()
@@ -1422,6 +1435,7 @@ typedef struct {
   raptor_locator *locator;
   int flags;
   unsigned int seed;
+  char random_state[RASQAL_RANDOM_STATE_SIZE];
 } rasqal_evaluation_context;
 
 
