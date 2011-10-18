@@ -97,7 +97,7 @@ rasqal_random_init(rasqal_evaluation_context *eval_context)
 {
 #ifdef RANDOM_ALGO_RANDOM_R
   eval_context->random_data = RASQAL_CALLOC(struct random_data*,
-                                            1, sizeof(struct random_data*));
+                                            1, sizeof(struct random_data));
   if(!eval_context->random_data)
     return 1;
 #endif  
