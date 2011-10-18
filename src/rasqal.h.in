@@ -1425,7 +1425,7 @@ typedef enum {
  * @flags: expression comparison flags
  * @seed: used for rand_r() (if available) or srand()
  * @random_state: used for BSD initstate(), setstate() and random() (if available)
- * @old_random_state: used for restoring initial random state.
+ * @random_data: internal to random algorithm
  *
  * A context for evaluating an expression such as with
  * rasqal_expression_evaluate2()
@@ -1437,7 +1437,7 @@ typedef struct {
   int flags;
   unsigned int seed;
   char random_state[RASQAL_RANDOM_STATE_SIZE];
-  char* old_random_state;
+  void* random_data;
 } rasqal_evaluation_context;
 
 

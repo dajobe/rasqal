@@ -341,7 +341,7 @@ AC_SUBST(RASQAL_VERSION_DECIMAL)
 
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf initstate random gmtime_r rand_r timegm gettimeofday)
+AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf initstate_r initstate random_r random gmtime_r rand_r timegm gettimeofday)
 
 AM_CONDITIONAL(STRCASECMP, test $ac_cv_func_stricmp = no -a $ac_cv_func_strcasecmp = no)
 AM_CONDITIONAL(GETOPT, test $ac_cv_func_getopt = no -a $ac_cv_func_getopt_long = no)
@@ -681,12 +681,15 @@ fi
 dnl Random generator
 AC_MSG_CHECKING(random approach) 
 random_approach=
-if test "$ac_cv_func_initstate" = "yes" -o "$ac_cv_func_random" = "yes"; then
-   AC_DEFINE(RANDOM_ALGO_RANDOM, 1, [Use BSD initstate() and random()])
-   random_approach="BSD initstate() and random()"
+if test "$ac_cv_func_initstate_r" = "yes" -o "$ac_cv_func_random_r" = "yes"; then
+   AC_DEFINE(RANDOM_ALGO_RANDOM_R, 1, [Use glibc initstate_r() and random_r()])
+   random_approach="glibc initstate_r() and random_r()"
 elif test "$ac_cv_func_rand_r" = "yes"; then
    AC_DEFINE(RANDOM_ALGO_RAND_R, 1, [Use POSIX rand_r()])
    random_approach="POSIX rand_r()"
+elif test "$ac_cv_func_initstate" = "yes" -o "$ac_cv_func_random" = "yes"; then
+   AC_DEFINE(RANDOM_ALGO_RANDOM, 1, [Use BSD initstate() and random()])
+   random_approach="BSD initstate() and random()"
 else
    AC_DEFINE(RANDOM_ALGO_RAND, 1, [Use POSIX srand() and rand()])
    random_approach="POSIX srand() and rand()"

@@ -95,6 +95,13 @@ rasqal_random_get_system_seed(rasqal_evaluation_context *eval_context)
 int
 rasqal_random_init(rasqal_evaluation_context *eval_context)
 {
+#ifdef RANDOM_ALGO_RANDOM_R
+  eval_context->random_data = RASQAL_CALLOC(struct random_data*,
+                                            1, sizeof(struct random_data*));
+  if(!eval_context->random_data)
+    return 1;
+#endif  
+
   return 0;
 }
 
@@ -108,9 +115,14 @@ rasqal_random_init(rasqal_evaluation_context *eval_context)
 void
 rasqal_random_finish(rasqal_evaluation_context *eval_context)
 {
+#ifdef RANDOM_ALGO_RANDOM_R
+  if(eval_context->random_data)
+    RASQAL_FREE(struct random_data*, eval_context->random_data);
+#endif  
+
 #ifdef RANDOM_ALGO_RANDOM
-  if(eval_context->old_random_state)
-    setstate(eval_context->old_random_state);
+  if(eval_context->random_data)
+    setstate((char*)eval_context->random_data);
 #endif
 }
 
@@ -127,9 +139,17 @@ rasqal_random_finish(rasqal_evaluation_context *eval_context)
 int
 rasqal_random_srand(rasqal_evaluation_context *eval_context, unsigned int seed)
 {
+  int rc = 0;
+  
+#ifdef RANDOM_ALGO_RANDOM_R
+  rc = initstate_r(seed, eval_context->random_state, RASQAL_RANDOM_STATE_SIZE,
+                   (struct random_data*)eval_context->random_data);
+#endif
+
 #ifdef RANDOM_ALGO_RANDOM
-  eval_context->old_random_state = initstate(seed, eval_context->random_state, 
-                                             RASQAL_RANDOM_STATE_SIZE);
+  eval_context->random_data = (void*)initstate(seed,
+                                               eval_context->random_state, 
+                                               RASQAL_RANDOM_STATE_SIZE);
 #endif
 
 #ifdef RANDOM_ALGO_RAND_R
@@ -140,7 +160,7 @@ rasqal_random_srand(rasqal_evaluation_context *eval_context, unsigned int seed)
   srand(seed);
 #endif
 
-  return 0;
+  return rc;
 }
 
 
@@ -148,17 +168,27 @@ rasqal_random_srand(rasqal_evaluation_context *eval_context, unsigned int seed)
  * rasqal_random_rand:
  * @eval_context: evaluation context
  *
- * INTERNAL - Get a random int from the random number generator
+ * INTERNAL - Get a random 32 bit int from the random number generator
  *
- * Return value: random integer
+ * Return value: random integer (only lower 32 bits valid)
  */
 int
 rasqal_random_rand(rasqal_evaluation_context *eval_context)
 {
   int r;
+#ifdef RANDOM_ALGO_RANDOM_R
+  int32_t result;
+#endif
 #ifdef RANDOM_ALGO_RANDOM
   char *old_state;
 #endif
+
+#ifdef RANDOM_ALGO_RANDOM_R
+  result = 0;
+  random_r((struct random_data*)eval_context->random_data, &result);
+  /* This casts a 32 bit integer to an int */
+  r = (int)result;
+#endif  
 
 #ifdef RANDOM_ALGO_RANDOM
   old_state = setstate(eval_context->random_state);
