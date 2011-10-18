@@ -87,17 +87,49 @@ rasqal_random_get_system_seed(rasqal_evaluation_context *eval_context)
 /*
  * rasqal_random_init:
  * @eval_context: evaluation context
- * @seed: 32 bits of seed
  *
- * INTERNAL - Initialize the random number generator
+ * INTERNAL - Allocate state for the random number generator
  *
  * Return value: non-0 on failure
  */
 int
-rasqal_random_init(rasqal_evaluation_context *eval_context, unsigned int seed)
+rasqal_random_init(rasqal_evaluation_context *eval_context)
+{
+  return 0;
+}
+
+
+/*
+ * rasqal_random_finish:
+ * @eval_context: evaluation context
+ *
+ * INTERNAL - Dealloc state for the random number generator
+ */
+void
+rasqal_random_finish(rasqal_evaluation_context *eval_context)
 {
 #ifdef RANDOM_ALGO_RANDOM
-  initstate(seed, eval_context->random_state, RASQAL_RANDOM_STATE_SIZE);
+  if(eval_context->old_random_state)
+    setstate(eval_context->old_random_state);
+#endif
+}
+
+
+/*
+ * rasqal_random_srand:
+ * @eval_context: evaluation context
+ * @seed: 32 bits of seed
+ *
+ * INTERNAL - Initialize the random number generator with a seed
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_random_srand(rasqal_evaluation_context *eval_context, unsigned int seed)
+{
+#ifdef RANDOM_ALGO_RANDOM
+  eval_context->old_random_state = initstate(seed, eval_context->random_state, 
+                                             RASQAL_RANDOM_STATE_SIZE);
 #endif
 
 #ifdef RANDOM_ALGO_RAND_R

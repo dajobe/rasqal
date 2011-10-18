@@ -2361,6 +2361,11 @@ rasqal_new_evaluation_context(rasqal_world* world,
   eval_context->locator = locator;
   eval_context->flags = flags;
 
+  if(rasqal_random_init(eval_context)) {
+    RASQAL_FREE(rasqal_evaluation_context*, eval_context);
+    eval_context = NULL;
+  }
+
   return eval_context;
 }
 
@@ -2377,11 +2382,13 @@ rasqal_free_evaluation_context(rasqal_evaluation_context* eval_context)
 {
   if(!eval_context)
     return;
-  
+
   if(eval_context->base_uri)
     raptor_free_uri(eval_context->base_uri);
 
-  RASQAL_FREE(rasqal_evaluation_context, eval_context);
+  rasqal_random_finish(eval_context);
+
+  RASQAL_FREE(rasqal_evaluation_context*, eval_context);
 }
 
 
@@ -2426,7 +2433,7 @@ rasqal_evaluation_context_set_rand_seed(rasqal_evaluation_context* eval_context,
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(eval_context, rasqal_evaluation_context, 1);
 
-  return rasqal_random_init(eval_context, seed);
+  return rasqal_random_srand(eval_context, seed);
 }
 
 
