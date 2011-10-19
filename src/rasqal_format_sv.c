@@ -270,6 +270,13 @@ rasqal_query_results_write_tsv(rasqal_query_results_formatter* formatter,
 
 static const char* const csv_names[] = { "csv", NULL};
 
+static const char* const csv_uri_strings[] = {
+  "http://www.w3.org/ns/formats/SPARQL_Results_CSV",
+  "http://www.w3.org/TR/sparql11-results-csv-tsv/",
+  "http://www.ietf.org/rfc/rfc4180.txt",
+  NULL
+};
+
 static const raptor_type_q csv_types[] = {
   { "text/csv", 8, 10}, 
   { "text/csv; header=present", 24, 10}, 
@@ -285,7 +292,7 @@ rasqal_query_results_csv_register_factory(rasqal_query_results_format_factory *f
   factory->desc.mime_types = csv_types;
 
   factory->desc.label = "Comma Separated Values (CSV)";
-  factory->desc.uri_strings = NULL;
+  factory->desc.uri_strings = csv_uri_strings;
 
   factory->desc.flags = 0;
   
@@ -299,6 +306,8 @@ rasqal_query_results_csv_register_factory(rasqal_query_results_format_factory *f
 static const char* const tsv_names[] = { "tsv", NULL};
 
 static const char* const tsv_uri_strings[] = {
+  "http://www.w3.org/ns/formats/SPARQL_Results_TSV",
+  "http://www.w3.org/TR/sparql11-results-csv-tsv/",
   "http://www.iana.org/assignments/media-types/text/tab-separated-values",
   NULL
 };
