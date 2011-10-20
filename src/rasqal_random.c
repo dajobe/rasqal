@@ -110,9 +110,9 @@ rasqal_new_random(rasqal_world* world)
   
   r->world = world;
 #ifdef RANDOM_ALGO_RANDOM_R
-  random_object->data = RASQAL_CALLOC(struct random_data*,
-                                      1, sizeof(struct random_data));
-  if(!random_object->data) {
+  r->data = RASQAL_CALLOC(struct random_data*,
+                          1, sizeof(struct random_data));
+  if(!r->data) {
     RASQAL_FREE(rasqal_random*, r);
     return NULL;
   }
@@ -159,7 +159,7 @@ rasqal_random_srand(rasqal_random *random_object, unsigned int seed)
   
 #ifdef RANDOM_ALGO_RANDOM_R
   rc = initstate_r(seed, random_object->state, RASQAL_STATE_SIZE,
-                   (struct data*)random_object->data);
+                   (struct random_data*)random_object->data);
 #endif
 
 #ifdef RANDOM_ALGO_RANDOM
@@ -205,7 +205,7 @@ rasqal_random_rand(rasqal_random *random_object)
 
 #ifdef RANDOM_ALGO_RANDOM_R
   result = 0;
-  random_r((struct data*)random_object->data, &result);
+  random_r((struct random_data*)random_object->data, &result);
   r = (int)result;
 #endif  
 
