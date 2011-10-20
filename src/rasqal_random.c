@@ -54,9 +54,9 @@
  * rasqal_random_get_system_seed
  * @random_object: evaluation context
  *
- * INTERNAL - get a 32 bit unsigned integer random seed based on system sources
+ * INTERNAL - get a 31 bit unsigned integer random seed based on system sources
  *
- * Return value: seed with only lower 32 bits valid
+ * Return value: seed with only lower 31 bits valid
  */
 unsigned int
 rasqal_random_get_system_seed(rasqal_world *world)
