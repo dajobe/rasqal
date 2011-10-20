@@ -238,7 +238,7 @@ rasqal_expression_evaluate_rand(rasqal_expression *e,
   int r;
   double d;
   
-  r = rasqal_random_rand(eval_context);
+  r = rasqal_random_rand(eval_context->random);
   d = (double)r / (double)(RAND_MAX + 1.0);
 
   return rasqal_new_double_literal(world, d);

@@ -1418,14 +1418,31 @@ typedef enum {
 
 
 /**
+ * rasqal_random:
+ * @world: world object
+ * @seed: used for rand_r() (if available) or srand()
+ * @state: used for BSD initstate(), setstate() and random() (if available)
+ * @data: internal to random algorithm
+ *
+ * A class providing a random number generator
+ *
+ */
+typedef struct {
+  rasqal_world* world;
+  unsigned int seed;
+  char state[RASQAL_RANDOM_STATE_SIZE];
+  void* data;
+} rasqal_random;
+
+
+/**
  * rasqal_evaluation_context:
  * @world: rasqal world
  * @base_uri: base URI of expression context (or NULL)
  * @locator: locator or NULL
  * @flags: expression comparison flags
- * @seed: used for rand_r() (if available) or srand()
- * @random_state: used for BSD initstate(), setstate() and random() (if available)
- * @random_data: internal to random algorithm
+ * @seed: random seeed
+ * @random: random number generator object
  *
  * A context for evaluating an expression such as with
  * rasqal_expression_evaluate2()
@@ -1436,8 +1453,7 @@ typedef struct {
   raptor_locator *locator;
   int flags;
   unsigned int seed;
-  char random_state[RASQAL_RANDOM_STATE_SIZE];
-  void* random_data;
+  rasqal_random* random;
 } rasqal_evaluation_context;
 
 

@@ -38,21 +38,28 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+#ifdef HAVE_TIME_H
+#include <time.h>
+#endif
 
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
 
+#ifndef STANDALONE
 /*
  * rasqal_random_get_system_seed
- * @eval_context: evaluation context
+ * @random_object: evaluation context
  *
  * INTERNAL - get a 32 bit unsigned integer random seed based on system sources
  *
  * Return value: seed with only lower 32 bits valid
  */
 unsigned int
-rasqal_random_get_system_seed(rasqal_evaluation_context *eval_context)
+rasqal_random_get_system_seed(rasqal_world *world)
 {
   /* SOURCE 1: processor clock ticks since process started */
   uint32_t a = (uint32_t)clock();
@@ -85,51 +92,60 @@ rasqal_random_get_system_seed(rasqal_evaluation_context *eval_context)
 
 
 /*
- * rasqal_random_init:
- * @eval_context: evaluation context
+ * rasqal_new_random:
+ * @world: world object
  *
- * INTERNAL - Allocate state for the random number generator
+ * INTERNAL - Constructor - create a new random number generator
  *
- * Return value: non-0 on failure
+ * Return value: new rasqal_random or NULL on failure
  */
-int
-rasqal_random_init(rasqal_evaluation_context *eval_context)
+rasqal_random*
+rasqal_new_random(rasqal_world* world)
 {
+  rasqal_random* r;
+  
+  r = RASQAL_CALLOC(rasqal_random*, 1, sizeof(*r));
+  if(!r)
+    return NULL;
+  
+  r->world = world;
 #ifdef RANDOM_ALGO_RANDOM_R
-  eval_context->random_data = RASQAL_CALLOC(struct random_data*,
-                                            1, sizeof(struct random_data));
-  if(!eval_context->random_data)
-    return 1;
+  random_object->data = RASQAL_CALLOC(struct random_data*,
+                                      1, sizeof(struct random_data));
+  if(!random_object->data) {
+    RASQAL_FREE(rasqal_random*, r);
+    return NULL;
+  }
 #endif  
 
-  return 0;
+  return r;
 }
 
 
 /*
- * rasqal_random_finish:
- * @eval_context: evaluation context
+ * rasqal_free_random:
+ * @random_object: evaluation context
  *
- * INTERNAL - Dealloc state for the random number generator
+ * INTERNAL - Destructor - Destroy a random number generator
  */
 void
-rasqal_random_finish(rasqal_evaluation_context *eval_context)
+rasqal_free_random(rasqal_random *random_object)
 {
 #ifdef RANDOM_ALGO_RANDOM_R
-  if(eval_context->random_data)
-    RASQAL_FREE(struct random_data*, eval_context->random_data);
+  if(random_object->data)
+    RASQAL_FREE(struct data*, random_object->data);
 #endif  
 
 #ifdef RANDOM_ALGO_RANDOM
-  if(eval_context->random_data)
-    setstate((char*)eval_context->random_data);
+  if(random_object->data)
+    setstate((char*)random_object->data);
 #endif
 }
 
 
 /*
  * rasqal_random_srand:
- * @eval_context: evaluation context
+ * @random_object: evaluation context
  * @seed: 32 bits of seed
  *
  * INTERNAL - Initialize the random number generator with a seed
@@ -137,23 +153,23 @@ rasqal_random_finish(rasqal_evaluation_context *eval_context)
  * Return value: non-0 on failure
  */
 int
-rasqal_random_srand(rasqal_evaluation_context *eval_context, unsigned int seed)
+rasqal_random_srand(rasqal_random *random_object, unsigned int seed)
 {
   int rc = 0;
   
 #ifdef RANDOM_ALGO_RANDOM_R
-  rc = initstate_r(seed, eval_context->random_state, RASQAL_RANDOM_STATE_SIZE,
-                   (struct random_data*)eval_context->random_data);
+  rc = initstate_r(seed, random_object->state, RASQAL_STATE_SIZE,
+                   (struct data*)random_object->data);
 #endif
 
 #ifdef RANDOM_ALGO_RANDOM
-  eval_context->random_data = (void*)initstate(seed,
-                                               eval_context->random_state, 
-                                               RASQAL_RANDOM_STATE_SIZE);
+  random_object->data = (void*)initstate(seed,
+                                         random_object->state,
+                                         RASQAL_STATE_SIZE);
 #endif
 
 #ifdef RANDOM_ALGO_RAND_R
-  eval_context->seed = seed;
+  random_object->seed = seed;
 #endif
 
 #ifdef RANDOM_ALGO_RAND
@@ -166,14 +182,14 @@ rasqal_random_srand(rasqal_evaluation_context *eval_context, unsigned int seed)
 
 /*
  * rasqal_random_rand:
- * @eval_context: evaluation context
+ * @random_object: evaluation context
  *
- * INTERNAL - Get a random 32 bit int from the random number generator
+ * INTERNAL - Get a random int from the random number generator
  *
- * Return value: random integer (only lower 32 bits valid)
+ * Return value: random integer in range 0 to RAND_MAX inclusive
  */
 int
-rasqal_random_rand(rasqal_evaluation_context *eval_context)
+rasqal_random_rand(rasqal_random *random_object)
 {
   int r;
 #ifdef RANDOM_ALGO_RANDOM_R
@@ -183,24 +199,24 @@ rasqal_random_rand(rasqal_evaluation_context *eval_context)
   char *old_state;
 #endif
 
+  /* results of all these functions is an integer or long in the
+   * range 0...RAND_MAX inclusive
+   */
+
 #ifdef RANDOM_ALGO_RANDOM_R
   result = 0;
-  random_r((struct random_data*)eval_context->random_data, &result);
-  /* This casts a 32 bit integer to an int */
+  random_r((struct data*)random_object->data, &result);
   r = (int)result;
 #endif  
 
 #ifdef RANDOM_ALGO_RANDOM
-  old_state = setstate(eval_context->random_state);
-
-  /* This casts a long to an int */
+  old_state = setstate(random_object->state);
   r = (int)random();
-
   setstate(old_state);
 #endif  
 
 #ifdef RANDOM_ALGO_RAND_R
-  r = rand_r(&eval_context->seed);
+  r = rand_r(&random_object->seed);
 #endif
 
 #ifdef RANDOM_ALGO_RAND
@@ -209,3 +225,58 @@ rasqal_random_rand(rasqal_evaluation_context *eval_context)
 
   return r;
 }
+
+#endif
+
+
+#ifdef STANDALONE
+#include <stdio.h>
+
+int main(int argc, char *argv[]);
+
+
+#define NTESTS 20
+
+int
+main(int argc, char *argv[])
+{
+  rasqal_world* world;
+  const char *program = rasqal_basename(argv[0]);
+  int failures = 0;
+  rasqal_random* r = NULL;
+  int test;
+
+  world = rasqal_new_world();
+  if(!world || rasqal_world_open(world)) {
+    fprintf(stderr, "%s: rasqal_world init failed\n", program);
+    failures++;
+    goto tidy;
+  }
+    
+  r = rasqal_new_random(world);
+  if(!r) {
+    fprintf(stderr, "%s: rasqal_new_random() failed\n", program);
+    failures++;
+    goto tidy;
+  }
+
+  rasqal_random_srand(r, 54321);
+    
+  for(test = 0; test < NTESTS; test++) {
+    int v;
+    
+    v = rasqal_random_rand(r);
+#if RASQAL_DEBUG > 1
+    fprintf(stderr, "%s: Test %3d  value: %10d\n", program, test, v);
+#endif
+  }
+
+  tidy:
+  if(r)
+    rasqal_free_random(r);
+
+  rasqal_free_world(world);
+
+  return failures;
+}
+#endif

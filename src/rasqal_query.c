@@ -1288,7 +1288,7 @@ rasqal_query_prepare(rasqal_query* query,
     if(query->user_set_rand)
       seed = (unsigned int)query->features[(int)RASQAL_FEATURE_RAND_SEED];
     else
-      seed = rasqal_random_get_system_seed(query->eval_context);
+      seed = rasqal_random_get_system_seed(query->world);
     
     rasqal_evaluation_context_set_rand_seed(query->eval_context, seed);
   }
