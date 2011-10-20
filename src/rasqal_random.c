@@ -158,14 +158,14 @@ rasqal_random_srand(rasqal_random *random_object, unsigned int seed)
   int rc = 0;
   
 #ifdef RANDOM_ALGO_RANDOM_R
-  rc = initstate_r(seed, random_object->state, RASQAL_STATE_SIZE,
+  rc = initstate_r(seed, random_object->state, RASQAL_RANDOM_STATE_SIZE,
                    (struct random_data*)random_object->data);
 #endif
 
 #ifdef RANDOM_ALGO_RANDOM
   random_object->data = (void*)initstate(seed,
                                          random_object->state,
-                                         RASQAL_STATE_SIZE);
+                                         RASQAL_RANDOM_STATE_SIZE);
 #endif
 
 #ifdef RANDOM_ALGO_RAND_R
