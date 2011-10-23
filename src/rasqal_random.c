@@ -241,12 +241,12 @@ rasqal_random_irand(rasqal_random *random_object)
 double
 rasqal_random_drand(rasqal_random *random_object)
 {
-  double dr;
+  int r;
   double d;
   
-  dr = (double)rasqal_random_irand(random_object);
+  r = rasqal_random_irand(random_object);
 
-  d = dr / (double)(RAND_MAX + 1.0);
+  d = r / (double)(RAND_MAX + 1.0);
 
   return d;
 }
