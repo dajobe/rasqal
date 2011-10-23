@@ -341,7 +341,7 @@ AC_SUBST(RASQAL_VERSION_DECIMAL)
 
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf initstate_r initstate random_r random gmtime_r rand_r timegm gettimeofday)
+AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf initstate_r initstate random_r random gmtime_r rand_r rand srand timegm gettimeofday)
 
 AM_CONDITIONAL(STRCASECMP, test $ac_cv_func_stricmp = no -a $ac_cv_func_strcasecmp = no)
 AM_CONDITIONAL(GETOPT, test $ac_cv_func_getopt = no -a $ac_cv_func_getopt_long = no)
@@ -679,22 +679,72 @@ fi
 
 
 dnl Random generator
-AC_MSG_CHECKING(random approach) 
-random_approach=
+have_random_r=no
+have_rand_r=no
+have_random=no
+have_rand=no
 if test "$ac_cv_func_initstate_r" = "yes" -o "$ac_cv_func_random_r" = "yes"; then
-   AC_DEFINE(RANDOM_ALGO_RANDOM_R, 1, [Use glibc initstate_r() and random_r()])
-   random_approach="glibc initstate_r() and random_r()"
-elif test "$ac_cv_func_rand_r" = "yes"; then
-   AC_DEFINE(RANDOM_ALGO_RAND_R, 1, [Use POSIX rand_r()])
-   random_approach="POSIX rand_r()"
-elif test "$ac_cv_func_initstate" = "yes" -o "$ac_cv_func_random" = "yes"; then
-   AC_DEFINE(RANDOM_ALGO_RANDOM, 1, [Use BSD initstate() and random()])
-   random_approach="BSD initstate() and random()"
-else
-   AC_DEFINE(RANDOM_ALGO_RAND, 1, [Use POSIX srand() and rand()])
-   random_approach="POSIX srand() and rand()"
+   have_random_r=yes
+fi
+if test "$ac_cv_func_rand_r" = "yes"; then
+   have_rand_r=yes
+fi
+if test "$ac_cv_func_initstate" = "yes" -o "$ac_cv_func_random" = "yes"; then
+   have_random=yes
+fi
+if test "$ac_cv_func_rand"; then
+   have_rand=yes
+fi
+
+
+AC_ARG_WITH(random-approach, [  --with-random-approach=NAME   Use random approach - random_r, rand_r, random, rand (auto)], random_with="$withval", random_with="")
+
+AC_MSG_CHECKING(random approach) 
+random_approach=none
+for random_algo in $random_with random_r rand_r random rand; do
+  case $random_algo in
+    random_r)
+      if test "$ac_cv_func_initstate_r" = "yes" -a "$ac_cv_func_random_r" = "yes"; then
+        random_approach="glibc initstate_r() and random_r()"
+	AC_DEFINE(RANDOM_ALGO_RANDOM_R, 1, [Use glibc initstate_r() and random_r()])
+        break
+      fi
+      ;;
+
+    rand_r)
+      if test "$ac_cv_func_rand_r" = "yes"; then
+        random_approach="POSIX rand_r()"
+	AC_DEFINE(RANDOM_ALGO_RAND_R, 1, [Use POSIX rand_r()])
+        break
+      fi
+      ;;
+
+    random)
+      if test "$ac_cv_func_initstate" = "yes" -a "$ac_cv_func_random" = "yes"; then
+	 random_approach="BSD initstate() and random()"
+         AC_DEFINE(RANDOM_ALGO_RANDOM, 1, [Use BSD initstate() and random()])
+        break
+      fi
+      ;;
+
+    rand)
+      if test "$ac_cv_func_srand" = "yes" -a "$ac_cv_func_rand" = "yes"; then
+          random_approach="POSIX srand() and rand()"
+          AC_DEFINE(RANDOM_ALGO_RAND, 1, [Use POSIX srand() and rand()])
+          break
+      fi
+      ;;
+
+    *)
+      ;;
+esac
+done
+
+if test "$random_approach" == none; then
+    AC_MSG_ERROR(No random number generator approach. POSIX rand should always be available)
 fi
 AC_MSG_RESULT($random_approach)
+
 
 
 dnl RDF Query Languages
@@ -1095,4 +1145,5 @@ Rasqal build summary:
   Decimal library               : $decimal_library
   Regex library                 : $regex_library
   Message digest library        : $digest_library
+  Random approach               : $random_approach
 ])
