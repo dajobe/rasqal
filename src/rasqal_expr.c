@@ -2434,7 +2434,7 @@ rasqal_evaluation_context_set_rand_seed(rasqal_evaluation_context* eval_context,
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(eval_context, rasqal_evaluation_context, 1);
 
-  return rasqal_random_srand(eval_context->random, seed);
+  return rasqal_random_seed(eval_context->random, seed);
 }
 
 

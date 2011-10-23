@@ -144,7 +144,7 @@ rasqal_free_random(rasqal_random *random_object)
 
 
 /*
- * rasqal_random_srand:
+ * rasqal_random_seed:
  * @random_object: evaluation context
  * @seed: 32 bits of seed
  *
@@ -153,7 +153,7 @@ rasqal_free_random(rasqal_random *random_object)
  * Return value: non-0 on failure
  */
 int
-rasqal_random_srand(rasqal_random *random_object, unsigned int seed)
+rasqal_random_seed(rasqal_random *random_object, unsigned int seed)
 {
   int rc = 0;
   
@@ -181,15 +181,15 @@ rasqal_random_srand(rasqal_random *random_object, unsigned int seed)
 
 
 /*
- * rasqal_random_rand:
+ * rasqal_random_irand:
  * @random_object: evaluation context
  *
  * INTERNAL - Get a random int from the random number generator
  *
- * Return value: random integer in range 0 to RAND_MAX inclusive
+ * Return value: random integer in the range 0 to RAND_MAX inclusive; [0, RAND_MAX]
  */
 int
-rasqal_random_rand(rasqal_random *random_object)
+rasqal_random_irand(rasqal_random *random_object)
 {
   int r;
 #ifdef RANDOM_ALGO_RANDOM_R
@@ -226,6 +226,30 @@ rasqal_random_rand(rasqal_random *random_object)
   return r;
 }
 
+
+/*
+ * rasqal_random_drand:
+ * @random_object: evaluation context
+ *
+ * INTERNAL - Get a random double from the random number generator
+ *
+ * Return value: random double in the range 0.0 inclusive to 1.0 exclusive; [0.0, 1.0)
+ */
+double
+rasqal_random_drand(rasqal_random *random_object)
+{
+  double dr;
+  double d;
+  
+  dr = (double)rasqal_random_irand(random_object);
+
+  d = dr / (double)(RAND_MAX + 1.0);
+
+  return d;
+}
+
+
+
 #endif
 
 
@@ -260,14 +284,23 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  rasqal_random_srand(r, 54321);
+  rasqal_random_seed(r, 54321);
     
   for(test = 0; test < NTESTS; test++) {
     int v;
     
-    v = rasqal_random_rand(r);
+    v = rasqal_random_irand(r);
 #if RASQAL_DEBUG > 1
     fprintf(stderr, "%s: Test %3d  value: %10d\n", program, test, v);
+#endif
+  }
+
+  for(test = 0; test < NTESTS; test++) {
+    double d;
+    
+    d = rasqal_random_drand(r);
+#if RASQAL_DEBUG > 1
+    fprintf(stderr, "%s: Test %3d  value: %10f\n", program, test, d);
 #endif
   }
 

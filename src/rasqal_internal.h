@@ -1755,8 +1755,9 @@ int rasqal_triples_sequence_set_origin(raptor_sequence* dest_seq, raptor_sequenc
 unsigned int rasqal_random_get_system_seed(rasqal_world *world);
 rasqal_random* rasqal_new_random(rasqal_world *world);
 void rasqal_free_random(rasqal_random *random_object);
-int rasqal_random_srand(rasqal_random *random_object, unsigned int seed);
-int rasqal_random_rand(rasqal_random *random_object);
+int rasqal_random_seed(rasqal_random *random_object, unsigned int seed);
+int rasqal_random_irand(rasqal_random *random_object);
+double rasqal_random_drand(rasqal_random *random_object);
 
 /*
  * rasqal_digest_type:
