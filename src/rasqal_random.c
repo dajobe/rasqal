@@ -118,6 +118,9 @@ rasqal_new_random(rasqal_world* world)
   }
 #endif  
 
+  if(r)
+    rasqal_random_seed(r, rasqal_random_get_system_seed(r->world));
+
   return r;
 }
 
