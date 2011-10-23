@@ -44,6 +44,11 @@
 #ifdef HAVE_TIME_H
 #include <time.h>
 #endif
+#ifdef RANDOM_ALGO_GMP_RAND
+#ifdef HAVE_GMP_H
+#include <gmp.h>
+#endif
+#endif
 
 #include "rasqal.h"
 #include "rasqal_internal.h"
@@ -118,6 +123,11 @@ rasqal_new_random(rasqal_world* world)
   }
 #endif  
 
+#ifdef RANDOM_ALGO_GMP_RAND
+  r->data = RASQAL_CALLOC(gmp_randstate_t*, 1, sizeof(gmp_randstate_t));
+  gmp_randinit_default(*(gmp_randstate_t*)r->data);
+#endif
+
   if(r)
     rasqal_random_seed(r, rasqal_random_get_system_seed(r->world));
 
@@ -136,13 +146,19 @@ rasqal_free_random(rasqal_random *random_object)
 {
 #ifdef RANDOM_ALGO_RANDOM_R
   if(random_object->data)
-    RASQAL_FREE(struct data*, random_object->data);
+    RASQAL_FREE(struct random_data*, random_object->data);
 #endif  
 
 #ifdef RANDOM_ALGO_RANDOM
   if(random_object->data)
     setstate((char*)random_object->data);
 #endif
+
+#ifdef RANDOM_ALGO_GMP_RAND
+  if(random_object->data)
+    RASQAL_FREE(gmp_randstate_t*, random_object->data);
+#endif  
+
 }
 
 
@@ -179,6 +195,10 @@ rasqal_random_seed(rasqal_random *random_object, unsigned int seed)
   srand(seed);
 #endif
 
+#ifdef RANDOM_ALGO_GMP_RAND
+  gmp_randseed_ui(*(gmp_randstate_t*)random_object->data, (unsigned long)seed);
+#endif  
+
   return rc;
 }
 
@@ -200,6 +220,10 @@ rasqal_random_irand(rasqal_random *random_object)
 #endif
 #ifdef RANDOM_ALGO_RANDOM
   char *old_state;
+#endif
+#ifdef RANDOM_ALGO_GMP_RAND
+  mpz_t rand_max_gmp;
+  mpz_t iresult;
 #endif
 
   /* results of all these functions is an integer or long in the
@@ -226,6 +250,21 @@ rasqal_random_irand(rasqal_random *random_object)
   r = rand();
 #endif
 
+#ifdef RANDOM_ALGO_GMP_RAND
+  /* This could be init/cleared once in random state */
+  mpz_init_set_ui(rand_max_gmp, 1 + (unsigned long)RAND_MAX);
+
+  mpz_init(iresult);
+  mpz_urandomm(iresult, *(gmp_randstate_t*)random_object->data, rand_max_gmp);
+  /* cast from unsigned long to unsigned int; we know above that the max
+   * size is RAND_MAX so it will fit
+   */
+  r = (unsigned int)mpz_get_ui(iresult);
+  mpz_clear(iresult);
+
+  mpz_clear(rand_max_gmp);
+#endif  
+
   return r;
 }
 
@@ -241,12 +280,26 @@ rasqal_random_irand(rasqal_random *random_object)
 double
 rasqal_random_drand(rasqal_random *random_object)
 {
+#ifdef RANDOM_ALGO_GMP_RAND
+  mpf_t fresult;
+#else
   int r;
+#endif
   double d;
   
+#ifdef RANDOM_ALGO_GMP_RAND
+#define RANDOM_ALGO_BITS 32
+
+  mpf_init(fresult);
+  mpf_urandomb(fresult, *(gmp_randstate_t*)random_object->data, 
+               RANDOM_ALGO_BITS);
+  d = mpf_get_d(fresult);
+  mpf_clear(fresult);
+#else
   r = rasqal_random_irand(random_object);
 
   d = r / (double)(RAND_MAX + 1.0);
+#endif
 
   return d;
 }

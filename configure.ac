@@ -678,75 +678,6 @@ if test "x$enable_xml2" != "xno" ; then
 fi
 
 
-dnl Random generator
-have_random_r=no
-have_rand_r=no
-have_random=no
-have_rand=no
-if test "$ac_cv_func_initstate_r" = "yes" -o "$ac_cv_func_random_r" = "yes"; then
-   have_random_r=yes
-fi
-if test "$ac_cv_func_rand_r" = "yes"; then
-   have_rand_r=yes
-fi
-if test "$ac_cv_func_initstate" = "yes" -o "$ac_cv_func_random" = "yes"; then
-   have_random=yes
-fi
-if test "$ac_cv_func_rand"; then
-   have_rand=yes
-fi
-
-
-AC_ARG_WITH(random-approach, [  --with-random-approach=NAME   Use random approach - random_r, rand_r, random, rand (auto)], random_with="$withval", random_with="")
-
-AC_MSG_CHECKING(random approach) 
-random_approach=none
-for random_algo in $random_with random_r rand_r random rand; do
-  case $random_algo in
-    random_r)
-      if test "$ac_cv_func_initstate_r" = "yes" -a "$ac_cv_func_random_r" = "yes"; then
-        random_approach="glibc initstate_r() and random_r()"
-	AC_DEFINE(RANDOM_ALGO_RANDOM_R, 1, [Use glibc initstate_r() and random_r()])
-        break
-      fi
-      ;;
-
-    rand_r)
-      if test "$ac_cv_func_rand_r" = "yes"; then
-        random_approach="POSIX rand_r()"
-	AC_DEFINE(RANDOM_ALGO_RAND_R, 1, [Use POSIX rand_r()])
-        break
-      fi
-      ;;
-
-    random)
-      if test "$ac_cv_func_initstate" = "yes" -a "$ac_cv_func_random" = "yes"; then
-	 random_approach="BSD initstate() and random()"
-         AC_DEFINE(RANDOM_ALGO_RANDOM, 1, [Use BSD initstate() and random()])
-        break
-      fi
-      ;;
-
-    rand)
-      if test "$ac_cv_func_srand" = "yes" -a "$ac_cv_func_rand" = "yes"; then
-          random_approach="POSIX srand() and rand()"
-          AC_DEFINE(RANDOM_ALGO_RAND, 1, [Use POSIX srand() and rand()])
-          break
-      fi
-      ;;
-
-    *)
-      ;;
-esac
-done
-
-if test "$random_approach" == none; then
-    AC_MSG_ERROR(No random number generator approach. POSIX rand should always be available)
-fi
-AC_MSG_RESULT($random_approach)
-
-
-
 dnl RDF Query Languages
 rdql_query_language=no
 sparql_query_language=no
@@ -878,12 +809,38 @@ if test "$ac_cv_header_mpfr_h" = yes; then
 fi
 
 have_gmp_version=0
+have_gmp_random=no
 if test "$ac_cv_header_gmp_h" = yes; then
   CPPFLAGS="$CPPFLAGS $gmp_includes"
   LIBS="$LIBS $gmp_libs -lgmp"
   AC_MSG_CHECKING(for working GNU MP library)
   AC_TRY_LINK([#include <gmp.h>], [mpz_t n; mpz_init(n);],
               have_gmp=1
+	      AC_MSG_RESULT(yes),
+	      AC_MSG_RESULT(no))
+  AC_MSG_CHECKING(for GNU MP library random support)
+  AC_TRY_LINK([#include <gmp.h>], [
+gmp_randstate_t r;
+unsigned int ui = 12345;
+mpz_t iresult;
+mpz_t n;
+mpf_t fresult;
+ 
+gmp_randinit_default(r);
+
+gmp_randseed_ui(r, ui);
+mpz_init(iresult);
+mpz_init_set_ui(n, 12345);
+mpz_urandomm(iresult, r, n);
+mpz_clear(iresult);
+
+mpf_urandomb(fresult, r, 5);
+mpf_clear(fresult);
+mpz_clear(n);
+
+gmp_randclear(r);
+],
+              have_gmp_random=yes
 	      AC_MSG_RESULT(yes),
 	      AC_MSG_RESULT(no))
   AC_MSG_CHECKING(for gmp_version)
@@ -957,6 +914,75 @@ else
   decimal_library=none
 fi
 AC_MSG_RESULT($decimal_library)
+
+
+
+dnl Random generator
+random_approaches="random_r rand_r random rand"
+
+if test "$have_gmp_random" = yes; then
+  random_approaches="gmp $random_approaches"
+fi
+
+AC_ARG_WITH(random-approach, [  --with-random-approach=NAME   Use random approach - random_r, rand_r, random, rand (auto)], random_with="$withval", random_with="")
+
+AC_MSG_CHECKING(random approach) 
+random_approach=none
+for random_algo in $random_with $random_approaches; do
+  case $random_algo in
+    gmp)
+      if test "$have_gmp_random" = yes; then
+        random_approach="GMP gmp_randseed_ui and mpz_urandomm()"
+	AC_DEFINE(RANDOM_ALGO_GMP_RAND, 1, [Use GMP gmp_randseed_ui() and mpz_urandomm()])
+        break
+      fi
+      ;;
+      
+    random_r)
+      if test "$ac_cv_func_initstate_r" = "yes" -a "$ac_cv_func_random_r" = "yes"; then
+        random_approach="glibc initstate_r() and random_r()"
+	AC_DEFINE(RANDOM_ALGO_RANDOM_R, 1, [Use glibc initstate_r() and random_r()])
+        break
+      fi
+      ;;
+
+    rand_r)
+      if test "$ac_cv_func_rand_r" = "yes"; then
+        random_approach="POSIX rand_r()"
+	AC_DEFINE(RANDOM_ALGO_RAND_R, 1, [Use POSIX rand_r()])
+        break
+      fi
+      ;;
+
+    random)
+      if test "$ac_cv_func_initstate" = "yes" -a "$ac_cv_func_random" = "yes"; then
+	 random_approach="BSD initstate() and random()"
+         AC_DEFINE(RANDOM_ALGO_RANDOM, 1, [Use BSD initstate() and random()])
+        break
+      fi
+      ;;
+
+    rand)
+      if test "$ac_cv_func_srand" = "yes" -a "$ac_cv_func_rand" = "yes"; then
+          random_approach="POSIX srand() and rand()"
+          AC_DEFINE(RANDOM_ALGO_RAND, 1, [Use POSIX srand() and rand()])
+          break
+      fi
+      ;;
+
+    *)
+      ;;
+esac
+done
+
+if test "$random_approach" == none; then
+    AC_MSG_ERROR(No random number generator approach. POSIX rand should always be available)
+fi
+AC_MSG_RESULT($random_approach)
+
+
+
+
 
 dnl Always need ceil, floor and round in rasqal_literal_ceil() etc.
 AC_MSG_CHECKING([for ceil, floor and round in default libs])
