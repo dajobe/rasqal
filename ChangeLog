@@ -1,3 +1,269 @@
+2011-10-24  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_mt_rand.c: Remove rasqal includes
+
+	* src/rasqal_mt_rand.c: multiple code style fixes.
+
+2011-10-23  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_mt_rand.c: RASQAL_MT_MATRIX_A
+
+	* src/Makefile.am, src/rasqal_mt_rand.c, src/rasqal_random.c:
+	Mersenne Twister functions
+
+	* configure.ac, src/rasqal_random.c: Use GNU MP random routines if
+	GMP was configured
+
+	* src/rasqal_random.c: Do not cast int to double, let arithmetic
+	promote it
+
+	* src/rasqal_random.c:
+	(rasqal_new_random): Set initial seed from system
+
+	* src/rasqal_expr.c, src/rasqal_expr_numerics.c,
+	src/rasqal_internal.h, src/rasqal_random.c: Rename random methods;
+	add double function
+
+	(rasqal_random_seed): Renamed from rasqal_random_srand
+
+	(rasqal_random_irand): Renamed from rasqal_random_rand
+
+	(rasqal_random_drand): Added returning a double Updated callers to
+	use new names.
+
+2011-10-23  Dave Beckett <dave@dajobe.org>
+
+	* INSTALL.html, configure.ac:
+	Make random approach configurable
+
+	Added --with-random-approach=ALGO to select from the choices
+
+	It is still an error to have nothing, since rand() is always
+	available in POSIX.
+
+2011-10-19  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_random.c: RASQAL_RANDOM_STATE_SIZE
+
+	* src/rasqal_random.c: fixes for initstate_r and random_r
+
+	* src/Makefile.am, src/rasqal.h.in, src/rasqal_expr.c,
+	src/rasqal_expr_numerics.c, src/rasqal_internal.h,
+	src/rasqal_query.c, src/rasqal_random.c: Switch random to an
+	object and add tests rasqal_random: added new structure with RNG
+	state
+
+	(rasqal_random_get_system_seed): Takes a world pointer.
+
+	(rasqal_new_random): Renamed from rasqal_random_init
+
+	(rasqal_free_random): Renamed from rasqal_random_finish
+
+	(rasqal_random_rand): Document range is 0..RAND_MAX inclusive.
+
+	(rasqal_new_evaluation_context): Create RNG object.
+
+	(rasqal_evaluation_context_set_rand_seed)
+
+	(rasqal_expression_evaluate_rand, rasqal_query_prepare): Use RNG
+	object to set seed and get a number.
+
+2011-10-19  Nicholas J Humfrey <njh@aelius.com>
+
+	* src/rasqal_format_sv.c: Added W3C Format URIs for SPARQL 1.1
+	Query Results CSV and TSV Formats.
+
+	Added See Also URIs for CSV format.
+
+2011-10-18  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, src/rasqal.h.in, src/rasqal_random.c: Add support
+	for glibc random_r() and prefer re-entrant random routines
+
+	random_r() is a glibc extension
+
+	Prefer the re-entrant random number generators in order:
+	random_r(), rand_r() then the portable but not so safe: random()
+	and rand().
+
+2011-10-17  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_internal.h,
+	src/rasqal_random.c: With initstate(), save old state
+
+	rasqal_evaluation_context gains a field old_random_state
+
+	(rasqal_random_init): Altered to be an initializer
+
+	(rasqal_random_finished): Added to be a finisher
+
+	(rasqal_random_srand): Renamed from rasqal_random_init.
+
+	Updated callers
+
+2011-10-16  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, src/rasqal.h.in, src/rasqal_expr.c,
+	src/rasqal_expr_numerics.c, src/rasqal_internal.h,
+	src/rasqal_query.c, src/rasqal_random.c: Update random support to
+	enable use of BSD random() and prefer it
+
+	rasqal_evaluation_context gains a buffer for BSD random to use.
+
+	configure checks for srandom() and initstate() and if both are
+	present, prefers that over rand_r and rand for a RNG.
+
+	(rasqal_random_get_system_seed): Now takes rasqal_evaluation_context
+	arg.
+
+	(rasqal_random_init): Added to init the random state with seed.
+
+	(rasqal_random_rand): Added to get the random number from the RNG.
+
+	(rasqal_evaluation_context_set_rand_seed): Now just calls
+	rasqal_random_init().
+
+	(rasqal_expression_evaluate_rand): Now calls rasqal_random_rand().
+
+2011-10-13  Nicholas J Humfrey <njh@aelius.com>
+
+	* src/rasqal_format_json.c: Added URI for W3C Working Draft to
+	SPARQL JSON Result Format.
+
+	* src/rasqal_format_json.c, src/rasqal_format_sparql_xml.c: Added
+	W3C Format URIs to the JSON and XML SPARQL result formats.
+
+2011-10-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_regex.c: POSIX regex implementation of replace
+
+	(rasqal_regex_match): Set extended regex syntax.
+
+	(rasqal_regex_replace_posix): Rewrote based on
+	rasqal_regex_replace_pcre approach.
+
+	(rasqal_regex_replace): Add an extra outer capturing ()s for POSIX
+	regexes so that we always know what was matched.
+
+	* configure.ac: Set RASQAL_REGEX_POSIX in test not PCRE
+
+2011-10-11  Lauri Aalto <laalto@iki.fi>
+
+	* utils/roqet.c:
+	(main): Remove obsolete -w from roqet --help.
+
+	Already removed from code in
+	0df20a7c4cff1c73640b42fc8b8d5a5fa33d99ba.
+
+	Fixes Issue 0000474
+	http://bugs.librdf.org/mantis/view.php?id=474
+
+2011-10-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_regex.c: Use UTF-8 for pcre matching and set compile
+	and exec options correctly
+
+	(rasqal_regex_match, rasqal_regex_replace): Split regex compile
+	and regex exec options.  Set UTF-8 mode for compiling PCRE regexes
+	so that characters are matched not bytes.
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_replace): Copy lang and datatype to
+	result
+
+	* src/rasqal_regex.c: Implement replace all for
+	rasqal_regex_replace (PCRE)
+
+	(rasqal_regex_replace_pcre): Replaced with a looping construct
+	that replaces all matches with the replacement.
+
+	(main): Add tests for PCRE with above
+
+	* tests/algebra/convert_graph_pattern.c:
+	(file_read_string): prevent gcc stack size warning in test code
+
+	* src/sparql_parser.y:
+	(main): prevent gcc stack size warning in test code
+
+	* src/rasqal_regex.c:
+	doc comments
+
+	* src/rasqal_expr.c, src/rasqal_expr_strings.c,
+	src/rasqal_internal.h, src/rasqal_literal.c, src/rasqal_regex.c,
+	src/rasqal_variable.c: Move all regex code to rasqal_regex.c
+
+	(rasqal_regex_match): Added.
+
+	* src/rasqal_expr_strings.c, src/rasqal_internal.h,
+	src/rasqal_regex.c:
+	(rasqal_regex_replace*): Renamed to match module name
+
+	* src/rasqal_regex.c:
+	(rasqal_string_replace): reset default posix flags
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_strmatch): reset default posix flags
+
+	* src/rasqal_regex.c:
+	(rasqal_string_replace): rc is only used for posix regex
+
+	* src/Makefile.am, src/rasqal_expr_strings.c,
+	src/rasqal_internal.h, src/rasqal_regex.c: Move replace regex code
+	to new rasqal_regex.c module
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_regex_get_ref_number): Added
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_string_replace_pcre, rasqal_string_replace_posix): set
+	result_len_p
+
+	* src/rasqal_expr_strings.c:
+	Tidy rasqal_string_replace internals
+
+	(rasqal_string_replace_pcre, rasqal_string_replace_posix): Added.
+	Pulled out of rasqal_string_replace
+
+	* src/rasqal_expr_strings.c: PCRE compile fixes
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_string_replace): Added pulled out of
+	rasqal_expression_evaluate_replace()
+
+	* src/rasqal_expr_strings.c: actually set options
+
+2011-10-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_replace): Partial REPLACE implementation
+
+2011-10-04  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c, src/rasqal_internal.h,
+	src/rasqal_query_write.c, src/sparql_lexer.l, src/sparql_parser.y:
+	Add support for SPARQL 1.1 STRBEFORE, STRAFTER, REPLACE
+
+	rasqal_op gains new tokens RASQAL_EXPR_STRBEFORE,
+	RASQAL_EXPR_STRAFTER and RASQAL_EXPR_REPLACE.
+
+	Add parsing for STRBEFORE (2 args), STRAFTER (2 args) and REPLACE
+	(3 or 4 args)
+
+	(rasqal_expression_evaluate_strbefore)
+	(rasqal_expression_evaluate_strafter): Add expression evaluation
+	for RASQAL_EXPR_STRBEFORE and RASQAL_EXPR_STRAFTER.
+
+	(rasqal_expression_evaluate_replace): Add skeleton code to
+	evaluate RASQAL_EXPR_REPLACE - currently always fails.
+
+	* src/rasqal.h.in, src/rasqal_expr.c: Support builtin functions
+	with up to 4 arguments rasqal_expression gains arg4 for 4th
+	expression argument
+
+	(rasqal_new_4op_expression): Added to construct 3/4-arg
+	expressions.
+
 2011-09-13  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_literal.c, src/rasqal_xsd_datatypes.c: Clear errno
