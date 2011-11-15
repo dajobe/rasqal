@@ -592,7 +592,14 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
   if(level == RAPTOR_LOG_LEVEL_NONE)
     return;
 
-  buffer=raptor_vsnprintf(message, arguments);
+#if RAPTOR_VERSION >= 20005
+  buffer = NULL;
+  if(raptor_vasprintf(&buffer, message, arguments) < 0)
+    buffer = NULL;
+#else
+  buffer = raptor_vsnprintf(message, arguments);
+#endif
+
   if(!buffer) {
     if(locator) {
       raptor_locator_print(locator, stderr);
