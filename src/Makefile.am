@@ -141,8 +141,11 @@ endif
 if RASQAL_DIGEST_INTERNAL
 librasqal_la_SOURCES += rasqal_digest_md5.c rasqal_digest_sha1.c
 endif
+
+nodist_librasqal_la_SOURCES =
+
 if MAINTAINER_MODE
-librasqal_la_SOURCES += git-version.h
+nodist_librasqal_la_SOURCES += git-version.h
 
 # rasqal_algebra.c is the first source file so this ensures
 # git-version.h is created before it and before the actual file
