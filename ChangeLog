@@ -1,3 +1,13 @@
+2011-11-15  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am: Made git-version.h a non-distributable source
+	file.
+
+2011-11-14  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_general.c:
+	(rasqal_log_error_varargs): Use raptor_vasprintf for raptor >= 2.0.5
+
 2011-10-24  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_mt_rand.c: Remove rasqal includes
