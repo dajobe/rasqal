@@ -49,6 +49,10 @@
 #include <gmp.h>
 #endif
 #endif
+#ifdef RANDOM_ALGO_MTWIST
+#include <mtwist_config.h>
+#include <mtwist.h>
+#endif
 
 #include "rasqal.h"
 #include "rasqal_internal.h"
@@ -128,6 +132,10 @@ rasqal_new_random(rasqal_world* world)
   gmp_randinit_default(*(gmp_randstate_t*)r->data);
 #endif
 
+#ifdef RANDOM_ALGO_MTWIST
+  r->data = mtwist_new();
+#endif
+
   if(r)
     rasqal_random_seed(r, rasqal_random_get_system_seed(r->world));
 
@@ -158,6 +166,10 @@ rasqal_free_random(rasqal_random *random_object)
   if(random_object->data)
     RASQAL_FREE(gmp_randstate_t*, random_object->data);
 #endif  
+
+#ifdef RANDOM_ALGO_MTWIST
+  mtwist_free((mtwist*)random_object->data);
+#endif
 
 }
 
@@ -198,6 +210,10 @@ rasqal_random_seed(rasqal_random *random_object, unsigned int seed)
 #ifdef RANDOM_ALGO_GMP_RAND
   gmp_randseed_ui(*(gmp_randstate_t*)random_object->data, (unsigned long)seed);
 #endif  
+
+#ifdef RANDOM_ALGO_MTWIST
+  mtwist_init((mtwist*)random_object->data, (unsigned long)seed);
+#endif
 
   return rc;
 }
@@ -265,6 +281,13 @@ rasqal_random_irand(rasqal_random *random_object)
   mpz_clear(rand_max_gmp);
 #endif  
 
+#ifdef RANDOM_ALGO_MTWIST
+  /* cast from unsigned long to unsigned int but max size is RAND_MAX
+   * so it will fit
+   */
+  r = (unsigned int)mtwist_u32rand((mtwist*)random_object->data);
+#endif
+
   return r;
 }
 
@@ -299,6 +322,10 @@ rasqal_random_drand(rasqal_random *random_object)
   r = rasqal_random_irand(random_object);
 
   d = r / (double)(RAND_MAX + 1.0);
+#endif
+
+#ifdef RANDOM_ALGO_MTWIST
+  d = mtwist_drand((mtwist*)random_object->data);
 #endif
 
   return d;

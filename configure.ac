@@ -918,18 +918,26 @@ AC_MSG_RESULT($decimal_library)
 
 
 dnl Random generator
-random_approaches="random_r rand_r random rand"
-
+random_approaches="mtwist"
 if test "$have_gmp_random" = yes; then
-  random_approaches="gmp $random_approaches"
+  random_approaches="$random_approaches gmp"
 fi
+random_approaches="$random_approaches random_r rand_r random rand"
 
-AC_ARG_WITH(random-approach, [  --with-random-approach=NAME   Use random approach - random_r, rand_r, random, rand (auto)], random_with="$withval", random_with="")
+AC_ARG_WITH(random-approach, [  --with-random-approach=NAME   Use random approach - mtwist, random_r, rand_r, random, rand (auto)], random_with="$withval", random_with="")
 
 AC_MSG_CHECKING(random approach) 
 random_approach=none
+need_mtwist=no
 for random_algo in $random_with $random_approaches; do
   case $random_algo in
+    mtwist)
+      random_approach="Internal Mersenne Twister"
+      need_mtwist=yes
+      AC_DEFINE(RANDOM_ALGO_MTWIST, 1, [Use internal Mersenne Twister])
+      break
+      ;;
+      
     gmp)
       if test "$have_gmp_random" = yes; then
         random_approach="GMP gmp_randseed_ui and mpz_urandomm()"
@@ -980,6 +988,7 @@ if test "$random_approach" == none; then
 fi
 AC_MSG_RESULT($random_approach)
 
+AM_CONDITIONAL(RASQAL_MTWIST, test $need_mtwist = yes)
 
 
 

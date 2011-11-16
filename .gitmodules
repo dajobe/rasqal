@@ -1,0 +1,3 @@
+[submodule "libmtwist"]
+	path = libmtwist
+	url = git://github.com/dajobe/libmtwist.git
