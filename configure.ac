@@ -389,17 +389,21 @@ if test "X$PKG_CONFIG" = X; then
 fi
 
 AC_MSG_CHECKING(for raptor)
-
 if $PKG_CONFIG raptor2 --exists; then
   RAPTOR_VERSION=`$PKG_CONFIG raptor2 --modversion 2>/dev/null`
-  RAPTOR_VERSION_DEC=`echo $RAPTOR_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
   AC_MSG_RESULT(system $RAPTOR_VERSION)
+
+  if $PKG_CONFIG raptor2 --atleast-version=$RAPTOR_MIN_VERSION; then
+    :
+  else
+    AC_MSG_ERROR(Installed raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
+  fi
 else
   AC_MSG_RESULT(not found)
-
-  AC_MSG_ERROR(Raptor V2 is not installed - see http://librdf.org/raptor/ to get a version newer than $RAPTOR_MIN_VERSION)
+  AC_MSG_ERROR(Raptor is not installed - see http://librdf.org/raptor/ to get a version newer than $RAPTOR_MIN_VERSION)
 fi
 
+RAPTOR_VERSION_DEC=`echo $RAPTOR_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 AC_SUBST(RAPTOR_VERSION_DEC)
 AC_SUBST(RAPTOR_MIN_VERSION)
 
