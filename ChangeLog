@@ -1,4 +1,15 @@
+2011-11-16  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac:
+	Make sure raptor is new enough or fail configure
+
 2011-11-15  Dave Beckett <dave@dajobe.org>
+
+	* .gitmodules, autogen.sh, configure.ac, libmtwist,
+	src/Makefile.am, src/mtwist_config.h, src/rasqal_random.c: Add
+	libmtwist as a submodule to implement random
+
+	* RELEASE.html: 0.9.28
 
 	* src/Makefile.am: Made git-version.h a non-distributable source
 	file.
