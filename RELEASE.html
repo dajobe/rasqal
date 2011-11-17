@@ -13,25 +13,41 @@
 <p>Not yet released.
 </p>
 
+<p>Issues Fixed:</p>
+<ul>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=466">0000466</a>: zero size calloc does not return object (src/rasqal_row.c)</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=467">0000467</a>: Tests fail because diff doesn't accept -u flag</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=470">0000470</a>: snprintf portability issues</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=471">0000471</a>: Compile error when RASQAL_DEBUG set to &gt; 1</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=474">0000474</a>: roqet flags listed in help, but not recognised</li>
+</ul>
+
+
 <h3>Query engine changes</h3>
 
-<p>Random (psuedo random) number generation now can use a variety of
-library random routines.  The choice can be made with
-<code>configure --with-random-approach=ALGO</code>
-to pick from <code>random_r()</code>, <code>rand_r()</code> then the
-portable but not so safe: <code>random()</code> and
-<code>rand()</code>.
-</p>
+<p>Add parsing and evaluation support for SPARQL 1.1 STRBEFORE (2
+args), STRAFTER (2 args) and REPLACE (3 or 4 args).
+The evaluation of REPLACE currently fully works for PCRE regex with
+Unicode and works for POSIX regex without Unicode.</p>
 
 <p>Clear errno before calling <code>strtol()</code> and checking the
 result.  This caused issues when used in threaded applications, even
 though Rasqal is not thread-safe.
 </p>
 
-<p>Add parsing and evaluation support for SPARQL 1.1 STRBEFORE (2
-args), STRAFTER (2 args) and REPLACE (3 or 4 args).
-The evaluation of REPLACE currently fully works for PCRE regex with
-Unicode and works for POSIX regex without Unicode.</p>
+<p>Random (psuedo random) number generation now can use a variety of
+library random routines, defaulting to a new internal Mersenne
+Twister implementation..  The choice can be made with
+<code>configure --with-random-approach=ALGO</code>
+to pick from <code>mtwist</code> (the
+default), <code>gmp</code> (when GMP is available and used for decimals),
+<code>random_r()</code>, <code>rand_r()</code> then the
+portable but not so safe: <code>random()</code> and
+<code>rand()</code>.
+</p>
+
+
+<h3>Expression class changes</h3>
 
 <p>rasqal_op gains new tokens
 <code>RASQAL_EXPR_STRBEFORE</code>,
@@ -43,52 +59,49 @@ Unicode and works for POSIX regex without Unicode.</p>
 expressions.
 </p>
 
+
 <h3>Query language changes</h3>
 
-<p>The language 'sparql' is now SPARQL 1.1
+<p>The language name '<code>sparql</code>' is now SPARQL 1.1
 </p>
 
-<p>Add support for SPARQL 1.1 STRBEFORE, STRAFTER and REPLACE.</p>
+<p>Added support for SPARQL 1.1 string functions
+<code>STRBEFORE()</code>, <code>STRAFTER()</code>
+and <code>REPLACE()</code>.</p>
 
 
-<h3>Query format and result format changes</h3>
+<h3>Query format and query result format changes</h3>
 
 <p>Added the W3C Format URIs to the JSON, XML, CSV and TSV SPARQL
 result formats.  (Nicholas J Humfrey)
 </p>
 
-<p>Correct the SPARQL query output of LIMIT, OFFSET</p>
+<p>Corrected the SPARQL query output for LIMIT and OFFSET</p>
 
 <p>Handle <code>&lt;literal&gt;&lt;/literal&gt;</code> as
 empty literal in reading XML query results.</p>
 
 
-<h3>Build and configure changes</h3>
+<h3>Other changes</h3>
 
 <p>Use a more comprehensive <code>configure</code> build and run test
 for ceil(), floor() and round() to prevent GCC optimizing it away and
 getting the wrong answer when checking whether to link with -lm
 </p>
 
-
-<h3>Other changes</h3>
-
-<p>Remove obsolete -w from <code>roqet --help</code> which was
-removed from code some time ago.
+<p>Removed the obsolete -w option from the <code>roqet --help</code>
+message which was removed from code some time ago.
 Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=474">Issue 0000474</a>.
 </p>
 
-<p>Prevent gcc stack size warning in a few tests.
+<p>Prevent a gcc 4K stack size warning in a few tests.
 </p>
 
-<p>Reorganized regex code to a new regex module, adding the new
-function for search and replace.
-</p>
+<p>Reorganized the regex code to a new regex module, adding the new
+function <code>rasqal_regex_replace()</code> for regex search and
+replace (all) backing SPARQL 1.1 <code>REPLACE()</code></p>
 
-<p>Added internal <code>rasqal_regex_replace()</code> for regex
-search and replace (all)</p>
-
-<p>Several internal fixes for compiling with RASQAL_DEBUG > 1
+<p>Several internal fixes for compiling with RASQAL_DEBUG &gt; 1
 (Lauri Aalto)
 Fixes
 <a href="http://bugs.librdf.org/mantis/view.php?id=471">Issue #0000471</a>
@@ -99,22 +112,24 @@ Fixes
 formatting.
 </p>
 
-<p>check-sparql now sets the DIFF envariable for check tests to
-allow use off GNU Diff.
+<p>The check-sparql utility used during 'make check' now sets the
+DIFF envariable for check tests to allow use off GNU Diff.
 Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=467">Issue #0000467</a>
 (Peter O'Gorman / pogma)
 </p>
 
-<p>Code style changes for calling calloc.</p>
+<p>Code style changes for calling calloc().</p>
 
-<p>Do not calloc with 0 count for a result row - not portable.
+<p>Do not calloc() with 0 count for a result row - not portable.
 Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=466">Issue #0000466</a>
 (Peter O'Gorman / pogma)
 </p>
 
-<p>check_query utility can handle more query results comparisons when
-sorting is involved.
+<p>The check_query utility (still not complete) can handle more query
+results comparisons when sorting is involved.
 </p>
+
+
 
 <h2 id="rel0_9_27"><a name="rel0_9_27">Rasqal 0.9.27 changes</a></h2>
 

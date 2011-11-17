@@ -56,10 +56,11 @@
 #ifndef STANDALONE
 
 
-/**
- * rasqal_regex_replace:
+/*
+ * rasqal_regex_match:
  * @world: world
  * @locator: locator
+ * @pattern: regex pattern
  * @regex_flags: regex flags string
  * @subject: input string
  * @subject_len: input string length
@@ -663,7 +664,7 @@ rasqal_regex_replace_posix(rasqal_world* world, raptor_locator* locator,
 
 
 
-/**
+/*
  * rasqal_regex_replace:
  * @world: world
  * @locator: locator
