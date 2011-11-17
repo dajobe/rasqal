@@ -18,6 +18,11 @@ rasqal_version_decimal
 rasqal_version_major
 rasqal_version_minor
 rasqal_version_release
+rasqal_version_string
+rasqal_copyright_string
+rasqal_short_copyright_string
+rasqal_home_url_string
+rasqal_license_string
 rasqal_feature
 rasqal_language_name_check
 rasqal_languages_enumerate
@@ -60,6 +65,7 @@ rasqal_new_0op_expression
 rasqal_new_1op_expression
 rasqal_new_2op_expression
 rasqal_new_3op_expression
+rasqal_new_4op_expression
 rasqal_new_aggregate_function_expression
 rasqal_new_cast_expression
 rasqal_new_function_expression
@@ -268,6 +274,12 @@ rasqal_query_results_formatter_write
 </SECTION>
 
 <SECTION>
+<FILE>section-random</FILE>
+RASQAL_RANDOM_STATE_SIZE
+rasqal_random
+</SECTION>
+
+<SECTION>
 <FILE>section-row</FILE>
 rasqal_row
 rasqal_new_row_for_size
@@ -392,6 +404,7 @@ rasqal_xsd_decimal_subtract
 <SECTION>
 <FILE>section-unused</FILE>
 RASQAL_API
+RASQAL_LITERAL_UDT_DEFINED
 RASQAL_QUERY_RESULTS_FORMATTER_DECLARED
 RASQAL_WORLD_DECLARED
 bind_match
@@ -401,7 +414,6 @@ init_triples_match
 is_end
 next_match
 rasqal_expression_s
-triple_present
-RASQAL_LITERAL_UDT_DEFINED
 support_feature
+triple_present
 </SECTION>

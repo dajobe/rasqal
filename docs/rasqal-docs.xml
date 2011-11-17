@@ -86,6 +86,7 @@ execution plans and execute the queries into query result sets.
     <xi:include href="xml/section-query.xml"/>
     <xi:include href="xml/section-query_results.xml"/>
     <xi:include href="xml/section-query_results_formatter.xml"/>
+    <xi:include href="xml/section-random.xml"/>
     <xi:include href="xml/section-row.xml"/>
     <xi:include href="xml/section-service.xml"/>
     <xi:include href="xml/section-triple.xml"/>

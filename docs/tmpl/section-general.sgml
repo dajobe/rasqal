@@ -185,6 +185,36 @@ their names, labels and URI.
 </para>
 
 
+<!-- ##### VARIABLE rasqal_version_string ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### VARIABLE rasqal_copyright_string ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### VARIABLE rasqal_short_copyright_string ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### VARIABLE rasqal_home_url_string ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### VARIABLE rasqal_license_string ##### -->
+<para>
+
+</para>
+
+
 <!-- ##### ENUM rasqal_feature ##### -->
 <para>
 

@@ -1,0 +1,39 @@
+<!-- ##### SECTION Title ##### -->
+section-random
+
+<!-- ##### SECTION Short_Description ##### -->
+Random PRNG
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+Random PRNG
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO RASQAL_RANDOM_STATE_SIZE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT rasqal_random ##### -->
+<para>
+
+</para>
+
+@world: 
+@seed: 
+@state: 
+@data: 
+

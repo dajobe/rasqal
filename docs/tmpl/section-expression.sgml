@@ -212,6 +212,20 @@ constants and #rasqal_variable values bound in some
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_new_4op_expression ##### -->
+<para>
+
+</para>
+
+@world: 
+@op: 
+@arg1: 
+@arg2: 
+@arg3: 
+@arg4: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_new_aggregate_function_expression ##### -->
 <para>
 

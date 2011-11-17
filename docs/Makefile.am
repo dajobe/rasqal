@@ -47,6 +47,7 @@ strcasecmp.c \
 rasqal_internal.h \
 rasqal_graph.c
 
+
 # Use fixed version of rasqal.h
 EXTRA_HFILES=$(srcdir)/rasqal-fake.h
 
@@ -63,7 +64,8 @@ IGNORE_HFILES= \
 	sparql_common.h \
 	sparql_lexer.h \
 	sparql_parser.h \
-	win32_rasqal_config.h
+	win32_rasqal_config.h \
+	mtwist_config,h
 
 # CFLAGS and LDFLAGS for compiling scan program. Only needed
 # if $(DOC_MODULE).types is non-empty.

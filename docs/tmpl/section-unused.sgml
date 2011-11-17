@@ -27,6 +27,13 @@ Not used
 
 
 
+<!-- ##### MACRO RASQAL_LITERAL_UDT_DEFINED ##### -->
+<para>
+
+</para>
+
+
+
 <!-- ##### MACRO RASQAL_QUERY_RESULTS_FORMATTER_DECLARED ##### -->
 <para>
 
@@ -108,6 +115,16 @@ Not used
 </para>
 
 
+<!-- ##### USER_FUNCTION support_feature ##### -->
+<para>
+
+</para>
+
+@user_data: 
+@feature: 
+@Returns: 
+
+
 <!-- ##### USER_FUNCTION triple_present ##### -->
 <para>
 
@@ -116,23 +133,6 @@ Not used
 @rts: 
 @user_data: 
 @t: 
-@Returns: 
-
-
-<!-- ##### MACRO RASQAL_LITERAL_UDT_DEFINED ##### -->
-<para>
-
-</para>
-
-
-
-<!-- ##### USER_FUNCTION support_feature ##### -->
-<para>
-
-</para>
-
-@user_data: 
-@feature: 
 @Returns: 
 
 
