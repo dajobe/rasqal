@@ -171,6 +171,7 @@ rasqal_free_random(rasqal_random *random_object)
   mtwist_free((mtwist*)random_object->data);
 #endif
 
+  RASQAL_FREE(rasqsal_random*, random_object);
 }
 
 
