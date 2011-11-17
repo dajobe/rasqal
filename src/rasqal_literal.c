@@ -30,6 +30,9 @@
 #include <win32_rasqal_config.h>
 #endif
 
+/* for strtof() and round() prototypes */
+#define _ISOC99_SOURCE 1
+
 #include <stdio.h>
 #include <string.h>
 #ifdef HAVE_STRINGS_H

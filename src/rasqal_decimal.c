@@ -29,6 +29,9 @@
 #include <win32_rasqal_config.h>
 #endif
 
+/* for round() prototype */
+#define _ISOC99_SOURCE 1
+
 #include <stdio.h>
 #include <string.h>
 #ifdef HAVE_STDLIB_H
