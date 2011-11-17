@@ -77,7 +77,7 @@ and x86 OSX but is also tested on other systems occasionally.
 <p><b>Required</b> (Rasqal will not build without these):</p>
 <ul>
 <li>The <a href="http://librdf.org/raptor/">Raptor RDF Syntax Library</a>
-version 2.0.0 or later for parsing RDF, retrieving WWW content from
+version 2.0.4 or later for parsing RDF, retrieving WWW content from
 URIs and other utility classes.
 </li>
 </ul>
@@ -105,7 +105,7 @@ matches or decimal arithmetic accurately.
 <p>If there is a <code>configure</code> program, skip to the next
 section.</p>
 
-<p>If there is no <tt>configure</tt> program, you can create it 
+<p>If there is no <tt>configure</tt> program, you should create it 
 using the <tt>autogen.sh</tt> script, as long as you have the
 <a href="http://www.gnu.org/software/automake/automake.html">automake</a> and
 <a href="http://www.gnu.org/software/autoconf/autoconf.html">autoconf</a>
@@ -129,10 +129,16 @@ OSX <code>libtoolize</code> is a different program:</p>
 </pre>
 </blockquote>
 
-<p>Alternatively you can run them by hand with:</p>
+<p>autogen.sh also checks out the libmtwist GIT submodule and/or
+updates it with the latest sources.</p>
+
+<p>Alternatively you can run them by hand (<b>not recommended</b>) with:</p>
 <pre>
   aclocal; autoheader; automake --add-missing; autoconf
 </pre>
+<p><b>however</b> this will not do any of the GIT submodule checkout
+or updates that are needed for libmtwist.
+</p>
 
 <p>The automake and autoconf tools have many different versions and
 at present development is being done with automake 1.11.1 (minimum
