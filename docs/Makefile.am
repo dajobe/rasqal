@@ -34,7 +34,7 @@ SCAN_OPTIONS=
 DOC_SOURCE_DIR=../src
 
 # Used for dependencies
-HFILE_GLOB=$(srcdir)/rasqal-fake.i
+HFILE_GLOB=$(srcdir)/rasqal-fake.h
 CFILE_GLOB=$(top_srcdir)/src/rasqal_*.c
 
 IGNORE_CFILES= \
@@ -48,10 +48,10 @@ rasqal_internal.h \
 rasqal_graph.c
 
 # Use fixed version of rasqal.h
-EXTRA_HFILES=$(srcdir)/rasqal-fake.i
+EXTRA_HFILES=$(srcdir)/rasqal-fake.h
 
 # Headers to ignore: yes rasqal.h is intended to be in this list
-# since it is added as a fixed file rasqal-fake.i by EXTRA_HFILES above
+# since it is added as a fixed file rasqal-fake.h by EXTRA_HFILES above
 IGNORE_HFILES= \
 	rasqal.h \
 	rasqal_config.h \
@@ -100,7 +100,7 @@ version.xml.in \
 rasqal-changes.tsv
 
 DISTCLEANFILES += \
-rasqal-fake.i
+rasqal-fake.h
 
 # Create some text files from HTML sources
 LYNX=lynx
@@ -123,7 +123,7 @@ $(top_builddir)/src/rasqal.h:
 README: README.html
 	$(LYNX) $(LYNXARGS) $< > $@
 
-rasqal-fake.i: $(top_srcdir)/src/rasqal.h $(srcdir)/../scripts/fix-gtkdoc-header.pl
+rasqal-fake.h: $(top_srcdir)/src/rasqal.h $(srcdir)/../scripts/fix-gtkdoc-header.pl
 	$(PERL) $(srcdir)/../scripts/fix-gtkdoc-header.pl < $< > $@
 
 rasqal-changes.xml: $(srcdir)/rasqal-changes.tsv $(srcdir)/../scripts/process-changes.pl
