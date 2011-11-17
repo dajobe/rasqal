@@ -194,9 +194,11 @@ memory was allocated in the same library.</p></dd>
 
 <dt><code>--with-random-approach=</code>ALGO<br /></dt>
 <dd><p>Pick the random number generator approach to use from the
-choices of <tt>random_r</tt> (glibc initstate_r and
-random_r), <tt>rand_r</tt> (POSIX rand_r), <tt>random</tt> (BSD
-initstate and random) and <tt>rand</tt> (POSIX srand and rand).
+choices of <tt>mtwist</tt> (the default), <tt>gmp</tt> (when GMP is
+available and used for decimals), <tt>random_r</tt> (glibc
+initstate_r and random_r), <tt>rand_r</tt> (POSIX
+rand_r), <tt>random</tt> (BSD initstate and random) and <tt>rand</tt>
+(POSIX srand and rand).
 </p>
 </dd>
 
