@@ -2387,7 +2387,8 @@ rasqal_free_evaluation_context(rasqal_evaluation_context* eval_context)
   if(eval_context->base_uri)
     raptor_free_uri(eval_context->base_uri);
 
-  rasqal_free_random(eval_context->random);
+  if(eval_context->random)
+    rasqal_free_random(eval_context->random);
 
   RASQAL_FREE(rasqal_evaluation_context*, eval_context);
 }
