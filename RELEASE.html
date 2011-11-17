@@ -10,9 +10,6 @@
 
 <h2 id="rel0_9_28"><a name="rel0_9_28">Rasqal 0.9.28 changes</a></h2>
 
-<p>Not yet released.
-</p>
-
 <p>Issues Fixed:</p>
 <ul>
   <li><a href="http://bugs.librdf.org/mantis/view.php?id=466">0000466</a>: zero size calloc does not return object (src/rasqal_row.c)</li>
@@ -23,36 +20,49 @@
 </ul>
 
 
-<h3>Query engine changes</h3>
+<h3>SPARQL changes</h3>
 
-<p>Add parsing and evaluation support for SPARQL 1.1 STRBEFORE (2
-args), STRAFTER (2 args) and REPLACE (3 or 4 args).
-The evaluation of REPLACE currently fully works for PCRE regex with
-Unicode and works for POSIX regex without Unicode.</p>
-
-<p>Clear errno before calling <code>strtol()</code> and checking the
-result.  This caused issues when used in threaded applications, even
-though Rasqal is not thread-safe.
+<p>The language name '<code>sparql</code>' is now SPARQL 1.1
 </p>
 
-<p>Random (psuedo random) number generation now can use a variety of
-library random routines, defaulting to a new internal Mersenne
-Twister implementation..  The choice can be made with
-<code>configure --with-random-approach=ALGO</code>
-to pick from <code>mtwist</code> (the
-default), <code>gmp</code> (when GMP is available and used for decimals),
-<code>random_r()</code>, <code>rand_r()</code> then the
-portable but not so safe: <code>random()</code> and
-<code>rand()</code>.
+<p>Added support for SPARQL 1.1 draft string functions
+<code>STRBEFORE()</code>, <code>STRAFTER()</code>
+and <code>REPLACE()</code>.
+</p>
+
+
+<h3>Query engine changes</h3>
+
+<p>Add parsing and evaluation support for SPARQL 1.1 draft STRBEFORE
+(2 args), STRAFTER (2 args) and REPLACE (3 or 4 args).  The
+evaluation of REPLACE currently fully works for PCRE regex with
+Unicode and works for POSIX regex without Unicode.</p>
+
+<p>Clear <code>errno</code> before calling <code>strtol()</code> and
+checking the result.  This caused issues when used in threaded
+applications, even though Rasqal is not thread-safe.
+</p>
+
+<p>The (psuedo) random number generation now can use a variety of
+library random routines, defaulting to a new internal
+<a href="https://github.com/dajobe/libmtwist">Mersenne Twister implementation - libmtwist</a>.
+The choice of PRNG can be made with
+<code>configure --with-random-approach=ALGO</code> to pick from
+<code>mtwist</code> (the default), <code>gmp</code> (when GMP is
+available and used for decimals), <code>random_r()</code>,
+<code>rand_r()</code> then the portable but not so safe:
+<code>random()</code> and <code>rand()</code>.
 </p>
 
 
 <h3>Expression class changes</h3>
 
-<p>rasqal_op gains new tokens
+<p>Enum <code>rasqal_op</code> gains new tokens
 <code>RASQAL_EXPR_STRBEFORE</code>,
 <code>RASQAL_EXPR_STRAFTER</code> and
-<code>RASQAL_EXPR_REPLACE</code>.
+<code>RASQAL_EXPR_REPLACE</code> for the new SPARQL 1.1 string expressions.
+<code>STRBEFORE()</code>, <code>STRAFTER()</code>
+and <code>REPLACE()</code> respectively.
 </p>
 
 <p>Added <code>rasqal_new_4op_expression()</code> to construct 3/4-arg
@@ -60,33 +70,24 @@ expressions.
 </p>
 
 
-<h3>Query language changes</h3>
-
-<p>The language name '<code>sparql</code>' is now SPARQL 1.1
-</p>
-
-<p>Added support for SPARQL 1.1 string functions
-<code>STRBEFORE()</code>, <code>STRAFTER()</code>
-and <code>REPLACE()</code>.</p>
-
-
 <h3>Query format and query result format changes</h3>
 
-<p>Added the W3C Format URIs to the JSON, XML, CSV and TSV SPARQL
-result formats.  (Nicholas J Humfrey)
+<p>Added the
+<a href="http://www.w3.org/ns/formats/">W3C Format URIs</a>
+to the JSON, XML, CSV and TSV SPARQL result formats.  (Nicholas J Humfrey)
 </p>
 
 <p>Corrected the SPARQL query output for LIMIT and OFFSET</p>
 
 <p>Handle <code>&lt;literal&gt;&lt;/literal&gt;</code> as
-empty literal in reading XML query results.</p>
-
+empty literal when reading in XML query results.</p>
 
 <h3>Other changes</h3>
 
 <p>Use a more comprehensive <code>configure</code> build and run test
-for ceil(), floor() and round() to prevent GCC optimizing it away and
-getting the wrong answer when checking whether to link with -lm
+for <code>ceil()</code>, <code>floor()</code> and
+<code>round()</code> to prevent GCC optimizing it away and getting
+the wrong answer when checking whether to link with -lm
 </p>
 
 <p>Removed the obsolete -w option from the <code>roqet --help</code>
@@ -108,8 +109,8 @@ Fixes
 </p>
 
 
-<p>Remove several internal uses of snprintf() for simple integer
-formatting.
+<p>Remove several internal uses of <code>snprintf()</code> for simple
+integer formatting.
 </p>
 
 <p>The check-sparql utility used during 'make check' now sets the
@@ -118,15 +119,15 @@ Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=467">Issue #0000467</a>
 (Peter O'Gorman / pogma)
 </p>
 
-<p>Code style changes for calling calloc().</p>
+<p>Code style changes for calling <code>calloc()</code>.</p>
 
-<p>Do not calloc() with 0 count for a result row - not portable.
+<p>Do not <code>calloc()</code> with 0 count for a result row - not portable.
 Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=466">Issue #0000466</a>
 (Peter O'Gorman / pogma)
 </p>
 
-<p>The check_query utility (still not complete) can handle more query
-results comparisons when sorting is involved.
+<p>The <code>check_query</code> utility (which is still not complete)
+can now handle comparing query results when sorting is involved.
 </p>
 
 
