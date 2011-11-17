@@ -397,7 +397,7 @@ rasqal_xsd_format_double(double d, size_t *len_p)
     } else {
       /* copy the exponent (minus leading zeros) after the new E */
       memmove(buf + trailing_zero_start + 1, buf + exponent_start,
-              len - trailing_zero_start);
+              len - exponent_start);
       len = strlen((const char*)buf);
     }
   }
