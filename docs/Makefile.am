@@ -65,7 +65,7 @@ IGNORE_HFILES= \
 	sparql_lexer.h \
 	sparql_parser.h \
 	win32_rasqal_config.h \
-	mtwist_config,h
+	mtwist_config.h
 
 # CFLAGS and LDFLAGS for compiling scan program. Only needed
 # if $(DOC_MODULE).types is non-empty.

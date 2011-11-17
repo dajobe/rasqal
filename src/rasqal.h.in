@@ -1461,7 +1461,13 @@ typedef enum {
 } rasqal_compare_flags;
 
 
+/**
+ * rasqal_random:
+ *
+ * Internal
+ */
 typedef struct rasqal_random_s rasqal_random;
+
 
 /**
  * rasqal_evaluation_context:

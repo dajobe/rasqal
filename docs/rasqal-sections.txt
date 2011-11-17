@@ -274,11 +274,6 @@ rasqal_query_results_formatter_write
 </SECTION>
 
 <SECTION>
-<FILE>section-random</FILE>
-rasqal_random
-</SECTION>
-
-<SECTION>
 <FILE>section-row</FILE>
 rasqal_row
 rasqal_new_row_for_size
@@ -413,6 +408,7 @@ init_triples_match
 is_end
 next_match
 rasqal_expression_s
+rasqal_random
 support_feature
 triple_present
 </SECTION>

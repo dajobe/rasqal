@@ -108,7 +108,6 @@
 0.9.24	enum	-	-	0.9.25	enum	RASQAL_EXPR_FLOOR	-	Expression for SPARQL 1.1 FLOOR(numeric)
 0.9.24	enum	-	-	0.9.25	enum	RASQAL_EXPR_RAND	-	Expression for SPARQL 1.1 RAND()
 0.9.24	enum	-	-	0.9.25	enum	RASQAL_EXPR_TZ	-	Expression for SPARQL 1.1 TZ(datetime) timezone accessor
-0.9.24	enum	-	-	0.9.25	enum	RASQAL_FEATURE_RAND_SEED	-	Feature to set query random seed for SPARQL 1.1 RAND()
 0.9.24	-	-	-	0.9.25	char*	rasqal_xsd_datetime_get_tz_as_counted_string	(rasqal_xsd_datetime* dt, size_t *len_p)	-
 0.9.24	-	-	-	0.9.25	int	rasqal_xsd_decimal_abs	(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)	-
 0.9.24	-	-	-	0.9.25	int	rasqal_xsd_decimal_round	(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)	-

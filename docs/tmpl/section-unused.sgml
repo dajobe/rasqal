@@ -1,12 +1,12 @@
 <!-- ##### SECTION Title ##### -->
-Unused items
+section-unused
 
 <!-- ##### SECTION Short_Description ##### -->
-Not used
+Unused
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
-
+Unused
 </para>
 
 <!-- ##### SECTION See_Also ##### -->
@@ -110,6 +110,12 @@ Not used
 
 
 <!-- ##### STRUCT rasqal_expression_s ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### TYPEDEF rasqal_random ##### -->
 <para>
 
 </para>
