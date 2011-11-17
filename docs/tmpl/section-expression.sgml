@@ -47,6 +47,7 @@ constants and #rasqal_variable values bound in some
 @locator: 
 @flags: 
 @seed: 
+@random: 
 
 <!-- ##### ENUM rasqal_op ##### -->
 <para>
@@ -141,6 +142,9 @@ constants and #rasqal_variable values bound in some
 @RASQAL_EXPR_SHA256: 
 @RASQAL_EXPR_SHA384: 
 @RASQAL_EXPR_SHA512: 
+@RASQAL_EXPR_STRBEFORE: 
+@RASQAL_EXPR_STRAFTER: 
+@RASQAL_EXPR_REPLACE: 
 @RASQAL_EXPR_LAST: 
 
 <!-- ##### ENUM rasqal_compare_flags ##### -->
