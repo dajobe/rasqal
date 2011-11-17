@@ -1461,35 +1461,7 @@ typedef enum {
 } rasqal_compare_flags;
 
 
-/**
- * RASQAL_RANDOM_STATE_SIZE:
- *
- * Size of BSD random state
- * 
- * "With 256 bytes of state information, the period of the random
- * number generator is greater than 2**69 , which should be
- * sufficient for most purposes." - BSD random(3) man page
- */
-#define RASQAL_RANDOM_STATE_SIZE 256
-
-
-/**
- * rasqal_random:
- * @world: world object
- * @seed: used for rand_r() (if available) or srand()
- * @state: used for BSD initstate(), setstate() and random() (if available)
- * @data: internal to random algorithm
- *
- * A class providing a random number generator
- *
- */
-typedef struct {
-  rasqal_world* world;
-  unsigned int seed;
-  char state[RASQAL_RANDOM_STATE_SIZE];
-  void* data;
-} rasqal_random;
-
+typedef struct rasqal_random_s rasqal_random;
 
 /**
  * rasqal_evaluation_context:

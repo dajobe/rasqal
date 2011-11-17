@@ -20,13 +20,6 @@ Random PRNG
 <!-- ##### SECTION Image ##### -->
 
 
-<!-- ##### MACRO RASQAL_RANDOM_STATE_SIZE ##### -->
-<para>
-
-</para>
-
-
-
 <!-- ##### STRUCT rasqal_random ##### -->
 <para>
 

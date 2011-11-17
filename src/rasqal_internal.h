@@ -1752,6 +1752,35 @@ void rasqal_free_solution_modifier(rasqal_solution_modifier* sm);
 int rasqal_triples_sequence_set_origin(raptor_sequence* dest_seq, raptor_sequence* src_seq, rasqal_literal* origin);
 
 /* rasqal_random.c */
+/**
+ * RASQAL_RANDOM_STATE_SIZE:
+ *
+ * Size of BSD random state
+ * 
+ * "With 256 bytes of state information, the period of the random
+ * number generator is greater than 2**69 , which should be
+ * sufficient for most purposes." - BSD random(3) man page
+ */
+#define RASQAL_RANDOM_STATE_SIZE 256
+
+
+/**
+ * rasqal_random:
+ * @world: world object
+ * @seed: used for rand_r() (if available) or srand()
+ * @state: used for BSD initstate(), setstate() and random() (if available)
+ * @data: internal to random algorithm
+ *
+ * A class providing a random number generator
+ *
+ */
+struct rasqal_random_s {
+  rasqal_world* world;
+  unsigned int seed;
+  char state[RASQAL_RANDOM_STATE_SIZE];
+  void* data;
+};
+
 unsigned int rasqal_random_get_system_seed(rasqal_world *world);
 rasqal_random* rasqal_new_random(rasqal_world *world);
 void rasqal_free_random(rasqal_random *random_object);
