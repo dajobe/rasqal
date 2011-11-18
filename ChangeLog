@@ -1,3 +1,7 @@
+2011-11-17  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_28 for 0.9.28 release (GIT 6618f96e1be4693f1f73be138dd94c46ecc98376)
+
 2011-11-16  Dave Beckett <dave@dajobe.org>
 
 	* configure.ac:
