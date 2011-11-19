@@ -140,7 +140,7 @@ extern const char * const rasqal_copyright_string;
 /**
  * rasqal_version_string:
  *
- * Raptor version as a string.
+ * Rasqal version as a string.
  */
 RASQAL_API
 extern const char * const rasqal_version_string;
@@ -148,7 +148,7 @@ extern const char * const rasqal_version_string;
 /**
  * rasqal_version_major:
  *
- * Raptor major version number.
+ * Rasqal major version number.
  */
 RASQAL_API
 extern const unsigned int rasqal_version_major;
@@ -156,7 +156,7 @@ extern const unsigned int rasqal_version_major;
 /**
  * rasqal_version_minor:
  *
- * Raptor minor version number.
+ * Rasqal minor version number.
  */
 RASQAL_API
 extern const unsigned int rasqal_version_minor;
@@ -164,7 +164,7 @@ extern const unsigned int rasqal_version_minor;
 /**
  * rasqal_version_release:
  *
- * Raptor release version number.
+ * Rasqal release version number.
  */
 RASQAL_API
 extern const unsigned int rasqal_version_release;
@@ -172,7 +172,7 @@ extern const unsigned int rasqal_version_release;
 /**
  * rasqal_version_decimal:
  *
- * Raptor version as a decimal number.
+ * Rasqal version as a decimal number.
  *
  * Format: major * 10000 + minor * 100 + release
  */
@@ -182,7 +182,7 @@ extern const unsigned int rasqal_version_decimal;
 /**
  * rasqal_license_string:
  *
- * Raptor license string.
+ * Rasqal license string.
  */
 RASQAL_API
 extern const char * const rasqal_license_string;
@@ -190,7 +190,7 @@ extern const char * const rasqal_license_string;
 /**
  * rasqal_home_url_string:
  *
- * Raptor home page URL.
+ * Rasqal home page URL.
  */
 RASQAL_API
 extern const char * const rasqal_home_url_string;
