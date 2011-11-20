@@ -76,7 +76,7 @@ FLEX_REC_VERSION=2.5.33
 if test "$USE_MAINTAINER_MODE" = yes; then
   AC_MSG_CHECKING(flex version)
   if test "X$LEX" != "X:"; then
-    FLEX_VERSION=`$LEX -V 2>&1 | awk '{print $NF}'`
+    FLEX_VERSION=`$LEX -V 2>&1 | $AWK '{print $NF}'`
     FLEX_VERSION_DEC=`echo $FLEX_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 
     FLEX_MIN_VERSION_DEC=`echo $FLEX_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
@@ -115,6 +115,7 @@ changequote([, ])dnl
 fi
 
 
+AC_CHECK_PROGS(AWK, awk gawk nawk)
 # Find a tar command for 'make dist'
 AC_CHECK_PROGS(TAR, gnutar gtar tar)
 AC_CHECK_PROGS(PERL, perl)
@@ -656,8 +657,8 @@ if test "x$enable_xml2" != "xno" ; then
     LIBS="$LIBS `$XML_CONFIG --libs`"
     CPPFLAGS="`$XML_CONFIG --cflags` $CPPFLAGS"
     LIBXML_VERSION=`$XML_CONFIG --version`
-    libxml_version_dec=`echo $LIBXML_VERSION | awk -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
-    LIBXML_MIN_VERSION_dec=`echo $LIBXML_MIN_VERSION | awk -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+    libxml_version_dec=`echo $LIBXML_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+    LIBXML_MIN_VERSION_dec=`echo $LIBXML_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
     AC_MSG_RESULT(yes - version $LIBXML_VERSION)
     if test $libxml_version_dec -lt $LIBXML_MIN_VERSION_dec; then
        AC_MSG_WARN(Using libxml $LIBXML_VERSION is unsupported - $LIBXML_MIN_VERSION or newer required.)
