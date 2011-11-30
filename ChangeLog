@@ -1,6 +1,18 @@
-2011-11-17  Dave Beckett  <dave@dajobe.org>
+2011-11-20  Dave Beckett <dave@dajobe.org>
 
-	* Snapshotted rasqal_0_9_28 for 0.9.28 release (GIT 6618f96e1be4693f1f73be138dd94c46ecc98376)
+	* configure.ac: search for AWK and use it
+
+2011-11-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in: this is rasqal
+
+2011-11-17  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, RELEASE.html, configure.ac:
+	Bumped version to 0.9.29
+
+	* Snapshotted rasqal_0_9_28 for 0.9.28 release (GIT
+	6618f96e1be4693f1f73be138dd94c46ecc98376)
 
 2011-11-16  Dave Beckett <dave@dajobe.org>
 
