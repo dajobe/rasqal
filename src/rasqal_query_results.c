@@ -142,11 +142,6 @@ struct rasqal_query_results_s {
   /* constructed triple result - shared and updated for each triple */
   raptor_statement result_triple;
 
-  /* triple used to store references to literals for triple subject,
-   * predicate, object.  never returned or used otherwise.
-   */
-  rasqal_triple* triple;
-  
   /* sequence of stored results */
   raptor_sequence* results_sequence;
 
@@ -221,7 +216,6 @@ rasqal_new_query_results(rasqal_world* world,
   /* initialize static query_results->result_triple */
   raptor_statement_init(&query_results->result_triple, world->raptor_world_ptr);
 
-  query_results->triple = NULL;
   query_results->results_sequence = NULL;
   query_results->size = 0;
   query_results->vars_table = rasqal_new_variables_table_from_variables_table(vars_table);
@@ -344,9 +338,6 @@ rasqal_free_query_results(rasqal_query_results* query_results)
 
   /* free terms owned by static query_results->result_triple */
   raptor_free_statement(&query_results->result_triple);
-
-  if(query_results->triple)
-    rasqal_free_triple(query_results->triple);
 
   if(query_results->vars_table)
     rasqal_free_variables_table(query_results->vars_table);
@@ -1075,6 +1066,91 @@ rasqal_prefix_id(int prefix_id, unsigned char *string)
 }
 
 
+static raptor_term*
+rasqal_literal_to_result_term(rasqal_query_results* query_results,
+                              rasqal_literal* l)
+{
+  rasqal_literal* nodel;
+  raptor_term* t = NULL;
+  unsigned char *nodeid;
+  
+  nodel = rasqal_literal_as_node(l);
+  if(!nodel)
+    return NULL;
+
+  switch(nodel->type) {
+    case RASQAL_LITERAL_URI:
+      t = raptor_new_term_from_uri(query_results->world->raptor_world_ptr,
+                                   nodel->value.uri);
+      break;
+      
+    case RASQAL_LITERAL_BLANK:
+      if(l->type == RASQAL_LITERAL_BLANK) {
+        /* original was a genuine blank node not a variable with a
+         * blank node value so make a new one every result, not every triple
+         */
+        nodeid = rasqal_prefix_id(query_results->result_count,
+                                  (unsigned char*)nodel->string);
+      } else {
+        nodeid = RASQAL_MALLOC(unsigned char*, nodel->string_len + 1);
+        if(nodeid)
+          memcpy(nodeid, nodel->string, nodel->string_len + 1);
+      }
+
+      if(nodeid)
+        l = rasqal_new_simple_literal(query_results->world,
+                                      RASQAL_LITERAL_BLANK,
+                                      nodeid);
+
+      if(!nodeid || !l) {
+        rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_FATAL,
+                                NULL,
+                                "Could not create a new blank identifier");
+        goto done;
+      }
+      
+      t = raptor_new_term_from_blank(query_results->world->raptor_world_ptr,
+                                     nodeid);
+      rasqal_free_literal(l);
+      break;
+      
+    case RASQAL_LITERAL_STRING:
+      t = raptor_new_term_from_literal(query_results->world->raptor_world_ptr,
+                                       nodel->string,
+                                       nodel->datatype,
+                                       (const unsigned char*)nodel->language);
+      break;
+      
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_XSD_STRING:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_VARIABLE:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UDT:
+    case RASQAL_LITERAL_INTEGER_SUBTYPE:
+      /* QNames should be gone by the time expression eval happens
+       * Everything else is removed by rasqal_literal_as_node() above. 
+       */
+      
+    case RASQAL_LITERAL_UNKNOWN:
+    default:
+      break;
+  }
+  
+  
+  done:
+  if(nodel)
+    rasqal_free_literal(nodel);
+
+  return t;
+}
+
+
 /**
  * rasqal_query_results_get_triple:
  * @query_results: #rasqal_query_results query_results
@@ -1091,9 +1167,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
   rasqal_query* query;
   int rc;
   rasqal_triple *t;
-  rasqal_literal *s, *p, *o;
   raptor_statement *rs = NULL;
-  unsigned char *nodeid;
   int skipped;
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, NULL);
@@ -1139,244 +1213,37 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
     rs = &query_results->result_triple;
 
-    s = rasqal_literal_as_node(t->subject);
-    if(!s) {
+    raptor_statement_clear(rs);
+
+    rs->subject = rasqal_literal_to_result_term(query_results, t->subject);
+    if(!rs->subject || rs->subject->type == RAPTOR_TERM_TYPE_LITERAL) {
       rasqal_log_warning_simple(query_results->world,
                                 RASQAL_WARNING_LEVEL_BAD_TRIPLE,
                                 &query->locator,
-                                "Triple with unbound subject skipped");
+                                "Triple with non-RDF subject term skipped");
       skipped = 1;
-      continue;
-    }
-
-    /* raptor v2 terms are copied, not shared */
-    if(rs->subject) {
-      raptor_free_term(rs->subject);
-      rs->subject = NULL;
-    }
-
-    switch(s->type) {
-      case RASQAL_LITERAL_URI:
-        rs->subject = raptor_new_term_from_uri(query_results->world->raptor_world_ptr,
-                                               s->value.uri);
-        break;
-
-      case RASQAL_LITERAL_BLANK:
-        nodeid = rasqal_prefix_id(query_results->result_count,
-                                  (unsigned char*)s->string);
-        rasqal_free_literal(s);
-        if(!nodeid) {
-          rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_FATAL,
-                                  &query->locator,
-                                  "Could not prefix subject blank identifier");
-          return NULL;
-        }
-        s = rasqal_new_simple_literal(query_results->world, RASQAL_LITERAL_BLANK,
-                                      nodeid);
-        if(!s) {
-          rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_FATAL,
-                                  &query->locator,
-                                  "Could not create a new subject blank literal");
-          return NULL;
-        }
-        rs->subject = raptor_new_term_from_blank(query_results->world->raptor_world_ptr,
-                                                 nodeid);
-        break;
-
-      case RASQAL_LITERAL_QNAME:
-      case RASQAL_LITERAL_PATTERN:
-      case RASQAL_LITERAL_XSD_STRING:
-      case RASQAL_LITERAL_BOOLEAN:
-      case RASQAL_LITERAL_INTEGER:
-      case RASQAL_LITERAL_DOUBLE:
-      case RASQAL_LITERAL_FLOAT:
-      case RASQAL_LITERAL_VARIABLE:
-      case RASQAL_LITERAL_DECIMAL:
-      case RASQAL_LITERAL_DATETIME:
-      case RASQAL_LITERAL_UDT:
-      case RASQAL_LITERAL_INTEGER_SUBTYPE:
-        /* QNames should be gone by the time expression eval happens
-         * Everything else is removed by rasqal_literal_as_node() above. 
-         */
-
-      case RASQAL_LITERAL_STRING:
-        /* string [literal] subjects are not RDF */
-
-      case RASQAL_LITERAL_UNKNOWN:
-      default:
-        /* case RASQAL_LITERAL_STRING: */
-      rasqal_log_warning_simple(query_results->world,
-                                RASQAL_WARNING_LEVEL_BAD_TRIPLE,
-                                &query->locator,
-                                "Triple with non-URI/blank node subject skipped");
-        skipped = 1;
-        break;
-    }
-    if(skipped) {
-      if(s)
-        rasqal_free_literal(s);
-      continue;
-    }
-    
-
-    p = rasqal_literal_as_node(t->predicate);
-    if(!p) {
-      rasqal_log_warning_simple(query_results->world,
-                                RASQAL_WARNING_LEVEL_BAD_TRIPLE,
-                                &query->locator,
-                                "Triple with unbound predicate skipped");
-      rasqal_free_literal(s);
-      skipped = 1;
-      continue;
-    }
-    switch(p->type) {
-      case RASQAL_LITERAL_URI:
-        /* raptor v2 terms are copied, not shared */
-        if(rs->predicate) {
-          raptor_free_term(rs->predicate);
-          rs->predicate = NULL;
-        }
-        rs->predicate = raptor_new_term_from_uri(query_results->world->raptor_world_ptr,
-                                                 p->value.uri);
-        break;
-
-      case RASQAL_LITERAL_QNAME:
-      case RASQAL_LITERAL_PATTERN:
-      case RASQAL_LITERAL_XSD_STRING:
-      case RASQAL_LITERAL_BOOLEAN:
-      case RASQAL_LITERAL_INTEGER:
-      case RASQAL_LITERAL_DOUBLE:
-      case RASQAL_LITERAL_FLOAT:
-      case RASQAL_LITERAL_VARIABLE:
-      case RASQAL_LITERAL_DECIMAL:
-      case RASQAL_LITERAL_DATETIME:
-      case RASQAL_LITERAL_UDT:
-      case RASQAL_LITERAL_INTEGER_SUBTYPE:
-        /* QNames should be gone by the time expression eval happens
-         * Everything else is removed by rasqal_literal_as_node() above. 
-         */
-
-      case RASQAL_LITERAL_BLANK:
-      case RASQAL_LITERAL_STRING:
-        /* blank node or string [literal] predicates are not RDF */
-
-      case RASQAL_LITERAL_UNKNOWN:
-      default:
-      rasqal_log_warning_simple(query_results->world,
-                                RASQAL_WARNING_LEVEL_BAD_TRIPLE,
-                                &query->locator,
-                                "Triple with non-URI predicate skipped");
-        skipped = 1;
-        break;
-    }
-    if(skipped) {
-      rasqal_free_literal(s);
-      if(p)
-        rasqal_free_literal(p);
-      continue;
-    }
-
-    o = rasqal_literal_as_node(t->object);
-    if(!o) {
-      rasqal_log_warning_simple(query_results->world,
-                                RASQAL_WARNING_LEVEL_BAD_TRIPLE,
-                                &query->locator,
-                                "Triple with unbound object skipped");
-      rasqal_free_literal(s);
-      rasqal_free_literal(p);
-      skipped = 1;
-      continue;
-    }
-
-    /* raptor v2 terms are copied, not shared */
-    if(rs->object) {
-      raptor_free_term(rs->object);
-      rs->object = NULL;
-    }
-
-    switch(o->type) {
-      case RASQAL_LITERAL_URI:
-        rs->object = raptor_new_term_from_uri(query_results->world->raptor_world_ptr,
-                                              o->value.uri);
-        break;
-
-      case RASQAL_LITERAL_BLANK:
-        nodeid = rasqal_prefix_id(query_results->result_count,
-                                  (unsigned char*)o->string);
-        rasqal_free_literal(o);
-        if(!nodeid) {
-          rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_FATAL,
-                                  &query->locator,
-                                  "Could not prefix blank identifier");
-          rasqal_free_literal(s);
-          rasqal_free_literal(p);
-          return NULL;
-        }
-        o = rasqal_new_simple_literal(query_results->world, RASQAL_LITERAL_BLANK,
-                                      nodeid);
-        if(!o) {
-          rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_FATAL,
-                                  &query->locator,
-                                  "Could not create a new subject blank literal");
-          rasqal_free_literal(s);
-          rasqal_free_literal(p);
-          return NULL;
-        }
-        rs->object = raptor_new_term_from_blank(query_results->world->raptor_world_ptr,
-                                                nodeid);
-        break;
-
-      case RASQAL_LITERAL_STRING:
-        rs->object = raptor_new_term_from_literal(query_results->world->raptor_world_ptr,
-                                                  o->string,
-                                                  o->datatype,
-                                                  (const unsigned char*)o->language);
-        break;
-
-      case RASQAL_LITERAL_QNAME:
-      case RASQAL_LITERAL_PATTERN:
-      case RASQAL_LITERAL_XSD_STRING:
-      case RASQAL_LITERAL_BOOLEAN:
-      case RASQAL_LITERAL_INTEGER:
-      case RASQAL_LITERAL_DOUBLE:
-      case RASQAL_LITERAL_FLOAT:
-      case RASQAL_LITERAL_VARIABLE:
-      case RASQAL_LITERAL_DECIMAL:
-      case RASQAL_LITERAL_DATETIME:
-      case RASQAL_LITERAL_UDT:
-      case RASQAL_LITERAL_INTEGER_SUBTYPE:
-        /* QNames should be gone by the time expression eval happens
-         * Everything else is removed by rasqal_literal_as_node() above. 
-         */
-
-      case RASQAL_LITERAL_UNKNOWN:
-      default:
+    } else {
+      rs->predicate = rasqal_literal_to_result_term(query_results, t->predicate);
+      if(!rs->predicate || rs->predicate->type != RAPTOR_TERM_TYPE_URI) {
         rasqal_log_warning_simple(query_results->world,
                                   RASQAL_WARNING_LEVEL_BAD_TRIPLE,
                                   &query->locator,
-                                  "Triple with unknown object skipped");
+                                  "Triple with non-RDF predicate term skipped");
         skipped = 1;
-        break;
+      } else {
+        rs->object = rasqal_literal_to_result_term(query_results, t->object);
+        if(!rs->object) {
+          rasqal_log_warning_simple(query_results->world,
+                                    RASQAL_WARNING_LEVEL_BAD_TRIPLE,
+                                    &query->locator,
+                                    "Triple with non-RDF object term skipped");
+          skipped = 1;
+        } else {
+          /* got triple, return it */
+          break;
+        }
+      }
     }
-    if(skipped) {
-      rasqal_free_literal(s);
-      rasqal_free_literal(p);
-      if(o)
-        rasqal_free_literal(o);
-      continue;
-    }
-    
-    /* dispose previous triple if any */
-    if(query_results->triple) {
-      rasqal_free_triple(query_results->triple);
-      query_results->triple = NULL;
-    }
-
-    /* for saving s, p, o for later disposal */
-    query_results->triple = rasqal_new_triple(s, p, o);
-
-    /* got triple, return it */
-    break;
   }
   
   return rs;
@@ -1412,11 +1279,6 @@ rasqal_query_results_next_triple(rasqal_query_results* query_results)
   if(query->verb == RASQAL_QUERY_VERB_DESCRIBE)
     return 1;
   
-  if(query_results->triple) {
-    rasqal_free_triple(query_results->triple);
-    query_results->triple = NULL;
-  }
-
   if(++query_results->current_triple_result >= raptor_sequence_size(query->constructs)) {
     if(rasqal_query_results_next_internal(query_results))
       return 1;
