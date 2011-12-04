@@ -55,23 +55,6 @@
 
 /* Local definitions */
  
-/**
- * rasqal_xsd_date:
- * @year: year
- * @month: month 1-12
- * @day: 0-31
- *
- * INTERNAL - XML schema date datatype
- *
- */
-typedef struct {
-  signed int year;
-  /* the following fields are integer values not characters */
-  unsigned char month;
-  unsigned char day;
-} rasqal_xsd_date;
-
-
 static int rasqal_xsd_datetime_parse(const char *datetime_string, rasqal_xsd_datetime *result, int is_dateTime);
 static unsigned int days_per_month(int month, int year);
 
@@ -987,14 +970,14 @@ rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world,
  * rasqal_xsd_date_to_string:
  * @d: date struct
  *
- * INTERNAL - Convert a #rasqal_xsd_date struct to a xsd:date lexical form string.
+ * Convert a #rasqal_xsd_date struct to a xsd:date lexical form string.
  *
- * Caller should RASQAL_FREE() the returned string.
+ * Caller should rasqal_free_memory() the returned string.
  *
  * Return value: lexical form string or NULL on failure.
  */
-static char*
-rasqal_xsd_date_to_string(const rasqal_xsd_date *date)
+char*
+rasqal_xsd_date_to_counted_string(const rasqal_xsd_date *date, size_t *len_p)
 {
   char *buffer = NULL;
   size_t len = DATE_BUFFER_LEN_NO_YEAR;
@@ -1007,8 +990,12 @@ rasqal_xsd_date_to_string(const rasqal_xsd_date *date)
     return NULL;
     
   year_len = rasqal_format_integer(NULL, 0, date->year, -1, '\0');
-
-  buffer = RASQAL_MALLOC(char*, year_len + len + 1);
+  len += year_len;
+  
+  if(len_p)
+    *len_p = len;
+  
+  buffer = RASQAL_MALLOC(char*, len + 1);
   if(!buffer)
     return NULL;
 
@@ -1038,6 +1025,23 @@ rasqal_xsd_date_to_string(const rasqal_xsd_date *date)
   *p = '\0';
 
   return buffer;
+}
+
+
+/**
+ * rasqal_xsd_date_to_string:
+ * @d: date struct
+ *
+ * Convert a #rasqal_xsd_date struct to a xsd:date lexical form string.
+ *
+ * Caller should rasqal_free_memory() the returned string.
+ *
+ * Return value: lexical form string or NULL on failure.
+ */
+char*
+rasqal_xsd_date_to_string(const rasqal_xsd_date *d)
+{
+  return rasqal_xsd_date_to_counted_string(d, NULL);
 }
 
 
@@ -1418,6 +1422,123 @@ rasqal_xsd_datetime_get_tz_as_counted_string(rasqal_xsd_datetime* dt,
   failed:
   RASQAL_FREE(char*, s);
   return NULL;
+}
+
+
+/**
+ * rasqal_new_xsd_date:
+ * @world: world object
+ * @date_string: XSD date string
+ *
+ * Constructor - make a new XSD date object from a string
+ *
+ * Return value: new datetime or NULL on failure
+ */
+rasqal_xsd_date*
+rasqal_new_xsd_date(rasqal_world* world, const char *date_string)
+{
+  rasqal_xsd_datetime dt_result; /* on stack */
+  rasqal_xsd_date* d;
+  int rc = 0;
+  
+  d = RASQAL_MALLOC(rasqal_xsd_date*, sizeof(*d));
+  if(!d)
+    return NULL;
+  
+  rc = rasqal_xsd_datetime_parse(date_string, &dt_result, 1);
+  if(!rc)
+    rc = rasqal_xsd_datetime_normalize(&dt_result);
+
+  if(!rc) {
+    d->year = dt_result.year;
+    d->month = dt_result.month;
+    d->day = dt_result.day;
+  }
+
+  if(rc) {
+    rasqal_free_xsd_date(d); d = NULL;
+  }
+
+  return d;
+}
+
+
+/**
+ * rasqal_free_xsd_date:
+ * @d: date object
+ * 
+ * Destroy XSD date object.
+ **/
+void
+rasqal_free_xsd_date(rasqal_xsd_date* d)
+{
+  if(!d)
+    return;
+  
+  RASQAL_FREE(rasqal_xsd_date, d);
+}
+
+
+/**
+ * rasqal_xsd_date_equals:
+ * @d1: first XSD date
+ * @d2: second XSD date
+ * 
+ * Compare two XSD dates for equality.
+ * 
+ * Return value: non-0 if equal.
+ **/
+int
+rasqal_xsd_date_equals(const rasqal_xsd_date *d1,
+                       const rasqal_xsd_date *d2)
+{
+  /* Handle NULLs */
+  if(!d1 || !d2) {
+    /* equal only if both are NULL */
+    return (d1 && d2);
+  }
+  
+  return ((d1->year == d2->year) &&
+          (d1->month == d2->month) &&
+          (d1->day == d2->day));
+}
+
+
+/**
+ * rasqal_xsd_date_compare:
+ * @d1: first XSD date
+ * @d2: second XSD date
+ * 
+ * Compare two XSD dates
+ * 
+ * Return value: <0 if @d1 is less than @d2, 0 if equal, >1 otherwise
+ **/
+int
+rasqal_xsd_date_compare(const rasqal_xsd_date *d1,
+                        const rasqal_xsd_date *d2)
+{
+  int rc;
+
+  /* Handle NULLs */
+  if(!d1 || !d2) {
+    /* NULLs sort earlier. equal only if both are NULL */
+    if(d1 && d2)
+      return 0;
+
+    return (!d1) ? -1 : 1;
+  }
+  
+  rc = d1->year - d2->year;
+  if(rc)
+    return rc;
+
+  rc = d1->month - d2->month;
+  if(rc)
+    return rc;
+
+  rc = d1->day - d2->day;
+
+  return rc;
 }
 
 

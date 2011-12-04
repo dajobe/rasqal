@@ -63,6 +63,12 @@
 0.9.26	-	-	-	0.9.27	int	rasqal_variables_table_add_variable	(rasqal_variables_table* vt, rasqal_variable* variable)	-
 0.9.26	-	-	-	0.9.27	rasqal_variable*	rasqal_variables_table_get_by_name	(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name)	-
 0.9.26	-	-	-	0.9.27	int	rasqal_variables_table_contains	(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name)	-
+0.9.28	-	-	-	0.9.29	rasqal_xsd_date*	rasqal_new_xsd_date	(rasqal_world* world, const char *date_string)	-
+0.9.28	-	-	-	0.9.29	void	rasqal_free_xsd_datetime	(rasqal_xsd_date* d)	-
+0.9.28	-	-	-	0.9.29	char*	rasqal_xsd_date_to_counted_string	(const rasqal_xsd_date *d, size_t *len_p)	-
+0.9.28	-	-	-	0.9.29	char*	rasqal_xsd_date_to_string	(const rasqal_xsd_date *d)	-
+0.9.28	-	-	-	0.9.29	int	rasqal_xsd_date_equals	(const rasqal_xsd_date *d1, const rasqal_xsd_date *d2)	-
+0.9.28	-	-	-	0.9.29	int	rasqal_xsd_date_compare	(const rasqal_xsd_date *d1, const rasqal_xsd_date *d2)	-
 #
 # Types
 #
@@ -71,6 +77,8 @@
 0.9.21	type	-	-	0.9.22	type	rasqal_xsd_datetime	-	-
 0.9.21	type	rasqal_literal	-	0.9.22	type	rasqal_literal	-	Added datetime to value union.
 0.9.23	type	-	-	0.9.24	type	rasqal_update_graph_applies	-	Specifies scope that a #rasqal_update applies to
+0.9.28	type	-	-	0.9.29	type	rasqal_xsd_date	-	-
+0.9.28	type	rasqal_literal	-	0.9.29	type	rasqal_literal	-	Added date to value union.
 #
 # Enums
 #

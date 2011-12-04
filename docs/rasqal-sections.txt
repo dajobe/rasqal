@@ -352,6 +352,13 @@ RASQAL_TRIPLES_SOURCE_MAX_VERSION
 
 <SECTION>
 <FILE>section-xsd</FILE>
+rasqal_xsd_date
+rasqal_new_xsd_date
+rasqal_free_xsd_datetime
+rasqal_xsd_date_to_counted_string
+rasqal_xsd_date_to_string
+rasqal_xsd_date_equals
+rasqal_xsd_date_compare
 rasqal_xsd_datetime
 RASQAL_XSD_DATETIME_NO_TZ
 rasqal_new_xsd_datetime

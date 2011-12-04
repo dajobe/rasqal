@@ -491,6 +491,23 @@ typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
 
 
 /**
+ * rasqal_xsd_date:
+ * @year: year
+ * @month: month 1-12
+ * @day: 1-31
+ *
+ * XML schema date datatype (xsd:date)
+ *
+ */
+typedef struct {
+  signed int year;
+  /* the following fields are integer values not characters */
+  unsigned char month;
+  unsigned char day;
+} rasqal_xsd_date;
+
+
+/**
  * RASQAL_XSD_DATETIME_NO_TZ:
  *
  * Sentinel XSD Decimal timezone value indicating no timezone is present.
@@ -501,7 +518,7 @@ typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
  * rasqal_xsd_datetime:
  * @year: year
  * @month: month 1-12
- * @day: 0-31
+ * @day: 1-31
  * @hour: hour 0-23
  * @minute: minute 0-59
  * @second: second 0-60 (yes 60 is allowed for leap seconds)
@@ -567,6 +584,8 @@ struct rasqal_literal_s {
     rasqal_xsd_decimal* decimal;
     /* datetime  */
     rasqal_xsd_datetime* datetime;
+    /* date  */
+    rasqal_xsd_date* date;
   } value;
 
   /* for string */
@@ -1739,6 +1758,20 @@ int rasqal_xsd_decimal_ceil(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a);
 RASQAL_API
 int rasqal_xsd_decimal_floor(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a);
 
+
+/* date functions */
+RASQAL_API
+rasqal_xsd_date* rasqal_new_xsd_date(rasqal_world* world, const char *date_string);
+RASQAL_API
+void rasqal_free_xsd_date(rasqal_xsd_date* d);
+RASQAL_API
+char* rasqal_xsd_date_to_counted_string(const rasqal_xsd_date *d, size_t *len_p);
+RASQAL_API
+char* rasqal_xsd_date_to_string(const rasqal_xsd_date *d);
+RASQAL_API
+int rasqal_xsd_date_equals(const rasqal_xsd_date *d1, const rasqal_xsd_date *d2);
+RASQAL_API
+int rasqal_xsd_date_compare(const rasqal_xsd_date *d1, const rasqal_xsd_date *d2);
 
 /* datetime functions */
 RASQAL_API
