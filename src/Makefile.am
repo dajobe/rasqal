@@ -36,7 +36,7 @@ TESTS_ENVIRONMENT= \
   SPARQL_QUERY_FILE=$(top_srcdir)/tests/sparql/examples/ex11_1.rq
 
 TESTS=rasqal_algebra_test$(EXEEXT) rasqal_expr_test$(EXEEXT)	\
-strcasecmp_test$(EXEEXT) rasqal_xsd_datatypes_test$(EXEEXT)	\
+strcasecmp_test$(EXEEXT) \
 rasqal_decimal_test$(EXEEXT) rasqal_datetime_test$(EXEEXT)	\
 rasqal_variable_test$(EXEEXT) rasqal_rowsource_empty_test$(EXEEXT) \
 rasqal_rowsource_union_test$(EXEEXT) \
@@ -247,10 +247,6 @@ strcasecmp_test_LDADD = librasqal.la
 rasqal_query_test_SOURCES = rasqal_query_test.c
 rasqal_query_test_CPPFLAGS = -DSTANDALONE
 rasqal_query_test_LDADD = librasqal.la
-
-rasqal_xsd_datatypes_test_SOURCES = rasqal_xsd_datatypes.c
-rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE
-rasqal_xsd_datatypes_test_LDADD = librasqal.la
 
 rasqal_decimal_test_SOURCES = rasqal_decimal.c
 rasqal_decimal_test_CPPFLAGS = -DSTANDALONE
