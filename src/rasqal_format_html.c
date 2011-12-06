@@ -78,6 +78,7 @@ rasqal_iostream_write_html_literal(rasqal_world* world,
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:

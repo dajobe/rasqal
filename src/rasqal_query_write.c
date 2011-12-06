@@ -116,10 +116,12 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
     case RASQAL_LITERAL_URI:
       rasqal_query_write_sparql_uri(wc, iostr, l->value.uri);
       break;
+
     case RASQAL_LITERAL_BLANK:
       raptor_iostream_counted_string_write("_:", 2, iostr);
       raptor_iostream_string_write(l->string, iostr);
       break;
+
     case RASQAL_LITERAL_STRING:
       raptor_iostream_write_byte('"', iostr);
       raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
@@ -133,23 +135,29 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
         rasqal_query_write_sparql_uri(wc, iostr, l->datatype);
       }
       break;
+
     case RASQAL_LITERAL_QNAME:
       raptor_iostream_counted_string_write("QNAME(", 6, iostr);
       raptor_iostream_counted_string_write(l->string, l->string_len, iostr);
       raptor_iostream_write_byte(')', iostr);
       break;
+
     case RASQAL_LITERAL_INTEGER:
       raptor_iostream_decimal_write(l->value.integer, iostr);
       break;
+
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DECIMAL:
       raptor_iostream_counted_string_write(l->string, l->string_len, iostr);
       break;
+
     case RASQAL_LITERAL_VARIABLE:
       rasqal_query_write_sparql_variable(wc, iostr, l->value.variable);
       break;
+
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_UDT:

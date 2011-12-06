@@ -492,6 +492,7 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type,
 
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UNKNOWN:
     case RASQAL_LITERAL_BLANK:
@@ -712,6 +713,19 @@ retype:
     /* No change - kept as a string */
     break;
 
+  case RASQAL_LITERAL_DATE:
+    l->value.date = rasqal_new_xsd_date(l->world, (const char*)l->string);
+    if(!l->value.date) {
+      RASQAL_FREE(char*, l->string);
+      return 1;
+    }
+    RASQAL_FREE(char*, l->string);
+    l->string = (unsigned char*)rasqal_xsd_date_to_counted_string(l->value.date,
+                                                                  (size_t*)&l->string_len);
+    if(!l->string)
+      return 1;
+    break;
+
   case RASQAL_LITERAL_DATETIME:
     l->value.datetime = rasqal_new_xsd_datetime(l->world,
                                                 (const char*)l->string);
@@ -759,6 +773,7 @@ retype:
  * xsd:boolean to RASQAL_LITERAL_BOOLEAN
  * xsd:decimal to RASQAL_LITERAL_DECIMAL
  * xsd:dateTime to RASQAL_LITERAL_DATETIME
+ * xsd:date to RASQAL_LITERAL_DATE
  *
  * Return value: non-0 on failure
  **/
@@ -1100,6 +1115,16 @@ rasqal_free_literal(rasqal_literal* l)
           RASQAL_FREE(char*, l->flags);
       }
       break;
+
+    case RASQAL_LITERAL_DATE:
+      if(l->string)
+        RASQAL_FREE(char*, l->string);
+      if(l->datatype)
+        raptor_free_uri(l->datatype);
+      if(l->value.date)
+        rasqal_free_xsd_date(l->value.date);
+      break;
+
     case RASQAL_LITERAL_DATETIME:
       if(l->string)
         RASQAL_FREE(char*, l->string);
@@ -1142,7 +1167,7 @@ rasqal_free_literal(rasqal_literal* l)
  * uses it for type comparisons with the RASQAL_COMPARE_XQUERY
  * flag.
  */
-static const char* const rasqal_literal_type_labels[RASQAL_LITERAL_LAST+1]={
+static const char* const rasqal_literal_type_labels[RASQAL_LITERAL_LAST + 1]={
   "UNKNOWN",
   "blank",
   "uri",
@@ -1158,7 +1183,8 @@ static const char* const rasqal_literal_type_labels[RASQAL_LITERAL_LAST+1]={
   "pattern",
   "qname",
   "variable",
-  "<integer subtype>"
+  "<integer subtype>",
+  "date"
 };
 
 
@@ -1301,6 +1327,7 @@ rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
       raptor_iostream_write_byte('(', iostr);
@@ -1399,6 +1426,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
       *error_p = 1;
@@ -1518,6 +1546,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
       if(error_p)
@@ -1591,6 +1620,7 @@ rasqal_literal_as_double(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
       if(error_p)
@@ -1670,6 +1700,7 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
       if(error_p)
@@ -1746,6 +1777,7 @@ rasqal_literal_as_counted_string(rasqal_literal* l, size_t *len_p,
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
@@ -1925,8 +1957,8 @@ rasqal_literal_get_rdf_term_type(rasqal_literal* l)
   type = l->type;
   
   /* squash literal datatypes into one type: RDF Literal */
-  if(type >= RASQAL_LITERAL_FIRST_XSD &&
-     type <= RASQAL_LITERAL_LAST_XSD)
+  if((type >= RASQAL_LITERAL_FIRST_XSD && type <= RASQAL_LITERAL_LAST_XSD) ||
+     type == RASQAL_LITERAL_DATE)
     type = RASQAL_LITERAL_STRING;
 
   if(type == RASQAL_LITERAL_UDT)
@@ -2080,6 +2112,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
     case RASQAL_LITERAL_UNKNOWN:
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
@@ -2190,6 +2223,7 @@ rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
       seen_string++;
@@ -2417,6 +2451,11 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       else
         result = strcmp((const char*)new_lits[0]->string,
                         (const char*)new_lits[1]->string);
+      break;
+
+    case RASQAL_LITERAL_DATE:
+      result = rasqal_xsd_date_compare(new_lits[0]->value.date,
+                                       new_lits[1]->value.date);
       break;
 
     case RASQAL_LITERAL_DATETIME:
@@ -2732,6 +2771,10 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       result = rasqal_literal_blank_equals(l1_p, l2_p);
       break;
 
+    case RASQAL_LITERAL_DATE:
+      result = rasqal_xsd_date_equals(l1_p->value.date, l2_p->value.date);
+      break;
+      
     case RASQAL_LITERAL_DATETIME:
       result = rasqal_xsd_datetime_equals(l1_p->value.datetime,
                                           l2_p->value.datetime);
@@ -2902,6 +2945,7 @@ rasqal_literal_as_node(rasqal_literal* l)
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
@@ -3032,6 +3076,7 @@ rasqal_literal_is_constant(rasqal_literal* l)
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
@@ -3117,8 +3162,9 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
       case RASQAL_LITERAL_DECIMAL:
       case RASQAL_LITERAL_INTEGER_SUBTYPE:
         /* XSD (boolean, integer, decimal, double, float) may NOT be
-         * cast to dateTime */
-        if(to_native_type == RASQAL_LITERAL_DATETIME) {
+         * cast to dateTime or date */
+        if(to_native_type == RASQAL_LITERAL_DATE ||
+           to_native_type == RASQAL_LITERAL_DATETIME) {
           *error_p = 1;
           break;
         }
@@ -3126,6 +3172,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
         len =  l->string_len;
         break;
 
+      case RASQAL_LITERAL_DATE:
       case RASQAL_LITERAL_DATETIME:
         string = l->string;
         len =  l->string_len;
@@ -3157,9 +3204,10 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
         return NULL; /* keep some compilers happy */
     }
 
-    if(to_native_type == RASQAL_LITERAL_DATETIME) {
-      /* XSD dateTime may ONLY be cast from string (cast from dateTime
-       * is checked above)
+    if(to_native_type == RASQAL_LITERAL_DATE ||
+       to_native_type == RASQAL_LITERAL_DATETIME) {
+      /* XSD date and dateTime may ONLY be cast from string (cast
+       * from dateTime is checked above)
        */
       if(from_native_type != RASQAL_LITERAL_STRING) {
         *error_p = 1;
@@ -3301,6 +3349,7 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
@@ -3388,6 +3437,7 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
@@ -3475,6 +3525,7 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
@@ -3574,6 +3625,7 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
@@ -3643,6 +3695,7 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
@@ -3712,6 +3765,7 @@ rasqal_literal_abs(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
@@ -3776,6 +3830,7 @@ rasqal_literal_round(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
@@ -3840,6 +3895,7 @@ rasqal_literal_ceil(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
@@ -3904,6 +3960,7 @@ rasqal_literal_floor(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
@@ -4142,6 +4199,7 @@ rasqal_literal_write_turtle(rasqal_literal* l, raptor_iostream* iostr)
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_VARIABLE:
     case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
       

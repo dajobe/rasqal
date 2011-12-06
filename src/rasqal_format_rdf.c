@@ -385,6 +385,7 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
         case RASQAL_LITERAL_FLOAT:
         case RASQAL_LITERAL_VARIABLE:
         case RASQAL_LITERAL_DECIMAL:
+        case RASQAL_LITERAL_DATE:
         case RASQAL_LITERAL_DATETIME:
         case RASQAL_LITERAL_INTEGER_SUBTYPE:
 

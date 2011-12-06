@@ -86,6 +86,25 @@ rasqal_xsd_check_boolean_format(const unsigned char* string, int flags)
 
 
 /**
+ * rasqal_xsd_check_date_format:
+ * @string: lexical form string
+ * flags: flags
+ *
+ * INTERNAL - Check an XSD date lexical form
+ *
+ * Return value: non-0 if the string is valid
+ */
+static int
+rasqal_xsd_check_date_format(const unsigned char* string, int flags) 
+{
+  /* This should be correct according to 
+   * http://www.w3.org/TR/xmlschema-2/#date
+   */
+  return rasqal_xsd_date_check((const char*)string);
+}
+
+
+/**
  * rasqal_xsd_check_dateTime_format:
  * @string: lexical form string
  * flags: flags
@@ -393,10 +412,12 @@ typedef struct {
 
 #define XSD_INTEGER_DERIVED_COUNT 12
 #define XSD_INTEGER_DERIVED_FIRST (RASQAL_LITERAL_LAST_XSD + 1)
-#define XSD_INTEGER_DERIVED_LAST (RASQAL_LITERAL_LAST_XSD + XSD_INTEGER_DERIVED_COUNT-1)
+#define XSD_INTEGER_DERIVED_LAST (RASQAL_LITERAL_LAST_XSD + XSD_INTEGER_DERIVED_COUNT - 1)
 
-/* atomic XSD literals + 12 types derived from xsd:integer plus a NULL */
-#define SPARQL_XSD_NAMES_COUNT (RASQAL_LITERAL_LAST_XSD + 1 + XSD_INTEGER_DERIVED_COUNT)
+#define XSD_DATE_OFFSET (XSD_INTEGER_DERIVED_LAST + 2)
+
+/* atomic XSD literals + 12 types derived from xsd:integer plus DATE plus a NULL */
+#define SPARQL_XSD_NAMES_COUNT (RASQAL_LITERAL_LAST_XSD + 1 + XSD_INTEGER_DERIVED_COUNT + 1)
 
 
 static const char* const sparql_xsd_names[SPARQL_XSD_NAMES_COUNT + 1] =
@@ -417,11 +438,13 @@ static const char* const sparql_xsd_names[SPARQL_XSD_NAMES_COUNT + 1] =
   "long", "int", "short", "byte",
   "nonNegativeInteger", "unsignedLong", "postiveInteger",
   "unsignedInt", "unsignedShort", "unsignedByte",
+  /* RASQAL_LITERAL_DATE onwards (NOT next to dateTime) */
+  "date",
   NULL
 };
 
-
-static int (*const sparql_xsd_checkfns[RASQAL_LITERAL_LAST_XSD-RASQAL_LITERAL_FIRST_XSD + 1])(const unsigned char* string, int flags) =
+#define CHECKFNS_COUNT (RASQAL_LITERAL_LAST_XSD - RASQAL_LITERAL_FIRST_XSD + 2)
+static int (*const sparql_xsd_checkfns[CHECKFNS_COUNT])(const unsigned char* string, int flags) =
 {
   NULL, /* RASQAL_LITERAL_STRING */
   rasqal_xsd_check_boolean_format, /* RASQAL_LITERAL_BOOLEAN */
@@ -429,8 +452,12 @@ static int (*const sparql_xsd_checkfns[RASQAL_LITERAL_LAST_XSD-RASQAL_LITERAL_FI
   rasqal_xsd_check_double_format, /* RASQAL_LITERAL_DOUBLE */
   rasqal_xsd_check_float_format, /* RASQAL_LITERAL_FLOAT */
   rasqal_xsd_check_decimal_format, /* RASQAL_LITERAL_DECIMAL */
-  rasqal_xsd_check_dateTime_format /* RASQAL_LITERAL_DATETIME */
+  rasqal_xsd_check_dateTime_format, /* RASQAL_LITERAL_DATETIME */
+  /* GAP */
+  rasqal_xsd_check_date_format /* RASQAL_LITERAL_DATE */
 };
+
+#define CHECKFN_DATE_OFFSET (RASQAL_LITERAL_DATETIME - RASQAL_LITERAL_FIRST_XSD + 1)
 
 
 int
@@ -501,6 +528,14 @@ rasqal_xsd_datatype_uri_to_type(rasqal_world* world, raptor_uri* uri)
       break;
     }
   }
+
+  if(native_type == RASQAL_LITERAL_UNKNOWN) {
+    /* DATE is not in the range FIRST_XSD .. INTEGER_DERIVED_LAST */
+    i = (int)XSD_DATE_OFFSET;
+    if(raptor_uri_equals(uri, world->xsd_datatype_uris[i]))
+      native_type = RASQAL_LITERAL_DATE;
+  }
+
   return native_type;
 }
 
@@ -509,8 +544,11 @@ raptor_uri*
 rasqal_xsd_datatype_type_to_uri(rasqal_world* world, rasqal_literal_type type)
 {
   if(world->xsd_datatype_uris &&
-     type >= RASQAL_LITERAL_FIRST_XSD && type <= (int)RASQAL_LITERAL_LAST_XSD)
+     ((type >= RASQAL_LITERAL_FIRST_XSD &&
+       type <= (int)RASQAL_LITERAL_LAST_XSD) ||
+      type == RASQAL_LITERAL_DATE))
     return world->xsd_datatype_uris[(int)type];
+
   return NULL;
 }
 
@@ -530,11 +568,16 @@ rasqal_xsd_datatype_check(rasqal_literal_type native_type,
                           const unsigned char* string, int flags)
 {
   /* calculate check function index in sparql_xsd_checkfns table */
-  int checkidx = native_type - RASQAL_LITERAL_FIRST_XSD;
+  int checkidx = -1;
+
+  if(native_type >= (int)RASQAL_LITERAL_FIRST_XSD &&
+     native_type <= (int)RASQAL_LITERAL_LAST_XSD)
+    checkidx = native_type - RASQAL_LITERAL_FIRST_XSD;
+  else if(native_type == RASQAL_LITERAL_DATE)
+    checkidx = CHECKFN_DATE_OFFSET;
 
   /* test for index out of bounds and check function not defined */
-  if(checkidx < 0 || checkidx >= (int)(sizeof(sparql_xsd_checkfns)/sizeof(*sparql_xsd_checkfns)) ||
-     !sparql_xsd_checkfns[checkidx])
+  if(checkidx < 0 || !sparql_xsd_checkfns[checkidx])
     return 1;
 
   return sparql_xsd_checkfns[checkidx](string, flags);
@@ -584,7 +627,9 @@ static const rasqal_literal_type parent_xsd_type[RASQAL_LITERAL_LAST + 1] =
   /*   RASQAL_LITERAL_UDT      */  RASQAL_LITERAL_UNKNOWN,
   /*   RASQAL_LITERAL_PATTERN  */  RASQAL_LITERAL_UNKNOWN,
   /*   RASQAL_LITERAL_QNAME    */  RASQAL_LITERAL_UNKNOWN,
-  /*   RASQAL_LITERAL_VARIABLE */  RASQAL_LITERAL_UNKNOWN
+  /*   RASQAL_LITERAL_VARIABLE */  RASQAL_LITERAL_UNKNOWN,
+  /*   RASQAL_LITERAL_INTEGER_SUBTYPE */  RASQAL_LITERAL_UNKNOWN,
+  /*   RASQAL_LITERAL_DATE     */  RASQAL_LITERAL_UNKNOWN
 };
 
 rasqal_literal_type
@@ -593,7 +638,9 @@ rasqal_xsd_datatype_parent_type(rasqal_literal_type type)
   if(type == RASQAL_LITERAL_INTEGER_SUBTYPE)
     return RASQAL_LITERAL_INTEGER;
   
-  if(type >= RASQAL_LITERAL_FIRST_XSD && type <= RASQAL_LITERAL_LAST_XSD)
+  if((type >= RASQAL_LITERAL_FIRST_XSD && type <= RASQAL_LITERAL_LAST_XSD) ||
+     type == RASQAL_LITERAL_DATE)
     return parent_xsd_type[type];
+
   return RASQAL_LITERAL_UNKNOWN;
 }

@@ -405,7 +405,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
     }
 
   } else { /* end if is_dateTime */
-    /* set rest of dateTime field to center of day interval (noon) */
+    /* set to center of day interval (noon) */
     result->hour = 12;
     result->minute = 0;
     result->second = 0;
@@ -1445,7 +1445,7 @@ rasqal_new_xsd_date(rasqal_world* world, const char *date_string)
   if(!d)
     return NULL;
   
-  rc = rasqal_xsd_datetime_parse(date_string, &dt_result, 1);
+  rc = rasqal_xsd_datetime_parse(date_string, &dt_result, 0);
   if(!rc)
     rc = rasqal_xsd_datetime_normalize(&dt_result);
 
