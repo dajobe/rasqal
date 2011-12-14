@@ -964,7 +964,7 @@ rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world,
 
 
 /* xsd:date formatted length excluding formatted year length */
-#define DATE_BUFFER_LEN_NO_YEAR 7
+#define DATE_BUFFER_LEN_NO_YEAR 6
 
 /**
  * rasqal_xsd_date_to_string:
@@ -1441,7 +1441,7 @@ rasqal_new_xsd_date(rasqal_world* world, const char *date_string)
   rasqal_xsd_date* d;
   int rc = 0;
   
-  d = RASQAL_MALLOC(rasqal_xsd_date*, sizeof(*d));
+  d = RASQAL_CALLOC(rasqal_xsd_date*, 1, sizeof(*d));
   if(!d)
     return NULL;
   
