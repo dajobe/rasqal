@@ -640,6 +640,9 @@ rasqal_query_remove_empty_group_graph_patterns(rasqal_query* query,
   if(!gp->graph_patterns)
     return 0;
 
+  if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP)
+    return 0;
+
 #if RASQAL_DEBUG > 1
   printf("rasqal_query_remove_empty_group_graph_patterns: Checking graph pattern #%d:\n  ", gp->gp_index);
   rasqal_graph_pattern_print(gp, stdout);
