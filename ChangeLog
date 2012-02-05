@@ -1,3 +1,84 @@
+2012-02-05  Dave Beckett <dave@dajobe.org>
+
+	* INSTALL.html, LICENSE.html, NEWS.html, README.html,
+	RELEASE.html, TODO.html: 2012
+
+2011-12-14  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_remove_empty_group_graph_patterns): Only for GROUP
+
+2011-12-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_datetime.c:
+	Size of xsd:Date prefix is 6 not 7
+
+2011-12-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_datetime.c,
+	src/rasqal_format_html.c, src/rasqal_format_json.c,
+	src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_sv.c, src/rasqal_literal.c,
+	src/rasqal_query_results.c, src/rasqal_query_write.c,
+	src/rasqal_xsd_datatypes.c: Added RASQAL_LITERAL_DATE for xsd:Date
+
+	rasqal_literal_type gains RASQAL_LITERAL_DATE but it is
+	unfortunately not in the FIRST_XSD to LAST_XSD range so needs it's
+	own handling.
+
+	(rasqal_new_xsd_date): Fix call to rasqal_xsd_datetime_parse() to
+	unset isDateTime flag.
+
+	(rasqal_xsd_check_date_format): Added.  Add xsd:date to recognized
+	datatype URIs in XSD module.
+
+	(rasqal_xsd_datatype_uri_to_type, rasqal_xsd_datatype_type_to_uri)
+	(rasqal_xsd_datatype_check, rasqal_xsd_datatype_parent_type): Add
+	date support as an XSD type that is not in the FIRST..LAST range.
+
+	(rasqal_new_numeric_literal): Handle RASQAL_LITERAL_DATE via
+	rasqal_new_xsd_date()
+
+	(rasqal_free_literal): Updated for date Updated many other methods
+	to pretty much do the same thing as RASQAL_LITERAL_DATETIME for
+	RASQAL_LITERAL_DATE.
+
+	(rasqal_literal_compare): Use new rasqal_xsd_date_compare
+
+	(rasqal_literal_equals_flags): Use new rasqal_xsd_date_equals
+
+	(rasqal_literal_cast): Allow casting string to date and date to
+	string.
+
+2011-12-04  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/rasqal_xsd_datatypes.c: Eliminate never
+	used code in rasqal_xsd_datatypes.c Removed empty test code
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt,
+	src/rasqal.h.in, src/rasqal_datetime.c, src/rasqal_internal.h: Add
+	rasqal_xsd_date for XSD:Date
+
+	(rasqal_new_xsd_date, rasqal_free_xsd_datetime): Added constructor
+	and destructor
+
+	(rasqal_xsd_date_to_counted_string, rasqal_xsd_date_to_string)
+	(rasqal_xsd_date_equals, rasqal_xsd_date_compare): Added core
+	methods
+
+2011-12-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c: Fix blank node generation for
+	constructs
+
+	(rasqal_literal_to_result_term): Added, pulled out of
+	rasqal_query_results_get_triple().  Rewrite blank node IDs to be
+	prefixed by the result number, only if the original value was a
+	blank node from the CONSTRUCT otherwise leave it alone.
+
+	(rasqal_query_results_get_triple): Use above to turn rasqal values
+	into raptor terms and constrain to the RDF rules.
+
 2011-11-20  Dave Beckett <dave@dajobe.org>
 
 	* configure.ac: search for AWK and use it
