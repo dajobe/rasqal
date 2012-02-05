@@ -13,6 +13,36 @@
 <p>Not yet released.
 </p>
 
+<h3>Datatype changes</h3>
+
+<p>Added a new datatype <code>rasqal_xsd_date</code> class for XSD
+with literal enum <code>RASQAL_LITERAL_DATE</code>a>,
+constructor <code>rasqal_new_xsd_date()</code>, destructor
+<code>rasqal_free_xsd_datetime()</code> and core methods
+<code>rasqal_xsd_date_to_counted_string()</code>,
+<code>rasqal_xsd_date_to_string()</code>
+<code>rasqal_xsd_date_equals()</code> and
+<code>rasqal_xsd_date_compare()</code>.
+</p>
+
+
+<h3>Literal class changes</h3>
+
+<p>Added support for the XSD:Date datatype with a new
+<code>rasqal_literal_type</code> enum value
+<code>RASQAL_LITERAL_DATE</code>.  Updated the literal code including
+the constructor <code>rasqal_new_numeric_literal()</code> to
+auto-convert to the internal format as well as the core literal
+methods.
+</p>
+
+
+<h3>Query engine changes</h3>
+
+<p>Fix blank node generation when made in a CONSTRUCT to match
+SPARQL standard.
+</p>
+
 
 <h2 id="rel0_9_28"><a name="rel0_9_28">Rasqal 0.9.28 changes</a></h2>
 
