@@ -28,7 +28,7 @@ AC_CONFIG_SRCDIR([src/rasqal_general.c])
 AM_CONFIG_HEADER([src/rasqal_config.h])
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR(build)
-AM_INIT_AUTOMAKE([1.11 check-news std-options -Wall])
+AM_INIT_AUTOMAKE([1.11 check-news std-options -Wall -Wextra-portability])
 
 AM_MAINTAINER_MODE
 
@@ -47,6 +47,7 @@ fi
 dnl Checks for programs.
 AC_CANONICAL_HOST
 AM_SANITY_CHECK
+AM_PROG_AR
 AC_PROG_CC
 AM_PROG_CC_C_O
 
