@@ -73,7 +73,7 @@ struct MD5Context {
 static void MD5Init(struct MD5Context *context);
 static void MD5Update(struct MD5Context *context, 
                       const unsigned char *buf,
-                      unsigned len);
+                      size_t len);
 static void MD5Final(struct MD5Context *context);
 static void MD5Transform (u32 buf[4], u32 const in[MD5_DIGEST_LEN]);
 
@@ -124,16 +124,17 @@ static void MD5Init(struct MD5Context *ctx)
  */
 static void MD5Update(struct MD5Context *ctx,
                       const unsigned char* buf,
-                      unsigned len)
+                      size_t len)
 {
   u32 t;
+  u32 ulen = RASQAL_BAD_CAST(u32, len);
 
   /* Update bitcount */
   
   t = ctx->bits[0];
-  if ((ctx->bits[0] = t + ((u32) len << 3)) < t)
+  if ((ctx->bits[0] = t + (ulen << 3)) < t)
     ctx->bits[1]++;		/* Carry from low to high */
-  ctx->bits[1] += len >> 29;
+  ctx->bits[1] += ulen >> 29;
   
   t = (t >> 3) & 0x3f;	/* Bytes already in shsInfo->data */
   

@@ -1824,6 +1824,12 @@ int rasqal_digest_md5_buffer(const unsigned char *output,
 /* snprint.c */
 int rasqal_format_integer(char* buffer, size_t bufsize, int integer, int width, char padding);
 
+/* Safe casts: widening a value */
+#define RASQAL_GOOD_CAST(t, v) (t)(v)
+
+/* Unsafe casts: narrowing a value */
+#define RASQAL_BAD_CAST(t, v) (t)(v)
+
 /* end of RASQAL_INTERNAL */
 #endif
 
