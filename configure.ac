@@ -1183,6 +1183,7 @@ AC_MSG_RESULT([
 Rasqal build summary:
   RDF query languages available : $rdf_query_languages_available
   RDF query languages enabled   :$rdf_query_languages_enabled
+  Raptor version                : $RAPTOR_VERSION
   Decimal library               : $decimal_library
   Regex library                 : $regex_library
   Message digest library        : $digest_library
