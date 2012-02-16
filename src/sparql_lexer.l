@@ -527,13 +527,13 @@ EXPONENT [eE][+-]?[0-9]+
 "-"         { return '-'; }
 
 '([^'\\\n\r]|\\[^\n\r])*'    { /*' */
-                        sparql_parser_lval->name = sparql_copy_string_token(rq, (unsigned char*)yytext+1, yyleng-2, '\'');
+                        sparql_parser_lval->name = sparql_copy_string_token(rq, RASQAL_GOOD_CAST(unsigned char*, yytext) + 1, yyleng - 2, '\'');
                         if(!sparql_parser_lval->name)
                           YY_REPORT_ERROR_EOF("sparql_copy_string_token failed");
                         return STRING; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"   { /* " */
-                        sparql_parser_lval->name = sparql_copy_string_token(rq, (unsigned char*)yytext+1, yyleng-2, '"');
+                        sparql_parser_lval->name = sparql_copy_string_token(rq, RASQAL_GOOD_CAST(unsigned char*, yytext) + 1, yyleng - 2, '"');
                         if(!sparql_parser_lval->name)
                           YY_REPORT_ERROR_EOF("sparql_copy_string_token failed");
                         return STRING; }
@@ -554,8 +554,8 @@ EXPONENT [eE][+-]?[0-9]+
                     YY_REPORT_ERROR_EOF("Out of memory");
 
                   raptor_stringbuffer_copy_to_string(rqe->sb,
-                                                     (unsigned char*)sparql_parser_lval->name, len);
-                  sparql_parser_lval->name[len]='\0';
+                                                     RASQAL_GOOD_CAST(unsigned char*, sparql_parser_lval->name), len);
+                  sparql_parser_lval->name[len] = '\0';
 
                   raptor_free_stringbuffer(rqe->sb);
                   rqe->sb = NULL;
@@ -577,7 +577,7 @@ EXPONENT [eE][+-]?[0-9]+
                       rqe->lineno++;
                   }
 
-                  if(sparql_stringbuffer_append_sparql_string(rq, rqe->sb, (unsigned char*)yytext, yyleng, '"')) { /* " */
+                  if(sparql_stringbuffer_append_sparql_string(rq, rqe->sb, RASQAL_GOOD_CAST(unsigned char*, yytext), yyleng, '"')) { /* " */
                     BEGIN(INITIAL);
                     raptor_free_stringbuffer(rqe->sb);
                     rqe->sb = NULL;
@@ -608,8 +608,8 @@ EXPONENT [eE][+-]?[0-9]+
                   if(!sparql_parser_lval->name)
                     YY_REPORT_ERROR_EOF("Out of memory");
 
-                  raptor_stringbuffer_copy_to_string(rqe->sb, (unsigned char*)sparql_parser_lval->name, len);
-                  sparql_parser_lval->name[len]='\0';
+                  raptor_stringbuffer_copy_to_string(rqe->sb, RASQAL_GOOD_CAST(unsigned char*, sparql_parser_lval->name), len);
+                  sparql_parser_lval->name[len] = '\0';
 
                   raptor_free_stringbuffer(rqe->sb);
                   rqe->sb = NULL;
@@ -631,7 +631,7 @@ EXPONENT [eE][+-]?[0-9]+
                       rqe->lineno++;
                   }
 
-                  if(sparql_stringbuffer_append_sparql_string(rq, rqe->sb, (unsigned char*)yytext, yyleng, '\'')) {
+                  if(sparql_stringbuffer_append_sparql_string(rq, rqe->sb, RASQAL_GOOD_CAST(unsigned char*, yytext), yyleng, '\'')) {
                     BEGIN(INITIAL);
                     raptor_free_stringbuffer(rqe->sb);
                     rqe->sb = NULL;
@@ -722,14 +722,14 @@ EXPONENT [eE][+-]?[0-9]+
  		return have_brace ? URI_LITERAL_BRACE : URI_LITERAL;
 }
 
-{BNAME}	{	sparql_parser_lval->name = sparql_copy_name(rq, (unsigned char*)yytext+2, yyleng-2, SPARQL_NAME_CHECK_NCNAME);
+{BNAME}	{	sparql_parser_lval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(unsigned char*, yytext) + 2, yyleng - 2, SPARQL_NAME_CHECK_NCNAME);
 		if(!sparql_parser_lval->name)
 		  yyterminate();
 
 		return BLANK_LITERAL;
 }
 
-{BNAME2}	{	sparql_parser_lval->name = sparql_copy_name(rq, (unsigned char*)yytext+3, yyleng-4, SPARQL_NAME_CHECK_NCNAME);
+{BNAME2}	{	sparql_parser_lval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(unsigned char*, yytext) + 3, yyleng - 4, SPARQL_NAME_CHECK_NCNAME);
 		if(!sparql_parser_lval->name)
 		  yyterminate();
 
@@ -746,7 +746,7 @@ EXPONENT [eE][+-]?[0-9]+
                   unsigned char* uri_string;
 
                   yytext[yyleng-1] = '\0';
-                  uri_string = rasqal_escaped_name_to_utf8_string((unsigned char*)yytext+1,
+                  uri_string = rasqal_escaped_name_to_utf8_string(RASQAL_GOOD_CAST(unsigned char*, yytext) + 1,
                                                                   yyleng-1,
                                                                   NULL,
                                                                   sparql_syntax_error, rq);
@@ -834,8 +834,8 @@ sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len,
   size_t dest_len = 0;
   unsigned char *s;
 
-  s = rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
-                                         &dest_len,
+  s = rasqal_escaped_name_to_utf8_string(RASQAL_GOOD_CAST(unsigned char*, text),
+                                         len, &dest_len,
                                          sparql_syntax_error, rq);
   if(!s) {
     sparql_syntax_error(rq, "Failed to decode SPARQL string \"%s\"", text);
@@ -857,15 +857,15 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len)
   unsigned char *s;
   raptor_uri* uri = NULL;
   
-  s = rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
-                                         &dest_len,
+  s = rasqal_escaped_name_to_utf8_string(RASQAL_GOOD_CAST(unsigned char*, text),
+                                         len, &dest_len,
                                          sparql_syntax_error, rq);
   if(!s) {
     sparql_syntax_error(rq, "Failed to decode SPARQL ID \"%s\"", text);
     return NULL;
   }
 
-  p = (unsigned char*)strchr(RASQAL_GOOD_CAST(const char*, s), ':');
+  p = RASQAL_GOOD_CAST(unsigned char*, strchr(RASQAL_GOOD_CAST(const char*, s), ':'));
   if(!rasqal_sparql_name_check(s, p-s, SPARQL_NAME_CHECK_PREFIX))
     sparql_syntax_error(rq, "Invalid SPARQL prefix name \"%s\"", s);
   if(!rasqal_sparql_name_check(p+1, dest_len-((p+1)-s), SPARQL_NAME_CHECK_NCNAME))

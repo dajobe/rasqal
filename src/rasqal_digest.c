@@ -235,13 +235,13 @@ rasqal_digest_buffer(rasqal_digest_type type, const unsigned char *output,
 
     apr_sha1_init(&c);
     apr_sha1_update_binary(&c, input, len);
-    apr_sha1_final((unsigned char*)output, &c);
+    apr_sha1_final(RASQAL_GOOD_CAST(unsigned char*, output), &c);
   }
 #endif
   
 #ifdef HAVE_APR_MD5_H
   if(type == RASQAL_DIGEST_MD5) {
-    if(apr_md5((unsigned char*)output, input, len))
+    if(apr_md5(RASQAL_GOOD_CAST(unsigned char*, output), input, len))
       output_len = -1;
   }
 #endif

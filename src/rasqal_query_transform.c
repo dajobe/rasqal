@@ -184,7 +184,7 @@ rasqal_query_convert_blank_node_to_anonymous_variable(rasqal_query *rq,
   
   v = rasqal_variables_table_add(rq->vars_table,
                                  RASQAL_VARIABLE_TYPE_ANONYMOUS,
-                                 (unsigned char*)l->string, NULL);
+                                 RASQAL_GOOD_CAST(unsigned char*, l->string), NULL);
   /* rasqal_new_variable_typed took ownership of the l->string name.
    * Set to NULL to prevent double delete. */
   l->string = NULL;

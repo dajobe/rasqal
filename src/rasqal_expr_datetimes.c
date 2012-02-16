@@ -283,7 +283,7 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_expression *e,
 
   dt_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr,
                                               world->xsd_namespace_uri, 
-                                              (unsigned char*)"dayTimeDuration");
+                                              RASQAL_GOOD_CAST(unsigned char*, "dayTimeDuration"));
   if(!dt_uri)
     goto failed;
   

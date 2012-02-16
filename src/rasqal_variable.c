@@ -680,7 +680,7 @@ main(int argc, char *argv[])
 
   for(i = 0; i < NUM_VARS; i++) {
     size_t len = strlen(var_names[i]);
-    names[i] = (unsigned char*)malloc(len+1);
+    names[i] = RASQAL_GOOD_CAST(unsigned char*, malloc(len + 1));
     memcpy(names[i], var_names[i], len + 1);
   }
   

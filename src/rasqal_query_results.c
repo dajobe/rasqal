@@ -1090,7 +1090,7 @@ rasqal_literal_to_result_term(rasqal_query_results* query_results,
          * blank node value so make a new one every result, not every triple
          */
         nodeid = rasqal_prefix_id(query_results->result_count,
-                                  (unsigned char*)nodel->string);
+                                  RASQAL_GOOD_CAST(unsigned char*, nodel->string));
       } else {
         nodeid = RASQAL_MALLOC(unsigned char*, nodel->string_len + 1);
         if(nodeid)

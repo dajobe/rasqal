@@ -161,7 +161,7 @@ rasqal_new_numeric_literal_from_long(rasqal_world* world,
   /* Otherwise turn it into a decimal */
   d = rasqal_new_xsd_decimal(world);
   rasqal_xsd_decimal_set_long(d, value);
-  string = (unsigned char*)rasqal_xsd_decimal_as_counted_string(d, NULL);
+  string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_decimal_as_counted_string(d, NULL));
 
   return rasqal_new_decimal_literal_from_decimal(world, string, d);
 }
@@ -434,8 +434,7 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
       l->datatype = raptor_uri_copy(dt_uri);
       l->value.decimal = decimal;
       /* string is owned by l->value.decimal */
-      l->string = (unsigned char*)rasqal_xsd_decimal_as_counted_string(l->value.decimal,
-                                                                       (size_t*)&l->string_len);
+      l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_decimal_as_counted_string(l->value.decimal, (size_t*)&l->string_len));
       if(!l->string) {
         rasqal_free_literal(l);
         l = NULL;
@@ -487,7 +486,7 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type,
 
     case RASQAL_LITERAL_DECIMAL:
       sprintf(buffer, "%g", d);
-      return rasqal_new_decimal_literal(world, (unsigned char*)buffer);
+      return rasqal_new_decimal_literal(world, RASQAL_GOOD_CAST(unsigned char*, buffer));
       break;
 
     case RASQAL_LITERAL_XSD_STRING:
@@ -547,8 +546,7 @@ rasqal_new_datetime_literal_from_datetime(rasqal_world* world,
 
   l->value.datetime = dt;
   
-  l->string = (unsigned char*)rasqal_xsd_datetime_to_counted_string(l->value.datetime,
-                                                                    (size_t*)&l->string_len);
+  l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_datetime_to_counted_string(l->value.datetime, (size_t*)&l->string_len));
   if(!l->string)
     goto failed;
 
@@ -687,8 +685,7 @@ retype:
       /* l->string is now owned by l->value.decimal and will be freed
        * on literal destruction
        */
-      l->string = (unsigned char*)rasqal_xsd_decimal_as_counted_string(l->value.decimal,
-                                                                       (size_t*)&l->string_len);
+      l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_decimal_as_counted_string(l->value.decimal, RASQAL_BAD_CAST(size_t*, &l->string_len)));
       if(!l->string)
         return 1;
       break;
@@ -720,8 +717,7 @@ retype:
       return 1;
     }
     RASQAL_FREE(char*, l->string);
-    l->string = (unsigned char*)rasqal_xsd_date_to_counted_string(l->value.date,
-                                                                  (size_t*)&l->string_len);
+    l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_date_to_counted_string(l->value.date, RASQAL_BAD_CAST(size_t*, &l->string_len)));
     if(!l->string)
       return 1;
     break;
@@ -734,8 +730,7 @@ retype:
       return 1;
     }
     RASQAL_FREE(char*, l->string);
-    l->string = (unsigned char*)rasqal_xsd_datetime_to_counted_string(l->value.datetime,
-                                                                      (size_t*)&l->string_len);
+    l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_datetime_to_counted_string(l->value.datetime, RASQAL_BAD_CAST(size_t*, &l->string_len)));
     if(!l->string)
       return 1;
 
@@ -1524,14 +1519,14 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
         errno = 0;
         long_i = strtol(RASQAL_GOOD_CAST(const char*, l->string), &eptr, 10);
         /* If formatted correctly and no under or overflow */
-        if((unsigned char*)eptr != l->string && *eptr=='\0' &&
+        if(RASQAL_GOOD_CAST(unsigned char*, eptr) != l->string && *eptr=='\0' &&
            errno != ERANGE)
           /* FIXME may lose precision or be out of range from long to int */
           return RASQAL_BAD_CAST(int, long_i);
 
         eptr = NULL;
         d = strtod(RASQAL_GOOD_CAST(const char*, l->string), &eptr);
-        if((unsigned char*)eptr != l->string && *eptr=='\0')
+        if(RASQAL_GOOD_CAST(unsigned char*, eptr) != l->string && *eptr=='\0')
           /* FIXME may lose precision or be out of range from double to int */
           return RASQAL_GOOD_CAST(int, d);
       }
@@ -1606,7 +1601,7 @@ rasqal_literal_as_double(rasqal_literal* l, int *error_p)
       {
         char *eptr = NULL;
         double  d = strtod(RASQAL_GOOD_CAST(const char*, l->string), &eptr);
-        if((unsigned char*)eptr != l->string && *eptr=='\0')
+        if(RASQAL_GOOD_CAST(unsigned char*, eptr) != l->string && *eptr == '\0')
           return d;
       }
       if(error_p)
@@ -1686,7 +1681,7 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error_p)
       {
         char *eptr = NULL;
         float  f = strtof(RASQAL_GOOD_CAST(const char*, l->string), &eptr);
-        if((unsigned char*)eptr != l->string && *eptr=='\0')
+        if(RASQAL_GOOD_CAST(unsigned char*, eptr) != l->string && *eptr == '\0')
           return f;
       }
       if(error_p)
@@ -2017,7 +2012,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
                   rasqal_literal_type_label(lit->type));
 
     if(type == RASQAL_LITERAL_STRING || type ==  RASQAL_LITERAL_UDT) {
-      s = (unsigned char*)rasqal_literal_as_counted_string(lit, &len, 0, NULL);
+      s = RASQAL_GOOD_CAST(unsigned char*, rasqal_literal_as_counted_string(lit, &len, 0, NULL));
       new_s = RASQAL_MALLOC(unsigned char*, len + 1);
       if(new_s) {
         raptor_uri* dt_uri = NULL;
@@ -2090,7 +2085,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       break;
     
     case RASQAL_LITERAL_STRING:
-      s = (unsigned char*)rasqal_literal_as_counted_string(lit, &len, 0, NULL);
+      s = RASQAL_GOOD_CAST(unsigned char*, rasqal_literal_as_counted_string(lit, &len, 0, NULL));
       new_s = RASQAL_MALLOC(unsigned char*, len + 1);
       if(new_s) {
         memcpy(new_s, s, len + 1);
@@ -2099,7 +2094,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       break;
 
     case RASQAL_LITERAL_XSD_STRING:
-      s = (unsigned char*)rasqal_literal_as_counted_string(lit, &len, 0, NULL);
+      s = RASQAL_GOOD_CAST(unsigned char*, rasqal_literal_as_counted_string(lit, &len, 0, NULL));
       new_s = RASQAL_MALLOC(unsigned char*, len + 1);
       if(new_s) {
         raptor_uri* dt_uri;
