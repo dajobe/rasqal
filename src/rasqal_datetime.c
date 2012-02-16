@@ -733,7 +733,7 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
   char *p;
   /* "[+-]HH:MM\0" */
   char timezone_string[TIMEZONE_BUFFER_LEN + 1];
-  int year_len;
+  size_t year_len;
   int tz_string_len;
   size_t microseconds_len = 0;
   
@@ -984,7 +984,7 @@ rasqal_xsd_date_to_counted_string(const rasqal_xsd_date *date, size_t *len_p)
   char *p;
   int value;
   unsigned int d;
-  int year_len;
+  size_t year_len;
   
   if(!date)
     return NULL;

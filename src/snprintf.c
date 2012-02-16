@@ -56,13 +56,13 @@ static const char digits[] = "0123456789abcdefghijklmnopqrstuvwxyz";
  * If @buffer is NULL or the @bufsize is too small, the number of
  * bytes needed (excluding NUL) is returned and no formatting is done.
  *
- * Return value: number of bytes needed or written (excluding NUL) or < 0 on failure
+ * Return value: number of bytes needed or written (excluding NUL) or 0 on failure
  */
-int
+size_t
 rasqal_format_integer(char* buffer, size_t bufsize, int integer,
                       int width, char padding)
 {
-  size_t len = 1;
+  size_t len = 0;
   char *p;
   unsigned int value;
   unsigned int base = 10;
@@ -104,5 +104,5 @@ rasqal_format_integer(char* buffer, size_t bufsize, int integer,
   if(integer < 0)
     *buffer = '-';
 
-  return RASQAL_BAD_CAST(int, len);
+  return len;
 }
