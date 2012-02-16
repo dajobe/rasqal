@@ -842,7 +842,7 @@ rasqal_rowsource_sparql_xml_process(rasqal_rowsource_sparql_xml_context* con)
   while(!raptor_iostream_read_eof(con->iostr)) {
     size_t read_len;
     
-    read_len = raptor_iostream_read_bytes((char*)con->buffer, 1,
+    read_len = raptor_iostream_read_bytes(RASQAL_GOOD_CAST(char*, con->buffer), 1,
                                           FILE_READ_BUF_SIZE,
                                           con->iostr);
     if(read_len > 0) {

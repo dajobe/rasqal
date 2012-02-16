@@ -1564,7 +1564,7 @@ static int test_datetime_parser_tostring(const char *in_str, const char *out_exp
   int r = 1;
   s = rasqal_xsd_datetime_string_to_canonical((const char*)in_str);
   if(s) {
-    r = strcmp((char*)s, out_expected);
+    r = strcmp(RASQAL_GOOD_CAST(char*, s), out_expected);
     if(r)
       fprintf(stderr, "input dateTime \"%s\" converted to canonical \"%s\", expected \"%s\"\n", in_str, s, out_expected);
     RASQAL_FREE(char*, s);
@@ -1578,9 +1578,9 @@ static int test_date_parser_tostring(const char *in_str, const char *out_expecte
 {
   char const *s;
   int r = 1;
-  s = rasqal_xsd_date_string_to_canonical((const char*)in_str);
+  s = rasqal_xsd_date_string_to_canonical(RASQAL_GOOD_CAST(const char*, in_str));
   if(s) {
-    r = strcmp((char*)s, out_expected);
+    r = strcmp(RASQAL_GOOD_CAST(char*, s), out_expected);
     if(r)
       fprintf(stderr, "input date \"%s\" converted to canonical \"%s\", expected \"%s\"\n", in_str, s, out_expected);
     RASQAL_FREE(char*, s);

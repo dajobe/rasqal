@@ -995,10 +995,10 @@ rasqal_world_default_generate_bnodeid_handler(void *user_data,
   if(world->default_generate_bnodeid_handler_prefix) {
     memcpy(buffer, world->default_generate_bnodeid_handler_prefix,
            world->default_generate_bnodeid_handler_prefix_length);
-    sprintf((char*)buffer + world->default_generate_bnodeid_handler_prefix_length,
+    sprintf(RASQAL_GOOD_CAST(char*, buffer) + world->default_generate_bnodeid_handler_prefix_length,
             "%d", id);
   } else 
-    sprintf((char*)buffer, "bnodeid%d", id);
+    sprintf(RASQAL_GOOD_CAST(char*, buffer), "bnodeid%d", id);
 
   return buffer;
 }

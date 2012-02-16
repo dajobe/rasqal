@@ -849,9 +849,9 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
 
 #ifdef RASQAL_DEBUG
   if(rc >= 0)
-    RASQAL_DEBUG5("regex match returned %s for '%s' against '%s' (flags=%s)\n", rc ? "true" : "false", match_string, pattern, l2->flags ? (char*)l2->flags : "");
+    RASQAL_DEBUG5("regex match returned %s for '%s' against '%s' (flags=%s)\n", rc ? "true" : "false", match_string, pattern, l2->flags ? RASQAL_GOOD_CAST(char*, l2->flags) : "");
   else
-    RASQAL_DEBUG4("regex match returned failed for '%s' against '%s' (flags=%s)\n", match_string, pattern, l2->flags ? (char*)l2->flags : "");
+    RASQAL_DEBUG4("regex match returned failed for '%s' against '%s' (flags=%s)\n", match_string, pattern, l2->flags ? RASQAL_GOOD_CAST(char*, l2->flags) : "");
 #endif
   
   rasqal_free_literal(l1);
@@ -1102,7 +1102,7 @@ rasqal_expression_evaluate_replace(rasqal_expression *e,
                                   replace, replace_len,
                                   &result_len);
   
-  RASQAL_DEBUG6("regex replace returned %s for '%s' from '%s' to '%s' (flags=%s)\n", result_s ? result_s : "NULL", match, pattern, replace, regex_flags ? (char*)regex_flags : "");
+  RASQAL_DEBUG6("regex replace returned %s for '%s' from '%s' to '%s' (flags=%s)\n", result_s ? result_s : "NULL", match, pattern, replace, regex_flags ? RASQAL_GOOD_CAST(char*, regex_flags) : "");
   
   if(!result_s)
     goto failed;

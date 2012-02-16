@@ -92,7 +92,7 @@ rasqal_read_stringbuffer_iostream_read_bytes(void *user_data, void *ptr,
     avail = nmemb;
 
   blen = (avail * size);
-  memcpy(ptr, (char*)con->string + con->offset, blen);
+  memcpy(ptr, RASQAL_GOOD_CAST(char*, con->string) + con->offset, blen);
   con->offset += blen;
 
   return RASQAL_BAD_CAST(int, avail);

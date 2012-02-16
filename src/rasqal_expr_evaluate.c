@@ -617,7 +617,7 @@ rasqal_expression_evaluate_str(rasqal_expression *e,
   if(!new_s)
     goto failed;
 
-  memcpy((char*)new_s, (const char*)s, len + 1);
+  memcpy(RASQAL_GOOD_CAST(char*, new_s), RASQAL_GOOD_CAST(const char*, s), len + 1);
   
   /* after this new_s is owned by result */
   result = rasqal_new_string_literal(world, new_s, NULL, NULL, NULL);
@@ -682,7 +682,7 @@ rasqal_expression_evaluate_lang(rasqal_expression *e,
     if(!new_s)
       goto failed;
 
-    memcpy((char*)new_s, l1->language, len + 1);
+    memcpy(RASQAL_GOOD_CAST(char*, new_s), l1->language, len + 1);
   } else  {
     new_s = RASQAL_MALLOC(unsigned char*, 1);
     if(!new_s)
@@ -862,7 +862,7 @@ rasqal_expression_evaluate_bnode_constructor(rasqal_expression *e,
     if(!new_s)
       goto failed;
 
-    memcpy((char*)new_s, s, len + 1);
+    memcpy(RASQAL_GOOD_CAST(char*, new_s), s, len + 1);
 
     rasqal_free_literal(l1);
   } else {

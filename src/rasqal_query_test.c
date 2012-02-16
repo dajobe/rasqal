@@ -107,7 +107,7 @@ main(int argc, char **argv) {
     
   data_string = raptor_uri_filename_to_uri_string(data_file);
   query_string = RASQAL_MALLOC(unsigned char*, strlen((const char*)data_string) + strlen(query_format) + 1);
-  sprintf((char*)query_string, query_format, data_string);
+  sprintf(RASQAL_GOOD_CAST(char*, query_string), query_format, data_string);
   raptor_free_memory(data_string);
   
   uri_string=raptor_uri_filename_to_uri_string("");
@@ -144,7 +144,7 @@ main(int argc, char **argv) {
       const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
       rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
 
-      printf("result %d: variable %s=", count+1, (char*)name);
+      printf("result %d: variable %s=", count+1, RASQAL_GOOD_CAST(char*, name));
       rasqal_literal_print(value, stdout);
       putchar('\n');
     }
@@ -173,7 +173,7 @@ main(int argc, char **argv) {
       const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
       rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
 
-      printf("result %d: variable %s=", count+1, (char*)name);
+      printf("result %d: variable %s=", count+1, RASQAL_GOOD_CAST(char*, name));
       rasqal_literal_print(value, stdout);
       putchar('\n');
     }

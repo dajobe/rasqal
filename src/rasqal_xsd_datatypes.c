@@ -274,9 +274,9 @@ rasqal_xsd_format_integer(int i, size_t *len_p)
   if(!string)
     return NULL;
   /* snprintf() takes as length the buffer size including NUL */
-  snprintf((char*)string, INTEGER_BUFFER_SIZE + 1, "%d", i);
+  snprintf(RASQAL_GOOD_CAST(char*, string), INTEGER_BUFFER_SIZE + 1, "%d", i);
   if(len_p)
-    *len_p = strlen((const char*)string);
+    *len_p = strlen(RASQAL_GOOD_CAST(const char*, string));
 
   return string;
 }
@@ -303,9 +303,9 @@ rasqal_xsd_format_float(float f, size_t *len_p)
     return NULL;
   /* snprintf() takes as length the buffer size including NUL */
   /* FIXME: %1g may not be the nearest to XSD xsd:float canonical format */
-  snprintf((char*)string, FLOAT_BUFFER_SIZE + 1, "%1g", (double)f);
+  snprintf(RASQAL_GOOD_CAST(char*, string), FLOAT_BUFFER_SIZE + 1, "%1g", (double)f);
   if(len_p)
-    *len_p = strlen((const char*)string);
+    *len_p = strlen(RASQAL_GOOD_CAST(const char*, string));
 
   return string;
 }
@@ -348,7 +348,7 @@ rasqal_xsd_format_double(double d, size_t *len_p)
     return NULL;
   
   /* snprintf needs the length + 1 because it writes a \0 too */
-  snprintf((char*)buf, len + 1, "%1.14e", d);
+  snprintf(RASQAL_GOOD_CAST(char*, buf), len + 1, "%1.14e", d);
 
   /* find the 'e' and start of mantissa trailing zeros */
 

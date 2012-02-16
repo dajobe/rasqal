@@ -139,7 +139,7 @@ rasqal_query_results_write_html_bindings(raptor_iostream *iostr,
     if(!name)
       break;
     
-    len = strlen((char*)name);
+    len = strlen(RASQAL_GOOD_CAST(char*, name));
     raptor_iostream_counted_string_write("      <th>?", 11, iostr);
     raptor_xml_escape_string_write(name, len, 0, iostr);
     raptor_iostream_counted_string_write("</th>\n", 6, iostr);

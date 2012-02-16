@@ -53,8 +53,8 @@ rasqal_free_chararray(void* object)
   if(!object)
     return;
   
-  values = (char**)object;
-  for(i = 0; values[i] != (char*)-1; i++) {
+  values = RASQAL_GOOD_CAST(char**, object);
+  for(i = 0; values[i] != RASQAL_GOOD_CAST(char*, -1); i++) {
     if(values[i])
       free(values[i]);
   }
@@ -156,7 +156,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
       if(v_len > widths[i])
         widths[i] = v_len;
     }
-    values[i] = (char*)-1;
+    values[i] = RASQAL_GOOD_CAST(char*, -1);
 
     raptor_sequence_push(seq, values);
 

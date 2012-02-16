@@ -655,7 +655,8 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
 #define FIRSTN 1024
       if(buffer && len && len > FIRSTN) {
         c = buffer[FIRSTN];
-        ((char*)buffer)[FIRSTN] = '\0';
+        /* FIXME - casts a read only const buffer to writeable */
+        (RASQAL_BAD_CAST(char*, buffer))[FIRSTN] = '\0';
       }
 
       score += factory->recognise_syntax(factory, buffer, len, 
@@ -663,7 +664,8 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
                                          mime_type);
 
       if(c >= 0)
-        ((char*)buffer)[FIRSTN] = c;
+        /* FIXME - casts a read only const buffer to writeable */
+        (RASQAL_BAD_CAST(char*, buffer))[FIRSTN] = c;
     }
 
     scores[i].score = score < 10 ? score : 10; 

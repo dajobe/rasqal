@@ -1969,7 +1969,7 @@ rasqal_query_get_genid(rasqal_query* query, const unsigned char* base,
   if(!buffer)
     return NULL;
 
-  sprintf((char*)buffer, "%s%d", base, counter);
+  sprintf(RASQAL_GOOD_CAST(char*, buffer), "%s%d", base, counter);
   return buffer;
 }
 

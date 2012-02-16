@@ -756,7 +756,7 @@ rdql_parse(rasqal_query* rq) {
 
   rdql_lexer_set_extra(((rasqal_query*)rq), rqe->scanner);
 
-  (void)rdql_lexer__scan_buffer((char*)rq->query_string, rq->query_string_length, rqe->scanner);
+  (void)rdql_lexer__scan_buffer(RASQAL_GOOD_CAST(char*, rq->query_string), rq->query_string_length, rqe->scanner);
 
   rqe->error_count=0;
 

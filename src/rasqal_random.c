@@ -160,7 +160,7 @@ rasqal_free_random(rasqal_random *random_object)
 
 #ifdef RANDOM_ALGO_RANDOM
   if(random_object->data)
-    setstate((char*)random_object->data);
+    setstate(RASQAL_GOOD_CAST(char*, random_object->data));
 #endif
 
 #ifdef RANDOM_ALGO_GMP_RAND

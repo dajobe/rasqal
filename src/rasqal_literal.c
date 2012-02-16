@@ -665,7 +665,7 @@ retype:
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
       d = 0.0;
-      (void)sscanf((char*)l->string, "%lf", &d);
+      (void)sscanf(RASQAL_GOOD_CAST(char*, l->string), "%lf", &d);
       l->value.floating = d;
       break;
 
@@ -4440,7 +4440,7 @@ rasqal_literal_sequence_sort_map_compare(void* user_data,
      * raptor) so we can do pointer arithmetic.  We only care about
      * the relative pointer difference.
      */
-    d = (char*)literal_seq_a - (char*)literal_seq_b;
+    d = RASQAL_GOOD_CAST(char*, literal_seq_a) - RASQAL_GOOD_CAST(char*, literal_seq_b);
 
     /* copy the sign of the (unknown size) signed integer 'd' into an
      * int result

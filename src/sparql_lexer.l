@@ -1273,14 +1273,14 @@ void *sparql_lexer_realloc(void *ptr, yy_size_t size, yyscan_t yyscanner)
     YY_FATAL_ERROR("lexer_realloc: cell not in tracker");
 
   /* realloc */
-  newptr = realloc((char*)ptr, size);
+  newptr = realloc(RASQAL_GOOD_CAST(char*, ptr), size);
 
   /* replace entry in tracker */
   lexer_allocs[i] = newptr;
 
   return newptr;
 #else
-  return realloc((char*)ptr, size);
+  return realloc(RASQAL_GOOD_CAST(char*, ptr), size);
 #endif
 }
 

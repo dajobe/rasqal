@@ -504,8 +504,8 @@ main(int argc, char *argv[])
   query = rasqal_new_query(world, "sparql", NULL);
   
   data_string = raptor_uri_filename_to_uri_string(data_file);
-  query_string = RASQAL_MALLOC(unsigned char*, strlen((const char*)data_string) + strlen(query_format) + 1);
-  sprintf((char*)query_string, query_format, data_string);
+  query_string = RASQAL_MALLOC(unsigned char*, strlen(RASQAL_GOOD_CAST(const char*, data_string)) + strlen(query_format) + 1);
+  sprintf(RASQAL_GOOD_CAST(char*, query_string), query_format, data_string);
   raptor_free_memory(data_string);
   
   uri_string = raptor_uri_filename_to_uri_string("");
