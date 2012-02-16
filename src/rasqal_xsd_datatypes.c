@@ -324,7 +324,8 @@ unsigned char*
 rasqal_xsd_format_double(double d, size_t *len_p)
 {
   unsigned int e_index = 0;
-  int trailing_zero_start = -1;
+  char have_trailing_zero = 0;
+  size_t trailing_zero_start = 0;
   unsigned int exponent_start;
   size_t len = 0;
   unsigned char* buf = NULL;
@@ -352,14 +353,17 @@ rasqal_xsd_format_double(double d, size_t *len_p)
   /* find the 'e' and start of mantissa trailing zeros */
 
   for( ; buf[e_index]; ++e_index) {
-    if(e_index > 0 && buf[e_index] == '0' && buf[e_index-1] != '0')
-      trailing_zero_start = (int)e_index;
+    if(e_index > 0 && buf[e_index] == '0' && buf[e_index - 1] != '0') {
+      trailing_zero_start = e_index;
+      have_trailing_zero = 1;
+    }
+    
     else if(buf[e_index] == 'e')
       break;
   }
 
-  if(trailing_zero_start >= 0) {
-    if(buf[trailing_zero_start-1] == '.')
+  if(have_trailing_zero) {
+    if(buf[trailing_zero_start - 1] == '.')
       ++trailing_zero_start;
 
     /* write an 'E' where the trailing zeros started */
@@ -370,18 +374,19 @@ rasqal_xsd_format_double(double d, size_t *len_p)
     }
   } else {
     buf[e_index] = 'E';
-    trailing_zero_start = (int)e_index + 1;
+    trailing_zero_start = e_index + 1;
+    have_trailing_zero = 1;
   }
   
-  exponent_start = e_index+2;
+  exponent_start = e_index + 2;
   while(buf[exponent_start] == '0')
     ++exponent_start;
 
-  if(trailing_zero_start >= 0) {
+  if(have_trailing_zero) {
     len = strlen((const char*)buf);
     if(exponent_start == len) {
       len = trailing_zero_start + 2;
-      buf[len-1] = '0';
+      buf[len - 1] = '0';
       buf[len] = '\0';
     } else {
       /* copy the exponent (minus leading zeros) after the new E */
