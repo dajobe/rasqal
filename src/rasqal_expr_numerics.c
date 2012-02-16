@@ -301,7 +301,7 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
     goto failed;
   
   p = new_s;
-  for(i = 0; i < (unsigned int)output_len; i++) {
+  for(i = 0; i < RASQAL_GOOD_CAST(unsigned int, output_len); i++) {
     unsigned short hex;
     char c = output[i];
 

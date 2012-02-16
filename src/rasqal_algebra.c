@@ -765,7 +765,7 @@ rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node,
   raptor_iostream_counted_string_write(op_string, op_length, iostr);
   raptor_iostream_counted_string_write("(\n", 2, iostr);
 
-  indent_delta = (unsigned int)op_length + 1;
+  indent_delta = RASQAL_GOOD_CAST(unsigned int, op_length) + 1;
   
   indent += indent_delta;
   rasqal_algebra_write_indent(iostr, indent);

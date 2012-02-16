@@ -68,11 +68,11 @@ rasqal_format_integer(char* buffer, size_t bufsize, int integer,
   unsigned int base = 10;
 
   if(integer < 0) {
-    value = (unsigned int)-integer;
+    value = RASQAL_GOOD_CAST(unsigned int, -integer);
     len++;
     width++;
   } else
-    value = (unsigned int)integer;
+    value = RASQAL_GOOD_CAST(unsigned int, integer);
   while(value /= base)
     len++;
 
@@ -89,9 +89,9 @@ rasqal_format_integer(char* buffer, size_t bufsize, int integer,
     padding = ' ';
 
   if(integer < 0)
-    value = (unsigned int)-integer;
+    value = RASQAL_GOOD_CAST(unsigned int, -integer);
   else
-    value = (unsigned int)integer;
+    value = RASQAL_GOOD_CAST(unsigned int, integer);
 
   p = &buffer[len];
   *p-- = '\0';

@@ -216,7 +216,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
   }
   for(q = p; ISNUM(*p); p++)
     ;
-  l = (unsigned int)(p - q);
+  l = RASQAL_GOOD_CAST(unsigned int, p - q);
   
   /* error if
      - less than 4 digits in year
@@ -227,7 +227,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
     return -1;
 
   if(l >= (B_SIZE - 1))
-     l = (unsigned int)(B_SIZE - 1);
+    l = RASQAL_GOOD_CAST(unsigned int, B_SIZE - 1);
 
   memcpy(b, q, l);
   b[l] = 0; /* ensure nul termination */
@@ -248,7 +248,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
   
   for(q = ++p; ISNUM(*p); p++)
     ;
-  l = (unsigned int)(p - q);
+  l = RASQAL_GOOD_CAST(unsigned int, p - q);
   
   /* error if month is not 2 digits or '-' is not the separator */
   if(l != 2 || *p != '-')
@@ -267,7 +267,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
   
   for(q = ++p; ISNUM(*p); p++)
     ;
-  l = (unsigned int)(p - q);
+  l = RASQAL_GOOD_CAST(unsigned int, p - q);
 
   if(is_dateTime) {
     /* xsd:dateTime: error if day is not 2 digits or 'T' is not the separator */
@@ -297,7 +297,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
 
     for(q = ++p; ISNUM(*p); p++)
       ;
-    l = (unsigned int)(p - q);
+    l = RASQAL_GOOD_CAST(unsigned int, p - q);
 
     /* error if hour is not 2 digits or ':' is not the separator */
     if(l != 2 || *p != ':')
@@ -318,7 +318,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
 
     for(q = ++p; ISNUM(*p); p++)
       ;
-    l = (unsigned int)(p - q);
+    l = RASQAL_GOOD_CAST(unsigned int, p - q);
 
     /* error if minute is not 2 digits or ':' is not the separator */
     if(l != 2 || *p != ':')
@@ -339,7 +339,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
 
     for(q = ++p; ISNUM(*p); p++)
       ;
-    l = (unsigned int)(p - q);
+    l = RASQAL_GOOD_CAST(unsigned int, p - q);
 
     /* error if second is not 2 digits or separator is not 
      * '.' (second fraction)
@@ -380,7 +380,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
 
       if(!(*q == '0' && q == p)) {
         /* allow ".0" */
-        l = (unsigned int)(p - q);
+        l = RASQAL_GOOD_CAST(unsigned int, p - q);
 
         if(l < 1) /* need at least 1 num */
           return -8;
@@ -430,7 +430,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
       /* timezone hours */
       for(q = ++p; ISNUM(*p); p++)
         ;
-      l = (unsigned int)(p - q);
+      l = RASQAL_GOOD_CAST(unsigned int, p - q);
       if(l != 2 || *p!=':')
         return -9;
 
@@ -448,7 +448,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
       /* timezone minutes */    
       for(q = ++p; ISNUM(*p); p++)
         ;
-      l = (unsigned int)(p - q);
+      l = RASQAL_GOOD_CAST(unsigned int, p - q);
       if(l != 2)
         return -10;
 

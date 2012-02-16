@@ -699,7 +699,7 @@ roqet_init_query(rasqal_world *world,
     if(len > MAX_QUERY_ERROR_REPORT_LEN) {
       (void)fwrite(query_string, MAX_QUERY_ERROR_REPORT_LEN, sizeof(char),
                    stderr);
-      fprintf(stderr, "...' (%d bytes) failed\n", (int)len);
+      fprintf(stderr, "...' (%d bytes) failed\n", RASQAL_BAD_CAST(int, len));
     } else {
       (void)fwrite(query_string, len, sizeof(char), stderr);
       fputs("' failed\n", stderr);
@@ -879,10 +879,10 @@ main(int argc, char *argv[])
       case 'f':
         if(optarg) {
           if(!strcmp(optarg, "help")) {
-            int i;
+            unsigned int i;
             
             fprintf(stderr, "%s: Valid query features are:\n", program);
-            for(i = 0; i < (int)rasqal_get_feature_count(); i++) {
+            for(i = 0; i < rasqal_get_feature_count(); i++) {
               const char *feature_name;
               const char *feature_label;
               if(!rasqal_features_enumerate(world, (rasqal_feature)i,
@@ -899,10 +899,10 @@ main(int argc, char *argv[])
             rasqal_free_world(world);
             exit(0);
           } else {
-            int i;
+            unsigned int i;
             size_t arg_len = strlen(optarg);
             
-            for(i = 0; i < (int)rasqal_get_feature_count(); i++) {
+            for(i = 0; i < rasqal_get_feature_count(); i++) {
               const char *feature_name;
               size_t len;
               

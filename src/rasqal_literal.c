@@ -356,7 +356,7 @@ rasqal_new_pattern_literal(rasqal_world* world,
     l->world = world;
     l->type = RASQAL_LITERAL_PATTERN;
     l->string = pattern;
-    l->string_len = (unsigned int)strlen((const char*)pattern);
+    l->string_len = RASQAL_BAD_CAST(unsigned int, strlen((const char*)pattern));
     l->flags = (const unsigned char*)flags;
   } else {
     if(flags)
@@ -617,7 +617,7 @@ retype:
   if(string) {
     if(l->string)
       RASQAL_FREE(char*, l->string);
-    l->string_len = (unsigned int)strlen((const char*)string);
+    l->string_len = RASQAL_BAD_CAST(unsigned int, strlen((const char*)string));
     l->string = RASQAL_MALLOC(unsigned char*, l->string_len + 1);
     if(!l->string)
       return 1;
@@ -869,7 +869,7 @@ rasqal_new_string_literal_common(rasqal_world* world,
 
     l->type = RASQAL_LITERAL_STRING;
     l->string = string;
-    l->string_len = (unsigned int)strlen((const char*)string);
+    l->string_len = RASQAL_BAD_CAST(unsigned int, strlen((const char*)string));
     l->language = language;
     l->datatype = datatype;
     l->flags = datatype_qname;
@@ -975,7 +975,7 @@ rasqal_new_simple_literal(rasqal_world* world,
     l->world = world;
     l->type = type;
     l->string = string;
-    l->string_len = (unsigned int)strlen((const char*)string);
+    l->string_len = RASQAL_BAD_CAST(unsigned int, strlen((const char*)string));
   } else {
     RASQAL_FREE(char*, string);
   }
@@ -1891,7 +1891,7 @@ rasqal_literal_as_variable(rasqal_literal* l)
  */
 static rasqal_literal_type
 rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
-                                 int flags)
+                                int flags)
 {
   rasqal_literal_type type1 = l1->type;
   rasqal_literal_type type2 = l2->type;
@@ -1899,7 +1899,7 @@ rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
 
   for(promotion_type = RASQAL_LITERAL_FIRST_XSD;
       promotion_type <= RASQAL_LITERAL_LAST_XSD;
-      promotion_type = (rasqal_literal_type)((unsigned int)promotion_type+1)) {
+      promotion_type = (rasqal_literal_type)(RASQAL_GOOD_CAST(unsigned int, promotion_type) + 1)) {
     rasqal_literal_type parent_type1 = rasqal_xsd_datatype_parent_type(type1);
     rasqal_literal_type parent_type2 = rasqal_xsd_datatype_parent_type(type2);
     

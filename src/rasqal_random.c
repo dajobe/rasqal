@@ -95,8 +95,9 @@ rasqal_random_get_system_seed(rasqal_world *world)
   a -= c;  a ^= rot(c,16);  c += b;
   b -= a;  b ^= rot(a,19);  /* a += c; */ /* CLANG: not needed because of below */
   c -= b;  c ^= rot(b, 4);  /* b += a; */ /* CLANG: last calculation not needed */
-  
-  return (unsigned int)c;
+
+  /* Good as long as sizeof(unsigned int) >= sizeof(uint32_t) */
+  return RASQAL_GOOD_CAST(unsigned int, c);
 }
 
 
@@ -277,7 +278,7 @@ rasqal_random_irand(rasqal_random *random_object)
   /* cast from unsigned long to unsigned int; we know above that the max
    * size is RAND_MAX so it will fit
    */
-  r = (unsigned int)mpz_get_ui(iresult);
+  r = RASQAL_GOOD_CAST(unsigned int, mpz_get_ui(iresult));
   mpz_clear(iresult);
 
   mpz_clear(rand_max_gmp);
@@ -287,7 +288,7 @@ rasqal_random_irand(rasqal_random *random_object)
   /* cast from unsigned long to unsigned int but max size is RAND_MAX
    * so it will fit
    */
-  r = (unsigned int)mtwist_u32rand((mtwist*)random_object->data);
+  r = RASQAL_GOOD_CAST(unsigned int, mtwist_u32rand((mtwist*)random_object->data));
 #endif
 
   return r;

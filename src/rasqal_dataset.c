@@ -261,7 +261,7 @@ rasqal_dataset_init_match_internal(rasqal_dataset* ds,
   else
     iter->want = RASQAL_TRIPLE_PREDICATE;
 
-  iter->parts = (unsigned int)RASQAL_TRIPLE_SPO ^ iter->want;
+  iter->parts = RASQAL_GOOD_CAST(unsigned int, RASQAL_TRIPLE_SPO) ^ iter->want;
 
   if(ds->base_uri_literal)
     iter->parts |= RASQAL_TRIPLE_ORIGIN;

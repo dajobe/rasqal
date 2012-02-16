@@ -728,7 +728,7 @@ rasqal_rowsource_write_internal(rasqal_rowsource *rowsource,
   int offset;
   rasqal_rowsource* inner_rowsource;
   
-  indent_delta = (unsigned int)strlen(rs_name);
+  indent_delta = RASQAL_GOOD_CAST(unsigned int, strlen(rs_name));
 
   raptor_iostream_counted_string_write(rs_name, indent_delta, iostr);
   raptor_iostream_counted_string_write("(\n", 2, iostr);
