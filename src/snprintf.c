@@ -62,7 +62,7 @@ size_t
 rasqal_format_integer(char* buffer, size_t bufsize, int integer,
                       int width, char padding)
 {
-  size_t len = 0;
+  size_t len = 1;
   char *p;
   unsigned int value;
   unsigned int base = 10;
