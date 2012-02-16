@@ -174,7 +174,7 @@ rasqal_query_results_write_json1(rasqal_query_results_formatter* formatter,
         
         case RASQAL_LITERAL_URI:
           raptor_iostream_string_write("\"type\": \"uri\", \"value\": \"", iostr);
-          str = (const unsigned char*)raptor_uri_as_counted_string(l->value.uri, &len);
+          str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->value.uri, &len));
           raptor_string_ntriples_write(str, len, '"', iostr);
           raptor_iostream_write_byte('"', iostr);
           break;
@@ -192,13 +192,13 @@ rasqal_query_results_write_json1(rasqal_query_results_formatter* formatter,
 
           if(l->language) {
             raptor_iostream_string_write(",\n      \"xml:lang\" : \"", iostr);
-            raptor_iostream_string_write((const unsigned char*)l->language, iostr);
+            raptor_iostream_string_write(RASQAL_GOOD_CAST(const unsigned char*, l->language), iostr);
             raptor_iostream_write_byte('"', iostr);
           }
           
           if(l->datatype) {
             raptor_iostream_string_write(",\n      \"datatype\" : \"", iostr);
-            str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype, &len);
+            str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->datatype, &len));
             raptor_string_ntriples_write(str, len, '"', iostr);
             raptor_iostream_write_byte('"', iostr);
           }

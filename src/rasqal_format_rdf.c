@@ -121,7 +121,7 @@ typedef struct
 
 
 static const unsigned char* const rs_namespace_uri_string =
-  (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/result-set#";
+  RASQAL_GOOD_CAST(const unsigned char*, "http://www.w3.org/2001/sw/DataAccess/tests/result-set#");
 
 
 static int
@@ -155,33 +155,33 @@ rasqal_query_results_rdf_init(rasqal_query_results_formatter* formatter,
   context->rdf_type_uri = 
     raptor_new_uri_from_uri_local_name(raptor_world_ptr,
                                        context->rdf_ns_uri,
-                                       (const unsigned char*)"type");
+                                       RASQAL_GOOD_CAST(const unsigned char*, "type"));
   context->rs_variable_uri =
     raptor_new_uri_from_uri_local_name(raptor_world_ptr,
                                        context->rs_ns_uri,
-                                       (const unsigned char*)"variable");
+                                       RASQAL_GOOD_CAST(const unsigned char*, "variable"));
   context->rs_value_uri =
     raptor_new_uri_from_uri_local_name(raptor_world_ptr,
                                        context->rs_ns_uri,
-                                       (const unsigned char*)"value");
+                                       RASQAL_GOOD_CAST(const unsigned char*, "value"));
   context->rs_solution_uri =
     raptor_new_uri_from_uri_local_name(raptor_world_ptr,
                                        context->rs_ns_uri,
-                                       (const unsigned char*)"solution");
+                                       RASQAL_GOOD_CAST(const unsigned char*, "solution"));
   context->rs_binding_uri =
     raptor_new_uri_from_uri_local_name(raptor_world_ptr,
                                        context->rs_ns_uri,
-                                       (const unsigned char*)"binding");
+                                       RASQAL_GOOD_CAST(const unsigned char*, "binding"));
   context->rs_resultVariable_uri =
     raptor_new_uri_from_uri_local_name(raptor_world_ptr,
                                        context->rs_ns_uri,
-                                       (const unsigned char*)"resultVariable");
+                                       RASQAL_GOOD_CAST(const unsigned char*, "resultVariable"));
 
   /* Classes */
   context->rs_ResultSet_uri =
     raptor_new_uri_from_uri_local_name(raptor_world_ptr,
                                        context->rs_ns_uri,
-                                       (const unsigned char*)"ResultSet");
+                                       RASQAL_GOOD_CAST(const unsigned char*, "ResultSet"));
 
   return 0;
 }
@@ -374,7 +374,7 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
             statement.object = raptor_new_term_from_literal(raptor_world_ptr,
                                                             l->string,
                                                             l->datatype,
-                                                            (const unsigned char*)l->language);
+                                                            RASQAL_GOOD_CAST(const unsigned char*, l->language));
             break;
         case RASQAL_LITERAL_PATTERN:
         case RASQAL_LITERAL_QNAME:
@@ -509,24 +509,24 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
 
   uri = raptor_new_uri_from_uri_local_name(con->raptor_world_ptr,
                                            rdf_ns_uri,
-                                           (const unsigned char*)"type");
+                                           RASQAL_GOOD_CAST(const unsigned char*, "type"));
   predicate_uri_literal = rasqal_new_uri_literal(con->world, uri);
 
   raptor_free_uri(rdf_ns_uri); rdf_ns_uri = NULL;
 
   uri = raptor_new_uri_from_uri_local_name(con->raptor_world_ptr,
                                            con->rs_uri,
-                                           (const unsigned char*)"ResultSet");
+                                           RASQAL_GOOD_CAST(const unsigned char*, "ResultSet"));
   object_uri_literal = rasqal_new_uri_literal(con->world, uri);
 
   uri = raptor_new_uri_from_uri_local_name(con->raptor_world_ptr,
                                            con->rs_uri,
-                                           (const unsigned char*)"variable");
+                                           RASQAL_GOOD_CAST(const unsigned char*, "variable"));
   variable_predicate = rasqal_new_uri_literal(con->world, uri);
   
   uri = raptor_new_uri_from_uri_local_name(con->raptor_world_ptr,
                                            con->rs_uri,
-                                           (const unsigned char*)"value");
+                                           RASQAL_GOOD_CAST(const unsigned char*, "value"));
   value_predicate = rasqal_new_uri_literal(con->world, uri);
   
 
@@ -556,7 +556,7 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
   /* find variable names from all ?var := getTargets(?rs, rs:resultVariable) */
   uri = raptor_new_uri_from_uri_local_name(con->raptor_world_ptr,
                                            con->rs_uri,
-                                           (const unsigned char*)"resultVariable");
+                                           RASQAL_GOOD_CAST(const unsigned char*, "resultVariable"));
   predicate_uri_literal = rasqal_new_uri_literal(con->world, uri);
 
   solution_iter = rasqal_dataset_get_targets_iterator(con->ds,
@@ -604,14 +604,14 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
 
   uri = raptor_new_uri_from_uri_local_name(con->raptor_world_ptr,
                                            con->rs_uri,
-                                           (const unsigned char*)"binding");
+                                           RASQAL_GOOD_CAST(const unsigned char*, "binding"));
   binding_uri_literal = rasqal_new_uri_literal(con->world, uri);
 
 
   /* for each solution node ?sol := getTargets(?rs, rs:solution) */
   uri = raptor_new_uri_from_uri_local_name(con->raptor_world_ptr,
                                            con->rs_uri,
-                                           (const unsigned char*)"solution");
+                                           RASQAL_GOOD_CAST(const unsigned char*, "solution"));
   predicate_uri_literal = rasqal_new_uri_literal(con->world, uri);
 
   solution_iter = rasqal_dataset_get_targets_iterator(con->ds,

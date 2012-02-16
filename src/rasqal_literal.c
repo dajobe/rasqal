@@ -4157,8 +4157,7 @@ rasqal_literal_write_turtle(rasqal_literal* l, raptor_iostream* iostr)
 
   switch(l->type) {
     case RASQAL_LITERAL_URI:
-      str = (const unsigned char*)raptor_uri_as_counted_string(l->value.uri,
-                                                               &len);
+      str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->value.uri, &len));
       
       raptor_iostream_write_byte('<', iostr);
       if(str)
@@ -4184,8 +4183,7 @@ rasqal_literal_write_turtle(rasqal_literal* l, raptor_iostream* iostr)
       }
       
       if(l->datatype) {
-        str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype,
-                                                                 &len);
+        str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->datatype, &len));
         raptor_iostream_counted_string_write("^^<", 3, iostr);
         raptor_string_ntriples_write(str, len, '>', iostr);
         raptor_iostream_write_byte('>', iostr);
@@ -4613,7 +4611,7 @@ rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world,
         const unsigned char* str;
         raptor_uri* u;
 
-        str = (const unsigned char*)GET_CELL(row_i, column_i, 1);
+        str = RASQAL_GOOD_CAST(const unsigned char*, GET_CELL(row_i, column_i, 1));
         u = raptor_new_uri(world->raptor_world_ptr, str);
 
         if(u)

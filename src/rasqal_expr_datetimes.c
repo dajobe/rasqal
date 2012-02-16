@@ -276,8 +276,7 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_expression *e,
   if(l->type != RASQAL_LITERAL_DATETIME)
     goto failed;
   
-  s = (const unsigned char*)rasqal_xsd_datetime_get_timezone_as_counted_string(l->value.datetime,
-                                                                               NULL);
+  s = RASQAL_GOOD_CAST(const unsigned char*, rasqal_xsd_datetime_get_timezone_as_counted_string(l->value.datetime, NULL));
   if(!s)
     goto failed;
 
@@ -331,7 +330,7 @@ rasqal_expression_evaluate_datetime_tz(rasqal_expression *e,
   
 #define TIMEZONE_STRING_LEN 7
 
-  s = (const unsigned char*)rasqal_xsd_datetime_get_tz_as_counted_string(l->value.datetime, NULL);
+  s = RASQAL_GOOD_CAST(const unsigned char*, rasqal_xsd_datetime_get_tz_as_counted_string(l->value.datetime, NULL));
   if(!s)
     goto failed;
   

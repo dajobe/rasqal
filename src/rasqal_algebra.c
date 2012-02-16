@@ -1655,7 +1655,7 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
 
     v = rasqal_variables_table_add(ae->query->vars_table, 
                                    RASQAL_VARIABLE_TYPE_ANONYMOUS, 
-                                   (const unsigned char*)var_name, NULL);
+                                   RASQAL_GOOD_CAST(const unsigned char*, var_name), NULL);
     if(!v) {
       ae->error = 1;
       return 1;

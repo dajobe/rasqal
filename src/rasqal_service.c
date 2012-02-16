@@ -234,7 +234,8 @@ rasqal_service_write_bytes(raptor_www* www,
     svc->started = 1;
   }
 
-  raptor_stringbuffer_append_counted_string(svc->sb, (const unsigned char*)ptr,
+  raptor_stringbuffer_append_counted_string(svc->sb,
+                                            RASQAL_GOOD_CAST(const unsigned char*, ptr),
                                             len, 1);
 }
 
@@ -338,11 +339,11 @@ rasqal_service_execute_as_rowsource(rasqal_service* svc,
   raptor_stringbuffer_append_counted_string(uri_sb, str, len, 1);
 
   raptor_stringbuffer_append_counted_string(uri_sb,
-                                            (const unsigned char*)"?", 1, 1);
+                                            RASQAL_GOOD_CAST(const unsigned char*, "?"), 1, 1);
 
   if(svc->query_string) {
     raptor_stringbuffer_append_counted_string(uri_sb,
-                                              (const unsigned char*)"query=", 6, 1);
+                                              RASQAL_GOOD_CAST(const unsigned char*, "query="), 6, 1);
     raptor_stringbuffer_append_uri_escaped_counted_string(uri_sb,
                                                           svc->query_string,
                                                           svc->query_string_len,
@@ -377,11 +378,11 @@ rasqal_service_execute_as_rowsource(rasqal_service* svc,
         }
         
         raptor_stringbuffer_append_counted_string(uri_sb,
-                                                  (const unsigned char*)"&default-graph-uri=", 19, 1);
+                                                  RASQAL_GOOD_CAST(const unsigned char*, "&default-graph-uri="), 19, 1);
         graph_uri = dg->uri;
       } else {
         raptor_stringbuffer_append_counted_string(uri_sb,
-                                                  (const unsigned char*)"&named-graph-uri=", 17, 1);
+                                                  RASQAL_GOOD_CAST(const unsigned char*, "&named-graph-uri="), 17, 1);
         graph_uri = dg->name_uri;
       }
       

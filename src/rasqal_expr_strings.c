@@ -1114,7 +1114,8 @@ rasqal_expression_evaluate_replace(rasqal_expression *e,
   if(!result_s)
     goto failed;
 
-  result = rasqal_new_string_literal(world, (const unsigned char*)result_s,
+  result = rasqal_new_string_literal(world, 
+                                     RASQAL_GOOD_CAST(const unsigned char*, result_s),
                                      l1->language, l1->datatype, NULL);
   l1->language = NULL;
   l1->datatype = NULL;

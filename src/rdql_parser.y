@@ -650,17 +650,17 @@ rasqal_rdql_query_language_init(rasqal_query* rdf_query, const char *name) {
 
   /* Initialise rdf, rdfs, owl and xsd prefixes and namespaces */
   raptor_namespaces_start_namespace_full(rdf_query->namespaces, 
-                                         (const unsigned char*)"rdf",
-                                         (const unsigned char*)RAPTOR_RDF_MS_URI,0);
+                                         RASQAL_GOOD_CAST(const unsigned char*, "rdf"),
+                                         RASQAL_GOOD_CAST(const unsigned char*, RAPTOR_RDF_MS_URI), 0);
   raptor_namespaces_start_namespace_full(rdf_query->namespaces, 
-                                         (const unsigned char*)"rdfs", 
-                                         (const unsigned char*)RAPTOR_RDF_SCHEMA_URI,0);
+                                         RASQAL_GOOD_CAST(const unsigned char*, "rdfs"), 
+                                         RASQAL_GOOD_CAST(const unsigned char*, RAPTOR_RDF_SCHEMA_URI), 0);
   raptor_namespaces_start_namespace_full(rdf_query->namespaces,
-                                         (const unsigned char*)"xsd",
-                                         (const unsigned char*)RAPTOR_XMLSCHEMA_DATATYPES_URI, 0);
+                                         RASQAL_GOOD_CAST(const unsigned char*, "xsd"),
+                                         RASQAL_GOOD_CAST(const unsigned char*, RAPTOR_XMLSCHEMA_DATATYPES_URI), 0);
   raptor_namespaces_start_namespace_full(rdf_query->namespaces,
-                                         (const unsigned char*)"owl",
-                                         (const unsigned char*)RAPTOR_OWL_URI, 0);
+                                         RASQAL_GOOD_CAST(const unsigned char*, "owl"),
+                                         RASQAL_GOOD_CAST(const unsigned char*, RAPTOR_OWL_URI), 0);
 
   rdf_query->compare_flags = RASQAL_COMPARE_URI;
 
@@ -952,7 +952,7 @@ main(int argc, char *argv[])
   uri_string=raptor_uri_filename_to_uri_string(filename);
   base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
   
-  rc=rasqal_query_prepare(query, (const unsigned char*)query_string, base_uri);
+  rc=rasqal_query_prepare(query, RASQAL_GOOD_CAST(const unsigned char*, query_string), base_uri);
 
   rasqal_query_print(query, stdout);
 

@@ -478,8 +478,8 @@ main(int argc, char *argv[])
   unsigned char *data_string = NULL;
   unsigned char *uri_string = NULL;
   /* <http://example.org#subject> <http://example.org#predicate> "object" . */
-#define SUBJECT_URI_STRING (const unsigned char*)"http://example.org#subject"
-#define PREDICATE_URI_STRING (const unsigned char*)"http://example.org#predicate"
+#define SUBJECT_URI_STRING RASQAL_GOOD_CAST(const unsigned char*, "http://example.org#subject")
+#define PREDICATE_URI_STRING RASQAL_GOOD_CAST(const unsigned char*, "http://example.org#predicate")
 #define OBJECT_STRING "object"
   raptor_uri* s_uri = NULL;
   raptor_uri* p_uri = NULL;

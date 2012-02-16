@@ -257,9 +257,9 @@ SHA1Final(SHA1Context* context)
     finalcount[i] = (unsigned char)((context->count[(i >= 4 ? 0 : 1)]
                                      >> ((3-(i & 3)) * 8) ) & 255);  /* Endian independent */
   }
-  SHA1Update(context, (const unsigned char*)"\200", 1);
+  SHA1Update(context, RASQAL_GOOD_CAST(const unsigned char*, "\200"), 1);
   while ((context->count[0] & 504) != 448) {
-    SHA1Update(context, (const unsigned char*)"\0", 1);
+    SHA1Update(context, RASQAL_GOOD_CAST(const unsigned char*, "\0"), 1);
   }
   SHA1Update(context, finalcount, 8);  /* Should cause a SHA1Transform() */
   for (i = 0; i < SHA1_DIGEST_LENGTH; i++) {

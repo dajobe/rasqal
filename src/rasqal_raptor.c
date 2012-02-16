@@ -191,7 +191,7 @@ rasqal_raptor_generate_id_handler(void *user_data,
     return mapped_id;
   }
   
-  return rasqal_query_get_genid(rtsc->query, (const unsigned char*)"genid", -1);
+  return rasqal_query_get_genid(rtsc->query, RASQAL_GOOD_CAST(const unsigned char*, "genid"), -1);
 }
 
 
@@ -272,7 +272,7 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
     }
 
     rtsc->mapped_id_base = rasqal_query_get_genid(rdf_query,
-                                                  (const unsigned char*)"graphid",
+                                                  RASQAL_GOOD_CAST(const unsigned char*, "graphid"),
                                                   i);
     rtsc->mapped_id_base_len = strlen(RASQAL_GOOD_CAST(const char*, rtsc->mapped_id_base));
 

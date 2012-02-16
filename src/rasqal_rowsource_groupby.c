@@ -766,7 +766,7 @@ main(int argc, char *argv[])
       const unsigned char* var_name;
       
       for(vindex = 0;
-          (var_name = (const unsigned char*)test_data[test_id].expr_vars[vindex] );
+          (var_name = RASQAL_GOOD_CAST(const unsigned char*, test_data[test_id].expr_vars[vindex] ));
           vindex++) {
         rasqal_variable* v;
         rasqal_literal *l = NULL;

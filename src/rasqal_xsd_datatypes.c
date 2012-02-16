@@ -480,7 +480,7 @@ rasqal_xsd_init(rasqal_world* world)
     return 1;
 
   for(i = RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
-    const unsigned char* name = (const unsigned char*)sparql_xsd_names[i];
+    const unsigned char* name = RASQAL_GOOD_CAST(const unsigned char*, sparql_xsd_names[i]);
     world->xsd_datatype_uris[i] =
       raptor_new_uri_from_uri_local_name(world->raptor_world_ptr,
                                          world->xsd_namespace_uri, name);

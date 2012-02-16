@@ -54,8 +54,7 @@ rasqal_iostream_write_html_literal(rasqal_world* world,
     size_t len;
 
     case RASQAL_LITERAL_URI:
-      str = (const unsigned char*)raptor_uri_as_counted_string(l->value.uri, 
-                                                               &len);
+      str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->value.uri, &len));
       raptor_iostream_counted_string_write("<span class=\"uri\">", 18, iostr);
       raptor_iostream_counted_string_write("<a href=\"", 9, iostr);
       raptor_xml_escape_string_write(str, len, '"', iostr);
@@ -85,7 +84,7 @@ rasqal_iostream_write_html_literal(rasqal_world* world,
       raptor_iostream_counted_string_write("<span class=\"literal\">", 22, iostr);
       raptor_iostream_counted_string_write("<span class=\"value\"", 19, iostr);
       if(l->language) {
-        str = (const unsigned char*)l->language;
+        str = RASQAL_GOOD_CAST(const unsigned char*, l->language);
         raptor_iostream_counted_string_write(" xml:lang=\"", 11, iostr);
         raptor_xml_escape_string_write(str, strlen(l->language), '"', iostr);
         raptor_iostream_write_byte('"', iostr);
@@ -96,8 +95,7 @@ rasqal_iostream_write_html_literal(rasqal_world* world,
         
       if(l->datatype) {
         raptor_iostream_counted_string_write("^^&lt;<span class=\"datatype\">", 29, iostr);
-        str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype,
-                                                                 &len);
+        str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->datatype, &len));
         raptor_xml_escape_string_write(str, len, 0, iostr);
         raptor_iostream_counted_string_write("</span>&gt;", 11, iostr);
       }

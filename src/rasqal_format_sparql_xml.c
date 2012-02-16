@@ -119,30 +119,30 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
 
   res_ns=raptor_new_namespace(nstack,
                               NULL,
-                              (const unsigned char*)"http://www.w3.org/2005/sparql-results#",
+                              RASQAL_GOOD_CAST(const unsigned char*, "http://www.w3.org/2005/sparql-results#"),
                               0);
   if(!res_ns)
     goto tidy;
 
   sparql_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
-                                                                  (const unsigned char*)"sparql",
+                                                                  RASQAL_GOOD_CAST(const unsigned char*, "sparql"),
                                                                   NULL, base_uri);
   if(!sparql_element)
     goto tidy;
 
   raptor_xml_writer_start_element(xml_writer, sparql_element);
-  raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
+  raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
 
   /*   <head> */
   element1=raptor_new_xml_element_from_namespace_local_name(res_ns,
-                                                            (const unsigned char*)"head",
+                                                            RASQAL_GOOD_CAST(const unsigned char*, "head"),
                                                             NULL, base_uri);
   if(!element1)
     goto tidy;
 
-  raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"  ", 2);
+  raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "  "), 2);
   raptor_xml_writer_start_element(xml_writer, element1);
-  raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
+  raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
   
   if(rasqal_query_results_is_bindings(results)) {
     for(i=0; 1; i++) {
@@ -153,7 +153,7 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
       
       /*     <variable name="x"/> */
       variable_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
-                                                                        (const unsigned char*)"variable",
+                                                                        RASQAL_GOOD_CAST(const unsigned char*,"variable"),
                                                                         NULL, base_uri);
       if(!variable_element)
         goto tidy;
@@ -163,8 +163,8 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
         goto tidy;
       attrs[0] = raptor_new_qname_from_namespace_local_name(world->raptor_world_ptr,
                                                             res_ns,
-                                                            (const unsigned char*)"name",
-                                                            (const unsigned char*)name); /* attribute value */
+                                                            RASQAL_GOOD_CAST(const unsigned char*,"name"),
+                                                            RASQAL_GOOD_CAST(const unsigned char*, name)); /* attribute value */
       if(!attrs[0]) {
         raptor_free_memory((void*)attrs);
         goto tidy;
@@ -172,9 +172,9 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
 
       raptor_xml_element_set_attributes(variable_element, attrs, 1);
       
-      raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"    ", 4);
+      raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "    "), 4);
       raptor_xml_writer_empty_element(xml_writer, variable_element);
-      raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
+      raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
       
       raptor_free_xml_element(variable_element);
       variable_element=NULL;
@@ -185,9 +185,9 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
 
     
   /*   </head> */
-  raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"  ", 2);
+  raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "  "), 2);
   raptor_xml_writer_end_element(xml_writer, element1);
-  raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
+  raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
   
   raptor_free_xml_element(element1);
   element1=NULL;
@@ -196,19 +196,19 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
   /* Boolean Results */
   if(rasqal_query_results_is_boolean(results)) {
     result_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
-                                                                    (const unsigned char*)"boolean",
+                                                                    RASQAL_GOOD_CAST(const unsigned char*, "boolean"),
                                                                     NULL, base_uri);
     if(!result_element)
       goto tidy;
 
-    raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"  ", 2);
+    raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "  "), 2);
     raptor_xml_writer_start_element(xml_writer, result_element);
     if(rasqal_query_results_get_boolean(results))
       raptor_xml_writer_raw(xml_writer, RASQAL_XSD_BOOLEAN_TRUE);
     else
       raptor_xml_writer_raw(xml_writer, RASQAL_XSD_BOOLEAN_FALSE);
     raptor_xml_writer_end_element(xml_writer, result_element);
-    raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
+    raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
 
     goto results3done;
   }
@@ -218,28 +218,28 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
 
   /*   <results> */
   results_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
-                                                                   (const unsigned char*)"results",
+                                                                   RASQAL_GOOD_CAST(const unsigned char*, "results"),
                                                                    NULL, base_uri);
   if(!results_element)
     goto tidy;
 
-  raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"  ", 2);
+  raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "  "), 2);
   raptor_xml_writer_start_element(xml_writer, results_element);
-  raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
+  raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
 
 
   /* declare result element for later multiple use */
   result_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
-                                                                  (const unsigned char*)"result",
+                                                                  RASQAL_GOOD_CAST(const unsigned char*, "result"),
                                                                   NULL, base_uri);
   if(!result_element)
     goto tidy;
 
   while(!rasqal_query_results_finished(results)) {
     /*     <result> */
-    raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"    ", 4);
+    raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "    "), 4);
     raptor_xml_writer_start_element(xml_writer, result_element);
-    raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
+    raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
 
     for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
       const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
@@ -247,7 +247,7 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
 
       /*       <binding> */
       binding_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
-                                                                       (const unsigned char*)"binding",
+                                                                       RASQAL_GOOD_CAST(const unsigned char*, "binding"),
                                                                        NULL, base_uri);
       if(!binding_element)
         goto tidy;
@@ -257,7 +257,7 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
         goto tidy;
       attrs[0] = raptor_new_qname_from_namespace_local_name(world->raptor_world_ptr,
                                                             res_ns,
-                                                            (const unsigned char*)"name",
+                                                            RASQAL_GOOD_CAST(const unsigned char*, "name"),
                                                             name);
 
       if(!attrs[0]) {
@@ -268,12 +268,12 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
       raptor_xml_element_set_attributes(binding_element, attrs, 1);
       
 
-      raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"      ", 6);
+      raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "      "), 6);
       raptor_xml_writer_start_element(xml_writer, binding_element);
 
       if(!l) {
         element1=raptor_new_xml_element_from_namespace_local_name(res_ns,
-                                                                  (const unsigned char*)"unbound",
+                                                                  RASQAL_GOOD_CAST(const unsigned char*, "unbound"),
                                                                   NULL, base_uri);
         if(!element1)
           goto tidy;
@@ -282,33 +282,33 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
       } else switch(l->type) {
         case RASQAL_LITERAL_URI:
           element1=raptor_new_xml_element_from_namespace_local_name(res_ns,
-                                                                    (const unsigned char*)"uri",
+                                                                    RASQAL_GOOD_CAST(const unsigned char*, "uri"),
                                                                     NULL, base_uri);
           if(!element1)
             goto tidy;
           
           raptor_xml_writer_start_element(xml_writer, element1);
-          raptor_xml_writer_cdata(xml_writer, (const unsigned char*)raptor_uri_as_string(l->value.uri));
+          raptor_xml_writer_cdata(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_string(l->value.uri)));
           raptor_xml_writer_end_element(xml_writer, element1);
 
           break;
 
         case RASQAL_LITERAL_BLANK:
           element1=raptor_new_xml_element_from_namespace_local_name(res_ns,
-                                                                    (const unsigned char*)"bnode",
+                                                                    RASQAL_GOOD_CAST(const unsigned char*, "bnode"),
                                                                     NULL, base_uri);
           if(!element1)
             goto tidy;
           
           raptor_xml_writer_start_element(xml_writer, element1);
-          raptor_xml_writer_cdata(xml_writer, (const unsigned char*)l->string);
+          raptor_xml_writer_cdata(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, l->string));
           raptor_xml_writer_end_element(xml_writer, element1);
           break;
 
         case RASQAL_LITERAL_STRING:
         case RASQAL_LITERAL_UDT:
           element1=raptor_new_xml_element_from_namespace_local_name(res_ns,
-                                                                    (const unsigned char*)"literal",
+                                                                    RASQAL_GOOD_CAST(const unsigned char*, "literal"),
                                                                     NULL, base_uri);
           if(!element1)
             goto tidy;
@@ -320,13 +320,13 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
 
             if(l->language)
               attrs[0]=raptor_new_qname(nstack,
-                                        (const unsigned char*)"xml:lang",
-                                        (const unsigned char*)l->language);
+                                        RASQAL_GOOD_CAST(const unsigned char*, "xml:lang"),
+                                        RASQAL_GOOD_CAST(const unsigned char*, l->language));
             else
               attrs[0] = raptor_new_qname_from_namespace_local_name(world->raptor_world_ptr,
                                                                     res_ns,
-                                                                    (const unsigned char*)"datatype",
-                                                                    (const unsigned char*)raptor_uri_as_string(l->datatype));
+                                                                    RASQAL_GOOD_CAST(const unsigned char*, "datatype"),
+                                                                    RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_string(l->datatype)));
             if(!attrs[0]) {
               raptor_free_memory((void*)attrs);
               goto tidy;
@@ -340,7 +340,7 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
 
 
           raptor_xml_writer_cdata_counted(xml_writer,
-                                          (const unsigned char*)l->string, 
+                                          RASQAL_GOOD_CAST(const unsigned char*, l->string),
                                           l->string_len);
 
           raptor_xml_writer_end_element(xml_writer, element1);
@@ -375,29 +375,29 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
 
       /*       </binding> */
       raptor_xml_writer_end_element(xml_writer, binding_element);
-      raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
+      raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
       
       raptor_free_xml_element(binding_element);
       binding_element=NULL;
     }
 
-    raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"    ", 4);
+    raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "    "), 4);
     raptor_xml_writer_end_element(xml_writer, result_element);
-    raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
+    raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
     
     rasqal_query_results_next(results);
   }
 
-  raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"  ", 2);
+  raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "  "), 2);
   raptor_xml_writer_end_element(xml_writer, results_element);
-  raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
+  raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
 
   results3done:
 
   rc=0;
 
   raptor_xml_writer_end_element(xml_writer, sparql_element);
-  raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
+  raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
 
   tidy:
   if(element1)
@@ -611,7 +611,7 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
       break;
       
     case STATE_binding:
-      con->result_offset = rasqal_rowsource_get_variable_offset_by_name(con->rowsource, (const unsigned char*)con->name);
+      con->result_offset = rasqal_rowsource_get_variable_offset_by_name(con->rowsource, RASQAL_GOOD_CAST(const unsigned char*, con->name));
       break;
       
     case STATE_sparql:
@@ -712,7 +712,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
         else
           memcpy(lvalue, con->value, con->value_len + 1);
         if(con->datatype)
-          datatype_uri = raptor_new_uri(con->world->raptor_world_ptr, (const unsigned char*)con->datatype);
+          datatype_uri = raptor_new_uri(con->world->raptor_world_ptr, RASQAL_GOOD_CAST(const unsigned char*, con->datatype));
         if(con->language) {
           size_t language_len = strlen(con->language);
           language_str = RASQAL_MALLOC(char*, language_len + 1);
@@ -745,7 +745,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
       if(1) {
         raptor_uri* uri;
         rasqal_literal* l;
-        uri = raptor_new_uri(con->world->raptor_world_ptr, (const unsigned char*)con->value);
+        uri = raptor_new_uri(con->world->raptor_world_ptr, RASQAL_GOOD_CAST(const unsigned char*, con->value));
         l = rasqal_new_uri_literal(con->world, uri);
         rasqal_row_set_value_at(con->row, con->result_offset, l);
         rasqal_free_literal(l);

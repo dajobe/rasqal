@@ -508,7 +508,7 @@ rasqal_languages_enumerate(rasqal_world *world,
     *label = factory->desc.label;
 
   if(uri_string && factory->desc.uri_strings)
-    *uri_string = (const unsigned char*)factory->desc.uri_strings[0];
+    *uri_string = RASQAL_GOOD_CAST(const unsigned char*, factory->desc.uri_strings[0]);
 
   return 0;
 }
@@ -747,7 +747,7 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
 
     if(c > 0x7f) {
       /* just copy the UTF-8 bytes through */
-      size_t unichar_len = raptor_unicode_utf8_string_get_char((const unsigned char*)p, len+1, NULL);
+      size_t unichar_len = raptor_unicode_utf8_string_get_char(RASQAL_GOOD_CAST(const unsigned char*, p), len + 1, NULL);
       if(unichar_len > len) {
         if(error_handler)
           error_handler(error_data, "UTF-8 encoding error at character %d (0x%02X) found.", c, c);
@@ -839,9 +839,9 @@ rasqal_uri_init(rasqal_world* world)
   if(!world->rdf_namespace_uri)
     goto oom;
 
-  world->rdf_first_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"first");
-  world->rdf_rest_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"rest");
-  world->rdf_nil_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"nil");
+  world->rdf_first_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->rdf_namespace_uri, RASQAL_GOOD_CAST(const unsigned char*, "first"));
+  world->rdf_rest_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->rdf_namespace_uri, RASQAL_GOOD_CAST(const unsigned char*, "rest"));
+  world->rdf_nil_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->rdf_namespace_uri, RASQAL_GOOD_CAST(const unsigned char*, "nil"));
   if(!world->rdf_first_uri || !world->rdf_rest_uri || !world->rdf_nil_uri)
     goto oom;
 

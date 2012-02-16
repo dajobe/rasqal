@@ -1118,7 +1118,7 @@ rasqal_literal_to_result_term(rasqal_query_results* query_results,
       t = raptor_new_term_from_literal(query_results->world->raptor_world_ptr,
                                        nodel->string,
                                        nodel->datatype,
-                                       (const unsigned char*)nodel->language);
+                                       RASQAL_GOOD_CAST(const unsigned char*, nodel->language));
       break;
       
     case RASQAL_LITERAL_QNAME:

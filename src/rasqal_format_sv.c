@@ -155,8 +155,7 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
         size_t len;
         
         case RASQAL_LITERAL_URI:
-          str = (const unsigned char*)raptor_uri_as_counted_string(l->value.uri,
-                                                                   &len);
+          str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->value.uri, &len));
           if(csv_escape)
             rasqal_iostream_write_csv_string(str, len, iostr);
           else {
@@ -195,13 +194,12 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
 
             if(l->language) {
               raptor_iostream_write_byte('@', iostr);
-              raptor_iostream_string_write((const unsigned char*)l->language,
-                                         iostr);
+              raptor_iostream_string_write(RASQAL_GOOD_CAST(const unsigned char*, l->language), iostr);
             }
           
             if(l->datatype) {
               raptor_iostream_string_write("^^<", iostr);
-              str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype, &len);
+              str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->datatype, &len));
               raptor_string_ntriples_write(str, len, '"', iostr);
               raptor_iostream_write_byte('>', iostr);
             }

@@ -273,7 +273,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+[fFdD]?|"."[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+"."[0-9]*  { 
-                        rdql_parser_lval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext);
+                        rdql_parser_lval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_DOUBLE, RASQAL_GOOD_CAST(const unsigned char*, yytext));
                         if(!rdql_parser_lval->literal)
                           yyterminate();
                         return FLOATING_POINT_LITERAL;
@@ -281,14 +281,14 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
                         if(!rdql_copy_string_token(rq, rdql_parser_lval,
-                          (const unsigned char*)yytext + 1, yyleng - 1, '\''))
+                          RASQAL_GOOD_CAST(const unsigned char*, yytext) + 1, yyleng - 1, '\''))
                           return STRING_LITERAL;
 		        yyterminate();
 }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
                         if(!rdql_copy_string_token(rq, rdql_parser_lval,
-                          (const unsigned char*)yytext + 1, yyleng - 1, '"'))
+                          RASQAL_GOOD_CAST(const unsigned char*, yytext) + 1, yyleng - 1, '"'))
                           return STRING_LITERAL; 
 		        yyterminate();
 }
@@ -299,7 +299,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "null"	{ rdql_parser_lval->literal = NULL;
           return NULL_LITERAL; }
 
-<*>{NAME}	{ rdql_parser_lval->name = rdql_copy_name(rq, (const unsigned char*)yytext, yyleng);
+<*>{NAME}	{ rdql_parser_lval->name = rdql_copy_name(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng);
 		  if(!rdql_parser_lval->name)
                     yyterminate();
                           BEGIN(INITIAL);
@@ -309,22 +309,22 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                 yyterminate();
 		}
 
-{QNAME}	{ rdql_parser_lval->name = rdql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
+{QNAME}	{ rdql_parser_lval->name = rdql_copy_qname(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng);
 	  if(!rdql_parser_lval->name)
             yyterminate();
                           return QNAME_LITERAL; }
 
-\<{QNAME}\>	{ rdql_parser_lval->name = rdql_copy_qname(rq, (const unsigned char*)yytext + 1, yyleng-2);
+\<{QNAME}\>	{ rdql_parser_lval->name = rdql_copy_qname(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext) + 1, yyleng - 2);
 		  if(!rdql_parser_lval->name)
 	            yyterminate();
-                  rdql_syntax_warning(rq, "Obsolete RDQL <qname> syntax found in \"%s\"", (const unsigned char*)yytext);
+                  rdql_syntax_warning(rq, "Obsolete RDQL <qname> syntax found in \"%s\"", RASQAL_GOOD_CAST(const unsigned char*, yytext));
                   return QNAME_LITERAL; }
 
 {QUOTEDURI}   { if(yyleng == 2) 
                   rdql_parser_lval->uri = raptor_uri_copy(rq->base_uri);
                 else {
                   yytext[yyleng - 1] = '\0';
-                  rdql_parser_lval->uri = raptor_new_uri_relative_to_base(rq->world->raptor_world_ptr, rq->base_uri, (const unsigned char*)yytext + 1);
+                  rdql_parser_lval->uri = raptor_new_uri_relative_to_base(rq->world->raptor_world_ptr, rq->base_uri, RASQAL_GOOD_CAST(const unsigned char*, yytext) + 1);
                  }
                  return URI_LITERAL; }
 

@@ -399,7 +399,7 @@ rasqal_new_row_sequence(rasqal_world* world,
         /* URI */
         const unsigned char* str;
         raptor_uri* u;
-        str = (const unsigned char*)GET_CELL(row_i, column_i, 1);
+        str = RASQAL_GOOD_CAST(const unsigned char*, GET_CELL(row_i, column_i, 1));
         u = raptor_new_uri(world->raptor_world_ptr, str);
         if(u)
           l = rasqal_new_uri_literal(world, u);

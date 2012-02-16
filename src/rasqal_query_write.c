@@ -913,7 +913,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   wc.base_uri = NULL;
 
   wc.type_uri = raptor_new_uri_for_rdf_concept(query->world->raptor_world_ptr,
-                                               (const unsigned char*)"type");
+                                               RASQAL_GOOD_CAST(const unsigned char*, "type"));
   wc.nstack = raptor_new_namespaces(query->world->raptor_world_ptr, 1);
 
   if(base_uri) {

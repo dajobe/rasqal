@@ -283,7 +283,7 @@ rasqal_builtin_agg_expression_execute_step(void* user_data,
       const unsigned char* str;
       int error = 0;
       
-      str = (const unsigned char*)rasqal_literal_as_string_flags(l, 0, &error);
+      str = RASQAL_GOOD_CAST(const unsigned char*, rasqal_literal_as_string_flags(l, 0, &error));
 
       if(!error) {
         if(raptor_stringbuffer_length(b->sb))
@@ -1132,7 +1132,7 @@ main(int argc, char *argv[])
       const unsigned char* var_name;
       
       for(vindex = 0;
-          (var_name = (const unsigned char*)test_data[test_id].expr_agg_vars[vindex] );
+          (var_name = RASQAL_GOOD_CAST(const unsigned char*, test_data[test_id].expr_agg_vars[vindex] ));
           vindex++) {
         rasqal_variable* v;
         rasqal_literal *l = NULL;
@@ -1162,7 +1162,7 @@ main(int argc, char *argv[])
     output_var_name = RASQAL_MALLOC(char*, 5);
     memcpy(output_var_name, "fake", 5);
     output_var = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_ANONYMOUS, 
-                                            (const unsigned char*)output_var_name, NULL);
+                                            RASQAL_GOOD_CAST(const unsigned char*, output_var_name), NULL);
 
     expr = make_test_expr(world, expr_args_seq, op);
     /* expr_args_seq is now owned by expr */

@@ -492,7 +492,7 @@ EXPONENT [eE][+-]?[0-9]+
 
 
 [-+]?{INTEGER}   { c = *yytext;
-                  sparql_parser_lval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_INTEGER, (const unsigned char*)yytext);
+                  sparql_parser_lval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_INTEGER, RASQAL_GOOD_CAST(const unsigned char*, yytext));
                   if(!sparql_parser_lval->literal)
                     YY_REPORT_ERROR_EOF("rasqal_new_typed_literal failed");
  		  return (c=='+' ? INTEGER_POSITIVE_LITERAL : (c == '-' ? INTEGER_NEGATIVE_LITERAL : INTEGER_LITERAL));
@@ -501,11 +501,11 @@ EXPONENT [eE][+-]?[0-9]+
 [-+]?{DECIMAL}  { 
                         c = *yytext;
                         
-                        if(!rasqal_xsd_datatype_check(RASQAL_LITERAL_DECIMAL, (const unsigned char*)yytext, 0)) {
+                        if(!rasqal_xsd_datatype_check(RASQAL_LITERAL_DECIMAL, RASQAL_GOOD_CAST(const unsigned char*, yytext), 0)) {
                           sparql_syntax_error(rq, "SPARQL syntax error - Illegal decimal constant %s", yytext);
                           yyterminate();
                         }
-                        sparql_parser_lval->literal = rasqal_new_decimal_literal(rq->world, (const unsigned char*)yytext);
+                        sparql_parser_lval->literal = rasqal_new_decimal_literal(rq->world, RASQAL_GOOD_CAST(const unsigned char*, yytext));
                         if(!sparql_parser_lval->literal)
                           YY_REPORT_ERROR_EOF("rasqal_new_decimal_literal failed");
                         return (c=='+' ? DECIMAL_POSITIVE_LITERAL : (c == '-' ? DECIMAL_NEGATIVE_LITERAL : DECIMAL_LITERAL));
@@ -513,11 +513,11 @@ EXPONENT [eE][+-]?[0-9]+
 
 [-+]?{DOUBLE} {
                         c = *yytext;
-                        if(!rasqal_xsd_datatype_check(RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext, 0)) {
+                        if(!rasqal_xsd_datatype_check(RASQAL_LITERAL_DOUBLE, RASQAL_GOOD_CAST(const unsigned char*, yytext), 0)) {
                           sparql_syntax_error(rq, "SPARQL syntax error - Illegal double constant %s", yytext);
                           yyterminate();
                         }
-                        sparql_parser_lval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext);
+                        sparql_parser_lval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_DOUBLE, RASQAL_GOOD_CAST(const unsigned char*, yytext));
                         if(!sparql_parser_lval->literal)
                           YY_REPORT_ERROR_EOF("rasqal_new_typed_literal failed");
                         return (c=='+' ? DOUBLE_POSITIVE_LITERAL : (c == '-' ? DOUBLE_NEGATIVE_LITERAL : DOUBLE_LITERAL));
@@ -657,7 +657,7 @@ EXPONENT [eE][+-]?[0-9]+
                           YY_REPORT_ERROR_EOF("rasqal_new_boolean_literal failed");
                   return BOOLEAN_LITERAL; }
 
-<ID>{VARNAME}	{ sparql_parser_lval->name = sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
+<ID>{VARNAME}	{ sparql_parser_lval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng, SPARQL_NAME_CHECK_VARNAME);
 		  if(!sparql_parser_lval->name)
                     yyterminate();
 
@@ -680,7 +680,7 @@ EXPONENT [eE][+-]?[0-9]+
 	return '$';
 }
 
-<SPID>{VARNAME}	{ sparql_parser_lval->name = sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
+<SPID>{VARNAME}	{ sparql_parser_lval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng, SPARQL_NAME_CHECK_VARNAME);
 		  if(!sparql_parser_lval->name)
                     yyterminate();
 
@@ -694,7 +694,7 @@ EXPONENT [eE][+-]?[0-9]+
 
 <PREF>[\ \t\v]+ { /* eat up leading whitespace */ }
 <PREF>{NCNAME_PREFIX}":"	{ BEGIN(INITIAL);
-		  	  sparql_parser_lval->name = sparql_copy_name(rq, (const unsigned char*)yytext, yyleng-1, SPARQL_NAME_CHECK_PREFIX);
+		  	  sparql_parser_lval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng - 1, SPARQL_NAME_CHECK_PREFIX);
 			  if(!sparql_parser_lval->name)
 			    yyterminate();
 
@@ -715,7 +715,7 @@ EXPONENT [eE][+-]?[0-9]+
 		int have_brace = (yytext[yyleng-1]=='(');
 		if(have_brace)
 			yyleng--;
-		sparql_parser_lval->uri = sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
+		sparql_parser_lval->uri = sparql_copy_qname(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng);
 		if(!sparql_parser_lval->uri)
 		  yyterminate();
 

@@ -3899,7 +3899,7 @@ Verb: VarOrIRIref
 #endif
 
   uri = raptor_new_uri_for_rdf_concept(((rasqal_query*)rq)->world->raptor_world_ptr,
-                                       (const unsigned char*)"type");
+                                       RASQAL_GOOD_CAST(const unsigned char*, "type"));
   if(!uri)
     YYERROR_MSG("Verb 2: uri for rdf concept type failed");
   $$ = rasqal_new_formula(((rasqal_query*)rq)->world);
@@ -5830,7 +5830,8 @@ main(int argc, char *argv[])
       base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
 
       if(base_uri) {
-        rc = rasqal_query_prepare(query, (const unsigned char*)query_string, 
+        rc = rasqal_query_prepare(query,
+                                  RASQAL_GOOD_CAST(const unsigned char*, query_string),
                                   base_uri);
 
         if(!rc)
