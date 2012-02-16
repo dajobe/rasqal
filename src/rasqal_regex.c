@@ -102,7 +102,7 @@ rasqal_regex_match(rasqal_world* world, raptor_locator* locator,
   if(flag_i)
     compile_options |= PCRE_CASELESS;
     
-  re = pcre_compile((const char*)pattern, compile_options,
+  re = pcre_compile(RASQAL_GOOD_CAST(const char*, pattern), compile_options,
                     &re_error, &erroffset, NULL);
   if(!re) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
@@ -134,14 +134,14 @@ rasqal_regex_match(rasqal_world* world, raptor_locator* locator,
   if(flag_i)
     compile_options |= REG_ICASE;
     
-  rc = regcomp(&reg, (const char*)pattern, compile_options);
+  rc = regcomp(&reg, RASQAL_GOOD_CAST(const char*, pattern), compile_options);
   if(rc) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
                             locator,
                             "Regex compile of '%s' failed", pattern);
     rc = -1;
   } else {
-    rc = regexec(&reg, (const char*)subject, 
+    rc = regexec(&reg, RASQAL_GOOD_CAST(const char*, subject),
                  0, NULL, /* nmatch, regmatch_t pmatch[] - no matches wanted */
                  exec_options /* eflags */
                  );
@@ -487,7 +487,7 @@ rasqal_regex_replace_posix(rasqal_world* world, raptor_locator* locator,
     int rc;
     const char *subject_piece = subject + startoffset;
 
-    rc = regexec(&reg, (const char*)subject_piece,
+    rc = regexec(&reg, RASQAL_GOOD_CAST(const char*, subject_piece),
                  capture_count, pmatch,
                  options /* eflags */
                  );
@@ -818,8 +818,8 @@ main(int argc, char *argv[])
     const char* pattern = "[^a-z0-9]";
     const char* replace = "-";
     const char* expected_result = "abcd1234--";
-    size_t subject_len = strlen((const char*)subject);
-    size_t replace_len = strlen((const char*)replace);
+    size_t subject_len = strlen(RASQAL_GOOD_CAST(const char*, subject));
+    size_t replace_len = strlen(RASQAL_GOOD_CAST(const char*, replace));
     char* result;
     size_t result_len = 0;
     

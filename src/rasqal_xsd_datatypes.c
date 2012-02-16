@@ -70,12 +70,12 @@ rasqal_xsd_check_boolean_format(const unsigned char* string, int flags)
    * Strictly only {true, false, 1, 0} are allowed according to
    * http://www.w3.org/TR/xmlschema-2/#boolean
    */
-  if(!strcmp((const char*)string, "true") || 
-     !strcmp((const char*)string, "TRUE") ||
-     !strcmp((const char*)string, "1") ||
-     !strcmp((const char*)string, "false") || 
-     !strcmp((const char*)string, "FALSE") ||
-     !strcmp((const char*)string, "0"))
+  if(!strcmp(RASQAL_GOOD_CAST(const char*, string), "true") || 
+     !strcmp(RASQAL_GOOD_CAST(const char*, string), "TRUE") ||
+     !strcmp(RASQAL_GOOD_CAST(const char*, string), "1") ||
+     !strcmp(RASQAL_GOOD_CAST(const char*, string), "false") || 
+     !strcmp(RASQAL_GOOD_CAST(const char*, string), "FALSE") ||
+     !strcmp(RASQAL_GOOD_CAST(const char*, string), "0"))
     return 1;
 
   return 0;
@@ -100,7 +100,7 @@ rasqal_xsd_check_date_format(const unsigned char* string, int flags)
   /* This should be correct according to 
    * http://www.w3.org/TR/xmlschema-2/#date
    */
-  return rasqal_xsd_date_check((const char*)string);
+  return rasqal_xsd_date_check(RASQAL_GOOD_CAST(const char*, string));
 }
 
 
@@ -119,7 +119,7 @@ rasqal_xsd_check_dateTime_format(const unsigned char* string, int flags)
   /* This should be correct according to 
    * http://www.w3.org/TR/xmlschema-2/#dateTime
    */
-  return rasqal_xsd_datetime_check((const char*)string);
+  return rasqal_xsd_datetime_check(RASQAL_GOOD_CAST(const char*, string));
 }
 
 
@@ -140,7 +140,7 @@ rasqal_xsd_check_decimal_format(const unsigned char* string, int flags)
   /* This should be correct according to 
    * http://www.w3.org/TR/xmlschema-2/#decimal
    */
-  p = (const char*)string;
+  p = RASQAL_GOOD_CAST(const char*, string);
   if(*p == '+' || *p == '-') {
     ADVANCE_OR_DIE(p);
   }
@@ -181,8 +181,8 @@ rasqal_xsd_check_double_format(const unsigned char* string, int flags)
    */
   char* eptr = NULL;
 
-  (void)strtod((const char*)string, &eptr);
-  if((unsigned char*)eptr != string && *eptr == '\0')
+  (void)strtod(RASQAL_GOOD_CAST(const char*, string), &eptr);
+  if(RASQAL_GOOD_CAST(unsigned char*, eptr) != string && *eptr == '\0')
     return 1;
 
   return 0;
@@ -206,8 +206,8 @@ rasqal_xsd_check_float_format(const unsigned char* string, int flags)
    */
   char* eptr = NULL;
 
-  (void)strtod((const char*)string, &eptr);
-  if((unsigned char*)eptr != string && *eptr == '\0')
+  (void)strtod(RASQAL_GOOD_CAST(const char*, string), &eptr);
+  if(RASQAL_GOOD_CAST(unsigned char*, eptr) != string && *eptr == '\0')
     return 1;
 
   return 0;
@@ -233,9 +233,9 @@ rasqal_xsd_check_integer_format(const unsigned char* string, int flags)
    */
 
   errno = 0;
-  (void)strtol((const char*)string, &eptr, 10);
+  (void)strtol(RASQAL_GOOD_CAST(const char*, string), &eptr, 10);
 
-  if((unsigned char*)eptr != string && *eptr == '\0' &&
+  if(RASQAL_GOOD_CAST(unsigned char*, eptr) != string && *eptr == '\0' &&
      errno != ERANGE)
     return 1;
 
@@ -383,7 +383,7 @@ rasqal_xsd_format_double(double d, size_t *len_p)
     ++exponent_start;
 
   if(have_trailing_zero) {
-    len = strlen((const char*)buf);
+    len = strlen(RASQAL_GOOD_CAST(const char*, buf));
     if(exponent_start == len) {
       len = trailing_zero_start + 2;
       buf[len - 1] = '0';
@@ -392,7 +392,7 @@ rasqal_xsd_format_double(double d, size_t *len_p)
       /* copy the exponent (minus leading zeros) after the new E */
       memmove(buf + trailing_zero_start + 1, buf + exponent_start,
               len - exponent_start);
-      len = strlen((const char*)buf);
+      len = strlen(RASQAL_GOOD_CAST(const char*, buf));
     }
   }
   

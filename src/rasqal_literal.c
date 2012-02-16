@@ -356,8 +356,8 @@ rasqal_new_pattern_literal(rasqal_world* world,
     l->world = world;
     l->type = RASQAL_LITERAL_PATTERN;
     l->string = pattern;
-    l->string_len = RASQAL_BAD_CAST(unsigned int, strlen((const char*)pattern));
-    l->flags = (const unsigned char*)flags;
+    l->string_len = RASQAL_BAD_CAST(unsigned int, strlen(RASQAL_GOOD_CAST(const char*, pattern)));
+    l->flags = RASQAL_GOOD_CAST(const unsigned char*, flags);
   } else {
     if(flags)
       RASQAL_FREE(char*, flags);
@@ -569,9 +569,9 @@ static int
 rasqal_literal_string_interpreted_as_boolean(const unsigned char* string) 
 {
   int integer = 0;
-  if(!strcmp((const char*)string, "true") || 
-     !strcmp((const char*)string, "TRUE") ||
-     !strcmp((const char*)string, "1"))
+  if(!strcmp(RASQAL_GOOD_CAST(const char*, string), "true") || 
+     !strcmp(RASQAL_GOOD_CAST(const char*, string), "TRUE") ||
+     !strcmp(RASQAL_GOOD_CAST(const char*, string), "1"))
     integer = 1;
 
   return integer;
@@ -617,7 +617,7 @@ retype:
   if(string) {
     if(l->string)
       RASQAL_FREE(char*, l->string);
-    l->string_len = RASQAL_BAD_CAST(unsigned int, strlen((const char*)string));
+    l->string_len = RASQAL_BAD_CAST(unsigned int, strlen(RASQAL_GOOD_CAST(const char*, string)));
     l->string = RASQAL_MALLOC(unsigned char*, l->string_len + 1);
     if(!l->string)
       return 1;
@@ -644,7 +644,7 @@ retype:
 
         eptr = NULL;
         errno = 0;
-        long_i = strtol((const char*)l->string, &eptr, 10);
+        long_i = strtol(RASQAL_GOOD_CAST(const char*, l->string), &eptr, 10);
         if(*eptr)
           return 1;
 
@@ -677,7 +677,7 @@ retype:
         return 1;
       }
       if(rasqal_xsd_decimal_set_string(l->value.decimal,
-                                       (const char*)l->string)) {
+                                       RASQAL_GOOD_CAST(const char*, l->string))) {
         /* free l->string which is not owned by literal yet */
         RASQAL_FREE(char*, l->string); l->string = NULL;
         return 1;
@@ -714,7 +714,7 @@ retype:
     break;
 
   case RASQAL_LITERAL_DATE:
-    l->value.date = rasqal_new_xsd_date(l->world, (const char*)l->string);
+    l->value.date = rasqal_new_xsd_date(l->world, RASQAL_GOOD_CAST(const char*, l->string));
     if(!l->value.date) {
       RASQAL_FREE(char*, l->string);
       return 1;
@@ -728,7 +728,7 @@ retype:
 
   case RASQAL_LITERAL_DATETIME:
     l->value.datetime = rasqal_new_xsd_datetime(l->world,
-                                                (const char*)l->string);
+                                                RASQAL_GOOD_CAST(const char*, l->string));
     if(!l->value.datetime) {
       RASQAL_FREE(char*, l->string);
       return 1;
@@ -869,7 +869,7 @@ rasqal_new_string_literal_common(rasqal_world* world,
 
     l->type = RASQAL_LITERAL_STRING;
     l->string = string;
-    l->string_len = RASQAL_BAD_CAST(unsigned int, strlen((const char*)string));
+    l->string_len = RASQAL_BAD_CAST(unsigned int, strlen(RASQAL_GOOD_CAST(const char*, string)));
     l->language = language;
     l->datatype = datatype;
     l->flags = datatype_qname;
@@ -975,7 +975,7 @@ rasqal_new_simple_literal(rasqal_world* world,
     l->world = world;
     l->type = type;
     l->string = string;
-    l->string_len = RASQAL_BAD_CAST(unsigned int, strlen((const char*)string));
+    l->string_len = RASQAL_BAD_CAST(unsigned int, strlen(RASQAL_GOOD_CAST(const char*, string)));
   } else {
     RASQAL_FREE(char*, string);
   }
@@ -1522,7 +1522,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
 
         eptr = NULL;
         errno = 0;
-        long_i = strtol((const char*)l->string, &eptr, 10);
+        long_i = strtol(RASQAL_GOOD_CAST(const char*, l->string), &eptr, 10);
         /* If formatted correctly and no under or overflow */
         if((unsigned char*)eptr != l->string && *eptr=='\0' &&
            errno != ERANGE)
@@ -1530,7 +1530,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
           return RASQAL_BAD_CAST(int, long_i);
 
         eptr = NULL;
-        d = strtod((const char*)l->string, &eptr);
+        d = strtod(RASQAL_GOOD_CAST(const char*, l->string), &eptr);
         if((unsigned char*)eptr != l->string && *eptr=='\0')
           /* FIXME may lose precision or be out of range from double to int */
           return RASQAL_GOOD_CAST(int, d);
@@ -1605,7 +1605,7 @@ rasqal_literal_as_double(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_XSD_STRING:
       {
         char *eptr = NULL;
-        double  d = strtod((const char*)l->string, &eptr);
+        double  d = strtod(RASQAL_GOOD_CAST(const char*, l->string), &eptr);
         if((unsigned char*)eptr != l->string && *eptr=='\0')
           return d;
       }
@@ -1685,7 +1685,7 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_XSD_STRING:
       {
         char *eptr = NULL;
-        float  f = strtof((const char*)l->string, &eptr);
+        float  f = strtof(RASQAL_GOOD_CAST(const char*, l->string), &eptr);
         if((unsigned char*)eptr != l->string && *eptr=='\0')
           return f;
       }
@@ -2163,16 +2163,19 @@ rasqal_literal_string_compare(rasqal_literal* l1, rasqal_literal* l2,
   int rc = 0;
   
   if(flags & RASQAL_COMPARE_NOCASE)
-    rc = rasqal_strcasecmp((const char*)l1->string, (const char*)l2->string);
+    rc = rasqal_strcasecmp(RASQAL_GOOD_CAST(const char*, l1->string),
+                           RASQAL_GOOD_CAST(const char*, l2->string));
   else
-    rc = strcmp((const char*)l1->string, (const char*)l2->string);
+    rc = strcmp(RASQAL_GOOD_CAST(const char*, l1->string),
+                RASQAL_GOOD_CAST(const char*, l2->string));
 
   if(rc)
     return rc;
       
   if(l1->language && l2->language)
     /* both have a language */
-    rc = strcmp((const char*)l1->language, (const char*)l2->language);
+    rc = strcmp(RASQAL_GOOD_CAST(const char*, l1->language),
+                RASQAL_GOOD_CAST(const char*, l2->language));
   else if(l1->language || l2->language)
     /* only one has a language; the language-less one is earlier */
     rc = (!l1->language ? -1 : 1);
@@ -2448,11 +2451,11 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_XSD_STRING:
       if(flags & RASQAL_COMPARE_NOCASE)
-        result = rasqal_strcasecmp((const char*)new_lits[0]->string,
-                                 (const char*)new_lits[1]->string);
+        result = rasqal_strcasecmp(RASQAL_GOOD_CAST(const char*, new_lits[0]->string),
+                                   RASQAL_GOOD_CAST(const char*, new_lits[1]->string));
       else
-        result = strcmp((const char*)new_lits[0]->string,
-                        (const char*)new_lits[1]->string);
+        result = strcmp(RASQAL_GOOD_CAST(const char*, new_lits[0]->string),
+                        RASQAL_GOOD_CAST(const char*, new_lits[1]->string));
       break;
 
     case RASQAL_LITERAL_DATE:
@@ -2581,7 +2584,8 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
     goto done;
   }
 
-  result = !strcmp((const char*)l1->string, (const char*)l2->string);
+  result = !strcmp(RASQAL_GOOD_CAST(const char*, l1->string),
+                   RASQAL_GOOD_CAST(const char*, l2->string));
 
   /* If result is equality but literals were both typed literals with
    * user-defined types then cause a type error; equality is unknown.
@@ -2616,7 +2620,8 @@ rasqal_literal_blank_equals(rasqal_literal* l1, rasqal_literal* l2)
   if(l1->string_len != l2->string_len)
     return 0;
       
-  return !strcmp((const char*)l1->string, (const char*)l2->string);
+  return !strcmp(RASQAL_GOOD_CAST(const char*, l1->string),
+                 RASQAL_GOOD_CAST(const char*, l2->string));
 }
 
 
@@ -2739,7 +2744,8 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       /* booleans can be compared to strings */
       if(l2->type == RASQAL_LITERAL_BOOLEAN &&
          l1->type == RASQAL_LITERAL_STRING)
-        result=!strcmp((const char*)l1->string, (const char*)l2->string);
+        result = !strcmp(RASQAL_GOOD_CAST(const char*, l1->string),
+                         RASQAL_GOOD_CAST(const char*, l2->string));
       goto tidy;
     }
     type = l1->type;
@@ -2869,7 +2875,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
       /* expand a literal string datatype qname */
       uri = raptor_qname_string_to_uri(rq->namespaces,
                                        l->flags,
-                                       strlen((const char*)l->flags));
+                                       strlen(RASQAL_GOOD_CAST(const char*, l->flags)));
       if(!uri)
         return 1;
       l->datatype = uri;
@@ -3226,7 +3232,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
 
   RASQAL_DEBUG4("CAST from \"%s\" type %s to type %s\n",
                 string, 
-                from_datatype ? (const char*)raptor_uri_as_string(from_datatype) : "(NONE)",
+                from_datatype ? RASQAL_GOOD_CAST(const char*, raptor_uri_as_string(from_datatype)) : "(NONE)",
                 raptor_uri_as_string(to_datatype));
   
   if(!rasqal_xsd_datatype_check(to_native_type, string, flags)) {
@@ -4591,7 +4597,7 @@ rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world,
         char *eptr = NULL;
         long number;
         
-        number = strtol((const char*)str, &eptr, 10);
+        number = strtol(RASQAL_GOOD_CAST(const char*, str), &eptr, 10);
         if(!*eptr) {
           /* is numeric */
           l = rasqal_new_numeric_literal_from_long(world,

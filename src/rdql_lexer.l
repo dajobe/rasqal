@@ -377,7 +377,7 @@ rdql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
   if(!s)
     return s;
 
-  p = (unsigned char*)strchr((const char*)s, ':');
+  p = RASQAL_GOOD_CAST(unsigned char*, strchr(RASQAL_GOOD_CAST(const char*, s), ':'));
   if(!raptor_xml_name_check(s, p-s, 11))
     rdql_syntax_warning(rq, "Invalid RDQL name \"%s\"", s);
   if(!raptor_xml_name_check(p + 1, dest_len-((p + 1)-s), 11))
@@ -469,7 +469,7 @@ rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim)
     flags[ind] = '\0';
 
   lval->literal = rasqal_new_pattern_literal(rq->world, buffer,
-                                             (const char*)flags);
+                                             RASQAL_GOOD_CAST(const char*, flags));
   return 0;
 }
 
@@ -515,7 +515,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
           return 1;
         }
         
-        n = sscanf((const char*)s, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
+        n = sscanf(RASQAL_GOOD_CAST(const char*, s), ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
         if(n != 1) {
           rdql_syntax_error(rq, "RDQL syntax error - Illegal Unicode escape '%c%s...'", c, s);
           RASQAL_FREE(char*, string);
@@ -575,7 +575,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
   if(language) {
     char *new_language;
-    size_t new_language_len = strlen((const char*)language);
+    size_t new_language_len = strlen(RASQAL_GOOD_CAST(const char*, language));
     new_language = RASQAL_MALLOC(char*, new_language_len + 1);
     memcpy(new_language, language, new_language_len + 1);
     language = new_language;
@@ -584,10 +584,10 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
   if(dt) {
     /* dt can be a URI or qname */
     if(*dt == '<') {
-      dt[strlen((const char*)dt) - 1] = '\0';
+      dt[strlen(RASQAL_GOOD_CAST(const char*, dt)) - 1] = '\0';
       dt_uri = raptor_new_uri(rq->world->raptor_world_ptr, dt + 1);
     } else {
-      size_t dt_qname_len = strlen((const char*)dt);
+      size_t dt_qname_len = strlen(RASQAL_GOOD_CAST(const char*, dt));
       
       if(!raptor_xml_name_check(dt, dt_qname_len, 11))
         rdql_syntax_warning(rq, "Invalid RDQL name \"%s\"", dt);
@@ -602,8 +602,8 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
   fprintf(stderr, "string = '%s', language = '%s'\n", 
           string, (language ? language : ""));
   fprintf(stderr, "dt uri = '%s',qname = '%s'\n",
-          (dt_uri ? (const char*)raptor_uri_as_string(dt_uri) : ""),
-          (dt_qname ? (const char*)dt_qname : ""));
+          (dt_uri ? RASQAL_GOOD_CAST(const char*, raptor_uri_as_string(dt_uri)) : ""),
+          (dt_qname ? RASQAL_GOOD_CAST(const char*, dt_qname) : ""));
 #endif
 
   lval->literal = rasqal_new_string_literal(rq->world, string, language,
@@ -1167,7 +1167,7 @@ main(int argc, char *argv[])
   rdql_lexer_set_debug(1, scanner);
 #endif
   
-  len = strlen((const char*)query_string);
+  len = strlen(RASQAL_GOOD_CAST(const char*, query_string));
   buf = RASQAL_MALLOC(char*, len + 3);
   memcpy(buf, query_string, len);
   buf[len] = ' ';

@@ -1562,7 +1562,7 @@ static int test_datetime_parser_tostring(const char *in_str, const char *out_exp
 {
   char const *s;
   int r = 1;
-  s = rasqal_xsd_datetime_string_to_canonical((const char*)in_str);
+  s = rasqal_xsd_datetime_string_to_canonical(RASQAL_GOOD_CAST(const char*, in_str));
   if(s) {
     r = strcmp(RASQAL_GOOD_CAST(char*, s), out_expected);
     if(r)
@@ -1627,7 +1627,7 @@ main(int argc, char *argv[])
      rasqal_xsd_datetime_string_to_canonical */
   
   #define PARSE_AND_NORMALIZE_DATETIME(_s,_d) \
-    rasqal_xsd_datetime_parse_and_normalize((const char*)_s, _d)
+    rasqal_xsd_datetime_parse_and_normalize(RASQAL_GOOD_CAST(const char*, _s), _d)
   
   /* generic */
 
@@ -1767,7 +1767,7 @@ main(int argc, char *argv[])
   /* DATE */
 
   #define PARSE_AND_NORMALIZE_DATE(_s,_d) \
-    rasqal_xsd_date_parse_and_normalize((const char*)_s, _d)
+    rasqal_xsd_date_parse_and_normalize(RASQAL_GOOD_CAST(const char*, _s), _d)
   
   /* generic */
 

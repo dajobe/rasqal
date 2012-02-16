@@ -793,7 +793,7 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
           return 0;
         }
         
-        n=sscanf((const char*)p, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
+        n = sscanf(RASQAL_GOOD_CAST(const char*, p), ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
         if(n != 1) {
           if(error_handler)
             error_handler(error_data, "Bad %c escape", c);

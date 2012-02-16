@@ -784,7 +784,7 @@ main(int argc, char *argv[])
           raptor_sequence_push(exprs_seq, e);
         else {
           fprintf(stderr, "%s: failed to create variable %s\n", program,
-                  (const char*)var_name);
+                  RASQAL_GOOD_CAST(const char*, var_name));
           failures++;
           goto tidy;
         }

@@ -113,7 +113,7 @@ rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(fh, FILE*, 1);
 
   fprintf(fh, "prefix(%s as %s)",
-          (p->prefix ? (const char*)p->prefix : "(default)"),
+          (p->prefix ? RASQAL_GOOD_CAST(const char*, p->prefix) : "(default)"),
           raptor_uri_as_string(p->uri));
 
   return 0;

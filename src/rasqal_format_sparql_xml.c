@@ -527,7 +527,7 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
   name=raptor_xml_element_get_name(xml_element);
 
   for(i=STATE_first; i <= STATE_last; i++) {
-    if(!strcmp((const char*)raptor_qname_get_local_name(name),
+    if(!strcmp(RASQAL_GOOD_CAST(const char*, raptor_qname_get_local_name(name)),
                sparql_xml_element_names[i])) {
       state=(rasqal_sparql_xml_read_state)i;
       con->state=state;
@@ -556,26 +556,24 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
   
   if(attr_count > 0) {
     raptor_qname** attrs=raptor_xml_element_get_attributes(xml_element);
-    for(i=0; i < attr_count; i++) {
+    for(i = 0; i < attr_count; i++) {
+      const char* local_name = RASQAL_GOOD_CAST(const char*, raptor_qname_get_local_name(attrs[i]));
 #ifdef TRACE_XML
       if(con->trace) {
         pad(stderr, con->depth+1);
         fprintf(stderr, "Attribute %s='%s'\n",
-                raptor_qname_get_local_name(attrs[i]),
-                raptor_qname_get_value(attrs[i]));
+                local_name, raptor_qname_get_value(attrs[i]));
       }
 #endif
-      if(!strcmp((const char*)raptor_qname_get_local_name(attrs[i]),
-                 "name"))
-        con->name=(const char*)raptor_qname_get_counted_value(attrs[i],
-                                                             &con->name_length);
-      else if(!strcmp((const char*)raptor_qname_get_local_name(attrs[i]),
-                      "datatype"))
-        con->datatype=(const char*)raptor_qname_get_value(attrs[i]);
+
+      if(!strcmp(local_name, "name"))
+        con->name = RASQAL_GOOD_CAST(const char*, raptor_qname_get_counted_value(attrs[i], &con->name_length));
+      else if(!strcmp(local_name, "datatype"))
+        con->datatype = RASQAL_GOOD_CAST(const char*, raptor_qname_get_value(attrs[i]));
     }
   }
   if(raptor_xml_element_get_language(xml_element)) {
-    con->language=(const char*)raptor_xml_element_get_language(xml_element);
+    con->language = RASQAL_GOOD_CAST(const char*, raptor_xml_element_get_language(xml_element));
 #ifdef TRACE_XML
     if(con->trace) {
       pad(stderr, con->depth+1);
@@ -673,7 +671,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
   name=raptor_xml_element_get_name(xml_element);
 
   for(i=STATE_first; i <= STATE_last; i++) {
-    if(!strcmp((const char*)raptor_qname_get_local_name(name),
+    if(!strcmp(RASQAL_GOOD_CAST(const char*, raptor_qname_get_local_name(name)),
                sparql_xml_element_names[i])) {
       state=(rasqal_sparql_xml_read_state)i;
       con->state=state;
@@ -982,7 +980,7 @@ rasqal_query_results_xml_recognise_syntax(rasqal_query_results_format_factory* f
 const char *mime_type)
 {
 
-  if(suffix && !strcmp((const char*)suffix, "srx"))
+  if(suffix && !strcmp(RASQAL_GOOD_CAST(const char*, suffix), "srx"))
     return 8;
   
   return 0;

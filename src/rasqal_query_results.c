@@ -1051,7 +1051,7 @@ rasqal_prefix_id(int prefix_id, unsigned char *string)
 {
   int tmpid = prefix_id;
   unsigned char* buffer;
-  size_t length = strlen((const char*)string)+4;  /* "r" +... + "_" +... \0 */
+  size_t length = strlen(RASQAL_GOOD_CAST(const char*, string)) + 4;  /* "r" +... + "_" +... \0 */
 
   while(tmpid /= 10)
     length++;

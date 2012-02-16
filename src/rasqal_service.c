@@ -105,7 +105,7 @@ rasqal_new_service(rasqal_world* world, raptor_uri* service_uri,
   svc->service_uri = raptor_uri_copy(service_uri);
 
   if(query_string) {
-    len = strlen((const char*)query_string);
+    len = strlen(RASQAL_GOOD_CAST(const char*, query_string));
     svc->query_string = RASQAL_MALLOC(char*, len + 1);
     if(!svc->query_string) {
       rasqal_free_service(svc);
@@ -387,7 +387,7 @@ rasqal_service_execute_as_rowsource(rasqal_service* svc,
       
       graph_str = raptor_uri_as_counted_string(graph_uri, &graph_len);
       raptor_stringbuffer_append_uri_escaped_counted_string(uri_sb,
-                                                            (const char*)graph_str, graph_len, 1);
+                                                            RASQAL_GOOD_CAST(const char*, graph_str), graph_len, 1);
     }
   }
   

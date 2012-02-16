@@ -865,7 +865,7 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len)
     return NULL;
   }
 
-  p = (unsigned char*)strchr((const char*)s, ':');
+  p = (unsigned char*)strchr(RASQAL_GOOD_CAST(const char*, s), ':');
   if(!rasqal_sparql_name_check(s, p-s, SPARQL_NAME_CHECK_PREFIX))
     sparql_syntax_error(rq, "Invalid SPARQL prefix name \"%s\"", s);
   if(!rasqal_sparql_name_check(p+1, dest_len-((p+1)-s), SPARQL_NAME_CHECK_NCNAME))
@@ -1030,7 +1030,7 @@ sparql_stringbuffer_append_sparql_string(rasqal_query* rq,
           return 1;
         }
         
-        n = sscanf((const char*)s, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
+        n = sscanf(RASQAL_GOOD_CAST(const char*, s), ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
         if(n != 1) {
           sparql_syntax_error(rq, "Bad SPARQL string Uncode escape '%c%s...'",
                               c, s);
@@ -1917,7 +1917,7 @@ main(int argc, char *argv[])
   yylex_init(&sparql.scanner);
   scanner = sparql.scanner;
 
-  len =  strlen((const char*)query_string);
+  len =  strlen(RASQAL_GOOD_CAST(const char*, query_string));
   buf =  RASQAL_MALLOC(char*, len + 3);
   memcpy(buf, query_string, len);
   buf[len] =  ' ';

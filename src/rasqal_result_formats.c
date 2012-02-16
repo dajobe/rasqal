@@ -191,7 +191,7 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
 
     if(uri && factory->desc.uri_strings) {
       int j;
-      const char* uri_string = (const char*)raptor_uri_as_string(uri);
+      const char* uri_string = RASQAL_GOOD_CAST(const char*, raptor_uri_as_string(uri));
       const char* factory_uri_string = NULL;
       
       for(j = 0;
@@ -584,12 +584,12 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
     return NULL;
   
   if(identifier) {
-    unsigned char *p = (unsigned char*)strrchr((const char*)identifier, '.');
+    unsigned char *p = RASQAL_GOOD_CAST(unsigned char*, strrchr(RASQAL_GOOD_CAST(const char*, identifier), '.'));
     if(p) {
       unsigned char *from, *to;
 
       p++;
-      suffix = RASQAL_MALLOC(unsigned char*, strlen((const char*)p) + 1);
+      suffix = RASQAL_MALLOC(unsigned char*, strlen(RASQAL_GOOD_CAST(const char*, p)) + 1);
       if(!suffix)
         return NULL;
 
@@ -634,7 +634,7 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
     
     if(uri && factory->desc.uri_strings) {
       int j;
-      const char* uri_string = (const char*)raptor_uri_as_string(uri);
+      const char* uri_string = RASQAL_GOOD_CAST(const char*, raptor_uri_as_string(uri));
       const char* factory_uri_string = NULL;
       
       for(j = 0;

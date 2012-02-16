@@ -507,7 +507,8 @@ rasqal_variables_table_get_by_name(rasqal_variables_table* vt,
 
   for(i = 0; (v = rasqal_variables_table_get(vt, i)); i++) {
     if(((type != RASQAL_VARIABLE_TYPE_UNKNOWN) && v->type == type) &&
-       !strcmp((const char*)v->name, (const char*)name))
+       !strcmp(RASQAL_GOOD_CAST(const char*, v->name),
+               RASQAL_GOOD_CAST(const char*, name)))
       return v;
   }
   return NULL;

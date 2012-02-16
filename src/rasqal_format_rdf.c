@@ -832,7 +832,7 @@ rasqal_query_results_rdfxml_recognise_syntax(rasqal_query_results_format_factory
 const char *mime_type)
 {
 
-  if(suffix && !strcmp((const char*)suffix, "rdf"))
+  if(suffix && !strcmp(RASQAL_GOOD_CAST(const char*, suffix), "rdf"))
     return 5;
   
   return 0;
@@ -1003,8 +1003,8 @@ rasqal_query_results_turtle_recognise_syntax(rasqal_query_results_format_factory
                                              const unsigned char *suffix,
 const char *mime_type)
 {
-  if(suffix && (!strcmp((const char*)suffix, "ttl") ||
-                !strcmp((const char*)suffix, "n3")))
+  if(suffix && (!strcmp(RASQAL_GOOD_CAST(const char*, suffix), "ttl") ||
+                !strcmp(RASQAL_GOOD_CAST(const char*, suffix), "n3")))
     return 7;
   
   return 0;

@@ -379,7 +379,7 @@ rasqal_new_row_sequence(rasqal_world* world,
         char *eptr = NULL;
         long number;
         
-        number = strtol((const char*)str, &eptr, 10);
+        number = strtol(RASQAL_GOOD_CAST(const char*, str), &eptr, 10);
         if(!*eptr) {
           /* is an integer */
           l = rasqal_new_numeric_literal_from_long(world,

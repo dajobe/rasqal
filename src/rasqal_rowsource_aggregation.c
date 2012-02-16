@@ -327,7 +327,7 @@ rasqal_builtin_agg_expression_execute_step(void* user_data,
 
 #if RASQAL_DEBUG > 1
     RASQAL_DEBUG3("Aggregation step result %s (error=%d)\n", 
-                  (result ? (const char*)rasqal_literal_as_string(result) : "(NULL)"),
+                  (result ? RASQAL_GOOD_CAST(const char*, rasqal_literal_as_string(result)) : "(NULL)"),
                   b->error);
 #endif
     
@@ -1150,7 +1150,7 @@ main(int argc, char *argv[])
           raptor_sequence_push(expr_args_seq, e);
         else {
           fprintf(stderr, "%s: failed to create variable %s\n", program,
-                  (const char*)var_name);
+                  RASQAL_GOOD_CAST(const char*, var_name));
           failures++;
           goto tidy;
         }
@@ -1321,7 +1321,7 @@ main(int argc, char *argv[])
 
           str = rasqal_literal_as_string(value);
 
-          if(strcmp((const char*)str, expected_string)) {
+          if(strcmp(RASQAL_GOOD_CAST(const char*, str), expected_string)) {
             fprintf(stderr,
                     "%s: test %d row #%d %s value #%d is %s expected %s\n",
                     program, test_id, i, row_var->name, vc,

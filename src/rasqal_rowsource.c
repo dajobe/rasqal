@@ -463,7 +463,8 @@ rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource,
   for(i=0; i < raptor_sequence_size(rowsource->variables_sequence); i++) {
     rasqal_variable* v;
     v = (rasqal_variable*)raptor_sequence_get_at(rowsource->variables_sequence, i);
-    if(!strcmp((const char*)v->name, (const char*)name)) {
+    if(!strcmp(RASQAL_GOOD_CAST(const char*, v->name),
+               RASQAL_GOOD_CAST(const char*, name))) {
       offset = i;
       break;
     }
@@ -518,7 +519,7 @@ rasqal_rowsource_print_header(rasqal_rowsource* rowsource, FILE* fh)
     if(i > 0)
       fputs(", ", fh);
     if(name)
-      fputs((const char*)name, fh);
+      fputs(RASQAL_GOOD_CAST(const char*, name), fh);
     else
       fputs("NULL", fh);
   }
@@ -824,7 +825,7 @@ main(int argc, char *argv[])
         fprintf(stderr, "%s: Creating rowsource from a filename '%s'\n",
                 program, OUT_FILENAME);
 #endif
-        rowsource = rasqal_new_rowsource_from_filename((const char*)IN_FILENAME);
+        rowsource = rasqal_new_rowsource_from_filename(RASQAL_GOOD_CAST(const char*, IN_FILENAME));
         if(!rowsource) {
           fprintf(stderr, "%s: Failed to create rowsource to filename '%s'\n",
                   program, OUT_FILENAME);
@@ -836,7 +837,7 @@ main(int argc, char *argv[])
 #ifdef RASQAL_DEBUG
         fprintf(stderr, "%s: Creating rowsource from file handle\n", program);
 #endif
-        handle = fopen((const char*)OUT_FILENAME, "wb");
+        handle = fopen(RASQAL_GOOD_CAST(const char*, OUT_FILENAME), "wb");
         rowsource = rasqal_new_rowsource_from_file_handle(handle);
         if(!rowsource) {
           fprintf(stderr, "%s: Failed to create rowsource from a file handle\n", program);

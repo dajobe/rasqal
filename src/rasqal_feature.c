@@ -190,15 +190,17 @@ rasqal_feature_from_uri(rasqal_world* world, raptor_uri *uri)
   rasqal_world_open(world);
   
   uri_string = raptor_uri_as_string(uri);
-  if(strncmp((const char*)uri_string, rasqal_feature_uri_prefix,
+  if(strncmp(RASQAL_GOOD_CAST(const char*, uri_string),
+             rasqal_feature_uri_prefix,
              RASQAL_FEATURE_URI_PREFIX_LEN))
     return feature;
 
   uri_string += RASQAL_FEATURE_URI_PREFIX_LEN;
 
-  for(i=0; i <= RASQAL_FEATURE_LAST; i++)
-    if(!strcmp(rasqal_features_list[i].name, (const char*)uri_string)) {
-      feature=(rasqal_feature)i;
+  for(i = 0; i <= RASQAL_FEATURE_LAST; i++)
+    if(!strcmp(rasqal_features_list[i].name,
+               RASQAL_GOOD_CAST(const char*, uri_string))) {
+      feature = (rasqal_feature)i;
       break;
     }
 

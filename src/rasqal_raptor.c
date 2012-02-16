@@ -178,7 +178,7 @@ rasqal_raptor_generate_id_handler(void *user_data,
 
   if(user_bnodeid) {
     unsigned char *mapped_id;
-    size_t user_bnodeid_len = strlen((const char*)user_bnodeid);
+    size_t user_bnodeid_len = strlen(RASQAL_GOOD_CAST(const char*, user_bnodeid));
     
     mapped_id = RASQAL_MALLOC(unsigned char*, 
                               rtsc->mapped_id_base_len + 1 + user_bnodeid_len + 1);
@@ -274,7 +274,7 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
     rtsc->mapped_id_base = rasqal_query_get_genid(rdf_query,
                                                   (const unsigned char*)"graphid",
                                                   i);
-    rtsc->mapped_id_base_len = strlen((const char*)rtsc->mapped_id_base);
+    rtsc->mapped_id_base_len = strlen(RASQAL_GOOD_CAST(const char*, rtsc->mapped_id_base));
 
     parser_name = dg->format_name;
     if(parser_name) {

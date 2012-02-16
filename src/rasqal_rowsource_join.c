@@ -786,7 +786,7 @@ main(int argc, char *argv[])
         failures++;
         goto tidy;
       }
-      name = (const char*)v->name;
+      name = RASQAL_GOOD_CAST(const char*, v->name);
       if(strcmp(name, expected_name)) {
         fprintf(stderr,
               "%s: read_rows returned column (variable) #%d %s but expected %s\n",

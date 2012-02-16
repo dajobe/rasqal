@@ -264,7 +264,8 @@ rasqal_expression_evaluate_strlang(rasqal_expression *e,
   rasqal_free_literal(l2);
 
   /* after this new_s and new_lang become owned by result */
-  return rasqal_new_string_literal(world, new_s, (const char*)new_lang,
+  return rasqal_new_string_literal(world, new_s,
+                                   RASQAL_GOOD_CAST(const char*, new_lang),
                                    /*datatype */ NULL, /* qname */ NULL);
   
 

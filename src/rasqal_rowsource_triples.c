@@ -586,7 +586,7 @@ main(int argc, char *argv[])
     o = row->values[2];
     if(!o ||
        (o && o->type != RASQAL_LITERAL_STRING) ||
-       strcmp((const char*)o->string, OBJECT_STRING)) {
+       strcmp(RASQAL_GOOD_CAST(const char*, o->string), OBJECT_STRING)) {
       fprintf(stderr, "%s: 'o' is bound to %s not string '%s'\n", program,
               rasqal_literal_as_string(o), OBJECT_STRING);
       failures++;

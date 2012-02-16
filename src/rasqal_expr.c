@@ -1832,7 +1832,7 @@ rasqal_expression_has_variable(void *user_data, rasqal_expression *e)
   if(!v)
     return 0;
   
-  if(!strcmp((const char*)v->name, (const char*)name))
+  if(!strcmp(RASQAL_GOOD_CAST(const char*, v->name), RASQAL_GOOD_CAST(const char*, name)))
     return 1;
 
   return 0;

@@ -644,14 +644,14 @@ PrefixDeclListOpt: PrefixDeclListOpt PREFIX IDENTIFIER URI_LITERAL
   size_t prefix_length = 0;
 
   if(prefix_string)
-    prefix_length = strlen((const char*)prefix_string);
+    prefix_length = strlen(RASQAL_GOOD_CAST(const char*, prefix_string));
   
   if(raptor_namespaces_find_namespace(((rasqal_query*)rq)->namespaces,
                                       prefix_string, RASQAL_BAD_CAST(int, prefix_length))) {
     /* A prefix may be defined only once */
     sparql_syntax_warning(((rasqal_query*)rq), 
                           "PREFIX %s can be defined only once.",
-                          prefix_string ? (const char*)prefix_string : ":");
+                          prefix_string ? RASQAL_GOOD_CAST(const char*, prefix_string) : ":");
     RASQAL_FREE(char*, prefix_string);
     raptor_free_uri($4);
   } else {
@@ -2745,7 +2745,7 @@ RDFLiteral: STRING
 | STRING LANG_TAG
 {
   $$ = rasqal_new_string_literal(((rasqal_query*)rq)->world, $1, 
-	                         (const char*)$2,
+	                         RASQAL_GOOD_CAST(const char*, $2),
                                  NULL /* dt uri */, NULL /* dt_qname */);
 }
 | STRING HATHAT IRIref

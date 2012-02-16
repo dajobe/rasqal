@@ -345,7 +345,8 @@ rasqal_query_set_feature_string(rasqal_query *query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
 
   if(!value_is_string)
-    return rasqal_query_set_feature(query, feature, atoi((const char*)value));
+    return rasqal_query_set_feature(query, feature,
+                                    atoi(RASQAL_GOOD_CAST(const char*, value)));
 
   return -1;
 }
@@ -1061,7 +1062,8 @@ rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix)
 
       if((!p->prefix && !prefix->prefix) ||
          ((p->prefix && prefix->prefix &&
-          !strcmp((const char*)p->prefix, (const char*)prefix->prefix)))
+           !strcmp(RASQAL_GOOD_CAST(const char*, p->prefix),
+                   RASQAL_GOOD_CAST(const char*, prefix->prefix))))
         ) {
         rasqal_query_undeclare_prefix(query, p);
         break;
@@ -1251,7 +1253,7 @@ rasqal_query_prepare(rasqal_query* query,
      * scanned; thus, scanning consists of `base[0]' through
      * `base[size-2]', inclusive.
      */
-    size_t len = strlen((const char*)query_string)+3; /* +3 for " \0\0" */
+    size_t len = strlen(RASQAL_GOOD_CAST(const char*, query_string)) + 3; /* +3 for " \0\0" */
     unsigned char *query_string_copy = RASQAL_MALLOC(unsigned char*, len);
     if(!query_string_copy) {
       query->failed = 1;
@@ -1858,7 +1860,7 @@ rasqal_query_write(raptor_iostream* iostr, rasqal_query* query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
 
   if(format_uri)
-    format_uri_str = (const char*)raptor_uri_as_string(format_uri);
+    format_uri_str = RASQAL_GOOD_CAST(const char*, raptor_uri_as_string(format_uri));
 
   if(!format_uri ||
      !strcmp(format_uri_str,
@@ -1960,7 +1962,7 @@ rasqal_query_get_genid(rasqal_query* query, const unsigned char* base,
   if(counter < 0)
     counter= query->genid_counter++;
   
-  length = strlen((const char*)base) + 2;  /* base + (int) + "\0" */
+  length = strlen(RASQAL_GOOD_CAST(const char*, base)) + 2;  /* base + (int) + "\0" */
   tmpcounter = counter;
   while(tmpcounter /= 10)
     length++;

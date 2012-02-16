@@ -170,7 +170,7 @@ rasqal_expression_evaluate_strlen(rasqal_expression *e,
   if(!s)
     len = 0;
   else
-    len = raptor_unicode_utf8_strlen(s, strlen((const char*)s));
+    len = raptor_unicode_utf8_strlen(s, strlen(RASQAL_GOOD_CAST(const char*, s)));
   
 
   result = rasqal_new_numeric_literal_from_long(world, RASQAL_LITERAL_INTEGER,
@@ -255,7 +255,7 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
     goto failed;
 
   if(l1->language) {
-    len = strlen((const char*)l1->language);
+    len = strlen(RASQAL_GOOD_CAST(const char*, l1->language));
     new_lang = RASQAL_MALLOC(char*, len + 1);
     if(!new_lang)
       goto failed;
@@ -350,7 +350,7 @@ rasqal_expression_evaluate_set_case(rasqal_expression *e,
   new_s[len] = '\0';
 
   if(l1->language) {
-    len = strlen((const char*)l1->language);
+    len = strlen(RASQAL_GOOD_CAST(const char*, l1->language));
     new_lang = RASQAL_MALLOC(char*, len + 1);
     if(!new_lang)
       goto failed;
@@ -500,8 +500,9 @@ rasqal_expression_evaluate_str_prefix_suffix(rasqal_expression *e,
     } else if(e->op == RASQAL_EXPR_STRENDS) {
       b = !memcmp(s1 + len1 - len2, s2, len2);
     } else { /* RASQAL_EXPR_CONTAINS */
-      /* b = (strnstr((const char*)s1, (const char*)s2, len2) != NULL); */
-      b = (strstr((const char*)s1, (const char*)s2) != NULL);
+      /* b = (strnstr(RASQAL_GOOD_CAST(const char*, s1), RASQAL_GOOD_CAST(const char*, s2), len2) != NULL); */
+      b = (strstr(RASQAL_GOOD_CAST(const char*, s1),
+                  RASQAL_GOOD_CAST(const char*, s2)) != NULL);
     }
   }
   
@@ -799,6 +800,7 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
 {
   rasqal_world* world = eval_context->world;
   int b = 0;
+  const unsigned char *l1_str;
   const char *match_string;
   const char *pattern;
   const char *regex_flags;
@@ -810,9 +812,9 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
   if(*error_p || !l1)
     goto failed;
 
-  match_string = (const char*)rasqal_literal_as_counted_string(l1, &match_len, 
-                                                               eval_context->flags,
-                                                               error_p);
+  l1_str = rasqal_literal_as_counted_string(l1, &match_len,
+                                            eval_context->flags, error_p);
+  match_string = RASQAL_GOOD_CAST(const char*, l1_str);
   if(*error_p || !match_string) {
     rasqal_free_literal(l1);
     goto failed;
@@ -834,14 +836,14 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
         rasqal_free_literal(l2);
         goto failed;
       }
-      regex_flags = (const char*)(l3->string);
+      regex_flags = RASQAL_GOOD_CAST(const char*, l3->string);
     }
       
   } else {
     l2 = e->literal;
-    regex_flags = (const char*)(l2->flags);
+    regex_flags = RASQAL_GOOD_CAST(const char*, l2->flags);
   }
-  pattern = (const char*)(l2->string);
+  pattern = RASQAL_GOOD_CAST(const char*, l2->string);
 
   rc = rasqal_regex_match(world, eval_context->locator,
                           pattern, regex_flags,
@@ -924,12 +926,13 @@ rasqal_expression_evaluate_strbefore(rasqal_expression *e,
   if(*error_p || !needle)
     goto failed;
 
-  ptr = strstr((const char*)haystack, (const char*)needle);
+  ptr = strstr(RASQAL_GOOD_CAST(const char*, haystack), 
+               RASQAL_GOOD_CAST(const char*, needle));
   if(ptr) {
-    result_len = ptr - (const char*)haystack;
+    result_len = ptr - RASQAL_GOOD_CAST(const char*, haystack);
   } else {
     result_len = 0;
-    haystack = (const unsigned char *)"";
+    haystack = RASQAL_GOOD_CAST(const unsigned char *, "");
   }
 
   result = RASQAL_MALLOC(unsigned char*, result_len + 1);
@@ -1002,10 +1005,11 @@ rasqal_expression_evaluate_strafter(rasqal_expression *e,
   if(*error_p || !needle)
     goto failed;
 
-  ptr = strstr((const char*)haystack, (const char*)needle);
+  ptr = strstr(RASQAL_GOOD_CAST(const char*, haystack),
+               RASQAL_GOOD_CAST(const char*, needle));
   if(ptr) {
     ptr += needle_len;
-    result_len = haystack_len - (ptr - (const char*)haystack);
+    result_len = haystack_len - (ptr - RASQAL_GOOD_CAST(const char*, haystack));
   } else {
     ptr = (const char *)"";
     result_len = 0;
@@ -1050,6 +1054,7 @@ rasqal_expression_evaluate_replace(rasqal_expression *e,
                                    int *error_p)
 {
   rasqal_world* world = eval_context->world;
+  const unsigned char *tmp_str;
   const char *match;
   const char *pattern;
   const char *replace;
@@ -1067,23 +1072,25 @@ rasqal_expression_evaluate_replace(rasqal_expression *e,
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(*error_p || !l1)
     goto failed;
-  match = (const char*)rasqal_literal_as_counted_string(l1, &match_len, 
-                                                        eval_context->flags,
-                                                        error_p);
+  tmp_str = rasqal_literal_as_counted_string(l1, &match_len, 
+                                             eval_context->flags,
+                                             error_p);
+  match = RASQAL_GOOD_CAST(const char*, tmp_str);
   if(*error_p || !match)
     goto failed;
 
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
   if(*error_p || !l2)
     goto failed;
-  pattern = (const char*)(l2->string);
+  pattern = RASQAL_GOOD_CAST(const char*, l2->string);
 
   l3 = rasqal_expression_evaluate2(e->arg3, eval_context, error_p);
   if(*error_p || !l3)
     goto failed;
-  replace = (const char*)rasqal_literal_as_counted_string(l3, &replace_len, 
-                                                          eval_context->flags,
-                                                          error_p);
+  tmp_str = rasqal_literal_as_counted_string(l3, &replace_len, 
+                                             eval_context->flags,
+                                             error_p);
+  replace = RASQAL_GOOD_CAST(const char*, tmp_str);
   if(*error_p || !replace)
     goto failed;
 
@@ -1092,7 +1099,7 @@ rasqal_expression_evaluate_replace(rasqal_expression *e,
     if(*error_p || !l4)
       goto failed;
 
-    regex_flags = (const char*)(l4->string);
+    regex_flags = RASQAL_GOOD_CAST(const char*, l4->string);
   }
 
   result_s = rasqal_regex_replace(world, eval_context->locator,
