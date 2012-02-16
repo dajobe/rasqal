@@ -87,7 +87,7 @@ rasqal_read_stringbuffer_iostream_read_bytes(void *user_data, void *ptr,
   if(con->offset >= con->length)
     return 0;
 
-  avail = (int)((con->length - con->offset) / size);
+  avail = RASQAL_BAD_CAST(int, ((con->length - con->offset) / size));
   if(avail > nmemb)
     avail = nmemb;
 
@@ -95,7 +95,7 @@ rasqal_read_stringbuffer_iostream_read_bytes(void *user_data, void *ptr,
   memcpy(ptr, (char*)con->string + con->offset, blen);
   con->offset += blen;
 
-  return (int)avail;
+  return RASQAL_BAD_CAST(int, avail);
 }
 
 static int

@@ -647,7 +647,7 @@ PrefixDeclListOpt: PrefixDeclListOpt PREFIX IDENTIFIER URI_LITERAL
     prefix_length = strlen((const char*)prefix_string);
   
   if(raptor_namespaces_find_namespace(((rasqal_query*)rq)->namespaces,
-                                      prefix_string, (int)prefix_length)) {
+                                      prefix_string, RASQAL_BAD_CAST(int, prefix_length))) {
     /* A prefix may be defined only once */
     sparql_syntax_warning(((rasqal_query*)rq), 
                           "PREFIX %s can be defined only once.",

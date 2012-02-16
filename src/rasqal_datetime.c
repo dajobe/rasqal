@@ -242,7 +242,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
   if(!u || u >= INT_MAX)
     return -1;
     
-  result->year = is_neg ? -(int)u : (int)u;
+  result->year = is_neg ? -RASQAL_GOOD_CAST(int, u) : RASQAL_GOOD_CAST(int, u);
 
   /* parse month */
   
@@ -673,7 +673,7 @@ rasqal_xsd_datetime_timezone_format(const rasqal_xsd_datetime *dt,
     buffer[6] = '\0';
   }
 
-  return (int)tz_len;
+  return RASQAL_GOOD_CAST(int, tz_len);
 }
 
 
@@ -695,7 +695,7 @@ rasqal_xsd_format_microseconds(char* buffer, size_t bufsize,
     len++;
   } while(value && multiplier);
 
-  if(!buffer || (int)bufsize < (len + 1)) /* +1 for NUL */
+  if(!buffer || RASQAL_GOOD_CAST(int, bufsize) < (len + 1)) /* +1 for NUL */
     return len;
 
   value = microseconds;

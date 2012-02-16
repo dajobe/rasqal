@@ -250,12 +250,13 @@ rasqal_random_irand(rasqal_random *random_object)
 #ifdef RANDOM_ALGO_RANDOM_R
   result = 0;
   random_r((struct random_data*)random_object->data, &result);
-  r = (int)result;
+  /* Good if int is 32 bits or larger */
+  r = RASQAL_GOOD_CAST(int, result);
 #endif  
 
 #ifdef RANDOM_ALGO_RANDOM
   old_state = setstate(random_object->state);
-  r = (int)random();
+  r = RASQAL_GOOD_CAST(int, random());
   setstate(old_state);
 #endif  
 

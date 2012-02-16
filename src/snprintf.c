@@ -62,7 +62,7 @@ int
 rasqal_format_integer(char* buffer, size_t bufsize, int integer,
                       int width, char padding)
 {
-  int len = 1;
+  size_t len = 1;
   char *p;
   unsigned int value;
   unsigned int base = 10;
@@ -76,11 +76,14 @@ rasqal_format_integer(char* buffer, size_t bufsize, int integer,
   while(value /= base)
     len++;
 
-  if(width > 0 && width > len)
-    len = width;
+  if(width > 0) {
+    size_t width_l = RASQAL_GOOD_CAST(size_t, width);
+    if(width_l > len)
+      len = width_l;
+  }
 
-  if(!buffer || (int)bufsize < (len + 1)) /* +1 for NUL */
-    return len;
+  if(!buffer || bufsize < (len + 1)) /* +1 for NUL */
+    return RASQAL_BAD_CAST(int, len);
 
   if(!padding)
     padding = ' ';
@@ -101,5 +104,5 @@ rasqal_format_integer(char* buffer, size_t bufsize, int integer,
   if(integer < 0)
     *buffer = '-';
 
-  return len;
+  return RASQAL_BAD_CAST(int, len);
 }

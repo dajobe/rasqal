@@ -145,7 +145,7 @@ rasqal_xsd_check_decimal_format(const unsigned char* string, int flags)
     ADVANCE_OR_DIE(p);
   }
 
-  while(*p && isdigit((int)*p))
+  while(*p && isdigit(RASQAL_GOOD_CAST(int, *p)))
     p++;
   if(!*p)
     return 1;
@@ -154,7 +154,7 @@ rasqal_xsd_check_decimal_format(const unsigned char* string, int flags)
     return 0;
   p++;
   
-  while(*p && isdigit((int)*p))
+  while(*p && isdigit(RASQAL_GOOD_CAST(int, *p)))
     p++;
   /* Fail if anything other than a digit seen before NUL */
   if(*p)
@@ -524,7 +524,7 @@ rasqal_xsd_datatype_uri_to_type(rasqal_world* world, raptor_uri* uri)
   if(!uri || !world->xsd_datatype_uris)
     return native_type;
   
-  for(i = (int)RASQAL_LITERAL_FIRST_XSD; i <= (int)XSD_INTEGER_DERIVED_LAST; i++) {
+  for(i = RASQAL_GOOD_CAST(int, RASQAL_LITERAL_FIRST_XSD); i <= RASQAL_GOOD_CAST(int, XSD_INTEGER_DERIVED_LAST); i++) {
     if(raptor_uri_equals(uri, world->xsd_datatype_uris[i])) {
       if(i >= XSD_INTEGER_DERIVED_FIRST)
         native_type = RASQAL_LITERAL_INTEGER_SUBTYPE;
@@ -536,7 +536,7 @@ rasqal_xsd_datatype_uri_to_type(rasqal_world* world, raptor_uri* uri)
 
   if(native_type == RASQAL_LITERAL_UNKNOWN) {
     /* DATE is not in the range FIRST_XSD .. INTEGER_DERIVED_LAST */
-    i = (int)XSD_DATE_OFFSET;
+    i = RASQAL_GOOD_CAST(int, XSD_DATE_OFFSET);
     if(raptor_uri_equals(uri, world->xsd_datatype_uris[i]))
       native_type = RASQAL_LITERAL_DATE;
   }
@@ -550,9 +550,9 @@ rasqal_xsd_datatype_type_to_uri(rasqal_world* world, rasqal_literal_type type)
 {
   if(world->xsd_datatype_uris &&
      ((type >= RASQAL_LITERAL_FIRST_XSD &&
-       type <= (int)RASQAL_LITERAL_LAST_XSD) ||
+       type <= RASQAL_LITERAL_LAST_XSD) ||
       type == RASQAL_LITERAL_DATE))
-    return world->xsd_datatype_uris[(int)type];
+    return world->xsd_datatype_uris[RASQAL_GOOD_CAST(int, type)];
 
   return NULL;
 }
@@ -575,8 +575,8 @@ rasqal_xsd_datatype_check(rasqal_literal_type native_type,
   /* calculate check function index in sparql_xsd_checkfns table */
   int checkidx = -1;
 
-  if(native_type >= (int)RASQAL_LITERAL_FIRST_XSD &&
-     native_type <= (int)RASQAL_LITERAL_LAST_XSD)
+  if(native_type >= RASQAL_GOOD_CAST(int, RASQAL_LITERAL_FIRST_XSD) &&
+     native_type <= RASQAL_GOOD_CAST(int, RASQAL_LITERAL_LAST_XSD))
     checkidx = native_type - RASQAL_LITERAL_FIRST_XSD;
   else if(native_type == RASQAL_LITERAL_DATE)
     checkidx = CHECKFN_DATE_OFFSET;

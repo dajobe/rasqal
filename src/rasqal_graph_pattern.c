@@ -451,7 +451,7 @@ rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator op)
      op > RASQAL_GRAPH_PATTERN_OPERATOR_LAST)
     op = RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN;
 
-  return rasqal_graph_pattern_operator_labels[(int)op];
+  return rasqal_graph_pattern_operator_labels[RASQAL_GOOD_CAST(int, op)];
 }
   
 

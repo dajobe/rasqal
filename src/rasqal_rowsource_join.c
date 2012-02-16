@@ -694,7 +694,7 @@ main(int argc, char *argv[])
     int vars_count;
 
     fprintf(stderr, "%s: test #%d  join type %d\n", program, test_count,
-            (int)join_type);
+            RASQAL_GOOD_CAST(int, join_type));
 
     /* 2 variables and 3 rows */
     vars_count = 2;

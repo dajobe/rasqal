@@ -111,7 +111,8 @@ rasqal_regex_match(rasqal_world* world, raptor_locator* locator,
   } else {
     rc = pcre_exec(re, 
                    NULL, /* no study */
-                   subject, (int)subject_len,
+                   subject,
+                   RASQAL_BAD_CAST(int, subject_len), /* PCRE API is an int */
                    0 /* startoffset */,
                    exec_options /* options */,
                    NULL, 0 /* ovector, ovecsize - no matches wanted */
@@ -245,7 +246,8 @@ rasqal_regex_replace_pcre(rasqal_world* world, raptor_locator* locator,
 
     stringcount = pcre_exec(re,
                             NULL, /* no study */
-                            subject, (int)subject_len,
+                            subject,
+                            RASQAL_BAD_CAST(int, subject_len), /* PCRE API is an int */
                             startoffset,
                             options | matched_empty_options,
                             ovector, ovecsize);

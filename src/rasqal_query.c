@@ -311,7 +311,7 @@ rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value)
       if(feature == RASQAL_FEATURE_RAND_SEED)
         query->user_set_rand = 1;
       
-      query->features[(int)feature] = value;
+      query->features[RASQAL_GOOD_CAST(int, feature)] = value;
       break;
       
     default:
@@ -374,7 +374,7 @@ rasqal_query_get_feature(rasqal_query *query, rasqal_feature feature)
   switch(feature) {
     case RASQAL_FEATURE_NO_NET:
     case RASQAL_FEATURE_RAND_SEED:
-      result = (query->features[(int)feature] != 0);
+      result = (query->features[RASQAL_GOOD_CAST(int, feature)] != 0);
       break;
 
     default:
@@ -1286,7 +1286,8 @@ rasqal_query_prepare(rasqal_query* query,
 
     /* get seed either from user or system sources */
     if(query->user_set_rand)
-      seed = (unsigned int)query->features[(int)RASQAL_FEATURE_RAND_SEED];
+      /* it is ok to truncate here for the purposes of getting a seed */
+      seed = RASQAL_GOOD_CAST(unsigned int, query->features[RASQAL_GOOD_CAST(int, RASQAL_FEATURE_RAND_SEED)]);
     else
       seed = rasqal_random_get_system_seed(query->world);
     
@@ -1428,7 +1429,7 @@ rasqal_query_verb_as_string(rasqal_query_verb verb)
      verb > RASQAL_QUERY_VERB_LAST)
     verb = RASQAL_QUERY_VERB_UNKNOWN;
 
-  return rasqal_query_verb_labels[(int)verb];
+  return rasqal_query_verb_labels[RASQAL_GOOD_CAST(int, verb)];
 }
   
 

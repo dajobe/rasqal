@@ -791,7 +791,7 @@ rasqal_sparql_name_check(unsigned char *string, size_t length,
   RASQAL_DEBUG1("Checking name '");
   if(length)
      fwrite(string, length, sizeof(unsigned char), stderr);
-  fprintf(stderr, "' (length %d), flags %d\n", (int)length, (int)check_flags);
+  fprintf(stderr, "' (length %d), flags %d\n", RASQAL_BAD_CAST(int, length), RASQAL_GOOD_CAST(int, check_flags));
 #endif
 
   if(!length)
@@ -813,8 +813,8 @@ rasqal_sparql_name_check(unsigned char *string, size_t length,
     goto done;
 
   if(check_flags & SPARQL_NAME_CHECK_NO_DOT_MINUS) {
-    int i;
-    for(i = 0; i < (int)length; i++)
+    size_t i;
+    for(i = 0; i < length; i++)
       if(string[i] == '.' || string[i] == '-')
         goto done;
   }

@@ -49,12 +49,12 @@
 static int
 rasqal_unicode_utf8_strlen(const unsigned char *string, size_t length)
 {
-  size_t unicode_length = 0;
+  int unicode_length = 0;
   
   while(length > 0) {
     int unichar_len;
     unichar_len = raptor_unicode_utf8_string_get_char(string, length, NULL);
-    if(unichar_len < 0 || unichar_len > (int)length) {
+    if(unichar_len < 0 || RASQAL_GOOD_CAST(size_t, unichar_len) > length) {
       unicode_length = -1;
       break;
     }
@@ -65,7 +65,7 @@ rasqal_unicode_utf8_strlen(const unsigned char *string, size_t length)
     unicode_length++;
   }
 
-  return (int)unicode_length;
+  return unicode_length;
 }
 
 
@@ -102,7 +102,7 @@ rasqal_unicode_utf8_substr(unsigned char* dest, size_t* dest_length_p,
     int unichar_len;
 
     unichar_len = raptor_unicode_utf8_string_get_char(src, src_length, NULL);
-    if(unichar_len < 0 || unichar_len > (int)src_length)
+    if(unichar_len < 0 || RASQAL_GOOD_CAST(size_t, unichar_len) > src_length)
       break;
 
     if(dest_offset >= startingLoc) {
@@ -114,7 +114,7 @@ rasqal_unicode_utf8_substr(unsigned char* dest, size_t* dest_length_p,
       dest_bytes += unichar_len;
 
       dest_length++;
-      if(length >= 0 && (int)dest_length == length)
+      if(length >= 0 && dest_length == RASQAL_GOOD_CAST(size_t, length))
         break;
     }
 
@@ -333,8 +333,8 @@ rasqal_expression_evaluate_set_case(rasqal_expression *e,
     
     for(i = 0; i < len; i++) {
       char c = s[i];
-      if(islower((int)c))
-        c = toupper((int)c);
+      if(islower(RASQAL_GOOD_CAST(int, c)))
+        c = toupper(RASQAL_GOOD_CAST(int, c));
       new_s[i] = c;
     }
   } else { /* RASQAL_EXPR_LCASE */
@@ -342,8 +342,8 @@ rasqal_expression_evaluate_set_case(rasqal_expression *e,
 
     for(i = 0; i < len; i++) {
       char c = s[i];
-      if(isupper((int)c))
-        c = tolower((int)c);
+      if(isupper(RASQAL_GOOD_CAST(int, c)))
+        c = tolower(RASQAL_GOOD_CAST(int, c));
       new_s[i] = c;
     }
   }

@@ -1123,7 +1123,7 @@ rasqal_expression_op_label(rasqal_op op)
   if(op > RASQAL_EXPR_LAST)
     op = RASQAL_EXPR_UNKNOWN;
 
-  return rasqal_op_labels[(int)op];
+  return rasqal_op_labels[RASQAL_GOOD_CAST(int, op)];
 }
 
 

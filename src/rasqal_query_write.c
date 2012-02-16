@@ -321,7 +321,7 @@ rasqal_query_write_sparql_expression_op(sparql_writer_context *wc,
   const char* string;
   if(op > RASQAL_EXPR_LAST)
     op = RASQAL_EXPR_UNKNOWN;
-  string = rasqal_sparql_op_labels[(int)op];
+  string = rasqal_sparql_op_labels[RASQAL_GOOD_CAST(int, op)];
   
   if(string)
     raptor_iostream_string_write(string, iostr);

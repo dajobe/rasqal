@@ -724,9 +724,9 @@ rasqal_algebra_node_operator_as_counted_string(rasqal_algebra_node_operator op,
     op = RASQAL_ALGEBRA_OPERATOR_UNKNOWN;
 
   if(length_p)
-    *length_p = rasqal_algebra_node_operator_labels[(int)op].length;
+    *length_p = rasqal_algebra_node_operator_labels[RASQAL_GOOD_CAST(int, op)].length;
 
-  return rasqal_algebra_node_operator_labels[(int)op].label;
+  return rasqal_algebra_node_operator_labels[RASQAL_GOOD_CAST(int, op)].label;
 }
   
 

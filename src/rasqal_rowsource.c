@@ -810,7 +810,7 @@ main(int argc, char *argv[])
 
   for(i = 0; i < 4; i++) {
     rasqal_rowsource *rowsource;
-    size_t count;
+    int count;
 
     /* for _from_file */
     FILE *handle = NULL;
@@ -875,7 +875,7 @@ main(int argc, char *argv[])
     count = rasqal_rowsource_get_rows_count(rowsource);
     if(count != OUT_BYTES_COUNT) {
       fprintf(stderr, "%s: I/O stream wrote %d bytes, expected %d\n", program,
-              (int)count, (int)OUT_BYTES_COUNT);
+              count, RASQAL_GOOD_CAST(int, OUT_BYTES_COUNT));
       return 1;
     }
     
@@ -900,7 +900,7 @@ main(int argc, char *argv[])
           return 1;
         }
         if(string_len != count) {
-          fprintf(stderr, "%s: I/O stream created a string length %d, expected %d\n", program, (int)string_len, (int)count);
+          fprintf(stderr, "%s: I/O stream created a string length %d, expected %d\n", program, RASQAL_BAD_CAST(int, string_len), count);
           return 1;
         }
         rasqal_free_memory(string);

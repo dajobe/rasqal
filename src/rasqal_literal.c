@@ -155,7 +155,7 @@ rasqal_new_numeric_literal_from_long(rasqal_world* world,
   
   /* For other types, if in int range, make an integer literal */
   if(value >= INT_MIN && value <= INT_MAX) {
-    return rasqal_new_integer_literal(world, type, (int)value);
+    return rasqal_new_integer_literal(world, type, RASQAL_GOOD_CAST(int, value));
   }
 
   /* Otherwise turn it into a decimal */
@@ -481,7 +481,7 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type,
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_INTEGER_SUBTYPE: 
       if(d >= (double)INT_MIN && d <= (double)INT_MAX)
-        return rasqal_new_integer_literal(world, type, (int)d);
+        return rasqal_new_integer_literal(world, type, RASQAL_GOOD_CAST(int, d));
 
       /* otherwise FALLTHROUGH and make it a decimal */
 
@@ -652,7 +652,7 @@ retype:
           /* under or overflow of strtol() so fallthrough to DECIMAL */
 
         } else if(long_i >= INT_MIN && long_i <= INT_MAX) {
-          l->value.integer = (int)long_i;
+          l->value.integer = RASQAL_GOOD_CAST(int, long_i);
           break;
         }
       }
@@ -1203,7 +1203,7 @@ rasqal_literal_type_label(rasqal_literal_type type)
   if(type > RASQAL_LITERAL_LAST)
     type = RASQAL_LITERAL_UNKNOWN;
 
-  return rasqal_literal_type_labels[(int)type];
+  return rasqal_literal_type_labels[RASQAL_GOOD_CAST(int, type)];
 }
 
 
@@ -1491,8 +1491,8 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-      /* FIXME may loses precision */
-      return (int)l->value.floating;
+      /* FIXME may lose precision or be out of range from float to int */
+      return RASQAL_BAD_CAST(int, l->value.floating);
       break;
 
     case RASQAL_LITERAL_DECIMAL:
@@ -1509,7 +1509,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
           return 0;
         }
         
-        return (int)lvalue;
+        return RASQAL_GOOD_CAST(int, lvalue);
       }
       break;
 
@@ -1526,12 +1526,14 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
         /* If formatted correctly and no under or overflow */
         if((unsigned char*)eptr != l->string && *eptr=='\0' &&
            errno != ERANGE)
-          return (int)long_i;
+          /* FIXME may lose precision or be out of range from long to int */
+          return RASQAL_BAD_CAST(int, long_i);
 
         eptr = NULL;
         d = strtod((const char*)l->string, &eptr);
         if((unsigned char*)eptr != l->string && *eptr=='\0')
-          return (int)d;
+          /* FIXME may lose precision or be out of range from double to int */
+          return RASQAL_GOOD_CAST(int, d);
       }
       if(error_p)
         *error_p = 1;

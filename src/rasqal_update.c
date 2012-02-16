@@ -69,7 +69,7 @@ rasqal_update_type_label(rasqal_update_type type)
      type > RASQAL_UPDATE_TYPE_LAST)
     type = RASQAL_UPDATE_TYPE_UNKNOWN;
 
-  return rasqal_update_type_labels[(int)type];
+  return rasqal_update_type_labels[RASQAL_GOOD_CAST(int, type)];
 }
   
 

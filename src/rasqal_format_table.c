@@ -95,6 +95,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
   int rc = 0;
   size_t total_width = 0;
   int i;
+  size_t si;
   size_t sep_len;
   char *sep = NULL;
 
@@ -178,8 +179,8 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
     rc = 1;
     goto tidy;
   }
-  for(i = 0 ; i < (int)sep_len; i++)
-    sep[i]='-';
+  for(si = 0 ; si < sep_len; si++)
+    sep[si]='-';
   sep[sep_len]='\0';
 
   if(1) {

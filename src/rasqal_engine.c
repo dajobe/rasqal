@@ -51,7 +51,7 @@ static const char rasqal_engine_parts_string[16][5] = {
 const char*
 rasqal_engine_get_parts_string(rasqal_triple_parts parts)
 {
-  return rasqal_engine_parts_string[(int)parts & RASQAL_TRIPLE_SPOG];
+  return rasqal_engine_parts_string[RASQAL_GOOD_CAST(int, parts) & RASQAL_TRIPLE_SPOG];
 }
 #endif
 
@@ -71,6 +71,6 @@ rasqal_engine_error_as_string(rasqal_engine_error error)
   if(error > RASQAL_ENGINE_ERROR_LAST)
     error = (rasqal_engine_error)(RASQAL_ENGINE_ERROR_LAST+1);
 
-  return rasqal_engine_error_labels[(int)error];
+  return rasqal_engine_error_labels[RASQAL_GOOD_CAST(int, error)];
 }
 #endif
