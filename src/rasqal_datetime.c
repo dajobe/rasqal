@@ -1509,7 +1509,8 @@ rasqal_xsd_date_equals(const rasqal_xsd_date *d1,
   
   return ((d1->year == d2->year) &&
           (d1->month == d2->month) &&
-          (d1->day == d2->day));
+          (d1->day == d2->day) &&
+          (d1->timezone_minutes == d2->timezone_minutes));
 }
 
 
@@ -1600,6 +1601,31 @@ static int test_date_parser_tostring(const char *in_str, const char *out_expecte
 
 
 #define INCOMPARABLE 2
+
+static int
+test_date_equals(rasqal_world* world, const char *value1, const char *value2,
+                 int expected_eq)
+{
+  rasqal_xsd_date* d1;
+  rasqal_xsd_date* d2;
+  int r = 1;
+  int eq;
+  
+  d1 = rasqal_new_xsd_date(world, value1);
+  d2 = rasqal_new_xsd_date(world, value2);
+
+  eq = rasqal_xsd_date_equals(d1, d2);
+  rasqal_free_xsd_date(d1);
+  rasqal_free_xsd_date(d2);
+
+  if(eq != expected_eq) {
+    fprintf(stderr, "date equals \"%s\" to \"%s\" returned %d expected %d\n",
+            value1, value2, eq, expected_eq);
+    r = 1;
+  }
+  return r;
+}
+
 
 static int
 test_datetime_equals(rasqal_world* world, const char *value1, const char *value2,
@@ -1884,6 +1910,17 @@ main(int argc, char *argv[])
   MYASSERT(test_date_parser_tostring("2005-01-01+13:00", "2004-12-31") == 0);
   MYASSERT(test_date_parser_tostring("2004-12-31-11:59", "2004-12-31") == 0);
   MYASSERT(test_date_parser_tostring("2005-01-01+11:59", "2005-01-01") == 0);
+
+  /* Date equality */
+  MYASSERT(test_date_equals(world, "2011-01-02Z", "2011-01-02" , 0));
+  MYASSERT(test_date_equals(world, "2011-01-02" , "2011-01-02" , 1));
+  MYASSERT(test_date_equals(world, "2011-01-02",  "2011-01-02Z", 0));
+  MYASSERT(test_date_equals(world, "2011-01-02Z", "2011-01-02Z", 1));
+
+  MYASSERT(test_date_equals(world, "2011-01-02Z", "2011-01-03" , 0));
+  MYASSERT(test_date_equals(world, "2011-01-02" , "2011-01-03" , 0));
+  MYASSERT(test_date_equals(world, "2011-01-02",  "2011-01-03Z", 0));
+  MYASSERT(test_date_equals(world, "2011-01-02Z", "2011-01-03Z", 0));
 
   /* DateTime equality */
   MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00",  "2011-01-02T00:00:00",  1));
