@@ -861,19 +861,21 @@ int
 rasqal_xsd_datetime_equals(const rasqal_xsd_datetime *dt1,
                            const rasqal_xsd_datetime *dt2)
 {
+  int dt1_has_tz = (dt1->timezone_minutes != RASQAL_XSD_DATETIME_NO_TZ);
+  int dt2_has_tz = (dt2->timezone_minutes != RASQAL_XSD_DATETIME_NO_TZ);
+
   /* Handle NULLs */
   if(!dt1 || !dt2) {
     /* equal only if both are NULL */
     return (dt1 && dt2);
   }
   
-  return ((dt1->year == dt2->year) &&
-          (dt1->month == dt2->month) &&
-          (dt1->day == dt2->day) &&
-          (dt1->hour == dt2->hour) &&
-          (dt1->minute == dt2->minute) &&
-          (dt1->second == dt2->second) &&
-          (dt1->microseconds == dt2->microseconds));
+  if(dt1_has_tz == dt2_has_tz)
+    /* both are on same timeline */
+    return ((dt1->time_on_timeline == dt2->time_on_timeline) &&
+            (dt1->microseconds == dt2->microseconds));
+
+  return 0;
 }
 
 
@@ -1597,13 +1599,44 @@ static int test_date_parser_tostring(const char *in_str, const char *out_expecte
 }
 
 
+#define INCOMPARABLE 2
+
+static int
+test_datetime_equals(rasqal_world* world, const char *value1, const char *value2,
+                 int expected_eq)
+{
+  rasqal_xsd_datetime* d1;
+  rasqal_xsd_datetime* d2;
+  int r = 1;
+  int eq;
+  
+  d1 = rasqal_new_xsd_datetime(world, value1);
+  d2 = rasqal_new_xsd_datetime(world, value2);
+
+  eq = rasqal_xsd_datetime_equals(d1, d2);
+  rasqal_free_xsd_datetime(d1);
+  rasqal_free_xsd_datetime(d2);
+
+  if(eq != expected_eq) {
+    fprintf(stderr,
+            "datetime equals \"%s\" to \"%s\" returned %d expected %d\n",
+            value1, value2, eq, expected_eq);
+    r = 1;
+  }
+  return r;
+}
+
+
 int
 main(int argc, char *argv[])
 {
   char const *program = rasqal_basename(*argv);
+  rasqal_world* world;
   rasqal_xsd_datetime dt;
   rasqal_xsd_date d;
 
+  world = rasqal_new_world();
+  
   /* days_per_month */
   
   MYASSERT(!days_per_month(0,287));
@@ -1852,6 +1885,12 @@ main(int argc, char *argv[])
   MYASSERT(test_date_parser_tostring("2004-12-31-11:59", "2004-12-31") == 0);
   MYASSERT(test_date_parser_tostring("2005-01-01+11:59", "2005-01-01") == 0);
 
+  /* DateTime equality */
+  MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00",  "2011-01-02T00:00:00",  1));
+  MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00",  "2011-01-02T00:00:00Z", 0));
+  MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00Z", "2011-01-02T00:00:00",  0));
+  MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00Z", "2011-01-02T00:00:00Z", 1));
+
 
   if(1) {
     struct timeval my_tv;
@@ -1881,6 +1920,7 @@ main(int argc, char *argv[])
     MYASSERT(new_secs == secs);
   }
   
+  rasqal_free_world(world);
 
   return 0;
 }
