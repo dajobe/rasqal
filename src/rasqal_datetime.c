@@ -599,6 +599,35 @@ rasqal_new_xsd_datetime_from_timeval(rasqal_world* world, struct timeval *tv)
 
 
 /**
+ * rasqal_new_xsd_datetime_from_xsd_date:
+ * @world: world object
+ * @date: pointer to XSD date
+ *
+ * Constructor - make a new XSD datetime object from an XSD date
+ *
+ * Return value: new datetime or NULL on failure
+ */
+rasqal_xsd_datetime*
+rasqal_new_xsd_datetime_from_xsd_date(rasqal_world* world, rasqal_xsd_date *date)
+{
+  rasqal_xsd_datetime* dt;
+  
+  dt = RASQAL_CALLOC(rasqal_xsd_datetime*, 1, sizeof(*dt));
+  if(!dt)
+    return NULL;
+
+  dt->year = date->year;
+  dt->month = date->month;
+  dt->day = date->day;
+  /* hour, minute, seconds, microseconds are all zero from calloc */
+  dt->timezone_minutes = date->timezone_minutes;
+  dt->time_on_timeline = date->time_on_timeline;
+
+  return dt;
+}
+
+
+/**
  * rasqal_free_xsd_datetime:
  * @dt: datetime object
  * 

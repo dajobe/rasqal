@@ -1790,6 +1790,8 @@ rasqal_xsd_datetime* rasqal_new_xsd_datetime_from_unixtime(rasqal_world* world, 
 RASQAL_API
 rasqal_xsd_datetime* rasqal_new_xsd_datetime_from_timeval(rasqal_world* world, struct timeval *tv);
 RASQAL_API
+rasqal_xsd_datetime* rasqal_new_xsd_datetime_from_xsd_date(rasqal_world* world, rasqal_xsd_date *date);
+RASQAL_API
 void rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt);
 RASQAL_API
 char* rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt, size_t *len_p);
