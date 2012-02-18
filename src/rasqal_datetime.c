@@ -879,20 +879,85 @@ rasqal_xsd_datetime_equals(const rasqal_xsd_datetime *dt1,
 }
 
 
+/*
+ * 3.2.7.4 Order relation on dateTime
+ * http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/#dateTime
+ */
+static int
+rasqal_xsd_timeline_compare(time_t dt_timeline1, signed int dt_msec1,
+                            signed short tz_minutes1,
+                            time_t dt_timeline2, signed int dt_msec2,
+                            signed short tz_minutes2,
+                            int *incomparible_p)
+{
+  int dt1_has_tz = (tz_minutes1 != RASQAL_XSD_DATETIME_NO_TZ);
+  int dt2_has_tz = (tz_minutes2 != RASQAL_XSD_DATETIME_NO_TZ);
+  int rc;
+
+#define SECS_FOR_14_HOURS (14 * 3600)
+
+  /* Normalize - if there is a timezone that is not Z, convert it to Z
+   *
+   * Already done in rasqal_xsd_datetime_normalize() on construction
+   */
+
+  if(dt1_has_tz == dt2_has_tz) {
+    /* both are on same timeline */
+    if(dt_timeline1 < dt_timeline2)
+      rc = -1;
+    else if(dt_timeline1 > dt_timeline2)
+      rc = 1;
+    else
+      rc = dt_msec1 - dt_msec2;
+  } else if(dt1_has_tz) {
+    /* dt1 has a tz, dt2 has no tz */
+    if(dt_timeline1 < (dt_timeline2 - SECS_FOR_14_HOURS))
+      rc = -1;
+    else if(dt_timeline1 > (dt_timeline2 + SECS_FOR_14_HOURS))
+      rc = 1;
+    else {
+      if(incomparible_p)
+        *incomparible_p = 1;
+      rc = 2; /* incomparible really */
+    }
+  } else {
+    /* dt1 has no tz, dt2 has a tz */
+    if((dt_timeline1 + SECS_FOR_14_HOURS) < dt_timeline2)
+      rc = -1;
+    else if((dt_timeline1 - SECS_FOR_14_HOURS) > dt_timeline2)
+      rc = 1;
+    else {
+      if(incomparible_p)
+        *incomparible_p = 1;
+      rc = 2; /* incomparible really */
+    }
+  }
+
+  return rc;
+}
+
+
 /**
- * rasqal_xsd_datetime_compare:
+ * rasqal_xsd_datetime_compare2:
  * @dt1: first XSD dateTime
  * @dt2: second XSD dateTime
+ * @incomparible_p: address to store incomparable flag (or NULL)
  * 
  * Compare two XSD dateTimes
+ *
+ * If the only one of the two dateTimes have timezones, the results
+ * may be incomparible and that will return >0 and set the
+ * value of the int point to by @incomparible_p to non-0
  * 
- * Return value: <0 if @dt1 is less than @dt2, 0 if equal, >1 otherwise
+ * Return value: <0 if @dt1 is less than @dt2, 0 if equal, >0 otherwise
  **/
 int
-rasqal_xsd_datetime_compare(const rasqal_xsd_datetime *dt1,
-                            const rasqal_xsd_datetime *dt2)
+rasqal_xsd_datetime_compare2(const rasqal_xsd_datetime *dt1,
+                             const rasqal_xsd_datetime *dt2,
+                             int *incomparible_p)
 {
-  int rc;
+  if(incomparible_p)
+    *incomparible_p = 0;
 
   /* Handle NULLs */
   if(!dt1 || !dt2) {
@@ -902,34 +967,30 @@ rasqal_xsd_datetime_compare(const rasqal_xsd_datetime *dt1,
 
     return (!dt1) ? -1 : 1;
   }
-  
-  rc = dt1->year - dt2->year;
-  if(rc)
-    return rc;
 
-  rc = dt1->month - dt2->month;
-  if(rc)
-    return rc;
+  return rasqal_xsd_timeline_compare(dt1->time_on_timeline, dt1->microseconds,
+                                     dt1->timezone_minutes,
+                                     dt2->time_on_timeline, dt2->microseconds,
+                                     dt2->timezone_minutes,
+                                     incomparible_p);
+}
 
-  rc = dt1->day - dt2->day;
-  if(rc)
-    return rc;
-
-  rc = dt1->hour - dt2->hour;
-  if(rc)
-    return rc;
-
-  rc = dt1->minute - dt2->minute;
-  if(rc)
-    return rc;
-
-  rc = dt1->second - dt2->second;
-  if(rc)
-    return rc;
-
-  rc = dt1->microseconds - dt2->microseconds;
-
-  return rc;
+/**
+ * rasqal_xsd_datetime_compare:
+ * @dt1: first XSD dateTime
+ * @dt2: second XSD dateTime
+ * 
+ * Compare two XSD dateTimes
+ * 
+ * @Deprecated for rasqal_xsd_datetime_compare2() which can return the incomparible result.
+ *
+ * Return value: <0 if @dt1 is less than @dt2, 0 if equal, >0 otherwise
+ **/
+int
+rasqal_xsd_datetime_compare(const rasqal_xsd_datetime *dt1,
+                            const rasqal_xsd_datetime *dt2)
+{
+  return rasqal_xsd_datetime_compare2(dt1, dt2, NULL);
 }
 
 
@@ -1515,19 +1576,26 @@ rasqal_xsd_date_equals(const rasqal_xsd_date *d1,
 
 
 /**
- * rasqal_xsd_date_compare:
+ * rasqal_xsd_date_compare2:
  * @d1: first XSD date
  * @d2: second XSD date
+ * @incomparible_p: address to store incomparable flag (or NULL)
  * 
  * Compare two XSD dates
  * 
- * Return value: <0 if @d1 is less than @d2, 0 if equal, >1 otherwise
+ * If the only one of the two dates have timezones, the results
+ * may be incomparible and that will return >0 and set the
+ * value of the int point to by @incomparible_p to non-0
+ * 
+ * Return value: <0 if @d1 is less than @d2, 0 if equal, >0 otherwise
  **/
 int
-rasqal_xsd_date_compare(const rasqal_xsd_date *d1,
-                        const rasqal_xsd_date *d2)
+rasqal_xsd_date_compare2(const rasqal_xsd_date *d1,
+                         const rasqal_xsd_date *d2,
+                         int *incomparible_p)
 {
-  int rc;
+  if(incomparible_p)
+    *incomparible_p = 0;
 
   /* Handle NULLs */
   if(!d1 || !d2) {
@@ -1537,20 +1605,32 @@ rasqal_xsd_date_compare(const rasqal_xsd_date *d1,
 
     return (!d1) ? -1 : 1;
   }
-  
-  rc = d1->year - d2->year;
-  if(rc)
-    return rc;
 
-  rc = d1->month - d2->month;
-  if(rc)
-    return rc;
-
-  rc = d1->day - d2->day;
-
-  return rc;
+  return rasqal_xsd_timeline_compare(d1->time_on_timeline, 0 /* msec */,
+                                     d1->timezone_minutes,
+                                     d2->time_on_timeline, 0 /* msec */,
+                                     d2->timezone_minutes,
+                                     incomparible_p);
 }
 
+
+/**
+ * rasqal_xsd_date_compare:
+ * @d1: first XSD date
+ * @d2: second XSD date
+ * 
+ * Compare two XSD dates
+ * 
+ * @Deprecated for rasqal_xsd_date_compare2() which can return the incomparible result.
+ * 
+ * Return value: <0 if @d1 is less than @d2, 0 if equal, >0 otherwise
+ **/
+int
+rasqal_xsd_date_compare(const rasqal_xsd_date *d1,
+                        const rasqal_xsd_date *d2)
+{
+  return rasqal_xsd_date_compare2(d1, d2, NULL);
+}
 
 
 #ifdef STANDALONE
@@ -1628,6 +1708,41 @@ test_date_equals(rasqal_world* world, const char *value1, const char *value2,
 
 
 static int
+test_date_compare(rasqal_world* world, const char *value1, const char *value2,
+                  int expected_cmp)
+{
+  rasqal_xsd_date* d1;
+  rasqal_xsd_date* d2;
+  int r = 1;
+  int incomparable = 0;
+  int cmp;
+  
+  fprintf(stderr, "date compare \"%s\" to \"%s\"\n", value1, value2);
+
+  d1 = rasqal_new_xsd_date(world, value1);
+  d2 = rasqal_new_xsd_date(world, value2);
+
+  cmp = rasqal_xsd_date_compare2(d1, d2, &incomparable);
+  if(incomparable)
+    cmp = INCOMPARABLE;
+  else if (cmp < 0)
+    cmp = -1;
+  else if (cmp > 0)
+    cmp = 1;
+  
+  rasqal_free_xsd_date(d1);
+  rasqal_free_xsd_date(d2);
+
+  if(cmp != expected_cmp) {
+    fprintf(stderr, "date compare \"%s\" to \"%s\" returned %d expected %d\n",
+            value1, value2, cmp, expected_cmp);
+    r = 1;
+  }
+  return r;
+}
+
+
+static int
 test_datetime_equals(rasqal_world* world, const char *value1, const char *value2,
                  int expected_eq)
 {
@@ -1647,6 +1762,42 @@ test_datetime_equals(rasqal_world* world, const char *value1, const char *value2
     fprintf(stderr,
             "datetime equals \"%s\" to \"%s\" returned %d expected %d\n",
             value1, value2, eq, expected_eq);
+    r = 1;
+  }
+  return r;
+}
+
+
+static int
+test_datetime_compare(rasqal_world* world, const char *value1, const char *value2,
+                  int expected_cmp)
+{
+  rasqal_xsd_datetime* d1;
+  rasqal_xsd_datetime* d2;
+  int r = 1;
+  int incomparable = 0;
+  int cmp;
+  
+  fprintf(stderr, "datetime compare \"%s\" to \"%s\"\n", value1, value2);
+
+  d1 = rasqal_new_xsd_datetime(world, value1);
+  d2 = rasqal_new_xsd_datetime(world, value2);
+
+  cmp = rasqal_xsd_datetime_compare2(d1, d2, &incomparable);
+  if(incomparable)
+    cmp = INCOMPARABLE;
+  else if (cmp < 0)
+    cmp = -1;
+  else if (cmp > 0)
+    cmp = 1;
+  
+  rasqal_free_xsd_datetime(d1);
+  rasqal_free_xsd_datetime(d2);
+
+  if(cmp != expected_cmp) {
+    fprintf(stderr,
+            "datetime compare \"%s\" to \"%s\" returned %d expected %d\n",
+            value1, value2, cmp, expected_cmp);
     r = 1;
   }
   return r;
@@ -1922,11 +2073,28 @@ main(int argc, char *argv[])
   MYASSERT(test_date_equals(world, "2011-01-02",  "2011-01-03Z", 0));
   MYASSERT(test_date_equals(world, "2011-01-02Z", "2011-01-03Z", 0));
 
+  /* Date comparisons */
+  MYASSERT(test_date_compare(world, "2011-01-02Z", "2011-01-02" , INCOMPARABLE));
+  MYASSERT(test_date_compare(world, "2011-01-02",  "2011-01-02" , 0));
+  MYASSERT(test_date_compare(world, "2011-01-02",  "2011-01-02Z", INCOMPARABLE));
+  MYASSERT(test_date_compare(world, "2011-01-02Z", "2011-01-02Z", 0));
+
+  MYASSERT(test_date_compare(world, "2011-01-02Z", "2011-01-03" , -1));
+  MYASSERT(test_date_compare(world, "2011-01-02",  "2011-01-03" , -1));
+  MYASSERT(test_date_compare(world, "2011-01-02",  "2011-01-03Z", -1));
+  MYASSERT(test_date_compare(world, "2011-01-02Z", "2011-01-03Z", -1));
+
   /* DateTime equality */
   MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00",  "2011-01-02T00:00:00",  1));
   MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00",  "2011-01-02T00:00:00Z", 0));
   MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00Z", "2011-01-02T00:00:00",  0));
   MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00Z", "2011-01-02T00:00:00Z", 1));
+
+  /* DateTime comparisons */
+  MYASSERT(test_datetime_compare(world, "2011-01-02T00:00:00",  "2011-01-02T00:00:00" , 0));
+  MYASSERT(test_datetime_compare(world, "2011-01-02T00:00:00",  "2011-01-02T00:00:00Z", INCOMPARABLE));
+  MYASSERT(test_datetime_compare(world, "2011-01-02T00:00:00Z", "2011-01-02T00:00:00",  INCOMPARABLE));
+  MYASSERT(test_datetime_compare(world, "2011-01-02T00:00:00Z", "2011-01-02T00:00:00Z", 0));
 
 
   if(1) {
