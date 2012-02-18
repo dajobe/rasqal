@@ -492,10 +492,19 @@ typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
 
 
 /**
+ * RASQAL_XSD_DATETIME_NO_TZ:
+ *
+ * Sentinel XSD Decimal timezone value indicating no timezone is present.
+ */
+#define RASQAL_XSD_DATETIME_NO_TZ (9999)
+
+/**
  * rasqal_xsd_date:
  * @year: year
  * @month: month 1-12
  * @day: 1-31
+ * @timezone_minutes: minutes +/- against UTC or RASQAL_XSD_DATETIME_NO_TZ if there isno timezone in the dateTime.
+ * @time_on_timeline: time on timeline of first instant of date in timezone
  *
  * XML schema date datatype (xsd:date)
  *
@@ -505,15 +514,10 @@ typedef struct {
   /* the following fields are integer values not characters */
   unsigned char month;
   unsigned char day;
+  signed short timezone_minutes;
+  time_t time_on_timeline;
 } rasqal_xsd_date;
 
-
-/**
- * RASQAL_XSD_DATETIME_NO_TZ:
- *
- * Sentinel XSD Decimal timezone value indicating no timezone is present.
- */
-#define RASQAL_XSD_DATETIME_NO_TZ (9999)
 
 /**
  * rasqal_xsd_datetime:
@@ -524,7 +528,8 @@ typedef struct {
  * @minute: minute 0-59
  * @second: second 0-60 (yes 60 is allowed for leap seconds)
  * @microseconds: microseconds
- * @timezone_minutes: minutes +/- against UTC or RASQAL_XSD_DATETIME_NO_TZ if there isno timezone in the dateTime.
+ * @timezone_minutes: minutes +/- against UTC or RASQAL_XSD_DATETIME_NO_TZ if there is no timezone in the dateTime.
+ * @time_on_timeline: time on timeline
  *
  * XML Schema dateTime datatype (xsd:dateTime)
  *
@@ -541,6 +546,7 @@ typedef struct {
   signed char second;
   signed int microseconds;
   signed short timezone_minutes;
+  time_t time_on_timeline;
 } rasqal_xsd_datetime;
 
 

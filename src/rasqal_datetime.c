@@ -140,6 +140,8 @@ rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
       datetime->year++;
   }
 
+  datetime->time_on_timeline = rasqal_xsd_datetime_get_as_unixtime(datetime);
+
   /* success */
   return 0;
 }
@@ -1453,6 +1455,11 @@ rasqal_new_xsd_date(rasqal_world* world, const char *date_string)
     d->year = dt_result.year;
     d->month = dt_result.month;
     d->day = dt_result.day;
+    d->timezone_minutes = dt_result.timezone_minutes;
+    /* Track the starting instant as determined by the timezone */
+    d->time_on_timeline = dt_result.time_on_timeline;
+    if(dt_result.timezone_minutes != RASQAL_XSD_DATETIME_NO_TZ)
+      d->time_on_timeline += (60 * dt_result.timezone_minutes);
   }
 
   if(rc) {
