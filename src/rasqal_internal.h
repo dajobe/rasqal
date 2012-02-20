@@ -1012,8 +1012,6 @@ typedef struct {
 /* rasqal_datetime.c */
 int rasqal_xsd_datetime_check(const char* string);
 int rasqal_xsd_date_check(const char* string);
-const char* rasqal_xsd_datetime_string_to_canonical(const char *datetime_string);
-const char* rasqal_xsd_date_string_to_canonical(const char *date_string);
 
 
 /* rasqal_dataset.c */

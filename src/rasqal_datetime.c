@@ -487,36 +487,65 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
 
 
 static int
-rasqal_xsd_datetime_parse_and_normalize(const char *datetime_string,
-                                        rasqal_xsd_datetime *result)
-{
-  if(rasqal_xsd_datetime_parse(datetime_string, result, 1))
-    return 1;
-  
-  return rasqal_xsd_datetime_normalize(result);
-}
-
-static int
-rasqal_xsd_date_parse_and_normalize(const char *date_string,
-                                    rasqal_xsd_date *result)
+rasqal_xsd_date_parse(const char *date_string, rasqal_xsd_date *result)
 {
   rasqal_xsd_datetime dt_result; /* on stack */
   int rc;
 
   rc = rasqal_xsd_datetime_parse(date_string, &dt_result, 0);
-  if(!rc)
-    rc = rasqal_xsd_datetime_normalize(&dt_result);
-
   if(!rc) {
     result->year = dt_result.year;
     result->month = dt_result.month;
     result->day = dt_result.day;
     result->time_on_timeline = dt_result.time_on_timeline;
-    result->have_tz = dt_result.have_tz;
+    result->timezone_minutes = dt_result.timezone_minutes;
+    result->have_tz = dt_result.have_tz; /* This will be N or Z */
   }
 
   return rc;
 }
+
+#ifdef STANDALONE
+/**
+ * rasqal_xsd_date_normalize:
+ * @date: date
+ *
+ * INTERNAL - Normalize a date into the allowed range
+ *
+ * Return value: zero on success, non zero on failure.
+ */
+static int
+rasqal_xsd_date_normalize(rasqal_xsd_date *date)
+{
+  rasqal_xsd_datetime dt_result; /* on stack */
+  int rc;
+
+  memset(&dt_result, '\0', sizeof(dt_result));
+
+  dt_result.year = date->year;
+  dt_result.month = date->month;
+  dt_result.day = date->day;
+  /* set to center of day interval (noon) */
+  dt_result.hour   = 12;
+  dt_result.minute =  0;
+  dt_result.second =  0;
+  dt_result.microseconds = 0;
+  dt_result.timezone_minutes = date->timezone_minutes;
+  dt_result.have_tz = date->have_tz;
+
+  rc = rasqal_xsd_datetime_normalize(&dt_result);
+  if(!rc) {
+    date->year = dt_result.year;
+    date->month = dt_result.month;
+    date->day = dt_result.day;
+    date->time_on_timeline = dt_result.time_on_timeline;
+    date->timezone_minutes = dt_result.timezone_minutes;
+    date->have_tz = dt_result.have_tz; /* This will be N or Z */
+  }
+
+  return rc;
+}
+#endif
 
 
 /**
@@ -539,8 +568,14 @@ rasqal_new_xsd_datetime(rasqal_world* world, const char *datetime_string)
     return NULL;
   
   rc = rasqal_xsd_datetime_parse(datetime_string, dt, 1);
-  if(!rc)
-    rc = rasqal_xsd_datetime_normalize(dt);
+  if(!rc) {
+    rasqal_xsd_datetime dt_temp; /* copy on stack to normalize */
+    memcpy(&dt_temp, dt, sizeof(dt_temp));
+    
+    rc = rasqal_xsd_datetime_normalize(&dt_temp);
+    if(!rc)
+      dt->time_on_timeline = dt_temp.time_on_timeline;
+  }
 
   if(rc) {
     rasqal_free_xsd_datetime(dt); dt = NULL;
@@ -766,6 +801,8 @@ rasqal_xsd_format_microseconds(char* buffer, size_t bufsize,
  *
  * Caller should rasqal_free_memory() the returned string.
  *
+ * See http://www.w3.org/TR/xmlschema-2/#dateTime-canonical-representation
+ *
  * Return value: lexical form string or NULL on failure.
  */
 char*
@@ -780,7 +817,21 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
   size_t year_len;
   int tz_string_len;
   size_t microseconds_len = 0;
-  
+
+  /*
+   * http://www.w3.org/TR/xmlschema-2/#dateTime-canonical-representation
+   *
+   * "Except for trailing fractional zero digits in the seconds representation,
+   * '24:00:00' time representations, and timezone (for timezoned values),
+   * the mapping from literals to values is one-to-one.
+   * Where there is more than one possible representation,
+   * the canonical representation is as follows:
+   *    * The 2-digit numeral representing the hour must not be '24';
+   *    * The fractional second string, if present, must not end in '0';
+   *    * for timezoned values, the timezone must be represented with 'Z'
+   *      (All timezoned dateTime values are UTC.)."
+   */ 
+
   if(!dt)
     return NULL;
     
@@ -851,44 +902,6 @@ rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
 {
   return rasqal_xsd_datetime_to_counted_string(dt, NULL);
 }
-
-
-/**
- * rasqal_xsd_datetime_string_to_canonical:
- * @datetime_string: xsd:dateTime as lexical form string
- *
- * Convert a XML Schema dateTime lexical form string to its canonical form.
- *
- * Caller should RASQAL_FREE() the returned string.
- *
- * Return value: canonical lexical form string or NULL on failure.
- *
- *
- * http://www.w3.org/TR/xmlschema-2/#dateTime-canonical-representation
- * 
- * "Except for trailing fractional zero digits in the seconds representation,
- * '24:00:00' time representations, and timezone (for timezoned values),
- * the mapping from literals to values is one-to-one.
- * Where there is more than one possible representation,
- * the canonical representation is as follows:
- *    * The 2-digit numeral representing the hour must not be '24';
- *    * The fractional second string, if present, must not end in '0';
- *    * for timezoned values, the timezone must be represented with 'Z'
- *      (All timezoned dateTime values are UTC.)."
- */
-const char*
-rasqal_xsd_datetime_string_to_canonical(const char* datetime_string)
-{
-  rasqal_xsd_datetime d; /* allocated on stack */
-
-  /* parse_and_normalize makes the rasqal_xsd_datetime canonical... */
-  if(rasqal_xsd_datetime_parse_and_normalize(datetime_string, &d))
-    return NULL;
-
-  /* ... so return a string representation of it */
-  return rasqal_xsd_datetime_to_string(&d);
-}
-
 
 
 /**
@@ -1082,6 +1095,8 @@ rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world,
  *
  * Caller should rasqal_free_memory() the returned string.
  *
+ * See http://www.w3.org/TR/xmlschema-2/#date-canonical-representation
+ * 
  * Return value: lexical form string or NULL on failure.
  */
 char*
@@ -1097,6 +1112,18 @@ rasqal_xsd_date_to_counted_string(const rasqal_xsd_date *date, size_t *len_p)
   char timezone_string[TIMEZONE_BUFFER_LEN + 1];
   int tz_string_len;
   
+  /* http://www.w3.org/TR/xmlschema-2/#date-canonical-representation
+   *
+   * "the date portion of the canonical representation (the entire
+   * representation for nontimezoned values, and all but the timezone
+   * representation for timezoned values) is always the date portion of
+   * the dateTime canonical representation of the interval midpoint
+   * (the dateTime representation, truncated on the right to eliminate
+   * 'T' and all following characters). For timezoned values, append
+   * the canonical representation of the ·recoverable timezone·. "
+   *
+   */
+
   if(!date)
     return NULL;
     
@@ -1170,43 +1197,6 @@ rasqal_xsd_date_to_string(const rasqal_xsd_date *d)
 
 
 /**
- * rasqal_xsd_date_string_to_canonical:
- * @date_string: xsd:date as lexical form string
- *
- * Convert a XML Schema date lexical form string to its canonical form.
- *
- * Caller should RASQAL_FREE() the returned string.
- *
- * Return value: canonical lexical form string or NULL on failure.
- *
- *
- * http://www.w3.org/TR/xmlschema-2/#date-canonical-representation
- * 
- * "the date portion of the canonical representation (the entire
- * representation for nontimezoned values, and all but the timezone
- * representation for timezoned values) is always the date portion of
- * the dateTime canonical representation of the interval midpoint
- * (the dateTime representation, truncated on the right to eliminate
- * 'T' and all following characters). For timezoned values, append
- * the canonical representation of the ·recoverable timezone·. "
- */
-const char*
-rasqal_xsd_date_string_to_canonical(const char* date_string)
-{
-  rasqal_xsd_date d; /* allocated on stack */
-
-  /* parse_and_normalize makes the rasqal_xsd_date canonical... */
-  if(rasqal_xsd_date_parse_and_normalize(date_string, &d))
-    return NULL;
-
-  /* ... so return a string representation of it */
-  return rasqal_xsd_date_to_string(&d);
-}
-
-
-
-
-/**
  * days_per_month:
  * @month: month 1-12
  * @year: gregorian year
@@ -1264,7 +1254,7 @@ rasqal_xsd_datetime_check(const char* string)
   /* This should be correct according to 
    * http://www.w3.org/TR/xmlschema-2/#dateTime
    */
-  return !rasqal_xsd_datetime_parse_and_normalize(string, &d);
+  return !rasqal_xsd_datetime_parse(string, &d, 1);
 }
 
 
@@ -1276,7 +1266,7 @@ rasqal_xsd_date_check(const char* string)
   /* This should be correct according to 
    * http://www.w3.org/TR/xmlschema-2/#date
    */
-  return !rasqal_xsd_date_parse_and_normalize(string, &d);
+  return !rasqal_xsd_date_parse(string, &d);
 }
 
 
@@ -1571,19 +1561,24 @@ rasqal_new_xsd_date(rasqal_world* world, const char *date_string)
     return NULL;
   
   rc = rasqal_xsd_datetime_parse(date_string, &dt_result, 0);
-  if(!rc)
-    rc = rasqal_xsd_datetime_normalize(&dt_result);
-
   if(!rc) {
     d->year = dt_result.year;
     d->month = dt_result.month;
     d->day = dt_result.day;
     d->timezone_minutes = dt_result.timezone_minutes;
+    d->have_tz = dt_result.have_tz;
+
+    dt_result.hour   = 12; /* Noon */
+    dt_result.minute =  0;
+    dt_result.second =  0;
+    dt_result.microseconds = 0;
+
+    rc = rasqal_xsd_datetime_normalize(&dt_result);
+
     /* Track the starting instant as determined by the timezone */
     d->time_on_timeline = dt_result.time_on_timeline;
-    if(dt_result.timezone_minutes != RASQAL_XSD_DATETIME_NO_TZ)
+    if(d->timezone_minutes != RASQAL_XSD_DATETIME_NO_TZ)
       d->time_on_timeline += (60 * dt_result.timezone_minutes);
-    d->have_tz = dt_result.have_tz;
   }
 
   if(rc) {
@@ -1708,12 +1703,27 @@ int main(int argc, char *argv[]);
     exit(1); \
   }
 
-
-static int test_datetime_parser_tostring(const char *in_str, const char *out_expected)
+static int
+test_datetime_parse_and_normalize(const char *datetime_string,
+                                  rasqal_xsd_datetime *result)
 {
+  if(rasqal_xsd_datetime_parse(datetime_string, result, 1))
+    return 1;
+  
+  return rasqal_xsd_datetime_normalize(result);
+}
+
+static int
+test_datetime_parser_tostring(const char *in_str, const char *out_expected)
+{
+  rasqal_xsd_datetime d; /* allocated on stack */
   char const *s;
   int r = 1;
-  s = rasqal_xsd_datetime_string_to_canonical(RASQAL_GOOD_CAST(const char*, in_str));
+
+  if(!test_datetime_parse_and_normalize(in_str, &d)) {
+    s = rasqal_xsd_datetime_to_string(&d);
+  }
+  
   if(s) {
     r = strcmp(RASQAL_GOOD_CAST(char*, s), out_expected);
     if(r)
@@ -1725,11 +1735,28 @@ static int test_datetime_parser_tostring(const char *in_str, const char *out_exp
 }
 
 
-static int test_date_parser_tostring(const char *in_str, const char *out_expected)
+static int
+test_date_parse_and_normalize(const char *date_string,
+                              rasqal_xsd_date *result)
 {
+  if(rasqal_xsd_date_parse(date_string, result))
+    return 1;
+  
+  return rasqal_xsd_date_normalize(result);
+}
+
+
+static int
+test_date_parser_tostring(const char *in_str, const char *out_expected)
+{
+  rasqal_xsd_date d; /* allocated on stack */
   char const *s;
   int r = 1;
-  s = rasqal_xsd_date_string_to_canonical(RASQAL_GOOD_CAST(const char*, in_str));
+
+  if(!test_date_parse_and_normalize(in_str, &d)) {
+    s = rasqal_xsd_date_to_string(&d);
+  }
+  
   if(s) {
     r = strcmp(RASQAL_GOOD_CAST(char*, s), out_expected);
     if(r)
@@ -1778,8 +1805,6 @@ test_date_compare(rasqal_world* world, const char *value1, const char *value2,
   int incomparable = 0;
   int cmp;
   
-  fprintf(stderr, "date compare \"%s\" to \"%s\"\n", value1, value2);
-
   d1 = rasqal_new_xsd_date(world, value1);
   d2 = rasqal_new_xsd_date(world, value2);
 
@@ -1839,8 +1864,6 @@ test_datetime_compare(rasqal_world* world, const char *value1, const char *value
   int incomparable = 0;
   int cmp;
   
-  fprintf(stderr, "datetime compare \"%s\" to \"%s\"\n", value1, value2);
-
   d1 = rasqal_new_xsd_datetime(world, value1);
   d2 = rasqal_new_xsd_datetime(world, value2);
 
@@ -1905,7 +1928,7 @@ main(int argc, char *argv[])
      rasqal_xsd_datetime_string_to_canonical */
   
   #define PARSE_AND_NORMALIZE_DATETIME(_s,_d) \
-    rasqal_xsd_datetime_parse_and_normalize(RASQAL_GOOD_CAST(const char*, _s), _d)
+    test_datetime_parse_and_normalize(_s, _d)
   
   /* generic */
 
@@ -2045,7 +2068,7 @@ main(int argc, char *argv[])
   /* DATE */
 
   #define PARSE_AND_NORMALIZE_DATE(_s,_d) \
-    rasqal_xsd_date_parse_and_normalize(RASQAL_GOOD_CAST(const char*, _s), _d)
+    test_date_parse_and_normalize(_s, _d)
   
   /* generic */
 
@@ -2068,10 +2091,10 @@ main(int argc, char *argv[])
   MYASSERT(PARSE_AND_NORMALIZE_DATE("g162-12-12Z", &d));
   MYASSERT(PARSE_AND_NORMALIZE_DATE("5476574658746587465874-12-12Z", &d));
   
-  MYASSERT(test_date_parser_tostring("1234-12-12Z", "1234-12-12") == 0);
-  MYASSERT(test_date_parser_tostring("-1234-12-12Z", "-1234-12-12") == 0);
-  MYASSERT(test_date_parser_tostring("1234567890-12-12Z", "1234567890-12-12") == 0);
-  MYASSERT(test_date_parser_tostring("-1234567890-12-12Z", "-1234567890-12-12") == 0);
+  MYASSERT(test_date_parser_tostring("1234-12-12Z", "1234-12-12Z") == 0);
+  MYASSERT(test_date_parser_tostring("-1234-12-12Z", "-1234-12-12Z") == 0);
+  MYASSERT(test_date_parser_tostring("1234567890-12-12Z", "1234567890-12-12Z") == 0);
+  MYASSERT(test_date_parser_tostring("-1234567890-12-12Z", "-1234567890-12-12Z") == 0);
   
   /* month */
   
@@ -2081,7 +2104,7 @@ main(int argc, char *argv[])
   MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-13-12Z", &d));
   MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-12.12Z", &d));
 
-  MYASSERT(test_date_parser_tostring("2004-01-01Z", "2004-01-01") == 0);
+  MYASSERT(test_date_parser_tostring("2004-01-01Z", "2004-01-01Z") == 0);
 
   /* day */
   
@@ -2098,7 +2121,7 @@ main(int argc, char *argv[])
   MYASSERT(!PARSE_AND_NORMALIZE_DATE("2000-02-29Z", &d));
   MYASSERT(PARSE_AND_NORMALIZE_DATE("1900-02-29Z", &d));
 
-  MYASSERT(test_date_parser_tostring("2012-04-12Z", "2012-04-12") == 0);
+  MYASSERT(test_date_parser_tostring("2012-04-12Z", "2012-04-12Z") == 0);
   
   /* timezones + normalization */
 
@@ -2118,10 +2141,10 @@ main(int argc, char *argv[])
   MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01+10:59a", &d));
   MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01+10:059", &d));
 
-  MYASSERT(test_date_parser_tostring("2004-12-31-13:00", "2005-01-01") == 0);
-  MYASSERT(test_date_parser_tostring("2005-01-01+13:00", "2004-12-31") == 0);
-  MYASSERT(test_date_parser_tostring("2004-12-31-11:59", "2004-12-31") == 0);
-  MYASSERT(test_date_parser_tostring("2005-01-01+11:59", "2005-01-01") == 0);
+  MYASSERT(test_date_parser_tostring("2004-12-31-13:00", "2005-01-01Z") == 0);
+  MYASSERT(test_date_parser_tostring("2005-01-01+13:00", "2004-12-31Z") == 0);
+  MYASSERT(test_date_parser_tostring("2004-12-31-11:59", "2004-12-31Z") == 0);
+  MYASSERT(test_date_parser_tostring("2005-01-01+11:59", "2005-01-01Z") == 0);
 
   /* Date equality */
   MYASSERT(test_date_equals(world, "2011-01-02Z", "2011-01-02" , 0));
