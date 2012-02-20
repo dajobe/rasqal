@@ -106,7 +106,7 @@ static limit_test limit_offset_tests[]={
                         "fghijklmnopqrstuvwxyz" } },
   { 10,      5,   10, { "guxwpnefbi", "fghijklmno", "fghijklmno" } },
   { 5,      10,    5, { "nefbi", "klmno", "klmno" } },
-  { NONE, NONE, NONE, { NULL, NULL } }
+  { NONE, NONE, NONE, { NULL, NULL, NULL } }
 };
 
     
@@ -145,6 +145,7 @@ main(int argc, char **argv) {
 
   for(query_i=0; query_i < NQUERIES; query_i++) {
     const char *query_format = limit_queries[query_i];
+    int dynamic_limits = (strstr(query_format, "%s %s") != NULL);
     
     for(test_i=(single_shot >=0 ? single_shot : 0);
         (test=&limit_offset_tests[test_i]) && (test->expected_count >=0);
@@ -156,11 +157,12 @@ main(int argc, char **argv) {
       int test_ok=1;
       unsigned char *data_string;
       unsigned char *query_string;
-      
+
 #define LIM_OFF_BUF_SIZE 20
       data_string=raptor_uri_filename_to_uri_string(argv[1]);
       query_string = RASQAL_MALLOC(unsigned char*, strlen((const char*)data_string) + strlen(query_format) + (2 * LIM_OFF_BUF_SIZE) + 1);
-      if(query_i == 2) {
+
+      if(dynamic_limits) {
         char lim[LIM_OFF_BUF_SIZE];
         char off[LIM_OFF_BUF_SIZE];
         if(test->limit >= 0)
@@ -186,7 +188,8 @@ main(int argc, char **argv) {
 
 #if RASQAL_DEBUG > 1
       fprintf(stderr, 
-              "%s: preparing query %d test %d\n", program, query_i, test_i);
+              "%s: preparing query %d test %d - %s\n", program, query_i, test_i,
+              query_string);
 #endif
       if(rasqal_query_prepare(query, query_string, base_uri)) {
         fprintf(stderr, "%s: query %d test %d prepare '%s' FAILED\n", program, 
@@ -194,8 +197,10 @@ main(int argc, char **argv) {
         return(1);
       }
 
-      rasqal_query_set_limit(query, test->limit);
-      rasqal_query_set_offset(query, test->offset);
+      if(!dynamic_limits) {
+        rasqal_query_set_limit(query, test->limit);
+        rasqal_query_set_offset(query, test->offset);
+      }
 
 #if RASQAL_DEBUG > 1
       fprintf(stderr, "%s: executing query %d test %d\n", program, query_i,
