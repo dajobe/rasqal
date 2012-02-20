@@ -77,8 +77,7 @@ rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
 {
   int t;
 
-  if(datetime->timezone_minutes &&
-     (datetime->timezone_minutes  != RASQAL_XSD_DATETIME_NO_TZ)) {
+  if(datetime->have_tz == 'Y' && datetime->timezone_minutes) {
     /* Normalize to Zulu if there was a timezone offset */
 
     datetime->hour   += (datetime->timezone_minutes / 60);
@@ -418,13 +417,16 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
   /* parse & adjust timezone offset */
   /* result is normalized later */
   result->timezone_minutes = RASQAL_XSD_DATETIME_NO_TZ;
+  result->have_tz = 'N';
   if(*p) {
     if(*p == 'Z') {
       /* utc timezone - no need to adjust */
       result->timezone_minutes = 0;
+      result->have_tz = 'Z';
       p++;
     } else if(*p == '+' || *p == '-') {
       result->timezone_minutes = 0;
+      result->have_tz = 'Y';
 
       /* work out timezone offsets */
       is_neg = *p == '-';
@@ -503,6 +505,8 @@ rasqal_xsd_date_parse_and_normalize(const char *date_string,
     result->year = dt_result.year;
     result->month = dt_result.month;
     result->day = dt_result.day;
+    result->time_on_timeline = dt_result.time_on_timeline;
+    result->have_tz = dt_result.have_tz;
   }
 
   return rc;
@@ -622,7 +626,8 @@ rasqal_new_xsd_datetime_from_xsd_date(rasqal_world* world, rasqal_xsd_date *date
   /* hour, minute, seconds, microseconds are all zero from calloc */
   dt->timezone_minutes = date->timezone_minutes;
   dt->time_on_timeline = date->time_on_timeline;
-
+  dt->have_tz = date->have_tz;
+  
   return dt;
 }
 
@@ -646,8 +651,9 @@ rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt)
 #define TIMEZONE_BUFFER_LEN 6
 
 /*
- * rasqal_xsd_datetime_timezone_format:
- * @dt: datetime
+ * rasqal_xsd_timezone_format:
+ * @timezone_minutes: timezone minutes from #rasqal_xsd_datetime or #rasqal_xsd_date
+ * @have_tz: have tz flag from #rasqal_xsd_datetime or #rasqal_xsd_date
  * @buffer: buffer to write the formatted timezone
  * @bufsize: length of @buffer; must be 7 or larger
  *
@@ -656,8 +662,9 @@ rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt)
  * Return value: size of buffer or 0 on failure
  */
 static int
-rasqal_xsd_datetime_timezone_format(const rasqal_xsd_datetime *dt,
-                                    char* buffer, size_t bufsize)
+rasqal_xsd_timezone_format(signed short timezone_minutes,
+                           char have_tz,
+                           char* buffer, size_t bufsize)
 {
   int mins;
   size_t tz_len;
@@ -665,15 +672,15 @@ rasqal_xsd_datetime_timezone_format(const rasqal_xsd_datetime *dt,
   if(!buffer || !bufsize)
     return -1;
   
-  mins = abs(dt->timezone_minutes);
-  if(mins == RASQAL_XSD_DATETIME_NO_TZ) {
+  mins = abs(timezone_minutes);
+  if(have_tz == 'N') {
     tz_len = 0;
 
     if(bufsize < (tz_len + 1))
       return -1;
 
     buffer[0] = '\0';
-  } else if(!mins) {
+  } else if(have_tz == 'Z') {
     tz_len = 1;
     if(bufsize < (tz_len + 1))
       return -1;
@@ -688,7 +695,7 @@ rasqal_xsd_datetime_timezone_format(const rasqal_xsd_datetime *dt,
     if(bufsize < (tz_len + 1))
       return -1;
 
-    buffer[0] = (mins != dt->timezone_minutes ? '-' : '+');
+    buffer[0] = (mins != timezone_minutes ? '-' : '+');
 
     hours = (mins / 60);
     buffer[1] = (hours / 10) + '0';
@@ -771,8 +778,9 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
   if(!dt)
     return NULL;
     
-  tz_string_len = rasqal_xsd_datetime_timezone_format(dt, timezone_string,
-                                                      TIMEZONE_BUFFER_LEN + 1);
+  tz_string_len = rasqal_xsd_timezone_format(dt->timezone_minutes, dt->have_tz,
+                                             timezone_string,
+                                             TIMEZONE_BUFFER_LEN + 1);
   if(tz_string_len < 0)
     return NULL;
 
@@ -890,8 +898,8 @@ int
 rasqal_xsd_datetime_equals(const rasqal_xsd_datetime *dt1,
                            const rasqal_xsd_datetime *dt2)
 {
-  int dt1_has_tz = (dt1->timezone_minutes != RASQAL_XSD_DATETIME_NO_TZ);
-  int dt2_has_tz = (dt2->timezone_minutes != RASQAL_XSD_DATETIME_NO_TZ);
+  int dt1_has_tz = (dt1->have_tz != 'N');
+  int dt2_has_tz = (dt2->have_tz != 'N');
 
   /* Handle NULLs */
   if(!dt1 || !dt2) {
@@ -1074,17 +1082,28 @@ char*
 rasqal_xsd_date_to_counted_string(const rasqal_xsd_date *date, size_t *len_p)
 {
   char *buffer = NULL;
-  size_t len = DATE_BUFFER_LEN_NO_YEAR;
+  size_t len;
   char *p;
   int value;
   unsigned int d;
   size_t year_len;
+  /* "[+-]HH:MM\0" */
+  char timezone_string[TIMEZONE_BUFFER_LEN + 1];
+  int tz_string_len;
   
   if(!date)
     return NULL;
     
+  tz_string_len = rasqal_xsd_timezone_format(date->timezone_minutes,
+                                             date->have_tz,
+                                             timezone_string,
+                                             TIMEZONE_BUFFER_LEN + 1);
+  if(tz_string_len < 0)
+    return NULL;
+
   year_len = rasqal_format_integer(NULL, 0, date->year, -1, '\0');
-  len += year_len;
+
+  len = year_len + DATE_BUFFER_LEN_NO_YEAR + tz_string_len;
   
   if(len_p)
     *len_p = len;
@@ -1115,6 +1134,11 @@ rasqal_xsd_date_to_counted_string(const rasqal_xsd_date *date, size_t *len_p)
   *p++ = d + '0';
   value -= d * 10;
   *p++ = value + '0';
+
+  if(tz_string_len) {
+    memcpy(p, timezone_string, tz_string_len);
+    p += tz_string_len;
+  }
 
   *p = '\0';
 
@@ -1505,7 +1529,8 @@ rasqal_xsd_datetime_get_tz_as_counted_string(rasqal_xsd_datetime* dt,
   if(!s)
     return NULL;
 
-  if(rasqal_xsd_datetime_timezone_format(dt, s, TIMEZONE_BUFFER_LEN + 1) < 0)
+  if(rasqal_xsd_timezone_format(dt->timezone_minutes, dt->have_tz,
+                                s, TIMEZONE_BUFFER_LEN + 1) < 0)
     goto failed;
 
   if(len_p)
@@ -1552,6 +1577,7 @@ rasqal_new_xsd_date(rasqal_world* world, const char *date_string)
     d->time_on_timeline = dt_result.time_on_timeline;
     if(dt_result.timezone_minutes != RASQAL_XSD_DATETIME_NO_TZ)
       d->time_on_timeline += (60 * dt_result.timezone_minutes);
+    d->have_tz = dt_result.have_tz;
   }
 
   if(rc) {

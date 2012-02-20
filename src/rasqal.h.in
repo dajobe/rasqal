@@ -503,11 +503,17 @@ typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
  * @year: year
  * @month: month 1-12
  * @day: 1-31
- * @timezone_minutes: minutes +/- against UTC or RASQAL_XSD_DATETIME_NO_TZ if there isno timezone in the dateTime.
+ * @timezone_minutes: minutes +/- against UTC or RASQAL_XSD_DATETIME_NO_TZ if there is no timezone in the dateTime.
  * @time_on_timeline: time on timeline of first instant of date in timezone
+ * @tz: timezone flag: 'Z' if Zulu, 'Y' if has other timezone offset in @timezone_minutes, 'N' if there is no timezone
  *
  * XML schema date datatype (xsd:date)
  *
+ * Examples of timezone fields:
+ *  "2010-01-02" : timezone_minutes RASQAL_XSD_DATETIME_NO_TZ, have_tz 'N'
+ *  "2010-01-02Z" : timezone_minutes 0, have_tz 'Z'
+ *  "2010-01-02+00:00" : timezone_minutes 0, have_tz 'Y'
+ *  "2010-01-02-01:00" : timezone_minutes -60, have_tz 'Y'
  */
 typedef struct {
   signed int year;
@@ -516,6 +522,7 @@ typedef struct {
   unsigned char day;
   signed short timezone_minutes;
   time_t time_on_timeline;
+  char have_tz;
 } rasqal_xsd_date;
 
 
@@ -530,11 +537,18 @@ typedef struct {
  * @microseconds: microseconds
  * @timezone_minutes: minutes +/- against UTC or RASQAL_XSD_DATETIME_NO_TZ if there is no timezone in the dateTime.
  * @time_on_timeline: time on timeline
+ * @tz: timezone flag: 'Z' if Zulu, 'Y' if has other timezone offset in @timezone_minutes, 'N' if there is no timezone
  *
  * XML Schema dateTime datatype (xsd:dateTime)
  *
  * Signed types are required for normalization process where a value
  * can be negative temporarily.
+ *
+ * Examples of timezone fields:
+ *  "2010-01-02T01:02:03" : timezone_minutes RASQAL_XSD_DATETIME_NO_TZ, have_tz 'N'
+ *  "2010-01-02T01:02:03Z" : timezone_minutes 0, have_tz 'Z'
+ *  "2010-01-02T01:02:03+00:00" : timezone_minutes 0, have_tz 'Y'
+ *  "2010-01-02T01:02:03-01:00" : timezone_minutes -60, have_tz 'Y'
  */
 typedef struct {
   signed int year;
@@ -547,6 +561,7 @@ typedef struct {
   signed int microseconds;
   signed short timezone_minutes;
   time_t time_on_timeline;
+  char have_tz;
 } rasqal_xsd_datetime;
 
 
