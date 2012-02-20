@@ -5305,8 +5305,12 @@ rasqal_sparql_query_language_prepare(rasqal_query* rdf_query)
   
   if(!rdf_query->query_string)
     return 1;
-  
-  rc=sparql_parse(rdf_query);
+
+  rc = rasqal_query_reset_select_query(rdf_query);
+  if(rc)
+    return 1;
+
+  rc = sparql_parse(rdf_query);
   if(rc)
     return rc;
 

@@ -2310,7 +2310,27 @@ rasqal_query_store_select_query(rasqal_query* query,
   if(data_graphs)
     rasqal_query_add_data_graphs(query, data_graphs);
 
-  query->modifier = modifier;
+  rasqal_query_set_modifier(query, modifier);
+
+  return 0;
+}
+
+
+int
+rasqal_query_reset_select_query(rasqal_query* query)
+{
+  rasqal_query_set_projection(query, NULL);
+  rasqal_query_set_modifier(query, NULL);
+
+  if(query->data_graphs) {
+    while(1) {
+      rasqal_data_graph* dg;
+      dg = (rasqal_data_graph*)raptor_sequence_pop(query->data_graphs);
+      if(!dg)
+        break;
+      rasqal_free_data_graph(dg);
+    }
+  }
 
   return 0;
 }
@@ -2354,6 +2374,30 @@ rasqal_query_set_projection(rasqal_query* query, rasqal_projection* projection)
     rasqal_free_projection(query->projection);
 
   query->projection = projection;
+  
+  return 0;
+}
+
+
+/*
+ * rasqal_query_set_modifier:
+ * @query: #rasqal_query
+ * @modifier: variable modifier and flags
+ *
+ * INTERNAL - Set the query modifier
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_query_set_modifier(rasqal_query* query,
+                          rasqal_solution_modifier* modifier)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
+
+  if(query->modifier)
+    rasqal_free_solution_modifier(query->modifier);
+
+  query->modifier = modifier;
   
   return 0;
 }
