@@ -730,6 +730,7 @@ rasqal_xsd_timezone_format(signed short timezone_minutes,
     buffer[1] = '\0';
   } else {
     int hours;
+    int digit;
 
     tz_len = TIMEZONE_BUFFER_LEN;
 
@@ -739,9 +740,9 @@ rasqal_xsd_timezone_format(signed short timezone_minutes,
     buffer[0] = (mins != timezone_minutes ? '-' : '+');
 
     hours = (mins / 60);
-    buffer[1] = (hours / 10) + '0';
-    hours -= hours * 10;
-    buffer[2] = hours + '0';
+    digit = (hours / 10);
+    buffer[1] = digit + '0';
+    buffer[2] = hours - (digit * 10) + '0';
     buffer[3] = ':';
 
     mins -= hours * 60;
