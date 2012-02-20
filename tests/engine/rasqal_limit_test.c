@@ -42,12 +42,24 @@
 #ifdef RASQAL_QUERY_SPARQL
 #define QUERY_LANGUAGE "sparql"
 #define QUERY_UNSORTED "\
- SELECT $letter \
- FROM <%s> \
- WHERE { <http://example.org/> <http://example.org#pred> $letter } \
+SELECT $letter \
+FROM <%s> \
+WHERE { <http://example.org/> <http://example.org#pred> $letter } \
 "
 #define QUERY_SORTED QUERY_UNSORTED " ORDER BY $letter \
 "
+
+#define QUERY_SUBSELECT "\
+SELECT $letter \
+  FROM <%s> \
+  WHERE { \
+    SELECT $letter \
+    WHERE { <http://example.org/> <http://example.org#pred> $letter } \
+    ORDER BY $letter \
+    %s %s \
+} \
+"
+
 #else
 #define NO_QUERY_LANGUAGE
 #endif
@@ -62,8 +74,12 @@ main(int argc, char **argv) {
 }
 #else
 
-#define NQUERIES 2
-static const char* limit_queries[NQUERIES]= { QUERY_UNSORTED, QUERY_SORTED };
+#define NQUERIES 3
+static const char* limit_queries[NQUERIES]= { 
+  QUERY_UNSORTED,
+  QUERY_SORTED,
+  QUERY_SUBSELECT
+};
 
 
 typedef struct 
@@ -77,13 +93,19 @@ typedef struct
 #define NONE (-1)
 static limit_test limit_offset_tests[]={
 /* limit offset count results */
-  { NONE, NONE,   26, { "jcthzguxwpnefbioqadmrvykls", "abcdefghijklmnopqrstuvwxyz" } },
-  { 0,    NONE,    0, { "", "" } },
-  { NONE,    0,   26, { "jcthzguxwpnefbioqadmrvykls", "abcdefghijklmnopqrstuvwxyz" } },
-  { 10,   NONE,   10, { "jcthzguxwp", "abcdefghij" } },
-  { NONE,    5,   21, { "guxwpnefbioqadmrvykls", "fghijklmnopqrstuvwxyz" } },
-  { 10,      5,   10, { "guxwpnefbi", "fghijklmno" } },
-  { 5,      10,    5, { "nefbi", "klmno" } },
+  { NONE, NONE,   26, { "jcthzguxwpnefbioqadmrvykls",
+                        "abcdefghijklmnopqrstuvwxyz",
+                        "abcdefghijklmnopqrstuvwxyz" } },
+  { 0,    NONE,    0, { "", "", "" } },
+  { NONE,    0,   26, { "jcthzguxwpnefbioqadmrvykls",
+                        "abcdefghijklmnopqrstuvwxyz",
+                        "abcdefghijklmnopqrstuvwxyz" } },
+  { 10,   NONE,   10, { "jcthzguxwp", "abcdefghij", "abcdefghij" } },
+  { NONE,    5,   21, { "guxwpnefbioqadmrvykls",
+                        "fghijklmnopqrstuvwxyz",
+                        "fghijklmnopqrstuvwxyz" } },
+  { 10,      5,   10, { "guxwpnefbi", "fghijklmno", "fghijklmno" } },
+  { 5,      10,    5, { "nefbi", "klmno", "klmno" } },
   { NONE, NONE, NONE, { NULL, NULL } }
 };
 
@@ -122,15 +144,8 @@ main(int argc, char **argv) {
   raptor_free_memory(uri_string);
 
   for(query_i=0; query_i < NQUERIES; query_i++) {
-    const char *query_format=limit_queries[query_i];
-    unsigned char *data_string;
-    unsigned char *query_string;
+    const char *query_format = limit_queries[query_i];
     
-    data_string=raptor_uri_filename_to_uri_string(argv[1]);
-    query_string = RASQAL_MALLOC(unsigned char*, strlen((const char*)data_string) + strlen(query_format) + 1);
-    sprintf((char*)query_string, query_format, data_string);
-    raptor_free_memory(data_string);
-
     for(test_i=(single_shot >=0 ? single_shot : 0);
         (test=&limit_offset_tests[test_i]) && (test->expected_count >=0);
         test_i++) {
@@ -139,8 +154,30 @@ main(int argc, char **argv) {
       rasqal_query_results *results = NULL;
       const char* expected_results;
       int test_ok=1;
+      unsigned char *data_string;
+      unsigned char *query_string;
+      
+#define LIM_OFF_BUF_SIZE 20
+      data_string=raptor_uri_filename_to_uri_string(argv[1]);
+      query_string = RASQAL_MALLOC(unsigned char*, strlen((const char*)data_string) + strlen(query_format) + (2 * LIM_OFF_BUF_SIZE) + 1);
+      if(query_i == 2) {
+        char lim[LIM_OFF_BUF_SIZE];
+        char off[LIM_OFF_BUF_SIZE];
+        if(test->limit >= 0)
+          sprintf(lim, "LIMIT %d", test->limit);
+        else
+          *lim = '\0';
+        if(test->offset >= 0)
+          sprintf(off, "OFFSET %d", test->offset);
+        else
+          *off = '\0';
+        sprintf((char*)query_string, query_format, data_string, lim, off);
+      }
+      else
+        sprintf((char*)query_string, query_format, data_string);
+      raptor_free_memory(data_string);
 
-      query=rasqal_new_query(world, query_language_name, NULL);
+      query = rasqal_new_query(world, query_language_name, NULL);
       if(!query) {
         fprintf(stderr, "%s: creating query in language %s FAILED\n", program,
                 query_language_name);
@@ -152,8 +189,8 @@ main(int argc, char **argv) {
               "%s: preparing query %d test %d\n", program, query_i, test_i);
 #endif
       if(rasqal_query_prepare(query, query_string, base_uri)) {
-        fprintf(stderr, "%s: query %d test %d prepare FAILED\n", program, 
-                query_i, test_i);
+        fprintf(stderr, "%s: query %d test %d prepare '%s' FAILED\n", program, 
+                query_i, test_i, query_string);
         return(1);
       }
 
@@ -235,12 +272,12 @@ main(int argc, char **argv) {
 
       rasqal_free_query(query);
 
+      RASQAL_FREE(char*, query_string);
+
       if(single_shot >=0)
         break;
+
     } /* end test loop */
-
-
-    RASQAL_FREE(char*, query_string);
 
   } /* end query loop */
   
