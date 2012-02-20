@@ -52,8 +52,11 @@ typedef struct
   int row_limit;
   int row_offset;
 
+  /* offset for input row */
+  int input_offset;
+
   /* offset for output row */
-  int result_offset;
+  int output_offset;
 } rasqal_slice_rowsource_context;
 
 
@@ -83,7 +86,8 @@ rasqal_slice_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
   con = (rasqal_slice_rowsource_context*)user_data;
 
-  con->result_offset = 1;
+  con->input_offset = 1;
+  con->output_offset = 1;
 
   return 0;
 }
@@ -120,12 +124,14 @@ rasqal_slice_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     if(!row)
       break;
 
-    check = rasqal_query_check_limit_offset_core(con->result_offset,
+    check = rasqal_query_check_limit_offset_core(con->input_offset,
                                                  con->row_limit, con->row_offset);
 
     RASQAL_DEBUG4("slice rowsource %p found row #%d %s\n",
-                  rowsource, con->result_offset,
+                  rowsource, con->input_offset,
                   (check > 0) ? "beyond range" : (!check ? "in range" : "before range"));
+
+    con->input_offset++;
 
     /* finished if beyond result range */
     if(check > 0) {
@@ -142,7 +148,7 @@ rasqal_slice_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   }
 
   if(row)
-    row->offset = con->result_offset++;
+    row->offset = con->output_offset++;
   
   return row;
 }
@@ -155,7 +161,8 @@ rasqal_slice_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 
   con = (rasqal_slice_rowsource_context*)user_data;
 
-  con->result_offset = 1;
+  con->input_offset = 1;
+  con->output_offset = 1;
 
   return rasqal_rowsource_reset(con->rowsource);
 }
