@@ -68,7 +68,11 @@ static unsigned int days_per_month(int month, int year);
  * rasqal_xsd_datetime_normalize:
  * @datetime: date time
  *
- * INTERNAl - Normalize a date time into the allowed range
+ * INTERNAL - Normalize a date time into the allowed range
+ *
+ * The result will always give either
+ *   have_tz 'N' with timezone_minutes RASQAL_XSD_DATETIME_NO_TZ
+ *   have_tz 'Z' with timezone_minutes 0
  *
  * Return value: zero on success, non zero on failure.
  */
@@ -77,13 +81,15 @@ rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
 {
   int t;
 
-  if(datetime->have_tz == 'Y' && datetime->timezone_minutes) {
-    /* Normalize to Zulu if there was a timezone offset */
+  if(datetime->have_tz == 'Y') {
+    if(datetime->timezone_minutes) {
+      /* Normalize to Zulu if there was a timezone offset */
+      datetime->hour   += (datetime->timezone_minutes / 60);
+      datetime->minute += (datetime->timezone_minutes % 60);
 
-    datetime->hour   += (datetime->timezone_minutes / 60);
-    datetime->minute += (datetime->timezone_minutes % 60);
-
-    datetime->timezone_minutes = 0;
+      datetime->timezone_minutes = 0;
+    }
+    datetime->have_tz = 'Z';
   }
   
   /* second & second parts: no need to normalize as they are not
