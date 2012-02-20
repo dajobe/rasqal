@@ -680,18 +680,6 @@ roqet_init_query(rasqal_world *world,
     rasqal_query_set_store_results(rq, store_results);
 #endif
   
-  if(data_graphs) {
-    rasqal_data_graph* dg;
-    
-    while((dg = (rasqal_data_graph*)raptor_sequence_pop(data_graphs))) {
-      if(rasqal_query_add_data_graph(rq, dg)) {
-        fprintf(stderr, "%s: Failed to add data graph to query\n",
-                program);
-        goto tidy_query;
-      }
-    }
-  }
-
   if(rasqal_query_prepare(rq, query_string, base_uri)) {
     size_t len = strlen((const char*)query_string);
     
@@ -707,6 +695,18 @@ roqet_init_query(rasqal_world *world,
 
     rasqal_free_query(rq); rq = NULL;
     goto tidy_query;
+  }
+
+  if(data_graphs) {
+    rasqal_data_graph* dg;
+    
+    while((dg = (rasqal_data_graph*)raptor_sequence_pop(data_graphs))) {
+      if(rasqal_query_add_data_graph(rq, dg)) {
+        fprintf(stderr, "%s: Failed to add data graph to query\n",
+                program);
+        goto tidy_query;
+      }
+    }
   }
 
   tidy_query:
