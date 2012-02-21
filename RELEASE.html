@@ -13,16 +13,43 @@
 <p>Not yet released.
 </p>
 
+<p>Issues Fixed:</p>
+<ul>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=493">0000493</a>: Offset in sub-select results in no rows at all.</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=494">0000494</a>: Temp buffer to small.</li>
+</ul>
+
+
 <h3>Datatype changes</h3>
 
-<p>Added a new datatype <code>rasqal_xsd_date</code> class for XSD
-with literal enum <code>RASQAL_LITERAL_DATE</code>a>,
-constructor <code>rasqal_new_xsd_date()</code>, destructor
+<p>Added a new datatype
+<code>rasqal_xsd_date</code> class for XSD with literal enum
+<code>RASQAL_LITERAL_DATE</code>a>, constructor
+<code>rasqal_new_xsd_date()</code>, destructor
 <code>rasqal_free_xsd_datetime()</code> and core methods
 <code>rasqal_xsd_date_to_counted_string()</code>,
 <code>rasqal_xsd_date_to_string()</code>
 <code>rasqal_xsd_date_equals()</code> and
 <code>rasqal_xsd_date_compare()</code>.
+</p>
+
+<p>The <code>rasqal_xsd_datetime</code> and new date class above both
+get the same new fields for comparing datetimes and dates:
+<code>time_on_timeline</code> and <code>have_tz</code> to record the
+three timezone possibilities: none ('N'), zulu ('Z') or numeric ('Y').</p>
+
+<p>Added <code>rasqal_xsd_datetime_compare2()</code> deprecating
+<code>rasqal_xsd_datetime_compare()</code> and returning the
+incomparible state between datetimes.  The new
+<code>rasqal_xsd_date_compare()</code> uses this signature.
+</p>
+
+<p>Added new <code>rasqal_new_xsd_datetime_from_xsd_date()</code>
+datetime constructor to build a datetime from a date.</p>
+
+<p>Correct the buffer size in
+<code>rasqal_xsd_datetime_get_seconds_as_decimal()</code>
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=494">Issue #0000494</a>
 </p>
 
 
@@ -41,6 +68,22 @@ methods.
 
 <p>Fix blank node generation when made in a CONSTRUCT to match
 SPARQL standard.
+</p>
+
+<p>Make limit and offset check work properly in a subquery.
+Fixes
+<a href="http://bugs.librdf.org/mantis/view.php?id=493">Issue #0000493</a>
+</p>
+
+
+
+<h3>Other changes</h3>
+
+<p>Add code marking of good and bad type casts using macros
+RASQAL_GOOD_CAST and RASQAL_BAD_CAST macros.</p>
+
+<p>Building from GIT now requires automake 1.11.2+ for the
+<code>-Wextra-portability</code> option.
 </p>
 
 
