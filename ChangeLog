@@ -1,7 +1,245 @@
-2012-02-05  Dave Beckett <dave@dajobe.org>
+2012-02-20  Dave Beckett <dave@dajobe.org>
 
-	* INSTALL.html, LICENSE.html, NEWS.html, README.html,
-	RELEASE.html, TODO.html: 2012
+	* src/rasqal.h.in, src/rasqal_datetime.c: autodocs
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt,
+	src/rasqal.h.in, src/rasqal_datetime.c, src/rasqal_literal.c:
+	Replace rasqal_xsd_date_compare2 with rasqal_xsd_date_compare and
+	rename
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt,
+	src/rasqal.h.in, src/rasqal_datetime.c: autodocs
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_timezone_format): How did this ever work?
+
+	* src/rasqal_datetime.c, src/rasqal_internal.h: Never normalize
+	date or dateTime fields on parsing
+
+	(rasqal_xsd_date_parse): simplify without normalizing.
+
+	(rasqal_xsd_date_normalize): Added but internal/standalone tests
+	since it is not a public API or used outside the test code.
+
+	(rasqal_new_xsd_datetime): make a datetime copy and normalize that
+	to get the time_on_timeline.
+
+	(rasqal_xsd_datetime_to_counted_string)
+
+	(rasqal_xsd_date_to_counted_string)
+
+	(rasqal_xsd_date_string_to_canonical): Updated docs.
+
+	(rasqal_xsd_datetime_check, rasqal_xsd_date_check): Just parse, do
+	not touch value with normalizing.
+
+	(rasqal_new_xsd_date): Set hour
+	to noon for normalizing internal datetime using
+	rasqal_xsd_datetime_normalize.
+
+	(test_datetime_parse_and_normalize)
+
+	(test_date_parse_and_normalize): Moved to test code from static
+	functions that were only used here.
+
+	(main): Adjust test code expected results so that parsing and
+	normalizing does not drop the TZ if it was there in the first
+	place, even when normalizing.
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_normalize): Clearly set have_tz to N or Z
+
+	* src/rasqal.h.in, src/rasqal_datetime.c: Handle XSD timezone
+	recording and generating properly
+
+	rasqal_xsd_date and rasqal_xsd_datetime gain a have_tz flag field
+	that indicates the state of the timezone_minutes.
+
+	(rasqal_xsd_datetime_normalize): Use have_tz to choose when to
+	normalize.
+
+	(rasqal_xsd_datetime_parse): Record N, Z or Y for have_tz
+
+	(rasqal_new_xsd_datetime_from_xsd_date): Copy have_tz field.
+
+	(rasqal_xsd_timezone_format): Renamed from
+	rasqal_xsd_datetime_timezone_format() and take the timezone fields
+	as input.
+
+	(rasqal_xsd_datetime_to_counted_string)
+	(rasqal_xsd_datetime_get_tz_as_counted_string): Use
+	rasqal_xsd_timezone_format with new args.
+
+	(rasqal_xsd_datetime_equals): Use have_tz fields.
+
+	(rasqal_xsd_date_to_counted_string): Use
+	rasqal_xsd_timezone_format and generate timezone field if needed.
+
+	(rasqal_new_xsd_date): Copy the have_tz field.
+
+	* utils/roqet.c: Add data graphs after prepare
+
+	* src/rasqal_internal.h, src/rasqal_query.c, src/sparql_parser.y:
+	Try to not lose data when reparsing into same query
+
+	(rasqal_query_reset_select_query): Added to delete existing data,
+	used before a parse
+
+	(rasqal_query_set_modifier): Added to update
+	modifier but free any existing first.
+
+	(rasqal_sparql_query_language_prepare): SPARQL parser now calls
+	rasqal_query_reset_select_query to do the reset before a parse.
+
+	* src/rasqal_rowsource_slice.c: Count input and output row offsets
+	for slice rowsource
+
+	Fixes Issue #0000493
+	http://bugs.librdf.org/mantis/view.php?id=493
+
+	* tests/engine/rasqal_limit_test.c:
+	Test subselect limits
+
+	* tests/engine/rasqal_limit_test.c:
+	Add subquery limit offset check for Issue #0000493
+	http://bugs.librdf.org/mantis/view.php?id=493
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_get_seconds_as_decimal): Fix str buffer
+
+	Fixes Issue#0000494
+	http://bugs.librdf.org/mantis/view.php?id=494
+
+2012-02-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_datetime.c:
+	(rasqal_new_xsd_datetime_from_xsd_date): Added constructor from a
+	date
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_compare): Use non-deprecated date/datetime compare
+	methods
+
+	* src/rasqal.h.in, src/rasqal_datetime.c: XSD date and dateTime
+	compares use timeontimeline and timezone info
+
+	(rasqal_xsd_date_compare2): Added deprecating
+	rasqal_xsd_date_compare and returning incomparible state.
+
+	(rasqal_xsd_datetime_compare2): Added deprecating
+	rasqal_xsd_datetime_compare and returning incomparible state.
+
+	(rasqal_xsd_timeline_compare): Added internal routine comparing
+	timelines with/without timezones using XSD dateTime order relation
+	rules.
+
+	(test_date_compare, test_datetime_compare): Added testing code.
+
+	(main): Call above to test comparisons.
+
+	* src/rasqal_datetime.c:
+	Compare date equality checking timezones
+
+	(rasqal_xsd_date_equals): Use timezone_minutes
+
+	(test_date_equals): Added testing function
+
+	(main): Added date equality tests using above.
+
+	* src/rasqal_datetime.c:
+	Compare datetime equality with timeline and
+	timezones
+
+	(rasqal_xsd_datetime_equals): Uses time_on_timeline.
+
+	(test_datetime_equals): Tester code aded (main): Added tests
+
+	* src/rasqal.h.in, src/rasqal_datetime.c: Add time_on_timeline and
+	timezone_minutes fields to date and datetime classes
+
+2012-02-15  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c, src/rasqal_digest_sha1.c,
+	src/rasqal_expr_datetimes.c, src/rasqal_expr_strings.c,
+	src/rasqal_feature.c, src/rasqal_format_html.c,
+	src/rasqal_format_json.c, src/rasqal_format_rdf.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_sv.c,
+	src/rasqal_general.c, src/rasqal_literal.c,
+	src/rasqal_query_results.c, src/rasqal_query_write.c,
+	src/rasqal_raptor.c, src/rasqal_row.c,
+	src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_groupby.c, src/rasqal_rowsource_triples.c,
+	src/rasqal_service.c, src/rasqal_xsd_datatypes.c,
+	src/rdql_lexer.l, src/rdql_parser.y, src/sparql_lexer.l,
+	src/sparql_parser.y: Record good and bad casts to const unsigned
+	char*
+
+	* src/rasqal_digest.c, src/rasqal_expr_datetimes.c,
+	src/rasqal_literal.c, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c, src/rasqal_variable.c,
+	src/rdql_lexer.l, src/sparql_lexer.l: Record good and bad casts to
+	unsigned char*
+
+	* src/rasqal_datetime.c, src/rasqal_expr.c,
+	src/rasqal_expr_evaluate.c, src/rasqal_expr_strings.c,
+	src/rasqal_feature.c, src/rasqal_format_rdf.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_general.c, src/rasqal_literal.c, src/rasqal_prefix.c,
+	src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_test.c, src/rasqal_raptor.c, src/rasqal_regex.c,
+	src/rasqal_result_formats.c, src/rasqal_row.c,
+	src/rasqal_rowsource.c, src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_groupby.c, src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_project.c, src/rasqal_rowsource_triples.c,
+	src/rasqal_rowsource_union.c, src/rasqal_service.c,
+	src/rasqal_variable.c, src/rasqal_xsd_datatypes.c,
+	src/rdql_lexer.l, src/sparql_lexer.l, src/sparql_parser.y: Record
+	good and bad casts to const char*
+
+	* src/rasqal_datetime.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c, src/rasqal_format_html.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_general.c, src/rasqal_iostream.c, src/rasqal_literal.c,
+	src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_test.c, src/rasqal_random.c,
+	src/rasqal_result_formats.c, src/rasqal_rowsource_triples.c,
+	src/rasqal_xsd_datatypes.c, src/rdql_lexer.l, src/rdql_parser.y,
+	src/sparql_lexer.l, src/sparql_parser.y: Record good and bad casts
+	to char*
+
+	* src/rasqal_algebra.c, src/rasqal_dataset.c,
+	src/rasqal_datetime.c, src/rasqal_digest.c,
+	src/rasqal_expr_numerics.c, src/rasqal_literal.c,
+	src/rasqal_random.c, src/rasqal_rowsource.c, src/snprintf.c,
+	src/strcasecmp.c, utils/roqet.c: Record good and bad casts to
+	unsigned int
+
+	* src/snprintf.c:
+	(rasqal_format_integer): Fix off by 1 in length calculation for
+	integers wider than width
+
+	* src/rasqal_datetime.c, src/rasqal_internal.h, src/snprintf.c:
+	(rasqal_format_integer): Change return type to size_t
+
+	* src/rasqal_algebra.c, src/rasqal_datetime.c,
+	src/rasqal_engine.c, src/rasqal_expr.c, src/rasqal_expr_strings.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_graph_pattern.c, src/rasqal_iostream.c,
+	src/rasqal_literal.c, src/rasqal_query.c,
+	src/rasqal_query_write.c, src/rasqal_random.c, src/rasqal_regex.c,
+	src/rasqal_rowsource.c, src/rasqal_rowsource_join.c,
+	src/rasqal_update.c, src/rasqal_xsd_datatypes.c, src/snprintf.c,
+	src/sparql_lexer.l, src/sparql_parser.y, src/strcasecmp.c: Record
+	good and bad casts to int
+
+	Using RASQAL_GOOD_CAST and RASQAL_BAD_CAST macros.  When bad there
+	are some notes.
+
+	* src/rasqal_xsd_datatypes.c: Fix int cast in
+	rasqal_xsd_format_double
+
+	(rasqal_xsd_format_double): Handle trailing_zero_start as a size_t
+	so add a have_trailing_zero flag to mark when it is valid.
 
 2011-12-14  Dave Beckett <dave@dajobe.org>
 
@@ -13,7 +251,34 @@
 	* src/rasqal_datetime.c:
 	Size of xsd:Date prefix is 6 not 7
 
-2011-12-05  Dave Beckett <dave@dajobe.org>
+2012-02-13  Lauri Aalto <laalto@iki.fi>
+
+	* autogen.sh:
+	require automake 1.11.2+ for -Wextra-portability
+
+2012-02-11  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac:
+	Report raptor version in build summary
+
+2012-02-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_digest_md5.c, src/rasqal_digest_sha1.c,
+	src/rasqal_internal.h: Added RASQAL_BAD_CAST RASQAL_GOOD_CAST
+	after raptor
+
+	Added it to MD5 and SHA1 calls where a len turns into a size_t
+
+	* build/.gitignore: ar-lib
+
+	* configure.ac:
+	Add automake option -Wextra-portability and
+	AM_PROG_AR to make it happy
+
+2012-02-05  Dave Beckett <dave@dajobe.org>
+
+	* INSTALL.html, LICENSE.html, NEWS.html, README.html,
+	RELEASE.html, TODO.html: 2012
 
 	* src/rasqal.h.in, src/rasqal_datetime.c,
 	src/rasqal_format_html.c, src/rasqal_format_json.c,
