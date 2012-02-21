@@ -22,6 +22,76 @@ operators on the Decimals suitable for SPARQL.
 <!-- ##### SECTION Image ##### -->
 
 
+<!-- ##### STRUCT rasqal_xsd_date ##### -->
+<para>
+
+</para>
+
+@year: 
+@month: 
+@day: 
+@timezone_minutes: 
+@time_on_timeline: 
+@have_tz: 
+
+<!-- ##### FUNCTION rasqal_new_xsd_date ##### -->
+<para>
+
+</para>
+
+@world: 
+@date_string: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_xsd_date ##### -->
+<para>
+
+</para>
+
+@d: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_date_to_counted_string ##### -->
+<para>
+
+</para>
+
+@date: 
+@len_p: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_date_to_string ##### -->
+<para>
+
+</para>
+
+@d: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_date_equals ##### -->
+<para>
+
+</para>
+
+@d1: 
+@d2: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_date_compare ##### -->
+<para>
+
+</para>
+
+@d1: 
+@d2: 
+@incomparible_p: 
+@Returns: 
+
+
 <!-- ##### STRUCT rasqal_xsd_datetime ##### -->
 <para>
 
@@ -35,6 +105,8 @@ operators on the Decimals suitable for SPARQL.
 @second: 
 @microseconds: 
 @timezone_minutes: 
+@time_on_timeline: 
+@have_tz: 
 
 <!-- ##### MACRO RASQAL_XSD_DATETIME_NO_TZ ##### -->
 <para>
@@ -73,6 +145,16 @@ operators on the Decimals suitable for SPARQL.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_new_xsd_datetime_from_xsd_date ##### -->
+<para>
+
+</para>
+
+@world: 
+@date: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_free_xsd_datetime ##### -->
 <para>
 
@@ -88,6 +170,17 @@ operators on the Decimals suitable for SPARQL.
 
 @dt1: 
 @dt2: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_datetime_compare2 ##### -->
+<para>
+
+</para>
+
+@dt1: 
+@dt2: 
+@incomparible_p: 
 @Returns: 
 
 
