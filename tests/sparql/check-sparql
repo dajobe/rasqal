@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
 #
-# check-sparql - Run Rasqal against W3C DAWG SPARQL testsuite
+# check-sparql - Run Rasqal against W3C SPARQL testsuites
 #
 # USAGE: check-sparql [options] [TEST]
 # 
-# Copyright (C) 2004-2009, David Beckett http://www.dajobe.org/
+# Copyright (C) 2004-2011, David Beckett http://www.dajobe.org/
 # Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
@@ -37,11 +37,16 @@ use Getopt::Long;
 use Pod::Usage;
 use Cwd;
 
+use POSIX qw(WIFSIGNALED WIFEXITED WTERMSIG WEXITSTATUS);
+# We really want WCOREDUMP too
+sub WCOREDUMP($) {
+  return $_[0] & 0200;
+}
+
 my $roqet=$ENV{ROQET} || "roqet";
 my $rasqal_url="http://librdf.org/rasqal/";
 my $rapper=$ENV{RAPPER} || "rapper";
 my $diff_cmd=$ENV{DIFF} || "diff";
-
 
 my $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 my $rs='http://www.w3.org/2001/sw/DataAccess/tests/result-set#';
@@ -127,7 +132,7 @@ sub read_rdf_results_file($$) {
   }
   close(ERR);
   if(@errs) {
-    warn "$program: parsing '$result_file' FAILED - rapper returned errors:\n  ".join("\n  ",@errs)."\n";
+    warn "$program: parsing '$result_file' FAILED - rapper returned errors:\n$program:   ".join("\n$program:   ",@errs)."\n";
     warn "Failing program was:\n";
     warn "  $cmd\n";
     my $curdir=getcwd;
@@ -355,6 +360,34 @@ sub read_rdf_graph_file($$) {
 }
 
 
+sub compare_rdf_graphs($$$) {
+  my($file1, $file2, $out)=@_;
+  my $cmd;
+  my $rc;
+  my $errors;
+  if(defined $ENV{NTC}) {
+    my $ntc = $ENV{NTC};
+    $cmd="$ntc $file1 $file2 > $out 2>&1";
+    $rc = system($cmd);
+  } elsif(defined $ENV{JENAROOT}) {
+    my $j = $ENV{JENAROOT};
+    my $classpath = `$j/bin/jena_path`;
+    chomp $classpath;
+    $cmd = qq{java -cp "$classpath" jena.rdfcompare $file1 $file2 N-TRIPLE N-TRIPLE > $out};
+    $rc = system($cmd);
+    if($rc) {
+      $cmd = "$diff_cmd -u $file1 $file2 > $out";
+      system($cmd);
+    }
+  } else {
+    $cmd = "$diff_cmd -u $file1 $file2 > $out";
+    $rc = system($cmd);
+  }
+
+  return $rc;
+}
+
+
 sub run_test {
   my($config)=@_;
   my($name,$dir,$test_file,$result_file,$expect_fail,$language,
@@ -368,6 +401,13 @@ sub run_test {
   my(@named_data_files)=@{$config->{named_data_files}};
 
   $language ||= 'sparql';
+
+  my $test_result = {
+    'name' => $name,
+    'uri' => $test_uri,
+  };
+
+  $name ||= $test_uri;
 
   warn "run_test(\n  name       : $name\n  dir        : $dir\n  language   : $language\n  query      : $test_file\n  data       : ",join("; ",@data_files),"\n  named data : ",join("; ",@named_data_files),"\n  result     : ",($result_file||"none"),"\n  expect     : ",($expect_fail ? "failure":"success"),"\n)\n"
     if $debug;
@@ -387,55 +427,66 @@ sub run_test {
 
   warn "$program: Running '$roqet_cmd'\n"
     if $debug;
+  my $start_time = time;
   system($roqet_cmd);
-  my $rc=$? >>8;
+  my $end_time = time;
+  my $rc = $?;
+  
+  $test_result->{'elapsed-time'}= $end_time - $start_time;
+  $test_result->{'roqet-status-code'}= WIFEXITED($rc) ? WEXITSTATUS($rc) : undef;
+  $test_result->{'stdout'}=`cat $roqet_tmp`; 
+  $test_result->{'stderr'}=`cat $roqet_err`;
 
-  my $core_dumped = undef;
-  open(CD, "<$roqet_err") or die "$program: Could not open '$roqet_err' - $!\n";
-  while(<CD>) {
-    chomp;
-    if(/core.dumped/i) {
-      $core_dumped = $_;
-      last;
+  unlink $roqet_tmp;
+
+  $test_result->{'query'}=$roqet_cmd;
+  my $curdir = getcwd;
+  my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir/,,g;
+  $test_result->{'tidy-query'} = $r;
+
+
+  if(WIFSIGNALED($rc)) {
+    # exec()ed but died on a signal
+    my $signal = WTERMSIG($rc);
+    $rc = "died with signal $signal";
+  } elsif(WIFEXITED($rc)) {
+    $rc = WEXITSTATUS($rc);
+    if($rc) {
+      # exec()ed and exited with non-0
+      $rc = "exited with status $rc";
     }
+  } else {
+    $rc = "system() returned unknown status code $rc";
   }
-  close(CD);
-  if($core_dumped) {
-      warn "$program: roqet core dumped: $core_dumped\n"
-          if $debug;
-      $rc = "core dumped ($core_dumped): $rc";
-  }
+  my $core_dumped = WCOREDUMP($rc);
+  $rc .=" with coredump" if $core_dumped;
 
   warn "$program: roqet returned code $rc\n"
       if $debug;
   if($rc) {
+    $test_result->{'result'}='failure';
+
     if($expect_fail && !$core_dumped) {
-      warn "$program: '$name' OK (got expected failure)\n";
-      return 1;
+      warn "$program: '$name' ok - got expected failure\n";
+    } else {
+      warn "$program: '$name' FAILED ($rc)\n";
+      print STDERR "Failing program was:\n";
+      my $tidy_query = $test_result->{'tidy-query'};
+      print STDERR "  $roqet_cmd\n  OR $tidy_query\n";
+      print STDERR $test_result->{'stderr'};
     }
 
-    warn "$program: test '$test_file' ($test_uri) FAILED - query command failed (result $rc):\n";
-    warn "Failing program was:\n";
-    warn "  $roqet_cmd\n";
-    my $curdir=getcwd;
-    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir/,,g;
-    warn "  OR $r\n";
-    system("cat roqet.err");
-    unlink $roqet_tmp;
-    return 1;
+    return $test_result;
   }
-
-  open(PIPE, "<$roqet_tmp") or die "$program: Cannot read $roqet_tmp - $!\n";
 
   my $sorted=0;
   my $first_result=1;
-  my $roqet_results=0;
+  my $roqet_results_count=0;
   my $result_type='bindings';
   my(@vars_order);
   my(%vars_seen);
 
-  while(<PIPE>) {
-    chomp;
+  for (split(/\n/, $test_result->{'stdout'})) {
     if(/^(?:selects|bound variables): \[(.*)\]$/) {
       my $vars=$1;
       while($vars =~ s/variable\((\w+)//) {
@@ -487,7 +538,7 @@ sub run_test {
       }
 
       print OUT "$line\n";
-      $roqet_results++;
+      $roqet_results_count++;
     }
 
     # RDF Graph result - seen N-Triple; sort -u to attempt to get canonical graph
@@ -502,13 +553,14 @@ sub run_test {
     }
 
   }
-  close(PIPE);
-  unlink $roqet_tmp;
 
   if($first_result) {
     open(OUT, ">roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
   }
   close(OUT);
+
+  $test_result->{'result-type'} = $result_type;
+
 
   open(ERR, "<roqet.err") or die "$program: Cannot open roqet.err - $!\n";
   my(@errs)=();
@@ -518,18 +570,21 @@ sub run_test {
   }
   close(ERR);
   if(@errs) {
-    warn "$program: test '$test_file' ($test_uri) FAILED - query returned errors:\n  ".join("\n  ",@errs)."\n";
-    warn "Failing program was:\n";
-    warn "  $roqet_cmd\n";
-    my $curdir=getcwd;
-    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir/,,g;
-    warn "  OR $r\n";
-    return 1;
+    warn "$program: '$name' FAILED (query returned errors)\n$program:   ".join("\n$program:   ",@errs)."\n";
+
+    $test_result->{'errors'} = join("\n", @errs);
+    print STDERR "Failing program was:\n";
+    my $tidy_query = $test_result->{'tidy-query'};
+    print STDERR "  $roqet_cmd\n  OR $tidy_query\n";
+    print STDERR $test_result->{'stderr'};
+    $test_result->{'result'}='failure';
+    
+    return $test_result;
   }
 
   my $cmd;
 
-  my $results={expect_empty => 1};
+  my $results = {expect_empty => 1};
 
   if($result_type eq 'graph') {
     warn "$program: Reading RDF graph result file $result_file\n"
@@ -549,8 +604,10 @@ sub run_test {
 	  if $debug;
 	$results = read_srx_results_file($result_file);
       } elsif($result_file =~ /\.srj$/) {
-	warn "$program: Cannot read SPARQL results in JSON yet ($result_file)\n";
-	return 1;
+	warn "$program: '$name' FAILED (Cannot read SPARQL results in JSON)\n";
+	$test_result->{'result'}='failure';
+    
+	return $test_result;
       } elsif($result_file =~ /\.(csv|tsv)$/) {
 	my $sv_type = $1;
 	warn "$program: Reading CSV/TSV bindings result file $result_file\n"
@@ -565,12 +622,16 @@ sub run_test {
   }
 
   if(!defined $results) {
-    return 1;
+    $test_result->{'result'}='failure';
+    
+    return $test_result;
   }
 
   if(exists $results->{expect_empty}) {
-    warn "$program: '$name' OK (no result)\n";
-    return $expect_fail ? 1 : 0;
+    warn "$program: '$name' ok (no result)\n";
+    $test_result->{'result'} = $expect_fail ? 'failure' : 'success';
+
+    return $test_result;
   }
 
   my $count;
@@ -585,6 +646,9 @@ sub run_test {
       $count++;
     }
     close(OUT);
+
+    $test_result->{'expected-results-count'} = $count;
+    $test_result->{'actual-results-count'} = $roqet_results_count;
   } else {
     # graph: sort N-Triples in attempt to get canonical graph
     open(OUT, "| sort -u >result.out")
@@ -594,29 +658,42 @@ sub run_test {
     close(OUT);
   }   
 
-
-  $cmd="$diff_cmd -u result.out roqet.out > diff.out";
-  $rc=system($cmd);
+  if($result_type eq 'graph') {
+    $rc = compare_rdf_graphs('result.out', 'roqet.out', 'diff.out');
+  } else {
+    $cmd = "$diff_cmd -u result.out roqet.out > diff.out";
+    $rc = system($cmd);
+  }
   if($rc) {
-    warn "$program: '$name' FAILED ($test_uri) \n";
-    warn "Failing program was:\n";
-    warn "  $roqet_cmd\n";
-    my $curdir=getcwd;
-    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir/,,g;
-    warn "  OR $r\n";
+    if($result_type eq 'bindings' && $count != $roqet_results_count) {
+      warn "$program: '$name' FAILED (Expected ".plural("result","s",$count).", got $roqet_results_count)\n";
+    } else {
+      warn "$program: '$name' FAILED\n";
+    }
+    print STDERR "Failing program was:\n";
+    my $tidy_query = $test_result->{'tidy-query'};
+    print STDERR "  $roqet_cmd\n  OR $tidy_query\n";
     warn "Difference is:\n";
     system("cat diff.out");
-    if($result_type eq 'bindings') {
-      warn "$program: Expected ".plural("result","s",$count).", got $roqet_results\n";
-    }
-    return 1;
-  } else {
-    warn "$program: '$name' OK\n";
-    return 0;
+    $test_result->{'result'}='failure';
+    return $test_result;
   }
 
+  warn "$program: '$name' ok\n";
+  $test_result->{'result'}='success';
+  return $test_result;
 }
 
+sub html_escape($) {
+  my($str)=@_;
+  return undef if !defined $str;
+
+  $str =~ s/\&/\&amp;/gs;
+  $str =~ s/</\&lt;/gs;
+  $str =~ s/>/\&gt;/gs;
+
+  return $str;
+}
 
 
 
@@ -624,6 +701,8 @@ sub run_test {
 my $usage=0;
 my $manifest_file=undef;
 my $earl_report_file=undef;
+my $junit_report_file=undef;
+my $suite_name=undef;
 my $approved=0;
 my $language='sparql';
 my $warning_level=0;
@@ -634,6 +713,8 @@ GetOptions(
   'input|i=s' => \$language,
   'manifest|m=s' => \$manifest_file,
   'earl|e=s' => \$earl_report_file,
+  'junit|j=s' => \$junit_report_file,
+  'suite|u=s' => \$suite_name,
   'help|h|?' => \$usage,
   'approved|a' => \$approved,
   'warnings|W=i' => \$warning_level, # integer 0..100
@@ -643,6 +724,7 @@ pod2usage(-verbose => 2) if $usage;
 pod2usage("$0: Too many tests given.\n") if (@ARGV > 1);
 
 my $unique_test=$ARGV[0];
+$suite_name ||= 'testsuite';
 
 $srcdir.="/" unless $srcdir =~ m%/$%;
 
@@ -828,24 +910,31 @@ die "$program: Test $unique_test not found\n" if $unique_test && !@tests;
 
 my(@failed);
 my(@passed);
+my(@test_results);
 my $result=0;
+my $start_time = time;
 for my $test (@tests) {
   my($config)=$test;
 
   $config->{language} = $language;
   $config->{warning_level} = $warning_level;
 
-  my $rc = run_test($config);
+  my $test_result = run_test($config);
 
-  $rc=!$rc 
-    if $config->{expect_fail};
+  my $is_success = ($test_result->{'result'} eq 'success');
+  $is_success = !$is_success if $config->{expect_fail};
 
-  if($rc) {
-    push(@failed, $config);
-  } else {
+  $test_result->{'is-success'} = $is_success;
+  push(@test_results, $test_result);
+
+  if($is_success) {
     push(@passed, $config);
+  } else {
+    push(@failed, $config);
   }
 }
+my $end_time = time;
+my $elapsed_time = ($end_time - $start_time);
 
 unlink "roqet.out", "result.out", "diff.out", "roqet.err", "roqet.tmp"
   unless $unique_test;
@@ -853,10 +942,13 @@ unlink "roqet.out", "result.out", "diff.out", "roqet.err", "roqet.tmp"
 if($earl_report_file) {
   my $is_new=(!-r $earl_report_file);
   my $rasqal_version=`$roqet -v`;
+  chomp $rasqal_version;
+
   my(@t)=gmtime;
   my $rasqal_date=sprintf("%04d-%02d-%02d", 1900+$t[5], 1+$t[4], $t[3]);
-  my $git_head = `git show-ref -h -s HEAD | head -1`;
-  chomp $git_head;
+
+  my $rasqal_name="Rasqal $rasqal_version";
+
   open(OUT, ">>$earl_report_file") 
     or die "Cannot write to $earl_report_file - $!\n";
   print OUT <<"EOT"
@@ -871,10 +963,11 @@ if($earl_report_file) {
 
  <${rasqal_url}> a doap:Project;
      doap:name "Rasqal";
+     doap:homepage <${rasqal_url}>;
      doap:release
        [ a doap:Version;
          doap:created "$rasqal_date"^^xsd:date ;
-         doap:name "rasqal GIT ${git_head}"].
+         doap:name "${rasqal_name}"].
 EOT
     if $is_new;
 
@@ -908,14 +1001,107 @@ EOT
 }
 
 
+if($junit_report_file) {
+  my $rasqal_version=`$roqet -v`;
+  chomp $rasqal_version;
+
+  my(@t)=gmtime;
+  my $timestamp=sprintf("%04d-%02d-%02dT%02d:%02d:%02d",
+			1900+$t[5], 1+$t[4], $t[3], $t[2], $t[1], $t[0]);
+
+  my $rasqal_name="Rasqal $rasqal_version";
+  my $hostname="localhost";
+
+  my $name = $suite_name;
+  my $tests_count = scalar(@passed) + scalar(@failed);
+  my $failures_count = scalar(@failed);
+  my $errors_count = 0;
+  my $runtime = $elapsed_time;
+  my $id = 0; # this <testsuites> has only 1 testsuite
+
+  open(OUT, ">$junit_report_file") 
+    or die "Cannot write to $junit_report_file - $!\n";
+  print OUT <<"EOT";
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites>
+  <testsuite
+     name="$name"
+     timestamp="$timestamp"
+     hostname="$hostname"
+     tests="$tests_count"
+     failures="$failures_count"
+     errors="$errors_count"
+     time="$runtime"
+     id="$id"
+  >
+
+    <properties>
+       <property name="author-name" value="Dave Beckett" />
+       <property name="author-homepage" value="http://www.dajobe.org/" />
+
+       <property name="project-name" value="Rasqal" />
+       <property name="project-uri" value="${rasqal_url}" />
+       <property name="project-version" value="${rasqal_name}" />
+    </properties>
+EOT
+
+  my $system_out = '';
+  my $system_err = '';
+  for my $test_result (@test_results) {
+    my $test_uri   = $test_result->{uri};
+    my $test_name  = $test_result->{name} || "unknown";
+    my $class_name = $test_uri;
+    my $is_success = $test_result->{'is-success'};
+    my $elapsed    = $test_result->{'elapsed-time'};
+    my $test_stdout = $test_result->{'stdout'} || '';
+    my $test_stderr = $test_result->{'stderr'} || '';
+    print OUT <<"EOT";
+    <testcase name="$test_name" classname="$class_name" time="$elapsed_time">
+EOT
+
+    if(!$is_success) {
+      my $message = html_escape("Failed");
+      my $type = "org.librdf.fake";
+      my $text = html_escape($test_stdout . $test_stderr);
+      print OUT <<"EOT";
+      <failure message="$message" type="$type">
+         $text
+      </failure>
+
+EOT
+    }
+
+    # $system_out .= $test_stdout;
+    # $system_err .= $test_stderr;
+    print OUT <<"EOT";
+    </testcase>
+
+EOT
+  } # test_result loop
+
+  $system_out = html_escape($system_out);
+  $system_err = html_escape($system_err);
+  print OUT <<"EOT";
+  <system-out>$system_out</system-out> 
+
+  <system-err>$system_err</system-err> 
+
+  </testsuite>
+</testsuites>
+EOT
+  close(OUT);
+}
+
+
 my $failed_count=scalar(@failed);
 
-warn "$program: $failed_count FAILED tests:\n  " .
-     join("\n  ", map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") } @failed) .
+if($debug) {
+warn "$program: $failed_count FAILED tests:\n$program:   " .
+     join("\n$program:   ", map { ($_->{name} || $_->{test_uri}). ($debug ? " (".$_->{test_uri}.")" : "") } @failed) .
      "\n"
   if $failed_count;
+}
 warn "$program: Summary: ".scalar(@passed)." tests passed  ".scalar(@failed)." tests failed\n";
-
 
 exit $failed_count;
 
@@ -948,6 +1134,14 @@ Set the input test MANIFEST file
 =item B<--earl> EARL
 
 Set the output test EARL summary file.
+
+=item B<--junit> JUNIT
+
+Set the output Ant Junit XML results file.
+
+=item B<--suite> SUITE
+
+Set the test suite name
 
 =back
 
