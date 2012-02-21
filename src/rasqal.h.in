@@ -1794,9 +1794,7 @@ char* rasqal_xsd_date_to_string(const rasqal_xsd_date *d);
 RASQAL_API
 int rasqal_xsd_date_equals(const rasqal_xsd_date *d1, const rasqal_xsd_date *d2);
 RASQAL_API
-int rasqal_xsd_date_compare2(const rasqal_xsd_date *d1, const rasqal_xsd_date *d2, int *incomparible_p);
-RASQAL_API RASQAL_DEPRECATED
-int rasqal_xsd_date_compare(const rasqal_xsd_date *d1, const rasqal_xsd_date *d2);
+int rasqal_xsd_date_compare(const rasqal_xsd_date *d1, const rasqal_xsd_date *d2, int *incomparible_p);
 
 /* datetime functions */
 RASQAL_API

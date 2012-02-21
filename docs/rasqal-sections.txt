@@ -359,7 +359,6 @@ rasqal_xsd_date_to_counted_string
 rasqal_xsd_date_to_string
 rasqal_xsd_date_equals
 rasqal_xsd_date_compare
-rasqal_xsd_date_compare2
 rasqal_xsd_datetime
 RASQAL_XSD_DATETIME_NO_TZ
 rasqal_new_xsd_datetime

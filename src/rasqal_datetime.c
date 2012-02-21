@@ -1633,7 +1633,7 @@ rasqal_xsd_date_equals(const rasqal_xsd_date *d1,
 
 
 /**
- * rasqal_xsd_date_compare2:
+ * rasqal_xsd_date_compare:
  * @d1: first XSD date
  * @d2: second XSD date
  * @incomparible_p: address to store incomparable flag (or NULL)
@@ -1647,9 +1647,9 @@ rasqal_xsd_date_equals(const rasqal_xsd_date *d1,
  * Return value: <0 if @d1 is less than @d2, 0 if equal, >0 otherwise
  **/
 int
-rasqal_xsd_date_compare2(const rasqal_xsd_date *d1,
-                         const rasqal_xsd_date *d2,
-                         int *incomparible_p)
+rasqal_xsd_date_compare(const rasqal_xsd_date *d1,
+                        const rasqal_xsd_date *d2,
+                        int *incomparible_p)
 {
   if(incomparible_p)
     *incomparible_p = 0;
@@ -1668,25 +1668,6 @@ rasqal_xsd_date_compare2(const rasqal_xsd_date *d1,
                                      d2->time_on_timeline, 0 /* msec */,
                                      d2->timezone_minutes,
                                      incomparible_p);
-}
-
-
-/**
- * rasqal_xsd_date_compare:
- * @d1: first XSD date
- * @d2: second XSD date
- * 
- * Compare two XSD dates
- * 
- * @Deprecated for rasqal_xsd_date_compare2() which can return the incomparible result.
- * 
- * Return value: <0 if @d1 is less than @d2, 0 if equal, >0 otherwise
- **/
-int
-rasqal_xsd_date_compare(const rasqal_xsd_date *d1,
-                        const rasqal_xsd_date *d2)
-{
-  return rasqal_xsd_date_compare2(d1, d2, NULL);
 }
 
 
@@ -1809,7 +1790,7 @@ test_date_compare(rasqal_world* world, const char *value1, const char *value2,
   d1 = rasqal_new_xsd_date(world, value1);
   d2 = rasqal_new_xsd_date(world, value2);
 
-  cmp = rasqal_xsd_date_compare2(d1, d2, &incomparable);
+  cmp = rasqal_xsd_date_compare(d1, d2, &incomparable);
   if(incomparable)
     cmp = INCOMPARABLE;
   else if (cmp < 0)

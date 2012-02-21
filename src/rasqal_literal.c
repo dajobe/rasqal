@@ -2454,9 +2454,9 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       break;
 
     case RASQAL_LITERAL_DATE:
-      result = rasqal_xsd_date_compare2(new_lits[0]->value.date,
-                                        new_lits[1]->value.date,
-                                        error_p);
+      result = rasqal_xsd_date_compare(new_lits[0]->value.date,
+                                       new_lits[1]->value.date,
+                                       error_p);
       break;
 
     case RASQAL_LITERAL_DATETIME:
