@@ -1089,7 +1089,7 @@ rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world,
 #define DATE_BUFFER_LEN_NO_YEAR 6
 
 /**
- * rasqal_xsd_date_to_string:
+ * rasqal_xsd_date_to_counted_string:
  * @d: date struct
  *
  * Convert a #rasqal_xsd_date struct to a xsd:date lexical form string.

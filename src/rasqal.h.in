@@ -419,6 +419,7 @@ typedef struct {
  * @RASQAL_LITERAL_PATTERN: Pattern literal for a regex.
  * @RASQAL_LITERAL_QNAME: XML Qname literal.
  * @RASQAL_LITERAL_VARIABLE: Variable literal.
+ * @RASQAL_LITERAL_DATE: Date literal xsd:date.
  * @RASQAL_LITERAL_INTEGER_SUBTYPE: Internal.
  * @RASQAL_LITERAL_UNKNOWN: Internal.
  * @RASQAL_LITERAL_FIRST_XSD: Internal.
@@ -505,7 +506,7 @@ typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
  * @day: 1-31
  * @timezone_minutes: minutes +/- against UTC or RASQAL_XSD_DATETIME_NO_TZ if there is no timezone in the dateTime.
  * @time_on_timeline: time on timeline of first instant of date in timezone
- * @tz: timezone flag: 'Z' if Zulu, 'Y' if has other timezone offset in @timezone_minutes, 'N' if there is no timezone
+ * @have_tz: timezone flag: 'Z' if Zulu, 'Y' if has other timezone offset in @timezone_minutes, 'N' if there is no timezone
  *
  * XML schema date datatype (xsd:date)
  *
@@ -537,7 +538,7 @@ typedef struct {
  * @microseconds: microseconds
  * @timezone_minutes: minutes +/- against UTC or RASQAL_XSD_DATETIME_NO_TZ if there is no timezone in the dateTime.
  * @time_on_timeline: time on timeline
- * @tz: timezone flag: 'Z' if Zulu, 'Y' if has other timezone offset in @timezone_minutes, 'N' if there is no timezone
+ * @have_tz: timezone flag: 'Z' if Zulu, 'Y' if has other timezone offset in @timezone_minutes, 'N' if there is no timezone
  *
  * XML Schema dateTime datatype (xsd:dateTime)
  *
