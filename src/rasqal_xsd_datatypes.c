@@ -56,24 +56,42 @@
  *
  * Datatypes hierarchy
  * http://www.w3.org/TR/xpath-functions/#datatypes
- * 
+ *
  * Casting
  * http://www.w3.org/TR/xpath-functions/#casting-from-primitive-to-primitive
  *
  */
 
 
+int
+rasqal_xsd_boolean_value_from_string(const const unsigned char* string)
+{
+  int integer = 0;
+
+  /* FIXME
+   * Strictly only {true, false, 1, 0} are allowed according to
+   * http://www.w3.org/TR/xmlschema-2/#boolean
+   */
+  if(!strcmp(RASQAL_GOOD_CAST(const char*, string), "true") ||
+     !strcmp(RASQAL_GOOD_CAST(const char*, string), "TRUE") ||
+     !strcmp(RASQAL_GOOD_CAST(const char*, string), "1"))
+    integer = 1;
+
+  return integer;
+}
+
+
 static int
-rasqal_xsd_check_boolean_format(const unsigned char* string, int flags) 
+rasqal_xsd_check_boolean_format(const unsigned char* string, int flags)
 {
   /* FIXME
    * Strictly only {true, false, 1, 0} are allowed according to
    * http://www.w3.org/TR/xmlschema-2/#boolean
    */
-  if(!strcmp(RASQAL_GOOD_CAST(const char*, string), "true") || 
+  if(!strcmp(RASQAL_GOOD_CAST(const char*, string), "true") ||
      !strcmp(RASQAL_GOOD_CAST(const char*, string), "TRUE") ||
      !strcmp(RASQAL_GOOD_CAST(const char*, string), "1") ||
-     !strcmp(RASQAL_GOOD_CAST(const char*, string), "false") || 
+     !strcmp(RASQAL_GOOD_CAST(const char*, string), "false") ||
      !strcmp(RASQAL_GOOD_CAST(const char*, string), "FALSE") ||
      !strcmp(RASQAL_GOOD_CAST(const char*, string), "0"))
     return 1;

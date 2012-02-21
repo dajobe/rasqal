@@ -563,19 +563,6 @@ rasqal_new_datetime_literal_from_datetime(rasqal_world* world,
 
 
 
-static int
-rasqal_literal_string_interpreted_as_boolean(const unsigned char* string) 
-{
-  int integer = 0;
-  if(!strcmp(RASQAL_GOOD_CAST(const char*, string), "true") || 
-     !strcmp(RASQAL_GOOD_CAST(const char*, string), "TRUE") ||
-     !strcmp(RASQAL_GOOD_CAST(const char*, string), "1"))
-    integer = 1;
-
-  return integer;
-}
-
-
 /*
  * rasqal_literal_set_typed_value:
  * @l: literal
@@ -696,7 +683,7 @@ retype:
       break;
 
     case RASQAL_LITERAL_BOOLEAN:
-      i = rasqal_literal_string_interpreted_as_boolean(l->string);
+      i = rasqal_xsd_boolean_value_from_string(l->string);
       /* Free passed in string */
       RASQAL_FREE(char*, l->string);
       /* and replace with a static string */
@@ -2074,7 +2061,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
     
     case RASQAL_LITERAL_BOOLEAN:
       if(flags & RASQAL_COMPARE_URI)
-        i = rasqal_literal_string_interpreted_as_boolean(lit->string);
+        i = rasqal_xsd_boolean_value_from_string(lit->string);
       else
         i = rasqal_literal_as_boolean(lit, &errori);
       /* failure always means no match */
