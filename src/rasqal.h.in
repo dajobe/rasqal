@@ -1788,7 +1788,7 @@ rasqal_xsd_date* rasqal_new_xsd_date(rasqal_world* world, const char *date_strin
 RASQAL_API
 void rasqal_free_xsd_date(rasqal_xsd_date* d);
 RASQAL_API
-char* rasqal_xsd_date_to_counted_string(const rasqal_xsd_date *d, size_t *len_p);
+char* rasqal_xsd_date_to_counted_string(const rasqal_xsd_date *date, size_t *len_p);
 RASQAL_API
 char* rasqal_xsd_date_to_string(const rasqal_xsd_date *d);
 RASQAL_API
