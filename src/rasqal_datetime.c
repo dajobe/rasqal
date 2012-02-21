@@ -918,8 +918,8 @@ int
 rasqal_xsd_datetime_equals(const rasqal_xsd_datetime *dt1,
                            const rasqal_xsd_datetime *dt2)
 {
-  int dt1_has_tz = (dt1->have_tz != 'N');
-  int dt2_has_tz = (dt2->have_tz != 'N');
+  int dt1_has_tz;
+  int dt2_has_tz;
 
   /* Handle NULLs */
   if(!dt1 || !dt2) {
@@ -927,6 +927,9 @@ rasqal_xsd_datetime_equals(const rasqal_xsd_datetime *dt1,
     return (dt1 && dt2);
   }
   
+  dt1_has_tz = (dt1->have_tz != 'N');
+  dt2_has_tz = (dt2->have_tz != 'N');
+
   if(dt1_has_tz == dt2_has_tz)
     /* both are on same timeline */
     return ((dt1->time_on_timeline == dt2->time_on_timeline) &&
