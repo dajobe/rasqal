@@ -1090,7 +1090,8 @@ rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world,
 
 /**
  * rasqal_xsd_date_to_counted_string:
- * @d: date struct
+ * @date: date struct
+ * @len_p: output length (or NULL)
  *
  * Convert a #rasqal_xsd_date struct to a xsd:date lexical form string.
  *
