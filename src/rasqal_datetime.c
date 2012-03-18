@@ -707,13 +707,11 @@ rasqal_xsd_timezone_format(signed short timezone_minutes,
                            char have_tz,
                            char* buffer, size_t bufsize)
 {
-  int mins;
   size_t tz_len;
   
   if(!buffer || !bufsize)
     return -1;
   
-  mins = abs(timezone_minutes);
   if(have_tz == 'N') {
     tz_len = 0;
 
@@ -729,6 +727,7 @@ rasqal_xsd_timezone_format(signed short timezone_minutes,
     buffer[0] = 'Z';
     buffer[1] = '\0';
   } else {
+    int mins;
     int hours;
     int digit;
 
@@ -737,7 +736,9 @@ rasqal_xsd_timezone_format(signed short timezone_minutes,
     if(bufsize < (tz_len + 1))
       return -1;
 
-    buffer[0] = (mins != timezone_minutes ? '-' : '+');
+    mins = abs(timezone_minutes);
+    /* negative tz offset is positive minutes */
+    buffer[0] = (!mins || mins != timezone_minutes ? '+' : '-');
 
     hours = (mins / 60);
     digit = (hours / 10);
