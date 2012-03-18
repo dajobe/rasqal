@@ -2764,7 +2764,8 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       break;
 
     case RASQAL_LITERAL_DATE:
-      result = rasqal_xsd_date_equals(l1_p->value.date, l2_p->value.date);
+      result = rasqal_xsd_date_equals(l1_p->value.date, l2_p->value.date,
+                                      error_p);
       break;
       
     case RASQAL_LITERAL_DATETIME:

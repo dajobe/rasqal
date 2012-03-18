@@ -67,8 +67,8 @@
 0.9.28	-	-	-	0.9.29	void	rasqal_free_xsd_date	(rasqal_xsd_date* d)	-
 0.9.28	-	-	-	0.9.29	char*	rasqal_xsd_date_to_counted_string	(const rasqal_xsd_date *d, size_t *len_p)	-
 0.9.28	-	-	-	0.9.29	char*	rasqal_xsd_date_to_string	(const rasqal_xsd_date *d)	-
-0.9.28	-	-	-	0.9.29	int	rasqal_xsd_date_equals	(const rasqal_xsd_date *d1, const rasqal_xsd_date *d2)	-
-0.9.28	-	-	-	0.9.29	int	rasqal_xsd_date_compare	(const rasqal_xsd_date *d1, const rasqal_xsd_date *d2)	-
+0.9.28	-	-	-	0.9.29	int	rasqal_xsd_date_equals	(const rasqal_xsd_date *d1, const rasqal_xsd_date *d2, int *incomparible_p)	-
+0.9.28	-	-	-	0.9.29	int	rasqal_xsd_date_compare	(const rasqal_xsd_date *d1, const rasqal_xsd_date *d2, int *incomparible_p)	-
 0.9.28	-	-	-	0.9.29	rasqal_xsd_datetime*	rasqal_new_xsd_datetime_from_xsd_date	(rasqal_world* world, rasqal_xsd_date *date)	-
 0.9.28	-	-	-	0.9.29	int	rasqal_xsd_datetime_compare2	(const rasqal_xsd_datetime *dt1, const rasqal_xsd_datetime *dt2, int *incomparible_p)	-
 #

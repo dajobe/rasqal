@@ -1615,6 +1615,7 @@ rasqal_free_xsd_date(rasqal_xsd_date* d)
  * rasqal_xsd_date_equals:
  * @d1: first XSD date
  * @d2: second XSD date
+ * @incomparible_p: address to store incomparable flag (or NULL)
  * 
  * Compare two XSD dates for equality.
  * 
@@ -1622,18 +1623,11 @@ rasqal_free_xsd_date(rasqal_xsd_date* d)
  **/
 int
 rasqal_xsd_date_equals(const rasqal_xsd_date *d1,
-                       const rasqal_xsd_date *d2)
+                       const rasqal_xsd_date *d2,
+                       int *incomparible_p)
 {
-  /* Handle NULLs */
-  if(!d1 || !d2) {
-    /* equal only if both are NULL */
-    return (d1 && d2);
-  }
-  
-  return ((d1->year == d2->year) &&
-          (d1->month == d2->month) &&
-          (d1->day == d2->day) &&
-          (d1->timezone_minutes == d2->timezone_minutes));
+  int cmp = rasqal_xsd_date_compare(d1, d2, incomparible_p);
+  return !cmp;
 }
 
 
@@ -1764,18 +1758,51 @@ test_date_equals(rasqal_world* world, const char *value1, const char *value2,
   rasqal_xsd_date* d1;
   rasqal_xsd_date* d2;
   int r = 1;
+  int incomparable = 0;
   int eq;
   
   d1 = rasqal_new_xsd_date(world, value1);
   d2 = rasqal_new_xsd_date(world, value2);
 
-  eq = rasqal_xsd_date_equals(d1, d2);
+  eq = rasqal_xsd_date_equals(d1, d2, &incomparable);
+  if(incomparable)
+    eq = INCOMPARABLE;
   rasqal_free_xsd_date(d1);
   rasqal_free_xsd_date(d2);
 
   if(eq != expected_eq) {
     fprintf(stderr, "date equals \"%s\" to \"%s\" returned %d expected %d\n",
             value1, value2, eq, expected_eq);
+    r = 1;
+  }
+  return r;
+}
+
+
+static int
+test_date_not_equals(rasqal_world* world,
+                     const char *value1, const char *value2,
+                     int expected_neq)
+{
+  rasqal_xsd_date* d1;
+  rasqal_xsd_date* d2;
+  int r = 1;
+  int incomparable = 0;
+  int neq;
+  
+  d1 = rasqal_new_xsd_date(world, value1);
+  d2 = rasqal_new_xsd_date(world, value2);
+
+  neq = !rasqal_xsd_date_equals(d1, d2, &incomparable);
+  if(incomparable)
+    neq = INCOMPARABLE;
+  rasqal_free_xsd_date(d1);
+  rasqal_free_xsd_date(d2);
+
+  if(neq != expected_neq) {
+    fprintf(stderr,
+            "date not equals \"%s\" to \"%s\" returned %d expected %d\n",
+            value1, value2, neq, expected_neq);
     r = 1;
   }
   return r;
@@ -2134,15 +2161,24 @@ main(int argc, char *argv[])
   MYASSERT(test_date_parser_tostring("2005-01-01+11:59", "2005-01-01Z") == 0);
 
   /* Date equality */
-  MYASSERT(test_date_equals(world, "2011-01-02Z", "2011-01-02" , 0));
+  /* May not be comparible since <14hrs apart */
+  MYASSERT(test_date_equals(world, "2011-01-02Z", "2011-01-02" , INCOMPARABLE));
   MYASSERT(test_date_equals(world, "2011-01-02" , "2011-01-02" , 1));
-  MYASSERT(test_date_equals(world, "2011-01-02",  "2011-01-02Z", 0));
+  MYASSERT(test_date_equals(world, "2011-01-02",  "2011-01-02Z", INCOMPARABLE));
   MYASSERT(test_date_equals(world, "2011-01-02Z", "2011-01-02Z", 1));
 
+  /* Are comparible across timelines since >14hrs apart */
   MYASSERT(test_date_equals(world, "2011-01-02Z", "2011-01-03" , 0));
   MYASSERT(test_date_equals(world, "2011-01-02" , "2011-01-03" , 0));
   MYASSERT(test_date_equals(world, "2011-01-02",  "2011-01-03Z", 0));
   MYASSERT(test_date_equals(world, "2011-01-02Z", "2011-01-03Z", 0));
+
+  MYASSERT(test_date_not_equals(world, "2006-08-23", "2006-08-23", 0));
+  MYASSERT(test_date_not_equals(world, "2006-08-23", "2006-08-23Z", INCOMPARABLE));
+  MYASSERT(test_date_not_equals(world, "2006-08-23", "2006-08-23+00:00", INCOMPARABLE));
+  /* More than 14hrs apart so are comparible */
+  MYASSERT(test_date_not_equals(world, "2006-08-23", "2001-01-01", 1));
+  MYASSERT(test_date_not_equals(world, "2006-08-23", "2001-01-01Z", 1));
 
   /* Date comparisons */
   MYASSERT(test_date_compare(world, "2011-01-02Z", "2011-01-02" , INCOMPARABLE));
