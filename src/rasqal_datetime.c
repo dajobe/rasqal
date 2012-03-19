@@ -907,36 +907,41 @@ rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
 
 
 /**
- * rasqal_xsd_datetime_equals:
+ * rasqal_xsd_datetime_equals2:
  * @dt1: first XSD dateTime
  * @dt2: second XSD dateTime
+ * @incomparible_p: address to store incomparable flag (or NULL)
  * 
  * Compare two XSD dateTimes for equality.
  * 
  * Return value: non-0 if equal.
  **/
 int
+rasqal_xsd_datetime_equals2(const rasqal_xsd_datetime *dt1,
+                            const rasqal_xsd_datetime *dt2,
+                            int *incomparible_p)
+{
+  int cmp = rasqal_xsd_datetime_compare2(dt1, dt2, incomparible_p);
+  return !cmp;
+}
+
+
+/**
+ * rasqal_xsd_datetime_equals:
+ * @dt1: first XSD dateTime
+ * @dt2: second XSD dateTime
+ * 
+ * Compare two XSD dateTimes for equality.
+ *
+ * @Deprecated: for rasqal_xsd_datetime_equals2 that returns incomparibility.
+ *
+ * Return value: non-0 if equal.
+ **/
+int
 rasqal_xsd_datetime_equals(const rasqal_xsd_datetime *dt1,
                            const rasqal_xsd_datetime *dt2)
 {
-  int dt1_has_tz;
-  int dt2_has_tz;
-
-  /* Handle NULLs */
-  if(!dt1 || !dt2) {
-    /* equal only if both are NULL */
-    return (dt1 && dt2);
-  }
-  
-  dt1_has_tz = (dt1->have_tz != 'N');
-  dt2_has_tz = (dt2->have_tz != 'N');
-
-  if(dt1_has_tz == dt2_has_tz)
-    /* both are on same timeline */
-    return ((dt1->time_on_timeline == dt2->time_on_timeline) &&
-            (dt1->microseconds == dt2->microseconds));
-
-  return 0;
+  return rasqal_xsd_datetime_equals2(dt1, dt2, NULL);
 }
 
 
@@ -1849,12 +1854,15 @@ test_datetime_equals(rasqal_world* world, const char *value1, const char *value2
   rasqal_xsd_datetime* d1;
   rasqal_xsd_datetime* d2;
   int r = 1;
+  int incomparable = 0;
   int eq;
   
   d1 = rasqal_new_xsd_datetime(world, value1);
   d2 = rasqal_new_xsd_datetime(world, value2);
 
-  eq = rasqal_xsd_datetime_equals(d1, d2);
+  eq = rasqal_xsd_datetime_equals2(d1, d2, &incomparable);
+  if(incomparable)
+    eq = INCOMPARABLE;
   rasqal_free_xsd_datetime(d1);
   rasqal_free_xsd_datetime(d2);
 
@@ -2193,8 +2201,8 @@ main(int argc, char *argv[])
 
   /* DateTime equality */
   MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00",  "2011-01-02T00:00:00",  1));
-  MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00",  "2011-01-02T00:00:00Z", 0));
-  MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00Z", "2011-01-02T00:00:00",  0));
+  MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00",  "2011-01-02T00:00:00Z", INCOMPARABLE));
+  MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00Z", "2011-01-02T00:00:00",  INCOMPARABLE));
   MYASSERT(test_datetime_equals(world, "2011-01-02T00:00:00Z", "2011-01-02T00:00:00Z", 1));
 
   /* DateTime comparisons */
