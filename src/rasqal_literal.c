@@ -3576,7 +3576,6 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
 rasqal_literal*
 rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
 {
-  int i1, i2;
   double d1, d2;
   rasqal_xsd_decimal* dec;
   int error = 0;
@@ -3591,24 +3590,6 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
 
   type = rasqal_literal_promote_numerics(l1, l2, flags);
   switch(type) {
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_INTEGER_SUBTYPE:
-      i2 = rasqal_literal_as_integer(l2, &error);
-      if(!i2)
-        /* division by zero error */
-        error = 1;
-      if(error)
-        break;
-      i1 = rasqal_literal_as_integer(l1, &error);
-      if(error)
-        break;
-      i1 = i1 / i2;
-      if(error)
-        break;
-
-      result = rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i1);
-      break;
-      
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
       d2 = rasqal_literal_as_double(l2, &error);
@@ -3627,6 +3608,14 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       result = rasqal_new_numeric_literal(l1->world, type, d1);
       break;
       
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_INTEGER_SUBTYPE:
+      /* "As a special case, if the types of both $arg1 and $arg2 are
+       * xs:integer, then the return type is xs:decimal." - F&O
+       */
+      type = RASQAL_LITERAL_DECIMAL;
+      /* fallthrough */
+
     case RASQAL_LITERAL_DECIMAL:
       l1_p = rasqal_new_literal_from_promotion(l1, type, flags);
       if(l1_p)
