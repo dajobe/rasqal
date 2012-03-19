@@ -251,7 +251,7 @@ rasqal_builtin_agg_expression_execute_step(void* user_data,
   b = (rasqal_builtin_agg_expression_execute*)user_data;
 
   if(b->error)
-    return 1;
+    return b->error;
   
   if(b->expr->op == RASQAL_EXPR_COUNT) {
     /* COUNT(*) : counts every row (does not care about literals) */
@@ -330,9 +330,6 @@ rasqal_builtin_agg_expression_execute_step(void* user_data,
                   (result ? RASQAL_GOOD_CAST(const char*, rasqal_literal_as_string(result)) : "(NULL)"),
                   b->error);
 #endif
-    
-    if(b->error)
-      break;
   }
   
   return b->error;
@@ -345,6 +342,9 @@ rasqal_builtin_agg_expression_execute_result(void* user_data)
   rasqal_builtin_agg_expression_execute* b;
 
   b = (rasqal_builtin_agg_expression_execute*)user_data;
+
+  if(b->error)
+    return NULL;
 
   if(b->expr->op == RASQAL_EXPR_COUNT) {
     rasqal_literal* result;
@@ -654,7 +654,7 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
         }
 
 #ifdef RASQAL_DEBUG
-        RASQAL_DEBUG1("Aggregation step over literals: ");
+        RASQAL_DEBUG2("Aggregation expr %d step over literals: ", i);
         raptor_sequence_print(seq, DEBUG_FH);
         fputc('\n', DEBUG_FH);
 #endif
@@ -667,8 +667,10 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
         if(!expr_data->map)
           raptor_free_sequence(seq);
 
-        if(error)
-          break;
+        if(error) {
+          RASQAL_DEBUG2("Aggregation expr %d returned error\n", i);
+          error = 0;
+        }
       }
     }
 
@@ -717,7 +719,7 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       result = rasqal_builtin_agg_expression_execute_result(expr_data->agg_user_data);
   
 #ifdef RASQAL_DEBUG
-      RASQAL_DEBUG1("Aggregation ending group with result: ");
+      RASQAL_DEBUG2("Aggregation %d ending group with result: ", i);
       if(result)
         rasqal_literal_print(result, DEBUG_FH);
       else
