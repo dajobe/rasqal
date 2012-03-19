@@ -1993,6 +1993,29 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
                 rasqal_literal_type_label(lit->type),
                 rasqal_literal_type_label(type));
 
+  if(lit->type == RASQAL_LITERAL_DATE && type == RASQAL_LITERAL_DATETIME) {
+    rasqal_xsd_datetime* dt;
+
+    dt = rasqal_new_xsd_datetime_from_xsd_date(lit->world, lit->value.date);
+
+    /* Promotion for comparison ensures a timezone is present.
+     *
+     * " If either operand to a comparison function on date or time
+     * values does not have an (explicit) timezone then, for the
+     * purpose of the operation, an implicit timezone, provided by the
+     * dynamic context Section C.2 Dynamic Context ComponentsXP, is
+     * assumed to be present as part of the value."
+     * -- XQuery & XPath F&O
+     *    Section 10.4 Comparison Operators on Duration, Date and Time Values
+     * http://www.w3.org/TR/xpath-functions/#comp.duration.datetime
+     */
+    if(dt->have_tz == 'N') {
+      dt->have_tz = 'Z';
+      dt->timezone_minutes = 0;
+    }
+    return rasqal_new_datetime_literal_from_datetime(lit->world, dt);
+  }
+
   /* May not promote to non-numerics */
   if(!rasqal_xsd_datatype_is_numeric(type)) {
     RASQAL_DEBUG2("NOT promoting to non-numeric type %s\n", 
@@ -2700,7 +2723,13 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     type = type1;
   } else if(flags & RASQAL_COMPARE_XQUERY) { 
     /* SPARQL / XSD promotion rules */
-    if(l1->type != l2->type) {
+    if((l1->type == RASQAL_LITERAL_DATE && 
+        l2->type == RASQAL_LITERAL_DATETIME) ||
+       (l1->type == RASQAL_LITERAL_DATETIME &&
+        l2->type == RASQAL_LITERAL_DATE)) {
+      type = RASQAL_LITERAL_DATETIME;
+      promotion = 1;
+    } else if(l1->type != l2->type) {
       type = rasqal_literal_promote_numerics(l1, l2, flags);
       if(type == RASQAL_LITERAL_UNKNOWN) {
         /* Cannot numeric promote - try RDF equality */
@@ -2769,8 +2798,9 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       break;
       
     case RASQAL_LITERAL_DATETIME:
-      result = rasqal_xsd_datetime_equals(l1_p->value.datetime,
-                                          l2_p->value.datetime);
+      result = rasqal_xsd_datetime_equals2(l1_p->value.datetime,
+                                           l2_p->value.datetime,
+                                           error_p);
       break;
       
     case RASQAL_LITERAL_INTEGER:
