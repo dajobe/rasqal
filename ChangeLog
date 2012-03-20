@@ -1,4 +1,56 @@
+2012-03-19  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c: Fix AVG test to expect a
+	decimal result
+
+2012-03-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c: Do not set aggregate
+	expression value on error
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_divide): Result is decimal if both args are integer
+
+	* src/rasqal_literal.c: Promote date to datetime in comparisons
+	and ensure Zulu TZ
+
+	(rasqal_new_literal_from_promotion, rasqal_literal_equals_flags):
+	Promote date to datetime.
+
+	(rasqal_literal_equals_flags): Use rasqal_xsd_datetime_equals2
+	returning error for incomparible.
+
+	* src/rasqal.h.in, src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_equals2): Added, deprecating
+	rasqal_xsd_datetime_equals Return incomparible flag to caller.
+
+	* docs/rasqal-changes.tsv, src/rasqal.h.in, src/rasqal_datetime.c,
+	src/rasqal_literal.c:
+	(rasqal_xsd_date_equals): Returns incomparible pointer This allows
+	the test to fail when across timelines that are incomparible.
+
+	(rasqal_literal_equals_flags): Update to take error return.
+
+	* tests/sparql/check-sparql: $core_dumped earlier
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_timezone_format): Generate sign from inverse of adjusted
+	minutes
+
 2012-02-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_equals): Work if dt1 or dt2 are NULL
+
+	* tests/sparql/check-sparql:
+	Update check-sparql from testing repo
+
+	* src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_xsd_datatypes.c: Move xsd boolean string check to xsd
+	code
+
+	(rasqal_xsd_boolean_value_from_string): Renamed from
+	rasqal_literal_string_interpreted_as_boolean
 
 	* src/rasqal.h.in, src/rasqal_datetime.c: autodocs
 

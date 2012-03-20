@@ -29,14 +29,22 @@
 <code>rasqal_free_xsd_datetime()</code> and core methods
 <code>rasqal_xsd_date_to_counted_string()</code>,
 <code>rasqal_xsd_date_to_string()</code>
-<code>rasqal_xsd_date_equals()</code> and
+<code>rasqal_xsd_date_equals()</code> (returning incomparible) and
 <code>rasqal_xsd_date_compare()</code>.
 </p>
 
 <p>The <code>rasqal_xsd_datetime</code> and new date class above both
 get the same new fields for comparing datetimes and dates:
 <code>time_on_timeline</code> and <code>have_tz</code> to record the
-three timezone possibilities: none ('N'), zulu ('Z') or numeric ('Y').</p>
+three timezone possibilities: none ('N'), zulu ('Z') or numeric
+('Y').  A "time on timeline" value is calculated on construction
+and the field values are not normalized.
+</p>
+
+<p>Added <code>rasqal_xsd_datetime_equals2</code> deprecating
+<code>rasqal_xsd_datetime_equals</code> and returning and
+incomparible flag to caller.
+</p>
 
 <p>Added <code>rasqal_xsd_datetime_compare2()</code> deprecating
 <code>rasqal_xsd_datetime_compare()</code> and returning the
@@ -55,6 +63,10 @@ Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=494">Issue #0000494</a>
 
 <h3>Literal class changes</h3>
 
+<p><code>rasqal_literal_divide()</code> result is now a decimal if
+both args are integer - rule from XPath F&amp;O;
+</p>
+
 <p>Added support for the XSD:Date datatype with a new
 <code>rasqal_literal_type</code> enum value
 <code>RASQAL_LITERAL_DATE</code>.  Updated the literal code including
@@ -65,6 +77,9 @@ methods.
 
 
 <h3>Query engine changes</h3>
+
+<p>Handle errors found in aggregation expressions following SPARQL
+standard.</p>
 
 <p>Fix blank node generation when made in a CONSTRUCT to match
 SPARQL standard.
