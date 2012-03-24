@@ -2739,6 +2739,11 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     type = type1;
   } else if(flags & RASQAL_COMPARE_XQUERY) { 
     /* SPARQL / XSD promotion rules */
+
+    /* Ensure the values are native */
+    rasqal_literal_string_to_native(l1, 0);
+    rasqal_literal_string_to_native(l2, 0);
+
     if((l1->type == RASQAL_LITERAL_DATE && 
         l2->type == RASQAL_LITERAL_DATETIME) ||
        (l1->type == RASQAL_LITERAL_DATETIME &&
