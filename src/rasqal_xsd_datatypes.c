@@ -354,7 +354,7 @@ rasqal_xsd_format_double(double d, size_t *len_p)
     if(!buf)
       return NULL;
 
-    memcpy(buf, "0.0e0", len + 1);
+    memcpy(buf, "0.0E0", len + 1);
     if(len_p)
       *len_p = len;
     return buf;
