@@ -753,7 +753,7 @@ retype:
 /*
  * rasqal_literal_string_to_native:
  * @l: #rasqal_literal to operate on inline
- * @flags: flags for literal checking.  non-0 to ignore type errors
+ * @flags: flags for literal checking.  1 to canonicalize string
  *
  * INTERNAL - Upgrade a datatyped literal string to an internal typed literal
  *
@@ -773,6 +773,7 @@ rasqal_literal_string_to_native(rasqal_literal *l, int flags)
 {
   rasqal_literal_type native_type = RASQAL_LITERAL_UNKNOWN;
   int rc = 0;
+  int canonicalize = (flags & 1 );
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 1);
 
@@ -801,11 +802,8 @@ rasqal_literal_string_to_native(rasqal_literal *l, int flags)
                                       NULL /* existing string */,
                                       canonicalize);
 
-  if(flags) {
-    int valid = rasqal_xsd_datatype_check(native_type, l->string, flags);
-    if(!valid)
-      return 0;
-  }
+  if(!rasqal_xsd_datatype_check(native_type, l->string, 1))
+    return 0;
   
   return rc;
 }
@@ -818,7 +816,7 @@ rasqal_literal_string_to_native(rasqal_literal *l, int flags)
  * @language: RDF language (xml:lang) (or NULL)
  * @datatype: datatype URI (or NULL for plain literal)
  * @datatype_qname: datatype qname string (or NULL for plain literal)
- * @flags: flags - 1 to do native type promotion
+ * @flags: bitflags - 1 to do native type promotion; 2 to canonicalize string
  *
  * INTERNAL Constructor - Create a new Rasqal string literal.
  * 
@@ -831,7 +829,9 @@ rasqal_literal_string_to_native(rasqal_literal *l, int flags)
  * 
  * If the string literal is datatyped and of certain types recognised
  * it may be converted to a different literal type by 
- * rasqal_literal_string_to_native() only if @flags is 1.
+ * rasqal_literal_string_to_native() only if @flags has bit 1 set.
+ * If bit 2 is set AS WELL, literals will have their string converted
+ * to the canonical format.
  *
  * Return value: New #rasqal_literal or NULL on failure
  **/
@@ -844,6 +844,8 @@ rasqal_new_string_literal_common(rasqal_world* world,
                                  int flags)
 {
   rasqal_literal* l;
+  int native_type_promotion = (flags && 1);
+  int canonicalize = (flags && 2) >> 1;
 
   l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
@@ -870,7 +872,8 @@ rasqal_new_string_literal_common(rasqal_world* world,
       datatype_type = rasqal_xsd_datatype_uri_to_type(world, datatype);
     l->parent_type = rasqal_xsd_datatype_parent_type(datatype_type);
     
-    if((flags == 1) && rasqal_literal_string_to_native(l, 1)) {
+    if(native_type_promotion &&
+       rasqal_literal_string_to_native(l, canonicalize)) {
       rasqal_free_literal(l);
       l = NULL;
     }
@@ -933,7 +936,7 @@ rasqal_new_string_literal_node(rasqal_world* world, const unsigned char *string,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(string, char*, NULL);
 
   return rasqal_new_string_literal_common(world, string, language, datatype, 
-                                          NULL, 0);
+                                          NULL, 1 | 2);
 }
 
 
