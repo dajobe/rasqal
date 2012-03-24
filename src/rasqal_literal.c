@@ -1878,6 +1878,18 @@ rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
   rasqal_literal_type type1 = l1->type;
   rasqal_literal_type type2 = l2->type;
   rasqal_literal_type promotion_type;
+  rasqal_literal_type result_type = RASQAL_LITERAL_UNKNOWN;
+
+  /* B1 1.b http://www.w3.org/TR/xpath20/#dt-type-promotion */
+  if(type1 == RASQAL_LITERAL_DECIMAL &&
+     (type2 == RASQAL_LITERAL_FLOAT || type2 == RASQAL_LITERAL_DOUBLE)) {
+    result_type = type2;
+    goto done;
+  } else if(type2 == RASQAL_LITERAL_DECIMAL &&
+     (type1 == RASQAL_LITERAL_FLOAT || type1 == RASQAL_LITERAL_DOUBLE)) {
+    result_type = type1;
+    goto done;
+  }
 
   for(promotion_type = RASQAL_LITERAL_FIRST_XSD;
       promotion_type <= RASQAL_LITERAL_LAST_XSD;
@@ -1885,31 +1897,35 @@ rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
     rasqal_literal_type parent_type1 = rasqal_xsd_datatype_parent_type(type1);
     rasqal_literal_type parent_type2 = rasqal_xsd_datatype_parent_type(type2);
     
-    RASQAL_DEBUG3("literal 1: type %s   parent type %s\n",
-                  rasqal_literal_type_label(type1),
-                  rasqal_literal_type_label(parent_type1));
-    RASQAL_DEBUG3("literal 2: type %s   parent type %s\n",
-                  rasqal_literal_type_label(type2),
-                  rasqal_literal_type_label(parent_type2));
-  
     /* Finished */
-    if(type1 == type2)
-      return type1;
+    if(type1 == type2) {
+      result_type = type1;
+      break;
+    }
 
-    if(parent_type1 == type2)
-      return type2;
+    if(parent_type1 == type2) {
+      result_type = type2;
+      break;
+    }
 
-    if(parent_type2 == type1)
-      return type1;
-
+    if(parent_type2 == type1) {
+      result_type = type1;
+      break;
+    }
+  
     if(parent_type1 == promotion_type)
       type1 = promotion_type;
     if(parent_type2 == promotion_type)
       type2 = promotion_type;
   }
 
-  /* failed! */
-  return RASQAL_LITERAL_UNKNOWN;
+  done:
+  RASQAL_DEBUG4("literal 1: type %s   literal 2: type %s  promoting to %s\n",
+                rasqal_literal_type_label(type1),
+                rasqal_literal_type_label(type2),
+                rasqal_literal_type_label(result_type));
+
+  return result_type;
 }
 
 
