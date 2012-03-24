@@ -69,7 +69,7 @@
 
 /* prototypes */
 static rasqal_literal_type rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2, int flags);
-static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type, const unsigned char* string);
+static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type, const unsigned char* string, int canonicalize);
 
 
 /**
@@ -202,7 +202,7 @@ rasqal_new_typed_literal(rasqal_world* world, rasqal_literal_type type,
     return NULL;
   }
 
-  if(rasqal_literal_set_typed_value(l, type, string)) {
+  if(rasqal_literal_set_typed_value(l, type, string, 0)) {
     rasqal_free_literal(l);
     l = NULL;
   }
@@ -421,7 +421,7 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
       return NULL;
     }
 
-    if(rasqal_literal_set_typed_value(l, l->type, string)) {
+    if(rasqal_literal_set_typed_value(l, l->type, string, 0)) {
       rasqal_free_literal(l);
       l = NULL;
     }
@@ -568,6 +568,7 @@ rasqal_new_datetime_literal_from_datetime(rasqal_world* world,
  * @l: literal
  * @type: type
  * @string: string or NULL to use existing literal string
+ * @canonicalize: non-0 to canonicalize the existing string
  *
  * INTERNAL - Set a literal typed value
  *
@@ -575,7 +576,8 @@ rasqal_new_datetime_literal_from_datetime(rasqal_world* world,
  **/
 static int
 rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
-                               const unsigned char* string)
+                               const unsigned char* string,
+                               int canonicalize)
 {  
   char *eptr;
   raptor_uri* dt_uri;
@@ -652,6 +654,11 @@ retype:
       d = 0.0;
       (void)sscanf(RASQAL_GOOD_CAST(char*, l->string), "%lf", &d);
       l->value.floating = d;
+      if(canonicalize) {
+        if(l->string)
+          RASQAL_FREE(char*, l->string);
+        l->string = rasqal_xsd_format_double(d, (size_t*)&l->string_len);
+      }
       break;
 
     case RASQAL_LITERAL_DECIMAL:
@@ -685,7 +692,9 @@ retype:
     case RASQAL_LITERAL_BOOLEAN:
       i = rasqal_xsd_boolean_value_from_string(l->string);
       /* Free passed in string */
-      RASQAL_FREE(char*, l->string);
+      if(l->string != RASQAL_XSD_BOOLEAN_TRUE &&
+         l->string != RASQAL_XSD_BOOLEAN_FALSE)
+        RASQAL_FREE(char*, l->string);
       /* and replace with a static string */
       l->string = i ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
       l->string_len = i ? RASQAL_XSD_BOOLEAN_TRUE_LEN : RASQAL_XSD_BOOLEAN_FALSE_LEN;
@@ -789,7 +798,8 @@ rasqal_literal_string_to_native(rasqal_literal *l, int flags)
   }
 
   rc = rasqal_literal_set_typed_value(l, native_type,
-                                      NULL /* existing string */);
+                                      NULL /* existing string */,
+                                      canonicalize);
 
   if(flags) {
     int valid = rasqal_xsd_datatype_check(native_type, l->string, flags);
