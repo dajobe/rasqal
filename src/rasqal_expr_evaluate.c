@@ -568,9 +568,10 @@ rasqal_expression_evaluate_coalesce(rasqal_expression *e,
 
     arg_e = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
     if(arg_e) {
+      int my_error = 0;
       rasqal_literal* result;
-      result = rasqal_expression_evaluate2(arg_e, eval_context, error_p);
-      if(result)
+      result = rasqal_expression_evaluate2(arg_e, eval_context, &my_error);
+      if(!my_error && result)
         return result;
     }
   }
