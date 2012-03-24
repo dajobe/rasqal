@@ -219,6 +219,13 @@ check_query_init_query(rasqal_world *world,
   }
   
 
+  if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
+    fprintf(stderr, "%s: Parsing query failed\n", program);
+
+    rasqal_free_query(rq); rq = NULL;
+    goto tidy_query;
+  }
+
   if(data_graphs) {
     rasqal_data_graph* dg;
     
@@ -229,13 +236,6 @@ check_query_init_query(rasqal_world *world,
         goto tidy_query;
       }
     }
-  }
-
-  if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
-    fprintf(stderr, "%s: Parsing query failed\n", program);
-
-    rasqal_free_query(rq); rq = NULL;
-    goto tidy_query;
   }
 
   tidy_query:
