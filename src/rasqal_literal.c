@@ -928,6 +928,20 @@ rasqal_new_string_literal(rasqal_world* world,
 }
 
 
+/*
+ * rasqal_new_string_literal_node:
+ * @world: rasqal world object
+ * @string: UTF-8 string lexical form
+ * @language: RDF language (xml:lang) (or NULL)
+ * @datatype: datatype URI (or NULL for plain literal)
+ *
+ * INTERNAL Constructor - Create a new Rasqal literal with promotion and canonicalization
+ * 
+ * All parameters are input parameters and if present are stored in
+ * the literal, not copied. They are freed also on failure.
+ * 
+ * Return value: New #rasqal_literal or NULL on failure
+ **/
 rasqal_literal*
 rasqal_new_string_literal_node(rasqal_world* world, const unsigned char *string,
                                const char *language, raptor_uri *datatype)
