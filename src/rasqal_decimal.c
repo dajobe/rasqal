@@ -408,7 +408,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
   size_t len=0;
 #ifdef RASQAL_DECIMAL_C99
 #else
-  char fmt[16];
+  char fmt[18];
   size_t e_index = 0;
   size_t trailing_zero_start = 0;
 #endif
@@ -455,7 +455,9 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
   }
   
   if(s[len - 1] == '.') {
-    s[len-- - 1] = '\0';
+    /* Ends in . so add 0 for canonical format */
+    s[len++] = '0';
+    s[len] = '\0';
   }
   
 #endif
@@ -923,10 +925,10 @@ main(int argc, char *argv[]) {
   const long a_long = 1234567890L;
   const double a_double = 1234567890e0;
   const char* b_string = "123456789012345678";
-  const char* expected_a_plus_b = "123456790246913568";
-  const char* expected_a_plus_b_minus_b = "1234567890";
-  const char* expected_a_plus_b_minus_b_minus_a = "0";
-  const char* expected_negative_b = "-123456789012345678";
+  const char* expected_a_plus_b = "123456790246913568.0";
+  const char* expected_a_plus_b_minus_b = "1234567890.0";
+  const char* expected_a_plus_b_minus_b_minus_a = "0.0";
+  const char* expected_negative_b = "-123456789012345678.0";
   int expected_a_compare_b= -1;
   int expected_a_equals_b= 0;
   rasqal_world *world;
