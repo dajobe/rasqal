@@ -366,7 +366,7 @@ rasqal_xsd_format_double(double d, size_t *len_p)
     return NULL;
   
   /* snprintf needs the length + 1 because it writes a \0 too */
-  snprintf(RASQAL_GOOD_CAST(char*, buf), len + 1, "%1.14e", d);
+  snprintf(RASQAL_GOOD_CAST(char*, buf), len + 1, "%1.14E", d);
 
   /* find the 'e' and start of mantissa trailing zeros */
 
@@ -376,7 +376,7 @@ rasqal_xsd_format_double(double d, size_t *len_p)
       have_trailing_zero = 1;
     }
     
-    else if(buf[e_index] == 'e')
+    else if(buf[e_index] == 'E')
       break;
   }
 
@@ -409,7 +409,7 @@ rasqal_xsd_format_double(double d, size_t *len_p)
     } else {
       /* copy the exponent (minus leading zeros) after the new E */
       memmove(buf + trailing_zero_start + 1, buf + exponent_start,
-              len - exponent_start);
+              len - exponent_start + 1);
       len = strlen(RASQAL_GOOD_CAST(const char*, buf));
     }
   }
