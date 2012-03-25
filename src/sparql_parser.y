@@ -3493,7 +3493,8 @@ ArgListNoBraces: ArgListNoBraces ',' Expression
 }
 | /* empty */
 {
-  $$ = NULL;
+  $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
+                           (raptor_data_print_handler)rasqal_expression_print);
 }
 ;
 
