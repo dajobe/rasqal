@@ -370,17 +370,15 @@ rasqal_xsd_format_double(double d, size_t *len_p)
 
   /* find the 'e' and start of mantissa trailing zeros */
 
-  for( ; buf[e_index]; ++e_index) {
+  for( ; buf[e_index] && buf[e_index] != 'E'; ++e_index) {
     if(e_index > 0 && buf[e_index] == '0' && buf[e_index - 1] != '0') {
       trailing_zero_start = e_index;
       have_trailing_zero = 1;
     }
-    
-    else if(buf[e_index] == 'E')
-      break;
   }
 
   if(have_trailing_zero) {
+    /* Ensure X.00 always returns X.0 rather than delete all trailing 0s */
     if(buf[trailing_zero_start - 1] == '.')
       ++trailing_zero_start;
 
@@ -388,31 +386,41 @@ rasqal_xsd_format_double(double d, size_t *len_p)
     buf[trailing_zero_start] = 'E';
     if(buf[e_index + 1] == '-') {
       buf[trailing_zero_start + 1] = '-';
+      ++e_index;
       ++trailing_zero_start;
     }
   } else {
-    buf[e_index] = 'E';
-    trailing_zero_start = e_index + 1;
-    have_trailing_zero = 1;
+    trailing_zero_start = e_index;
+    buf[trailing_zero_start] = 'E';
+    ++trailing_zero_start;
   }
   
-  exponent_start = e_index + 2;
+  exponent_start = e_index + 1;
   while(buf[exponent_start] == '0')
     ++exponent_start;
 
-  if(have_trailing_zero) {
+  len = strlen(RASQAL_GOOD_CAST(const char*, buf));
+  if(exponent_start == len) {
+    /* E0 */
+    len = trailing_zero_start + 2;
+    buf[len - 1] = '0';
+    buf[len] = '\0';
+  } else {
+    /* copy the exponent (minus leading zeros) after the new E */
+    memmove(buf + trailing_zero_start + 1, buf + exponent_start,
+            len - exponent_start + 1);
     len = strlen(RASQAL_GOOD_CAST(const char*, buf));
-    if(exponent_start == len) {
-      len = trailing_zero_start + 2;
-      buf[len - 1] = '0';
-      buf[len] = '\0';
-    } else {
-      /* copy the exponent (minus leading zeros) after the new E */
-      memmove(buf + trailing_zero_start + 1, buf + exponent_start,
-              len - exponent_start + 1);
-      len = strlen(RASQAL_GOOD_CAST(const char*, buf));
-    }
   }
+
+  if(buf[e_index-2] != '.') {
+    /* Make space for .0 at end of mantissa */
+    memmove(buf + e_index + 2, buf + e_index, len - e_index + 1);
+    buf[e_index++] = '.';
+    buf[e_index++] = '0';
+    /* e_index points to E again */
+    len += 2;
+  }
+  
   
   if(len_p)
     *len_p = len;
