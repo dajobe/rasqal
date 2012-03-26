@@ -844,8 +844,8 @@ rasqal_new_string_literal_common(rasqal_world* world,
                                  int flags)
 {
   rasqal_literal* l;
-  int native_type_promotion = (flags && 1);
-  int canonicalize = (flags && 2) >> 1;
+  int native_type_promotion = (flags & 1);
+  int canonicalize = (flags & 2) >> 1;
 
   l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
