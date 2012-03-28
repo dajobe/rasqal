@@ -382,7 +382,7 @@ fi
 
 
 # raptor V2 is REQUIRED; --enable-raptor2 option was removed
-RAPTOR_MIN_VERSION=2.0.4
+RAPTOR_MIN_VERSION=2.0.7
 
 
 AC_CHECK_PROGS(PKG_CONFIG, pkg-config)
