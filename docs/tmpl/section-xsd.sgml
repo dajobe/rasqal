@@ -78,6 +78,7 @@ operators on the Decimals suitable for SPARQL.
 
 @d1: 
 @d2: 
+@incomparible_p: 
 @Returns: 
 
 
