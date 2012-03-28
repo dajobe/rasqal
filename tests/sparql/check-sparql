@@ -95,6 +95,8 @@ sub toDebug($) {
 
   #return $str if $str =~ s/^_:(.*)$/blank $1/;
   return $str if $str =~ s/^_:(.*)$/blank _/;
+
+  return qq{string("$str")};
 }
 
 sub read_rdf_results_file($$) {
