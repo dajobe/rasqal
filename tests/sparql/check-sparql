@@ -4,7 +4,7 @@
 #
 # USAGE: check-sparql [options] [TEST]
 # 
-# Copyright (C) 2004-2011, David Beckett http://www.dajobe.org/
+# Copyright (C) 2004-2012, David Beckett http://www.dajobe.org/
 # Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
@@ -50,6 +50,7 @@ my $diff_cmd=$ENV{DIFF} || "diff";
 
 my $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 my $rs='http://www.w3.org/2001/sw/DataAccess/tests/result-set#';
+my $resultVariable_predicate="<${rs}resultVariable>";
 my $variable_predicate="<${rs}variable>";
 my $value_predicate="<${rs}value>";
 my $binding_predicate="<${rs}binding>";
@@ -83,13 +84,13 @@ sub toDebug($) {
 
   return "NULL" if $str eq "<${rs}undefined>";
 
-  return $str if $str =~ s/^(".*")(@.*)(\^\^<.*>)$/string($1$2$3)/;
+  return $str if $str =~ s/^("[^"]*")(@.*)(\^\^<.*>)$/string($1$2$3)/;
 
-  return $str if $str =~ s/^(".*"\^\^<.*>)$/string($1)/;
+  return $str if $str =~ s/^("[^"]*"\^\^<.*>)$/string($1)/;
 
-  return $str if $str =~ s/^(".*"@.*)$/string($1)/;
+  return $str if $str =~ s/^("[^"]*"@.*)$/string($1)/;
 
-  return $str if $str =~ s/^(".*")$/string($1)/;
+  return $str if $str =~ s/^("[^"]*")$/string($1)/;
 
   return $str if $str =~ s/^(<.*>)$/uri$1/;
 
@@ -164,12 +165,17 @@ sub read_rdf_results_file($$) {
     return {expect_empty => 1};
   }
 
+  my(@variables);
+  for my $vname (@{$nodes{$resultset_node}->{$resultVariable_predicate}}) {
+    push(@variables, $vname);
+  }
+
   for my $node (@{$nodes{$resultset_node}->{$solution_predicate}}) {
     warn "$program: Row node $node\n"
       if $debug > 1;
 
     # Get binding nodes
-    my $row={};
+    my $row = { map { $_ => undef} @variables };
     for my $binding_node (@{$nodes{$node}->{$binding_predicate}}) {
       warn "Binding node $binding_node\n"
 	if $debug > 1;
@@ -205,9 +211,15 @@ sub read_srx_results_file($) {
   my $parser = new XML::DOM::Parser;
   my $doc = $parser->parsefile($result_file);
 
+  my(@variables)=();
+  for my $variable_el ($doc->getElementsByTagName("variable")) {
+    next unless ref($variable_el) eq 'XML::DOM::Element';
+    push(@variables, $variable_el->getAttribute('name'));
+  }
+
   for my $result ($doc->getElementsByTagName("result")) {
     next unless ref($result) eq 'XML::DOM::Element';
-    my($row)={};
+    my($row)= { map { $_ => undef } @variables };
 
     warn "Result Element ".$result->getNodeName()."\n"
       if $debug > 1;
@@ -278,7 +290,13 @@ sub read_sv_results_file($$) {
   my(@vars);
   for my $line (split(/(?:\r\n|\r|\n)/, $data)) {
     # warn ">>$line<<\n";
+
+    # Replace $sep in quotes with \001
+    $line =~ s/("[^"]*")/$a = $1; $a =~ s%$sep%\001%g; $a/eg;
     my(@values)=split(/$sep/, $line);
+    # Restore $sep
+    @values = map { s/\001/$sep/g; $_ } @values;
+
     if(!@vars) {
       @vars = map { s/^\?//; $_ } @values;
       warn "$program: SV vars are @vars\n"
@@ -291,24 +309,18 @@ sub read_sv_results_file($$) {
       my($variable) = $vars[$i];
       my $value = $values[$i];
       if(defined $value) {
-	if($sv_type eq 'csv') {
-	  if($value =~ /^http/) {
-	    $value="uri<".$value.">";
-	  } elsif($value =~ /^_:/) {
-	    $value = "blank _";
-	  } elsif($value =~ /^[0-9]+$/) {
-	    $value="string(\"$value\"^^<http://www.w3.org/2001/XMLSchema#integer>)";
-	  } elsif($value =~ /^\d+$/) {
-	    $value="string(\"$value\"^^<http://www.w3.org/2001/XMLSchema#decimal>)";
-	  } else {
-	    $value="string(\"".$value."\"^^<http://www.w3.org/2001/XMLSchema#string>)";
-	  }
+	if($value =~ /^http/) {
+	  $value="uri<".$value.">";
+	} elsif($value =~ /^_:/) {
+	  $value = "blank _";
+	} elsif($value =~ /^\d+\.\d+$/) {
+	  $value="string(\"$value\"^^<http://www.w3.org/2001/XMLSchema#decimal>)";
+	} elsif($value =~ /^\d+$/) {
+	  $value="string(\"$value\"^^<http://www.w3.org/2001/XMLSchema#integer>)";
+	} elsif($value =~ /^\d+\.\d+[eE]\d+$/) {
+	  $value="string(\"$value\"^^<http://www.w3.org/2001/XMLSchema#double>)";
 	} else {
-	  if($value =~ /^[0-9]+$/) {
-	    $value="string(\"$value\"^^<http://www.w3.org/2001/XMLSchema#integer>)";
-	  } else {
-	    $value = toDebug($value);
-	  }
+	  $value = toDebug($value);
 	}
       }
       $row->{$variable} = $value;
@@ -373,9 +385,8 @@ sub compare_rdf_graphs($$$) {
     $rc = system($cmd);
   } elsif(defined $ENV{JENAROOT}) {
     my $j = $ENV{JENAROOT};
-    my $classpath = `$j/bin/jena_path`;
-    chomp $classpath;
-    $cmd = qq{java -cp "$classpath" jena.rdfcompare $file1 $file2 N-TRIPLE N-TRIPLE > $out};
+    my $classpath=join(':',glob("$j/lib/*jar"));
+    $cmd = qq{java -cp $classpath jena.rdfcompare $file1 $file2 N-TRIPLE N-TRIPLE > $out};
     $rc = system($cmd);
     if($rc) {
       $cmd = "$diff_cmd -u $file1 $file2 > $out";
@@ -494,10 +505,8 @@ sub run_test {
   my(%vars_seen);
 
   for (split(/\n/, $test_result->{'stdout'})) {
-    if(/^(?:selects|bound variables): \[(.*)\]$/) {
-      my $vars=$1;
-      while($vars =~ s/variable\((\w+)//) {
-	my $vname = $1;
+    if(/^projected variable names: (.*)$/) {
+      for my $vname (split(/,\s*/, $1)) {
 	unless($vars_seen{$vname}) {
 	  push(@vars_order, $vname);
 	  $vars_seen{$vname}=1;
@@ -525,16 +534,6 @@ sub run_test {
       s/=udt/=string/g;
       s%=xsdstring\((.*?)\)%=string("$1"^^<http://www.w3.org/2001/XMLSchema#string>)%g;
       my $line=$_;
-      if(!@vars_order) {
-	my $vars=$1;
-	$vars =~ s/=uri<[^>]+>//g;
-	$vars =~ s/=string\("[^"]+"[^)]*\)//g; # "
-	$vars =~ s/=blank _//g;
-	$vars =~ s/,//g;
-	@vars_order=split(/ /, $vars);
-	warn "$program: Set vars order later to @vars_order\n"
-	  if $debug;
-      }
 
       if($first_result) {
         open(OUT, "|$sort >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";

@@ -361,8 +361,23 @@ roqet_query_walk(rasqal_query *rq, FILE *fh, int indent) {
   
   seq = rasqal_query_get_bound_variable_sequence(rq);
   if(seq && raptor_sequence_size(seq) > 0) {
-    fprintf(fh, "query bound variables (%d): ", 
-            raptor_sequence_size(seq));
+    int size = raptor_sequence_size(seq);
+    fprintf(fh, "query projected variable names (%d): ", size);
+    i = 0;
+    while(1) {
+      rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
+      if(!v)
+        break;
+
+      if(i > 0)
+        fputs(", ", fh);
+
+      fputs((const char*)v->name, fh);
+      i++;
+    }
+    fputc('\n', fh);
+
+    fprintf(fh, "query bound variables (%d): ", size);
     i = 0;
     while(1) {
       rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(seq, i);

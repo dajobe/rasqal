@@ -1485,6 +1485,22 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   }
   seq = rasqal_query_get_bound_variable_sequence(query);
   if(seq) {
+    int i;
+    
+    fputs("\nprojected variable names: ", fh);
+    for(i = 0; 1; i++) {
+      rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
+      if(!v)
+        break;
+      if(i > 0)
+        fputs(", ", fh);
+
+      fputs((const char*)v->name, fh);
+    }
+    fputc('\n', fh);
+      
+    raptor_sequence_print(seq, fh);
+
     fputs("\nbound variables: ", fh); 
     raptor_sequence_print(seq, fh);
   }
