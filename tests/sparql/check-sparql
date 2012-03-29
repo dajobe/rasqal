@@ -390,6 +390,11 @@ sub compare_rdf_graphs($$$) {
 }
 
 
+sub defined_or_NULL($) {
+  return defined($_[0]) ? $_[0] : 'NULL';
+}
+
+
 sub run_test {
   my($config)=@_;
   my($name,$dir,$test_file,$result_file,$expect_fail,$language,
@@ -643,8 +648,8 @@ sub run_test {
 
     $count=0;
     for my $row (@{$results->{rows}}) {
-      my(@defined_vars)=grep(defined $row->{$_}, @vars_order);
-      print OUT "result: [",join(", ",map {"$_=$row->{$_}"} @defined_vars),"]\n";
+      my(@vals) = map { $_ . '=' . defined_or_NULL($row->{$_}) } @vars_order;
+      print OUT "result: [", join(", ", @vals), "]\n";
       $count++;
     }
     close(OUT);
