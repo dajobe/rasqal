@@ -530,14 +530,11 @@ sub run_test {
 	$vars =~ s/=uri<[^>]+>//g;
 	$vars =~ s/=string\("[^"]+"[^)]*\)//g; # "
 	$vars =~ s/=blank _//g;
-	$vars =~ s/=NULL//g;
 	$vars =~ s/,//g;
 	@vars_order=split(/ /, $vars);
 	warn "$program: Set vars order later to @vars_order\n"
 	  if $debug;
       }
-      $line =~ s/,?\s+\w+=NULL//g;
-      $line =~ s/\w+=NULL,\s+//g;
 
       if($first_result) {
         open(OUT, "|$sort >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
