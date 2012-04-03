@@ -1878,7 +1878,6 @@ main(int argc, char *argv[])
   const char *filename = NULL;
   char *buf = NULL;
   size_t len;
-  void *buffer;
   rasqal_world *world;
   FILE *fh;
   
@@ -1922,7 +1921,7 @@ main(int argc, char *argv[])
   memcpy(buf, query_string, len);
   buf[len] =  ' ';
   buf[len+1] =  buf[len+2] = '\0'; /* YY_END_OF_BUFFER_CHAR; */
-  buffer =  sparql_lexer__scan_buffer(buf, len+3, scanner);
+  (void)sparql_lexer__scan_buffer(buf, len+3, scanner);
 
   sparql_lexer_set_extra(&rq, scanner);
 
