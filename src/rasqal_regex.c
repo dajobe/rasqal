@@ -789,9 +789,9 @@ int
 main(int argc, char *argv[])
 {
   rasqal_world* world;
-  raptor_locator* locator;
   const char *program = rasqal_basename(argv[0]);
 #ifdef RASQAL_REGEX_PCRE
+  raptor_locator* locator = NULL;
   int test = 0;
 #endif
   int failures = 0;
@@ -803,8 +803,6 @@ main(int argc, char *argv[])
     goto tidy;
   }
     
-  locator = NULL;
-
 #if defined(RASQAL_REGEX_POSIX) || defined(RASQAL_REGEX_NONE)
     fprintf(stderr,
             "%s: WARNING: Cannot only run regex tests with PCRE regexes\n",
