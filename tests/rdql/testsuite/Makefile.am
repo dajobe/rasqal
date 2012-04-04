@@ -70,9 +70,10 @@ rdql_testsuite_extra_files=query-dump rdql-tests.n3	\
 README-RDQL-tests.txt copyright.txt
 
 # 1-09: No support for expanding 'prefix' in '<prefix:/r-1>'
+# B-01: Withdrawn support for RDQL "" == ""^^xsd:string in 0.9.28
 # B-17: No support for "true" matching "true"^^xsd:boolean
-EXPECTED_RDQL_CORRECT_FAILURES=1-09 B-17
-EXPECTED_RDQL_CORRECT_FAILURES_COUNT=2
+EXPECTED_RDQL_CORRECT_FAILURES=1-09 B-01 B-17
+EXPECTED_RDQL_CORRECT_FAILURES_COUNT=3
 
 EXTRA_DIST = README \
 check-rdql \
@@ -102,7 +103,7 @@ get-testsuite-rdql-query:
 	for test in $$tests; do \
 	  comment="rdql query $$test"; \
 	  expect="PositiveTest"; \
-	  if [ $$test = "test-1-09" -o $$test = "test-B-17" ]; then \
+	  if [ $$test = "test-1-09" -o $$test = "test-B-01" -o $$test = "test-B-17" ]; then \
 	    expect="NegativeTest"; \
           fi; \
 	  t=`echo $$test | sed -e 's/^test-//'`; \
