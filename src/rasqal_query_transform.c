@@ -794,7 +794,10 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
   }
 
   if(size == 1) {
-    merge_gp_ok = 1;
+    /* Never merge a FILTER to an outer GROUP since you lose
+     * knowledge about variable scope
+     */
+    merge_gp_ok = (op != RASQAL_GRAPH_PATTERN_OPERATOR_FILTER);
     goto merge_check_done;
   }
 
