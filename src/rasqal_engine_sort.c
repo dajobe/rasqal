@@ -142,6 +142,10 @@ rasqal_engine_new_rowsort_map(int is_distinct, int compare_flags,
     return NULL;
   
   rcd->is_distinct = is_distinct;
+  if(is_distinct) {
+    compare_flags &= ~RASQAL_COMPARE_XQUERY;
+    compare_flags |= RASQAL_COMPARE_RDF;
+  }
   rcd->compare_flags = compare_flags;
   rcd->order_conditions_sequence = order_conditions_sequence;
   
