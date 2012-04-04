@@ -2555,18 +2555,23 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
 
 /*
- * rasqal_literal_string_equals:
+ * rasqal_literal_string_equals_flags:
  * @l1: #rasqal_literal first literal
  * @l2: #rasqal_literal second literal
+ * @flags: comparison flags
  * @error_p: pointer to error
  *
  * INTERNAL - Compare two typed literals
  *
+ * flag bits affects equality:
+ *   RASQAL_COMPARE_XQUERY: use value equality
+ *   RASQAL_COMPARE_RDF: use RDF term equality
+ *
  * Return value: non-0 if equal
  */
 static int
-rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
-                             int* error_p)
+rasqal_literal_string_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
+                                   int flags, int* error_p)
 {
   int result = 1;
   raptor_uri* dt1;
@@ -2595,17 +2600,19 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
       return 0;
   }
 
-  /* Promote plain literal to typed literal "xx"^^xsd:string 
-   * if the other literal is typed
+  /* For a value comparison (or RDQL), promote plain literal to typed
+   * literal "xx"^^xsd:string if the other literal is typed
    */
-  if(l1->type == RASQAL_LITERAL_STRING && 
-     l2->type == RASQAL_LITERAL_XSD_STRING) {
-    dt1 = raptor_uri_copy(xsd_string_uri);
-    free_dt1 = 1;
-  } else if(l1->type == RASQAL_LITERAL_XSD_STRING && 
-            l2->type == RASQAL_LITERAL_STRING) {
-    dt2 = raptor_uri_copy(xsd_string_uri);
-    free_dt2 = 1;
+  if(flags & RASQAL_COMPARE_XQUERY || flags & RASQAL_COMPARE_URI) {
+    if(l1->type == RASQAL_LITERAL_STRING && 
+       l2->type == RASQAL_LITERAL_XSD_STRING) {
+      dt1 = raptor_uri_copy(xsd_string_uri);
+      free_dt1 = 1;
+    } else if(l1->type == RASQAL_LITERAL_XSD_STRING && 
+              l2->type == RASQAL_LITERAL_STRING) {
+      dt2 = raptor_uri_copy(xsd_string_uri);
+      free_dt2 = 1;
+    }
   }
 
   if(dt1 || dt2) {
@@ -2833,7 +2840,7 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_UDT:
-      result = rasqal_literal_string_equals(l1_p, l2_p, error_p);
+      result = rasqal_literal_string_equals_flags(l1_p, l2_p, flags, error_p);
       break;
 
     case RASQAL_LITERAL_BLANK:
@@ -4071,7 +4078,9 @@ rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2)
     return rasqal_literal_uri_equals(l1, l2);
 
   if(type1 == RASQAL_LITERAL_STRING)
-    return rasqal_literal_string_equals(l1, l2, NULL);
+    /* value compare */
+    return rasqal_literal_string_equals_flags(l1, l2, RASQAL_COMPARE_XQUERY,
+                                              NULL);
 
   if(type1 == RASQAL_LITERAL_BLANK)
     return rasqal_literal_blank_equals(l1, l2);
