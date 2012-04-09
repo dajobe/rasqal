@@ -1779,6 +1779,7 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
       break;
       
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNION:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_GROUP:
     case RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL:
       rc = rasqal_query_union_build_variables_use_map_binds(query,
                                                             use_map,
@@ -1786,7 +1787,6 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
                                                             gp, vars_scope);
       break;
       
-    case RASQAL_GRAPH_PATTERN_OPERATOR_GROUP:
     case RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE:
     case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
