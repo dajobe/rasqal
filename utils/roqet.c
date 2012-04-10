@@ -1350,16 +1350,21 @@ main(int argc, char *argv[])
     FILE *fh;
     unsigned char* buffer;
 
+    buffer = (unsigned char*)malloc(FILE_READ_BUF_SIZE);
+    if(!buffer) {
+      rc = 1;
+      goto tidy_setup;
+    }
+
     fh = fopen(filename, "r");
     if(!fh) {
+      free(buffer);
       fprintf(stderr, "%s: file '%s' open failed - %s", 
               program, filename, strerror(errno));
       rc = 1;
       goto tidy_setup;
     }
     
-    buffer = (unsigned char*)malloc(FILE_READ_BUF_SIZE);
-
     while(!feof(fh)) {
       size_t read_len;
 
