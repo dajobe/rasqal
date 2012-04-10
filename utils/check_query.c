@@ -163,6 +163,7 @@ check_query_read_file_string(const char* filename,
   size_t len;
   FILE *fh = NULL;
   unsigned char* string = NULL;
+  unsigned char* buffer;
 
   sb = raptor_new_stringbuffer();
   if(!sb)
@@ -175,8 +176,9 @@ check_query_read_file_string(const char* filename,
     goto tidy;
   }
     
+  buffer = (unsigned char*)malloc(FILE_READ_BUF_SIZE);
+
   while(!feof(fh)) {
-    unsigned char buffer[FILE_READ_BUF_SIZE];
     size_t read_len;
     
     read_len = fread((char*)buffer, 1, FILE_READ_BUF_SIZE, fh);
@@ -193,6 +195,7 @@ check_query_read_file_string(const char* filename,
       break;
     }
   }
+  free(buffer);
   fclose(fh); fh = NULL;
   
   len = raptor_stringbuffer_length(sb);
