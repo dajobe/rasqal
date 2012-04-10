@@ -1,4 +1,151 @@
+2012-04-10  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-xsd.sgml: Update tmpls
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt: Added
+	rasqal_xsd_datetime_equals2
+
+	* src/rasqal_general.c: 2012
+
+	* utils/roqet.c: catch another malloc failure
+
+	* utils/roqet.c:
+	(print_help): added to make main shorter
+
+	* utils/check_query.c:
+	(check_query_read_file_string): Error handling for malloc
+
+	* utils/check_query.c: allocate buffer from heap not stack to
+	prevent >4K stack frame
+
+2012-04-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_merge_graph_patterns): Do not merge { FILTER }
+
+	* tests/rdql/testsuite/Makefile.am: Mark RDQL test B-01 as failing
+	- don't care
+
+	* src/rasqal_literal.c: Enable DISTINCT to use RDF term comparison
+
+	(rasqal_literal_string_equals_flags): Renamed from
+	rasqal_literal_string_equals and adds flags arg to set the
+	equality mode - value RASQAL_COMPARE_XQUERY, RDF term
+	RASQAL_COMPARE_RDF or RDQL RASQAL_COMPARE_URI.  Do not equate ""
+	and ""^^xsd:string unless value or RDQL mode
+
+	Update callers of rasqal_literal_string_equals to use
+	rasqal_literal_string_equals_flags and pass in flags.
+
+	(rasqal_literal_same_term): Use literal value comparison with
+	rasqal_literal_string_equals_flags.
+
+	* src/rasqal_engine_sort.c: rowsorting for distinct uses RDF term
+	comparisons
+
+	(rasqal_engine_new_rowsort_map): When distinct, set literal
+	compare_flags to use RDF term comparison
+
+2012-04-02  Dave Beckett <dave@dajobe.org>
+
+	* src/rdql_lexer.l, src/sparql_lexer.l:
+	(main): Throw away unused values instead of storing in buffer
+
+	* src/rasqal_random.c:
+	(main): Throw away unused random results in testing
+
+	* src/rasqal_regex.c:
+	(main): locator is only needed for RASQAL_REGEX_PCRE
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_triple): Rewrite loop logic to set skip at
+	end
+
+2012-03-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query.c, tests/sparql/check-sparql, utils/roqet.c:
+	Update test runner
+
+	(rasqal_query_print): Print projected variable names for test
+	runner
+
+	tests/sparql/check-sparql: merge from redland-testing and fixup
+	always get variables from results header
+
+	utils/roqet: print projected variable names
+
+	* tests/sparql/check-sparql: preserve v=NULL for roqet output
+
+	* tests/sparql/check-sparql: return v=NULL for variables unset in
+	a result row
+
+	* docs/tmpl/section-xsd.sgml: Update xsd tmpl
+
+2012-03-27  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql:
+	(toDebug): quote result str
+
+	* README.html, RELEASE.html, configure.ac,
+	src/rasqal_expr_strings.c, src/rasqal_general.c: Require Raptor
+	2.0.7 or newer.
+
+2012-03-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_new_string_literal_common): Use bitwise & - thanks Lauri
+
+2012-03-24  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Empty ArgList returns empty seq not NULL
+
+	* src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_format_double): Move exponent and terminate properly.
+
+	* src/rasqal_literal.c:
+	(rasqal_new_string_literal_node) docs
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_string_to_native): Only flag now is canonicalizing
+
+	(rasqal_new_string_literal_common): Takes native type promotion
+	and canonicalizing flag.
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): Add canonicalize parameter to
+	set string
+
+	* src/rasqal_literal.c, utils/check_query.c: Always
+	rasqal_literal_string_to_native before rasqal_literal_equals_flags
+
+	* src/rasqal_decimal.c:
+	(rasqal_xsd_decimal_as_string): Canonical decimal ends in .0
+	Correct test results for canonical decimal format
+
+	* src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_format_double): Return 0.0E0 for zero
+
+	* src/rasqal_literal.c: Fix numeric promotion with one decimal and
+	one float/double.
+
+	(rasqal_literal_promote_numerics): Promote decimal with
+	float/double to float/decimal following XPath rules - B1 1.b
+	http://www.w3.org/TR/xpath20/#dt-type-promotion
+
+2012-03-23  Dave Beckett <dave@dajobe.org>
+
+	* utils/check_query.c: Call rasqal_query_add_data_graph() after
+	prepare
+
+	* src/rasqal_expr_evaluate.c: Evaluate COALESCE following sparql
+	1.1 rules
+
+	(rasqal_expression_evaluate_coalesce): Ignore evaluation errors in
+	sequence of expressions until a good result is found.
+
 2012-03-19  Dave Beckett <dave@dajobe.org>
+
+	* ChangeLog, NEWS.html, RELEASE.html: 0.9.29
 
 	* src/rasqal_rowsource_aggregation.c: Fix AVG test to expect a
 	decimal result
