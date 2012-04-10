@@ -765,6 +765,95 @@ void roqet_print_query(rasqal_query* rq,
 }
 
 
+static void
+print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
+{
+  int i;
+    
+  printf(title_format_string, rasqal_version_string);
+  puts("Run an RDF query giving variable bindings or RDF triples.");
+  printf("Usage: %s [OPTIONS] <query URI> [base URI]\n", program);
+  printf("       %s [OPTIONS] -e <query string> [base URI]\n", program);
+  printf("       %s [OPTIONS] -p <SPARQL protocol service URI> -e <query string> [base URI]\n\n", program);
+  
+  fputs(rasqal_copyright_string, stdout);
+  fputs("\nLicense: ", stdout);
+  puts(rasqal_license_string);
+  fputs("Rasqal home page: ", stdout);
+  puts(rasqal_home_url_string);
+  
+  puts("\nNormal operation is to execute the query retrieved from URI <query URI>");
+  puts("and print the results in a simple text format.");
+  puts("\nMain options:");
+  puts(HELP_TEXT("e", "exec QUERY      ", "Execute QUERY string instead of <query URI>"));
+  puts(HELP_TEXT("p", "protocol URI    ", "Execute QUERY against a SPARQL protocol service URI"));
+  puts(HELP_TEXT("i", "input LANGUAGE  ", "Set query language name to one of:"));
+  for(i = 0; 1; i++) {
+    const raptor_syntax_description* desc;
+    
+    desc = rasqal_world_get_query_language_description(world, i);
+    if(!desc)
+      break;
+    
+    printf("    %-15s         %s", desc->names[0], desc->label);
+    if(!i)
+      puts(" (default)");
+    else
+      putchar('\n');
+  }
+  
+  puts(HELP_TEXT("r", "results FORMAT  ", "Set query results output format to one of:"));
+  puts("    For variable bindings and boolean results:");
+  puts("      simple                A simple text format (default)");
+  
+  for(i = 0; 1; i++) {
+    const raptor_syntax_description* desc;
+    
+    desc = rasqal_world_get_query_results_format_description(world, i);
+    if(!desc)
+      break;
+    
+    if(desc->flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER)
+      printf("      %-10s            %s\n", desc->names[0], desc->label);
+  }
+  
+  puts("    For RDF graph results:");
+  
+  for(i = 0; 1; i++) {
+    const raptor_syntax_description *desc;
+    desc = raptor_world_get_parser_description(raptor_world_ptr, i);
+    if(!desc)
+      break;
+    
+    printf("      %-15s       %s", desc->names[0], desc->label);
+    if(!i)
+      puts(" (default)");
+    else
+      putchar('\n');
+  }
+  puts("\nAdditional options:");
+  puts(HELP_TEXT("c", "count             ", "Count triples - no output"));
+  puts(HELP_TEXT("d FORMAT", "dump-query FORMAT", HELP_PAD "Print the parsed query out in FORMAT:"));
+  for(i = 1; i <= QUERY_OUTPUT_LAST; i++)
+    printf("      %-15s         %s\n", query_output_format_labels[i][0],
+           query_output_format_labels[i][1]);
+  puts(HELP_TEXT("D URI", "data URI      ", "RDF data source URI"));
+  puts(HELP_TEXT("E", "ignore-errors     ", "Ignore error messages"));
+  puts(HELP_TEXT("f FEATURE(=VALUE)", "feature FEATURE(=VALUE)", HELP_PAD "Set query features" HELP_PAD "Use `-f help' for a list of valid features"));
+  puts(HELP_TEXT("F NAME", "format NAME  ", "Set data source format name (default: guess)"));
+  puts(HELP_TEXT("G URI", "named URI     ", "RDF named graph data source URI"));
+  puts(HELP_TEXT("h", "help              ", "Print this help, then exit"));
+  puts(HELP_TEXT("n", "dryrun            ", "Prepare but do not run the query"));
+  puts(HELP_TEXT("q", "quiet             ", "No extra information messages"));
+  puts(HELP_TEXT("s URI", "source URI    ", "Same as `-G URI'"));
+  puts(HELP_TEXT("v", "version           ", "Print the Rasqal version"));
+  puts(HELP_TEXT("W LEVEL", "warnings LEVEL", HELP_PAD "Set warning message LEVEL from 0: none to 100: all"));
+#ifdef STORE_RESULTS_FLAG
+  puts(HELP_TEXT_LONG("store-results BOOL", "DEBUG: Set store results yes/no BOOL"));
+#endif
+  puts("\nReport bugs to http://bugs.librdf.org/");
+}
+
 
 /* Default parser for input graphs */
 #define DEFAULT_DATA_GRAPH_FORMAT "guess"
@@ -1172,93 +1261,9 @@ main(int argc, char *argv[])
   }
 
   if(help) {
-    int i;
-    
-    printf(title_format_string, rasqal_version_string);
-    puts("Run an RDF query giving variable bindings or RDF triples.");
-    printf("Usage: %s [OPTIONS] <query URI> [base URI]\n", program);
-    printf("       %s [OPTIONS] -e <query string> [base URI]\n", program);
-    printf("       %s [OPTIONS] -p <SPARQL protocol service URI> -e <query string> [base URI]\n\n", program);
-
-    fputs(rasqal_copyright_string, stdout);
-    fputs("\nLicense: ", stdout);
-    puts(rasqal_license_string);
-    fputs("Rasqal home page: ", stdout);
-    puts(rasqal_home_url_string);
-
-    puts("\nNormal operation is to execute the query retrieved from URI <query URI>");
-    puts("and print the results in a simple text format.");
-    puts("\nMain options:");
-    puts(HELP_TEXT("e", "exec QUERY      ", "Execute QUERY string instead of <query URI>"));
-    puts(HELP_TEXT("p", "protocol URI    ", "Execute QUERY against a SPARQL protocol service URI"));
-    puts(HELP_TEXT("i", "input LANGUAGE  ", "Set query language name to one of:"));
-    for(i = 0; 1; i++) {
-      const raptor_syntax_description* desc;
-
-      desc = rasqal_world_get_query_language_description(world, i);
-      if(!desc)
-         break;
-
-      printf("    %-15s         %s", desc->names[0], desc->label);
-      if(!i)
-        puts(" (default)");
-      else
-        putchar('\n');
-    }
-
-    puts(HELP_TEXT("r", "results FORMAT  ", "Set query results output format to one of:"));
-    puts("    For variable bindings and boolean results:");
-    puts("      simple                A simple text format (default)");
-
-    for(i = 0; 1; i++) {
-      const raptor_syntax_description* desc;
- 
-      desc = rasqal_world_get_query_results_format_description(world, i);
-      if(!desc)
-         break;
- 
-      if(desc->flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER)
-        printf("      %-10s            %s\n", desc->names[0], desc->label);
-    }
-
-    puts("    For RDF graph results:");
-
-    for(i = 0; 1; i++) {
-      const raptor_syntax_description *desc;
-      desc = raptor_world_get_parser_description(raptor_world_ptr, i);
-      if(!desc)
-        break;
-
-      printf("      %-15s       %s", desc->names[0], desc->label);
-      if(!i)
-        puts(" (default)");
-      else
-        putchar('\n');
-    }
-    puts("\nAdditional options:");
-    puts(HELP_TEXT("c", "count             ", "Count triples - no output"));
-    puts(HELP_TEXT("d FORMAT", "dump-query FORMAT", HELP_PAD "Print the parsed query out in FORMAT:"));
-    for(i = 1; i <= QUERY_OUTPUT_LAST; i++)
-      printf("      %-15s         %s\n", query_output_format_labels[i][0],
-             query_output_format_labels[i][1]);
-    puts(HELP_TEXT("D URI", "data URI      ", "RDF data source URI"));
-    puts(HELP_TEXT("E", "ignore-errors     ", "Ignore error messages"));
-    puts(HELP_TEXT("f FEATURE(=VALUE)", "feature FEATURE(=VALUE)", HELP_PAD "Set query features" HELP_PAD "Use `-f help' for a list of valid features"));
-    puts(HELP_TEXT("F NAME", "format NAME  ", "Set data source format name (default: guess)"));
-    puts(HELP_TEXT("G URI", "named URI     ", "RDF named graph data source URI"));
-    puts(HELP_TEXT("h", "help              ", "Print this help, then exit"));
-    puts(HELP_TEXT("n", "dryrun            ", "Prepare but do not run the query"));
-    puts(HELP_TEXT("q", "quiet             ", "No extra information messages"));
-    puts(HELP_TEXT("s URI", "source URI    ", "Same as `-G URI'"));
-    puts(HELP_TEXT("v", "version           ", "Print the Rasqal version"));
-    puts(HELP_TEXT("W LEVEL", "warnings LEVEL", HELP_PAD "Set warning message LEVEL from 0: none to 100: all"));
-#ifdef STORE_RESULTS_FLAG
-    puts(HELP_TEXT_LONG("store-results BOOL", "DEBUG: Set store results yes/no BOOL"));
-#endif
-    puts("\nReport bugs to http://bugs.librdf.org/");
-
+    print_help(world, raptor_world_ptr);
     rasqal_free_world(world);
-    
+
     exit(0);
   }
 
