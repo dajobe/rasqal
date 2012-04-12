@@ -13,7 +13,11 @@
 <p>Not yet released.
 </p>
 
-<p>Require raptor 2.0.7 or newer.</p>
+<p>Requires raptor 2.0.7 or newer.</p>
+
+<p>RDQL query language support will be removed in the next
+release. SPARQL has been available for 4 years and is fully
+supported.</p>
 
 <p>Issues Fixed:</p>
 <ul>
@@ -80,6 +84,12 @@ methods.
 
 <h3>Query engine changes</h3>
 
+<p><code>DISTINCT</code> now compares using RDF term comparison not
+value comparison so now "" is distinct from ""^^xsd:string.
+This has a consquence of making RDQL test B-01 as failing but this is
+no loss.  Relatedly, RDQL support will be removed in the next release.
+</p>
+
 <p>Handle errors found in aggregation expressions following SPARQL
 standard.</p>
 
@@ -95,6 +105,12 @@ Fixes
 
 
 <h3>Other changes</h3>
+
+<p>Fixed several code issues with unused values found by clang.</p>
+
+<p>The <code>tests/sparql/check-sparql</code> test runner was updated
+to understand more of the manifest vocabulary.
+</p>
 
 <p>Add code marking of good and bad type casts using macros
 RASQAL_GOOD_CAST and RASQAL_BAD_CAST macros.</p>
