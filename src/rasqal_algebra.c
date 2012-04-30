@@ -1090,12 +1090,21 @@ rasqal_algebra_union_graph_pattern_to_algebra(rasqal_query* query,
 }
 
 
+/*
+ * rasqal_algebra_new_boolean_constant_expr:
+ * @query: query object
+ * @value: boolean constant
+ *
+ * INTERNAL - Create a new expression for a boolean constant (true/false)
+ *
+ * Return value: new expression or NULL on failure
+ */
 static rasqal_expression*
-rasqal_algebra_new_true_expr(rasqal_query* query) 
+rasqal_algebra_new_boolean_constant_expr(rasqal_query* query, int value)
 {
   rasqal_literal *true_lit;
   
-  true_lit = rasqal_new_boolean_literal(query->world, 1);
+  true_lit = rasqal_new_boolean_literal(query->world, value);
   if(!true_lit) {
     RASQAL_DEBUG1("rasqal_new_boolean_literal() failed\n");
     return NULL;
@@ -1184,7 +1193,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
         } else  {
           rasqal_expression *true_expr = NULL;
 
-          true_expr = rasqal_algebra_new_true_expr(query);
+          true_expr = rasqal_algebra_new_boolean_constant_expr(query, 1);
           if(!true_expr) {
             rasqal_free_algebra_node(anode);
             return NULL;
