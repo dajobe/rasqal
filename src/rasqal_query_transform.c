@@ -1028,9 +1028,9 @@ rasqal_query_fold_expressions(rasqal_query* rq)
 
 
 static int
-rasqal_query_prepare_count_graph_patterns(rasqal_query* query,
-                                          rasqal_graph_pattern* gp,
-                                          void* data)
+rasqal_query_prepare_count_graph_pattern(rasqal_query* query,
+                                         rasqal_graph_pattern* gp,
+                                         void* data)
 {
   raptor_sequence* seq = (raptor_sequence*)data;
 
@@ -1040,6 +1040,41 @@ rasqal_query_prepare_count_graph_patterns(rasqal_query* query,
   }
   gp->gp_index = (query->graph_pattern_count++);
   return 0;
+}
+
+
+/**
+ * rasqal_query_enumerate_graph_patterns:
+ * @query: query object
+ *
+ * INTERNAL - Label all graph patterns in query graph patterns with an index 0.. 
+ *
+ * Used for the size of the graph pattern execution data array.
+ * Used to allocate in rasqal_query_build_variables_use_map() 
+ * and rasqal_query_build_variable_agg_use() and used in
+ * rasqal_query_print_variables_use_map() and
+ * rasqal_query_variable_is_bound().
+ *
+ * Return value: non-0 on failure
+ */
+static int
+rasqal_query_enumerate_graph_patterns(rasqal_query *query)
+{
+  query->graph_pattern_count = 0;
+  
+  if(query->graph_patterns_sequence)
+    raptor_free_sequence(query->graph_patterns_sequence);
+
+  /* This sequence stores shared pointers to the graph patterns it
+   * finds, indexed by the gp_index
+   */
+  query->graph_patterns_sequence = raptor_new_sequence(NULL, NULL);
+  if(!query->graph_patterns_sequence)
+    return 1;
+  
+  return rasqal_query_graph_pattern_visit2(query, 
+                                           rasqal_query_prepare_count_graph_pattern,
+                                           query->graph_patterns_sequence);
 }
 
 
@@ -1168,60 +1203,56 @@ rasqal_query_prepare_common(rasqal_query *query)
     do {
       modified = 0;
       
-      rasqal_query_graph_pattern_visit(query, 
-                                       rasqal_query_merge_triple_patterns,
-                                       &modified);
-      
+      rc = rasqal_query_graph_pattern_visit2(query, 
+                                             rasqal_query_merge_triple_patterns,
+                                             &modified);
 #if RASQAL_DEBUG > 1
       fprintf(DEBUG_FH, "modified=%d after merge triples, query graph pattern now:\n  ", modified);
       rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
       fputs("\n", DEBUG_FH);
 #endif
-
-      rasqal_query_graph_pattern_visit(query,
-                                       rasqal_query_remove_empty_group_graph_patterns,
-                                       &modified);
+      if(rc) {
+        modified = rc;
+        break;
+      }
+      
+      rc = rasqal_query_graph_pattern_visit2(query,
+                                             rasqal_query_remove_empty_group_graph_patterns,
+                                             &modified);
       
 #if RASQAL_DEBUG > 1
       fprintf(DEBUG_FH, "modified=%d after remove empty groups, query graph pattern now:\n  ", modified);
       rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
       fputs("\n", DEBUG_FH);
 #endif
-
-      rasqal_query_graph_pattern_visit(query, 
-                                       rasqal_query_merge_graph_patterns,
-                                       &modified);
+      if(rc) {
+        modified = rc;
+        break;
+      }
+      
+      rc = rasqal_query_graph_pattern_visit2(query, 
+                                             rasqal_query_merge_graph_patterns,
+                                             &modified);
 
 #if RASQAL_DEBUG > 1
       fprintf(DEBUG_FH, "modified=%d  after merge graph patterns, query graph pattern now:\n  ", modified);
       rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
       fputs("\n", DEBUG_FH);
 #endif
-
+      if(rc) {
+        modified = rc;
+        break;
+      }
+      
     } while(modified > 0);
 
     rc = modified; /* error if modified<0, success if modified==0 */
     if(rc)
       goto done;
 
-
-    /* Label all graph patterns with an index 0.. for use in discovering
-     * the size of the graph pattern execution data array
-     */
-    query->graph_pattern_count = 0;
-
-    /* This sequence stores shared pointers to the graph patterns it
-     * finds, indexed by the gp_index
-     */
-    query->graph_patterns_sequence = raptor_new_sequence(NULL, NULL);
-    if(!query->graph_patterns_sequence) {
-      rc = 1;
+    rc = rasqal_query_enumerate_graph_patterns(query);
+    if(rc)
       goto done;
-    }
-
-    rasqal_query_graph_pattern_visit(query, 
-                                     rasqal_query_prepare_count_graph_patterns,
-                                     query->graph_patterns_sequence);
 
     rc = rasqal_query_build_variables_use(query, projection);
     if(rc)
