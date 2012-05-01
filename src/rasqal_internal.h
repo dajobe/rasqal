@@ -1745,7 +1745,6 @@ int rasqal_projection_add_variable(rasqal_projection* projection, rasqal_variabl
 
 /* rasqal_regex.c */
 int rasqal_regex_match(rasqal_world* world, raptor_locator* locator, const char* pattern, const char* regex_flags, const char* subject, size_t subject_len);
-char* rasqal_regex_replace(rasqal_world* world, raptor_locator* locator, const char* pattern, const char* regex_flags, const char* subject, size_t subject_len, const char* replace, size_t replace_len, size_t* result_len_p);
 
 /* rasqal_solution_modifier.c */
 rasqal_solution_modifier* rasqal_new_solution_modifier(rasqal_query* query, raptor_sequence* order_conditions, raptor_sequence* group_conditions, raptor_sequence* having_conditions, int limit, int offset);

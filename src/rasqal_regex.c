@@ -666,7 +666,7 @@ rasqal_regex_replace_posix(rasqal_world* world, raptor_locator* locator,
 
 
 
-/*
+/**
  * rasqal_regex_replace:
  * @world: world
  * @locator: locator
@@ -678,7 +678,7 @@ rasqal_regex_replace_posix(rasqal_world* world, raptor_locator* locator,
  * @replace_len: Length of replacement string
  * @result_len_p: pointer to store result length (output)
  *
- * INTERNAL - Replace all copies of matches to a pattern with a replacement with subsitution
+ * Replace all copies of matches to a pattern with a replacement with subsitution
  *
  * Intended to be used for SPARQL 1.1 REPLACE() implementation.
  *

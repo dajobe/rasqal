@@ -1837,6 +1837,11 @@ RASQAL_API
 char* rasqal_xsd_datetime_get_tz_as_counted_string(rasqal_xsd_datetime* dt, size_t *len_p);
 
 
+/* regex utilities */
+RASQAL_API
+char* rasqal_regex_replace(rasqal_world* world, raptor_locator* locator, const char* pattern, const char* regex_flags, const char* subject, size_t subject_len, const char* replace, size_t replace_len, size_t* result_len_p);
+
+
 /**
  * rasqal_service:
  *

@@ -314,6 +314,11 @@ rasqal_update_graph_applies
 </SECTION>
 
 <SECTION>
+<FILE>section-utilities</FILE>
+rasqal_regex_replace
+</SECTION>
+
+<SECTION>
 <FILE>section-variable</FILE>
 rasqal_variable
 rasqal_new_variable_from_variable

@@ -94,6 +94,7 @@ execution plans and execute the queries into query result sets.
     <xi:include href="xml/section-variable.xml"/>
     <xi:include href="xml/section-variables-table.xml"/>
     <xi:include href="xml/section-updates.xml"/>
+    <xi:include href="xml/section-utilities.xml"/>
     <xi:include href="xml/section-xsd.xml"/>
 
     <!-- <xi:include href="xml/section-unused.xml"/> -->
