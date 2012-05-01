@@ -20,7 +20,7 @@ Miscellaneous utility functions.
 <!-- ##### SECTION Image ##### -->
 
 
-<!-- ##### FUNCTION rasqal_literal_as_counted_string ##### -->
+<!-- ##### FUNCTION rasqal_regex_replace ##### -->
 <para>
 
 </para>
@@ -29,10 +29,11 @@ Miscellaneous utility functions.
 @locator: 
 @pattern: 
 @regex_flags: 
-@subject:
-@subject_en:
-@replace
-@replace_len
-@result_len_p
+@subject: 
+@subject_len: 
+@replace: 
+@replace_len: 
+@result_len_p: 
 @Returns: 
+
 

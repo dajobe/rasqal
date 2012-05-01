@@ -671,7 +671,7 @@ rasqal_regex_replace_posix(rasqal_world* world, raptor_locator* locator,
  * @world: world
  * @locator: locator
  * @pattern: regex pattern
- * @options: regex flags string
+ * @regex_flags: regex flags string
  * @subject: input string
  * @subject_len: input string length
  * @replace: replacement string
