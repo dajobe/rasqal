@@ -1824,12 +1824,43 @@ rasqal_query_get_having_condition(rasqal_query* query, int idx)
 
 
 /**
+ * rasqal_query_graph_pattern_visit2:
+ * @query: query
+ * @visit_fn: user function to operate on
+ * @data: user data to pass to function
+ * 
+ * Visit all graph patterns in a query with a user function @visit_fn.
+ *
+ * See also rasqal_graph_pattern_visit().
+ *
+ * Return value: result from visit function @visit_fn if it returns non-0
+ **/
+int
+rasqal_query_graph_pattern_visit2(rasqal_query* query, 
+                                  rasqal_graph_pattern_visit_fn visit_fn, 
+                                  void* data)
+{
+  rasqal_graph_pattern* gp;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
+
+  gp = rasqal_query_get_query_graph_pattern(query);
+  if(!gp)
+    return 1;
+
+  return rasqal_graph_pattern_visit(query, gp, visit_fn, data);
+}
+
+
+/**
  * rasqal_query_graph_pattern_visit:
  * @query: query
  * @visit_fn: user function to operate on
  * @data: user data to pass to function
  * 
  * Visit all graph patterns in a query with a user function @visit_fn.
+ *
+ * @Deprecated: use rasqal_query_graph_pattern_visit2() that returns the @visit_fn status code.
  *
  * See also rasqal_graph_pattern_visit().
  **/
@@ -1838,15 +1869,7 @@ rasqal_query_graph_pattern_visit(rasqal_query* query,
                                  rasqal_graph_pattern_visit_fn visit_fn, 
                                  void* data)
 {
-  rasqal_graph_pattern* gp;
-
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
-
-  gp = rasqal_query_get_query_graph_pattern(query);
-  if(!gp)
-    return;
-
-  rasqal_graph_pattern_visit(query, gp, visit_fn, data);
+  (void)rasqal_query_graph_pattern_visit2(query, visit_fn, data);
 }
 
 

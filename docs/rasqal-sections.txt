@@ -209,6 +209,7 @@ rasqal_query_has_variable2
 rasqal_query_has_variable
 rasqal_query_prepare
 rasqal_query_print
+rasqal_query_graph_pattern_visit2
 rasqal_query_graph_pattern_visit
 rasqal_query_set_distinct
 rasqal_query_set_explain
