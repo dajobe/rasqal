@@ -580,18 +580,21 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
       name = rasqal_literal_as_counted_string(solution_node, &len, 0, NULL);
       if(name) {
         unsigned char* var_name;
-        rasqal_variable *v;
 
         var_name = RASQAL_MALLOC(unsigned char*, len + 1);
-        memcpy(var_name, name, len + 1);
+        if(var_name) {
+          rasqal_variable *v;
 
-        v = rasqal_variables_table_add(con->vars_table,
-                                       RASQAL_VARIABLE_TYPE_NORMAL,
-                                       var_name, NULL);
-        if(v) {
-          rasqal_rowsource_add_variable(con->rowsource, v);
-          /* above function takes a reference to v */
-          rasqal_free_variable(v);
+          memcpy(var_name, name, len + 1);
+          
+          v = rasqal_variables_table_add(con->vars_table,
+                                         RASQAL_VARIABLE_TYPE_NORMAL,
+                                         var_name, NULL);
+          if(v) {
+            rasqal_rowsource_add_variable(con->rowsource, v);
+            /* above function takes a reference to v */
+            rasqal_free_variable(v);
+          }
         }
       }
     }
