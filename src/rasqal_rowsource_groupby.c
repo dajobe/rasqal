@@ -476,7 +476,7 @@ rasqal_new_groupby_rowsource(rasqal_world *world,
   
   con = RASQAL_CALLOC(rasqal_groupby_rowsource_context*, 1, sizeof(*con));
   if(!con)
-    goto fail;
+    return NULL;
 
   con->rowsource = rowsource;
   con->exprs_seq_size = 0;
