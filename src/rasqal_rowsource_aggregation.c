@@ -899,6 +899,8 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
     raptor_free_sequence(exprs_seq);
   if(vars_seq)
     raptor_free_sequence(vars_seq);
+  if(con)
+    RASQAL_FREE(rasqal_aggregation_rowsource_context*, con);
 
   return NULL;
 }
