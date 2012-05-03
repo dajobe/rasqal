@@ -145,6 +145,8 @@ constants and #rasqal_variable values bound in some
 @RASQAL_EXPR_STRBEFORE: 
 @RASQAL_EXPR_STRAFTER: 
 @RASQAL_EXPR_REPLACE: 
+@RASQAL_EXPR_UUID: 
+@RASQAL_EXPR_STRUUID: 
 @RASQAL_EXPR_LAST: 
 
 <!-- ##### ENUM rasqal_compare_flags ##### -->
