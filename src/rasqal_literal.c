@@ -1773,7 +1773,8 @@ rasqal_literal_as_counted_string(rasqal_literal* l, size_t *len_p,
 {
   if(!l) {
     /* type error */
-    *error_p = 1;
+    if(error_p)
+      *error_p = 1;
     return NULL;
   }
   
