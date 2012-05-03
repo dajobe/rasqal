@@ -658,6 +658,9 @@ rasqal_regex_replace_posix(rasqal_world* world, raptor_locator* locator,
 
 
   failed:
+  if(result)
+    RASQAL_FREE(char*, result);
+
   RASQAL_FREE(regmatch_t*, pmatch);
   
   return NULL;
