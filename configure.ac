@@ -626,33 +626,27 @@ AM_CONDITIONAL(RASQAL_DIGEST_INTERNAL, test $digest_library = internal)
 dnl Check for uuid libraries
 have_uuid_libuuid=no
 need_uuid_libuuid=no
-need_digest_internal=no
-
-AC_ARG_WITH(libuuid,
-        [  --with-libuuid=DIR  libuuid installation prefix (no default)],
-	[libuuid_dir=$withval], [libuuid_dir=""])
-
-oCPPFLAGS="$CPPFLAGS"
-oLIBS="$LIBS"
-if test "X$libuuid_dir" != "X" ; then
-  CPPFLAGS="$CPPFLAGS -I$libuuid_dir/include"
-  LIBS="$LIBS -L$libuuid_dir/lib"
-fi
-LIBS="$LIBS -llibuuid"
-
-AC_CHECK_HEADERS(uuid.h)
+need_uuid_internal=no
 
 AC_MSG_CHECKING(for libuuid)
+if $PKG_CONFIG uuid --exists; then
+  LIBUUID_VERSION=`$PKG_CONFIG uuid --modversion 2>/dev/null`
 
-AC_TRY_LINK([
-#include <libuuid.h>],
-[ uuid_t data; uuid_clear(&data); ],
-  have_uuid_libuuid=yes,
-  have_uuid_libuuid=no)
+  oCPPFLAGS="$CPPFLAGS"
+  oLIBS="$LIBS"
 
-CPPFLAGS="$LIBRDF_CPPFLAGS"
-LIBS="$oLIBS"
+  CPPFLAGS="$CPPFLAGS `$PKG_CONFIG uuid --cflags`"
+  LIBS="$LIBS `$PKG_CONFIG uuid --libs`"
 
+  AC_TRY_LINK([
+  #include <uuid.h>],
+  [ uuid_t data; uuid_clear(&data); ],
+    have_uuid_libuuid=yes,
+    have_uuid_libuuid=no)
+
+  CPPFLAGS="$LIBRDF_CPPFLAGS"
+  LIBS="$oLIBS"
+fi
 AC_MSG_RESULT($have_uuid_libuuid)
 
 
@@ -824,6 +818,19 @@ if test $need_digest_mhash = yes; then
   RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $C"
   RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
 
+  unset C
+  unset L
+fi
+
+
+if test $need_uuid_libuuid = yes; then
+  C=`$PKG_CONFIG uuid --cflags`
+  L=`$PKG_CONFIG uuid --libs`
+  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $C"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
+
+  PKGCONFIG_CFLAGS="$PKGCONFIG_CFLAGS $C"
+  PKGCONFIG_LIBS="$PKGCONFIG_LIBS $L"
   unset C
   unset L
 fi

@@ -40,6 +40,9 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+#ifdef RASQAL_UUID_LIBUUID
+#include <uuid.h>
+#endif
 
 #define DEBUG_FH stderr
 
