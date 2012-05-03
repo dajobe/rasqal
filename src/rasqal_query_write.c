@@ -307,7 +307,9 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "SHA512",
   "STRBEFORE",
   "STRAFTER",
-  "REPLACE"
+  "REPLACE",
+  "UUID",
+  "STRUUID"
 };
 
 
@@ -423,6 +425,8 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_SHA256:
     case RASQAL_EXPR_SHA384:
     case RASQAL_EXPR_SHA512:
+    case RASQAL_EXPR_UUID:
+    case RASQAL_EXPR_STRUUID:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);

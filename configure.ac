@@ -623,6 +623,68 @@ AC_MSG_RESULT($digest_library)
 AM_CONDITIONAL(RASQAL_DIGEST_INTERNAL, test $digest_library = internal)
 
 
+dnl Check for uuid libraries
+have_uuid_libuuid=no
+need_uuid_libuuid=no
+
+AC_ARG_WITH(libuuid,
+        [  --with-libuuid=DIR  libuuid installation prefix (no default)],
+	[libuuid_dir=$withval], [libuuid_dir=""])
+
+oCPPFLAGS="$CPPFLAGS"
+oLIBS="$LIBS"
+if test "X$libuuid_dir" != "X" ; then
+  CPPFLAGS="$CPPFLAGS -I$libuuid_dir/include"
+  LIBS="$LIBS -L$libuuid_dir/lib"
+fi
+LIBS="$LIBS -llibuuid"
+
+AC_CHECK_HEADERS(uuid.h)
+
+AC_MSG_CHECKING(for libuuid)
+
+AC_TRY_LINK([
+#include <libuuid.h>],
+[ uuid_t data; uuid_clear(&data); ],
+  have_uuid_libuuid=yes,
+  have_uuid_libuuid=no)
+
+CPPFLAGS="$LIBRDF_CPPFLAGS"
+LIBS="$oLIBS"
+
+AC_MSG_RESULT($have_uuid_libuuid)
+
+
+AC_ARG_WITH(uuid-library, [  --with-uuid-library=NAME   Use UUID library - libuuid (auto)], uuid_library="$withval", uuid_library="")
+
+for uuid_library_name in $uuid_library libuuid; do
+  case $uuid_library_name in
+    libuuid)
+      if test $have_uuid_libuuid = yes; then
+        need_uuid_libuuid=yes
+        AC_DEFINE(RASQAL_UUID_LIBUUID, 1, [Use libuuid library for UUID])
+        break
+      fi
+      ;;
+
+    *)
+      AC_MSG_ERROR(No such UUID library $uuid_library_name)
+      ;;
+esac
+done
+
+AC_MSG_CHECKING(UUID library to use)
+uuid_library=
+if test $need_uuid_libuuid = yes; then
+  uuid_library=libuuid
+else
+  uuid_library=none
+  AC_DEFINE(RASQAL_UUID_NONE, 1, [Use no UUID library])
+  AC_MSG_WARN(No UUID library selected - no UUID support will work)
+fi
+AC_MSG_RESULT($uuid_library)
+
+
 
 have_libxml=0
 need_libxml=0
@@ -1187,5 +1249,6 @@ Rasqal build summary:
   Decimal library               : $decimal_library
   Regex library                 : $regex_library
   Message digest library        : $digest_library
+  UUID library                  : $uuid_library
   Random approach               : $random_approach
 ])

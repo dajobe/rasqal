@@ -447,6 +447,8 @@ EXPONENT [eE][+-]?[0-9]+
 [Ss][Tt][Rr][Bb][Ee][Ff][Oo][Rr][Ee] { return STRBEFORE; }
 [Ss][Tt][Rr][Aa][Ff][Tt][Ee][Rr] { return STRAFTER; }
 [Rr][Ee][Pp][Ll][Aa][Cc][Ee] { return REPLACE; }
+[Uu][Uu][Ii][Dd] { return UUID; }
+[Ss][Tt][Rr][Uu][Uu][Ii][Dd] { return STRUUID; }
 
 "a" { return A; }
 
@@ -1752,6 +1754,12 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case REPLACE:
       return "REPLACE";
+
+    case UUID:
+      return "UUID";
+
+    case STRUUID:
+      return "STRUUID";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:

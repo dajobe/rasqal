@@ -1161,6 +1161,8 @@ rasqal_literal* rasqal_expression_evaluate_ceil(rasqal_expression *e, rasqal_eva
 rasqal_literal* rasqal_expression_evaluate_floor(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 rasqal_literal* rasqal_expression_evaluate_rand(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 rasqal_literal* rasqal_expression_evaluate_digest(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_uriuuid(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
+rasqal_literal* rasqal_expression_evaluate_struuid(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 
 /* rasqal_expr_strings.c */
 rasqal_literal* rasqal_expression_evaluate_substr(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);

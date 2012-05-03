@@ -1561,6 +1561,14 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       result = rasqal_expression_evaluate_digest(e, eval_context, error_p);
       break;
 
+    case RASQAL_EXPR_UUID:
+      result = rasqal_expression_evaluate_uriuuid(e, eval_context, error_p);
+      break;
+
+    case RASQAL_EXPR_STRUUID:
+      result = rasqal_expression_evaluate_struuid(e, eval_context, error_p);
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL3("Unknown operation %s (%d)",

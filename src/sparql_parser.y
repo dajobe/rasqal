@@ -207,6 +207,7 @@ free_uri_applies(sparql_uri_applies* ua)
 %token BIND
 %token ABS ROUND CEIL FLOOR RAND
 %token MD5 SHA1 SHA224 SHA256 SHA384 SHA512
+%token UUID STRUUID
 /* LAQRS */
 %token EXPLAIN LET
 %token CURRENT_DATETIME NOW FROM_UNIXTIME TO_UNIXTIME
@@ -4734,6 +4735,20 @@ BuiltInCall: STR '(' Expression ')'
                                  RASQAL_EXPR_SHA512, $3);
   if(!$$)
     YYERROR_MSG("BuiltInCall 7o: cannot create expr");
+}
+| UUID '(' ')'
+{
+  $$ = rasqal_new_0op_expression(((rasqal_query*)rq)->world, 
+                                 RASQAL_EXPR_UUID);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 7p: cannot create expr");
+}
+| STRUUID '(' ')'
+{
+  $$ = rasqal_new_0op_expression(((rasqal_query*)rq)->world, 
+                                 RASQAL_EXPR_STRUUID);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 7q: cannot create expr");
 }
 | StringExpression
 {
