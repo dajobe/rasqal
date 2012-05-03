@@ -826,7 +826,7 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
                                  raptor_sequence* exprs_seq,
                                  raptor_sequence* vars_seq)
 {
-  rasqal_aggregation_rowsource_context* con;
+  rasqal_aggregation_rowsource_context* con = NULL;
   int flags = 0;
   int size;
   int i;
