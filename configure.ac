@@ -626,6 +626,7 @@ AM_CONDITIONAL(RASQAL_DIGEST_INTERNAL, test $digest_library = internal)
 dnl Check for uuid libraries
 have_uuid_libuuid=no
 need_uuid_libuuid=no
+need_digest_internal=no
 
 AC_ARG_WITH(libuuid,
         [  --with-libuuid=DIR  libuuid installation prefix (no default)],
@@ -657,7 +658,7 @@ AC_MSG_RESULT($have_uuid_libuuid)
 
 AC_ARG_WITH(uuid-library, [  --with-uuid-library=NAME   Use UUID library - libuuid (auto)], uuid_library="$withval", uuid_library="")
 
-for uuid_library_name in $uuid_library libuuid; do
+for uuid_library_name in $uuid_library libuuid internal; do
   case $uuid_library_name in
     libuuid)
       if test $have_uuid_libuuid = yes; then
@@ -665,6 +666,12 @@ for uuid_library_name in $uuid_library libuuid; do
         AC_DEFINE(RASQAL_UUID_LIBUUID, 1, [Use libuuid library for UUID])
         break
       fi
+      ;;
+
+    internal)
+      need_uuid_internal=yes
+      AC_DEFINE(RASQAL_UUID_INTERNAL, 1, [Use internal routines for UUID])
+      break
       ;;
 
     *)
@@ -677,6 +684,8 @@ AC_MSG_CHECKING(UUID library to use)
 uuid_library=
 if test $need_uuid_libuuid = yes; then
   uuid_library=libuuid
+elif test $need_uuid_internal = yes; then
+  uuid_library=internal
 else
   uuid_library=none
   AC_DEFINE(RASQAL_UUID_NONE, 1, [Use no UUID library])

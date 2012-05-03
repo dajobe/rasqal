@@ -336,8 +336,7 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
 #define RASQAL_UUID_URI_PREFIX_LEN 9
   
 
-#ifdef RASQAL_UUID_LIBUUID
-#else
+#ifdef RASQAL_UUID_INTERNAL
 typedef unsigned char uuid_t[16];
 
 /*
@@ -384,6 +383,9 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
                                 int *error_p,
                                 int want_uri)
 {
+#ifdef RASQAL_UUID_NONE
+  return NULL;
+#else
   rasqal_world* world = eval_context->world;
   uuid_t data; /* static */
   size_t output_len = RASQAL_UUID_STRING_LEN;
@@ -393,7 +395,8 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
 
 #ifdef RASQAL_UUID_LIBUUID
   uuid_generate(data);
-#else
+#endif
+#ifdef RASQAL_UUID_INTERNAL
   rasqal_uuid_generate(eval_context, data);
 #endif
 
@@ -430,6 +433,7 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
   } else {
     return rasqal_new_string_literal(world, output, NULL, NULL, NULL);
   }
+#endif
 }
 
 
