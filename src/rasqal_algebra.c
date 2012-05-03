@@ -1009,7 +1009,7 @@ rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
   if(fs)
     rasqal_free_expression(fs);
   
-  return node;
+  return NULL;
 }
 
 
