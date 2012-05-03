@@ -502,6 +502,8 @@ rasqal_new_groupby_rowsource(rasqal_world *world,
     rasqal_free_rowsource(rowsource);
   if(exprs_seq)
     raptor_free_sequence(exprs_seq);
+  if(con)
+    RASQAL_FREE(rasqal_groupby_rowsource_context*, con);
 
   return NULL;
 }
