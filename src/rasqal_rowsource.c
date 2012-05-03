@@ -155,7 +155,10 @@ int
 rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v)
 {
   int offset;
-  
+
+  if(!rowsource || !v)
+    return -1;
+
   offset = rasqal_rowsource_get_variable_offset_by_name(rowsource, v->name);
   if(offset >= 0)
     return offset;
