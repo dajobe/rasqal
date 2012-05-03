@@ -2025,7 +2025,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
   int i;
   unsigned char *new_s = NULL;
   unsigned char* s;
-  size_t len;
+  size_t len = 0;
   rasqal_xsd_decimal* dec = NULL;
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(lit, rasqal_literal, NULL);
