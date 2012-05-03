@@ -573,6 +573,49 @@ LIBS="$oLIBS"
 AC_MSG_RESULT($have_digest_mhash)
 
 
+AC_CHECK_PROG(LIBGCRYPT_CONFIG, libgcrypt-config, libgcrypt-config)
+AC_ARG_WITH(libgcrypt, [  --with-libgcrypt-config=PATH     Location of GCRYPT libgcrypt-config (auto)], libgcrypt_config="$withval", libgcrypt_config="")
+
+if test "X$libgcrypt_config" != "X" ; then
+  AC_MSG_CHECKING(for $libgcrypt_config)
+
+  if test -f $libgcrypt_config ; then
+    GCRYPT_CONFIG=$libgcrypt_config
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no - searching PATH)
+  fi
+fi
+if test "X$LIBGCRYPT_CONFIG" = "X"; then
+  AC_CHECK_PROGS(LIBGCRYPT_CONFIG, libgcrypt-config)
+fi
+
+AC_CHECK_HEADERS(gcrypt.h)
+
+AC_MSG_CHECKING(for gcrypt)
+GCRYPT_VERSION=`$LIBGCRYPT_CONFIG --version 2>/dev/null`
+if test "X$GCRYPT_VERSION" = X; then
+  have_digest_gcrypt=no
+elif test "$ac_cv_header_gcrypt_h" = "yes"; then
+  oCPPFLAGS="$CPPFLAGS"
+  oLIBS="$LIBS"
+  CPPFLAGS="$CPPFLAGS `$LIBGCRYPT_CONFIG --cflags`"
+  LIBS="$LIBS `$LIBGCRYPT_CONFIG --libs`"
+
+  AC_TRY_LINK([
+  #include <gcrypt.h>],
+  [ gcry_md_hd_t hash; gcry_md_open(hash, GCRY_MD_MD5, 0); ],
+    have_digest_gcrypt=yes,
+    have_digest_gcrypt=no)
+
+  CPPFLAGS="$LIBRDF_CPPFLAGS"
+  LIBS="$oLIBS"
+else
+  have_digest_gcrypt=no
+fi
+AC_MSG_RESULT($have_digest_gcrypt)
+
+
 AC_ARG_WITH(digest-library, [  --with-digest-library=NAME   Use message digest library - mhash, gcrypt, internal (auto)], digest_library="$withval", digest_library="")
 
 for digest_library_name in $digest_library mhash gcrypt internal; do
@@ -815,6 +858,17 @@ if test $need_digest_mhash = yes; then
     L="-L$mhash_dir/lib $L"
   fi
 
+  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $C"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
+
+  unset C
+  unset L
+fi
+
+
+if test $need_digest_gcrypt = yes; then
+  C=`$LIBGCRYPT_CONFIG --cflags`
+  L=`$LIBGCRYPT_CONFIG --libs`
   RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $C"
   RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
 

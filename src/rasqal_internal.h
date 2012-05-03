@@ -1816,7 +1816,7 @@ typedef enum {
   RASQAL_DIGEST_LAST = RASQAL_DIGEST_SHA512
 } rasqal_digest_type;
 
-int rasqal_digest_buffer(rasqal_digest_type type, const unsigned char *output, const unsigned char * const input, size_t len);
+int rasqal_digest_buffer(rasqal_digest_type type, unsigned char *output, const unsigned char * const input, size_t len);
 #ifdef RASQAL_DIGEST_INTERNAL
 
 int rasqal_digest_sha1_buffer(const unsigned char *output,

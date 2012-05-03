@@ -86,7 +86,7 @@ static hashid rasqal_digest_to_hashid[RASQAL_DIGEST_LAST + 1]={
 };
 
 int
-rasqal_digest_buffer(rasqal_digest_type type, const unsigned char *output,
+rasqal_digest_buffer(rasqal_digest_type type, unsigned char *output,
                      const unsigned char * const input, size_t len)
 {
   hashid hash_type;
@@ -154,9 +154,10 @@ static enum gcry_md_algos rasqal_digest_to_gcry_md_algos[RASQAL_DIGEST_LAST + 1]
 };
 
 int
-rasqal_digest_buffer(rasqal_digest_type type, const unsigned char *output,
+rasqal_digest_buffer(rasqal_digest_type type, unsigned char *output,
                      const unsigned char * const input, size_t len)
 {
+  gcry_md_hd_t hash;
   enum gcry_md_algos algo;
   unsigned int output_len;
   
@@ -170,8 +171,13 @@ rasqal_digest_buffer(rasqal_digest_type type, const unsigned char *output,
   output_len = gcry_md_get_algo_dlen(algo);
   if(!input)
     return output_len;
-  
-  gcry_md_hash_buffer(algo, (void*)output, (const void*)input, len);
+
+  if(gcry_md_open(&hash, algo, 0))
+    return -1;
+  gcry_md_write(hash, input, len);
+  gcry_md_final(hash);
+  memcpy(output, gcry_md_read(hash, algo), output_len);
+  gcry_md_close(hash);
   
   return output_len;
 }
@@ -208,7 +214,7 @@ rasqal_digest_buffer(rasqal_digest_type type, const unsigned char *output,
 
 
 int
-rasqal_digest_buffer(rasqal_digest_type type, const unsigned char *output,
+rasqal_digest_buffer(rasqal_digest_type type, unsigned char *output,
                      const unsigned char *input, size_t len)
 {
   unsigned int output_len = 0;
@@ -254,7 +260,7 @@ rasqal_digest_buffer(rasqal_digest_type type, const unsigned char *output,
 /* Internal message digests - MD5 and SHA1 */
 #ifdef RASQAL_DIGEST_INTERNAL
 int
-rasqal_digest_buffer(rasqal_digest_type type, const unsigned char *output,
+rasqal_digest_buffer(rasqal_digest_type type, unsigned char *output,
                      const unsigned char *input, size_t len)
 {
   int output_len = -1;
