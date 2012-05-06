@@ -1084,19 +1084,19 @@ rasqal_new_2_group_graph_pattern(rasqal_query* query,
  * @gp: graph pattern
  * @v: variable
  *
- * Is a variable bound in a graph pattern?
+ * Is the variable bound in this graph pattern (not including children)?
  *
  * Return value: non-0 if variable is bound in the given graph pattern.
  */
 int
 rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp,
-                                       rasqal_variable *v) 
+                                       rasqal_variable *v)
 {
   rasqal_query* query;
   int width;
   int gp_offset;
   unsigned short *row;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, 0);
   
   query = gp->query;
@@ -1105,6 +1105,46 @@ rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp,
   row = &query->variables_use_map[gp_offset];
 
   return ((row[v->offset] & RASQAL_VAR_USE_BOUND_HERE) != 0);
+}
+
+
+
+/*
+ * rasqal_graph_pattern_variable_bound_below:
+ * @gp: graph pattern
+ * @v: variable
+ *
+ * INTERNAL - Is the variable bound in the graph pattern or below?
+ *
+ * Return value: non-0 if variable is bound in the graph pattern tree
+ */
+int
+rasqal_graph_pattern_variable_bound_below(rasqal_graph_pattern *gp,
+                                          rasqal_variable *v)
+{
+  int bound;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, 0);
+
+  bound = rasqal_graph_pattern_variable_bound_in(gp, v);
+  if(bound)
+    return bound;
+
+  if(gp->graph_patterns) {
+    int size = raptor_sequence_size(gp->graph_patterns);
+    int i;
+    
+    for(i = 0; i < size; i++) {
+      rasqal_graph_pattern *sgp;
+
+      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      bound = rasqal_graph_pattern_variable_bound_below(sgp, v);
+      if(bound)
+        break;
+    }
+  }
+  
+  return bound;
 }
 
 
