@@ -1283,3 +1283,66 @@ rasqal_graph_pattern_get_flattened_triples(rasqal_query* query,
 
   return state.triples;
 }
+
+
+
+struct find_parent_data {
+  rasqal_graph_pattern* child_gp;
+  rasqal_graph_pattern* parent_gp;
+};
+
+static int
+rasqal_graph_pattern_find_parent(rasqal_query* query,
+                                 rasqal_graph_pattern* gp,
+                                 void* data)
+{
+  struct find_parent_data* fpd = (struct find_parent_data*)data;
+  int i;
+
+  if(gp->graph_patterns) {
+    int size = raptor_sequence_size(gp->graph_patterns);
+
+    for(i = 0; i< size; i++) {
+      rasqal_graph_pattern* sgp;
+      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      if(sgp == fpd->child_gp) {
+        fpd->parent_gp = gp;
+        /* Found - truncate search */
+        return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+
+
+/**
+ * rasqal_graph_pattern_get_parent:
+ * @query: query
+ * @gp: graph pattern to find parent
+ * @tree_gp: graph pattern tree to search for @gp
+ *
+ * Find the parent graph pattern of @gp in the tree of graph patterns @gp_tree
+ *
+ * Return value: pointer to parent GP or NULL on error/not found
+ */
+rasqal_graph_pattern*
+rasqal_graph_pattern_get_parent(rasqal_query *query,
+                                rasqal_graph_pattern* gp,
+                                rasqal_graph_pattern* tree_gp)
+{
+  struct find_parent_data fpd;
+
+  fpd.child_gp = gp;
+  fpd.parent_gp = NULL;
+
+  if(gp == tree_gp || gp == query->query_graph_pattern)
+    return NULL;
+
+  (void)rasqal_graph_pattern_visit(query, tree_gp,
+                                   rasqal_graph_pattern_find_parent,
+                                   &fpd);
+
+  return fpd.parent_gp;
+}

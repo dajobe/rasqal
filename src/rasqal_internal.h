@@ -1083,6 +1083,9 @@ rasqal_graph_pattern* rasqal_new_basic_graph_pattern_from_triples(rasqal_query* 
 
 rasqal_graph_pattern* rasqal_new_2_group_graph_pattern(rasqal_query* query, rasqal_graph_pattern* first_gp, rasqal_graph_pattern* second_gp);
 
+rasqal_graph_pattern* rasqal_graph_pattern_get_parent(rasqal_query *query, rasqal_graph_pattern* gp, rasqal_graph_pattern* tree_gp);
+
+
 /* rdql_parser.y */
 int rasqal_init_query_language_rdql(rasqal_world*);
 
