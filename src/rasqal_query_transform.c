@@ -903,6 +903,108 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
 }
 
 
+/**
+ * rasqal_query_filter_variable_scope:
+ * @query: query
+ * @gp: current graph pattern
+ * @data: pointer to int modified flag
+ *
+ * Replace a FILTER in a GROUP refering to out-of-scope var with FALSE
+ *
+ * For each variable in a FILTER expression, if there is one defined
+ * outside the GROUP, the FILTER is always FALSE - so set it thus and
+ * the tree of GP is modified
+ *
+ * Return value: 0
+ */
+static int
+rasqal_query_filter_variable_scope(rasqal_query* query,
+                                   rasqal_graph_pattern* gp,
+                                   void* data)
+{
+  int vari;
+  int* modified = (int*)data;
+  rasqal_graph_pattern *qgp;
+  int size;
+  
+  /* Scan up from FILTER GPs */
+  if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_FILTER)
+    return 0;
+
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("Checking FILTER graph pattern #%d:\n  ", gp->gp_index);
+  rasqal_graph_pattern_print(gp, stderr);
+  fputs("\n", stderr);
+#endif
+
+  qgp = rasqal_query_get_query_graph_pattern(query);
+
+  size = rasqal_variables_table_get_named_variables_count(query->vars_table);
+
+  for(vari = 0; vari < size; vari++) { 
+    rasqal_variable* v = rasqal_variables_table_get(query->vars_table, vari);
+    int var_in_scope = 2;
+    rasqal_graph_pattern *sgp;
+
+    if(!rasqal_expression_mentions_variable(gp->filter_expression, v))
+      continue;
+    RASQAL_DEBUG3("FILTER GP #%d expression mentions %s\n",
+                  gp->gp_index, v->name);
+    
+    sgp = gp;
+    while(1) {
+      int bound_here;
+
+      sgp = rasqal_graph_pattern_get_parent(query, sgp, qgp);
+      if(!sgp)
+        break;
+
+      bound_here = rasqal_graph_pattern_variable_bound_below(sgp, v);
+      RASQAL_DEBUG4("Checking parent GP #%d op %s - bound below: %d\n",
+                    sgp->gp_index,
+                    rasqal_graph_pattern_operator_as_string(sgp->op),
+                    bound_here);
+
+      if(sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) {
+        /* Collapse OPTIONAL { GROUP } */
+        var_in_scope++;
+      }
+      
+      if(sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
+        var_in_scope--;
+        if(bound_here) {
+          /* It was defined in first GROUP so life is good - done */
+          if(var_in_scope == 1)
+            break;
+        
+          /* It was defined in an outer GROUP so this is bad */
+#if RASQAL_DEBUG > 1
+          RASQAL_DEBUG3("FILTER Variable %s defined in GROUP GP #%d and now out of scope\n", v->name, sgp->gp_index);
+#endif
+          var_in_scope = 0;
+          break;
+        }
+      }
+    }
+    
+    if(!var_in_scope) {
+      rasqal_literal* l;
+      
+      l = rasqal_new_boolean_literal(query->world, 0);
+      /* In-situ conversion of filter_expression to a literal expression */
+      rasqal_expression_convert_to_literal(gp->filter_expression, l);
+      *modified = 1;
+
+      RASQAL_DEBUG2("FILTER Variable %s was defined outside FILTER's parent group\n", v->name);
+      break;
+    }
+    
+  }
+  
+  return 0;
+}
+
+
 struct folding_state {
   rasqal_query* query;
   int changes;
@@ -1257,7 +1359,17 @@ rasqal_query_prepare_common(rasqal_query *query)
     rc = rasqal_query_build_variables_use(query, projection);
     if(rc)
       goto done;
-    
+
+    /* Turn FILTERs that refer to out-of-scope variables into FALSE */
+    rc = rasqal_query_graph_pattern_visit2(query,
+                                           rasqal_query_filter_variable_scope,
+                                           &modified);
+#if RASQAL_DEBUG > 1
+    fprintf(DEBUG_FH, "modified=%d  after filter variable scope, query graph pattern now:\n  ", modified);
+    rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
+    fputs("\n", DEBUG_FH);
+#endif
+
     /* warn if any of the selected named variables are not in a triple */
     rc = rasqal_query_check_unused_variables(query);
     if(rc)
@@ -1534,7 +1646,7 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
  */
 static int
 rasqal_graph_pattern_mentions_variable(rasqal_graph_pattern* gp,
-                                    rasqal_variable* v)
+                                       rasqal_variable* v)
 {
   rasqal_query* query = gp->query;
   int width;
