@@ -13,6 +13,8 @@
 <p>Not yet released.
 </p>
 
+<p>Fully supports SPARQL 1.0 - all the approved tests pass.</p>
+
 <p>Requires raptor 2.0.7 or newer.</p>
 
 <p>RDQL query language support will be removed in the next
@@ -23,6 +25,7 @@ supported.</p>
 <ul>
   <li><a href="http://bugs.librdf.org/mantis/view.php?id=493">0000493</a>: Offset in sub-select results in no rows at all.</li>
   <li><a href="http://bugs.librdf.org/mantis/view.php?id=494">0000494</a>: Temp buffer to small.</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=504">0000504</a>: rasqal_regex_replace() is not public</li>
 </ul>
 
 
@@ -67,7 +70,19 @@ Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=494">Issue #0000494</a>
 </p>
 
 
+<h3>Graph pattern class changes</h3>
+
+<p>Added <code>rasqal_query_graph_pattern_visit2()</code> deprecating
+<code>rasqal_query_graph_pattern_visit()</code>
+</p>
+
+
 <h3>Literal class changes</h3>
+
+<p>Enum <code>rasqal_op</code> gains new tokens
+<code>RASQAL_EXPR_UUID</code> and <code>RASQAL_EXPR_STRUUID</code>
+for the new SPARQL 1.1 draft <code>UUID()</code> and
+<code>STRUUID</code> built-in functions.</p>
 
 <p><code>rasqal_literal_divide()</code> result is now a decimal if
 both args are integer - rule from XPath F&amp;O;
@@ -84,10 +99,16 @@ methods.
 
 <h3>Query engine changes</h3>
 
-<p><code>DISTINCT</code> now compares using RDF term comparison not
-value comparison so now "" is distinct from ""^^xsd:string.
-This has a consquence of making RDQL test B-01 as failing but this is
-no loss.  Relatedly, RDQL support will be removed in the next release.
+<p>The rules for in-scope variables for <code>FILTER</code> were
+corrected to match the SPARQL 1.0 semantics.  This fixed the last
+remaining failure Rasqal had for the SPARQL 1.0 approved test cases.
+</p>
+
+<p><code>DISTINCT</code> now
+compares using RDF term comparison not value comparison so now "" is
+distinct from ""^^xsd:string.  This has a consquence of making RDQL
+test B-01 as failing but this is no loss.  Relatedly, RDQL support
+will be removed in the next release.
 </p>
 
 <p>Handle errors found in aggregation expressions following SPARQL
@@ -102,9 +123,32 @@ Fixes
 <a href="http://bugs.librdf.org/mantis/view.php?id=493">Issue #0000493</a>
 </p>
 
+<p>Added support for executing SPARQL 1.1 draft <code>UUID()</code>
+and <code>STRUUID</code> using either libuuid or internal random API
+that backs executing <code>RAND()</code>.
+</p>
 
 
 <h3>Other changes</h3>
+
+<p>The <code>configure</code> test for libgcrypt as a digest backend
+now works; it really didn't before now.  Added option
+<code>--with-libgcrypt-config=PATH</code> to allow selecting the path
+to the <code>libgcrypt-config</code>.  mhash remains the preferred
+hash digest library as it provides more digests and is more commonly
+available.
+</p>
+
+<p><code>configure</code> now looks for libuuid with
+<code>pkg-config</code> to back the SPARQL 1.1 UUID generation
+support.  The UUID backend can be selected with new configure
+option <code>--uuid-library=NAME</code></p>
+
+<p>Made <code>rasqal_regex_replace()</code> public with same
+signature as the internal API.
+Fixes
+<a href="http://bugs.librdf.org/mantis/view.php?id=504">Issue #0000504</a>
+</p>
 
 <p>Fixed several code issues with unused values found by clang.</p>
 

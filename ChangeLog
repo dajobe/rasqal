@@ -1,3 +1,157 @@
+2012-05-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c: Replace out-of-scope FILTER vars
+	with constant FALSE
+
+	(rasqal_query_filter_variable_scope): Added to check scope of vars
+	in filter using an upwards GP walk wih
+	rasqal_graph_pattern_get_parent() and
+	rasqal_graph_pattern_variable_bound_below().
+
+	(rasqal_query_prepare_common): Call
+	rasqal_query_filter_variable_scope() after tree GPs have been
+	enumerated.  This has the consequence that constant join
+	conditions may be not optimized out.
+
+	Fixes last SPARQL 1.0 test suite failure:
+	SPARQL 1.0 Summary:
+	  SPARQL 1.0 total passes: 441
+	  SPARQL 1.0 total failures: 0
+
+	* src/rasqal_graph_pattern.c, src/rasqal_internal.h:
+	(rasqal_graph_pattern_variable_bound_below): Added
+
+	* src/rasqal_graph_pattern.c, src/rasqal_internal.h:
+	(rasqal_graph_pattern_get_parent): Added
+
+	* src/rasqal_rowsource_join.c: Handle a constant join expression
+	correctly.  This is not optimal at this point but it is correct.
+	For a FALSE join condition for a LEFT JOIN it should never read
+	anything from the right rowsource.  Currently it reads every row
+	and throws them all away
+
+2012-05-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_groupby.c:
+	(rasqal_new_groupby_rowsource): Tidy con init [clang]
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_new_aggregation_rowsource): Init con to NULL [clang]
+
+	* src/rasqal_literal.c:
+	(rasqal_new_literal_from_promotion): init len to prevent [clang]
+	warning
+
+	* libmtwist: Update libmtwist
+
+	* src/rasqal_regex.c:
+	(rasqal_regex_replace_posix): Free result on failure [clang]
+
+	* src/rasqal_format_rdf.c:
+	(rasqal_rowsource_rdf_process): Error path for malloc [clang]
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_new_aggregation_rowsource): Free con on error [clang]
+
+	* src/rasqal_rowsource_groupby.c:
+	(rasqal_new_groupby_rowsource): Free con on error [clang]
+
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_add_variable): Arg check [clang]
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_as_counted_string): Check error_p [clang]
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_basic_graph_pattern_to_algebra): return NULL [clang]
+
+2012-05-02  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, src/rasqal_digest.c, src/rasqal_internal.h: Make
+	libgcrypt work as a digest backend
+
+	Added configure arg --with-libgcrypt-config=PATH to
+	libgcrypt-config Made --with-digest-library=gcrypt work
+
+	(rasqal_digest_buffer): gcrypt version works and uses lower level
+	functions.  Removed const attribute on an output parameter.
+
+	* docs/tmpl/section-expression.sgml: Update tmpls
+
+	* configure.ac, src/rasqal_expr_numerics.c: Fix libuuid configure
+	tests
+
+	* configure.ac, src/rasqal_expr_numerics.c: Add internal uuid
+	configure and macro
+
+	* configure.ac, src/rasqal.h.in, src/rasqal_expr.c,
+	src/rasqal_expr_evaluate.c, src/rasqal_expr_numerics.c,
+	src/rasqal_internal.h, src/rasqal_query_write.c,
+	src/sparql_lexer.l, src/sparql_parser.y:
+	Add UUID and STRUUID
+
+	rasqal_op gains RASQAL_EXPR_UUID and RASQAL_EXPR_STRUUID
+
+	(rasqal_expression_evaluate_uuid): Added to evaluate both
+	Implementation uses libuuid if it exists or uses rasqal random to
+	generate a random UUID (v4).
+
+	(rasqal_expression_evaluate_uriuuid)
+	(rasqal_expression_evaluate_struuid): Added as wrappers to above
+
+2012-04-30  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-literal.sgml, docs/tmpl/section-query.sgml,
+	docs/tmpl/section-utilities.sgml, src/rasqal_regex.c:
+	rasqal_regex_replace arg docs and update tmpls
+
+	* docs/rasqal-changes.tsv, docs/rasqal-docs.xml,
+	docs/rasqal-sections.txt, docs/tmpl/section-utilities.sgml,
+	src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_regex.c: Move
+	rasqal_regex_replace to the public API
+
+	(rasqal_regex_replace): Made public
+	Fixes Issue #0000504 http://bugs.librdf.org/mantis/view.php?id=504
+
+	* docs/rasqal-docs.xml: 2012
+
+	* src/rasqal_query_transform.c: Update query prepartion for
+	rasqal_query_graph_pattern_visit2
+
+	(rasqal_query_prepare_count_graph_pattern): Renamed from
+	rasqal_query_prepare_count_graph_patterns since it deals with 1.
+
+	(rasqal_query_enumerate_graph_patterns): Added, calling
+	rasqal_query_prepare_count_graph_pattern and using
+	rasqal_query_graph_pattern_visit2() result.
+
+	(rasqal_query_prepare_common): Check return code from
+	rasqal_query_graph_pattern_visit2 calls.  Use
+	rasqal_query_enumerate_graph_patterns() to do enumeration.
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt,
+	src/rasqal.h.in, src/rasqal_query.c:
+	(rasqal_query_graph_pattern_visit2): Added deprecating
+	rasqal_query_graph_pattern_visit
+
+	* src/rasqal_algebra.c: Added
+	rasqal_algebra_new_boolean_constant_expr
+
+	(rasqal_algebra_new_boolean_constant_expr): Renamed from
+	rasqal_algebra_new_true_expr() and added internal docs
+
+2012-04-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_graph_pattern_to_algebra): More extra debug info
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_new_true_expr): Added and use it
+
+2012-04-11  Dave Beckett <dave@dajobe.org>
+
+	* RELEASE.html: 0.9.29 - no rdql
+
 2012-04-10  Dave Beckett <dave@dajobe.org>
 
 	* docs/tmpl/section-xsd.sgml: Update tmpls
