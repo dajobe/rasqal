@@ -732,6 +732,8 @@ main(int argc, char *argv[])
   
   tidy:
   for(i = 0; i < NUM_VARS; i++) {
+    if(vars[i])
+      rasqal_free_variable(vars[i]);
     if(names[i])
       free(names[i]);
   }
