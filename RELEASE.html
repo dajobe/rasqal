@@ -10,16 +10,17 @@
 
 <h2 id="rel0_9_29"><a name="rel0_9_29">Rasqal 0.9.29 changes</a></h2>
 
-<p>Not yet released.
-</p>
+<p>Rasqal fully supports SPARQL 1.0 from this release. All the
+approved tests pass.</p>
 
-<p>Fully supports SPARQL 1.0 - all the approved tests pass.</p>
-
-<p>Requires raptor 2.0.7 or newer.</p>
+<p>Requires <a href="http://librdf.org/raptor/">Raptor</a> 2.0.7 or newer.</p>
 
 <p>RDQL query language support will be removed in the next
 release. SPARQL has been available for 4 years and is fully
 supported.</p>
+
+<p>Add support for SPARQL 1.1 draft <code>UUID()</code> and
+<code>STRUUID()</code>.</p>
 
 <p>Issues Fixed:</p>
 <ul>
@@ -33,7 +34,7 @@ supported.</p>
 
 <p>Added a new datatype
 <code>rasqal_xsd_date</code> class for XSD with literal enum
-<code>RASQAL_LITERAL_DATE</code>a>, constructor
+<code>RASQAL_LITERAL_DATE</code>, constructor
 <code>rasqal_new_xsd_date()</code>, destructor
 <code>rasqal_free_xsd_datetime()</code> and core methods
 <code>rasqal_xsd_date_to_counted_string()</code>,
@@ -114,8 +115,8 @@ will be removed in the next release.
 <p>Handle errors found in aggregation expressions following SPARQL
 standard.</p>
 
-<p>Fix blank node generation when made in a CONSTRUCT to match
-SPARQL standard.
+<p>Fix blank node generation when made in a <code>CONSTRUCT</code> to
+match SPARQL standard.
 </p>
 
 <p>Make limit and offset check work properly in a subquery.
@@ -157,7 +158,8 @@ to understand more of the manifest vocabulary.
 </p>
 
 <p>Add code marking of good and bad type casts using macros
-RASQAL_GOOD_CAST and RASQAL_BAD_CAST macros.</p>
+<code>RASQAL_GOOD_CAST</code> and <code>RASQAL_BAD_CAST</code>
+macros.</p>
 
 <p>Building from GIT now requires automake 1.11.2+ for the
 <code>-Wextra-portability</code> option.
