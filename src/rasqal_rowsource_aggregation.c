@@ -797,7 +797,8 @@ static const rasqal_rowsource_handler rasqal_aggregation_rowsource_handler = {
  *
  * INTERNAL - Create a new rowsource for a aggregration
  *
- * The @rowsource becomes owned by the new rowsource.
+ * The @rowsource becomes owned by the new rowsource.  The @exprs_seq
+ * and @vars_seq are not. 
  *
  * For example with the SPARQL 1.1 example queries
  *
@@ -1193,13 +1194,17 @@ main(int argc, char *argv[])
     
     vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                                    (raptor_data_print_handler)rasqal_variable_print);
-    output_var = rasqal_new_variable_from_variable(output_var);
     raptor_sequence_push(vars_seq, output_var);
+    /* output_var is now owned by vars_seq */
+    output_var = NULL;
 
     rowsource = rasqal_new_aggregation_rowsource(world, query, input_rs,
                                                  exprs_seq, vars_seq);
-    /* exprs_seq, vars_seq and input_rs are now owned by rowsource */
-    exprs_seq = NULL; vars_seq = NULL; input_rs = NULL;
+    /* input_rs is now owned by rowsource */
+    input_rs = NULL;
+    /* these are no longer needed; agg rowsource made copies */
+    raptor_free_sequence(exprs_seq); exprs_seq = NULL;
+    raptor_free_sequence(vars_seq); vars_seq = NULL;
 
     if(!rowsource) {
       fprintf(stderr, "%s: failed to create aggregation rowsource\n", program);
