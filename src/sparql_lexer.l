@@ -799,7 +799,7 @@ rasqal_sparql_name_check(unsigned char *string, size_t length,
   if(!length)
     return 1;
 
-  if(check_flags && SPARQL_NAME_CHECK_ALLOW_09_FIRST &&
+  if((check_flags & SPARQL_NAME_CHECK_ALLOW_09_FIRST) &&
      (*string >= '0' && *string <= '9')) {
     c = *string;
     *string = 'X';
