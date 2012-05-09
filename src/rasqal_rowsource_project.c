@@ -362,9 +362,10 @@ main(int argc, char *argv[])
                                        (raptor_data_print_handler)rasqal_variable_print);
   for(i = 0 ; i < EXPECTED_COLUMNS_COUNT; i++) {
     rasqal_variable* v;
-    unsigned const char* name=(unsigned const char*)project_1_var_names[i];
+    unsigned const char* name = (unsigned const char*)project_1_var_names[i];
     v = rasqal_variables_table_get_by_name(vt, RASQAL_VARIABLE_TYPE_NORMAL,
                                            name);
+    /* returns SHARED pointer to variable */
     if(v) {
       v = rasqal_new_variable_from_variable(v);
       raptor_sequence_push(projection_seq, v);

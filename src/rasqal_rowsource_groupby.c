@@ -776,8 +776,11 @@ main(int argc, char *argv[])
 
         v = rasqal_variables_table_get_by_name(vt, RASQAL_VARIABLE_TYPE_NORMAL,
                                                var_name);
-        if(v)
+        /* returns SHARED pointer to variable */
+        if(v) {
+          v = rasqal_new_variable_from_variable(v);
           l = rasqal_new_variable_literal(world, v);
+        }
 
         if(l)
           e = rasqal_new_literal_expression(world, l);

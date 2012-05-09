@@ -205,7 +205,9 @@ main(int argc, char *argv[])
     failures++;
     goto tidy;
   }
-  
+
+  rasqal_free_row(row); row = NULL;
+
   rasqal_free_rowsource(rowsource);
 
   /* re-init rowsource */
@@ -229,6 +231,8 @@ main(int argc, char *argv[])
 
 
   tidy:
+  if(row)
+    rasqal_free_row(row);
   if(seq)
     raptor_free_sequence(seq);
   if(rowsource)
