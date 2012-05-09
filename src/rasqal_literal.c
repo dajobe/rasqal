@@ -106,7 +106,9 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type,
        l->string = integer ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
        l->string_len = integer ? RASQAL_XSD_BOOLEAN_TRUE_LEN : RASQAL_XSD_BOOLEAN_FALSE_LEN;
     } else  {
-      l->string = rasqal_xsd_format_integer(integer, (size_t*)&l->string_len);
+      size_t slen = 0;      
+      l->string = rasqal_xsd_format_integer(integer, &slen);
+      l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
       if(!l->string) {
         rasqal_free_literal(l);
         return NULL;
@@ -230,12 +232,14 @@ rasqal_new_double_literal(rasqal_world* world, double d)
 
   l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
+    size_t slen = 0;      
     l->valid = 1;
     l->usage = 1;
     l->world = world;
     l->type = RASQAL_LITERAL_DOUBLE;
     l->value.floating = d;
-    l->string = rasqal_xsd_format_double(d, (size_t*)&l->string_len);
+    l->string = rasqal_xsd_format_double(d, &slen);
+    l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
     if(!l->string) {
       rasqal_free_literal(l);
       return NULL;
@@ -270,12 +274,14 @@ rasqal_new_float_literal(rasqal_world *world, float f)
 
   l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
+    size_t slen = 0;
     l->valid = 1;
     l->usage = 1;
     l->world = world;
     l->type = RASQAL_LITERAL_FLOAT;
     l->value.floating = (double)f;
-    l->string = rasqal_xsd_format_double(f, (size_t*)&l->string_len);
+    l->string = rasqal_xsd_format_double(f, &slen);
+    l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
     if(!l->string) {
       rasqal_free_literal(l);
       return NULL;
@@ -431,10 +437,12 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
       rasqal_free_literal(l);
       l = NULL;
     } else {
+      size_t slen = 0;      
       l->datatype = raptor_uri_copy(dt_uri);
       l->value.decimal = decimal;
       /* string is owned by l->value.decimal */
-      l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_decimal_as_counted_string(l->value.decimal, (size_t*)&l->string_len));
+      l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_decimal_as_counted_string(l->value.decimal, &slen));
+      l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
       if(!l->string) {
         rasqal_free_literal(l);
         l = NULL;
@@ -525,6 +533,7 @@ rasqal_new_datetime_literal_from_datetime(rasqal_world* world,
 {
   rasqal_literal* l;
   raptor_uri *dt_uri;
+  size_t slen = 0;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(dt, rasqal_xsd_datetime, NULL);
@@ -546,7 +555,8 @@ rasqal_new_datetime_literal_from_datetime(rasqal_world* world,
 
   l->value.datetime = dt;
   
-  l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_datetime_to_counted_string(l->value.datetime, (size_t*)&l->string_len));
+  l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_datetime_to_counted_string(l->value.datetime, &slen));
+  l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
   if(!l->string)
     goto failed;
 
@@ -651,40 +661,49 @@ retype:
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-      d = 0.0;
-      (void)sscanf(RASQAL_GOOD_CAST(char*, l->string), "%lf", &d);
-      l->value.floating = d;
-      if(canonicalize) {
-        if(l->string)
-          RASQAL_FREE(char*, l->string);
-        l->string = rasqal_xsd_format_double(d, (size_t*)&l->string_len);
+      if(1) {
+        size_t slen = 0;
+        d = 0.0;
+        (void)sscanf(RASQAL_GOOD_CAST(char*, l->string), "%lf", &d);
+        l->value.floating = d;
+        if(canonicalize) {
+          if(l->string)
+            RASQAL_FREE(char*, l->string);
+          l->string = rasqal_xsd_format_double(d, &slen);
+          l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
+        }
       }
       break;
 
     case RASQAL_LITERAL_DECIMAL:
-      if(l->value.decimal)
-        rasqal_free_xsd_decimal(l->value.decimal);
+      if(1) {
+        size_t slen = 0;
 
-      l->value.decimal = rasqal_new_xsd_decimal(l->world);
-      if(!l->value.decimal) {
-        /* free l->string which is not owned by literal yet */
-        RASQAL_FREE(char*, l->string); l->string = NULL;
-        return 1;
-      }
-      if(rasqal_xsd_decimal_set_string(l->value.decimal,
-                                       RASQAL_GOOD_CAST(const char*, l->string))) {
-        /* free l->string which is not owned by literal yet */
-        RASQAL_FREE(char*, l->string); l->string = NULL;
-        return 1;
-      }
-      RASQAL_FREE(char*, l->string);
+        if(l->value.decimal)
+          rasqal_free_xsd_decimal(l->value.decimal);
 
-      /* l->string is now owned by l->value.decimal and will be freed
-       * on literal destruction
-       */
-      l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_decimal_as_counted_string(l->value.decimal, RASQAL_BAD_CAST(size_t*, &l->string_len)));
-      if(!l->string)
-        return 1;
+        l->value.decimal = rasqal_new_xsd_decimal(l->world);
+        if(!l->value.decimal) {
+          /* free l->string which is not owned by literal yet */
+          RASQAL_FREE(char*, l->string); l->string = NULL;
+          return 1;
+        }
+        if(rasqal_xsd_decimal_set_string(l->value.decimal,
+                                         RASQAL_GOOD_CAST(const char*, l->string))) {
+          /* free l->string which is not owned by literal yet */
+          RASQAL_FREE(char*, l->string); l->string = NULL;
+          return 1;
+        }
+        RASQAL_FREE(char*, l->string);
+
+        /* l->string is now owned by l->value.decimal and will be freed
+         * on literal destruction
+         */
+        l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_decimal_as_counted_string(l->value.decimal, &slen));
+        l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
+        if(!l->string)
+          return 1;
+      }
       break;
 
     case RASQAL_LITERAL_XSD_STRING:
@@ -710,35 +729,44 @@ retype:
     break;
 
   case RASQAL_LITERAL_DATE:
-    if(l->value.date)
-      rasqal_free_xsd_date(l->value.date);
+    if(1) {
+      size_t slen = 0;
 
-    l->value.date = rasqal_new_xsd_date(l->world, RASQAL_GOOD_CAST(const char*, l->string));
-    if(!l->value.date) {
+      if(l->value.date)
+        rasqal_free_xsd_date(l->value.date);
+
+      l->value.date = rasqal_new_xsd_date(l->world, RASQAL_GOOD_CAST(const char*, l->string));
+      if(!l->value.date) {
+        RASQAL_FREE(char*, l->string);
+        return 1;
+      }
       RASQAL_FREE(char*, l->string);
-      return 1;
+      l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_date_to_counted_string(l->value.date, &slen));
+      l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
+      if(!l->string)
+        return 1;
     }
-    RASQAL_FREE(char*, l->string);
-    l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_date_to_counted_string(l->value.date, RASQAL_BAD_CAST(size_t*, &l->string_len)));
-    if(!l->string)
-      return 1;
     break;
 
   case RASQAL_LITERAL_DATETIME:
-    if(l->value.datetime)
-      rasqal_free_xsd_datetime(l->value.datetime);
+    if(1) {
+      size_t slen = 0;
 
-    l->value.datetime = rasqal_new_xsd_datetime(l->world,
-                                                RASQAL_GOOD_CAST(const char*, l->string));
-    if(!l->value.datetime) {
+      if(l->value.datetime)
+        rasqal_free_xsd_datetime(l->value.datetime);
+
+      l->value.datetime = rasqal_new_xsd_datetime(l->world,
+                                                  RASQAL_GOOD_CAST(const char*, l->string));
+      if(!l->value.datetime) {
+        RASQAL_FREE(char*, l->string);
+        return 1;
+      }
       RASQAL_FREE(char*, l->string);
-      return 1;
+      l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_datetime_to_counted_string(l->value.datetime, &slen));
+      l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
+      if(!l->string)
+        return 1;
     }
-    RASQAL_FREE(char*, l->string);
-    l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_datetime_to_counted_string(l->value.datetime, RASQAL_BAD_CAST(size_t*, &l->string_len)));
-    if(!l->string)
-      return 1;
-
     break;
 
   case RASQAL_LITERAL_UNKNOWN:
