@@ -344,8 +344,8 @@ rasqal_new_row_sequence(rasqal_world* world,
     }
 
     if(vars_seq) {
-      v = rasqal_new_variable_from_variable(v);
       raptor_sequence_push(vars_seq, v);
+      /* v is now owned by vars_seq */
     }
   }
 
