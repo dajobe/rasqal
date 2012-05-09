@@ -662,6 +662,9 @@ retype:
       break;
 
     case RASQAL_LITERAL_DECIMAL:
+      if(l->value.decimal)
+        rasqal_free_xsd_decimal(l->value.decimal);
+
       l->value.decimal = rasqal_new_xsd_decimal(l->world);
       if(!l->value.decimal) {
         /* free l->string which is not owned by literal yet */
@@ -707,6 +710,9 @@ retype:
     break;
 
   case RASQAL_LITERAL_DATE:
+    if(l->value.date)
+      rasqal_free_xsd_date(l->value.date);
+
     l->value.date = rasqal_new_xsd_date(l->world, RASQAL_GOOD_CAST(const char*, l->string));
     if(!l->value.date) {
       RASQAL_FREE(char*, l->string);
@@ -719,6 +725,9 @@ retype:
     break;
 
   case RASQAL_LITERAL_DATETIME:
+    if(l->value.datetime)
+      rasqal_free_xsd_datetime(l->value.datetime);
+
     l->value.datetime = rasqal_new_xsd_datetime(l->world,
                                                 RASQAL_GOOD_CAST(const char*, l->string));
     if(!l->value.datetime) {
