@@ -1,3 +1,43 @@
+2012-05-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_concat): Do not copy NULL URI
+
+	* src/rasqal_literal.c: Cast side-effected returns of size_t to
+	unsigned int [clang]
+
+	* src/sparql_lexer.l:
+	(rasqal_sparql_name_check): Use & for bit check [clang]
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): Do not destroy object refs
+
+2012-05-08  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_new_aggregation_rowsource): docs and seq usage in test
+
+	* src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_empty.c, src/rasqal_rowsource_groupby.c,
+	src/rasqal_rowsource_project.c: Correct variable reference usage
+	in tests and test cleanup
+
+	* src/rasqal_row.c:
+	(rasqal_new_row_sequence): Do not double reference to var Internal
+	function mostly for tests
+
+	* NEWS.html, RELEASE.html: 0.9.29 not yet
+
+2012-05-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_variable.c:
+	(main): Fix vars reference count leak in test
+
+	* ChangeLog, NEWS.html, README.html, RELEASE.html: 0.9.29
+
+	* INSTALL.html: Add --with-libgcrypt-config --with-digest-library
+	and tidy
+
 2012-05-05  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_query_transform.c: Replace out-of-scope FILTER vars
