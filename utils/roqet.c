@@ -468,6 +468,7 @@ roqet_query_walk(rasqal_query *rq, FILE *fh, int indent) {
 
 typedef enum {
   QUERY_OUTPUT_UNKNOWN,
+  QUERY_OUTPUT_NONE,
   QUERY_OUTPUT_DEBUG,
   QUERY_OUTPUT_STRUCTURE,
   QUERY_OUTPUT_SPARQL,
@@ -476,6 +477,7 @@ typedef enum {
 
 const char* query_output_format_labels[QUERY_OUTPUT_LAST + 1][2] = {
   { NULL, NULL },
+  { "none", "No debug data" },
   { "debug", "Debug query dump (output format may change)" },
   { "structure", "Query structure walk (output format may change)" },
   { "sparql", "SPARQL" }
@@ -738,6 +740,9 @@ void roqet_print_query(rasqal_query* rq,
   fprintf(stderr, "Query:\n");
   
   switch(output_format) {
+    case QUERY_OUTPUT_NONE:
+      break;
+
     case QUERY_OUTPUT_DEBUG:
       rasqal_query_print(rq, stdout);
       break;
@@ -884,7 +889,7 @@ main(int argc, char *argv[])
   int dryrun = 0;
   raptor_sequence* data_graphs = NULL;
   const char *result_format = NULL;
-  query_output_format output_format = QUERY_OUTPUT_UNKNOWN;
+  query_output_format output_format = QUERY_OUTPUT_NONE;
   rasqal_feature query_feature = (rasqal_feature)-1;
   int query_feature_value= -1;
   unsigned char* query_feature_string_value = NULL;
@@ -1469,7 +1474,7 @@ main(int argc, char *argv[])
       goto tidy_query;
     }
 
-    if(output_format != QUERY_OUTPUT_UNKNOWN && !quiet)
+    if(output_format != QUERY_OUTPUT_NONE && !quiet)
       roqet_print_query(rq, raptor_world_ptr, output_format, base_uri);
     
     if(!dryrun) {
