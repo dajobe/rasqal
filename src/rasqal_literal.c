@@ -679,8 +679,11 @@ retype:
       if(1) {
         size_t slen = 0;
 
-        if(l->value.decimal)
+        if(l->value.decimal) {
           rasqal_free_xsd_decimal(l->value.decimal);
+          /* string is owned by l->value.decimal */
+          l->string = NULL;
+        }
 
         l->value.decimal = rasqal_new_xsd_decimal(l->world);
         if(!l->value.decimal) {
