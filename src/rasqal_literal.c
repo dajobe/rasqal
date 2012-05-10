@@ -690,7 +690,7 @@ retype:
           string = l->string;
 
         if(rasqal_xsd_decimal_set_string(new_d,
-                                         RASQAL_GOOD_CAST(const char*, l->string))) {
+                                         RASQAL_GOOD_CAST(const char*, string))) {
           rasqal_free_xsd_decimal(new_d);
           return 1;
         }
