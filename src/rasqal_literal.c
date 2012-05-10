@@ -680,23 +680,31 @@ retype:
       if(1) {
         size_t slen = 0;
         rasqal_xsd_decimal* new_d;
-        
+        int own_string = (string != NULL);
+
         new_d = rasqal_new_xsd_decimal(l->world);
         if(!new_d)
           return 1;
 
-        if(!string)
-          /* use existing literl decimal object (SHARED) string */
+        if(!own_string)
+          /* use existing literal decimal object (SHARED) string */
           string = l->string;
 
         if(rasqal_xsd_decimal_set_string(new_d,
                                          RASQAL_GOOD_CAST(const char*, string))) {
           rasqal_free_xsd_decimal(new_d);
+          if(own_string)
+            RASQAL_FREE(char*, string);
           return 1;
         }
-        if(l->value.decimal)
+        if(l->value.decimal) {
           rasqal_free_xsd_decimal(l->value.decimal);
+          /* old l->string is now invalid */
+        }
         l->value.decimal = new_d;
+
+        if(own_string)
+          RASQAL_FREE(char*, string);
 
         /* l->string is now owned by l->value.decimal and will be freed
          * on literal destruction
