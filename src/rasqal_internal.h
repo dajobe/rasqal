@@ -35,10 +35,6 @@ extern "C" {
 
 #ifdef RASQAL_INTERNAL
 
-#ifdef MAINTAINER_MODE
-#include <git-version.h>
-#endif
-
 #if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
 #define RASQAL_PRINTF_FORMAT(string_index, first_to_check_index) \
   __attribute__((__format__(__printf__, string_index, first_to_check_index)))

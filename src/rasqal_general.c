@@ -40,6 +40,9 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+#ifdef MAINTAINER_MODE
+#include <git-version.h>
+#endif
 
 /* prototypes for helper functions */
 static void rasqal_delete_query_language_factories(rasqal_world*);
