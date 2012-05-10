@@ -611,9 +611,10 @@ retype:
   }
   l->type = type;
 
-  if(string) {
+  if(string && l->type == RASQAL_LITERAL_DECIMAL) {
     if(l->string)
       RASQAL_FREE(char*, l->string);
+
     l->string_len = RASQAL_BAD_CAST(unsigned int, strlen(RASQAL_GOOD_CAST(const char*, string)));
     l->string = RASQAL_MALLOC(unsigned char*, l->string_len + 1);
     if(!l->string)
@@ -678,26 +679,24 @@ retype:
     case RASQAL_LITERAL_DECIMAL:
       if(1) {
         size_t slen = 0;
-
-        if(l->value.decimal) {
-          rasqal_free_xsd_decimal(l->value.decimal);
-          /* string is owned by l->value.decimal */
-          l->string = NULL;
-        }
-
-        l->value.decimal = rasqal_new_xsd_decimal(l->world);
-        if(!l->value.decimal) {
-          /* free l->string which is not owned by literal yet */
-          RASQAL_FREE(char*, l->string); l->string = NULL;
+        rasqal_xsd_decimal* new_d;
+        
+        new_d = rasqal_new_xsd_decimal(l->world);
+        if(!new_d)
           return 1;
-        }
-        if(rasqal_xsd_decimal_set_string(l->value.decimal,
+
+        if(!string)
+          /* use existing literl decimal object (SHARED) string */
+          string = l->string;
+
+        if(rasqal_xsd_decimal_set_string(new_d,
                                          RASQAL_GOOD_CAST(const char*, l->string))) {
-          /* free l->string which is not owned by literal yet */
-          RASQAL_FREE(char*, l->string); l->string = NULL;
+          rasqal_free_xsd_decimal(new_d);
           return 1;
         }
-        RASQAL_FREE(char*, l->string);
+        if(l->value.decimal)
+          rasqal_free_xsd_decimal(l->value.decimal);
+        l->value.decimal = new_d;
 
         /* l->string is now owned by l->value.decimal and will be freed
          * on literal destruction
