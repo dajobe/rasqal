@@ -611,7 +611,7 @@ retype:
   }
   l->type = type;
 
-  if(string && l->type == RASQAL_LITERAL_DECIMAL) {
+  if(string && l->type != RASQAL_LITERAL_DECIMAL) {
     if(l->string)
       RASQAL_FREE(char*, l->string);
 
