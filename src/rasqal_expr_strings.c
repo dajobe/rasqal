@@ -565,10 +565,11 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
     arg_literal = rasqal_expression_evaluate2(arg_expr, eval_context, error_p);
     if(arg_literal) {
 
-      if(!dt)
+      if(!dt) {
         /* First datatype URI seen is the result datatype */
-        dt = raptor_uri_copy(arg_literal->datatype);
-      else {
+        if(arg_literal->datatype)
+          dt = raptor_uri_copy(arg_literal->datatype);
+      } else {
         /* Otherwise if all same so far, check the datatype URI for
          * this literal is also the same 
          */
