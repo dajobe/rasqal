@@ -593,6 +593,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   raptor_uri* dt_uri;
   int i;
   double d;
+  rasqal_literal_type original_type = l->type;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 1);
 
@@ -696,12 +697,15 @@ retype:
         }
         if(l->value.decimal) {
           rasqal_free_xsd_decimal(l->value.decimal);
-          /* old l->string is now invalid */
         }
         l->value.decimal = new_d;
 
-        /* l->string is now owned by l->value.decimal and will be freed
-         * on literal destruction
+        /* old l->string is now invalid and MAY need to be freed */
+        if(l->string && original_type != RASQAL_LITERAL_DECIMAL)
+          RASQAL_FREE(char*, l->string);
+
+        /* new l->string is owned by l->value.decimal and will be
+         * freed on literal destruction
          */
         l->string = RASQAL_GOOD_CAST(unsigned char*, rasqal_xsd_decimal_as_counted_string(l->value.decimal, &slen));
         l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
