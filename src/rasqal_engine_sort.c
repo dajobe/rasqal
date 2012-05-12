@@ -164,7 +164,8 @@ rasqal_engine_new_rowsort_map(int is_distinct, int compare_flags,
  * @map: row map
  * @row: row to add
  *
- * INTERNAL - Add a row o a rowsort_map for sorting
+ * INTERNAL - Add a row to a rowsort_map for sorting.  The row
+ * becomes owned by the map
  *
  * return value: non-0 if the row was a duplicate (and not added)
  */
