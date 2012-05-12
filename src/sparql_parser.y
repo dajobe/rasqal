@@ -2693,7 +2693,7 @@ BindingsRow: '(' BindingValueList ')'
       YYERROR_MSG("BindingsRow: cannot create row");
     } else {
       for(i = 0; i < size; i++) {
-        rasqal_literal* value = (rasqal_literal*)raptor_sequence_delete_at($2, i);
+        rasqal_literal* value = (rasqal_literal*)raptor_sequence_get_at($2, i);
         rasqal_row_set_value_at(row, i, value);
       }
     }
