@@ -178,7 +178,7 @@ rasqal_map_node_add_kv(rasqal_map_node* node, void *key, void *value)
   rasqal_map *map = node->map;
   int result;
 
-  result = map->compare(map->compare_user_data, &key, &node->key);
+  result = map->compare(map->compare_user_data, key, node->key);
   if(result < 0) {
     if(node->prev)
       return rasqal_map_node_add_kv(node->prev, key, value);

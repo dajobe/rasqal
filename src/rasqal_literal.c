@@ -4528,8 +4528,8 @@ rasqal_literal_sequence_sort_map_compare(void* user_data,
 
   lsscd = (literal_sequence_sort_compare_data*)user_data;
 
-  literal_seq_a = *(raptor_sequence**)a;
-  literal_seq_b = *(raptor_sequence**)b;
+  literal_seq_a = (raptor_sequence*)a;
+  literal_seq_b = (raptor_sequence*)b;
 
   if(lsscd->is_distinct) {
     result = !rasqal_literal_sequence_equals(literal_seq_a, literal_seq_b);

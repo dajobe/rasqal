@@ -81,8 +81,8 @@ rasqal_engine_rowsort_row_compare(void* user_data, const void *a, const void *b)
   rowsort_compare_data* rcd;
   int result = 0;
   rcd = (rowsort_compare_data*)user_data;
-  row_a = *(rasqal_row**)a;
-  row_b = *(rasqal_row**)b;
+  row_a = (rasqal_row*)a;
+  row_b = (rasqal_row*)b;
 
   if(rcd->is_distinct) {
     result = !rasqal_literal_array_equals(row_a->values, row_b->values,
