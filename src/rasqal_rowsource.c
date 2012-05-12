@@ -265,8 +265,14 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
       }
     } else {
       if(!rowsource->rows_sequence) {
+        raptor_sequence* seq;
+        
+        seq = rasqal_rowsource_read_all_rows(rowsource);
+        if(rowsource->rows_sequence)
+          raptor_free_sequence(rowsource->rows_sequence);
         /* rows_sequence now owns all rows */
-        rowsource->rows_sequence = rasqal_rowsource_read_all_rows(rowsource);
+        rowsource->rows_sequence = seq;
+
         rowsource->offset = 0;
       }
       
@@ -339,12 +345,15 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
   raptor_sequence* seq;
 
   if(rowsource->flags & RASQAL_ROWSOURCE_FLAGS_SAVED_ROWS) {
+    raptor_sequence* new_seq;
+
     /* Return a complete copy of all previously saved rows */
     seq = rowsource->rows_sequence;
+    new_seq = rasqal_row_sequence_copy(seq);
     RASQAL_DEBUG4("%s rowsource %p returning a sequence of %d saved rows\n",
                   rowsource->handler->name, rowsource,
-                  raptor_sequence_size(seq));
-    return rasqal_row_sequence_copy(seq);
+                  raptor_sequence_size(new_seq));
+    return new_seq;
   }
 
   /* Execute */
@@ -393,8 +402,14 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
 
   done:
   if(seq && rowsource->flags & RASQAL_ROWSOURCE_FLAGS_SAVE_ROWS) {
+    raptor_sequence* new_seq;
+
     /* Save a complete copy of all rows */
-    rowsource->rows_sequence = rasqal_row_sequence_copy(seq);
+    new_seq = rasqal_row_sequence_copy(seq);
+    RASQAL_DEBUG4("%s rowsource %p saving a sequence of %d rows\n",
+                  rowsource->handler->name, rowsource,
+                  raptor_sequence_size(new_seq));
+    rowsource->rows_sequence = new_seq;
     rowsource->flags |= RASQAL_ROWSOURCE_FLAGS_SAVED_ROWS;
   }
   
