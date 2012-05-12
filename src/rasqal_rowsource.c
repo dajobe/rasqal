@@ -234,13 +234,13 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
     row = (rasqal_row*)raptor_sequence_get_at(rowsource->rows_sequence,
                                               rowsource->offset++);
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG3("%s rowsource %p returned saved row:  ", rowsource->handler->name, 
-                rowsource);
-  if(row)
-    rasqal_row_print(row, stderr);
-  else
-    fputs("NONE", stderr);
-  fputs("\n", stderr);
+    RASQAL_DEBUG3("%s rowsource %p returned saved row:  ",
+                  rowsource->handler->name, rowsource);
+    if(row)
+      rasqal_row_print(row, stderr);
+    else
+      fputs("NONE", stderr);
+    fputs("\n", stderr);
 #endif      
     if(row)
       row = rasqal_new_row_from_row(row);
