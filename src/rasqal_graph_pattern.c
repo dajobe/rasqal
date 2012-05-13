@@ -339,6 +339,9 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->data_graphs)
     raptor_free_sequence(gp->data_graphs);
   
+  if(gp->var)
+    rasqal_free_variable(gp->var);
+  
   RASQAL_FREE(rasqal_graph_pattern, gp);
 }
 
