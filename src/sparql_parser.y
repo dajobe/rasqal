@@ -123,6 +123,7 @@ free_uri_applies(sparql_uri_applies* ua)
 {
   if(ua->uri)
     raptor_free_uri(ua->uri);
+  RASQAL_FREE(sparql_uri_applies*, ua);
 }
 
 
@@ -360,8 +361,8 @@ BOOLEAN_LITERAL
 URI_LITERAL URI_LITERAL_BRACE
 
 %destructor {
-  if($$->uri)
-    raptor_free_uri($$->uri);
+  if($$)
+    free_uri_applies($$);
 } GraphRefAll
 
 %destructor {
