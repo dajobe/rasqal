@@ -1,4 +1,88 @@
+2012-05-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_variable.c: Added variable usage debugging if define
+	RASQAL_DEBUG_VARIABLE_USAGE set
+
+	* src/rasqal_rowsource_assignment.c:
+	(rasqal_new_assignment_rowsource): Take reference to input var
+
+	* src/rasqal_projection.c: docs
+
+	* src/rasqal_query.c: remove dup bound variables print
+
+	* src/sparql_parser.y: Fix sparql_uri_applies destructor
+	(GraphRefAll): Call it too.
+
+	* src/sparql_parser.y:
+	(ConstructQuery): !where_gp is a failure
+
+	* src/sparql_parser.y:
+	(ConstructQuery): Test where_gp not undefined var
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_free_graph_pattern): Free variable
+
+2012-05-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource.c: Fix rowsequence reference loss
+
+	(rasqal_rowsource_read_row): If calling
+	rasqal_rowsource_read_all_rows internally, do not overwrite a
+	rows_sequence pointer.
+
+	(rasqal_rowsource_read_all_rows): Code tidy to aid debugging Report
+	saving rows in debug message
+
+	* src/rasqal_rowsource.c: Code indenting
+
+2012-05-11  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine_sort.c: docs
+
+	* src/sparql_parser.y: Fix literal reference count loss in
+	BindingsRow
+
+	(BindingsRow): Do not need to copy literal,
+	rasqal_row_set_value_at does it.
+
+	* src/rasqal_engine_sort.c, src/rasqal_literal.c,
+	src/rasqal_map.c: Pass obj pointers into rasqal_map compare
+	callback
+
+2012-05-10  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): free old strings on decimal
+	promotion.
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): remove decimal string ownership
+
+	* src/rasqal_general.c, src/rasqal_internal.h: Move git-version.h
+	include to just one module to speed up recompiles.
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): remember string ownership for
+	decimal
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): use string for decimal
+
+	* src/rasqal_literal.c: != !!
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): handle reuse of old decimal string
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): clear shared decimal string on
+	free
+
 2012-05-09  Dave Beckett <dave@dajobe.org>
+
+	* README.html: html
+
+	* utils/roqet.1, utils/roqet.c: Add -d none option and make it
+	default.
 
 	* src/rasqal_expr_strings.c:
 	(rasqal_expression_evaluate_concat): Do not copy NULL URI
