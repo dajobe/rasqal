@@ -41,6 +41,9 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+#if 0
+#define RASQAL_DEBUG_VARIABLE_USAGE
+#endif
 
 #ifndef STANDALONE
 
@@ -63,6 +66,10 @@ rasqal_new_variable_from_variable(rasqal_variable* v)
   
   v->usage++;
   
+#ifdef RASQAL_DEBUG_VARIABLE_USAGE
+  RASQAL_DEBUG3("Variable %s usage increased to %d\n", v->name, v->usage);
+#endif
+
   return v;
 }
 
@@ -79,8 +86,15 @@ rasqal_free_variable(rasqal_variable* v)
   if(!v)
     return;
 
+#ifdef RASQAL_DEBUG_VARIABLE_USAGE
+  v->usage--;
+  RASQAL_DEBUG3("Variable %s usage decreased to %d\n", v->name, v->usage);
+  if(v->usage)
+    return;
+#else
   if(--v->usage)
     return;
+#endif
   
   if(v->name)
     RASQAL_FREE(char*, v->name);
@@ -125,6 +139,12 @@ rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr)
     rasqal_literal_write(v->value, iostr);
   }
 
+#ifdef RASQAL_DEBUG_VARIABLE_USAGE
+  raptor_iostream_write_byte('[', iostr);
+  raptor_iostream_decimal_write(v->usage, iostr);
+  raptor_iostream_write_byte(']', iostr);
+#endif
+
   raptor_iostream_write_byte(')', iostr);
 }
 
@@ -157,6 +177,11 @@ rasqal_variable_print(rasqal_variable* v, FILE* fh)
     fputc('=', fh);
     rasqal_literal_print(v->value, fh);
   }
+
+#ifdef RASQAL_DEBUG_VARIABLE_USAGE
+  fprintf(fh, "[%d]", v->usage);
+#endif
+
   fputc(')', fh);
 
   return 0;
