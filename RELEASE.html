@@ -10,9 +10,6 @@
 
 <h2 id="rel0_9_29"><a name="rel0_9_29">Rasqal 0.9.29 changes</a></h2>
 
-<p>Not yet released.
-</p>
-
 <p>Rasqal fully supports SPARQL 1.0 from this release. All the
 approved tests pass.</p>
 
@@ -132,6 +129,18 @@ and <code>STRUUID</code> using either libuuid or internal random API
 that backs executing <code>RAND()</code>.
 </p>
 
+<h3>Resilience changes</h3>
+
+<p>Ran entire SPARQL 1.0 and 1.1 test suite through Rasqal and
+valgrind to check for reference loss and memory leaks.  Fixed several
+issues in newer code.</p>
+
+<p>Fixed several code issues with unused values found by clang. Or
+changed code that was correct to make clang moan less.</p>
+
+<p>Add code marking of good and bad type casts using macros
+<code>RASQAL_GOOD_CAST</code> and <code>RASQAL_BAD_CAST</code>
+macros.</p>
 
 <h3>Other changes</h3>
 
@@ -154,18 +163,16 @@ Fixes
 <a href="http://bugs.librdf.org/mantis/view.php?id=504">Issue #0000504</a>
 </p>
 
-<p>Fixed several code issues with unused values found by clang.</p>
-
 <p>The <code>tests/sparql/check-sparql</code> test runner was updated
 to understand more of the manifest vocabulary.
 </p>
 
-<p>Add code marking of good and bad type casts using macros
-<code>RASQAL_GOOD_CAST</code> and <code>RASQAL_BAD_CAST</code>
-macros.</p>
-
 <p>Building from GIT now requires automake 1.11.2+ for the
 <code>-Wextra-portability</code> option.
+</p>
+
+<p>Added <code>-d none</code> to <code>roqet(1)</code> arguments so
+it is possible disable debug output on the command line (default).
 </p>
 
 
