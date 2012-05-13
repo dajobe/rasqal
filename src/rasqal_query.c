@@ -1499,8 +1499,6 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
     }
     fputc('\n', fh);
       
-    raptor_sequence_print(seq, fh);
-
     fputs("\nbound variables: ", fh); 
     raptor_sequence_print(seq, fh);
   }
