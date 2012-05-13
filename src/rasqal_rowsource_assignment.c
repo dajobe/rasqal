@@ -194,7 +194,7 @@ rasqal_new_assignment_rowsource(rasqal_world *world,
   if(!con)
     return NULL;
 
-  con->var = var;
+  con->var = rasqal_new_variable_from_variable(var);
   con->expr = rasqal_new_expression_from_expression(expr);
 
   return rasqal_new_rowsource_from_handler(world, query,
