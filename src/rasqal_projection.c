@@ -43,7 +43,7 @@
 /**
  * rasqal_new_projection:
  * @query: rasqal query
- * @variables: sequence of order condition expressions (or NULL)
+ * @variables: sequence of order condition expressions (or NULL).  Takes ownership of this sequence if present.
  * @wildcard: non-0 if @variables was '*'
  * @distinct: 1 if distinct, 2 if reduced, otherwise neither
  *
