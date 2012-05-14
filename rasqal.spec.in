@@ -30,8 +30,8 @@ Packager:  Dave Beckett <dave@dajobe.org>
 
 Rasqal is a library providing full support for querying Resource
 Description Framework (RDF) including parsing query syntaxes, constructing
-the queries, executing them and returning result formats.  It handles the
-SPARQL and RDQL query languages.
+the queries, executing them and returning result formats.  It supports
+parsing and executing the SPARQL query language.
 
 %package devel
 Summary: Development files for the Rasqal RDF query library
