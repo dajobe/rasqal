@@ -67,7 +67,8 @@
  *
  * INTERNAL - Test if a string matches a regex pattern.
  *
- * Intended to be used for RDQL string matches/does not match regex operators =~ and !~
+ * Intended to be used for executing #RASQAL_EXPR_STR_MATCH and
+ * #RASQAL_EXPR_STR_NMATCH operations (unused: formerly RDQL)
  *
  * Return value: <0 on error, 0 for no match, >0 for match
  *

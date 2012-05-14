@@ -97,9 +97,7 @@ rasqal_new_0op_expression(rasqal_world* world, rasqal_op op)
  * @RASQAL_EXPR_ORDER_COND_DESC @RASQAL_EXPR_COUNT @RASQAL_EXPR_SUM
  * @RASQAL_EXPR_AVG @RASQAL_EXPR_MIN @RASQAL_EXPR_MAX
  *
- * @RASQAL_EXPR_BANG and @RASQAL_EXPR_UMINUS are used by RDQL and
- * SPARQL.  @RASQAL_EXPR_TILDE by RDQL only.  The rest by SPARQL
- * only.
+ * The operator @RASQAL_EXPR_TILDE is not used by SPARQL (formerly RDQL).
  * 
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
@@ -150,8 +148,8 @@ rasqal_new_1op_expression(rasqal_world* world, rasqal_op op,
  * @RASQAL_EXPR_STAR @RASQAL_EXPR_SLASH @RASQAL_EXPR_REM
  * @RASQAL_EXPR_STR_EQ @RASQAL_EXPR_STR_NEQ
  *
- * @RASQAL_EXPR_REM @RASQAL_EXPR_STR_EQ and @RASQAL_EXPR_STR_NEQ are
- * not used by SPARQL. @RASQAL_EXPR_REM is used by RDQL.
+ * @RASQAL_EXPR_REM @RASQAL_EXPR_STR_EQ, @RASQAL_EXPR_STR_NEQ and
+ * @RASQAL_EXPR_REM are unused (formerly RDQL).
  * 
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
@@ -301,8 +299,8 @@ rasqal_new_4op_expression(rasqal_world* world,
  * Takes ownership of the operands.
  *
  * The operators are:
- * @RASQAL_EXPR_STR_MATCH (RDQL, SPARQL) and
- * @RASQAL_EXPR_STR_NMATCH (RDQL)
+ * @RASQAL_EXPR_STR_MATCH and
+ * @RASQAL_EXPR_STR_NMATCH (unused: formerly for RDQL)
  *
  * Return value: a new #rasqal_expression object or NULL on failure
  **/

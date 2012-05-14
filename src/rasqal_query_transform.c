@@ -245,7 +245,7 @@ rasqal_query_build_anonymous_variables(rasqal_query* rq)
  * rasqal_query_expand_wildcards:
  * @rq: query
  *
- * INTERNAL - expand RDQL/SPARQL SELECT * to a full list of select variables
+ * INTERNAL - expand SPARQL SELECT * to a full list of select variables
  *
  * Return value: non-0 on failure
  */

@@ -2052,7 +2052,7 @@ rasqal_literal_get_rdf_term_type(rasqal_literal* l)
  * rasqal_new_literal_from_promotion:
  * @lit: existing literal
  * @type: type to promote to
- * @flags; if RASQAL_COMPARE_URI is set, do sloppy promotion from string to bool (RDQL)
+ * @flags: 0 (flag #RASQAL_COMPARE_URI is unused: was RDQL)
  *
  * INTERNAL - Make a new literal from a type promotion
  *
@@ -2239,7 +2239,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
  * rasqal_literal_string_compare:
  * @l1: first string literal
  * @l2: first string literal
- * @flags: string compare flags
+ * @flags: string compare flags (flag #RASQAL_COMPARE_NOCASE is unused; was RDQL)
  *
  * INTERNAL - Compare two string RDF literals.  Bother are the same
  * type and either #RASQAL_LITERAL_STRING or #RASQAL_LITERAL_UDT

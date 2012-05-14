@@ -748,7 +748,7 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
  * Get the sequence of projected variables in the query.
  *
  * This returns the sequence of variables that are explicitly chosen
- * via SELECT in RDQL, SPARQL.  Or all variables mentioned with SELECT *
+ * via SELECT in SPARQL.  Or all variables mentioned with SELECT *
  *
  * Return value: a #raptor_sequence of #rasqal_variable pointers.
  **/
