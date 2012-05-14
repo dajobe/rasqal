@@ -841,7 +841,13 @@ rasqal_expression_evaluate_strbefore(rasqal_expression *e,
     haystack = RASQAL_GOOD_CAST(const unsigned char *, "");
   }
 
+  rasqal_free_literal(l1); l1 = NULL;
+  rasqal_free_literal(l2); l2 = NULL;
+
   result = RASQAL_MALLOC(unsigned char*, result_len + 1);
+  if(!result)
+    goto failed;
+
   if(result_len)
     memcpy(result, haystack, result_len);
   result[result_len] = '\0';
@@ -921,7 +927,13 @@ rasqal_expression_evaluate_strafter(rasqal_expression *e,
     result_len = 0;
   }
 
+  rasqal_free_literal(l1); l1 = NULL;
+  rasqal_free_literal(l2); l2 = NULL;
+
   result = RASQAL_MALLOC(unsigned char*, result_len + 1);
+  if(!result)
+    goto failed;
+
   if(result_len)
     memcpy(result, ptr, result_len);
   result[result_len] = '\0';
