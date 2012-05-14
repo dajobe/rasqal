@@ -1324,7 +1324,8 @@ rasqal_xsd_datetime_set_from_timeval(rasqal_xsd_datetime *dt,
   dt->second = my_time->tm_sec;
   dt->microseconds = tv->tv_usec;
   dt->timezone_minutes = 0; /* always Zulu time */
-
+  dt->have_tz = 'Z';
+  
   return 0;
 }
 
