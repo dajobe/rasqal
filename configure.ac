@@ -793,18 +793,16 @@ fi
 
 
 dnl RDF Query Languages
-rdql_query_language=no
 sparql_query_language=no
 laqrs_query_language=no
 
-rdf_query_languages_available="rdql sparql laqrs"
+rdf_query_languages_available="sparql laqrs"
 rdf_query_languages_enabled=
 
 
 # This is needed because autoheader can't work out which computed
 # symbols must be pulled from acconfig.h into config.h.in
 if test "x" = "y"; then
-  AC_DEFINE(RASQAL_QUERY_RDQL, 1, [Building RDQL query])
   AC_DEFINE(RASQAL_QUERY_LAQRS, 1, [Building LAQRS query])
   AC_DEFINE(RASQAL_QUERY_SPARQL, 1, [Building SPARQL query])
 fi
@@ -827,7 +825,6 @@ for query_language in $query_languages; do
   rdf_query_languages_enabled="$rdf_query_languages_enabled $query_language"
 done
 
-AM_CONDITIONAL(RASQAL_QUERY_RDQL, test $rdql_query_language = yes)
 AM_CONDITIONAL(RASQAL_QUERY_LAQRS, test $laqrs_query_language = yes)
 AM_CONDITIONAL(RASQAL_QUERY_SPARQL, test $sparql_query_language = yes)
 
@@ -1269,8 +1266,6 @@ src/win32_rasqal_config.h
 tests/Makefile
 tests/algebra/Makefile
 tests/engine/Makefile
-tests/rdql/Makefile
-tests/rdql/testsuite/Makefile
 tests/laqrs/Makefile
 tests/laqrs/syntax/Makefile
 tests/sparql/Makefile

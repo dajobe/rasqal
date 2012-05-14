@@ -50,9 +50,9 @@ instead of reading the query from a URI (when \fB\-e\fP /
 Set the input query
 .I LANGUAGE
 to one of the supported languages which includes 'sparql'
-(SPARQL Query Language for RDF, default), 'sparql11', 'laqrs'
-and 'rdql' (RDF Data Query Language).   The full list of
-supported languages and susbets is given in the help summary with the
+(SPARQL Query Language for RDF, default), 'sparql11' and 'laqrs'.
+The full list of supported languages and subsets is given in the help
+summary with the
 \fB\-h\fP / \fB\-\-help\fP option.
 .TP
 .B \-p, \-\-protocol SERVICE-URI
@@ -92,7 +92,7 @@ one of 'none' (default), 'debug', 'structure' or 'sparql'
 .B \-D, \-\-data URI
 Add RDF data source URI (not a named graph).  If no data sources
 are given, the query itself must point to the data such as via
-SPARQL or RDQL FROM \fIuri\fP statements.
+SPARQL FROM \fIuri\fP statements.
 .TP
 .B \-E, \-\-ignore\-errors
 Do not print error messages and do not exit with a non-0 status.
@@ -151,10 +151,11 @@ Run a SPARQL query that is in the web at URI
 http://example.org/sparql-query.rq
 without an extra messages (quiet, -q).
 .IP
-.B roqet -q -i rdql rdql-query-file.rdql http://example.org/base/
+.B roqet -q query-file.rq http://example.org/base/
 .LP
-Run an RDQL query from a local file rdql-query-file.rdql but using
-base URI http://example.org/base/ to resolve any relative URIs.
+Run an query (default languge SPARQL) from a local file query-file.rq
+but using base URI http://example.org/base/ to resolve any relative
+URIs.
 .IP
 .B roqet -q -i sparql -r xml http://example.org/sparql-query.rq
 .LP
@@ -178,12 +179,6 @@ http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/
 Jeen Broekstra and Dave Beckett (eds), W3C Recommendation, 15 January 2008.
 .UR http://www.w3.org/TR/2008/REC-rdf-sparql-XMLres-20080115/
 http://www.w3.org/TR/2008/REC-rdf-sparql-XMLres-20080115/
-.UE
-.LP
-\fIRDQL - A Query Language for RDF\fR, Andy Seaborne,
-W3C Member Submission 9 January 2004
-.UR http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
-http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
 .UE
 .SH SEE ALSO
 .BR librasqal(3), libraptor(3)

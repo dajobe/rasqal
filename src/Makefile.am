@@ -32,7 +32,6 @@ man_MANS = rasqal-config.1
 TESTS_ENVIRONMENT= \
   RDF_DATA_FILE=$(top_srcdir)/data/dc.rdf \
   NT_DATA_FILE=$(top_srcdir)/data/one.nt \
-  RDQL_QUERY_FILE=$(top_srcdir)/tests/rdql/example5.rdql \
   SPARQL_QUERY_FILE=$(top_srcdir)/tests/sparql/examples/ex11_1.rq
 
 TESTS=rasqal_algebra_test$(EXEEXT) rasqal_expr_test$(EXEEXT)	\
@@ -52,12 +51,9 @@ rasqal_literal_test$(EXEEXT) \
 rasqal_regex_test$(EXEEXT) \
 rasqal_random_test$(EXEEXT)
 
-# These 4 test programs are compiled here and run here as 'smoke
-# tests' but mostly used in tests in $(srcdir)/../tests/{rdql,sparql}
+# These 2 test programs are compiled here and run here as 'smoke
+# tests' but mostly used in tests in $(srcdir)/../tests/sparql
 # to do detailed tests on the lext/parsers
-if RASQAL_QUERY_RDQL
-TESTS += rdql_lexer_test$(EXEEXT) rdql_parser_test$(EXEEXT)
-endif
 if RASQAL_QUERY_SPARQL
 TESTS += sparql_lexer_test$(EXEEXT) sparql_parser_test$(EXEEXT)
 endif
@@ -68,8 +64,7 @@ CLEANFILES=$(TESTS) \
 *.plist \
 git-version.h
 
-MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
-rdql_parser.c rdql_parser.h rdql_parser.output \
+MAINTAINERCLEANFILES= \
 sparql_lexer.c sparql_lexer.h \
 sparql_parser.c sparql_parser.h sparql_parser.output
 
@@ -119,10 +114,6 @@ rasqal_iostream.c \
 rasqal_regex.c \
 snprintf.c
 
-if RASQAL_QUERY_RDQL
-librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
-rdql_parser.c rdql_parser.h rdql_common.h
-endif
 if RASQAL_QUERY_SPARQL
 librasqal_la_SOURCES += sparql_lexer.c sparql_lexer.h \
 sparql_parser.c sparql_parser.h sparql_common.h
@@ -173,7 +164,6 @@ librasqal_la_DEPENDENCIES = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@
 
 
 EXTRA_DIST= \
-rdql_lexer.l rdql_parser.y \
 sparql_lexer.l sparql_parser.y \
 rasqal-config.in \
 $(man_MANS) \
@@ -190,18 +180,6 @@ HTML_TO_TEXT=TERM=vt100 $(LYNX) -dump -nolist
 SUFFIXES = .html .txt
 
 if MAINTAINER_MODE
-# Actually it needs rdql_parser.h but nevermind
-rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.c $(srcdir)/../scripts/fix-flex
-	$(LEX) -o$@ $(srcdir)/rdql_lexer.l
-	$(PERL) $(srcdir)/../scripts/fix-flex $@ > rdql_lexer.t
-	mv rdql_lexer.t $@
-
-rdql_parser.c: $(srcdir)/rdql_parser.y $(srcdir)/../scripts/fix-bison
-	$(YACC) -b rdql_parser -p rdql_parser_ -d -v $(srcdir)/rdql_parser.y
-	$(PERL) $(srcdir)/../scripts/fix-bison rdql_parser.tab.c > $@
-	mv rdql_parser.tab.h rdql_parser.h
-	rm -f rdql_parser.tab.c
-
 # Actually it needs sparql_parser.h but nevermind
 sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/../scripts/fix-flex
 	$(LEX) -o$@ $(srcdir)/sparql_lexer.l
@@ -215,14 +193,6 @@ sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/../scripts/fix-bison
 	rm -f sparql_parser.tab.c
 endif
 
-
-rdql_lexer_test_SOURCES = rdql_lexer.c
-rdql_lexer_test_CPPFLAGS = -DSTANDALONE
-rdql_lexer_test_LDADD = librasqal.la
-
-rdql_parser_test_SOURCES = rdql_parser.c
-rdql_parser_test_CPPFLAGS = -DSTANDALONE
-rdql_parser_test_LDADD = librasqal.la
 
 sparql_lexer_test_SOURCES = sparql_lexer.c
 sparql_lexer_test_CPPFLAGS = -DSTANDALONE

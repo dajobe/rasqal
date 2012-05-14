@@ -196,13 +196,6 @@ rasqal_world_open(rasqal_world *world)
     return rc;
 #endif
 
-#ifdef RASQAL_QUERY_RDQL
-  rc = rasqal_init_query_language_rdql(world);
-  if(rc)
-    return rc;
-#endif
-
-
   rc = rasqal_raptor_init(world);
   if(rc)
     return rc;
