@@ -1,5 +1,30 @@
 2012-05-13  Dave Beckett <dave@dajobe.org>
 
+	* src/rasqal_query_transform.c:
+	(rasqal_query_prepare_common): Ignore always 0 GP visit return [clang]
+
+	* src/rasqal_expr_numerics.c:
+	(rasqal_expression_evaluate_uuid): Free URI string when want_uri
+
+	* src/rasqal_expr_strings.c: Free input literals to strbefore()
+	and strafter()
+
+	(rasqal_expression_evaluate_strbefore)
+	(rasqal_expression_evaluate_strafter): Free the input literals on
+	success before returning the result
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_set_from_timeval): Initialise have_tz to Z
+
+	* src/rasqal_expr_datetimes.c: Free input literals to timezone()
+	and tz() evaluations
+
+	(rasqal_expression_evaluate_datetime_timezone)
+	(rasqal_expression_evaluate_datetime_tz): Free the input literals
+	on success before returning the result
+
+	* NEWS.html, RELEASE.html: 0.9.29
+
 	* src/rasqal_variable.c: Added variable usage debugging if define
 	RASQAL_DEBUG_VARIABLE_USAGE set
 
