@@ -1,4 +1,7 @@
-2012-05-13  Dave Beckett <dave@dajobe.org>
+2012-05-13  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_29 for 0.9.29 release (GIT
+	b208e046859c86859449efe2985aca4a3c1bba91)
 
 	* src/rasqal_query_transform.c:
 	(rasqal_query_prepare_common): Ignore always 0 GP visit return [clang]
