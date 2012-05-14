@@ -1082,9 +1082,6 @@ rasqal_graph_pattern* rasqal_new_2_group_graph_pattern(rasqal_query* query, rasq
 rasqal_graph_pattern* rasqal_graph_pattern_get_parent(rasqal_query *query, rasqal_graph_pattern* gp, rasqal_graph_pattern* tree_gp);
 
 
-/* rdql_parser.y */
-int rasqal_init_query_language_rdql(rasqal_world*);
-
 /* sparql_parser.y */
 typedef struct 
 {
