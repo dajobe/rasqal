@@ -430,9 +430,16 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
   *p = '\0';
 
   /* after this output becomes owned by result */
-  if(want_uri){
-    raptor_uri* u = raptor_new_uri(world->raptor_world_ptr, output);
-    return rasqal_new_uri_literal(world, u);
+  if(want_uri) {
+    raptor_uri* u;
+    rasqal_literal* l = NULL;
+
+    u = raptor_new_uri(world->raptor_world_ptr, output);
+    if(u)
+      l = rasqal_new_uri_literal(world, u);
+
+    RASQAL_FREE(char*, output);
+    return l;
   } else {
     return rasqal_new_string_literal(world, output, NULL, NULL, NULL);
   }
