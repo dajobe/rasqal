@@ -1361,9 +1361,9 @@ rasqal_query_prepare_common(rasqal_query *query)
       goto done;
 
     /* Turn FILTERs that refer to out-of-scope variables into FALSE */
-    rc = rasqal_query_graph_pattern_visit2(query,
-                                           rasqal_query_filter_variable_scope,
-                                           &modified);
+    (void)rasqal_query_graph_pattern_visit2(query,
+                                            rasqal_query_filter_variable_scope,
+                                            &modified);
 #if RASQAL_DEBUG > 1
     fprintf(DEBUG_FH, "modified=%d  after filter variable scope, query graph pattern now:\n  ", modified);
     rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
