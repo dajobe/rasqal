@@ -1118,7 +1118,7 @@ for random_algo in $random_with $random_approaches; do
 esac
 done
 
-if test "$random_approach" == none; then
+if test "$random_approach" = none; then
     AC_MSG_ERROR(No random number generator approach. POSIX rand should always be available)
 fi
 AC_MSG_RESULT($random_approach)
