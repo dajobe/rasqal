@@ -43,6 +43,9 @@
 #ifdef RASQAL_UUID_LIBUUID
 #include <uuid.h>
 #endif
+#ifdef RASQAL_UUID_LIBC
+#include <uuid/uuid.h>
+#endif
 
 #define DEBUG_FH stderr
 
@@ -396,7 +399,7 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
   unsigned char* p;
   int i;
 
-#ifdef RASQAL_UUID_LIBUUID
+#if defined(RASQAL_UUID_LIBUUID) || defined(RASQAL_UUID_LIBC)
   uuid_generate(data);
 #endif
 #ifdef RASQAL_UUID_INTERNAL

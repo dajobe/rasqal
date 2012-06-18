@@ -668,7 +668,9 @@ AM_CONDITIONAL(RASQAL_DIGEST_INTERNAL, test $digest_library = internal)
 
 dnl Check for uuid libraries
 have_uuid_libuuid=no
+have_uuid_libc=no
 need_uuid_libuuid=no
+need_uuid_libc=no
 need_uuid_internal=no
 
 AC_MSG_CHECKING(for libuuid)
@@ -692,15 +694,34 @@ if $PKG_CONFIG uuid --exists; then
 fi
 AC_MSG_RESULT($have_uuid_libuuid)
 
+AC_CHECK_HEADERS(uuid/uuid.h)
+AC_MSG_CHECKING(for UUID in libc)
+if test "$ac_cv_header_uuid_uuid_h" = "yes"; then
+  AC_TRY_LINK([
+  #include <uuid/uuid.h>],
+  [ uuid_t data; uuid_clear(&data); ],
+    have_uuid_libc=yes,
+    have_uuid_libc=no)
+fi
+AC_MSG_RESULT($have_uuid_libc)
 
-AC_ARG_WITH(uuid-library, [  --with-uuid-library=NAME   Use UUID library - libuuid (auto)], uuid_library="$withval", uuid_library="")
 
-for uuid_library_name in $uuid_library libuuid internal; do
+AC_ARG_WITH(uuid-library, [  --with-uuid-library=NAME   Use UUID library - libuuid, libc (auto)], uuid_library="$withval", uuid_library="")
+
+for uuid_library_name in $uuid_library libuuid libc internal; do
   case $uuid_library_name in
     libuuid)
       if test $have_uuid_libuuid = yes; then
         need_uuid_libuuid=yes
         AC_DEFINE(RASQAL_UUID_LIBUUID, 1, [Use libuuid library for UUID])
+        break
+      fi
+      ;;
+
+    libc)
+      if test $have_uuid_libc = yes; then
+        need_uuid_libc=yes
+        AC_DEFINE(RASQAL_UUID_LIBC, 1, [Use UUID in libc library for UUID])
         break
       fi
       ;;
@@ -721,6 +742,8 @@ AC_MSG_CHECKING(UUID library to use)
 uuid_library=
 if test $need_uuid_libuuid = yes; then
   uuid_library=libuuid
+elif test $need_uuid_libc = yes; then
+  uuid_library=libc
 elif test $need_uuid_internal = yes; then
   uuid_library=internal
 else
