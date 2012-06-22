@@ -93,17 +93,46 @@ as defined in
 <a href="http://www.w3.org/TR/2012/WD-sparql11-query-20120105/">SPARQL 1.1 Query</a>
 and
 <a href="http://www.w3.org/TR/2012/WD-sparql11-update-20120105/">SPARQL 1.1 Update</a>
-
 W3C Working Drafts of 05 January 2012 including aggregates,
 subqueries, expression in SELECT, assignment, short form for
 <code>CONSTRUCT</code> and all the new set of builtin functions and
-operators.  Property Paths are likely never be supported since it is
-a lot of internal work and new APIs needed.</p>
+operators.</p>
+
+<p>Unimplemented parts of SPARQL 1.1:</p>
+<ul>
+  <li><code>BIND</code> scope</li>
+  <li><code>VALUES</code> (formerly called <code>BINDINGS</code>): part
+  of federated query</li>
+  <li>Decimal and double canonical format details</li>
+  <li><code>EXISTS</code> / <code>NOT EXISTS</code></li>
+  <li>JSON result format reading</li>
+  <li><code>MINUS</code></li>
+  <li><em>Property Paths</em>: These are likely never be supported
+  since it is a lot of work (estimate: 3 months full time) and might
+  need multiple new APIs to talk to the storage layer.</li>
+  <li><code>SERVICE</code>: Part of federated query</li>
+</ul>
+
+<p>Out of scope parts of SPARQL 1.1:</p>
+<ul>
+  <li>Entailment and inference: Rasqal is not an inference engine</li>
+  <li><em>SPARQL Federated Query</em></li>
+  <li><em>SPARQL Update</em> (also called SPARQL Protocol): The Update
+  syntax is parsed with parser name 'sparql-update' but nothing is
+  executed inside Rasqal. Supporting SPARQL Update requires a protocol
+  server that responds to requests to perform operations on a graph
+  store. Rasqal is a query library and does not have an event loop or
+  triple store.
+  <a href="http://www.aelius.com/njh/redstore/">Redstore</a> is a system
+  supporting SPARQL Update and Service Description built with Rasqal by
+  using Redland librdf for graph storage and query.</li>
+</ul>
 
 <p>The details on the Rasqal support for SPARQL 1.1 can be found at the
 <a href="https://github.com/dajobe/redland-testing/blob/master/annotations/sparql11.md">rasqal testing SPARQL 1.1 page</a>
 which shows the SPARQL 1.1 tests that fail and any diagnosis.
 </p>
+
 
 
 <h3>LAQRS Adds to Querying RDF in SPARQL (LAQRS)</h3>
