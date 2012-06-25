@@ -216,29 +216,34 @@ rasqal_new_typed_literal(rasqal_world* world, rasqal_literal_type type,
 
 
 /**
- * rasqal_new_double_literal:
+ * rasqal_new_floating_literal:
  * @world: rasqal world object
- * @d: double literal
- *
- * Constructor - Create a new Rasqal double literal.
+ * @f:  float literal (double)
+ * @type: type - #RASQAL_LITERAL_FLOAT or #RASQAL_LITERAL_DOUBLE
  * 
+ * Constructor - Create a new Rasqal float literal from a double.
+ *
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_double_literal(rasqal_world* world, double d)
+rasqal_new_floating_literal(rasqal_world *world,
+                            rasqal_literal_type type, double d)
 {
   raptor_uri* dt_uri;
   rasqal_literal* l;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
+  if(type != RASQAL_LITERAL_FLOAT && type != RASQAL_LITERAL_DOUBLE)
+    return NULL;
+
   l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
   if(l) {
-    size_t slen = 0;      
+    size_t slen = 0;
     l->valid = 1;
     l->usage = 1;
     l->world = world;
-    l->type = RASQAL_LITERAL_DOUBLE;
+    l->type = type;
     l->value.floating = d;
     l->string = rasqal_xsd_format_double(d, &slen);
     l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
@@ -258,44 +263,37 @@ rasqal_new_double_literal(rasqal_world* world, double d)
 
 
 /**
+ * rasqal_new_double_literal:
+ * @world: rasqal world object
+ * @d: double literal
+ *
+ * Constructor - Create a new Rasqal double literal.
+ *
+ * Return value: New #rasqal_literal or NULL on failure
+ **/
+rasqal_literal*
+rasqal_new_double_literal(rasqal_world* world, double d)
+{
+  return rasqal_new_floating_literal(world, RASQAL_LITERAL_DOUBLE, d);
+}
+
+
+/**
  * rasqal_new_float_literal:
  * @world: rasqal world object
  * @f:  float literal
- * 
+ *
  * Constructor - Create a new Rasqal float literal.
+ *
+ * Deprecated: Use rasqal_new_floating_literal() with type
+ * #RASQAL_LITERAL_FLOAT and double value.
  *
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
 rasqal_new_float_literal(rasqal_world *world, float f)
 {
-  raptor_uri* dt_uri;
-  rasqal_literal* l;
-
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
-
-  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
-  if(l) {
-    size_t slen = 0;
-    l->valid = 1;
-    l->usage = 1;
-    l->world = world;
-    l->type = RASQAL_LITERAL_FLOAT;
-    l->value.floating = (double)f;
-    l->string = rasqal_xsd_format_double(f, &slen);
-    l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
-    if(!l->string) {
-      rasqal_free_literal(l);
-      return NULL;
-    }
-    dt_uri = rasqal_xsd_datatype_type_to_uri(world, l->type);
-    if(!dt_uri) {
-      rasqal_free_literal(l);
-      return NULL;
-    }
-    l->datatype = raptor_uri_copy(dt_uri);
-  }
-  return l;
+  return rasqal_new_floating_literal(world, RASQAL_LITERAL_FLOAT, (double)f);
 }
 
 
@@ -480,11 +478,8 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type,
 
   switch(type) {
     case RASQAL_LITERAL_DOUBLE:
-      return rasqal_new_double_literal(world, d);
-      break;
-
     case RASQAL_LITERAL_FLOAT:
-      return rasqal_new_float_literal(world, (float)d);
+      return rasqal_new_floating_literal(world, type, d);
       break;
 
     case RASQAL_LITERAL_INTEGER:
@@ -1695,86 +1690,6 @@ rasqal_literal_as_double(rasqal_literal* l, int *error_p)
 
 
 /*
- * rasqal_literal_as_floating:
- * @l: #rasqal_literal object
- * @error_p: pointer to error flag
- * 
- * INTERNAL - Return a literal as a single precision floating value
- *
- * Integers, booleans, double and float literals natural are turned into
- * integers. If string values are the lexical form of an floating, that is
- * returned.  Otherwise the error flag is set.
- * 
- * Return value: single precision floating value
- **/
-float
-rasqal_literal_as_floating(rasqal_literal* l, int *error_p)
-{
-  if(!l) {
-    /* type error */
-    *error_p = 1;
-    return 0.0F;
-  }
-  
-  switch(l->type) {
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_INTEGER_SUBTYPE:
-      return (float)l->value.integer;
-      break;
-
-    case RASQAL_LITERAL_DOUBLE:
-      /* FIXME loses precision */
-      return (float)l->value.floating;
-      break;
-
-    case RASQAL_LITERAL_FLOAT:
-      /* No precision loss */
-      return (float)l->value.floating;
-      break;
-
-    case RASQAL_LITERAL_DECIMAL:
-      /* FIXME loses precision */
-      return (float)rasqal_xsd_decimal_get_double(l->value.decimal);
-      break;
-
-    case RASQAL_LITERAL_STRING:
-    case RASQAL_LITERAL_XSD_STRING:
-      {
-        char *eptr = NULL;
-        float  f = strtof(RASQAL_GOOD_CAST(const char*, l->string), &eptr);
-        if(RASQAL_GOOD_CAST(unsigned char*, eptr) != l->string && *eptr == '\0')
-          return f;
-      }
-      if(error_p)
-        *error_p = 1;
-      return 0.0F;
-      break;
-
-    case RASQAL_LITERAL_VARIABLE:
-      return rasqal_literal_as_floating(l->value.variable->value, error_p);
-      break;
-
-    case RASQAL_LITERAL_BLANK:
-    case RASQAL_LITERAL_URI:
-    case RASQAL_LITERAL_QNAME:
-    case RASQAL_LITERAL_PATTERN:
-    case RASQAL_LITERAL_DATE:
-    case RASQAL_LITERAL_DATETIME:
-    case RASQAL_LITERAL_UDT:
-      if(error_p)
-        *error_p = 1;
-      return 0.0F;
-      
-    case RASQAL_LITERAL_UNKNOWN:
-    default:
-      RASQAL_FATAL2("Unknown literal type %d", l->type);
-      return 0.0F; /* keep some compilers happy */
-  }
-}
-
-
-/*
  * rasqal_literal_as_uri:
  * @l: #rasqal_literal object
  *
@@ -2069,7 +1984,6 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
   rasqal_literal* new_lit = NULL;
   int errori = 0;
   double d;
-  float f;
   int i;
   unsigned char *new_s = NULL;
   unsigned char* s;
@@ -2145,22 +2059,26 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       }
       break;
       
+
     case RASQAL_LITERAL_DOUBLE:
       d = rasqal_literal_as_double(lit, &errori);
-      /* failure always means no match */
       if(errori)
         new_lit = NULL;
       else
         new_lit = rasqal_new_double_literal(lit->world, d);
       break;
       
+
     case RASQAL_LITERAL_FLOAT:
-      f = rasqal_literal_as_floating(lit, &errori);
-      /* failure always means no match */
+      d = rasqal_literal_as_double(lit, &errori);
       if(errori)
         new_lit = NULL;
+      else if(d < FLT_MIN || d > FLT_MAX)
+        /* Cannot be stored in a float - fail */
+        new_lit = NULL;
       else
-        new_lit = rasqal_new_float_literal(lit->world, f);
+        new_lit = rasqal_new_floating_literal(lit->world, RASQAL_LITERAL_FLOAT,
+                                              d);
       break;
       
 
@@ -2936,7 +2854,8 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     default:
-      RASQAL_FATAL2("Literal type %d cannot be equaled", type);
+      if(error_p)
+        *error_p = 1;
       result = 0; /* keep some compilers happy */
   }
 

@@ -1618,6 +1618,8 @@ rasqal_literal* rasqal_new_typed_literal(rasqal_world* world, rasqal_literal_typ
 RASQAL_API
 rasqal_literal* rasqal_new_double_literal(rasqal_world* world, double d);
 RASQAL_API
+rasqal_literal* rasqal_new_floating_literal(rasqal_world *world, rasqal_literal_type type, double d);
+RASQAL_API RASQAL_DEPRECATED
 rasqal_literal* rasqal_new_float_literal(rasqal_world* world, float f);
 RASQAL_API
 rasqal_literal* rasqal_new_uri_literal(rasqal_world* world, raptor_uri* uri);
