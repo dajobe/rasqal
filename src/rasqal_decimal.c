@@ -41,6 +41,9 @@
 #include <math.h>
 #endif
 #include <stdarg.h>
+#ifdef HAVE_FLOAT_H
+#include <float.h>
+#endif
 
 #include "rasqal.h"
 #include "rasqal_internal.h"
@@ -56,7 +59,6 @@ static void rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec);
  * Based on http://www2.hursley.ibm.com/decimal/
  */
 
-#include <float.h>
 #define RASQAL_DECIMAL_RAW _Decimal64
 #define RASQAL_DECIMAL_ROUNDING int
 
@@ -971,7 +973,7 @@ main(int argc, char *argv[]) {
   rasqal_xsd_decimal_set_string(&b, b_string);
 
   result_d=rasqal_xsd_decimal_get_double(&a);
-  if(fabs(result_d - a_double) < RASQAL_DOUBLE_EPSILON) {
+  if(fabs(result_d - a_double) > RASQAL_DOUBLE_EPSILON) {
     fprintf(stderr, "FAILED: a=%f expected %f\n", result_d, a_double);
     FAIL;
   }

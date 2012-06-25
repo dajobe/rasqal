@@ -37,6 +37,12 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
+#ifdef HAVE_FLOAT_H
+#include <float.h>
+#endif
 
 #include <raptor.h>
 
@@ -1302,7 +1308,7 @@ main(int argc, char *argv[])
 
             d = rasqal_literal_as_double(value, NULL);
             
-            if(d != expected_double) {
+            if(fabs(d - expected_double) > RASQAL_DOUBLE_EPSILON) {
               fprintf(stderr,
                     "%s: test %d row #%d %s value #%d result is %f expected %f\n",
                       program, test_id, i, row_var->name, vc,
