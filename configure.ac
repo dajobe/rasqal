@@ -166,11 +166,8 @@ AC_DEFUN([REDLAND_CC_TRY_FLAG], [
 #
 # Too noisy:
 #  -Wconversion
+#  -Wformat-nonliteral: constants are used for format strings in a several places
 #  -Wunused-parameter : variables can be marked  __attribute__('unused')
-#  -Wformat-nonliteral : variables are used in raptor_rdfxml.c for format strings: fixable with code change
-#  -Wsign-conversion: : many int / unsigned int / size_t
-#  -Wfloat-equal : too many false positives; it's ok to compare with whole small integers like 0.0
-#  -Wundef : using undefined macros is just fine
 #
 # Apple gcc specific (probably): -Wshorten-64-to-32
 possible_warnings="\
@@ -187,6 +184,7 @@ possible_warnings="\
 -Wdiv-by-zero \
 -Wendif-labels \
 -Werror-implicit-function-declaration \
+-Wfloat-equal \
 -Wformat-security \
 -Wframe-larger-than=4096 \
 -Winit-self \
@@ -204,6 +202,7 @@ possible_warnings="\
 -Wsign-compare \
 -Wstrict-prototypes \
 -Wswitch-enum \
+-Wundef \
 -Wunsafe-loop-optimizations \
 -Wwrite-strings \
 \
