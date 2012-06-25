@@ -160,7 +160,8 @@ rasqal_data_graph*
 rasqal_new_data_graph_from_iostream(rasqal_world* world,
                                     raptor_iostream* iostr,
                                     raptor_uri* base_uri,
-                                    raptor_uri* name_uri, int flags,
+                                    raptor_uri* name_uri,
+                                    unsigned int flags,
                                     const char* format_type,
                                     const char* format_name,
                                     raptor_uri* format_uri)
