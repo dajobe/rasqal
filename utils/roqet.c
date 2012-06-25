@@ -188,10 +188,10 @@ static void
 roqet_write_indent(FILE *fh, int indent) 
 {
   while(indent > 0) {
-    int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
+    size_t sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
 
     (void)fwrite(spaces, sizeof(char), sp, fh);
-    indent -= sp;
+    indent -= RASQAL_GOOD_CAST(int, sp);
   }
 }
 
@@ -702,8 +702,9 @@ roqet_init_query(rasqal_world *world,
     
     fprintf(stderr, "%s: Parsing query '", program);
     if(len > MAX_QUERY_ERROR_REPORT_LEN) {
-      (void)fwrite(query_string, MAX_QUERY_ERROR_REPORT_LEN, sizeof(char),
-                   stderr);
+      (void)fwrite(query_string,
+                   RASQAL_GOOD_CAST(size_t, MAX_QUERY_ERROR_REPORT_LEN),
+                   sizeof(char), stderr);
       fprintf(stderr, "...' (%d bytes) failed\n", RASQAL_BAD_CAST(int, len));
     } else {
       (void)fwrite(query_string, len, sizeof(char), stderr);
@@ -773,7 +774,7 @@ void roqet_print_query(rasqal_query* rq,
 static void
 print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
 {
-  int i;
+  unsigned int i;
     
   printf(title_format_string, rasqal_version_string);
   puts("Run an RDF query giving variable bindings or RDF triples.");
@@ -1082,7 +1083,7 @@ main(int argc, char *argv[])
         if(rasqal_language_name_check(world, optarg))
           ql_name = optarg;
         else {
-          int i;
+          unsigned int i;
 
           fprintf(stderr,
                   "%s: invalid argument `%s' for `" HELP_ARG(i, input) "'\n",
@@ -1109,7 +1110,7 @@ main(int argc, char *argv[])
       case 'G':
         if(optarg) {
           rasqal_data_graph *dg = NULL;
-          rasqal_data_graph_flags type;
+          unsigned int type;
 
           type = (c == 's' || c == 'G') ? RASQAL_DATA_GRAPH_NAMED : 
                                           RASQAL_DATA_GRAPH_BACKGROUND;
