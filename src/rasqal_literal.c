@@ -57,7 +57,9 @@
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
 #endif
-
+#ifdef HAVE_FLOAT_H
+#include <float.h>
+#endif
 
 #include "rasqal.h"
 #include "rasqal_internal.h"
@@ -1494,8 +1496,11 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error_p)
       break;
 
     case RASQAL_LITERAL_DOUBLE:
-    case RASQAL_LITERAL_FLOAT:
-      return l->value.floating != 0.0 && !isnan(l->value.floating);
+    case RASQAL_LITERAL_FLOAT: 
+      if(isnan(l->value.floating))
+        return 0;
+        
+      return fabs(l->value.floating) > RASQAL_DOUBLE_EPSILON;
       break;
 
     case RASQAL_LITERAL_VARIABLE:
@@ -2908,10 +2913,13 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       result = l1_p->value.integer == l2_p->value.integer;
       break;
 
+
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-      result = l1_p->value.floating == l2_p->value.floating;
+      /* FIXME - this is not a good equality approach for float/doubles */
+      result = fabs(l1_p->value.floating - l2_p->value.floating) < RASQAL_DOUBLE_EPSILON;
       break;
+
 
     case RASQAL_LITERAL_DECIMAL:
       result = rasqal_xsd_decimal_equals(l1_p->value.decimal,

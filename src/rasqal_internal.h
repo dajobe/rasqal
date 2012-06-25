@@ -1834,6 +1834,9 @@ size_t rasqal_format_integer(char* buffer, size_t bufsize, int integer, int widt
 /* Converting a double / float to int - OK but not great */
 #define RASQAL_FLOATING_AS_INT(v) ((int)(v))
 
+/* IEEE 32 bit double ~ 1E-07 and 64 bit double  ~ 2E-16 */
+#define RASQAL_DOUBLE_EPSILON (DBL_EPSILON)
+
 /* end of RASQAL_INTERNAL */
 #endif
 

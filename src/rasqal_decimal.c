@@ -971,7 +971,7 @@ main(int argc, char *argv[]) {
   rasqal_xsd_decimal_set_string(&b, b_string);
 
   result_d=rasqal_xsd_decimal_get_double(&a);
-  if(result_d != a_double) {
+  if(fabs(result_d - a_double) < RASQAL_DOUBLE_EPSILON) {
     fprintf(stderr, "FAILED: a=%f expected %f\n", result_d, a_double);
     FAIL;
   }
