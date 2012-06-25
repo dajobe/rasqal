@@ -348,7 +348,7 @@ rasqal_xsd_format_double(double d, size_t *len_p)
   size_t len = 0;
   unsigned char* buf = NULL;
   
-  if(d == 0.0f) {
+  if(!RASQAL_FLOATING_AS_INT(d)) {
     len = 5;
     buf = RASQAL_MALLOC(unsigned char*, len + 1);
     if(!buf)

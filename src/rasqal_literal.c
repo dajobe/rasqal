@@ -1545,8 +1545,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-      /* FIXME may lose precision or be out of range from float to int */
-      return RASQAL_BAD_CAST(int, l->value.floating);
+      return RASQAL_FLOATING_AS_INT(l->value.floating);
       break;
 
     case RASQAL_LITERAL_DECIMAL:
@@ -1586,8 +1585,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
         eptr = NULL;
         d = strtod(RASQAL_GOOD_CAST(const char*, l->string), &eptr);
         if(RASQAL_GOOD_CAST(unsigned char*, eptr) != l->string && *eptr=='\0')
-          /* FIXME may lose precision or be out of range from double to int */
-          return RASQAL_GOOD_CAST(int, d);
+          return RASQAL_FLOATING_AS_INT(d);
       }
       if(error_p)
         *error_p = 1;
@@ -3154,7 +3152,7 @@ rasqal_literal_ebv(rasqal_literal* l)
   } else if(((l->type == RASQAL_LITERAL_INTEGER || l->type == RASQAL_LITERAL_INTEGER_SUBTYPE) && !l->value.integer) ||
             ((l->type == RASQAL_LITERAL_DOUBLE || 
               l->type == RASQAL_LITERAL_FLOAT) &&
-             !l->value.floating)
+             !RASQAL_FLOATING_AS_INT(l->value.floating))
             ) {
     /* ... The operand is any numeric type with a value of 0. */
     b = 0;
@@ -3694,7 +3692,7 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
       d2 = rasqal_literal_as_double(l2, &error);
-      if(!d2)
+      if(!RASQAL_FLOATING_AS_INT(d2))
         /* division by zero error */
         error = 1;
       if(error)
@@ -3787,7 +3785,7 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
       d = rasqal_literal_as_double(l, &error);
-      if(!d)
+      if(!RASQAL_FLOATING_AS_INT(d))
         error = 1;
       d = -d;
       result = rasqal_new_numeric_literal(l->world, l->type, d);
@@ -3856,7 +3854,7 @@ rasqal_literal_abs(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
       d = rasqal_literal_as_double(l, &error);
-      if(!d)
+      if(!RASQAL_FLOATING_AS_INT(d))
         error = 1;
 
       d = fabs(d);
@@ -3921,7 +3919,7 @@ rasqal_literal_round(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
       d = rasqal_literal_as_double(l, &error);
-      if(!d)
+      if(!RASQAL_FLOATING_AS_INT(d))
         error = 1;
 
       d = round(d);
@@ -3986,7 +3984,7 @@ rasqal_literal_ceil(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
       d = rasqal_literal_as_double(l, &error);
-      if(!d)
+      if(!RASQAL_FLOATING_AS_INT(d))
         error = 1;
 
       d = ceil(d);
@@ -4051,7 +4049,7 @@ rasqal_literal_floor(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DOUBLE:
       d = rasqal_literal_as_double(l, &error);
-      if(!d)
+      if(!RASQAL_FLOATING_AS_INT(d))
         error = 1;
 
       d = floor(d);

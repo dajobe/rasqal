@@ -1831,6 +1831,9 @@ size_t rasqal_format_integer(char* buffer, size_t bufsize, int integer, int widt
 /* Unsafe casts: narrowing a value */
 #define RASQAL_BAD_CAST(t, v) (t)(v)
 
+/* Converting a double / float to int - OK but not great */
+#define RASQAL_FLOATING_AS_INT(v) ((int)(v))
+
 /* end of RASQAL_INTERNAL */
 #endif
 
