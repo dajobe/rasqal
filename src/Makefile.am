@@ -112,7 +112,8 @@ rasqal_random.c \
 rasqal_digest.c \
 rasqal_iostream.c \
 rasqal_regex.c \
-snprintf.c
+snprintf.c \
+rasqal_double.c
 
 if RASQAL_QUERY_SPARQL
 librasqal_la_SOURCES += sparql_lexer.c sparql_lexer.h \

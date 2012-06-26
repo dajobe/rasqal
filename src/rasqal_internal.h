@@ -1110,6 +1110,10 @@ int rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp, rasqal_graph_patte
 int rasqal_graph_pattern_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
 int rasqal_graph_pattern_variable_bound_below(rasqal_graph_pattern *gp, rasqal_variable *v);
 
+/* rasqal_double.c */
+int rasqal_double_approximately_compare(double a, double b);
+int rasqal_double_approximately_equal(double a, double b);
+
 /* rasqal_expr.c */
 rasqal_literal* rasqal_new_string_literal_node(rasqal_world*, const unsigned char *string, const char *language, raptor_uri *datatype);
 int rasqal_literal_as_boolean(rasqal_literal* literal, int* error_p);
