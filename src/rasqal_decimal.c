@@ -860,13 +860,7 @@ rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
   int rc=0;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  d = (a->raw - b->raw);
-  /* do this carefully to avoid rounding e.g. (int)0.5 = 0 but is >0 */
-  if(d < 0.0)
-    rc = -1;
-  else if (d > 0.0)
-    rc = 1;
-  /* else rc is 0 set above */
+  rc = rasqal_double_approximately_compare(a->row, b->raw);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   rc = mpfr_cmp(a->raw, b->raw);
@@ -973,7 +967,7 @@ main(int argc, char *argv[]) {
   rasqal_xsd_decimal_set_string(&b, b_string);
 
   result_d=rasqal_xsd_decimal_get_double(&a);
-  if(fabs(result_d - a_double) > RASQAL_DOUBLE_EPSILON) {
+  if(!rasqal_double_approximately_equal(result_d, a_double)) {
     fprintf(stderr, "FAILED: a=%f expected %f\n", result_d, a_double);
     FAIL;
   }

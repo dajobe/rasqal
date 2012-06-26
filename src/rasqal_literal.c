@@ -2834,8 +2834,8 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-      /* FIXME - this is not a good equality approach for float/doubles */
-      result = fabs(l1_p->value.floating - l2_p->value.floating) < RASQAL_DOUBLE_EPSILON;
+      result = rasqal_double_approximately_equal(l1_p->value.floating,
+                                                 l2_p->value.floating);
       break;
 
 
