@@ -1,4 +1,289 @@
-2012-05-13  Dave Beckett  <dave@dajobe.org>
+2012-06-25  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_double.c: docs
+
+	* src/rasqal_decimal.c, src/rasqal_literal.c,
+	src/rasqal_rowsource_aggregation.c: Update code to use double
+	approximate compare, equality.
+
+	(rasqal_xsd_decimal_compare): Call
+	rasqal_double_approximately_compare.
+
+	(rasqal_literal_equals_flags): Call
+	rasqal_double_approximately_equal().
+
+	Update test code to use rasqal_double_approximately_equal for
+	checking results.
+
+	* src/Makefile.am, src/rasqal_double.c, src/rasqal_internal.h: Add
+	double utilities
+
+	(rasqal_double_approximately_compare)
+	(rasqal_double_approximately_equal): Added based on Knuth's
+	approximate comparison.
+
+	* src/rasqal_decimal.c, src/rasqal_rowsource_aggregation.c: More
+	float and epsilons
+
+	* src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_literal.c:
+	Add rasqal_new_floating_literal and use only double arithmetic
+
+	(rasqal_new_floating_literal): Added, deprecating
+	rasqal_new_float_literal.
+
+	(rasqal_new_double_literal, rasqal_new_float_literal): Now both
+	wrappers for rasqal_new_floating_literal.
+
+	(rasqal_new_numeric_literal): Use rasqal_new_floating_literal() for
+	a float.
+
+	(rasqal_literal_as_floating): Removed.
+
+	(rasqal_new_literal_from_promotion): Always use
+	rasqal_literal_as_double() for a double and then error out if it
+	is outside of the float MIN...MAX range.
+
+	(rasqal_literal_equals_flags): Set error if equality fails.
+
+	* configure.ac, src/rasqal_decimal.c, src/rasqal_internal.h,
+	src/rasqal_literal.c: Use careful double comparison
+
+	Use fabs and RASQAL_DOUBLE_EPSILON which picks up epsilon value
+	from float.h
+
+	Add float.h check to configure
+
+	(rasqal_format_integer, rasqal_literal_as_boolean,
+	rasqal_literal_equals_flags): Update to use RASQAL_DOUBLE_EPSILON
+
+	* src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_xsd_datatypes.c: Use RASQAL_FLOATING_AS_INT for casts
+	that go double to int
+
+	* configure.ac: Add -Wfloat-equal and -Wundef to gcc warnings
+	Document -Wformat-nonliteral issue too
+
+	* utils/roqet.c:
+	Improve range truncation in function arguments
+
+	(roqet_write_indent): Good cast sp since we know it will fit in
+	int.
+
+	(roqet_init_query): Cast static length.
+
+	(print_help, main): Use unsigned int for indexes into descriptive
+	info calls
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c:
+	(rasqal_new_data_graph_from_iostream): Take unsigned int flags.
+
+2012-06-22  Dave Beckett <dave@dajobe.org>
+
+	* README.html: Add notes on implemented parts of SPARQL 1.1
+
+2012-06-18  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, src/rasqal_expr_numerics.c: Support UUID support
+	inside libc for OSX
+
+2012-06-17  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh:
+	Support NOCONFIGURE variable, like Lib{XML2,XSLT}
+
+2012-05-20  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac:
+	Fix non-POSIX bash syntax == to =
+
+2012-05-14  Dave Beckett <dave@dajobe.org>
+
+	* rasqal.rdf.in, rasqal.spec.in:
+	Update package files to remove RDQL
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_literal.c,
+	src/rasqal_query.c, src/rasqal_query_transform.c,
+	src/rasqal_regex.c: Update autodocs to mark rdql support as legacy
+
+	* src/rasqal_internal.h: Remove rasqal_init_query_language_rdql
+	internal prototype
+
+	* INSTALL.html, README.html, configure.ac, src/Makefile.am,
+	src/rasqal_general.c, src/rasqal_query_test.c, src/rdql_common.h,
+	src/rdql_lexer.l, src/rdql_parser.y, src/win32_rasqal_config.h.in,
+	tests/Makefile.am, tests/rdql/Makefile.am, tests/rdql/dc.rdf,
+	tests/rdql/example1.rdql, tests/rdql/example2.rdql,
+	tests/rdql/example3.rdql, tests/rdql/example4.rdql,
+	tests/rdql/example5.rdql, tests/rdql/example_at_1.rdql,
+	tests/rdql/example_at_2.rdql, tests/rdql/example_at_3.rdql,
+	tests/rdql/example_at_4.rdql, tests/rdql/example_at_5.rdql,
+	tests/rdql/example_at_6.rdql, tests/rdql/example_at_7.rdql,
+	tests/rdql/note-ex1.rdql, tests/rdql/note-ex2.rdql,
+	tests/rdql/note-ex3.rdql, tests/rdql/note-ex4.rdql,
+	tests/rdql/testsuite/Makefile.am, tests/rdql/testsuite/README,
+	tests/rdql/testsuite/README-RDQL-tests.txt,
+	tests/rdql/testsuite/check-rdql,
+	tests/rdql/testsuite/copyright.txt, tests/rdql/testsuite/model0.nt,
+	tests/rdql/testsuite/model1.nt, tests/rdql/testsuite/model2.nt,
+	tests/rdql/testsuite/model3.nt, tests/rdql/testsuite/model4.nt,
+	tests/rdql/testsuite/model5.nt, tests/rdql/testsuite/model5.rdf,
+	tests/rdql/testsuite/model6.nt, tests/rdql/testsuite/model7.nt,
+	tests/rdql/testsuite/model8.n3, tests/rdql/testsuite/model9.n3,
+	tests/rdql/testsuite/modelA.nt, tests/rdql/testsuite/query-dump,
+	tests/rdql/testsuite/rdql-tests.n3,
+	tests/rdql/testsuite/result-0-01.n3,
+	tests/rdql/testsuite/result-0-02.n3,
+	tests/rdql/testsuite/result-0-03.n3,
+	tests/rdql/testsuite/result-0-04.n3,
+	tests/rdql/testsuite/result-1-01.n3,
+	tests/rdql/testsuite/result-1-02.n3,
+	tests/rdql/testsuite/result-1-03.n3,
+	tests/rdql/testsuite/result-1-04.n3,
+	tests/rdql/testsuite/result-1-05.n3,
+	tests/rdql/testsuite/result-1-06.n3,
+	tests/rdql/testsuite/result-1-07.n3,
+	tests/rdql/testsuite/result-1-08.n3,
+	tests/rdql/testsuite/result-1-09.n3,
+	tests/rdql/testsuite/result-1-10.n3,
+	tests/rdql/testsuite/result-2-01.n3,
+	tests/rdql/testsuite/result-2-02.n3,
+	tests/rdql/testsuite/result-2-03.n3,
+	tests/rdql/testsuite/result-2-04.n3,
+	tests/rdql/testsuite/result-2-05.n3,
+	tests/rdql/testsuite/result-2-06.n3,
+	tests/rdql/testsuite/result-2-07.n3,
+	tests/rdql/testsuite/result-2-08.n3,
+	tests/rdql/testsuite/result-2-09.n3,
+	tests/rdql/testsuite/result-2-10.n3,
+	tests/rdql/testsuite/result-3-01.n3,
+	tests/rdql/testsuite/result-3-02.n3,
+	tests/rdql/testsuite/result-3-03.n3,
+	tests/rdql/testsuite/result-3-04.n3,
+	tests/rdql/testsuite/result-3-05.n3,
+	tests/rdql/testsuite/result-3-06.n3,
+	tests/rdql/testsuite/result-3-07.n3,
+	tests/rdql/testsuite/result-4-01.n3,
+	tests/rdql/testsuite/result-4-02.n3,
+	tests/rdql/testsuite/result-4-03.n3,
+	tests/rdql/testsuite/result-4-04.n3,
+	tests/rdql/testsuite/result-4-05.n3,
+	tests/rdql/testsuite/result-4-06.n3,
+	tests/rdql/testsuite/result-4-07.n3,
+	tests/rdql/testsuite/result-5-01.n3,
+	tests/rdql/testsuite/result-5-02.n3,
+	tests/rdql/testsuite/result-5-03.n3,
+	tests/rdql/testsuite/result-5-04.n3,
+	tests/rdql/testsuite/result-6-01.n3,
+	tests/rdql/testsuite/result-6-02.n3,
+	tests/rdql/testsuite/result-6-03.n3,
+	tests/rdql/testsuite/result-6-04.n3,
+	tests/rdql/testsuite/result-7-01.n3,
+	tests/rdql/testsuite/result-7-02.n3,
+	tests/rdql/testsuite/result-7-03.n3,
+	tests/rdql/testsuite/result-7-04.n3,
+	tests/rdql/testsuite/result-8-01.n3,
+	tests/rdql/testsuite/result-8-02.n3,
+	tests/rdql/testsuite/result-8-03.n3,
+	tests/rdql/testsuite/result-8-04.n3,
+	tests/rdql/testsuite/result-8-05.n3,
+	tests/rdql/testsuite/result-9-01.n3,
+	tests/rdql/testsuite/result-9-02.n3,
+	tests/rdql/testsuite/result-A-01.n3,
+	tests/rdql/testsuite/result-A-02.n3,
+	tests/rdql/testsuite/result-B-01.n3,
+	tests/rdql/testsuite/result-B-02.n3,
+	tests/rdql/testsuite/result-B-03.n3,
+	tests/rdql/testsuite/result-B-04.n3,
+	tests/rdql/testsuite/result-B-05.n3,
+	tests/rdql/testsuite/result-B-06.n3,
+	tests/rdql/testsuite/result-B-07.n3,
+	tests/rdql/testsuite/result-B-08.n3,
+	tests/rdql/testsuite/result-B-09.n3,
+	tests/rdql/testsuite/result-B-10.n3,
+	tests/rdql/testsuite/result-B-11.n3,
+	tests/rdql/testsuite/result-B-12.n3,
+	tests/rdql/testsuite/result-B-13.n3,
+	tests/rdql/testsuite/result-B-14.n3,
+	tests/rdql/testsuite/result-B-15.n3,
+	tests/rdql/testsuite/result-B-16.n3,
+	tests/rdql/testsuite/result-B-17.n3,
+	tests/rdql/testsuite/result-B-18.n3,
+	tests/rdql/testsuite/result-B-19.n3,
+	tests/rdql/testsuite/result-B-20.n3,
+	tests/rdql/testsuite/result-S-01.n3,
+	tests/rdql/testsuite/result-S-02.n3,
+	tests/rdql/testsuite/result-S-03.n3,
+	tests/rdql/testsuite/result-S-04.n3,
+	tests/rdql/testsuite/result-S-05.n3,
+	tests/rdql/testsuite/result-T-01.n3,
+	tests/rdql/testsuite/result-T-02.n3,
+	tests/rdql/testsuite/result-T-03.n3,
+	tests/rdql/testsuite/result-T-04.n3,
+	tests/rdql/testsuite/result-T-05.n3,
+	tests/rdql/testsuite/result-T-06.n3,
+	tests/rdql/testsuite/result-T-07.n3,
+	tests/rdql/testsuite/result-T-08.n3,
+	tests/rdql/testsuite/result-T-09.n3,
+	tests/rdql/testsuite/result-T-10.n3,
+	tests/rdql/testsuite/test-0-01, tests/rdql/testsuite/test-0-02,
+	tests/rdql/testsuite/test-0-03, tests/rdql/testsuite/test-0-04,
+	tests/rdql/testsuite/test-1-01, tests/rdql/testsuite/test-1-02,
+	tests/rdql/testsuite/test-1-03, tests/rdql/testsuite/test-1-04,
+	tests/rdql/testsuite/test-1-05, tests/rdql/testsuite/test-1-06,
+	tests/rdql/testsuite/test-1-07, tests/rdql/testsuite/test-1-08,
+	tests/rdql/testsuite/test-1-09, tests/rdql/testsuite/test-1-10,
+	tests/rdql/testsuite/test-2-01, tests/rdql/testsuite/test-2-02,
+	tests/rdql/testsuite/test-2-03, tests/rdql/testsuite/test-2-04,
+	tests/rdql/testsuite/test-2-05, tests/rdql/testsuite/test-2-06,
+	tests/rdql/testsuite/test-2-07, tests/rdql/testsuite/test-2-08,
+	tests/rdql/testsuite/test-2-09, tests/rdql/testsuite/test-2-10,
+	tests/rdql/testsuite/test-3-01, tests/rdql/testsuite/test-3-02,
+	tests/rdql/testsuite/test-3-03, tests/rdql/testsuite/test-3-04,
+	tests/rdql/testsuite/test-3-05, tests/rdql/testsuite/test-3-06,
+	tests/rdql/testsuite/test-3-07, tests/rdql/testsuite/test-4-01,
+	tests/rdql/testsuite/test-4-02, tests/rdql/testsuite/test-4-03,
+	tests/rdql/testsuite/test-4-04, tests/rdql/testsuite/test-4-05,
+	tests/rdql/testsuite/test-4-06, tests/rdql/testsuite/test-4-07,
+	tests/rdql/testsuite/test-5-01, tests/rdql/testsuite/test-5-02,
+	tests/rdql/testsuite/test-5-03, tests/rdql/testsuite/test-5-04,
+	tests/rdql/testsuite/test-6-01, tests/rdql/testsuite/test-6-02,
+	tests/rdql/testsuite/test-6-03, tests/rdql/testsuite/test-6-04,
+	tests/rdql/testsuite/test-7-01, tests/rdql/testsuite/test-7-02,
+	tests/rdql/testsuite/test-7-03, tests/rdql/testsuite/test-7-04,
+	tests/rdql/testsuite/test-8-01, tests/rdql/testsuite/test-8-02,
+	tests/rdql/testsuite/test-8-03, tests/rdql/testsuite/test-8-04,
+	tests/rdql/testsuite/test-8-05, tests/rdql/testsuite/test-9-01,
+	tests/rdql/testsuite/test-9-02, tests/rdql/testsuite/test-A-01,
+	tests/rdql/testsuite/test-A-02, tests/rdql/testsuite/test-B-01,
+	tests/rdql/testsuite/test-B-02, tests/rdql/testsuite/test-B-03,
+	tests/rdql/testsuite/test-B-04, tests/rdql/testsuite/test-B-05,
+	tests/rdql/testsuite/test-B-06, tests/rdql/testsuite/test-B-07,
+	tests/rdql/testsuite/test-B-08, tests/rdql/testsuite/test-B-09,
+	tests/rdql/testsuite/test-B-10, tests/rdql/testsuite/test-B-11,
+	tests/rdql/testsuite/test-B-12, tests/rdql/testsuite/test-B-13,
+	tests/rdql/testsuite/test-B-14, tests/rdql/testsuite/test-B-15,
+	tests/rdql/testsuite/test-B-16, tests/rdql/testsuite/test-B-17,
+	tests/rdql/testsuite/test-B-18, tests/rdql/testsuite/test-B-19,
+	tests/rdql/testsuite/test-B-20, tests/rdql/testsuite/test-S-01,
+	tests/rdql/testsuite/test-S-02, tests/rdql/testsuite/test-S-03,
+	tests/rdql/testsuite/test-S-04, tests/rdql/testsuite/test-S-05,
+	tests/rdql/testsuite/test-T-01, tests/rdql/testsuite/test-T-02,
+	tests/rdql/testsuite/test-T-03, tests/rdql/testsuite/test-T-04,
+	tests/rdql/testsuite/test-T-05, tests/rdql/testsuite/test-T-06,
+	tests/rdql/testsuite/test-T-07, tests/rdql/testsuite/test-T-08,
+	tests/rdql/testsuite/test-T-09, tests/rdql/testsuite/test-T-10,
+	tests/rdql/testsuite/tests2turtle.patch,
+	tests/rdql/testsuite/vc-db-1.rdf, tests/rdql/testsuite/vc-db-2.rdf,
+	tests/rdql/testsuite/vc-db-3.rdf, utils/roqet.1:
+	Remove RDQL
+
+	* ChangeLog, ChangeLog.9, Makefile.am:
+	ChangeLog.9 for 2011
+
+2012-05-13  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, RELEASE.html, configure.ac:
+	Bumped version to 0.9.30
 
 	* Snapshotted rasqal_0_9_29 for 0.9.29 release (GIT
 	b208e046859c86859449efe2985aca4a3c1bba91)
