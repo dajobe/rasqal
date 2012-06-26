@@ -29,9 +29,12 @@
 #include <win32_rasqal_config.h>
 #endif
 
+/* for frexp(), fabs() and ldexp() - all C99 */
 #ifdef HAVE_MATH_H
 #include <math.h>
 #endif
+
+/* for double and float constants */
 #ifdef HAVE_FLOAT_H
 #include <float.h>
 #endif
@@ -40,12 +43,12 @@
 #include "rasqal_internal.h"
 
 
-/**
+/*
  * rasqal_double_approximately_compare:
  * @a: double
  * @b: double
  *
- * Compare two doubles
+ * INTERNAL - Compare two doubles approximately
  *
  * Approach from Section 4.2.2 of Seminumerical Algorithms (3rd
  * edition) by D. E. Knuth
@@ -62,13 +65,13 @@ rasqal_double_approximately_compare(double a, double b)
   /* Get larger exponent of a or b into exponent */
   frexp(fabs(a) > fabs(b) ? a : b, &exponent);
 
-  /* Multiply epsilon by 2^exponent */
+  /* Multiply epsilon by 2^exponent to get delta */
   delta = ldexp(RASQAL_DOUBLE_EPSILON, exponent); 
   
   /*
-   * Take the difference and evaluated like this:
+   * Take the difference and evaluate like this:
    *
-   * <-delta | -delta .... delta | > delta
+   * < delta | -delta .... delta | > delta
    * --------------------------------------
    * LESS    | <--- 'EQUAL' ---> | GREATER
    */
@@ -82,12 +85,12 @@ rasqal_double_approximately_compare(double a, double b)
 }
 
 
-/**
+/*
  * rasqal_double_approximately_equal:
  * @a: double
  * @b: double
  *
- * Compare two doubles for approximate equality
+ * INTERNAL - Compare two doubles for approximate equality
  *
  * Return values: non-0 if approximately equal
  */
