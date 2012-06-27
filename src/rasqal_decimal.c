@@ -625,20 +625,19 @@ rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result,
 int
 rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d)
 {
+  int rc = 0;
+
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  if(!d->raw)
-    return 1;
+  rc = fabs(d->raw) < RASQAL_DOUBLE_EPSILON;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  if(mpfr_zero_p(d->raw))
-    return 1;
+  rc = mpfr_zero_p(d->raw);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
-  if(!mpf_sgn(d->raw))
-    return 1;
+  rc = !mpf_sgn(d->raw);
 #endif
 
-  return 0;
+  return rc;
 }
 
 
@@ -854,13 +853,10 @@ rasqal_xsd_decimal_floor(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
 int
 rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
 {
-#if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  double d;
-#endif
-  int rc=0;
+  int rc = 0;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  rc = rasqal_double_approximately_compare(a->row, b->raw);
+  rc = rasqal_double_approximately_compare(a->raw, b->raw);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   rc = mpfr_cmp(a->raw, b->raw);
@@ -888,7 +884,7 @@ rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
   int rc;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  rc= (b->raw == a->raw);
+  rc = rasqal_double_approximately_equal(b->raw, a->raw);
 #elif defined(RASQAL_DECIMAL_MPFR)
   rc = mpfr_equal_p(a->raw, b->raw);
 #elif defined(RASQAL_DECIMAL_GMP)
