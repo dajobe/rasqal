@@ -84,7 +84,7 @@ rasqal_project_rowsource_ensure_variables(rasqal_rowsource* rowsource,
 
   size = raptor_sequence_size(con->projection_variables);
 
-  con->projection = RASQAL_MALLOC(int*, sizeof(int*) * size);
+  con->projection = RASQAL_MALLOC(int*, sizeof(int) * size);
   if(!con->projection)
     return 1;
   
@@ -124,7 +124,7 @@ rasqal_project_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
     raptor_free_sequence(con->projection_variables);
   
   if(con->projection)
-    RASQAL_FREE(int, con->projection);
+    RASQAL_FREE(int*, con->projection);
   
   RASQAL_FREE(rasqal_project_rowsource_context, con);
 
