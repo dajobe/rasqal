@@ -2140,7 +2140,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       new_lit = NULL;
   }
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   if(new_lit)
     RASQAL_DEBUG4("promoted literal type %s to type %s, with value '%s'\n", 
                   rasqal_literal_type_label(lit->type),
@@ -2352,7 +2352,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   new_lits[0] = NULL;
   new_lits[1] = NULL;
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG3("literal 0 type %s.  literal 1 type %s\n", 
                 rasqal_literal_type_label(lits[0]->type),
                 rasqal_literal_type_label(lits[1]->type));
@@ -2368,7 +2368,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       return 1;
     type_diff = type0 - type1;
     if(type_diff != 0) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       RASQAL_DEBUG2("RDF term literal returning type difference %d\n",
                     type_diff);
 #endif
@@ -2380,7 +2380,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     rasqal_literal_type type0 = lits[0]->type;
     rasqal_literal_type type1 = lits[1]->type;
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG3("xquery literal compare types %s vs %s\n",
                   rasqal_literal_type_label(type0),
                   rasqal_literal_type_label(type1));
@@ -2405,7 +2405,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
         return 1;
       type_diff = type0 - type1;
       if(type_diff != 0) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
         RASQAL_DEBUG2("RDF term literal returning type difference %d\n",
                       type_diff);
 #endif
@@ -2422,7 +2422,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     promotion = 1;
   }
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   if(promotion)
     RASQAL_DEBUG2("promoting to type %s\n", rasqal_literal_type_label(type));
 #endif
@@ -2720,7 +2720,7 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     return !(l1 || l2);
   }
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG1(" ");
   rasqal_literal_print(l1, stderr);
   fputs( " to ", stderr);
@@ -2765,7 +2765,7 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
         type = type1;
       } else
         promotion = 1;
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       RASQAL_DEBUG4("xquery promoted literals types (%s, %s) to type %s\n", 
                     rasqal_literal_type_label(l1->type),
                     rasqal_literal_type_label(l2->type),
@@ -2867,7 +2867,7 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       rasqal_free_literal(l2_p);
   }
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG2("equals result %d\n", result);
 #endif
 
@@ -4130,7 +4130,7 @@ rasqal_literal_sequence_compare(int compare_flags,
     rasqal_literal* literal_b = (rasqal_literal*)raptor_sequence_get_at(values_b, i);
     int error = 0;
     
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("Comparing ");
     if(literal_a)
       rasqal_literal_print(literal_a, DEBUG_FH);
@@ -4149,7 +4149,7 @@ rasqal_literal_sequence_compare(int compare_flags,
         result = 0;
       } else {
         result = literal_a ? 1 : -1;
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
         RASQAL_DEBUG2("Got one NULL literal comparison, returning %d\n",
                       result);
 #endif
@@ -4161,7 +4161,7 @@ rasqal_literal_sequence_compare(int compare_flags,
                                     compare_flags, &error);
 
     if(error) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       RASQAL_DEBUG2("Got literal comparison error at literal %d, returning 0\n",
                     i);
 #endif
@@ -4172,7 +4172,7 @@ rasqal_literal_sequence_compare(int compare_flags,
     if(!result)
       continue;
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG3("Returning comparison result %d at literal %d\n", result, i);
 #endif
     break;
@@ -4402,7 +4402,7 @@ rasqal_literal_sequence_equals(raptor_sequence* values_a,
     
     result = rasqal_literal_equals_flags(literal_a, literal_b,
                                          RASQAL_COMPARE_RDF, &error);
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("Comparing ");
     rasqal_literal_print(literal_a, DEBUG_FH);
     fputs(" to ", DEBUG_FH);
@@ -4827,7 +4827,7 @@ main(int argc, char *argv[])
     }
     rasqal_free_map(map);
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     fprintf(DEBUG_FH, "%s: Test %d had %d duplicates\n", program, test_id, 
             duplicates);
 #endif

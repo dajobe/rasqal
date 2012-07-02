@@ -307,7 +307,7 @@ rasqal_query_remove_duplicate_select_vars(rasqal_query* rq,
   if(!new_seq)
     return 1;
   
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG1("bound variables before deduping: "); 
   raptor_sequence_print(seq, DEBUG_FH);
   fputs("\n", DEBUG_FH); 
@@ -345,7 +345,7 @@ rasqal_query_remove_duplicate_select_vars(rasqal_query* rq,
   }
   
   if(modified) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("bound variables after deduping: "); 
     raptor_sequence_print(new_seq, DEBUG_FH);
     fputs("\n", DEBUG_FH); 
@@ -460,7 +460,7 @@ rasqal_query_merge_triple_patterns(rasqal_query* query,
   int checking;
   int offset;
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   printf("rasqal_query_merge_triple_patterns: Checking graph pattern #%d:\n  ", gp->gp_index);
   rasqal_graph_pattern_print(gp, stdout);
   fputs("\n", stdout);
@@ -468,14 +468,14 @@ rasqal_query_merge_triple_patterns(rasqal_query* query,
 #endif
     
   if(!gp->graph_patterns) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG2("Ending graph patterns %d - no sub-graph patterns\n", gp->gp_index);
 #endif
     return 0;
   }
 
   if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG3("Ending graph patterns %d - operator %s\n", gp->gp_index,
                   rasqal_graph_pattern_operator_as_string(gp->op));
 #endif
@@ -532,13 +532,13 @@ rasqal_query_merge_triple_patterns(rasqal_query* query,
     }
 
 
-  #if RASQAL_DEBUG > 1
+  #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG3("Found sequence of %d basic sub-graph patterns in %d\n", bgp_count, gp->gp_index);
   #endif
     if(bgp_count < 2)
       continue;
 
-  #if RASQAL_DEBUG > 1
+  #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG3("OK to merge %d basic sub-graph patterns of %d\n", bgp_count, gp->gp_index);
 
     RASQAL_DEBUG3("Initial columns %d to %d\n", gp->start_column, gp->end_column);
@@ -574,7 +574,7 @@ rasqal_query_merge_triple_patterns(rasqal_query* query,
   } /* end while checking */
   
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG3("Ending columns %d to %d\n", gp->start_column, gp->end_column);
 
   RASQAL_DEBUG2("Ending graph pattern #%d\n  ", gp->gp_index);
@@ -643,7 +643,7 @@ rasqal_query_remove_empty_group_graph_patterns(rasqal_query* query,
   if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP)
     return 0;
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   printf("rasqal_query_remove_empty_group_graph_patterns: Checking graph pattern #%d:\n  ", gp->gp_index);
   rasqal_graph_pattern_print(gp, stdout);
   fputs("\n", stdout);
@@ -662,7 +662,7 @@ rasqal_query_remove_empty_group_graph_patterns(rasqal_query* query,
   }
 
   if(!saw_empty_gp) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG2("Ending graph patterns %d - saw no empty groups\n", gp->gp_index);
 #endif
     return 0;
@@ -694,7 +694,7 @@ rasqal_query_remove_empty_group_graph_patterns(rasqal_query* query,
   if(!*modified)
     *modified = 1;
   
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG2("Ending graph pattern #%d\n  ", gp->gp_index);
   rasqal_graph_pattern_print(gp, stdout);
   fputs("\n\n", stdout);
@@ -734,7 +734,7 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
   int size;
   int* modified = (int*)data;
   
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   printf("rasqal_query_merge_graph_patterns: Checking graph pattern #%d:\n  ",
          gp->gp_index);
   rasqal_graph_pattern_print(gp, stdout);
@@ -743,7 +743,7 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
 #endif
 
   if(!gp->graph_patterns) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG3("Ending graph pattern #%d - operator %s: no sub-graph patterns\n", gp->gp_index,
                   rasqal_graph_pattern_operator_as_string(gp->op));
 #endif
@@ -751,7 +751,7 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
   }
 
   if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG3("Ending graph patterns %d - operator %s: not GROUP\n", gp->gp_index,
                   rasqal_graph_pattern_operator_as_string(gp->op));
 #endif
@@ -759,7 +759,7 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
   }
 
   size = raptor_sequence_size(gp->graph_patterns);
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG3("Doing %d sub-graph patterns of %d\n", size, gp->gp_index);
 #endif
   op = RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN;
@@ -774,7 +774,7 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
       op = sgp->op;
     } else {
       if(op != sgp->op) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
         RASQAL_DEBUG4("Sub-graph pattern #%d is %s different from first %s, cannot merge\n", 
                       i, rasqal_graph_pattern_operator_as_string(sgp->op), 
                       rasqal_graph_pattern_operator_as_string(op));
@@ -784,7 +784,7 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
     }
   }
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG2("Sub-graph patterns of %d done\n", gp->gp_index);
 #endif
   
@@ -813,7 +813,7 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
     sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
     
     if(sgp->op != RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       RASQAL_DEBUG3("Found %s sub-graph pattern #%d\n",
                     rasqal_graph_pattern_operator_as_string(sgp->op), 
                     sgp->gp_index);
@@ -824,7 +824,7 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
     
     /* not ok if there are >1 triples */
     if(sgp->triples && (sgp->end_column-sgp->start_column+1) > 1) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       RASQAL_DEBUG2("Found >1 triples in sub-graph pattern #%d\n", sgp->gp_index);
 #endif
       merge_gp_ok = 0;
@@ -833,7 +833,7 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
     
     /* not ok if there are triples and constraints */
     if(sgp->triples && sgp->filter_expression) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       RASQAL_DEBUG2("Found triples and constraints in sub-graph pattern #%d\n", sgp->gp_index);
 #endif
       merge_gp_ok = 0;
@@ -849,7 +849,7 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
   if(merge_gp_ok) {
     raptor_sequence *seq;
     
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG2("OK to merge sub-graph patterns of %d\n", gp->gp_index);
 
     RASQAL_DEBUG3("Initial columns %d to %d\n", gp->start_column, gp->end_column);
@@ -886,12 +886,12 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
       *modified = 1;
     
   } else {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG2("NOT OK to merge sub-graph patterns of %d\n", gp->gp_index);
 #endif
   }
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   if(merge_gp_ok) {
     RASQAL_DEBUG2("Ending graph pattern #%d\n  ", gp->gp_index);
     rasqal_graph_pattern_print(gp, stdout);
@@ -931,7 +931,7 @@ rasqal_query_filter_variable_scope(rasqal_query* query,
   if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_FILTER)
     return 0;
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG2("Checking FILTER graph pattern #%d:\n  ", gp->gp_index);
   rasqal_graph_pattern_print(gp, stderr);
   fputs("\n", stderr);
@@ -978,7 +978,7 @@ rasqal_query_filter_variable_scope(rasqal_query* query,
             break;
         
           /* It was defined in an outer GROUP so this is bad */
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
           RASQAL_DEBUG3("FILTER Variable %s defined in GROUP GP #%d and now out of scope\n", v->name, sgp->gp_index);
 #endif
           var_in_scope = 0;
@@ -1296,7 +1296,7 @@ rasqal_query_prepare_common(rasqal_query *query)
 
     int modified;
     
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     fputs("Initial query graph pattern:\n  ", DEBUG_FH);
     rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
     fputs("\n", DEBUG_FH);
@@ -1308,7 +1308,7 @@ rasqal_query_prepare_common(rasqal_query *query)
       rc = rasqal_query_graph_pattern_visit2(query, 
                                              rasqal_query_merge_triple_patterns,
                                              &modified);
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       fprintf(DEBUG_FH, "modified=%d after merge triples, query graph pattern now:\n  ", modified);
       rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
       fputs("\n", DEBUG_FH);
@@ -1322,7 +1322,7 @@ rasqal_query_prepare_common(rasqal_query *query)
                                              rasqal_query_remove_empty_group_graph_patterns,
                                              &modified);
       
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       fprintf(DEBUG_FH, "modified=%d after remove empty groups, query graph pattern now:\n  ", modified);
       rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
       fputs("\n", DEBUG_FH);
@@ -1336,7 +1336,7 @@ rasqal_query_prepare_common(rasqal_query *query)
                                              rasqal_query_merge_graph_patterns,
                                              &modified);
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       fprintf(DEBUG_FH, "modified=%d  after merge graph patterns, query graph pattern now:\n  ", modified);
       rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
       fputs("\n", DEBUG_FH);
@@ -1364,7 +1364,7 @@ rasqal_query_prepare_common(rasqal_query *query)
     (void)rasqal_query_graph_pattern_visit2(query,
                                             rasqal_query_filter_variable_scope,
                                             &modified);
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     fprintf(DEBUG_FH, "modified=%d  after filter variable scope, query graph pattern now:\n  ", modified);
     rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
     fputs("\n", DEBUG_FH);
@@ -1410,7 +1410,7 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
     return 1;
   }
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG2("Joining graph pattern #%d\n  ", src_gp->gp_index);
   rasqal_graph_pattern_print(src_gp, DEBUG_FH);
   fprintf(DEBUG_FH, "\nto graph pattern #%d\n  ", dest_gp->gp_index);
@@ -1446,7 +1446,7 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
     if((dest_gp->end_column < 0) || end_c > dest_gp->end_column)
       dest_gp->end_column = end_c;
     
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG3("Moved triples from columns %d to %d\n", start_c, end_c);
     RASQAL_DEBUG3("Columns now %d to %d\n", dest_gp->start_column, dest_gp->end_column);
 #endif
@@ -1476,7 +1476,7 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
 
   dest_gp->silent = src_gp->silent;
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG2("Result graph pattern #%d\n  ", dest_gp->gp_index);
   rasqal_graph_pattern_print(dest_gp, stdout);
   fputs("\n", stdout);

@@ -360,7 +360,7 @@ rasqal_raptor_triple_match(rasqal_world* world,
 {
   int rc = 0;
   
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG1("\ntriple ");
   rasqal_triple_print(triple, stderr);
   fputs("\nmatch  ", stderr);
@@ -413,7 +413,7 @@ rasqal_raptor_triple_match(rasqal_world* world,
   rc = 1;
   done:
   
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG2("result: %s\n", (rc ? "match" : "no match"));
 #endif
 

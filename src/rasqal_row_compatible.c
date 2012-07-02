@@ -139,7 +139,7 @@ rasqal_row_compatible_check(rasqal_row_compatible* map,
     if(offset2 >= 0)
       second_value = second_row->values[offset2];
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG5("row variable #%d - %s has first row offset #%d  second row offset #%d\n", i, name, offset1, offset2);
 #endif
 
@@ -148,7 +148,7 @@ rasqal_row_compatible_check(rasqal_row_compatible* map,
       continue;
 
     if(!first_value || !second_value) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       RASQAL_DEBUG3("row variable #%d - %s has (one NULL, one value)\n", i,
                     name);
 #endif
@@ -162,7 +162,7 @@ rasqal_row_compatible_check(rasqal_row_compatible* map,
       compatible = 0;
       break;
     } else {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       RASQAL_DEBUG3("row variable #%d - %s has same values\n", i, name);
 #endif
     }
@@ -330,7 +330,7 @@ main(int argc, char *argv[])
 
   rasqal_print_row_compatible(stderr, rc_map);
 
-#if RASQAL_DEBUG
+#ifdef RASQAL_DEBUG
   fputs("\n", stderr);
 #endif
 
@@ -361,7 +361,7 @@ main(int argc, char *argv[])
       failures++;
     }
 
-#if RASQAL_DEBUG
+#ifdef RASQAL_DEBUG
     fputs("\n", stderr);
 #endif
 

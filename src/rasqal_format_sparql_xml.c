@@ -48,7 +48,7 @@ static int rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter*
 static rasqal_rowsource* rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* formatter, rasqal_world *world, rasqal_variables_table* vars_table, raptor_iostream *iostr, raptor_uri *base_uri, unsigned int flags);
 
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
 #define TRACE_XML 1
 #else
 #undef TRACE_XML

@@ -789,7 +789,7 @@ rasqal_sparql_name_check(unsigned char *string, size_t length,
 {
   int rc = 0;
   int c = -1;
-#if RASQAL_DEBUG > 2
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
   RASQAL_DEBUG1("Checking name '");
   if(length)
      fwrite(string, length, sizeof(unsigned char), stderr);

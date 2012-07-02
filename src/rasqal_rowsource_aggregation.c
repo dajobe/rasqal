@@ -325,7 +325,7 @@ rasqal_builtin_agg_expression_execute_step(void* user_data,
     
     b->l = result;
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG3("Aggregation step result %s (error=%d)\n", 
                   (result ? RASQAL_GOOD_CAST(const char*, rasqal_literal_as_string(result)) : "(NULL)"),
                   b->error);

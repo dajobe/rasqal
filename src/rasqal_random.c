@@ -373,7 +373,7 @@ main(int argc, char *argv[])
   rasqal_random_seed(r, 54321);
     
   for(test = 0; test < NTESTS; test++) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     int v;
     
     v = rasqal_random_irand(r);
@@ -384,7 +384,7 @@ main(int argc, char *argv[])
   }
 
   for(test = 0; test < NTESTS; test++) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     double d;
     
     d = rasqal_random_drand(r);
