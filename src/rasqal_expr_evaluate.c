@@ -1601,6 +1601,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 }
 
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_expression_evaluate:
  * @world: #rasqal_world
@@ -1637,3 +1638,4 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
   
   return l;
 }
+#endif

@@ -863,6 +863,7 @@ rasqal_query_has_variable2(rasqal_query* query,
 }
 
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_query_has_variable:
  * @query: #rasqal_query query object
@@ -882,7 +883,7 @@ rasqal_query_has_variable(rasqal_query* query, const unsigned char *name)
 
   return rasqal_query_has_variable2(query, RASQAL_VARIABLE_TYPE_UNKNOWN, name);
 }
-
+#endif
 
 /**
  * rasqal_query_set_variable2:
@@ -912,6 +913,7 @@ rasqal_query_set_variable2(rasqal_query* query,
 }
 
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_query_set_variable:
  * @query: #rasqal_query query object
@@ -937,7 +939,7 @@ rasqal_query_set_variable(rasqal_query* query, const unsigned char *name,
   return rasqal_query_set_variable2(query, RASQAL_VARIABLE_TYPE_NORMAL,
                                     name, value);
 }
-
+#endif
 
 /**
  * rasqal_query_get_triple_sequence:
@@ -1850,6 +1852,7 @@ rasqal_query_graph_pattern_visit2(rasqal_query* query,
 }
 
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_query_graph_pattern_visit:
  * @query: query
@@ -1869,6 +1872,7 @@ rasqal_query_graph_pattern_visit(rasqal_query* query,
 {
   (void)rasqal_query_graph_pattern_visit2(query, visit_fn, data);
 }
+#endif
 
 
 /**

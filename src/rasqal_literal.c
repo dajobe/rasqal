@@ -278,6 +278,7 @@ rasqal_new_double_literal(rasqal_world* world, double d)
 }
 
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_new_float_literal:
  * @world: rasqal world object
@@ -285,7 +286,7 @@ rasqal_new_double_literal(rasqal_world* world, double d)
  *
  * Constructor - Create a new Rasqal float literal.
  *
- * Deprecated: Use rasqal_new_floating_literal() with type
+ * @Deprecated: Use rasqal_new_floating_literal() with type
  * #RASQAL_LITERAL_FLOAT and double value.
  *
  * Return value: New #rasqal_literal or NULL on failure
@@ -295,7 +296,7 @@ rasqal_new_float_literal(rasqal_world *world, float f)
 {
   return rasqal_new_floating_literal(world, RASQAL_LITERAL_FLOAT, (double)f);
 }
-
+#endif
 
 /**
  * rasqal_new_uri_literal:

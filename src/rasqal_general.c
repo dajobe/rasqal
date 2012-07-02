@@ -464,6 +464,7 @@ rasqal_world_get_query_language_description(rasqal_world* world,
 }
 
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_languages_enumerate:
  * @world: rasqal_world object
@@ -508,7 +509,7 @@ rasqal_languages_enumerate(rasqal_world *world,
 
   return 0;
 }
-
+#endif
 
 /**
  * rasqal_language_name_check:

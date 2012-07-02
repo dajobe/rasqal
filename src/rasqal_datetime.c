@@ -926,6 +926,7 @@ rasqal_xsd_datetime_equals2(const rasqal_xsd_datetime *dt1,
 }
 
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_xsd_datetime_equals:
  * @dt1: first XSD dateTime
@@ -943,7 +944,7 @@ rasqal_xsd_datetime_equals(const rasqal_xsd_datetime *dt1,
 {
   return rasqal_xsd_datetime_equals2(dt1, dt2, NULL);
 }
-
+#endif
 
 /*
  * 3.2.7.4 Order relation on dateTime
@@ -1041,6 +1042,7 @@ rasqal_xsd_datetime_compare2(const rasqal_xsd_datetime *dt1,
                                      incomparible_p);
 }
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_xsd_datetime_compare:
  * @dt1: first XSD dateTime
@@ -1058,7 +1060,7 @@ rasqal_xsd_datetime_compare(const rasqal_xsd_datetime *dt1,
 {
   return rasqal_xsd_datetime_compare2(dt1, dt2, NULL);
 }
-
+#endif
 
 /**
  * rasqal_xsd_datetime_get_seconds_as_decimal:
