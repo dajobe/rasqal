@@ -1102,12 +1102,8 @@ rasqal_literal_to_result_term(rasqal_query_results* query_results,
                                       RASQAL_LITERAL_BLANK,
                                       nodeid);
 
-      if(!nodeid || !l) {
-        rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_FATAL,
-                                NULL,
-                                "Could not create a new blank identifier");
+      if(!nodeid || !l)
         goto done;
-      }
       
       t = raptor_new_term_from_blank(query_results->world->raptor_world_ptr,
                                      nodeid);
