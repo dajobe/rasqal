@@ -218,8 +218,8 @@ rasqal_new_typed_literal(rasqal_world* world, rasqal_literal_type type,
 /**
  * rasqal_new_floating_literal:
  * @world: rasqal world object
- * @f:  float literal (double)
  * @type: type - #RASQAL_LITERAL_FLOAT or #RASQAL_LITERAL_DOUBLE
+ * @d:  floating literal (double)
  * 
  * Constructor - Create a new Rasqal float literal from a double.
  *
