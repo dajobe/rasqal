@@ -28,7 +28,7 @@ AC_CONFIG_SRCDIR([src/rasqal_general.c])
 AM_CONFIG_HEADER([src/rasqal_config.h])
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR(build)
-AM_INIT_AUTOMAKE([1.11 check-news std-options -Wall -Wextra-portability])
+AM_INIT_AUTOMAKE([1.11 check-news std-options -Wobsolete -Wportability -Wsyntax -Wunsupported -Wextra-portability])
 
 AM_MAINTAINER_MODE
 
@@ -166,8 +166,9 @@ AC_DEFUN([REDLAND_CC_TRY_FLAG], [
 #
 # Too noisy:
 #  -Wconversion
-#  -Wformat-nonliteral: constants are used for format strings in a several places
-#  -Wunused-parameter : variables can be marked  __attribute__('unused')
+#  -Wformat-nonliteral : variables used for format strings in a several places
+#  -Wno-system-headers : not debugging system
+#  -Wunused-parameter  : variables can be marked  __attribute__('unused')
 #
 # Apple gcc specific (probably): -Wshorten-64-to-32
 possible_warnings="\
@@ -209,8 +210,7 @@ possible_warnings="\
 -Wshorten-64-to-32
 \
 -Wno-conversion \
--Wno-sign-conversion \
--Wno-missing-field-initializers \
+-Wno-format-nonliteral \
 -Wno-system-headers \
 -Wno-unused-parameter \
 "
