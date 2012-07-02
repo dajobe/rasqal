@@ -1,3 +1,49 @@
+2012-07-01  Dave Beckett <dave@dajobe.org>
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt: Add
+	rasqal_new_floating_literal to docs
+
+	* docs/Makefile.am, src/rasqal_datetime.c,
+	src/rasqal_expr_evaluate.c, src/rasqal_general.c,
+	src/rasqal_literal.c, src/rasqal_query.c: Allow
+	RASQAL_DISABLE_DEPRECATED to flag out deprecated implementations
+
+	(docs/Makefile.am SCAN_OPTIONS):: invoke gtkdoc-scan with the
+	deprecated guard.
+
+	* configure.ac: Set automake -W and gcc -W to same as librdf
+
+	* src/rasqal_algebra.c, src/rasqal_dataset.c,
+	src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_literal.c, src/rasqal_query_transform.c,
+	src/rasqal_random.c, src/rasqal_raptor.c,
+	src/rasqal_result_formats.c, src/rasqal_row_compatible.c,
+	src/rasqal_rowsource_aggregation.c, src/sparql_lexer.l,
+	src/sparql_parser.y: Condition all #if RASQAL_DEBUG with #if
+	defined() [gcc warnings]
+
+2012-06-26  Dave Beckett <dave@dajobe.org>
+
+	* Makefile.am: EXTRA_DIST: Remove ChangeLog NEWS since they are in
+	dist by default
+
+	* src/rasqal_decimal.c:
+	Use rasqal_double_approximately_* utilities
+	for RASQAL_DECIMAL_C99
+
+	(rasqal_xsd_decimal_is_zero): Use fabs and RASQAL_DOUBLE_EPSILON
+	for RASQAL_DECIMAL_C99.  Tidy code
+
+	(rasqal_xsd_decimal_compare): raw not row RASQAL_DECIMAL_C99
+	Remove unused d.
+
+	(rasqal_xsd_decimal_equals): Use rasqal_double_approximately_equal.
+
+	* autogen.sh: autogen.sh updates
+	- Abort run if a configuring program fails.
+	- Generate NEWS with old timestamp if missing so automake can run
+	- small doc and message updates
+
 2012-06-25  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_double.c: docs
