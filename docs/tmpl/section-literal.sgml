@@ -126,6 +126,17 @@ boolean, double, floating, integer, regex pattern and variables.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_new_floating_literal ##### -->
+<para>
+
+</para>
+
+@world: 
+@type: 
+@d: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_new_integer_literal ##### -->
 <para>
 
