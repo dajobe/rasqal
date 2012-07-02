@@ -124,6 +124,7 @@ rasqal_new_decimal_literal
 rasqal_new_decimal_literal_from_decimal
 rasqal_new_double_literal
 rasqal_new_float_literal
+rasqal_new_floating_literal
 rasqal_new_integer_literal
 rasqal_new_numeric_literal_from_long
 rasqal_new_pattern_literal

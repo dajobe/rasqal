@@ -74,6 +74,7 @@
 0.9.28	-	-	-	0.9.29	int	rasqal_xsd_datetime_equals2	(const rasqal_xsd_datetime *dt1, const rasqal_xsd_datetime *dt2, int *incomparible_p)	-
 0.9.28	-	-	-	0.9.29	int	rasqal_query_graph_pattern_visit2	(rasqal_query* query, rasqal_graph_pattern_visit_fn visit_fn, void* data)	-
 0.9.28	-	-	-	0.9.29	char*	rasqal_regex_replace	(rasqal_world* world, raptor_locator* locator, const char* pattern, const char* regex_flags, const char* subject, size_t subject_len, const char* replace, size_t replace_len, size_t* result_len_p)	-
+0.9.29	-	-	-	0.9.30	rasqal_literal*	rasqal_new_floating_literal	(rasqal_world *world, rasqal_literal_type type, double d)	-
 #
 # Types
 #
