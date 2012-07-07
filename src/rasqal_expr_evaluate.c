@@ -1627,7 +1627,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(e, rasqal_expression, NULL);
 
-  memset(&context, sizeof(context), '\0');
+  memset(&context, '\0', sizeof(context));
   context.world = world;
   context.locator = locator;
   context.flags = flags;
