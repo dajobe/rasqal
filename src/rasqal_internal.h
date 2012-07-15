@@ -1378,7 +1378,7 @@ unsigned char* rasqal_xsd_format_float(float f, size_t *len_p);
 unsigned char* rasqal_xsd_format_double(double d, size_t *len_p);
 rasqal_literal_type rasqal_xsd_datatype_parent_type(rasqal_literal_type type);
 
-int rasqal_xsd_boolean_value_from_string(const const unsigned char* string);
+int rasqal_xsd_boolean_value_from_string(const unsigned char* string);
 
 
 typedef struct rasqal_graph_factory_s rasqal_graph_factory;

@@ -64,7 +64,7 @@
 
 
 int
-rasqal_xsd_boolean_value_from_string(const const unsigned char* string)
+rasqal_xsd_boolean_value_from_string(const unsigned char* string)
 {
   int integer = 0;
 
