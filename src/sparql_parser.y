@@ -40,6 +40,8 @@
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
+/* Pure parser argument (a void*) */
+#define YYPARSE_PARAM rq
 #include <sparql_parser.h>
 
 #define YY_DECL int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner)
@@ -75,12 +77,6 @@
 
 /* the lexer does not seem to track this */
 #undef RASQAL_SPARQL_USE_ERROR_COLUMNS
-
-/* Missing sparql_lexer.c/h prototypes */
-int sparql_lexer_get_column(yyscan_t yyscanner);
-/* Not used here */
-/* void sparql_lexer_set_column(int  column_no , yyscan_t yyscanner);*/
-
 
 /* What the lexer wants */
 extern int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t scanner);

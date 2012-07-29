@@ -101,6 +101,8 @@
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
+/* Pure parser argument (a void*) */
+#define YYPARSE_PARAM rq
 #include <sparql_parser.h>
 
 #include <sparql_common.h>
@@ -167,10 +169,6 @@ int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner);
 /* Remove the re-fill function since it should never be called */
 #define YY_INPUT(buf,result,max_size) { return YY_NULL; }
 
-
-/* Missing sparql_lexer.c/h prototypes */
-int sparql_lexer_get_column(yyscan_t yyscanner);
-void sparql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 
 static void sparql_lexer_cleanup(yyscan_t yyscanner);
 
