@@ -99,22 +99,36 @@ if test "$USE_MAINTAINER_MODE" = yes; then
 fi
 
 AC_PROG_YACC
+BISON_MIN_VERSION=2.5
+BISON_REC_VERSION=2.6
+BISON_VERSION_DEC=0000
 if test "$USE_MAINTAINER_MODE" = yes; then
   AC_MSG_CHECKING(for GNU bison)
   # Match these styles of versions
   # GNU Bison version 1.28
   # bison (GNU Bison) 1.875
-dnl need to change quotes to allow square brackets
-changequote(<<, >>)dnl
-  YACC_VERSION=`$YACC --version 2>&1 | sed -ne 's/^.*GNU Bison[^0-9]*//p'`
-changequote([, ])dnl
-  if test "X$YACC_VERSION" != X; then
-    AC_MSG_RESULT($YACC_VERSION - OK)
+  BISON_VERSION=`$YACC bison --version 2>&1 | grep "GNU Bison" | head -1 | awk '{print $NF}'`
+  BISON_VERSION_DEC=`echo $BISON_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
+
+  BISON_MIN_VERSION_DEC=`echo $BISON_MIN_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
+
+  if test "X$BISON_VERSION" != X; then
+    if test $BISON_VERSION_DEC -ge $BISON_MIN_VERSION_DEC; then
+      AC_MSG_RESULT($BISON_VERSION - OK)
+    else
+      AC_MSG_RESULT(version $BISON_VERSION - too old)
+      AC_MSG_WARN(Please get GNU Bison from http://www.gnu.org/software/bison/)
+      AC_MSG_WARN(version $BISON_MIN_VERSION ($BISON_REC_VERSION recommended))
+      AC_MSG_FAILURE(Bison too old)
+    fi
   else
-    AC_MSG_FAILURE($YACC is not GNU bison)
+    AC_MSG_RESULT(not present or $YACC is not GNU Bison)
+    AC_MSG_WARN(Please get GNU Bison from http://www.gnu.org/software/bison/)
+    AC_MSG_WARN(version $BISON_MIN_VERSION ($BISON_REC_VERSION recommended))
+    AC_MSG_FAILURE(Bison not present)
   fi
 fi
-
+AC_DEFINE_UNQUOTED(BISON_VERSION, $BISON_VERSION_DEC, [Bison version as a decimal])
 
 AC_CHECK_PROGS(AWK, awk gawk nawk)
 # Find a tar command for 'make dist'
