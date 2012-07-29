@@ -78,6 +78,11 @@
 /* the lexer does not seem to track this */
 #undef RASQAL_SPARQL_USE_ERROR_COLUMNS
 
+/* Missing sparql_lexer.c/h prototypes on Bison < 2.6 */
+#if defined(BISON_VERSION) && BISON_VERSION < 206
+int sparql_lexer_get_column(yyscan_t yyscanner);
+#endif
+
 /* What the lexer wants */
 extern int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t scanner);
 #define YYLEX_PARAM ((rasqal_sparql_query_language*)(((rasqal_query*)rq)->context))->scanner
