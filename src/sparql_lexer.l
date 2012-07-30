@@ -170,11 +170,9 @@ int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner);
 #define YY_INPUT(buf,result,max_size) { return YY_NULL; }
 
 
-/* Missing sparql_lexer.c/h prototypes on Bison < 2.6 */
-#if defined(BISON_VERSION) && BISON_VERSION < 206
+/* Missing sparql_lexer.c/h prototypes */
 int sparql_lexer_get_column(yyscan_t yyscanner);
-void sparql_lexer_set_column(int  column_no , yyscan_t yyscanner);
-#endif
+void sparql_lexer_set_column(int column_no, yyscan_t yyscanner);
 
 static void sparql_lexer_cleanup(yyscan_t yyscanner);
 
