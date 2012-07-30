@@ -1,4 +1,48 @@
+2012-07-29  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l: Restore bison 2.6 prototypes
+
+	* configure.ac: BISON_MIN_VERSION 2.0 (2004-12-25) until we hear
+	otherwise
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Restore BISON
+	prototypes for BISON < 2.6
+
+	* configure.ac:
+	Add version check for bison and define BISON_VERSION
+
+	* src/sparql_lexer.l, src/sparql_parser.y:
+	Fixes for Bison 2.6
+
+	Remove prototypes that are now generated/defined
+
+	Declare YYPARSE_PARAM in lexer and header two more times so that
+	#include <sparql_parser.h> gets the right thing.
+
+	* configure.ac: Fix for flex version message from OSX The Apple
+	/usr/bin/flex adds an extra field so $NF does not work
+
+2012-07-15  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/rasqal_xsd_datatypes.c: lose const
+	const
+
+2012-07-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate): memset to char 0 not size 0 [gcc
+	warnings]
+
 2012-07-01  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c:
+	(rasqal_literal_to_result_term): Return NULL on alloc failure
+
+	* docs/tmpl/section-literal.sgml:
+	Update tmpls
+
+	* src/rasqal_literal.c:
+	(rasqal_new_floating_literal): autodocs
 
 	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt: Add
 	rasqal_new_floating_literal to docs
@@ -23,6 +67,12 @@
 	defined() [gcc warnings]
 
 2012-06-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_project.c: project rowsource array is int
+	not int* [clang]
+
+	(rasqal_project_rowsource_ensure_variables)
+	(rasqal_project_rowsource_finish): alloc array of int not int*
 
 	* Makefile.am: EXTRA_DIST: Remove ChangeLog NEWS since they are in
 	dist by default
