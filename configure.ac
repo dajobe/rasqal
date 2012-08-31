@@ -22,10 +22,10 @@ dnl the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 dnl 
 
 
-AC_PREREQ(2.62)
-AC_INIT(Rasqal RDF Query Library, 0.9.30, http://bugs.librdf.org/, rasqal)
+AC_PREREQ([2.62])
+AC_INIT([Rasqal RDF Query Library],[0.9.30],[http://bugs.librdf.org/],[rasqal])
 AC_CONFIG_SRCDIR([src/rasqal_general.c])
-AM_CONFIG_HEADER([src/rasqal_config.h])
+AC_CONFIG_HEADERS([src/rasqal_config.h])
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR(build)
 AM_INIT_AUTOMAKE([1.11 check-news std-options -Wobsolete -Wportability -Wsyntax -Wunsupported -Wextra-portability])
@@ -55,7 +55,7 @@ m4_undefine([AC_PROG_CXX])
 m4_defun([AC_PROG_CXX],[])
 m4_undefine([AC_PROG_F77])
 m4_defun([AC_PROG_F77],[])
-AC_PROG_LIBTOOL
+LT_INIT
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
@@ -366,28 +366,24 @@ AM_CONDITIONAL(GETTIMEOFDAY, test $ac_cv_func_gettimeofday = no)
 
 
 AC_MSG_CHECKING(whether need to declare optind)
-AC_TRY_LINK([#ifdef HAVE_GETOPT_H
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-], [int x=optind;],
-            AC_MSG_RESULT(no),
-            AC_DEFINE(NEED_OPTIND_DECLARATION, 1, [need 'extern int optind' declaration?])
-            AC_MSG_RESULT(yes))
+]], [[int x=optind;]])],[AC_MSG_RESULT(no)],[AC_DEFINE(NEED_OPTIND_DECLARATION, 1, need 'extern int optind' declaration?)
+            AC_MSG_RESULT(yes)])
 
 
 AC_MSG_CHECKING(whether struct tm has tm_gmtoff field)
-AC_TRY_COMPILE([#ifdef HAVE_TIME_H
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#ifdef HAVE_TIME_H
 #include <time.h>
 #endif
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-], [struct tm my_time; my_time.tm_gmtoff = 0;],
-    have_tm_gmtoff="yes",
-    have_tm_gmtoff="no")
+]], [[struct tm my_time; my_time.tm_gmtoff = 0;]])],[have_tm_gmtoff="yes"],[have_tm_gmtoff="no"])
 AC_MSG_RESULT($have_tm_gmtoff)
 if test $have_tm_gmtoff = "yes" ; then
   AC_DEFINE(HAVE_TM_GMTOFF, 1, [struct tm has tm_gmtoff field])
@@ -480,10 +476,8 @@ fi
 AC_MSG_CHECKING(for posix regex library)
 oLIBS="$LIBS"
 if test $ac_cv_header_regex_h = yes; then
-  AC_TRY_LINK([#include <sys/types.h>
-              #include <regex.h>],
-             [regex_t reg; char *pat="abc"; regcomp(&reg, pat, 0);],
-             worked=yes, worked=no, worked=no)
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
+              #include <regex.h>]], [[regex_t reg; char *pat="abc"; regcomp(&reg, pat, 0);]])],[worked=yes],[worked=no])
   if test $worked = yes; then
     have_regex_posix=1
   fi
@@ -567,7 +561,7 @@ AC_CHECK_HEADERS(mhash.h)
 
 AC_MSG_CHECKING(for mhash)
 
-AC_TRY_LINK([
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #undef PACKAGE
 #undef PACKAGE_BUGREPORT
 #undef PACKAGE_NAME
@@ -575,10 +569,7 @@ AC_TRY_LINK([
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
 #undef VERSION
-#include <mhash.h>],
-[ MHASH m; mhash_init(MHASH_MD5); ],
-  have_digest_mhash=yes,
-  have_digest_mhash=no)
+#include <mhash.h>]], [[ MHASH m; mhash_init(MHASH_MD5); ]])],[have_digest_mhash=yes],[have_digest_mhash=no])
 
 CPPFLAGS="$LIBRDF_CPPFLAGS"
 LIBS="$oLIBS"
@@ -615,11 +606,8 @@ elif test "$ac_cv_header_gcrypt_h" = "yes"; then
   CPPFLAGS="$CPPFLAGS `$LIBGCRYPT_CONFIG --cflags`"
   LIBS="$LIBS `$LIBGCRYPT_CONFIG --libs`"
 
-  AC_TRY_LINK([
-  #include <gcrypt.h>],
-  [ gcry_md_hd_t hash; gcry_md_open(hash, GCRY_MD_MD5, 0); ],
-    have_digest_gcrypt=yes,
-    have_digest_gcrypt=no)
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+  #include <gcrypt.h>]], [[ gcry_md_hd_t hash; gcry_md_open(hash, GCRY_MD_MD5, 0); ]])],[have_digest_gcrypt=yes],[have_digest_gcrypt=no])
 
   CPPFLAGS="$LIBRDF_CPPFLAGS"
   LIBS="$oLIBS"
@@ -696,11 +684,8 @@ if $PKG_CONFIG uuid --exists; then
   CPPFLAGS="$CPPFLAGS `$PKG_CONFIG uuid --cflags`"
   LIBS="$LIBS `$PKG_CONFIG uuid --libs`"
 
-  AC_TRY_LINK([
-  #include <uuid.h>],
-  [ uuid_t data; uuid_clear(&data); ],
-    have_uuid_libuuid=yes,
-    have_uuid_libuuid=no)
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+  #include <uuid.h>]], [[ uuid_t data; uuid_clear(&data); ]])],[have_uuid_libuuid=yes],[have_uuid_libuuid=no])
 
   CPPFLAGS="$LIBRDF_CPPFLAGS"
   LIBS="$oLIBS"
@@ -710,11 +695,8 @@ AC_MSG_RESULT($have_uuid_libuuid)
 AC_CHECK_HEADERS(uuid/uuid.h)
 AC_MSG_CHECKING(for UUID in libc)
 if test "$ac_cv_header_uuid_uuid_h" = "yes"; then
-  AC_TRY_LINK([
-  #include <uuid/uuid.h>],
-  [ uuid_t data; uuid_clear(&data); ],
-    have_uuid_libc=yes,
-    have_uuid_libc=no)
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+  #include <uuid/uuid.h>]], [[ uuid_t data; uuid_clear(&data); ]])],[have_uuid_libc=yes],[have_uuid_libc=no])
 fi
 AC_MSG_RESULT($have_uuid_libc)
 
@@ -985,12 +967,10 @@ if test "$ac_cv_header_gmp_h" = yes; then
   CPPFLAGS="$CPPFLAGS $gmp_includes"
   LIBS="$LIBS $gmp_libs -lgmp"
   AC_MSG_CHECKING(for working GNU MP library)
-  AC_TRY_LINK([#include <gmp.h>], [mpz_t n; mpz_init(n);],
-              have_gmp=1
-	      AC_MSG_RESULT(yes),
-	      AC_MSG_RESULT(no))
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <gmp.h>]], [[mpz_t n; mpz_init(n);]])],[have_gmp=1
+	      AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
   AC_MSG_CHECKING(for GNU MP library random support)
-  AC_TRY_LINK([#include <gmp.h>], [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <gmp.h>]], [[
 gmp_randstate_t r;
 unsigned int ui = 12345;
 mpz_t iresult;
@@ -1010,15 +990,11 @@ mpf_clear(fresult);
 mpz_clear(n);
 
 gmp_randclear(r);
-],
-              have_gmp_random=yes
-	      AC_MSG_RESULT(yes),
-	      AC_MSG_RESULT(no))
+]])],[have_gmp_random=yes
+	      AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
   AC_MSG_CHECKING(for gmp_version)
-  AC_TRY_LINK([#include <gmp.h>], [const char* v=gmp_version; ],
-              have_gmp_version=1
-	      AC_MSG_RESULT(yes),
-	      AC_MSG_RESULT(no))
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <gmp.h>]], [[const char* v=gmp_version; ]])],[have_gmp_version=1
+	      AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
   LIBS="$oLIBS"
   CPPFLAGS="$oCPPFLAGS"
 fi
