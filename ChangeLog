@@ -1,3 +1,11 @@
+2012-08-31  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh, configure.ac:
+	Updated configure.ac via autoupdate
+
+	* autogen.sh: autogen.sh: Added -Wall to aclocal and autoconf
+	invocations
+
 2012-07-29  Dave Beckett <dave@dajobe.org>
 
 	* src/sparql_lexer.l: Restore bison 2.6 prototypes
