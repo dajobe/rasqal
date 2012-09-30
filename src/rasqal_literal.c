@@ -1950,7 +1950,7 @@ rasqal_literal_get_rdf_term_type(rasqal_literal* l)
   
   /* squash literal datatypes into one type: RDF Literal */
   if((type >= RASQAL_LITERAL_FIRST_XSD && type <= RASQAL_LITERAL_LAST_XSD) ||
-     type == RASQAL_LITERAL_DATE)
+     type == RASQAL_LITERAL_DATE || type == RASQAL_LITERAL_INTEGER_SUBTYPE)
     type = RASQAL_LITERAL_STRING;
 
   if(type == RASQAL_LITERAL_UDT)
