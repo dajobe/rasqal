@@ -219,7 +219,7 @@ free_uri_applies(sparql_uri_applies* ua)
 %token ',' '(' ')' '[' ']' '{' '}'
 %token '?' '$'
 
-%token HATHAT
+%token HATHAT "^^"
 
 /* SC booleans */
 %left SC_OR
