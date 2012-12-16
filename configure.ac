@@ -945,15 +945,16 @@ if test "$ac_cv_header_mpfr_h" = yes; then
   LIBS="$LIBS $mpfr_libs -lmpfr"
   AC_CHECK_FUNC(mpfr_init, have_mpfr_init=yes, have_mpfr_init=no)
   # Several functions are used that are not in GMP version of MPFR:
-  #   mpfr_get_default_rounding_mode mpfr_zero_p mpfr_equal_p mpfr_free_str
-  # All added in MPFR 2.1.0 released 3 Nov 2004
-  # http://www.mpfr.org/mpfr-2.1.0/
-  # so just test for one.
-  AC_CHECK_FUNC(mpfr_zero_p, have_mpfr_zero_p=yes, have_mpfr_zero_p=no)
+  #   mpfr_get_default_rounding_mode mpfr_equal_p mpfr_free_str
+  #     MPFR 2.1.0 released 3 Nov 2004 http://www.mpfr.org/mpfr-2.1.0/
+  #   mpfr_snprintf
+  #     MPFR 2.4.0 released 26 January 2009 http://www.mpfr.org/mpfr-2.4.0/
+  # so just test for the latter.
+  AC_CHECK_FUNC(mpfr_snprintf, have_mpfr_snprintf=yes, have_mpfr_snprintf=no)
   LIBS="$oLIBS"
   CPPFLAGS="$oCPPFLAGS"
   AC_MSG_CHECKING(for working MPFR library)
-  if test $have_mpfr_init = yes -a $have_mpfr_zero_p = yes; then
+  if test $have_mpfr_init = yes -a $have_mpfr_snprintf = yes; then
     have_mpfr=1
     AC_MSG_RESULT(yes)
   else
