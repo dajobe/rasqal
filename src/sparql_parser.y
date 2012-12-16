@@ -2759,6 +2759,20 @@ RDFLiteral: STRING
                                  dt_uri, NULL /* dt_qname */);
   rasqal_free_literal($3);
 }
+| NumericLiteral HATHAT IRIref
+{
+  if($1) {
+    raptor_uri* dt_uri = raptor_uri_copy(rasqal_literal_as_uri($3));
+    const unsigned char *str = $1->string;
+    $1->string = NULL;
+
+    $$ = rasqal_new_string_literal(((rasqal_query*)rq)->world, str,
+                                   NULL /* language */,
+                                   dt_uri, NULL /* dt_qname */);
+  }
+  rasqal_free_literal($3);
+  rasqal_free_literal($1);
+}
 ;
 
 
