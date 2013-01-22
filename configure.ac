@@ -673,6 +673,7 @@ have_uuid_libc=no
 need_uuid_libuuid=no
 need_uuid_libc=no
 need_uuid_internal=no
+need_uuid_ossp=no
 
 AC_MSG_CHECKING(for libuuid)
 if $PKG_CONFIG uuid --exists; then
@@ -692,6 +693,23 @@ if $PKG_CONFIG uuid --exists; then
 fi
 AC_MSG_RESULT($have_uuid_libuuid)
 
+AC_CHECK_PROGS(UUID_CONFIG, uuid-config)
+AC_MSG_CHECKING(for ossp libuuid)
+if test "X$UUID_CONFIG" != X; then
+  oCPPFLAGS="$CPPFLAGS"
+  oLIBS="$LIBS"
+
+  CPPFLAGS="$CPPFLAGS `$UUID_CONFIG --cflags`"
+  LIBS="$LIBS `$UUID_CONFIG --ldflags --libs`"
+
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+  #include <uuid.h>]], [[ uuid_t *data; uuid_create(&data); ]])],[have_uuid_ossp=yes],[have_uuid_ossp=no])
+
+  CPPFLAGS="$LIBRDF_CPPFLAGS"
+  LIBS="$oLIBS"
+fi
+AC_MSG_RESULT($have_uuid_ossp)
+
 AC_CHECK_HEADERS(uuid/uuid.h)
 AC_MSG_CHECKING(for UUID in libc)
 if test "$ac_cv_header_uuid_uuid_h" = "yes"; then
@@ -709,6 +727,14 @@ for uuid_library_name in $uuid_library libuuid libc internal; do
       if test $have_uuid_libuuid = yes; then
         need_uuid_libuuid=yes
         AC_DEFINE(RASQAL_UUID_LIBUUID, 1, [Use libuuid library for UUID])
+        break
+      fi
+      ;;
+
+    ossp)
+      if test $have_uuid_ossp = yes; then
+        need_uuid_ossp=yes
+        AC_DEFINE(RASQAL_UUID_OSSP, 1, [Use OSSP library for UUID])
         break
       fi
       ;;
@@ -737,6 +763,8 @@ AC_MSG_CHECKING(UUID library to use)
 uuid_library=
 if test $need_uuid_libuuid = yes; then
   uuid_library=libuuid
+elif test $need_uuid_ossp = yes; then
+  uuid_library=ossp
 elif test $need_uuid_libc = yes; then
   uuid_library=libc
 elif test $need_uuid_internal = yes; then
@@ -900,6 +928,17 @@ if test $need_uuid_libuuid = yes; then
 
   PKGCONFIG_CFLAGS="$PKGCONFIG_CFLAGS $C"
   PKGCONFIG_LIBS="$PKGCONFIG_LIBS $L"
+  unset C
+  unset L
+fi
+
+
+if test $need_uuid_ossp = yes; then
+  C=`$UUID_CONFIG --cflags`
+  L=`$UUID_CONFIG --ldflags --libs`
+  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $C"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
+
   unset C
   unset L
 fi

@@ -40,7 +40,7 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
-#ifdef RASQAL_UUID_LIBUUID
+#if defined(RASQAL_UUID_LIBUUID) || defined(RASQAL_UUID_OSSP)
 #include <uuid.h>
 #endif
 #ifdef RASQAL_UUID_LIBC
@@ -391,16 +391,26 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
 {
 #ifdef RASQAL_UUID_NONE
   return NULL;
+
 #else
+
   rasqal_world* world = eval_context->world;
+#if defined(RASQAL_UUID_OSSP)
+  uuid_t* data;
+#else
   uuid_t data; /* static */
+  int i;
+#endif
   size_t output_len = RASQAL_UUID_STRING_LEN;
   unsigned char* output;
   unsigned char* p;
-  int i;
 
 #if defined(RASQAL_UUID_LIBUUID) || defined(RASQAL_UUID_LIBC)
   uuid_generate(data);
+#endif
+#if defined(RASQAL_UUID_OSSP)
+  uuid_create(&data);
+  uuid_make(data, UUID_MAKE_V1);
 #endif
 #ifdef RASQAL_UUID_INTERNAL
   rasqal_uuid_generate(eval_context, data);
@@ -410,15 +420,23 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
     output_len += RASQAL_UUID_URI_PREFIX_LEN;
 
   output = RASQAL_MALLOC(unsigned char*, output_len + 1);
-  if(!output)
+  if(!output) {
+#if defined(RASQAL_UUID_OSSP)
+    uuid_destroy(data);
+#endif
     return NULL;
-  
+  }
+
   p = output;
   if(want_uri) {
     memcpy(p, RASQAL_UUID_URI_PREFIX, RASQAL_UUID_URI_PREFIX_LEN);
     p += RASQAL_UUID_URI_PREFIX_LEN;
   }
 
+#if defined(RASQAL_UUID_OSSP)
+  uuid_export(data, UUID_FMT_STR, p, /* data_len */ NULL);
+  uuid_destroy(data);
+#else
   for(i = 0; i < RASQAL_UUID_LEN; i++) {
     unsigned short hex;
     unsigned char c = data[i];
@@ -431,6 +449,7 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
       *p++ = '-';
   }
   *p = '\0';
+#endif /* end if !RASQAL_UUID_OSSP */
 
   /* after this output becomes owned by result */
   if(want_uri) {
