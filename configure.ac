@@ -697,6 +697,8 @@ AC_MSG_RESULT($have_uuid_libuuid)
 AC_CHECK_PROGS(UUID_CONFIG, uuid-config)
 AC_MSG_CHECKING(for ossp libuuid)
 if test "X$UUID_CONFIG" != X; then
+  OSSP_UUID_VERSION=`$UUID_CONFIG --version 2>/dev/null`
+
   oCPPFLAGS="$CPPFLAGS"
   oLIBS="$LIBS"
 
@@ -763,9 +765,9 @@ done
 AC_MSG_CHECKING(UUID library to use)
 uuid_library=
 if test $need_uuid_libuuid = yes; then
-  uuid_library=libuuid
+  uuid_library="libuuid $LIBUUID_VERSION"
 elif test $need_uuid_ossp = yes; then
-  uuid_library=ossp
+  uuid_library="ossp $OSSP_UUID_VERSION"
 elif test $need_uuid_libc = yes; then
   uuid_library=libc
 elif test $need_uuid_internal = yes; then
