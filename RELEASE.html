@@ -13,6 +13,119 @@
 <p>Not yet released.
 </p>
 
+<p>Removed RDQL support as promised.  So long and thanks for all the
+queries.  Use SPARQL instead.
+</p>
+
+<p>Issues Fixed:</p>
+<ul>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=506">0000506</a>: configure.ac has bash -specific (non-POSIX) == syntax</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=523">0000523</a>: mpfr dependency</li>
+</ul>
+
+
+<h3>Decimal class changes</h3>
+
+<p><code>rasqal_xsd_decimal_is_zero()</code> now uses <code>fabs()</code>
+and an epsilon approach for C99 decimal mode.</p>
+
+<p>Make <code>rasqal_xsd_decimal_compare()</code> work for C99
+decimal mode.</p>
+
+<p><code>rasqal_xsd_decimal_compare()</code> and
+<code>rasqal_xsd_decimal_equals()</code> use Knuth's approximate
+equality as decribed below.
+</p>
+
+
+<h3>Literal class changes</h3>
+
+<p>Return rdf term type string from
+<code>rasqal_literal_get_rdf_term_type()</code> for integer subtypes
+(<code>RASQAL_LITERAL_INTEGER_SUBTYPE</code>).
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=519">Issue #0000519</a>
+ (Redland librdf)</p>
+
+<p><code>rasqal_literal_to_result_term()</code> now returns NULL on
+an alloc failure.</p>
+
+<p><code>rasqal_new_floating_literal()</code> added, deprecating
+<code>rasqal_new_float_literal()</code> and takes the float type
+as an argument.
+</p>
+
+
+<h3>Query engine changes</h3>
+
+<p>Fix some wrong data size allocs found by clang in Project
+rowsource.</p>
+
+<p>Take more care in promoting literals to float and exceeding the
+range; turn them into doubles if that happens.</p>
+
+<p>Floating and double comparisons and equality use a proper epsilon
+check using Knuth's approximate comparison approach, rather than =.
+Affects
+<code>rasqal_literal_as_boolean()</code>,
+<code>rasqal_literal_equals()</code>,
+<code>rasqal_xsd_decimal_compare()</code>,
+<code>rasqal_xsd_decimal_equals()</code>
+and other internal methods.
+</p>
+
+
+<h3>Query language changes</h3>
+
+<p>Updated the SPARQL syntax to support <code>integer^^uri-ref</code>.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=519">Issue #0000519</a> (Redland librdf)
+</p>
+
+<p>Removed RDQL support as promised.  So long and thanks for all the queries.
+Use SPARQL instead.
+</p>
+
+
+<h3>Portability changes</h3>
+
+<p>Test for <code>mpfr_snprintf()</code> specifically which appeared
+in MPFR 2.4.0.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=523">Issue #0000523</a>
+</p>
+
+<p>The Bison minimum version is now 2.0 (from 2004-12-25) until we
+hear otherwise.</p>
+
+<p>Use <code>RASQAL_DISABLE_DEPRECATED</code> to flag out deprecated
+implementation code.  Call gtkdoc-scan with the deprecated guard.
+</p>
+
+<p>Use <code>#if defined(RASQAL_DEBUG)</code> to help
+portability when it's not defined.</p>
+
+<p>Added good and bad cast macros for checking of type truncation.
+Helped remove compiler warnings.</p>
+
+
+<h3>Configuration changes</h3>
+
+<p>Make <code>configure</code> handle Apple
+<code>/usr/bin/flex</code> which adds an extra field so awk
+<code>$NF</code> did not work.</p>
+
+<p><code>configure</code> now supports finding UUID support inside
+libc for OSX.
+</p>
+
+<p>Fix some <code>configure</code> portability with non-POSIX bash
+syntax and adding some -W flags to autotool calls.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=506">Issue #0000506</a>
+</p>
+
+<p>Updated <code>autogen.sh</code> to abort run if a configuring
+program fails, generate NEWS with old timestamp if missing so
+automake can run and some small doc and message updates.</p>
+
+
 
 <h2 id="rel0_9_29"><a name="rel0_9_29">Rasqal 0.9.29 changes</a></h2>
 
@@ -4694,7 +4807,7 @@ It is all new.
 
 <hr />
 
-<p>Copyright (C) 2004-2012 <a href="http://www.dajobe.org/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
+<p>Copyright (C) 2004-2013 <a href="http://www.dajobe.org/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
 
 </body>
 </html>

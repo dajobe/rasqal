@@ -1,3 +1,34 @@
+2012-12-16  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y, tests/sparql/bugs/519-result.ttl,
+	tests/sparql/bugs/519.rq, tests/sparql/bugs/519.ttl,
+	tests/sparql/bugs/Makefile.am, tests/sparql/bugs/manifest.ttl:
+	Support integer^^uri-ref
+
+	Adds tests for this fix
+
+	Fixes Issue #0000519
+	http://bugs.librdf.org/mantis/view.php?id=519
+
+	* src/sparql_parser.y: Label HATHAT
+
+	* configure.ac:
+	Test for mpfr_snprintf for MPFR 2.4.0
+
+	Fixes Issue #0000523
+	http://bugs.librdf.org/mantis/view.php?id=523
+
+2012-09-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: Return rdf term type string for integer
+	subtypes
+
+	(rasqal_literal_get_rdf_term_type): Return string for
+	RASQAL_LITERAL_INTEGER_SUBTYPE.  Intended to fix
+
+	Issue #0000519
+	http://bugs.librdf.org/mantis/view.php?id=519
+
 2012-08-31  Dave Beckett <dave@dajobe.org>
 
 	* autogen.sh, configure.ac:
@@ -27,8 +58,8 @@
 	Declare YYPARSE_PARAM in lexer and header two more times so that
 	#include <sparql_parser.h> gets the right thing.
 
-	* configure.ac: Fix for flex version message from OSX The Apple
-	/usr/bin/flex adds an extra field so $NF does not work
+	* configure.ac: Fix for flex version message from OSX
+	The Apple /usr/bin/flex adds an extra field so $NF does not work
 
 2012-07-15  Dave Beckett <dave@dajobe.org>
 
