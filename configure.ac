@@ -670,6 +670,7 @@ AM_CONDITIONAL(RASQAL_DIGEST_INTERNAL, test $digest_library = internal)
 dnl Check for uuid libraries
 have_uuid_libuuid=no
 have_uuid_libc=no
+have_uuid_ossp=no
 need_uuid_libuuid=no
 need_uuid_libc=no
 need_uuid_internal=no
