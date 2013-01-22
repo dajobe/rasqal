@@ -1159,7 +1159,7 @@ return (int)(ceil(t) * floor(t) * round(t));
    AC_MSG_RESULT(yes)
    ceil_lib=libc,
    AC_MSG_RESULT(no),
-   ceil_lib=none)
+   ceil_lib=cross)
 if test $ceil_lib = none; then
   LIBS="$LIBS -lm"
   AC_MSG_CHECKING([for ceil, floor and round with -lm])
@@ -1179,10 +1179,13 @@ return (int)(ceil(t) * floor(t) * round(t));
      need_libm=1
      ceil_lib=libm,
      AC_MSG_RESULT(no),
-     ceil_lib=none)
+     ceil_lib=cross)
   LIBS="$oLIBS"
 fi
-if test $ceil_lib = none; then
+if test $ceil_lib = cross; then
+  AC_MSG_WARN([Assuming ceil, floor and round are in default libs for cross compiling])
+  ceil_lib=libc
+elif test $ceil_lib = none; then
   AC_MSG_ERROR([Could not find ceil, floor, round in default libs or with -lm])
 fi
 if test $need_libm = 1; then
@@ -1329,4 +1332,5 @@ Rasqal build summary:
   Message digest library        : $digest_library
   UUID library                  : $uuid_library
   Random approach               : $random_approach
+  ceil, floor, round source     : $ceil_lib
 ])
