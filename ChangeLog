@@ -1,3 +1,25 @@
+2013-01-22  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_30 for 0.9.30 release (GIT
+	f5d0537a0ab15b70d24813b2d6d7ceb922a1356c)
+
+	* configure.ac: Report UUID library version in status
+
+	* configure.ac: Initialize have_uuid_ossp=no
+
+	* configure.ac, src/rasqal_expr_numerics.c:
+	Add support for OSSP
+	libuuid Library is from http://www.ossp.org/pkg/lib/uuid/
+
+	Fixes Issue #0000511
+	http://bugs.librdf.org/mantis/view.php?id=511
+
+	* configure.ac: When cross compiling, assume ceil, floor and round
+	are in default libs
+
+	Fixes Issue #0000517
+	http://bugs.librdf.org/mantis/view.php?id=517
+
 2012-12-16  Dave Beckett <dave@dajobe.org>
 
 	* src/sparql_parser.y, tests/sparql/bugs/519-result.ttl,
