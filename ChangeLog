@@ -1,4 +1,7 @@
-2013-01-22  Dave Beckett <dave@dajobe.org>
+2013-01-22  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_30 for 0.9.30 release (GIT
+	f5d0537a0ab15b70d24813b2d6d7ceb922a1356c)
 
 	* configure.ac: Report UUID library version in status
 
