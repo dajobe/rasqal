@@ -1,0 +1,1167 @@
+2012-12-16  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y, tests/sparql/bugs/519-result.ttl,
+	tests/sparql/bugs/519.rq, tests/sparql/bugs/519.ttl,
+	tests/sparql/bugs/Makefile.am, tests/sparql/bugs/manifest.ttl:
+	Support integer^^uri-ref
+
+	Adds tests for this fix
+
+	Fixes Issue #0000519
+	http://bugs.librdf.org/mantis/view.php?id=519
+
+	* src/sparql_parser.y: Label HATHAT
+
+	* configure.ac:
+	Test for mpfr_snprintf for MPFR 2.4.0
+
+	Fixes Issue #0000523
+	http://bugs.librdf.org/mantis/view.php?id=523
+
+2012-09-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: Return rdf term type string for integer
+	subtypes
+
+	(rasqal_literal_get_rdf_term_type): Return string for
+	RASQAL_LITERAL_INTEGER_SUBTYPE.  Intended to fix
+
+	Issue #0000519
+	http://bugs.librdf.org/mantis/view.php?id=519
+
+2012-08-31  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh, configure.ac:
+	Updated configure.ac via autoupdate
+
+	* autogen.sh: autogen.sh: Added -Wall to aclocal and autoconf
+	invocations
+
+2012-07-29  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l: Restore bison 2.6 prototypes
+
+	* configure.ac: BISON_MIN_VERSION 2.0 (2004-12-25) until we hear
+	otherwise
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Restore BISON
+	prototypes for BISON < 2.6
+
+	* configure.ac:
+	Add version check for bison and define BISON_VERSION
+
+	* src/sparql_lexer.l, src/sparql_parser.y:
+	Fixes for Bison 2.6
+
+	Remove prototypes that are now generated/defined
+
+	Declare YYPARSE_PARAM in lexer and header two more times so that
+	#include <sparql_parser.h> gets the right thing.
+
+	* configure.ac: Fix for flex version message from OSX
+	The Apple /usr/bin/flex adds an extra field so $NF does not work
+
+2012-07-15  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/rasqal_xsd_datatypes.c: lose const
+	const
+
+2012-07-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate): memset to char 0 not size 0 [gcc
+	warnings]
+
+2012-07-01  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c:
+	(rasqal_literal_to_result_term): Return NULL on alloc failure
+
+	* docs/tmpl/section-literal.sgml:
+	Update tmpls
+
+	* src/rasqal_literal.c:
+	(rasqal_new_floating_literal): autodocs
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt: Add
+	rasqal_new_floating_literal to docs
+
+	* docs/Makefile.am, src/rasqal_datetime.c,
+	src/rasqal_expr_evaluate.c, src/rasqal_general.c,
+	src/rasqal_literal.c, src/rasqal_query.c: Allow
+	RASQAL_DISABLE_DEPRECATED to flag out deprecated implementations
+
+	(docs/Makefile.am SCAN_OPTIONS):: invoke gtkdoc-scan with the
+	deprecated guard.
+
+	* configure.ac: Set automake -W and gcc -W to same as librdf
+
+	* src/rasqal_algebra.c, src/rasqal_dataset.c,
+	src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_literal.c, src/rasqal_query_transform.c,
+	src/rasqal_random.c, src/rasqal_raptor.c,
+	src/rasqal_result_formats.c, src/rasqal_row_compatible.c,
+	src/rasqal_rowsource_aggregation.c, src/sparql_lexer.l,
+	src/sparql_parser.y: Condition all #if RASQAL_DEBUG with #if
+	defined() [gcc warnings]
+
+2012-06-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_project.c: project rowsource array is int
+	not int* [clang]
+
+	(rasqal_project_rowsource_ensure_variables)
+	(rasqal_project_rowsource_finish): alloc array of int not int*
+
+	* Makefile.am: EXTRA_DIST: Remove ChangeLog NEWS since they are in
+	dist by default
+
+	* src/rasqal_decimal.c:
+	Use rasqal_double_approximately_* utilities
+	for RASQAL_DECIMAL_C99
+
+	(rasqal_xsd_decimal_is_zero): Use fabs and RASQAL_DOUBLE_EPSILON
+	for RASQAL_DECIMAL_C99.  Tidy code
+
+	(rasqal_xsd_decimal_compare): raw not row RASQAL_DECIMAL_C99
+	Remove unused d.
+
+	(rasqal_xsd_decimal_equals): Use rasqal_double_approximately_equal.
+
+	* autogen.sh: autogen.sh updates
+	- Abort run if a configuring program fails.
+	- Generate NEWS with old timestamp if missing so automake can run
+	- small doc and message updates
+
+2012-06-25  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_double.c: docs
+
+	* src/rasqal_decimal.c, src/rasqal_literal.c,
+	src/rasqal_rowsource_aggregation.c: Update code to use double
+	approximate compare, equality.
+
+	(rasqal_xsd_decimal_compare): Call
+	rasqal_double_approximately_compare.
+
+	(rasqal_literal_equals_flags): Call
+	rasqal_double_approximately_equal().
+
+	Update test code to use rasqal_double_approximately_equal for
+	checking results.
+
+	* src/Makefile.am, src/rasqal_double.c, src/rasqal_internal.h: Add
+	double utilities
+
+	(rasqal_double_approximately_compare)
+	(rasqal_double_approximately_equal): Added based on Knuth's
+	approximate comparison.
+
+	* src/rasqal_decimal.c, src/rasqal_rowsource_aggregation.c: More
+	float and epsilons
+
+	* src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_literal.c:
+	Add rasqal_new_floating_literal and use only double arithmetic
+
+	(rasqal_new_floating_literal): Added, deprecating
+	rasqal_new_float_literal.
+
+	(rasqal_new_double_literal, rasqal_new_float_literal): Now both
+	wrappers for rasqal_new_floating_literal.
+
+	(rasqal_new_numeric_literal): Use rasqal_new_floating_literal() for
+	a float.
+
+	(rasqal_literal_as_floating): Removed.
+
+	(rasqal_new_literal_from_promotion): Always use
+	rasqal_literal_as_double() for a double and then error out if it
+	is outside of the float MIN...MAX range.
+
+	(rasqal_literal_equals_flags): Set error if equality fails.
+
+	* configure.ac, src/rasqal_decimal.c, src/rasqal_internal.h,
+	src/rasqal_literal.c: Use careful double comparison
+
+	Use fabs and RASQAL_DOUBLE_EPSILON which picks up epsilon value
+	from float.h
+
+	Add float.h check to configure
+
+	(rasqal_format_integer, rasqal_literal_as_boolean,
+	rasqal_literal_equals_flags): Update to use RASQAL_DOUBLE_EPSILON
+
+	* src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_xsd_datatypes.c: Use RASQAL_FLOATING_AS_INT for casts
+	that go double to int
+
+	* configure.ac: Add -Wfloat-equal and -Wundef to gcc warnings
+	Document -Wformat-nonliteral issue too
+
+	* utils/roqet.c:
+	Improve range truncation in function arguments
+
+	(roqet_write_indent): Good cast sp since we know it will fit in
+	int.
+
+	(roqet_init_query): Cast static length.
+
+	(print_help, main): Use unsigned int for indexes into descriptive
+	info calls
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c:
+	(rasqal_new_data_graph_from_iostream): Take unsigned int flags.
+
+2012-06-22  Dave Beckett <dave@dajobe.org>
+
+	* README.html: Add notes on implemented parts of SPARQL 1.1
+
+2012-06-18  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, src/rasqal_expr_numerics.c: Support UUID support
+	inside libc for OSX
+
+2012-06-17  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh:
+	Support NOCONFIGURE variable, like Lib{XML2,XSLT}
+
+2012-05-20  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac:
+	Fix non-POSIX bash syntax == to =
+
+2012-05-14  Dave Beckett <dave@dajobe.org>
+
+	* rasqal.rdf.in, rasqal.spec.in:
+	Update package files to remove RDQL
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_literal.c,
+	src/rasqal_query.c, src/rasqal_query_transform.c,
+	src/rasqal_regex.c: Update autodocs to mark rdql support as legacy
+
+	* src/rasqal_internal.h: Remove rasqal_init_query_language_rdql
+	internal prototype
+
+	* INSTALL.html, README.html, configure.ac, src/Makefile.am,
+	src/rasqal_general.c, src/rasqal_query_test.c, src/rdql_common.h,
+	src/rdql_lexer.l, src/rdql_parser.y, src/win32_rasqal_config.h.in,
+	tests/Makefile.am, tests/rdql/Makefile.am, tests/rdql/dc.rdf,
+	tests/rdql/example1.rdql, tests/rdql/example2.rdql,
+	tests/rdql/example3.rdql, tests/rdql/example4.rdql,
+	tests/rdql/example5.rdql, tests/rdql/example_at_1.rdql,
+	tests/rdql/example_at_2.rdql, tests/rdql/example_at_3.rdql,
+	tests/rdql/example_at_4.rdql, tests/rdql/example_at_5.rdql,
+	tests/rdql/example_at_6.rdql, tests/rdql/example_at_7.rdql,
+	tests/rdql/note-ex1.rdql, tests/rdql/note-ex2.rdql,
+	tests/rdql/note-ex3.rdql, tests/rdql/note-ex4.rdql,
+	tests/rdql/testsuite/Makefile.am, tests/rdql/testsuite/README,
+	tests/rdql/testsuite/README-RDQL-tests.txt,
+	tests/rdql/testsuite/check-rdql,
+	tests/rdql/testsuite/copyright.txt, tests/rdql/testsuite/model0.nt,
+	tests/rdql/testsuite/model1.nt, tests/rdql/testsuite/model2.nt,
+	tests/rdql/testsuite/model3.nt, tests/rdql/testsuite/model4.nt,
+	tests/rdql/testsuite/model5.nt, tests/rdql/testsuite/model5.rdf,
+	tests/rdql/testsuite/model6.nt, tests/rdql/testsuite/model7.nt,
+	tests/rdql/testsuite/model8.n3, tests/rdql/testsuite/model9.n3,
+	tests/rdql/testsuite/modelA.nt, tests/rdql/testsuite/query-dump,
+	tests/rdql/testsuite/rdql-tests.n3,
+	tests/rdql/testsuite/result-0-01.n3,
+	tests/rdql/testsuite/result-0-02.n3,
+	tests/rdql/testsuite/result-0-03.n3,
+	tests/rdql/testsuite/result-0-04.n3,
+	tests/rdql/testsuite/result-1-01.n3,
+	tests/rdql/testsuite/result-1-02.n3,
+	tests/rdql/testsuite/result-1-03.n3,
+	tests/rdql/testsuite/result-1-04.n3,
+	tests/rdql/testsuite/result-1-05.n3,
+	tests/rdql/testsuite/result-1-06.n3,
+	tests/rdql/testsuite/result-1-07.n3,
+	tests/rdql/testsuite/result-1-08.n3,
+	tests/rdql/testsuite/result-1-09.n3,
+	tests/rdql/testsuite/result-1-10.n3,
+	tests/rdql/testsuite/result-2-01.n3,
+	tests/rdql/testsuite/result-2-02.n3,
+	tests/rdql/testsuite/result-2-03.n3,
+	tests/rdql/testsuite/result-2-04.n3,
+	tests/rdql/testsuite/result-2-05.n3,
+	tests/rdql/testsuite/result-2-06.n3,
+	tests/rdql/testsuite/result-2-07.n3,
+	tests/rdql/testsuite/result-2-08.n3,
+	tests/rdql/testsuite/result-2-09.n3,
+	tests/rdql/testsuite/result-2-10.n3,
+	tests/rdql/testsuite/result-3-01.n3,
+	tests/rdql/testsuite/result-3-02.n3,
+	tests/rdql/testsuite/result-3-03.n3,
+	tests/rdql/testsuite/result-3-04.n3,
+	tests/rdql/testsuite/result-3-05.n3,
+	tests/rdql/testsuite/result-3-06.n3,
+	tests/rdql/testsuite/result-3-07.n3,
+	tests/rdql/testsuite/result-4-01.n3,
+	tests/rdql/testsuite/result-4-02.n3,
+	tests/rdql/testsuite/result-4-03.n3,
+	tests/rdql/testsuite/result-4-04.n3,
+	tests/rdql/testsuite/result-4-05.n3,
+	tests/rdql/testsuite/result-4-06.n3,
+	tests/rdql/testsuite/result-4-07.n3,
+	tests/rdql/testsuite/result-5-01.n3,
+	tests/rdql/testsuite/result-5-02.n3,
+	tests/rdql/testsuite/result-5-03.n3,
+	tests/rdql/testsuite/result-5-04.n3,
+	tests/rdql/testsuite/result-6-01.n3,
+	tests/rdql/testsuite/result-6-02.n3,
+	tests/rdql/testsuite/result-6-03.n3,
+	tests/rdql/testsuite/result-6-04.n3,
+	tests/rdql/testsuite/result-7-01.n3,
+	tests/rdql/testsuite/result-7-02.n3,
+	tests/rdql/testsuite/result-7-03.n3,
+	tests/rdql/testsuite/result-7-04.n3,
+	tests/rdql/testsuite/result-8-01.n3,
+	tests/rdql/testsuite/result-8-02.n3,
+	tests/rdql/testsuite/result-8-03.n3,
+	tests/rdql/testsuite/result-8-04.n3,
+	tests/rdql/testsuite/result-8-05.n3,
+	tests/rdql/testsuite/result-9-01.n3,
+	tests/rdql/testsuite/result-9-02.n3,
+	tests/rdql/testsuite/result-A-01.n3,
+	tests/rdql/testsuite/result-A-02.n3,
+	tests/rdql/testsuite/result-B-01.n3,
+	tests/rdql/testsuite/result-B-02.n3,
+	tests/rdql/testsuite/result-B-03.n3,
+	tests/rdql/testsuite/result-B-04.n3,
+	tests/rdql/testsuite/result-B-05.n3,
+	tests/rdql/testsuite/result-B-06.n3,
+	tests/rdql/testsuite/result-B-07.n3,
+	tests/rdql/testsuite/result-B-08.n3,
+	tests/rdql/testsuite/result-B-09.n3,
+	tests/rdql/testsuite/result-B-10.n3,
+	tests/rdql/testsuite/result-B-11.n3,
+	tests/rdql/testsuite/result-B-12.n3,
+	tests/rdql/testsuite/result-B-13.n3,
+	tests/rdql/testsuite/result-B-14.n3,
+	tests/rdql/testsuite/result-B-15.n3,
+	tests/rdql/testsuite/result-B-16.n3,
+	tests/rdql/testsuite/result-B-17.n3,
+	tests/rdql/testsuite/result-B-18.n3,
+	tests/rdql/testsuite/result-B-19.n3,
+	tests/rdql/testsuite/result-B-20.n3,
+	tests/rdql/testsuite/result-S-01.n3,
+	tests/rdql/testsuite/result-S-02.n3,
+	tests/rdql/testsuite/result-S-03.n3,
+	tests/rdql/testsuite/result-S-04.n3,
+	tests/rdql/testsuite/result-S-05.n3,
+	tests/rdql/testsuite/result-T-01.n3,
+	tests/rdql/testsuite/result-T-02.n3,
+	tests/rdql/testsuite/result-T-03.n3,
+	tests/rdql/testsuite/result-T-04.n3,
+	tests/rdql/testsuite/result-T-05.n3,
+	tests/rdql/testsuite/result-T-06.n3,
+	tests/rdql/testsuite/result-T-07.n3,
+	tests/rdql/testsuite/result-T-08.n3,
+	tests/rdql/testsuite/result-T-09.n3,
+	tests/rdql/testsuite/result-T-10.n3,
+	tests/rdql/testsuite/test-0-01, tests/rdql/testsuite/test-0-02,
+	tests/rdql/testsuite/test-0-03, tests/rdql/testsuite/test-0-04,
+	tests/rdql/testsuite/test-1-01, tests/rdql/testsuite/test-1-02,
+	tests/rdql/testsuite/test-1-03, tests/rdql/testsuite/test-1-04,
+	tests/rdql/testsuite/test-1-05, tests/rdql/testsuite/test-1-06,
+	tests/rdql/testsuite/test-1-07, tests/rdql/testsuite/test-1-08,
+	tests/rdql/testsuite/test-1-09, tests/rdql/testsuite/test-1-10,
+	tests/rdql/testsuite/test-2-01, tests/rdql/testsuite/test-2-02,
+	tests/rdql/testsuite/test-2-03, tests/rdql/testsuite/test-2-04,
+	tests/rdql/testsuite/test-2-05, tests/rdql/testsuite/test-2-06,
+	tests/rdql/testsuite/test-2-07, tests/rdql/testsuite/test-2-08,
+	tests/rdql/testsuite/test-2-09, tests/rdql/testsuite/test-2-10,
+	tests/rdql/testsuite/test-3-01, tests/rdql/testsuite/test-3-02,
+	tests/rdql/testsuite/test-3-03, tests/rdql/testsuite/test-3-04,
+	tests/rdql/testsuite/test-3-05, tests/rdql/testsuite/test-3-06,
+	tests/rdql/testsuite/test-3-07, tests/rdql/testsuite/test-4-01,
+	tests/rdql/testsuite/test-4-02, tests/rdql/testsuite/test-4-03,
+	tests/rdql/testsuite/test-4-04, tests/rdql/testsuite/test-4-05,
+	tests/rdql/testsuite/test-4-06, tests/rdql/testsuite/test-4-07,
+	tests/rdql/testsuite/test-5-01, tests/rdql/testsuite/test-5-02,
+	tests/rdql/testsuite/test-5-03, tests/rdql/testsuite/test-5-04,
+	tests/rdql/testsuite/test-6-01, tests/rdql/testsuite/test-6-02,
+	tests/rdql/testsuite/test-6-03, tests/rdql/testsuite/test-6-04,
+	tests/rdql/testsuite/test-7-01, tests/rdql/testsuite/test-7-02,
+	tests/rdql/testsuite/test-7-03, tests/rdql/testsuite/test-7-04,
+	tests/rdql/testsuite/test-8-01, tests/rdql/testsuite/test-8-02,
+	tests/rdql/testsuite/test-8-03, tests/rdql/testsuite/test-8-04,
+	tests/rdql/testsuite/test-8-05, tests/rdql/testsuite/test-9-01,
+	tests/rdql/testsuite/test-9-02, tests/rdql/testsuite/test-A-01,
+	tests/rdql/testsuite/test-A-02, tests/rdql/testsuite/test-B-01,
+	tests/rdql/testsuite/test-B-02, tests/rdql/testsuite/test-B-03,
+	tests/rdql/testsuite/test-B-04, tests/rdql/testsuite/test-B-05,
+	tests/rdql/testsuite/test-B-06, tests/rdql/testsuite/test-B-07,
+	tests/rdql/testsuite/test-B-08, tests/rdql/testsuite/test-B-09,
+	tests/rdql/testsuite/test-B-10, tests/rdql/testsuite/test-B-11,
+	tests/rdql/testsuite/test-B-12, tests/rdql/testsuite/test-B-13,
+	tests/rdql/testsuite/test-B-14, tests/rdql/testsuite/test-B-15,
+	tests/rdql/testsuite/test-B-16, tests/rdql/testsuite/test-B-17,
+	tests/rdql/testsuite/test-B-18, tests/rdql/testsuite/test-B-19,
+	tests/rdql/testsuite/test-B-20, tests/rdql/testsuite/test-S-01,
+	tests/rdql/testsuite/test-S-02, tests/rdql/testsuite/test-S-03,
+	tests/rdql/testsuite/test-S-04, tests/rdql/testsuite/test-S-05,
+	tests/rdql/testsuite/test-T-01, tests/rdql/testsuite/test-T-02,
+	tests/rdql/testsuite/test-T-03, tests/rdql/testsuite/test-T-04,
+	tests/rdql/testsuite/test-T-05, tests/rdql/testsuite/test-T-06,
+	tests/rdql/testsuite/test-T-07, tests/rdql/testsuite/test-T-08,
+	tests/rdql/testsuite/test-T-09, tests/rdql/testsuite/test-T-10,
+	tests/rdql/testsuite/tests2turtle.patch,
+	tests/rdql/testsuite/vc-db-1.rdf, tests/rdql/testsuite/vc-db-2.rdf,
+	tests/rdql/testsuite/vc-db-3.rdf, utils/roqet.1:
+	Remove RDQL
+
+	* ChangeLog, ChangeLog.9, Makefile.am:
+	ChangeLog.9 for 2011
+
+2012-05-13  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, RELEASE.html, configure.ac:
+	Bumped version to 0.9.30
+
+	* Snapshotted rasqal_0_9_29 for 0.9.29 release (GIT
+	b208e046859c86859449efe2985aca4a3c1bba91)
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_prepare_common): Ignore always 0 GP visit return [clang]
+
+	* src/rasqal_expr_numerics.c:
+	(rasqal_expression_evaluate_uuid): Free URI string when want_uri
+
+	* src/rasqal_expr_strings.c: Free input literals to strbefore()
+	and strafter()
+
+	(rasqal_expression_evaluate_strbefore)
+	(rasqal_expression_evaluate_strafter): Free the input literals on
+	success before returning the result
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_set_from_timeval): Initialise have_tz to Z
+
+	* src/rasqal_expr_datetimes.c: Free input literals to timezone()
+	and tz() evaluations
+
+	(rasqal_expression_evaluate_datetime_timezone)
+	(rasqal_expression_evaluate_datetime_tz): Free the input literals
+	on success before returning the result
+
+	* NEWS.html, RELEASE.html: 0.9.29
+
+	* src/rasqal_variable.c: Added variable usage debugging if define
+	RASQAL_DEBUG_VARIABLE_USAGE set
+
+	* src/rasqal_rowsource_assignment.c:
+	(rasqal_new_assignment_rowsource): Take reference to input var
+
+	* src/rasqal_projection.c: docs
+
+	* src/rasqal_query.c: remove dup bound variables print
+
+	* src/sparql_parser.y: Fix sparql_uri_applies destructor
+	(GraphRefAll): Call it too.
+
+	* src/sparql_parser.y:
+	(ConstructQuery): !where_gp is a failure
+
+	* src/sparql_parser.y:
+	(ConstructQuery): Test where_gp not undefined var
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_free_graph_pattern): Free variable
+
+2012-05-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource.c: Fix rowsequence reference loss
+
+	(rasqal_rowsource_read_row): If calling
+	rasqal_rowsource_read_all_rows internally, do not overwrite a
+	rows_sequence pointer.
+
+	(rasqal_rowsource_read_all_rows): Code tidy to aid debugging Report
+	saving rows in debug message
+
+	* src/rasqal_rowsource.c: Code indenting
+
+2012-05-11  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine_sort.c: docs
+
+	* src/sparql_parser.y: Fix literal reference count loss in
+	BindingsRow
+
+	(BindingsRow): Do not need to copy literal,
+	rasqal_row_set_value_at does it.
+
+	* src/rasqal_engine_sort.c, src/rasqal_literal.c,
+	src/rasqal_map.c: Pass obj pointers into rasqal_map compare
+	callback
+
+2012-05-10  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): free old strings on decimal
+	promotion.
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): remove decimal string ownership
+
+	* src/rasqal_general.c, src/rasqal_internal.h: Move git-version.h
+	include to just one module to speed up recompiles.
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): remember string ownership for
+	decimal
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): use string for decimal
+
+	* src/rasqal_literal.c: != !!
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): handle reuse of old decimal string
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): clear shared decimal string on
+	free
+
+2012-05-09  Dave Beckett <dave@dajobe.org>
+
+	* README.html: html
+
+	* utils/roqet.1, utils/roqet.c: Add -d none option and make it
+	default.
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_concat): Do not copy NULL URI
+
+	* src/rasqal_literal.c: Cast side-effected returns of size_t to
+	unsigned int [clang]
+
+	* src/sparql_lexer.l:
+	(rasqal_sparql_name_check): Use & for bit check [clang]
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): Do not destroy object refs
+
+2012-05-08  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_new_aggregation_rowsource): docs and seq usage in test
+
+	* src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_empty.c, src/rasqal_rowsource_groupby.c,
+	src/rasqal_rowsource_project.c: Correct variable reference usage
+	in tests and test cleanup
+
+	* src/rasqal_row.c:
+	(rasqal_new_row_sequence): Do not double reference to var Internal
+	function mostly for tests
+
+	* NEWS.html, RELEASE.html: 0.9.29 not yet
+
+2012-05-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_variable.c:
+	(main): Fix vars reference count leak in test
+
+	* ChangeLog, NEWS.html, README.html, RELEASE.html: 0.9.29
+
+	* INSTALL.html: Add --with-libgcrypt-config --with-digest-library
+	and tidy
+
+2012-05-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c: Replace out-of-scope FILTER vars
+	with constant FALSE
+
+	(rasqal_query_filter_variable_scope): Added to check scope of vars
+	in filter using an upwards GP walk wih
+	rasqal_graph_pattern_get_parent() and
+	rasqal_graph_pattern_variable_bound_below().
+
+	(rasqal_query_prepare_common): Call
+	rasqal_query_filter_variable_scope() after tree GPs have been
+	enumerated.  This has the consequence that constant join
+	conditions may be not optimized out.
+
+	Fixes last SPARQL 1.0 test suite failure:
+	SPARQL 1.0 Summary:
+	  SPARQL 1.0 total passes: 441
+	  SPARQL 1.0 total failures: 0
+
+	* src/rasqal_graph_pattern.c, src/rasqal_internal.h:
+	(rasqal_graph_pattern_variable_bound_below): Added
+
+	* src/rasqal_graph_pattern.c, src/rasqal_internal.h:
+	(rasqal_graph_pattern_get_parent): Added
+
+	* src/rasqal_rowsource_join.c: Handle a constant join expression
+	correctly.  This is not optimal at this point but it is correct.
+	For a FALSE join condition for a LEFT JOIN it should never read
+	anything from the right rowsource.  Currently it reads every row
+	and throws them all away
+
+2012-05-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_groupby.c:
+	(rasqal_new_groupby_rowsource): Tidy con init [clang]
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_new_aggregation_rowsource): Init con to NULL [clang]
+
+	* src/rasqal_literal.c:
+	(rasqal_new_literal_from_promotion): init len to prevent [clang]
+	warning
+
+	* libmtwist: Update libmtwist
+
+	* src/rasqal_regex.c:
+	(rasqal_regex_replace_posix): Free result on failure [clang]
+
+	* src/rasqal_format_rdf.c:
+	(rasqal_rowsource_rdf_process): Error path for malloc [clang]
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_new_aggregation_rowsource): Free con on error [clang]
+
+	* src/rasqal_rowsource_groupby.c:
+	(rasqal_new_groupby_rowsource): Free con on error [clang]
+
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_add_variable): Arg check [clang]
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_as_counted_string): Check error_p [clang]
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_basic_graph_pattern_to_algebra): return NULL [clang]
+
+2012-05-02  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, src/rasqal_digest.c, src/rasqal_internal.h: Make
+	libgcrypt work as a digest backend
+
+	Added configure arg --with-libgcrypt-config=PATH to
+	libgcrypt-config Made --with-digest-library=gcrypt work
+
+	(rasqal_digest_buffer): gcrypt version works and uses lower level
+	functions.  Removed const attribute on an output parameter.
+
+	* docs/tmpl/section-expression.sgml: Update tmpls
+
+	* configure.ac, src/rasqal_expr_numerics.c: Fix libuuid configure
+	tests
+
+	* configure.ac, src/rasqal_expr_numerics.c: Add internal uuid
+	configure and macro
+
+	* configure.ac, src/rasqal.h.in, src/rasqal_expr.c,
+	src/rasqal_expr_evaluate.c, src/rasqal_expr_numerics.c,
+	src/rasqal_internal.h, src/rasqal_query_write.c,
+	src/sparql_lexer.l, src/sparql_parser.y:
+	Add UUID and STRUUID
+
+	rasqal_op gains RASQAL_EXPR_UUID and RASQAL_EXPR_STRUUID
+
+	(rasqal_expression_evaluate_uuid): Added to evaluate both
+	Implementation uses libuuid if it exists or uses rasqal random to
+	generate a random UUID (v4).
+
+	(rasqal_expression_evaluate_uriuuid)
+	(rasqal_expression_evaluate_struuid): Added as wrappers to above
+
+2012-04-30  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-literal.sgml, docs/tmpl/section-query.sgml,
+	docs/tmpl/section-utilities.sgml, src/rasqal_regex.c:
+	rasqal_regex_replace arg docs and update tmpls
+
+	* docs/rasqal-changes.tsv, docs/rasqal-docs.xml,
+	docs/rasqal-sections.txt, docs/tmpl/section-utilities.sgml,
+	src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_regex.c: Move
+	rasqal_regex_replace to the public API
+
+	(rasqal_regex_replace): Made public
+	Fixes Issue #0000504 http://bugs.librdf.org/mantis/view.php?id=504
+
+	* docs/rasqal-docs.xml: 2012
+
+	* src/rasqal_query_transform.c: Update query prepartion for
+	rasqal_query_graph_pattern_visit2
+
+	(rasqal_query_prepare_count_graph_pattern): Renamed from
+	rasqal_query_prepare_count_graph_patterns since it deals with 1.
+
+	(rasqal_query_enumerate_graph_patterns): Added, calling
+	rasqal_query_prepare_count_graph_pattern and using
+	rasqal_query_graph_pattern_visit2() result.
+
+	(rasqal_query_prepare_common): Check return code from
+	rasqal_query_graph_pattern_visit2 calls.  Use
+	rasqal_query_enumerate_graph_patterns() to do enumeration.
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt,
+	src/rasqal.h.in, src/rasqal_query.c:
+	(rasqal_query_graph_pattern_visit2): Added deprecating
+	rasqal_query_graph_pattern_visit
+
+	* src/rasqal_algebra.c: Added
+	rasqal_algebra_new_boolean_constant_expr
+
+	(rasqal_algebra_new_boolean_constant_expr): Renamed from
+	rasqal_algebra_new_true_expr() and added internal docs
+
+2012-04-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_graph_pattern_to_algebra): More extra debug info
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_new_true_expr): Added and use it
+
+2012-04-11  Dave Beckett <dave@dajobe.org>
+
+	* RELEASE.html: 0.9.29 - no rdql
+
+2012-04-10  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-xsd.sgml: Update tmpls
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt: Added
+	rasqal_xsd_datetime_equals2
+
+	* src/rasqal_general.c: 2012
+
+	* utils/roqet.c: catch another malloc failure
+
+	* utils/roqet.c:
+	(print_help): added to make main shorter
+
+	* utils/check_query.c:
+	(check_query_read_file_string): Error handling for malloc
+
+	* utils/check_query.c: allocate buffer from heap not stack to
+	prevent >4K stack frame
+
+2012-04-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_merge_graph_patterns): Do not merge { FILTER }
+
+	* tests/rdql/testsuite/Makefile.am: Mark RDQL test B-01 as failing
+	- don't care
+
+	* src/rasqal_literal.c: Enable DISTINCT to use RDF term comparison
+
+	(rasqal_literal_string_equals_flags): Renamed from
+	rasqal_literal_string_equals and adds flags arg to set the
+	equality mode - value RASQAL_COMPARE_XQUERY, RDF term
+	RASQAL_COMPARE_RDF or RDQL RASQAL_COMPARE_URI.  Do not equate ""
+	and ""^^xsd:string unless value or RDQL mode
+
+	Update callers of rasqal_literal_string_equals to use
+	rasqal_literal_string_equals_flags and pass in flags.
+
+	(rasqal_literal_same_term): Use literal value comparison with
+	rasqal_literal_string_equals_flags.
+
+	* src/rasqal_engine_sort.c: rowsorting for distinct uses RDF term
+	comparisons
+
+	(rasqal_engine_new_rowsort_map): When distinct, set literal
+	compare_flags to use RDF term comparison
+
+2012-04-02  Dave Beckett <dave@dajobe.org>
+
+	* src/rdql_lexer.l, src/sparql_lexer.l:
+	(main): Throw away unused values instead of storing in buffer
+
+	* src/rasqal_random.c:
+	(main): Throw away unused random results in testing
+
+	* src/rasqal_regex.c:
+	(main): locator is only needed for RASQAL_REGEX_PCRE
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_triple): Rewrite loop logic to set skip at
+	end
+
+2012-03-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query.c, tests/sparql/check-sparql, utils/roqet.c:
+	Update test runner
+
+	(rasqal_query_print): Print projected variable names for test
+	runner
+
+	tests/sparql/check-sparql: merge from redland-testing and fixup
+	always get variables from results header
+
+	utils/roqet: print projected variable names
+
+	* tests/sparql/check-sparql: preserve v=NULL for roqet output
+
+	* tests/sparql/check-sparql: return v=NULL for variables unset in
+	a result row
+
+	* docs/tmpl/section-xsd.sgml: Update xsd tmpl
+
+2012-03-27  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql:
+	(toDebug): quote result str
+
+	* README.html, RELEASE.html, configure.ac,
+	src/rasqal_expr_strings.c, src/rasqal_general.c: Require Raptor
+	2.0.7 or newer.
+
+2012-03-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_new_string_literal_common): Use bitwise & - thanks Lauri
+
+2012-03-24  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Empty ArgList returns empty seq not NULL
+
+	* src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_format_double): Move exponent and terminate properly.
+
+	* src/rasqal_literal.c:
+	(rasqal_new_string_literal_node) docs
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_string_to_native): Only flag now is canonicalizing
+
+	(rasqal_new_string_literal_common): Takes native type promotion
+	and canonicalizing flag.
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): Add canonicalize parameter to
+	set string
+
+	* src/rasqal_literal.c, utils/check_query.c: Always
+	rasqal_literal_string_to_native before rasqal_literal_equals_flags
+
+	* src/rasqal_decimal.c:
+	(rasqal_xsd_decimal_as_string): Canonical decimal ends in .0
+	Correct test results for canonical decimal format
+
+	* src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_format_double): Return 0.0E0 for zero
+
+	* src/rasqal_literal.c: Fix numeric promotion with one decimal and
+	one float/double.
+
+	(rasqal_literal_promote_numerics): Promote decimal with
+	float/double to float/decimal following XPath rules - B1 1.b
+	http://www.w3.org/TR/xpath20/#dt-type-promotion
+
+2012-03-23  Dave Beckett <dave@dajobe.org>
+
+	* utils/check_query.c: Call rasqal_query_add_data_graph() after
+	prepare
+
+	* src/rasqal_expr_evaluate.c: Evaluate COALESCE following sparql
+	1.1 rules
+
+	(rasqal_expression_evaluate_coalesce): Ignore evaluation errors in
+	sequence of expressions until a good result is found.
+
+2012-03-19  Dave Beckett <dave@dajobe.org>
+
+	* ChangeLog, NEWS.html, RELEASE.html: 0.9.29
+
+	* src/rasqal_rowsource_aggregation.c: Fix AVG test to expect a
+	decimal result
+
+2012-03-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c: Do not set aggregate
+	expression value on error
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_divide): Result is decimal if both args are integer
+
+	* src/rasqal_literal.c: Promote date to datetime in comparisons
+	and ensure Zulu TZ
+
+	(rasqal_new_literal_from_promotion, rasqal_literal_equals_flags):
+	Promote date to datetime.
+
+	(rasqal_literal_equals_flags): Use rasqal_xsd_datetime_equals2
+	returning error for incomparible.
+
+	* src/rasqal.h.in, src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_equals2): Added, deprecating
+	rasqal_xsd_datetime_equals Return incomparible flag to caller.
+
+	* docs/rasqal-changes.tsv, src/rasqal.h.in, src/rasqal_datetime.c,
+	src/rasqal_literal.c:
+	(rasqal_xsd_date_equals): Returns incomparible pointer This allows
+	the test to fail when across timelines that are incomparible.
+
+	(rasqal_literal_equals_flags): Update to take error return.
+
+	* tests/sparql/check-sparql: $core_dumped earlier
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_timezone_format): Generate sign from inverse of adjusted
+	minutes
+
+2012-02-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_equals): Work if dt1 or dt2 are NULL
+
+	* tests/sparql/check-sparql:
+	Update check-sparql from testing repo
+
+	* src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_xsd_datatypes.c: Move xsd boolean string check to xsd
+	code
+
+	(rasqal_xsd_boolean_value_from_string): Renamed from
+	rasqal_literal_string_interpreted_as_boolean
+
+	* src/rasqal.h.in, src/rasqal_datetime.c: autodocs
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt,
+	src/rasqal.h.in, src/rasqal_datetime.c, src/rasqal_literal.c:
+	Replace rasqal_xsd_date_compare2 with rasqal_xsd_date_compare and
+	rename
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt,
+	src/rasqal.h.in, src/rasqal_datetime.c: autodocs
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_timezone_format): How did this ever work?
+
+	* src/rasqal_datetime.c, src/rasqal_internal.h: Never normalize
+	date or dateTime fields on parsing
+
+	(rasqal_xsd_date_parse): simplify without normalizing.
+
+	(rasqal_xsd_date_normalize): Added but internal/standalone tests
+	since it is not a public API or used outside the test code.
+
+	(rasqal_new_xsd_datetime): make a datetime copy and normalize that
+	to get the time_on_timeline.
+
+	(rasqal_xsd_datetime_to_counted_string)
+
+	(rasqal_xsd_date_to_counted_string)
+
+	(rasqal_xsd_date_string_to_canonical): Updated docs.
+
+	(rasqal_xsd_datetime_check, rasqal_xsd_date_check): Just parse, do
+	not touch value with normalizing.
+
+	(rasqal_new_xsd_date): Set hour
+	to noon for normalizing internal datetime using
+	rasqal_xsd_datetime_normalize.
+
+	(test_datetime_parse_and_normalize)
+
+	(test_date_parse_and_normalize): Moved to test code from static
+	functions that were only used here.
+
+	(main): Adjust test code expected results so that parsing and
+	normalizing does not drop the TZ if it was there in the first
+	place, even when normalizing.
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_normalize): Clearly set have_tz to N or Z
+
+	* src/rasqal.h.in, src/rasqal_datetime.c: Handle XSD timezone
+	recording and generating properly
+
+	rasqal_xsd_date and rasqal_xsd_datetime gain a have_tz flag field
+	that indicates the state of the timezone_minutes.
+
+	(rasqal_xsd_datetime_normalize): Use have_tz to choose when to
+	normalize.
+
+	(rasqal_xsd_datetime_parse): Record N, Z or Y for have_tz
+
+	(rasqal_new_xsd_datetime_from_xsd_date): Copy have_tz field.
+
+	(rasqal_xsd_timezone_format): Renamed from
+	rasqal_xsd_datetime_timezone_format() and take the timezone fields
+	as input.
+
+	(rasqal_xsd_datetime_to_counted_string)
+	(rasqal_xsd_datetime_get_tz_as_counted_string): Use
+	rasqal_xsd_timezone_format with new args.
+
+	(rasqal_xsd_datetime_equals): Use have_tz fields.
+
+	(rasqal_xsd_date_to_counted_string): Use
+	rasqal_xsd_timezone_format and generate timezone field if needed.
+
+	(rasqal_new_xsd_date): Copy the have_tz field.
+
+	* utils/roqet.c: Add data graphs after prepare
+
+	* src/rasqal_internal.h, src/rasqal_query.c, src/sparql_parser.y:
+	Try to not lose data when reparsing into same query
+
+	(rasqal_query_reset_select_query): Added to delete existing data,
+	used before a parse
+
+	(rasqal_query_set_modifier): Added to update
+	modifier but free any existing first.
+
+	(rasqal_sparql_query_language_prepare): SPARQL parser now calls
+	rasqal_query_reset_select_query to do the reset before a parse.
+
+	* src/rasqal_rowsource_slice.c: Count input and output row offsets
+	for slice rowsource
+
+	Fixes Issue #0000493
+	http://bugs.librdf.org/mantis/view.php?id=493
+
+	* tests/engine/rasqal_limit_test.c:
+	Test subselect limits
+
+	* tests/engine/rasqal_limit_test.c:
+	Add subquery limit offset check for Issue #0000493
+	http://bugs.librdf.org/mantis/view.php?id=493
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_get_seconds_as_decimal): Fix str buffer
+
+	Fixes Issue#0000494
+	http://bugs.librdf.org/mantis/view.php?id=494
+
+2012-02-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_datetime.c:
+	(rasqal_new_xsd_datetime_from_xsd_date): Added constructor from a
+	date
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_compare): Use non-deprecated date/datetime compare
+	methods
+
+	* src/rasqal.h.in, src/rasqal_datetime.c: XSD date and dateTime
+	compares use timeontimeline and timezone info
+
+	(rasqal_xsd_date_compare2): Added deprecating
+	rasqal_xsd_date_compare and returning incomparible state.
+
+	(rasqal_xsd_datetime_compare2): Added deprecating
+	rasqal_xsd_datetime_compare and returning incomparible state.
+
+	(rasqal_xsd_timeline_compare): Added internal routine comparing
+	timelines with/without timezones using XSD dateTime order relation
+	rules.
+
+	(test_date_compare, test_datetime_compare): Added testing code.
+
+	(main): Call above to test comparisons.
+
+	* src/rasqal_datetime.c:
+	Compare date equality checking timezones
+
+	(rasqal_xsd_date_equals): Use timezone_minutes
+
+	(test_date_equals): Added testing function
+
+	(main): Added date equality tests using above.
+
+	* src/rasqal_datetime.c:
+	Compare datetime equality with timeline and
+	timezones
+
+	(rasqal_xsd_datetime_equals): Uses time_on_timeline.
+
+	(test_datetime_equals): Tester code aded (main): Added tests
+
+	* src/rasqal.h.in, src/rasqal_datetime.c: Add time_on_timeline and
+	timezone_minutes fields to date and datetime classes
+
+2012-02-15  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c, src/rasqal_digest_sha1.c,
+	src/rasqal_expr_datetimes.c, src/rasqal_expr_strings.c,
+	src/rasqal_feature.c, src/rasqal_format_html.c,
+	src/rasqal_format_json.c, src/rasqal_format_rdf.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_sv.c,
+	src/rasqal_general.c, src/rasqal_literal.c,
+	src/rasqal_query_results.c, src/rasqal_query_write.c,
+	src/rasqal_raptor.c, src/rasqal_row.c,
+	src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_groupby.c, src/rasqal_rowsource_triples.c,
+	src/rasqal_service.c, src/rasqal_xsd_datatypes.c,
+	src/rdql_lexer.l, src/rdql_parser.y, src/sparql_lexer.l,
+	src/sparql_parser.y: Record good and bad casts to const unsigned
+	char*
+
+	* src/rasqal_digest.c, src/rasqal_expr_datetimes.c,
+	src/rasqal_literal.c, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c, src/rasqal_variable.c,
+	src/rdql_lexer.l, src/sparql_lexer.l: Record good and bad casts to
+	unsigned char*
+
+	* src/rasqal_datetime.c, src/rasqal_expr.c,
+	src/rasqal_expr_evaluate.c, src/rasqal_expr_strings.c,
+	src/rasqal_feature.c, src/rasqal_format_rdf.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_general.c, src/rasqal_literal.c, src/rasqal_prefix.c,
+	src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_test.c, src/rasqal_raptor.c, src/rasqal_regex.c,
+	src/rasqal_result_formats.c, src/rasqal_row.c,
+	src/rasqal_rowsource.c, src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_groupby.c, src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_project.c, src/rasqal_rowsource_triples.c,
+	src/rasqal_rowsource_union.c, src/rasqal_service.c,
+	src/rasqal_variable.c, src/rasqal_xsd_datatypes.c,
+	src/rdql_lexer.l, src/sparql_lexer.l, src/sparql_parser.y: Record
+	good and bad casts to const char*
+
+	* src/rasqal_datetime.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c, src/rasqal_format_html.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_general.c, src/rasqal_iostream.c, src/rasqal_literal.c,
+	src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_test.c, src/rasqal_random.c,
+	src/rasqal_result_formats.c, src/rasqal_rowsource_triples.c,
+	src/rasqal_xsd_datatypes.c, src/rdql_lexer.l, src/rdql_parser.y,
+	src/sparql_lexer.l, src/sparql_parser.y: Record good and bad casts
+	to char*
+
+	* src/rasqal_algebra.c, src/rasqal_dataset.c,
+	src/rasqal_datetime.c, src/rasqal_digest.c,
+	src/rasqal_expr_numerics.c, src/rasqal_literal.c,
+	src/rasqal_random.c, src/rasqal_rowsource.c, src/snprintf.c,
+	src/strcasecmp.c, utils/roqet.c: Record good and bad casts to
+	unsigned int
+
+	* src/snprintf.c:
+	(rasqal_format_integer): Fix off by 1 in length calculation for
+	integers wider than width
+
+	* src/rasqal_datetime.c, src/rasqal_internal.h, src/snprintf.c:
+	(rasqal_format_integer): Change return type to size_t
+
+	* src/rasqal_algebra.c, src/rasqal_datetime.c,
+	src/rasqal_engine.c, src/rasqal_expr.c, src/rasqal_expr_strings.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_graph_pattern.c, src/rasqal_iostream.c,
+	src/rasqal_literal.c, src/rasqal_query.c,
+	src/rasqal_query_write.c, src/rasqal_random.c, src/rasqal_regex.c,
+	src/rasqal_rowsource.c, src/rasqal_rowsource_join.c,
+	src/rasqal_update.c, src/rasqal_xsd_datatypes.c, src/snprintf.c,
+	src/sparql_lexer.l, src/sparql_parser.y, src/strcasecmp.c: Record
+	good and bad casts to int
+
+	Using RASQAL_GOOD_CAST and RASQAL_BAD_CAST macros.  When bad there
+	are some notes.
+
+	* src/rasqal_xsd_datatypes.c: Fix int cast in
+	rasqal_xsd_format_double
+
+	(rasqal_xsd_format_double): Handle trailing_zero_start as a size_t
+	so add a have_trailing_zero flag to mark when it is valid.
