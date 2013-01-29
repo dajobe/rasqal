@@ -51,7 +51,7 @@ static void rasqal_rowsource_print_header(rasqal_rowsource* rowsource, FILE* fh)
  * @query: query object
  * @user_data: pointer to context information to pass in to calls
  * @handler: pointer to handler methods
- * @vars_table: variables table to use for rows
+ * @vars_table: variables table to use for rows (or NULL)
  * @flags: 0 (none defined so far)
  *
  * Create a new rowsource over a user-defined handler.
@@ -68,7 +68,7 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
 {
   rasqal_rowsource* rowsource;
 
-  if(!handler)
+  if(!world || !query || !handler)
     return NULL;
 
   if(handler->version < 1 || handler->version > 1)
@@ -226,7 +226,7 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
 {
   rasqal_row* row = NULL;
   
-  if(rowsource->finished)
+  if(!rowsource || rowsource->finished)
     return NULL;
 
   if(rowsource->flags & RASQAL_ROWSOURCE_FLAGS_SAVED_ROWS) {
@@ -319,11 +319,14 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
  *
  * Get number of rows seen from a rowsource.
  *
- * Return value: row count
+ * Return value: row count or < 0 on failure
  **/
 int
 rasqal_rowsource_get_rows_count(rasqal_rowsource *rowsource)
 {
+  if(!rowsource)
+    return -1;
+
   return rowsource->count;
 }
 
@@ -343,6 +346,9 @@ raptor_sequence*
 rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
 {
   raptor_sequence* seq;
+
+  if(!rowsource)
+    return NULL;
 
   if(rowsource->flags & RASQAL_ROWSOURCE_FLAGS_SAVED_ROWS) {
     raptor_sequence* new_seq;
@@ -424,11 +430,14 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
  * rasqal_rowsource_get_size:
  * @rowsource: rasqal rowsource
  *
- * Get rowsource row width
+ * Get rowsource row width or <0 on failure
  **/
 int
 rasqal_rowsource_get_size(rasqal_rowsource *rowsource)
 {
+  if(!rowsource)
+    return -1;
+
   rasqal_rowsource_ensure_variables(rowsource);
 
   return rowsource->size;
@@ -447,6 +456,9 @@ rasqal_rowsource_get_size(rasqal_rowsource *rowsource)
 rasqal_variable*
 rasqal_rowsource_get_variable_by_offset(rasqal_rowsource *rowsource, int offset)
 {
+  if(!rowsource)
+    return NULL;
+
   rasqal_rowsource_ensure_variables(rowsource);
 
   if(!rowsource->variables_sequence)
@@ -464,7 +476,7 @@ rasqal_rowsource_get_variable_by_offset(rasqal_rowsource *rowsource, int offset)
  *
  * Get the offset of a variable into the list of variables
  *
- * Return value: offset or <0 if not present
+ * Return value: offset or <0 if not present or on failure
  **/
 int
 rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource,
@@ -473,6 +485,9 @@ rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource,
   int offset= -1;
   int i;
   
+  if(!rowsource)
+    return -1;
+
   rasqal_rowsource_ensure_variables(rowsource);
 
   if(!rowsource->variables_sequence)
@@ -621,7 +636,7 @@ rasqal_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource, int offset)
  *
  * If the user function @fn returns 0, the visit is truncated.
  *
- * Return value: non-0 if the visit was truncated.
+ * Return value: non-0 if the visit was truncated or on failure.
  **/
 int
 rasqal_rowsource_visit(rasqal_rowsource* rowsource,
@@ -632,6 +647,9 @@ rasqal_rowsource_visit(rasqal_rowsource* rowsource,
   int offset;
   rasqal_rowsource* inner_rs;
   
+  if(!rowsource || !fn)
+    return 1;
+
   result = fn(rowsource, user_data);
   /* end if failed */
   if(result < 0)
@@ -799,6 +817,9 @@ void
 rasqal_rowsource_print(rasqal_rowsource *rowsource, FILE* fh)
 {
   raptor_iostream *iostr;
+
+  if(!rowsource || !fh)
+    return;
 
   iostr = raptor_new_iostream_to_file_handle(rowsource->world->raptor_world_ptr, fh);
   rasqal_rowsource_write(rowsource, iostr);

@@ -518,6 +518,9 @@ rasqal_service_execute(rasqal_service* svc)
   vars_table = rasqal_query_results_get_variables_table(results);
 
   rowsource = rasqal_service_execute_as_rowsource(svc, vars_table);
+  if(!rowsource)
+    goto error;
+
   while(1) {
     rasqal_row* row = rasqal_rowsource_read_row(rowsource);
     if(!row)
