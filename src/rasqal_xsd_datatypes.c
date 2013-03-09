@@ -42,6 +42,9 @@
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
 #endif
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
 
 #include "rasqal.h"
 #include "rasqal_internal.h"
@@ -341,79 +344,17 @@ rasqal_xsd_format_float(float f, size_t *len_p)
 unsigned char*
 rasqal_xsd_format_double(double d, size_t *len_p)
 {
-  unsigned int e_index = 0;
-  char have_trailing_zero = 0;
-  size_t trailing_zero_start = 0;
-  unsigned int exponent_start;
   size_t len = 0;
   unsigned char* buf = NULL;
-  
-  if(!RASQAL_FLOATING_AS_INT(d)) {
-    len = 5;
-    buf = RASQAL_MALLOC(unsigned char*, len + 1);
-    if(!buf)
-      return NULL;
 
-    memcpy(buf, "0.0E0", len + 1);
-    if(len_p)
-      *len_p = len;
-    return buf;
-  }
+  len = rasqal_format_double(NULL, 0, d, 1, 15);
 
-  len = 20;
   buf = RASQAL_MALLOC(unsigned char*, len + 1);
   if(!buf)
     return NULL;
-  
-  /* snprintf needs the length + 1 because it writes a \0 too */
-  snprintf(RASQAL_GOOD_CAST(char*, buf), len + 1, "%1.14E", d);
 
-  /* find the 'e' and start of mantissa trailing zeros */
+  (void)rasqal_format_double((char*)buf, len, d, 1, 15);
 
-  for( ; buf[e_index]; ++e_index) {
-    if(e_index > 0 && buf[e_index] == '0' && buf[e_index - 1] != '0') {
-      trailing_zero_start = e_index;
-      have_trailing_zero = 1;
-    }
-    
-    else if(buf[e_index] == 'E')
-      break;
-  }
-
-  if(have_trailing_zero) {
-    if(buf[trailing_zero_start - 1] == '.')
-      ++trailing_zero_start;
-
-    /* write an 'E' where the trailing zeros started */
-    buf[trailing_zero_start] = 'E';
-    if(buf[e_index + 1] == '-') {
-      buf[trailing_zero_start + 1] = '-';
-      ++trailing_zero_start;
-    }
-  } else {
-    buf[e_index] = 'E';
-    trailing_zero_start = e_index + 1;
-    have_trailing_zero = 1;
-  }
-  
-  exponent_start = e_index + 2;
-  while(buf[exponent_start] == '0')
-    ++exponent_start;
-
-  if(have_trailing_zero) {
-    len = strlen(RASQAL_GOOD_CAST(const char*, buf));
-    if(exponent_start == len) {
-      len = trailing_zero_start + 2;
-      buf[len - 1] = '0';
-      buf[len] = '\0';
-    } else {
-      /* copy the exponent (minus leading zeros) after the new E */
-      memmove(buf + trailing_zero_start + 1, buf + exponent_start,
-              len - exponent_start + 1);
-      len = strlen(RASQAL_GOOD_CAST(const char*, buf));
-    }
-  }
-  
   if(len_p)
     *len_p = len;
 

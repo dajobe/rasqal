@@ -1031,6 +1031,7 @@ char* rasqal_vsnprintf(const char* message, va_list arguments);
 unsigned char* rasqal_world_generate_bnodeid(rasqal_world* world, unsigned char *user_bnodeid);
 int rasqal_world_reset_now(rasqal_world* world);
 struct timeval* rasqal_world_get_now_timeval(rasqal_world* world);
+size_t rasqal_format_double(char *buffer, size_t bufsize, double fvalue, unsigned int min, unsigned int max);
 
 
 typedef enum {
