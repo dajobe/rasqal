@@ -1,4 +1,72 @@
-2013-01-22  Dave Beckett  <dave@dajobe.org>
+2013-04-05  Dave Beckett <dave@dajobe.org>
+
+	* src/win32_rasqal_config.h.in: Make win32_rasqal_config.h work on
+	MSVC2008
+
+	Patch from Michael Stahl
+
+	Fixes Issue #0000539
+	http://bugs.librdf.org/mantis/view.php?id=539
+
+	* src/rasqal_digest_md5.c, src/rasqal_digest_sha1.c,
+	src/rasqal_internal.h: work around MSVC 2008's inexcusable lack of
+	stdint.h header
+
+	Patch from Michael Stahl
+
+	Fixes Issue #0000538
+	http://bugs.librdf.org/mantis/view.php?id=538
+
+	* configure.ac, utils/Makefile.am: Use PKG_CHECK_MODULES() for
+	calling and overriding pkg-config
+
+	- macro is in build/pkg.m4 from pkg-config 0.28
+	- Use <PREFIX>_CFLAGS and <PREFIX>_LIBS envars.
+	- Enables overriding of pkg-config if needed.
+	- Used for raptor 2 and libuuid
+
+	Fixes Issue #0000537
+	http://bugs.librdf.org/mantis/view.php?id=537
+
+	* build/pkg.m4: Add pkg.m4 from pkg-config 0.28 to prevent more
+	autogen.sh work
+
+	* configure.ac:
+	Modernize LT_INIT call for libtool 2.2+
+
+	* configure.ac: Die if xml2-config points at a non executable file
+
+	Patch from Michael Stahl - thanks
+
+	Fixes Issue #0000536
+	http://bugs.librdf.org/mantis/view.php?id=536
+
+2013-03-12  Dave Beckett <dave@dajobe.org>
+
+	* build/.gitignore: Ignore test-driver
+
+	* autogen.sh: Handle variations of header macro
+
+	* .gitignore: Ignore .trs
+
+2013-01-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource.c, src/rasqal_service.c: Fix crash when a
+	SERVICE returns no rowsource
+
+	Update other public rowsource methods to fail if given NULL args.
+
+	Fixes Issue #0000527
+	http://bugs.librdf.org/mantis/view.php?id=527
+
+2013-01-24  Dave Beckett <dave@dajobe.org>
+
+	* ChangeLog, ChangeLog.10, Makefile.am:
+	ChangeLog.10 for 2012
+
+2013-01-22  Dave Beckett <dave@dajobe.org>
+
+	* Bumped version to 0.9.31
 
 	* Snapshotted rasqal_0_9_30 for 0.9.30 release (GIT
 	f5d0537a0ab15b70d24813b2d6d7ceb922a1356c)
