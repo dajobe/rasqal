@@ -392,25 +392,15 @@ fi
 RAPTOR_MIN_VERSION=2.0.7
 
 
-AC_CHECK_PROGS(PKG_CONFIG, pkg-config)
-if test "X$PKG_CONFIG" = X; then
-  AC_MSG_ERROR(pkg-config not found. configuring raptor V2 requires it.  Get it from http://pkg-config.freedesktop.org/)
-fi
+PKG_PROG_PKG_CONFIG
 
-AC_MSG_CHECKING(for raptor)
-if $PKG_CONFIG raptor2 --exists; then
+PKG_CHECK_MODULES([RAPTOR2],[raptor2 >= $RAPTOR_MIN_VERSION],[
   RAPTOR_VERSION=`$PKG_CONFIG raptor2 --modversion 2>/dev/null`
-  AC_MSG_RESULT(system $RAPTOR_VERSION)
-
-  if $PKG_CONFIG raptor2 --atleast-version=$RAPTOR_MIN_VERSION; then
-    :
-  else
-    AC_MSG_ERROR(Installed raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
-  fi
-else
-  AC_MSG_RESULT(not found)
+],[
   AC_MSG_ERROR(Raptor is not installed - see http://librdf.org/raptor/ to get a version newer than $RAPTOR_MIN_VERSION)
-fi
+])
+AC_SUBST(RAPTOR2_CFLAGS)
+AC_SUBST(RAPTOR2_LIBS)
 
 RAPTOR_VERSION_DEC=`echo $RAPTOR_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 AC_SUBST(RAPTOR_VERSION_DEC)
@@ -674,8 +664,7 @@ need_uuid_libc=no
 need_uuid_internal=no
 need_uuid_ossp=no
 
-AC_MSG_CHECKING(for libuuid)
-if $PKG_CONFIG uuid --exists; then
+PKG_CHECK_MODULES(UUID, uuid, [
   LIBUUID_VERSION=`$PKG_CONFIG uuid --modversion 2>/dev/null`
 
   oCPPFLAGS="$CPPFLAGS"
@@ -689,7 +678,9 @@ if $PKG_CONFIG uuid --exists; then
 
   CPPFLAGS="$LIBRDF_CPPFLAGS"
   LIBS="$oLIBS"
-fi
+  have_uuid_libuuid=yes
+], [have_uuid_libuuid=no])
+AC_MSG_CHECKING(for libuuid)
 AC_MSG_RESULT($have_uuid_libuuid)
 
 AC_CHECK_PROGS(UUID_CONFIG, uuid-config)
@@ -877,8 +868,8 @@ AM_CONDITIONAL(RASQAL_QUERY_SPARQL, test $sparql_query_language = yes)
 
 
 
-RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS `$PKG_CONFIG raptor2 --cflags`"
-RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$PKG_CONFIG raptor2 --libs`"
+RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $RAPTOR2_CFLAGS"
+RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $RAPTOR2_LIBS"
 RAPPER_PATH=""
 
 if test $need_regex_pcre = 1; then
@@ -922,15 +913,11 @@ fi
 
 
 if test $need_uuid_libuuid = yes; then
-  C=`$PKG_CONFIG uuid --cflags`
-  L=`$PKG_CONFIG uuid --libs`
-  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $C"
-  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
+  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $UUID_CFLAGS"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $UUID_LIBS"
 
-  PKGCONFIG_CFLAGS="$PKGCONFIG_CFLAGS $C"
-  PKGCONFIG_LIBS="$PKGCONFIG_LIBS $L"
-  unset C
-  unset L
+  PKGCONFIG_CFLAGS="$PKGCONFIG_CFLAGS $UUID_CFLAGS"
+  PKGCONFIG_LIBS="$PKGCONFIG_LIBS $UUID_LIBS"
 fi
 
 
