@@ -795,11 +795,11 @@ if test "x$enable_xml2" != "xno" ; then
   if test "X$xml2_config" != "X" ; then
     AC_MSG_CHECKING(for $xml2_config)
 
-    if test -f $xml2_config ; then
+    if test -x $xml2_config ; then
       XML_CONFIG=$xml2_config
       AC_MSG_RESULT(yes)
     else
-      AC_MSG_RESULT(no - searching PATH)
+      AC_MSG_ERROR([xml2-config not found at specified path $xml2_config])
     fi
   fi
   if test "X$XML_CONFIG" = "X"; then
