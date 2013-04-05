@@ -26,6 +26,13 @@
 #ifndef RASQAL_INTERNAL_H
 #define RASQAL_INTERNAL_H
 
+#if defined(_MSC_VER) && _MSC_VER < 1600
+typedef unsigned __int32 uint32_t;
+typedef __int16 int16_t;
+#else
+#include <stdint.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #define RASQAL_EXTERN_C extern "C"
