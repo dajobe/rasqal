@@ -213,7 +213,6 @@ static void MD5Final(struct MD5Context *ctx)
   MD5Transform(ctx->buf, (u32 *) ctx->in);
   byteReverse((unsigned char *) ctx->buf, 4);
   memcpy(ctx->digest, ctx->buf, MD5_DIGEST_LEN);
-  memset(ctx, 0, sizeof(*ctx));	/* In case it's sensitive */
 }
 
 
