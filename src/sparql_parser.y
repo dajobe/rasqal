@@ -210,6 +210,7 @@ free_uri_applies(sparql_uri_applies* ua)
 %token ABS ROUND CEIL FLOOR RAND
 %token MD5 SHA1 SHA224 SHA256 SHA384 SHA512
 %token UUID STRUUID
+%token VALUES
 /* LAQRS */
 %token EXPLAIN LET
 %token CURRENT_DATETIME NOW FROM_UNIXTIME TO_UNIXTIME
