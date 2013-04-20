@@ -496,7 +496,7 @@ print_bindings_result_simple(rasqal_query_results *results,
     if(!count) {
       int i;
       
-      fputs("result: [", output);
+      fputs("row: [", output);
       for(i = 0; i < rasqal_query_results_get_bindings_count(results); i++) {
         const unsigned char *name;
         rasqal_literal *value;
@@ -508,11 +508,7 @@ print_bindings_result_simple(rasqal_query_results *results,
           fputs(", ", output);
 
         fprintf(output, "%s=", name);
-
-        if(value)
-          rasqal_literal_print(value, output);
-        else
-          fputs("NULL", output);
+        rasqal_literal_print(value, output);
       }
       fputs("]\n", output);
     }
