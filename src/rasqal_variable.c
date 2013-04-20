@@ -122,6 +122,9 @@ rasqal_free_variable(rasqal_variable* v)
 void
 rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr)
 {
+  if(!v || !iostr)
+    return;
+    
   if(v->type == RASQAL_VARIABLE_TYPE_ANONYMOUS)
     raptor_iostream_counted_string_write("anon-variable(", 14, iostr);
   else
