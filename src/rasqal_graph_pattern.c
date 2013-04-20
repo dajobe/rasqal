@@ -1197,6 +1197,32 @@ rasqal_new_basic_graph_pattern_from_triples(rasqal_query* query,
 
 
 /**
+ * rasqal_new_values_graph_pattern:
+ * @query: #rasqal_graph_pattern query object
+ * @bindings: bindings object
+ *
+ * INTERNAL - Create a new values graph pattern object from a bindings
+ *
+ * The @bindings becomes owned by the graph pattern
+ *
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_values_graph_pattern(rasqal_query* query,
+                                rasqal_bindings* bindings)
+{
+  rasqal_graph_pattern* gp;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+
+  gp = rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_VALUES);
+  gp->bindings = bindings;
+
+  return gp;
+}
+
+
+/**
  * rasqal_graph_pattern_get_variable:
  * @graph_pattern: #rasqal_graph_pattern graph pattern object
  *
