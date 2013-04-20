@@ -186,7 +186,7 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
   rasqal_rowsource* rowsource = row->rowsource;
   int i;
   
-  fputs("result[", fh);
+  fputs("row[", fh);
   for(i = 0; i < row->size; i++) {
     /* Do not use rasqal_query_results_get_binding_name(row->results, i); 
      * as it does not work for a construct result
