@@ -624,6 +624,41 @@ rasqal_new_having_algebra_node(rasqal_query* query,
 
 
 /*
+ * rasqal_new_service_algebra_node:
+ * @query: #rasqal_query query object
+ * @svc: service
+ *
+ * INTERNAL - Create a new SERVICE algebra node for a sequence of expressions over an inner node
+ * 
+ * The inputs @node and @exprs_seq become owned by the new node
+ *
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
+ **/
+rasqal_algebra_node*
+rasqal_new_service_algebra_node(rasqal_query* query,
+                                rasqal_service* svc)
+{
+  rasqal_algebra_node* node;
+
+  if(!query || !svc)
+    goto fail;
+
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_SERVICE);
+  if(node) {
+    node->svc = svc;
+    
+    return node;
+  }
+
+  fail:
+  if(svc)
+    rasqal_free_service(svc);
+
+  return NULL;
+}
+
+
+/*
  * rasqal_free_algebra_node:
  * @gp: #rasqal_algebra_node object
  *
@@ -658,6 +693,9 @@ rasqal_free_algebra_node(rasqal_algebra_node* node)
 
   if(node->var)
     rasqal_free_variable(node->var);
+
+  if(node->svc)
+    rasqal_free_service(node->svc);
 
   RASQAL_FREE(rasqal_algebra, node);
 }
@@ -702,7 +740,8 @@ static struct {
   { "Assignment", 10 },
   { "Group", 5 },
   { "Aggregate", 9 },
-  { "Having", 6 }
+  { "Having", 6 },
+  { "Service", 7 }
 };
 
 
@@ -1368,6 +1407,74 @@ rasqal_algebra_select_graph_pattern_to_algebra(rasqal_query* query,
 
 
 static rasqal_algebra_node*
+rasqal_algebra_service_graph_pattern_to_algebra(rasqal_query* query,
+                                                rasqal_graph_pattern* gp)
+{
+  rasqal_algebra_node* node = NULL;
+  raptor_uri* service_uri = NULL;
+  raptor_sequence* data_graphs = NULL;
+  rasqal_service* svc = NULL;
+  rasqal_graph_pattern* inner_gp;
+  char* string = NULL;
+  raptor_iostream *iostr = NULL;
+  
+  service_uri = rasqal_literal_as_uri(gp->origin);
+  if(!service_uri)
+    goto fail;
+
+  /* FIXME: format inner_sgp into query_string in SPARQL syntax using
+   * a query formatter and iostream and stringbuffer
+   */
+  inner_gp = rasqal_graph_pattern_get_sub_graph_pattern(gp, 0);
+  if(!inner_gp)
+    goto fail;
+  
+  iostr = raptor_new_iostream_to_string(query->world->raptor_world_ptr,
+                                        (void**)&string, NULL,
+                                        rasqal_alloc_memory);
+  if(!iostr)
+    goto fail;
+
+  rasqal_subquery_gp_write(iostr,
+                           /* query->verb */ RASQAL_QUERY_VERB_SELECT,
+                           /* query->distinct flag; query->wildcard flag */ 0,
+                           /* query->query_graph_pattern */ gp,
+                           /* query->data_graphs ??? */ NULL,
+                           /* query->bindings */ NULL,
+                           /* format_uri */ NULL,
+                           query->base_uri);
+  raptor_free_iostream(iostr); iostr = NULL;
+  
+  RASQAL_DEBUG2("Formatted query string is '%s'", string);
+  
+  svc = rasqal_new_service(query->world, service_uri, 
+                           (const unsigned char*)string,
+                           data_graphs);
+  if(!svc)
+    goto fail;
+
+  node = rasqal_new_service_algebra_node(query, svc);
+  if(!node) {
+    RASQAL_DEBUG1("rasqal_new_service_algebra_node() failed\n");
+    goto fail;
+  }
+
+  return node;
+  
+  fail:
+  if(node)
+    rasqal_free_algebra_node(node);
+  if(iostr)
+    raptor_free_iostream(iostr);
+  if(string)
+    RASQAL_FREE(char*, string);
+  
+  return node;
+}
+
+
+
+static rasqal_algebra_node*
 rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
                                         rasqal_graph_pattern* gp)
 {
@@ -1404,6 +1511,9 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE:
+      node = rasqal_algebra_service_graph_pattern_to_algebra(query, gp);
+      break;
+
     case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
     case RASQAL_GRAPH_PATTERN_OPERATOR_VALUES:
 

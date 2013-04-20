@@ -666,6 +666,9 @@ rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_world *world, rasqal_q
 /* rasqal_rowsource_slice.c */
 rasqal_rowsource* rasqal_new_slice_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, int limit, int offset);
 
+/* rasqal_rowsource_service.c */
+rasqal_rowsource* rasqal_new_service_rowsource(rasqal_world *world, rasqal_query* query, rasqal_service *svc);
+  
 /* rasqal_rowsource_sort.c */
 rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource *rowsource, raptor_sequence* order_seq, int distinct);
 
@@ -1474,8 +1477,9 @@ typedef enum {
   RASQAL_ALGEBRA_OPERATOR_GROUP    = 15,
   RASQAL_ALGEBRA_OPERATOR_AGGREGATION = 16,
   RASQAL_ALGEBRA_OPERATOR_HAVING   = 17,
+  RASQAL_ALGEBRA_OPERATOR_SERVICE  = 18,
 
-  RASQAL_ALGEBRA_OPERATOR_LAST = RASQAL_ALGEBRA_OPERATOR_HAVING
+  RASQAL_ALGEBRA_OPERATOR_LAST = RASQAL_ALGEBRA_OPERATOR_SERVICE
 } rasqal_algebra_node_operator;
 
 
@@ -1532,6 +1536,9 @@ struct rasqal_algebra_node_s {
 
   /* type ORDERBY */
   int distinct;
+
+  /* type SERVICE */
+  rasqal_service *svc;
 };
 typedef struct rasqal_algebra_node_s rasqal_algebra_node;
 
@@ -1602,6 +1609,7 @@ rasqal_algebra_node* rasqal_new_let_algebra_node(rasqal_query* query, rasqal_var
 rasqal_algebra_node* rasqal_new_groupby_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* seq);
 rasqal_algebra_node* rasqal_new_aggregation_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* exprs_seq, raptor_sequence* vars_seq);
 rasqal_algebra_node* rasqal_new_having_algebra_node(rasqal_query* query,rasqal_algebra_node* node1, raptor_sequence* exprs_seq);
+rasqal_algebra_node* rasqal_new_service_algebra_node(rasqal_query* query, rasqal_service* svc);
 
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);

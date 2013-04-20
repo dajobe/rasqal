@@ -418,8 +418,8 @@ rasqal_algebra_having_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
 
 static rasqal_rowsource*
 rasqal_algebra_slice_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
-                                                rasqal_algebra_node* node,
-                                                rasqal_engine_error *error_p)
+                                               rasqal_algebra_node* node,
+                                               rasqal_engine_error *error_p)
 {
   rasqal_query *query = execution_data->query;
   rasqal_rowsource *rs;
@@ -429,6 +429,22 @@ rasqal_algebra_slice_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
     return NULL;
 
   return rasqal_new_slice_rowsource(query->world, query, rs, node->limit, node->offset);
+}
+
+
+static rasqal_rowsource*
+rasqal_algebra_service_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                                 rasqal_algebra_node* node,
+                                                 rasqal_engine_error *error_p)
+{
+  rasqal_query *query = execution_data->query;
+  rasqal_rowsource *rs;
+
+  rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
+  if(!rs || *error_p)
+    return NULL;
+
+  return rasqal_new_service_rowsource(query->world, query, node->svc);
 }
 
 
@@ -508,6 +524,11 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
     case RASQAL_ALGEBRA_OPERATOR_SLICE:
       rs = rasqal_algebra_slice_algebra_node_to_rowsource(execution_data,
                                                           node, error_p);
+      break;
+
+    case RASQAL_ALGEBRA_OPERATOR_SERVICE:
+      rs = rasqal_algebra_service_algebra_node_to_rowsource(execution_data,
+                                                            node, error_p);
       break;
 
     case RASQAL_ALGEBRA_OPERATOR_UNKNOWN:
