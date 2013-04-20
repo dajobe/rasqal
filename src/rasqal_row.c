@@ -207,10 +207,7 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
     if(name)
       fprintf(fh, "%s=", name);
 
-    if(value)
-      rasqal_literal_print(value, fh);
-    else
-      fputs("NULL", fh);
+    rasqal_literal_print(value, fh);
   }
 
   if(row->order_size > 0) {
@@ -221,10 +218,7 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
       
       if(i > 0)
         fputs(", ", fh);
-      if(value)
-        rasqal_literal_print(value, fh);
-      else
-        fputs("NULL", fh);
+      rasqal_literal_print(value, fh);
     }
     fputs("]", fh);
 

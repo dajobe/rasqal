@@ -720,11 +720,7 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
   
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG2("Aggregation %d ending group with result: ", i);
-      if(result)
-        rasqal_literal_print(result, DEBUG_FH);
-      else
-        fputs("NULL", DEBUG_FH);
-      
+      rasqal_literal_print(result, DEBUG_FH);
       fputc('\n', DEBUG_FH);
 #endif
       

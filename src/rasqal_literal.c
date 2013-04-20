@@ -4133,15 +4133,9 @@ rasqal_literal_sequence_compare(int compare_flags,
     
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("Comparing ");
-    if(literal_a)
-      rasqal_literal_print(literal_a, DEBUG_FH);
-    else
-      fputs("NULL", DEBUG_FH);
+    rasqal_literal_print(literal_a, DEBUG_FH);
     fputs(" to ", DEBUG_FH);
-    if(literal_b)
-      rasqal_literal_print(literal_b, DEBUG_FH);
-    else
-      fputs("NULL", DEBUG_FH);
+    rasqal_literal_print(literal_b, DEBUG_FH);
     fputs("\n", DEBUG_FH);
 #endif
 
