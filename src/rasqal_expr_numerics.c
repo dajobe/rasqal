@@ -40,7 +40,10 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
-#if defined(RASQAL_UUID_LIBUUID) || defined(RASQAL_UUID_OSSP)
+#if defined(RASQAL_UUID_OSSP)
+#include <ossp/uuid.h>
+#endif
+#if defined(RASQAL_UUID_LIBUUID)
 #include <uuid.h>
 #endif
 #ifdef RASQAL_UUID_LIBC
