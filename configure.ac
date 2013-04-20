@@ -597,7 +597,7 @@ elif test "$ac_cv_header_gcrypt_h" = "yes"; then
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
   #include <gcrypt.h>]], [[ gcry_md_hd_t hash; gcry_md_open(hash, GCRY_MD_MD5, 0); ]])],[have_digest_gcrypt=yes],[have_digest_gcrypt=no])
 
-  CPPFLAGS="$LIBRDF_CPPFLAGS"
+  CPPFLAGS="$oCPPFLAGS"
   LIBS="$oLIBS"
 else
   have_digest_gcrypt=no
@@ -697,7 +697,7 @@ if test "X$UUID_CONFIG" != X; then
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
   #include <uuid.h>]], [[ uuid_t *data; uuid_create(&data); ]])],[have_uuid_ossp=yes],[have_uuid_ossp=no])
 
-  CPPFLAGS="$LIBRDF_CPPFLAGS"
+  CPPFLAGS="$oCPPFLAGS"
   LIBS="$oLIBS"
 fi
 AC_MSG_RESULT($have_uuid_ossp)
