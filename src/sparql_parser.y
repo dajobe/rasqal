@@ -166,14 +166,14 @@ free_uri_applies(sparql_uri_applies* ua)
 /*
  * shift/reduce conflicts
  * FIXME: document this
- *  34 total
+ *  35 total
  *
  *   7 shift/reduce are OPTIONAL/GRAPH/FILTER/SERVICE/MINUS/LET/{
  *      after a TriplesBlockOpt has been accepted but before a
  *      GraphPatternListOpt.  Choice is made to reduce with GraphPatternListOpt.
  * 
  */
-%expect 34
+%expect 35
 
 /* word symbols */
 %token SELECT FROM WHERE
@@ -277,9 +277,9 @@ free_uri_applies(sparql_uri_applies* ua)
 %type <seq> IriRefList
 %type <seq> ParamsOpt
 %type <seq> ExpressionList
-%type <seq> BindingValueList BindingsRowList BindingsRowListOpt
+%type <seq> DataBlockValueList DataBlockValueListOpt DataBlockRowList DataBlockRowListOpt
 %type <seq> DatasetClauseList DatasetClauseListOpt
-%type <seq> VarList
+%type <seq> VarList VarListOpt
 %type <seq> GroupClauseOpt HavingClauseOpt OrderClauseOpt
 %type <seq> GraphTemplate ModifyTemplate
 
@@ -300,8 +300,9 @@ free_uri_applies(sparql_uri_applies* ua)
 %type <graph_pattern> GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
 %type <graph_pattern> GraphPatternNotTriples
 %type <graph_pattern> GraphPatternListOpt GraphPatternList GraphPatternListFilter
-%type <graph_pattern> LetGraphPattern BindGraphPattern ServiceGraphPattern
+%type <graph_pattern> LetGraphPattern Bind ServiceGraphPattern
 %type <graph_pattern> WhereClause WhereClauseOpt
+%type <graph_pattern> InlineDataGraphPattern
 
 %type <expr> Expression ConditionalOrExpression ConditionalAndExpression
 %type <expr> RelationalExpression AdditiveExpression
@@ -322,7 +323,7 @@ free_uri_applies(sparql_uri_applies* ua)
 %type <literal> NumericLiteral NumericLiteralUnsigned
 %type <literal> NumericLiteralPositive NumericLiteralNegative
 %type <literal> SeparatorOpt
-%type <literal> BindingValue
+%type <literal> DataBlockValue
 
 %type <variable> Var VarName VarOrBadVarName SelectTerm AsVarOpt
 
@@ -330,7 +331,7 @@ free_uri_applies(sparql_uri_applies* ua)
 
 %type <uinteger> DistinctOpt
 
-%type <row> BindingsRow
+%type <row> DataBlockRow
 
 %type <modifier> SolutionModifier
 
@@ -343,7 +344,7 @@ free_uri_applies(sparql_uri_applies* ua)
 
 %type <projection> SelectClause SelectExpressionList
 
-%type <bindings> BindingsClauseOpt
+%type <bindings> InlineData InlineDataOneVar InlineDataFull DataBlock ValuesClauseOpt
 
 
 %destructor {
@@ -384,9 +385,9 @@ ConstructTemplate OrderConditionList GroupConditionList
 HavingConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
 ModifyTemplateList IriRefList ParamsOpt
-BindingValueList BindingsRowList BindingsRowListOpt
+DataBlockValueList DataBlockValueListOpt DataBlockRowList DataBlockRowListOpt
 DatasetClauseList DatasetClauseListOpt
-VarList
+VarList VarListOpt
 GroupClauseOpt HavingClauseOpt OrderClauseOpt
 GraphTemplate ModifyTemplate
 
@@ -417,7 +418,8 @@ GraphGraphPattern OptionalGraphPattern MinusGraphPattern
 GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
 GraphPatternNotTriples
 GraphPatternListOpt GraphPatternList GraphPatternListFilter
-LetGraphPattern BindGraphPattern ServiceGraphPattern
+LetGraphPattern Bind ServiceGraphPattern
+InlineDataGraphPattern
 
 %destructor {
   if($$)
@@ -440,7 +442,7 @@ SampleAggregateExpression ExpressionOrStar
   if($$)
     rasqal_free_literal($$);
 }
-GraphTerm IRIref RDFLiteral BlankNode BindingValue
+GraphTerm IRIref RDFLiteral BlankNode DataBlockValue
 VarOrIRIref
 IRIrefBrace SourceSelector
 NumericLiteral NumericLiteralUnsigned
@@ -463,7 +465,7 @@ DatasetClause DefaultGraphClause NamedGraphClause
   if($$)
     rasqal_free_row($$);
 }
-BindingsRow
+DataBlockRow
 
 %destructor {
   if($$)
@@ -482,7 +484,7 @@ SelectClause SelectExpressionList
   if($$)
     rasqal_free_bindings($$);
 }
-BindingsClauseOpt
+InlineData InlineDataOneVar InlineDataFull DataBlock ValuesClauseOpt
 
 
 %%
@@ -499,7 +501,7 @@ Sparql: Query
 
 
 /* SPARQL Query 1.1 Grammar: Query */
-Query: Prologue ExplainOpt ReportFormat BindingsClauseOpt
+Query: Prologue ExplainOpt ReportFormat ValuesClauseOpt
 {
   if($4)
     ((rasqal_query*)rq)->bindings = $4;
@@ -2590,19 +2592,10 @@ OffsetClause: OFFSET INTEGER_LITERAL
 ;
 
 
-/* SPARQL Grammar: BindingsClause renamed for clarity */
-BindingsClauseOpt: BINDINGS VarList '{' BindingsRowListOpt '}' 
+/* SPARQL Grammar: ValuesClause renamed for clarity */
+ValuesClauseOpt: VALUES DataBlock
 {
-  if($2) {
-    $$ = rasqal_new_bindings((rasqal_query*)rq, $2, $4);
-    if(!$$)
-      YYERROR_MSG("BindingsClauseOpt: cannot create bindings");
-  } else {
-    if($4)
-      raptor_free_sequence($4);
-
-    $$ = NULL;
-  }
+  $$ = $2;
 }
 | /* empty */
 {
@@ -2611,7 +2604,18 @@ BindingsClauseOpt: BINDINGS VarList '{' BindingsRowListOpt '}'
 ;
 
 
-/* NEW Grammar Term pulled out of BindingsClause */
+/* NEW Grammar Term pulled out of InlineDataFull */
+VarListOpt: VarList
+{
+  $$ = $1;
+}
+| '(' ')' 
+{
+  $$ = NULL;
+}
+;
+
+/* NEW Grammar Term pulled out of InlineDataFull */
 VarList: VarList Var
 {
   $$ = $1;
@@ -2637,8 +2641,10 @@ VarList: VarList Var
 ;
 
 
-/* NEW Grammar Term pulled out of BindingsClause */
-BindingsRowListOpt: BindingsRowList
+/* NEW Grammar Term pulled out of InlineDataFull
+ * Maybe empty list of rows of '(' DataBlockValue* ')'
+ */
+DataBlockRowListOpt: DataBlockRowList
 {
   $$ = $1;
 }
@@ -2649,20 +2655,22 @@ BindingsRowListOpt: BindingsRowList
 ;
 
 
-/* NEW Grammar Term pulled out of BindingsClause */
-BindingsRowList: BindingsRowList BindingsRow
+/* NEW Grammar Term pulled out of InlineDataFull
+ * Non-empty list of rows of '(' DataBlockValue* ')'
+ */
+DataBlockRowList: DataBlockRowList DataBlockRow
 {
   $$ = $1;
   if(raptor_sequence_push($$, $2)) {
     raptor_free_sequence($$);
     $$ = NULL;
-    YYERROR_MSG("BindingsRowList 1: sequence push failed");
+    YYERROR_MSG("DataBlockRowList 1: sequence push failed");
   } else {
     int size = raptor_sequence_size($$);
     $2->offset = size-1;
   }
 }
-| BindingsRow
+| DataBlockRow
 {
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
                            (raptor_data_print_handler)rasqal_row_print);
@@ -2670,19 +2678,21 @@ BindingsRowList: BindingsRowList BindingsRow
     if($1)
       rasqal_free_row($1);
 
-    YYERROR_MSG("BindingsRowList 2: cannot create sequence");
+    YYERROR_MSG("DataBlockRowList 2: cannot create sequence");
   }
   if(raptor_sequence_push($$, $1)) {
     raptor_free_sequence($$);
     $$ = NULL;
-    YYERROR_MSG("BindingsRowList 2: sequence push failed");
+    YYERROR_MSG("DataBlockRowList 2: sequence push failed");
   }
 }
 ;
 
 
-/* NEW Grammar Term pulled out of BindingsClause */
-BindingsRow: '(' BindingValueList ')'
+/* NEW Grammar Term pulled out of BindingsClause
+ * Row of '(' DataBlockValue* ')'
+ */
+DataBlockRow: '(' DataBlockValueList ')'
 {
   $$ = NULL;
   if($2) {
@@ -2694,7 +2704,7 @@ BindingsRow: '(' BindingValueList ')'
 
     row = rasqal_new_row_for_size(((rasqal_query*)rq)->world, size);
     if(!row) {
-      YYERROR_MSG("BindingsRow: cannot create row");
+      YYERROR_MSG("DataBlockRow: cannot create row");
     } else {
       for(i = 0; i < size; i++) {
         rasqal_literal* value = (rasqal_literal*)raptor_sequence_get_at($2, i);
@@ -2702,7 +2712,11 @@ BindingsRow: '(' BindingValueList ')'
       }
     }
     raptor_free_sequence($2);
-    
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1  
+    RASQAL_DEBUG1("DataBlockRow returned: ");
+    rasqal_row_print(row, stderr);
+    fputc('\n', stderr);
+#endif
     $$ = row;
   }
 }
@@ -2712,10 +2726,14 @@ BindingsRow: '(' BindingValueList ')'
 }
 ;
 
-
-/* NEW Grammar Term pulled out of BindingsClause */
-BindingValueList: BindingValueList BindingValue
+/* NEW Grammar Term pulled out of InlineDataFull */
+DataBlockValueList: DataBlockValueList DataBlockValue
 {
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1  
+  RASQAL_DEBUG1("DataBlockValue 1 value: ");
+  rasqal_literal_print($2, stderr);
+  fputc('\n', stderr);
+#endif
   $$ = $1;
   if(raptor_sequence_push($$, $2)) {
     raptor_free_sequence($$);
@@ -2723,8 +2741,13 @@ BindingValueList: BindingValueList BindingValue
     YYERROR_MSG("IriRefList 1: sequence push failed");
   }
 }
-| BindingValue
+| DataBlockValue
 {
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1  
+  RASQAL_DEBUG1("DataBlockValue 2 value: ");
+  rasqal_literal_print($1, stderr);
+  fputc('\n', stderr);
+#endif
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
                            (raptor_data_print_handler)rasqal_literal_print);
   if(!$$) {
@@ -2778,8 +2801,8 @@ RDFLiteral: STRING
 ;
 
 
-/* SPARQL Grammar: BindingValue */
-BindingValue: IRIref
+/* SPARQL Grammar: DataBlockValue */
+DataBlockValue: IRIref
 {
   $$ = $1;
 }
@@ -3118,7 +3141,11 @@ GraphPatternNotTriples: GroupOrUnionGraphPattern
 {
   $$ = $1;
 }
-| BindGraphPattern
+| Bind
+{
+  $$ = $1;
+}
+| InlineDataGraphPattern
 {
   $$ = $1;
 }
@@ -3231,6 +3258,101 @@ ServiceGraphPattern: SERVICE SilentOpt VarOrIRIref GroupGraphPattern
 ;
 
 
+/* SPARQL 1.1: BIND (expression AS ?Var ) . */
+Bind: BIND '(' Expression AS Var ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  $$ = NULL;
+  if($3 && $5) {
+    if(!sparql->sparql11_query) {
+      sparql_syntax_error((rasqal_query*)rq,
+                          "BIND cannot be used with SPARQL 1.0");
+      YYERROR;
+    } else {
+      $$ = rasqal_new_let_graph_pattern((rasqal_query*)rq, $5, $3);
+    }
+  } else
+    $$ = NULL;
+}
+;
+
+
+/* SPARQL 1.1: InlineData */
+InlineData: VALUES DataBlock
+{
+  $$ = $2;
+}
+;
+
+/* SPARQL 1.1: InlineData merged with InlineDataOneVar and InlineDataFull */
+DataBlock: InlineDataOneVar 
+{
+  $$ = $1;
+}
+| InlineDataFull
+{
+  $$ = $1;
+}
+;
+
+
+/* SPARQL 1.1: InlineDataOneVar */
+InlineDataOneVar: Var '{' DataBlockValueListOpt '}'
+{
+  $$ = rasqal_new_bindings_from_var_values((rasqal_query*)rq, $1, $3);
+}
+;
+
+
+/* Pulled out of InlineDataOneVar
+*/
+DataBlockValueListOpt: DataBlockValueList
+{
+  $$ = $1;
+}
+| /* empty */
+{
+  $$ = NULL;
+}
+;
+
+
+/* SPARQL 1.1: InlineDataFull 
+ * ( NIL | '(' Var* ')' ) '{' ( '(' DataBlockValue* ')' | NIL )* '}'
+ * and since NIL = '(' ')' with whitespace and VarList handles Vars* etc.
+ * = '(' Var* ')' '{' ( '(' DataBlockValue* ')')* '}'
+ * = '(' VarListOpt ')' '{' DataBlockRowListOpt '}'
+ *
+ * DataBlockRowListOpt: ( '(' DataBlockValue* ')')*
+ * 
+ */
+InlineDataFull: '(' VarListOpt ')' '{' DataBlockRowListOpt '}' 
+{
+  if($2) {
+    $$ = rasqal_new_bindings((rasqal_query*)rq, $2, $5);
+    if(!$$)
+      YYERROR_MSG("InlineDataFull: cannot create bindings");
+  } else {
+    if($5)
+      raptor_free_sequence($5);
+
+    $$ = NULL;
+  }
+}
+;
+
+
+InlineDataGraphPattern: InlineData
+{
+  $$ = rasqal_new_values_graph_pattern((rasqal_query*)rq, $1);
+  if(!$$)
+    YYERROR_MSG("InlineDataGraphPattern: cannot create gp");
+}
+;
+
+
 /* SPARQL Grammar: MinusGraphPattern */
 MinusGraphPattern: MINUS GroupGraphPattern
 {
@@ -3312,27 +3434,6 @@ LetGraphPattern: LET '(' Var ASSIGN Expression ')'
       sparql_syntax_error((rasqal_query*)rq,
                           "LET can only be used with LAQRS");
       YYERROR;
-    }
-  } else
-    $$ = NULL;
-}
-;
-
-
-/* SPARQL 1.1: BIND (expression AS ?Var ) . */
-BindGraphPattern: BIND '(' Expression AS Var ')'
-{
-  rasqal_sparql_query_language* sparql;
-  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
-
-  $$ = NULL;
-  if($3 && $5) {
-    if(!sparql->sparql11_query) {
-      sparql_syntax_error((rasqal_query*)rq,
-                          "BIND cannot be used with SPARQL 1.0");
-      YYERROR;
-    } else {
-      $$ = rasqal_new_let_graph_pattern((rasqal_query*)rq, $5, $3);
     }
   } else
     $$ = NULL;
