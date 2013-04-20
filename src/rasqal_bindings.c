@@ -75,6 +75,96 @@ rasqal_new_bindings(rasqal_query* query,
 
 
   
+/**
+ * rasqal_new_bindings_from_var_values:
+ * @query: rasqal query
+ * @var: variable
+ * @values: sequence of #rasqal_value (or NULL)
+ *
+ * INTERNAL - Create a new bindings object for one variable with multiple bindings
+ *
+ * The @var and @values become owned by the bindings object.
+ *
+ * Return value: a new #rasqal_bindings object or NULL on failure
+ **/
+rasqal_bindings*
+rasqal_new_bindings_from_var_values(rasqal_query* query,
+                                    rasqal_variable* var,
+                                    raptor_sequence* values)
+{
+  rasqal_bindings* bindings;
+  raptor_sequence* varlist = NULL;
+  rasqal_row* row = NULL;
+  raptor_sequence* rowlist = NULL;
+  int size;
+  int i;
+
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(var, rasqal_variable, NULL);
+
+  RASQAL_DEBUG1("InlineDataOneVar var ");
+  rasqal_variable_print(var, stderr);
+  fputs(" and values ", stderr);
+  raptor_sequence_print(values, stderr);
+  fputc('\n', stderr);
+
+  varlist = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                                (raptor_data_print_handler)rasqal_variable_print);
+  if(!varlist) {
+    RASQAL_DEBUG1("Cannot create varlist sequence");
+    goto tidy;
+  }
+
+  if(raptor_sequence_push(varlist, var)) {
+    RASQAL_DEBUG1("varlist sequence push failed");
+    goto tidy;
+  }
+  var = NULL;
+
+  size = raptor_sequence_size(values);
+
+  row = rasqal_new_row_for_size(query->world, size);
+  if(!row) {
+    RASQAL_DEBUG1("cannot create row");
+    goto tidy;
+  }
+
+  for(i = 0; i < size; i++) {
+    rasqal_literal* value = (rasqal_literal*)raptor_sequence_get_at(values, i);
+    rasqal_row_set_value_at(row, i, value);
+  }
+
+  rowlist = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
+                                (raptor_data_print_handler)rasqal_row_print);
+  if(!rowlist) {
+    RASQAL_DEBUG1("cannot create rowlist sequence");
+    goto tidy;
+  }
+
+  if(raptor_sequence_push(rowlist, row)) {
+    RASQAL_DEBUG1("rowlist sequence push failed");
+    goto tidy;
+  }
+  row = NULL;
+
+  bindings = rasqal_new_bindings(query, varlist, rowlist);
+  varlist = NULL; rowlist = NULL;
+
+tidy:
+  if(rowlist)
+    raptor_free_sequence(rowlist);
+  if(varlist)
+    raptor_free_sequence(varlist);
+  if(var)
+    rasqal_free_variable(var);
+  if(values)
+    raptor_free_sequence(values);
+
+  return bindings;
+}
+
+
 /*
  * rasqal_free_bindings:
  * @bindings: #rasqal_bindings object

@@ -1745,6 +1745,7 @@ int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operati
 
 /* rasqal_bindings.c */
 rasqal_bindings* rasqal_new_bindings(rasqal_query* query, raptor_sequence* variables, raptor_sequence* rows);
+rasqal_bindings* rasqal_new_bindings_from_var_values(rasqal_query* query, rasqal_variable* var, raptor_sequence* values);
 void rasqal_free_bindings(rasqal_bindings* bindings);
 int rasqal_bindings_print(rasqal_bindings* bindings, FILE* fh);
 
