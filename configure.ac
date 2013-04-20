@@ -673,12 +673,16 @@ PKG_CHECK_MODULES(UUID, uuid, [
   CPPFLAGS="$CPPFLAGS `$PKG_CONFIG uuid --cflags`"
   LIBS="$LIBS `$PKG_CONFIG uuid --libs`"
 
+  dnl check for OSSP uuid defines and error out so we only get linux libuuid
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-  #include <uuid.h>]], [[ uuid_t data; uuid_clear(&data); ]])],[have_uuid_libuuid=yes],[have_uuid_libuuid=no])
+  #include <uuid.h>]], [[
+  #if defined(UUID_LEN_BIN) && defined(UUID_VERSION)
+  FAIL
+  #endif
+  uuid_t data; uuid_clear(&data); ]])],[have_uuid_libuuid=yes],[have_uuid_libuuid=no])
 
-  CPPFLAGS="$LIBRDF_CPPFLAGS"
+  CPPFLAGS="$oCPPFLAGS"
   LIBS="$oLIBS"
-  have_uuid_libuuid=yes
 ], [have_uuid_libuuid=no])
 AC_MSG_CHECKING(for libuuid)
 AC_MSG_RESULT($have_uuid_libuuid)
