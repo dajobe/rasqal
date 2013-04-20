@@ -435,7 +435,8 @@ static const char* const rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTE
   "Let",
   "Select",
   "Service",
-  "Minus"
+  "Minus",
+  "Values"
 };
 
 
