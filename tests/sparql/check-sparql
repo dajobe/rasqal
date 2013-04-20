@@ -529,7 +529,7 @@ sub run_test {
       $sort=$sorted ? "cat " : "sort ";
     }
 
-    if (m/^result: \[(.*)\]$/) {
+    if (m/^(?:row|result): \[(.*)\]$/) {
       s/=INV:/=/g;
       s/=udt/=string/g;
       s%=xsdstring\((.*?)\)%=string("$1"^^<http://www.w3.org/2001/XMLSchema#string>)%g;
@@ -645,7 +645,7 @@ sub run_test {
     $count=0;
     for my $row (@{$results->{rows}}) {
       my(@vals) = map { $_ . '=' . defined_or_NULL($row->{$_}) } @vars_order;
-      print OUT "result: [", join(", ", @vals), "]\n";
+      print OUT "row: [", join(", ", @vals), "]\n";
       $count++;
     }
     close(OUT);
