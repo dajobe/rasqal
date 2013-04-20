@@ -1412,7 +1412,7 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
   raptor_iostream *iostr;
 
   if(!l) {
-    fputs("null", fh);
+    fputs("NULL", fh);
     return 0;
   }
 
