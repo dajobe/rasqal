@@ -690,21 +690,22 @@ SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier
     YYERROR;
   } else {
     $$ = rasqal_new_select_graph_pattern((rasqal_query*)rq,
-                                         $1, $2, $3, $4);
+                                         $1, $2, $3, $4, NULL);
   }
 }
 ;
 
 /* SPARQL Grammar: SubSelect */
-SubSelect: SelectClause WhereClause SolutionModifier
+SubSelect: SelectClause WhereClause SolutionModifier ValuesClauseOpt
 {
-  if($1 && $2 && $3)
+  if($1 && $2 && $3) {
     $$ = rasqal_new_select_graph_pattern((rasqal_query*)rq,
                                          $1,
                                          /* data graphs */ NULL,
                                          $2,
-                                         $3);
-  else
+                                         $3,
+                                         $4);
+  } else
     $$ = NULL;
 }
 

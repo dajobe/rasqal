@@ -222,6 +222,7 @@ rasqal_new_let_graph_pattern(rasqal_query *query,
  * @data_graphs: sequence of #rasqal_data_graph (or NULL)
  * @where: WHERE graph pattern
  * @modifier: solution modifier
+ * @bindings: binding VALUES (or NULL)
  *
  * INTERNAL - Create a new SELECT graph pattern
  *
@@ -241,7 +242,8 @@ rasqal_new_select_graph_pattern(rasqal_query *query,
                                 rasqal_projection* projection,
                                 raptor_sequence* data_graphs,
                                 rasqal_graph_pattern* where,
-                                rasqal_solution_modifier* modifier)
+                                rasqal_solution_modifier* modifier,
+                                rasqal_bindings* bindings)
 {
   rasqal_graph_pattern* gp;
 
@@ -258,12 +260,16 @@ rasqal_new_select_graph_pattern(rasqal_query *query,
     if(modifier)
       rasqal_free_solution_modifier(modifier);
 
+    if(bindings)
+      rasqal_free_bindings(bindings);
+
     return NULL;
   }
 
   gp->projection = projection;
   gp->data_graphs = data_graphs;
   gp->modifier = modifier;
+  gp->bindings = bindings;
   
   if(rasqal_graph_pattern_add_sub_graph_pattern(gp, where)) {
     rasqal_free_graph_pattern(gp);
