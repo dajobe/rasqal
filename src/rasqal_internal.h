@@ -302,7 +302,7 @@ struct rasqal_graph_pattern_s {
   /* SELECT graph pattern: sequence of #rasqal_data_graph */
   raptor_sequence* data_graphs;
 
-  /* VALUES bindings */
+  /* VALUES bindings for VALUES and sub-SELECT graph patterns */
   rasqal_bindings* bindings;
 };
 
