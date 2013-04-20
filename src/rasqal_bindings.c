@@ -222,3 +222,38 @@ rasqal_bindings_print(rasqal_bindings* bindings, FILE* fh)
 
   return 0;
 }
+
+/*
+ * rasqal_bindings_write:
+ * @bindings: the #rasqal_bindings object
+ * @iostr: the iostream to write to
+ *
+ * INTERNAL - Write a #rasqal_bindings in a debug format.
+ * 
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_bindings_write(rasqal_bindings* bindings, raptor_iostream *iostr)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(bindings, rasqal_bindings, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, 1);
+
+  raptor_iostream_counted_string_write("\n  variables: ", 15, iostr);
+  rasqal_variables_write(bindings->variables, iostr);
+  raptor_iostream_counted_string_write("\n  rows: [\n    ", 17, iostr);
+
+  if(bindings->rows) {
+    int i;
+    
+    for(i = 0; i < raptor_sequence_size(bindings->rows); i++) {
+      rasqal_row* row;
+      row = (rasqal_row*)raptor_sequence_get_at(bindings->rows, i);
+      if(i > 0)
+        raptor_iostream_counted_string_write("\n    ", 5, iostr);
+      rasqal_row_write(row, iostr);
+    }
+  }
+  raptor_iostream_counted_string_write("\n  ]\n", 5, iostr);
+
+  return 0;
+}
