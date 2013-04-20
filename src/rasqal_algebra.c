@@ -844,22 +844,13 @@ rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node,
   }
 
   if(node->vars_seq && node->op == RASQAL_ALGEBRA_OPERATOR_PROJECT) {
-    int vars_size = raptor_sequence_size(node->vars_seq);
-    int i;
-      
     if(arg_count) {
       raptor_iostream_counted_string_write(" ,\n", 3, iostr);
       rasqal_algebra_write_indent(iostr, indent);
     }
     raptor_iostream_counted_string_write("Variables([ ", 12, iostr);
-    for(i = 0; i < vars_size; i++) {
-      rasqal_variable* v;
-      v = (rasqal_variable*)raptor_sequence_get_at(node->vars_seq, i);
-      if(i > 0)
-        raptor_iostream_counted_string_write(", ", 2, iostr);
-      rasqal_variable_write(v, iostr);
-      arg_count++;
-    }
+    rasqal_variables_write(node->vars_seq, iostr);
+    arg_count += raptor_sequence_size(node->vars_seq);
     raptor_iostream_counted_string_write(" ])", 3, iostr);
   }
 
