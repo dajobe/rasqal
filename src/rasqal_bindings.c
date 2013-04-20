@@ -188,7 +188,7 @@ rasqal_free_bindings(rasqal_bindings* bindings)
 
 /*
  * rasqal_bindings_print:
- * @gp: the #rasqal_bindings object
+ * @bindings: the #rasqal_bindings object
  * @fh: the FILE* handle to print to
  *
  * INTERNAL - Print a #rasqal_bindings in a debug format.
