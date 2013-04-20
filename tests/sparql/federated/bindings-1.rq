@@ -13,7 +13,7 @@ WHERE {
   ?study  med:ication          ?med .
   ?study  study:change         ?change .
   FILTER (?change < -.2)
-} BINDINGS ?species ?iuphar ?id {
+} VALUES ( ?species ?iuphar ?id ) {
   ("human" "GABBR1" "2550")
   ("human" "GABBR2" "9568")
 }
