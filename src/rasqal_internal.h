@@ -1634,6 +1634,7 @@ raptor_sequence* rasqal_variables_table_get_named_variables_sequence(rasqal_vari
 raptor_sequence* rasqal_variables_table_get_anonymous_variables_sequence(rasqal_variables_table* vt);
 const unsigned char** rasqal_variables_table_get_names(rasqal_variables_table* vt);
 raptor_sequence* rasqal_variable_copy_variable_sequence(raptor_sequence* vars_seq);
+int rasqal_variables_write(raptor_sequence* seq, raptor_iostream* iostr);
 
 /**
  * rasqal_engine_error:

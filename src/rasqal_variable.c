@@ -152,6 +152,40 @@ rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr)
 }
 
 
+/*
+ * rasqal_variables_write:
+ * @seq: sequence of #rasqal_variable to write
+ * @iostr: the #raptor_iostream handle to write to
+ *
+ * INTERNAL - Write a sequence of Rasqal variable to an iostream in a debug format.
+ *
+ * The write debug format may change in any release.
+ *
+ **/
+int
+rasqal_variables_write(raptor_sequence* seq, raptor_iostream* iostr)
+{
+  int vars_size;
+  int i;
+
+  if(!seq || !iostr)
+    return 1;
+
+  vars_size = raptor_sequence_size(seq);
+  for(i = 0; i < vars_size; i++) {
+    rasqal_variable* v;
+
+    v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
+    if(i > 0)
+      raptor_iostream_counted_string_write(", ", 2, iostr);
+
+    rasqal_variable_write(v, iostr);
+  }
+
+  return 0;
+}
+
+
 /**
  * rasqal_variable_print:
  * @v: the #rasqal_variable object
