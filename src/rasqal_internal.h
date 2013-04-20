@@ -301,6 +301,9 @@ struct rasqal_graph_pattern_s {
 
   /* SELECT graph pattern: sequence of #rasqal_data_graph */
   raptor_sequence* data_graphs;
+
+  /* VALUES bindings */
+  rasqal_bindings* bindings;
 };
 
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);

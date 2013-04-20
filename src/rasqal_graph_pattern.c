@@ -341,7 +341,10 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   
   if(gp->var)
     rasqal_free_variable(gp->var);
-  
+
+  if(gp->bindings)
+    rasqal_free_bindings(gp->bindings);
+
   RASQAL_FREE(rasqal_graph_pattern, gp);
 }
 
