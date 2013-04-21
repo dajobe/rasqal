@@ -1120,12 +1120,16 @@ rasqal_algebra_union_graph_pattern_to_algebra(rasqal_query* query,
 }
 
 
+/*
+ * Takes a reference to @bindings
+ */
 static rasqal_algebra_node*
 rasqal_algebra_bindings_to_algebra(rasqal_query* query,
                                    rasqal_bindings* bindings)
 {
   rasqal_algebra_node* node;
 
+  bindings = rasqal_new_bindings_from_bindings(bindings);
   node = rasqal_new_values_algebra_node(query, bindings);
 
   return node;
