@@ -1608,6 +1608,7 @@ rasqal_algebra_node* rasqal_new_let_algebra_node(rasqal_query* query, rasqal_var
 rasqal_algebra_node* rasqal_new_groupby_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* seq);
 rasqal_algebra_node* rasqal_new_aggregation_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* exprs_seq, raptor_sequence* vars_seq);
 rasqal_algebra_node* rasqal_new_having_algebra_node(rasqal_query* query,rasqal_algebra_node* node1, raptor_sequence* exprs_seq);
+rasqal_algebra_node* rasqal_new_values_algebra_node(rasqal_query* query, rasqal_bindings* bindings);
 
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);

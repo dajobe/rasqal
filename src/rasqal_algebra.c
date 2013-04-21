@@ -624,6 +624,41 @@ rasqal_new_having_algebra_node(rasqal_query* query,
 
 
 /*
+ * rasqal_new_values_algebra_node:
+ * @query: #rasqal_query query object
+ * @bindings: variable bindings
+ *
+ * INTERNAL - Create a new VALUES algebra node for a binidngs
+ *
+ * The input @bindings become owned by the new node
+ *
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
+ **/
+rasqal_algebra_node*
+rasqal_new_values_algebra_node(rasqal_query* query,
+                               rasqal_bindings* bindings)
+{
+  rasqal_algebra_node* node;
+
+  if(!query || !bindings)
+    goto fail;
+
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_VALUES);
+  if(node) {
+    node->bindings = bindings;
+    return node;
+  }
+
+  fail:
+  if(bindings)
+    rasqal_free_bindings(bindings);
+
+  return NULL;
+}
+
+
+
+/*
  * rasqal_free_algebra_node:
  * @gp: #rasqal_algebra_node object
  *
