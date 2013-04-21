@@ -1475,6 +1475,11 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
     src_gp->modifier = NULL;
   }
 
+  if(src_gp->bindings) {
+    dest_gp->bindings = src_gp->bindings;
+    src_gp->bindings = NULL;
+  }
+
   dest_gp->silent = src_gp->silent;
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
