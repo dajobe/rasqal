@@ -1900,9 +1900,23 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
     return NULL;
   
   node = rasqal_algebra_graph_pattern_to_algebra(query, query_gp);
-
   if(!node)
     return NULL;
+
+  /* FIXME - this does not seem right to be here */
+  if(query->bindings) {
+    rasqal_algebra_node* bindings_node;
+
+    bindings_node = rasqal_algebra_bindings_to_algebra(query, query->bindings);
+    if(!bindings_node) {
+      rasqal_free_algebra_node(node);
+      return NULL;
+    }
+
+    node = rasqal_new_2op_algebra_node(query,
+                                       RASQAL_ALGEBRA_OPERATOR_JOIN,
+                                       node, bindings_node);
+  }
 
   rasqal_algebra_node_visit(query, node, 
                             rasqal_algebra_remove_znodes,
