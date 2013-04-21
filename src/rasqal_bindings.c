@@ -2,7 +2,7 @@
  *
  * rasqal_bindings.c - Rasqal result bindings class
  *
- * Copyright (C) 2010, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2010-2013, David Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -40,7 +40,7 @@
 #include "rasqal_internal.h"
 
 
-/**
+/*
  * rasqal_new_bindings:
  * @query: rasqal query
  * @variables: sequence of variables
@@ -66,6 +66,7 @@ rasqal_new_bindings(rasqal_query* query,
   if(!bindings)
     return NULL;
 
+  bindings->usage = 1;
   bindings->query = query;
   bindings->variables = variables;
   bindings->rows = rows;
@@ -75,7 +76,29 @@ rasqal_new_bindings(rasqal_query* query,
 
 
   
-/**
+/*
+ * rasqal_new_bindings_from_bindings:
+ * @bindings: #rasqal_bindings to copy
+ *
+ * INTERNAL - Copy Constructor - Create a new Rasqal bindings from an existing one
+ *
+ * This adds a new reference to the bindings, it does not do a deep copy
+ *
+ * Return value: a new #rasqal_bindings or NULL on failure.
+ **/
+rasqal_bindings*
+rasqal_new_bindings_from_bindings(rasqal_bindings* bindings)
+{
+  if(!bindings)
+    return NULL;
+  
+  bindings->usage++;
+
+  return bindings;
+}
+
+
+/*
  * rasqal_new_bindings_from_var_values:
  * @query: rasqal query
  * @var: variable
@@ -178,6 +201,9 @@ void
 rasqal_free_bindings(rasqal_bindings* bindings)
 {
   if(!bindings)
+    return;
+  
+  if(--bindings->usage)
     return;
   
   raptor_free_sequence(bindings->variables);

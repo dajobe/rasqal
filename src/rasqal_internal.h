@@ -255,6 +255,9 @@ typedef struct {
  *
  */
 typedef struct {
+  /* usage/reference count */
+  int usage;
+  
   rasqal_query* query;
   
   raptor_sequence* variables;
@@ -1758,6 +1761,7 @@ int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operati
 /* rasqal_bindings.c */
 rasqal_bindings* rasqal_new_bindings(rasqal_query* query, raptor_sequence* variables, raptor_sequence* rows);
 rasqal_bindings* rasqal_new_bindings_from_var_values(rasqal_query* query, rasqal_variable* var, raptor_sequence* values);
+rasqal_bindings* rasqal_new_bindings_from_bindings(rasqal_bindings* bindings);
 void rasqal_free_bindings(rasqal_bindings* bindings);
 int rasqal_bindings_print(rasqal_bindings* bindings, FILE* fh);
 rasqal_row* rasqal_bindings_get_row(rasqal_bindings* bindings, int offset);
