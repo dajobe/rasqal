@@ -641,6 +641,9 @@ rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_res
 /* rasqal_rowsource_assignment.c */
 rasqal_rowsource* rasqal_new_assignment_rowsource(rasqal_world *world, rasqal_query *query, rasqal_variable* var, rasqal_expression* expr);
 
+/* rasqal_rowsource_bindings.c */
+rasqal_rowsource* rasqal_new_bindings_rowsource(rasqal_world *world, rasqal_query *query, rasqal_bindings* bindings);
+
 /* rasqal_rowsource_distinct.c */
 rasqal_rowsource* rasqal_new_distinct_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rs);
 
