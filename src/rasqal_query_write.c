@@ -766,6 +766,8 @@ rasqal_query_write_sparql_values(sparql_writer_context* wc,
 
   if(vars_size > 1)
     rasqal_query_write_indent(iostr, indent);
+  else
+    raptor_iostream_write_byte(' ', iostr);
   raptor_iostream_counted_string_write("}\n", 2, iostr);
 
   return 0;
