@@ -713,7 +713,8 @@ rasqal_query_write_sparql_row(sparql_writer_context* wc,
 static int
 rasqal_query_write_sparql_values(sparql_writer_context* wc,
                                  raptor_iostream* iostr,
-                                 rasqal_bindings* bindings)
+                                 rasqal_bindings* bindings,
+                                 int indent)
 {
   if(!bindings)
     return 0;
@@ -725,16 +726,19 @@ rasqal_query_write_sparql_values(sparql_writer_context* wc,
   if(bindings->rows) {
     int i;
 
+    indent += 2;
     for(i = 0; i < raptor_sequence_size(bindings->rows); i++) {
       rasqal_row* row;
       row = (rasqal_row*)raptor_sequence_get_at(bindings->rows, i);
-      raptor_iostream_counted_string_write("    ", 4, iostr);
+      rasqal_query_write_indent(iostr, indent);
       rasqal_query_write_sparql_row(wc, iostr, row);
-      raptor_iostream_counted_string_write("\n", 1, iostr);
+      raptor_iostream_write_byte('\n', iostr);
     }
+    indent -= 2;
   }
 
-  raptor_iostream_counted_string_write("  }\n", 4, iostr);
+  rasqal_query_write_indent(iostr, indent);
+  raptor_iostream_counted_string_write("}\n", 2, iostr);
 
   return 0;
 }
@@ -768,7 +772,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     rasqal_query_write_sparql_graph_pattern(wc, iostr, where_gp, 0, indent);
 
     rasqal_query_write_sparql_modifiers(wc, iostr, gp->modifier);
-    rasqal_query_write_sparql_values(wc, iostr, gp->bindings);
+    rasqal_query_write_sparql_values(wc, iostr, gp->bindings, indent);
     return;
   }
 
@@ -810,7 +814,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     want_braces = 0;
 
   if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_VALUES) {
-    rasqal_query_write_sparql_values(wc, iostr, gp->bindings);
+    rasqal_query_write_sparql_values(wc, iostr, gp->bindings, indent);
     want_braces = 0;
   }
 
@@ -1218,7 +1222,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   }
 
   rasqal_query_write_sparql_modifiers(&wc, iostr, query->modifier);
-  rasqal_query_write_sparql_values(&wc, iostr, query->bindings);
+  rasqal_query_write_sparql_values(&wc, iostr, query->bindings, 0);
 
   tidy:
   raptor_free_uri(wc.type_uri);
