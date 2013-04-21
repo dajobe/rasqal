@@ -803,7 +803,10 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     rasqal_query_write_sparql_graph_pattern(wc, iostr, where_gp, 0, indent);
 
     rasqal_query_write_sparql_modifiers(wc, iostr, gp->modifier);
-    rasqal_query_write_sparql_values(wc, iostr, gp->bindings, indent);
+    if(gp->bindings) {
+      raptor_iostream_write_byte(' ', iostr);
+      rasqal_query_write_sparql_values(wc, iostr, gp->bindings, indent);
+    }
     return;
   }
 
