@@ -1120,6 +1120,30 @@ rasqal_algebra_union_graph_pattern_to_algebra(rasqal_query* query,
 }
 
 
+static rasqal_algebra_node*
+rasqal_algebra_bindings_to_algebra(rasqal_query* query,
+                                   rasqal_bindings* bindings)
+{
+  rasqal_algebra_node* node;
+
+  node = rasqal_new_values_algebra_node(query, bindings);
+
+  return node;
+}
+
+
+static rasqal_algebra_node*
+rasqal_algebra_values_graph_pattern_to_algebra(rasqal_query* query,
+                                               rasqal_graph_pattern* gp)
+{
+  rasqal_algebra_node* node;
+
+  node = rasqal_algebra_bindings_to_algebra(query, gp->bindings);
+
+  return node;
+}
+
+
 /*
  * rasqal_algebra_new_boolean_constant_expr:
  * @query: query object
@@ -1355,10 +1379,12 @@ rasqal_algebra_select_graph_pattern_to_algebra(rasqal_query* query,
   rasqal_algebra_node* where_node;
   rasqal_algebra_node* node;
   rasqal_algebra_aggregate* ae;
+  rasqal_bindings* bindings;
   
   where_gp = rasqal_graph_pattern_get_sub_graph_pattern(gp, 0);
   projection = gp->projection;
   modifier = gp->modifier;
+  bindings = gp->bindings;
 
   where_node = rasqal_algebra_graph_pattern_to_algebra(query, where_gp);
   if(!where_node)
@@ -1398,6 +1424,22 @@ rasqal_algebra_select_graph_pattern_to_algebra(rasqal_query* query,
     goto fail;
 
   node = rasqal_algebra_query_add_slice(query, node, modifier);
+  if(!node)
+    goto fail;
+
+  if(bindings) {
+    rasqal_algebra_node* bindings_node;
+
+    bindings_node = rasqal_algebra_bindings_to_algebra(query, bindings);
+    if(!bindings_node) {
+      rasqal_free_algebra_node(node);
+      goto fail;
+    }
+
+    node = rasqal_new_2op_algebra_node(query,
+                                       RASQAL_ALGEBRA_OPERATOR_JOIN,
+                                       node, bindings_node);
+  }
 
   return node;
 
@@ -1442,9 +1484,12 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
       node = rasqal_algebra_filter_graph_pattern_to_algebra(query, gp);
       break;
 
+    case RASQAL_GRAPH_PATTERN_OPERATOR_VALUES:
+      node = rasqal_algebra_values_graph_pattern_to_algebra(query, gp);
+      break;
+
     case RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE:
     case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
-    case RASQAL_GRAPH_PATTERN_OPERATOR_VALUES:
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
     default:
