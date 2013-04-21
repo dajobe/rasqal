@@ -659,6 +659,9 @@ rasqal_free_algebra_node(rasqal_algebra_node* node)
   if(node->var)
     rasqal_free_variable(node->var);
 
+  if(node->bindings)
+    rasqal_free_bindings(node->bindings);
+
   RASQAL_FREE(rasqal_algebra, node);
 }
 
@@ -702,7 +705,8 @@ static struct {
   { "Assignment", 10 },
   { "Group", 5 },
   { "Aggregate", 9 },
-  { "Having", 6 }
+  { "Having", 6 },
+  { "Values", 6 }
 };
 
 

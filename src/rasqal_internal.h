@@ -1476,8 +1476,9 @@ typedef enum {
   RASQAL_ALGEBRA_OPERATOR_GROUP    = 15,
   RASQAL_ALGEBRA_OPERATOR_AGGREGATION = 16,
   RASQAL_ALGEBRA_OPERATOR_HAVING   = 17,
+  RASQAL_ALGEBRA_OPERATOR_VALUES   = 18,
 
-  RASQAL_ALGEBRA_OPERATOR_LAST = RASQAL_ALGEBRA_OPERATOR_HAVING
+  RASQAL_ALGEBRA_OPERATOR_LAST = RASQAL_ALGEBRA_OPERATOR_VALUES
 } rasqal_algebra_node_operator;
 
 
@@ -1534,6 +1535,9 @@ struct rasqal_algebra_node_s {
 
   /* type ORDERBY */
   int distinct;
+
+  /* type VALUES */
+  rasqal_bindings *bindings;
 };
 typedef struct rasqal_algebra_node_s rasqal_algebra_node;
 
