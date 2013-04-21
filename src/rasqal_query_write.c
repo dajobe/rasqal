@@ -691,22 +691,25 @@ rasqal_query_write_sparql_modifiers(sparql_writer_context *wc,
 static int
 rasqal_query_write_sparql_row(sparql_writer_context* wc,
                               raptor_iostream* iostr,
-                              rasqal_row* row)
+                              rasqal_row* row,
+                              int write_braces)
 {
   int i;
 
-  raptor_iostream_counted_string_write("( ", 2, iostr);
+  if(write_braces)
+    raptor_iostream_counted_string_write("( ", 2, iostr);
   for(i = 0; i < row->size; i++) {
     rasqal_literal* value = row->values[i];
     if(i > 0)
-      raptor_iostream_counted_string_write(" ", 1, iostr);
+      raptor_iostream_write_byte(' ', iostr);
 
     if(value)
       rasqal_query_write_sparql_literal(wc, iostr, value);
     else
       raptor_iostream_counted_string_write("UNDEF", 5, iostr);
   }
-  raptor_iostream_counted_string_write(" )", 2, iostr);
+  if(write_braces)
+    raptor_iostream_counted_string_write(" )", 2, iostr);
 
   return 0;
 }
@@ -718,33 +721,51 @@ rasqal_query_write_sparql_values(sparql_writer_context* wc,
                                  rasqal_bindings* bindings,
                                  int indent)
 {
-  int size = -1;
+  int vars_size = -1;
+  int rows_size = -1;
 
   if(!bindings)
     return 0;
 
+  if(bindings->variables)
+    vars_size = raptor_sequence_size(bindings->variables);
+
   raptor_iostream_counted_string_write("VALUES ", 7, iostr);
+
+  if(vars_size > 1)
+    raptor_iostream_counted_string_write("( ", 2, iostr);
   rasqal_query_write_sparql_variables_sequence(wc, iostr, bindings->variables);
-  raptor_iostream_counted_string_write(" {\n", 3, iostr);
+  raptor_iostream_write_byte(' ', iostr);
+  if(vars_size > 1)
+    raptor_iostream_counted_string_write(") ", 2, iostr);
+  raptor_iostream_counted_string_write("{ ", 2, iostr);
 
   if(bindings->rows)
-    size = raptor_sequence_size(bindings->rows);
+    rows_size = raptor_sequence_size(bindings->rows);
 
-  if(size > 0) {
+  if(rows_size > 0) {
     int i;
-
+    
+    if(vars_size > 1)
+      raptor_iostream_write_byte('\n', iostr);
+    
     indent += 2;
-    for(i = 0; i < size; i++) {
+    for(i = 0; i < rows_size; i++) {
       rasqal_row* row;
       row = (rasqal_row*)raptor_sequence_get_at(bindings->rows, i);
-      rasqal_query_write_indent(iostr, indent);
-      rasqal_query_write_sparql_row(wc, iostr, row);
-      raptor_iostream_write_byte('\n', iostr);
+      if(vars_size > 1) {
+        rasqal_query_write_indent(iostr, indent);
+        rasqal_query_write_sparql_row(wc, iostr, row, 1);
+        raptor_iostream_write_byte('\n', iostr);
+      } else {
+        rasqal_query_write_sparql_row(wc, iostr, row, 0);
+      }
     }
     indent -= 2;
   }
 
-  rasqal_query_write_indent(iostr, indent);
+  if(vars_size > 1)
+    rasqal_query_write_indent(iostr, indent);
   raptor_iostream_counted_string_write("}\n", 2, iostr);
 
   return 0;
