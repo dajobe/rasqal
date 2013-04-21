@@ -1544,7 +1544,10 @@ rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
   int is_z1;
   int is_z2;
   rasqal_algebra_node *anode;
-  
+
+  if(!node)
+    return 1;
+
   /* Look for join operations with no variable join conditions and see if they
    * can be merged, when one of node1 or node2 is an empty graph pattern.
    */
