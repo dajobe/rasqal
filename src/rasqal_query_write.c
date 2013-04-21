@@ -804,7 +804,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
 
     rasqal_query_write_sparql_modifiers(wc, iostr, gp->modifier);
     if(gp->bindings) {
-      raptor_iostream_write_byte(' ', iostr);
+      rasqal_query_write_indent(iostr, indent);
       rasqal_query_write_sparql_values(wc, iostr, gp->bindings, indent);
     }
     return;
@@ -903,7 +903,8 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
       
       rasqal_query_write_sparql_graph_pattern(wc, iostr, sgp, gp_index, indent);
     }
-    raptor_iostream_write_byte('\n', iostr);
+    if(gp_index < size)
+      raptor_iostream_write_byte('\n', iostr);
   }
   
 
@@ -934,7 +935,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     indent -= 2;
 
     rasqal_query_write_indent(iostr, indent);
-    raptor_iostream_write_byte('}', iostr);
+    raptor_iostream_counted_string_write("}\n", 2, iostr);
   }
 
 }
@@ -1252,11 +1253,13 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_counted_string_write("}\n", 2, iostr);
   }
   if(query->query_graph_pattern) {
-    raptor_iostream_counted_string_write("WHERE ", 6, iostr);
+    int indent = 2;
+    raptor_iostream_counted_string_write("WHERE {\n", 8, iostr);
+    rasqal_query_write_indent(iostr, indent);
     rasqal_query_write_sparql_graph_pattern(&wc, iostr,
                                             query->query_graph_pattern, 
-                                            -1, 0);
-    raptor_iostream_write_byte('\n', iostr);
+                                            -1, indent);
+    raptor_iostream_counted_string_write("}\n", 2, iostr);
   }
 
   rasqal_query_write_sparql_modifiers(&wc, iostr, query->modifier);
