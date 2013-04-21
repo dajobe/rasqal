@@ -783,7 +783,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
   raptor_sequence *seq;
   int filters_count = 0;
   int want_braces = 1;
-  int size;
+  int size = -1;
 
   op = rasqal_graph_pattern_get_operator(gp);
 
@@ -839,10 +839,10 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     }
   }
 
-  if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_FILTER)
+  if(op == RASQAL_GRAPH_PATTERN_OPERATOR_FILTER)
     want_braces = 0;
 
-  if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_VALUES) {
+  if(op == RASQAL_GRAPH_PATTERN_OPERATOR_VALUES) {
     rasqal_query_write_sparql_values(wc, iostr, gp->bindings, indent);
     want_braces = 0;
   }
