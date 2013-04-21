@@ -2016,7 +2016,8 @@ static const char* const use_map_offset_labels[RASQAL_VAR_USE_MAP_OFFSET_LAST + 
   "Verbs",
   "GROUP BY",
   "HAVING",
-  "ORDER BY"
+  "ORDER BY",
+  "VALUES"
 };
 
 

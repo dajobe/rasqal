@@ -333,10 +333,11 @@ typedef enum {
 
 /**
  * rasqal_var_use_map_offset:
- * @RASQAL_VAR_USE_MAP_OFFSET_VERBS: Variables in query verbs: ASK: never, SELECT: project-expressions (SPARQL 1.1 TBD), CONSTRUCT: in constructed triple patterns, DESCRIBE: in argument (SPARQL 1.0)
- * @RASQAL_VAR_USE_MAP_OFFSET_GROUP_BY: Variables in GROUP BY expr/var (SPARQL 1.1 TBD)
- * @RASQAL_VAR_USE_MAP_OFFSET_HAVING: Variables in HAVING expr (SPARQL 1.1 TBD)
+ * @RASQAL_VAR_USE_MAP_OFFSET_VERBS: Variables in query verbs: ASK: never, SELECT: project-expressions (SPARQL 1.1), CONSTRUCT: in constructed triple patterns, DESCRIBE: in argument (SPARQL 1.0)
+ * @RASQAL_VAR_USE_MAP_OFFSET_GROUP_BY: Variables in GROUP BY expr/var (SPARQL 1.1)
+ * @RASQAL_VAR_USE_MAP_OFFSET_HAVING: Variables in HAVING expr (SPARQL 1.1)
  * @RASQAL_VAR_USE_MAP_OFFSET_ORDER_BY: Variables in ORDER BY list-of-expr (SPARQL 1.0)
+ * @RASQAL_VAR_USE_MAP_OFFSET_VALUES: Variables bound in VALUES (SPARQL 1.1)
  * @RASQAL_VAR_USE_MAP_OFFSET_LAST: internal
  *
  * Offsets into variables use-map for non-graph pattern parts of #rasqal_query structure
@@ -346,7 +347,8 @@ typedef enum {
   RASQAL_VAR_USE_MAP_OFFSET_GROUP_BY = 1,
   RASQAL_VAR_USE_MAP_OFFSET_HAVING   = 2,
   RASQAL_VAR_USE_MAP_OFFSET_ORDER_BY = 3,
-  RASQAL_VAR_USE_MAP_OFFSET_LAST     = RASQAL_VAR_USE_MAP_OFFSET_ORDER_BY,
+  RASQAL_VAR_USE_MAP_OFFSET_VALUES   = 4,
+  RASQAL_VAR_USE_MAP_OFFSET_LAST     = RASQAL_VAR_USE_MAP_OFFSET_VALUES,
 } rasqal_var_use_map_offset;
 
 
