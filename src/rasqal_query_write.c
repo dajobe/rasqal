@@ -597,9 +597,9 @@ rasqal_query_write_sparql_triple_data(sparql_writer_context *wc,
 
 
 static int
-rasqal_query_write_sparql_select(sparql_writer_context *wc,
-                                 raptor_iostream *iostr, 
-                                 raptor_sequence* vars_seq)
+rasqal_query_write_sparql_variables_sequence(sparql_writer_context *wc,
+                                             raptor_iostream *iostr, 
+                                             raptor_sequence* vars_seq)
 {
   int count = raptor_sequence_size(vars_seq);
   int i;
@@ -720,7 +720,7 @@ rasqal_query_write_sparql_values(sparql_writer_context* wc,
     return 0;
 
   raptor_iostream_counted_string_write("VALUES", 8, iostr);
-  rasqal_query_write_sparql_select(wc, iostr, bindings->variables);
+  rasqal_query_write_sparql_variables_sequence(wc, iostr, bindings->variables);
   raptor_iostream_counted_string_write(" {\n", 3, iostr);
 
   if(bindings->rows) {
@@ -764,7 +764,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     
     raptor_iostream_counted_string_write("SELECT", 6, iostr);
     vars_seq = rasqal_projection_get_variables_sequence(gp->projection);
-    rasqal_query_write_sparql_select(wc, iostr, vars_seq);
+    rasqal_query_write_sparql_variables_sequence(wc, iostr, vars_seq);
     raptor_iostream_write_byte('\n', iostr);
     rasqal_query_write_indent(iostr, indent);
     raptor_iostream_counted_string_write("WHERE ", 6, iostr);
@@ -984,7 +984,8 @@ rasqal_query_write_sparql_projection(sparql_writer_context *wc,
     return 0;
   }
 
-  return rasqal_query_write_sparql_select(wc, iostr, projection->variables);
+  return rasqal_query_write_sparql_variables_sequence(wc, iostr,
+                                                      projection->variables);
 }
 
 
