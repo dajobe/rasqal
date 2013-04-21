@@ -2225,7 +2225,7 @@ rasqal_algebra_query_add_aggregation(rasqal_query* query,
   exprs_seq = ae->agg_exprs; ae->agg_exprs = NULL;
   vars_seq = ae->agg_vars_seq; ae->agg_vars_seq = NULL;
 
-  rasqal_free_algebra_aggregate(ae);
+  rasqal_free_algebra_aggregate(ae); ae = NULL;
   
   node = rasqal_new_aggregation_algebra_node(query, node, exprs_seq, vars_seq);
   exprs_seq = NULL; vars_seq = NULL;
