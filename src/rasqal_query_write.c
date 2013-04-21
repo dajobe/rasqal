@@ -599,14 +599,18 @@ rasqal_query_write_sparql_triple_data(sparql_writer_context *wc,
 static int
 rasqal_query_write_sparql_variables_sequence(sparql_writer_context *wc,
                                              raptor_iostream *iostr, 
-                                             raptor_sequence* vars_seq)
+                                             raptor_sequence* seq)
 {
-  int count = raptor_sequence_size(vars_seq);
+  int count = raptor_sequence_size(seq);
   int i;
   
+  if(!seq)
+    return 0;
+
   for(i = 0; i < count; i++) {
-    rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(vars_seq, i);
-    raptor_iostream_write_byte(' ', iostr);
+    rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
+    if(i > 0)
+      raptor_iostream_write_byte(' ', iostr);
     rasqal_query_write_sparql_variable(wc, iostr, v);
   }
 
@@ -615,23 +619,21 @@ rasqal_query_write_sparql_variables_sequence(sparql_writer_context *wc,
 
 
 static int
-rasqal_query_write_expression_sequence(sparql_writer_context *wc,
-                                       raptor_iostream* iostr,
-                                       raptor_sequence* seq)
+rasqal_query_write_sparql_expression_sequence(sparql_writer_context *wc,
+                                              raptor_iostream* iostr,
+                                              raptor_sequence* seq)
 {
+  int count = raptor_sequence_size(seq);
   int i;
 
   if(!seq)
     return 0;
 
-  for(i = 0; 1; i++) {
-    rasqal_expression* expr = (rasqal_expression*)raptor_sequence_get_at(seq, i);
-    if(!expr)
-      break;
-
+  for(i = 0; i < count; i++) {
+    rasqal_expression* e = (rasqal_expression*)raptor_sequence_get_at(seq, i);
     if(i > 0)
       raptor_iostream_write_byte(' ', iostr);
-    rasqal_query_write_sparql_expression(wc, iostr, expr);
+    rasqal_query_write_sparql_expression(wc, iostr, e);
   }
 
   return 0;
@@ -648,21 +650,21 @@ rasqal_query_write_sparql_modifiers(sparql_writer_context *wc,
   seq = modifier->group_conditions;
   if(seq && raptor_sequence_size(seq) > 0) {
     raptor_iostream_counted_string_write("GROUP BY ", 9, iostr);
-    rasqal_query_write_expression_sequence(wc, iostr, seq);
+    rasqal_query_write_sparql_expression_sequence(wc, iostr, seq);
     raptor_iostream_write_byte('\n', iostr);
   }
 
   seq = modifier->having_conditions;
   if(seq && raptor_sequence_size(seq) > 0) {
     raptor_iostream_counted_string_write("HAVING ", 7, iostr);
-    rasqal_query_write_expression_sequence(wc, iostr, seq);
+    rasqal_query_write_sparql_expression_sequence(wc, iostr, seq);
     raptor_iostream_write_byte('\n', iostr);
   }
 
   seq = modifier->order_conditions;
   if(seq && raptor_sequence_size(seq) > 0) {
     raptor_iostream_counted_string_write("ORDER BY ", 9, iostr);
-    rasqal_query_write_expression_sequence(wc, iostr, seq);
+    rasqal_query_write_sparql_expression_sequence(wc, iostr, seq);
     raptor_iostream_write_byte('\n', iostr);
   }
 
@@ -719,7 +721,7 @@ rasqal_query_write_sparql_values(sparql_writer_context* wc,
   if(!bindings)
     return 0;
 
-  raptor_iostream_counted_string_write("VALUES", 8, iostr);
+  raptor_iostream_counted_string_write("VALUES ", 7, iostr);
   rasqal_query_write_sparql_variables_sequence(wc, iostr, bindings->variables);
   raptor_iostream_counted_string_write(" {\n", 3, iostr);
 
@@ -762,7 +764,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     raptor_sequence* vars_seq;
     rasqal_graph_pattern* where_gp;
     
-    raptor_iostream_counted_string_write("SELECT", 6, iostr);
+    raptor_iostream_counted_string_write("SELECT ", 7, iostr);
     vars_seq = rasqal_projection_get_variables_sequence(gp->projection);
     rasqal_query_write_sparql_variables_sequence(wc, iostr, vars_seq);
     raptor_iostream_write_byte('\n', iostr);
@@ -984,6 +986,7 @@ rasqal_query_write_sparql_projection(sparql_writer_context *wc,
     return 0;
   }
 
+  raptor_iostream_write_byte(' ', iostr);
   return rasqal_query_write_sparql_variables_sequence(wc, iostr,
                                                       projection->variables);
 }
