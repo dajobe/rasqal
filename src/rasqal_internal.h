@@ -1751,6 +1751,7 @@ rasqal_bindings* rasqal_new_bindings_from_var_values(rasqal_query* query, rasqal
 void rasqal_free_bindings(rasqal_bindings* bindings);
 int rasqal_bindings_print(rasqal_bindings* bindings, FILE* fh);
 int rasqal_bindings_write(rasqal_bindings* bindings, raptor_iostream *iostr);
+rasqal_row* rasqal_bindings_get_row(rasqal_bindings* bindings, int offset);
 
 /* rasqal_projection.c */
 rasqal_projection* rasqal_new_projection(rasqal_query* query, raptor_sequence* variables, int wildcard, int distinct);

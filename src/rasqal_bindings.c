@@ -259,3 +259,27 @@ rasqal_bindings_write(rasqal_bindings* bindings, raptor_iostream *iostr)
 
   return 0;
 }
+
+
+/*
+ * rasqal_bindings_get_row:
+ * @bindings: the #rasqal_bindings object
+ * @offset: row offset into bindings (0+)
+ *
+ * INTERNAL - get a row from a binding at the given offset
+ *
+ * Return value: new row or NULL if out of range
+ */
+rasqal_row*
+rasqal_bindings_get_row(rasqal_bindings* bindings, int offset)
+{
+  rasqal_row* row = NULL;
+
+  if(bindings->rows) {
+    row = (rasqal_row*)raptor_sequence_get_at(bindings->rows, offset);
+    if(row)
+      row = rasqal_new_row_from_row(row);
+  }
+
+  return row;
+}
