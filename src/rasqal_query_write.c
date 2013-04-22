@@ -825,6 +825,8 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
 
     /* LAQRS */
     raptor_iostream_counted_string_write("SERVICE ", 8, iostr);
+    if(gp->silent)
+      raptor_iostream_counted_string_write("SILENT ", 7, iostr);
     rasqal_query_write_sparql_literal(wc, iostr, gp->origin);
     raptor_iostream_counted_string_write(" ", 1, iostr);
     service_gp = rasqal_graph_pattern_get_sub_graph_pattern(gp, 0);
