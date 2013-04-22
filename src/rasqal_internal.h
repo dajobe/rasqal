@@ -1559,6 +1559,9 @@ struct rasqal_algebra_node_s {
 
   /* type SERVICE */
   rasqal_service *svc;
+
+  /* flags */
+  unsigned int flags;
 };
 typedef struct rasqal_algebra_node_s rasqal_algebra_node;
 
