@@ -1028,7 +1028,40 @@ rasqal_query_write_sparql_projection(sparql_writer_context *wc,
 
 
 int
-rasqal_query_write_sparql_20060406(raptor_iostream *iostr, 
+rasqal_query_write_sparql_20060406_graph_pattern(rasqal_graph_pattern* gp,
+                                                 raptor_iostream *iostr,
+                                                 raptor_uri* base_uri)
+{
+  rasqal_world* world = gp->query->world;
+  sparql_writer_context wc;
+
+  memset(&wc, '\0', sizeof(wc));
+  wc.world = world;
+  wc.base_uri = NULL;
+  wc.type_uri = raptor_new_uri_for_rdf_concept(world->raptor_world_ptr,
+                                               RASQAL_GOOD_CAST(const unsigned char*, "type"));
+  wc.nstack = raptor_new_namespaces(world->raptor_world_ptr, 1);
+
+  if(base_uri)
+    /* from now on all URIs are relative to this */
+    wc.base_uri = raptor_uri_copy(base_uri);
+
+  raptor_iostream_counted_string_write("SELECT *\nWHERE ", 15, iostr);
+  rasqal_query_write_sparql_graph_pattern(&wc, iostr, gp,
+                                          /* gp_index */ -1,
+                                          /* indent */ 0);
+
+  raptor_free_uri(wc.type_uri);
+  if(wc.base_uri)
+    raptor_free_uri(wc.base_uri);
+  raptor_free_namespaces(wc.nstack);
+
+  return 0;
+}
+
+
+int
+rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
                                    rasqal_query* query, raptor_uri *base_uri)
 {
   int i;

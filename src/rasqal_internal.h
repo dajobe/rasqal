@@ -1324,6 +1324,7 @@ int rasqal_query_results_sort(rasqal_query_results* query_result, raptor_data_co
 
 
 /* rasqal_query_write.c */
+int rasqal_query_write_sparql_20060406_graph_pattern(rasqal_graph_pattern* gp, raptor_iostream *iostr,raptor_uri* base_uri);
 int rasqal_query_write_sparql_20060406(raptor_iostream *iostr, rasqal_query* query, raptor_uri *base_uri);
 
 /* rasqal_result_formats.c */
