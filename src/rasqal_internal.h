@@ -255,6 +255,9 @@ typedef struct {
  *
  */
 typedef struct {
+  /* usage/reference count */
+  int usage;
+  
   rasqal_query* query;
   
   raptor_sequence* variables;
@@ -333,10 +336,11 @@ typedef enum {
 
 /**
  * rasqal_var_use_map_offset:
- * @RASQAL_VAR_USE_MAP_OFFSET_VERBS: Variables in query verbs: ASK: never, SELECT: project-expressions (SPARQL 1.1 TBD), CONSTRUCT: in constructed triple patterns, DESCRIBE: in argument (SPARQL 1.0)
- * @RASQAL_VAR_USE_MAP_OFFSET_GROUP_BY: Variables in GROUP BY expr/var (SPARQL 1.1 TBD)
- * @RASQAL_VAR_USE_MAP_OFFSET_HAVING: Variables in HAVING expr (SPARQL 1.1 TBD)
+ * @RASQAL_VAR_USE_MAP_OFFSET_VERBS: Variables in query verbs: ASK: never, SELECT: project-expressions (SPARQL 1.1), CONSTRUCT: in constructed triple patterns, DESCRIBE: in argument (SPARQL 1.0)
+ * @RASQAL_VAR_USE_MAP_OFFSET_GROUP_BY: Variables in GROUP BY expr/var (SPARQL 1.1)
+ * @RASQAL_VAR_USE_MAP_OFFSET_HAVING: Variables in HAVING expr (SPARQL 1.1)
  * @RASQAL_VAR_USE_MAP_OFFSET_ORDER_BY: Variables in ORDER BY list-of-expr (SPARQL 1.0)
+ * @RASQAL_VAR_USE_MAP_OFFSET_VALUES: Variables bound in VALUES (SPARQL 1.1)
  * @RASQAL_VAR_USE_MAP_OFFSET_LAST: internal
  *
  * Offsets into variables use-map for non-graph pattern parts of #rasqal_query structure
@@ -346,7 +350,8 @@ typedef enum {
   RASQAL_VAR_USE_MAP_OFFSET_GROUP_BY = 1,
   RASQAL_VAR_USE_MAP_OFFSET_HAVING   = 2,
   RASQAL_VAR_USE_MAP_OFFSET_ORDER_BY = 3,
-  RASQAL_VAR_USE_MAP_OFFSET_LAST     = RASQAL_VAR_USE_MAP_OFFSET_ORDER_BY,
+  RASQAL_VAR_USE_MAP_OFFSET_VALUES   = 4,
+  RASQAL_VAR_USE_MAP_OFFSET_LAST     = RASQAL_VAR_USE_MAP_OFFSET_VALUES,
 } rasqal_var_use_map_offset;
 
 
@@ -638,6 +643,9 @@ rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_res
 
 /* rasqal_rowsource_assignment.c */
 rasqal_rowsource* rasqal_new_assignment_rowsource(rasqal_world *world, rasqal_query *query, rasqal_variable* var, rasqal_expression* expr);
+
+/* rasqal_rowsource_bindings.c */
+rasqal_rowsource* rasqal_new_bindings_rowsource(rasqal_world *world, rasqal_query *query, rasqal_bindings* bindings);
 
 /* rasqal_rowsource_distinct.c */
 rasqal_rowsource* rasqal_new_distinct_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rs);
@@ -1477,7 +1485,8 @@ typedef enum {
   RASQAL_ALGEBRA_OPERATOR_GROUP    = 15,
   RASQAL_ALGEBRA_OPERATOR_AGGREGATION = 16,
   RASQAL_ALGEBRA_OPERATOR_HAVING   = 17,
-  RASQAL_ALGEBRA_OPERATOR_SERVICE  = 18,
+  RASQAL_ALGEBRA_OPERATOR_VALUES   = 18,
+  RASQAL_ALGEBRA_OPERATOR_SERVICE  = 19,
 
   RASQAL_ALGEBRA_OPERATOR_LAST = RASQAL_ALGEBRA_OPERATOR_SERVICE
 } rasqal_algebra_node_operator;
@@ -1536,6 +1545,9 @@ struct rasqal_algebra_node_s {
 
   /* type ORDERBY */
   int distinct;
+
+  /* type VALUES */
+  rasqal_bindings *bindings;
 
   /* type SERVICE */
   rasqal_service *svc;
@@ -1609,6 +1621,7 @@ rasqal_algebra_node* rasqal_new_let_algebra_node(rasqal_query* query, rasqal_var
 rasqal_algebra_node* rasqal_new_groupby_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* seq);
 rasqal_algebra_node* rasqal_new_aggregation_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* exprs_seq, raptor_sequence* vars_seq);
 rasqal_algebra_node* rasqal_new_having_algebra_node(rasqal_query* query,rasqal_algebra_node* node1, raptor_sequence* exprs_seq);
+rasqal_algebra_node* rasqal_new_values_algebra_node(rasqal_query* query, rasqal_bindings* bindings);
 rasqal_algebra_node* rasqal_new_service_algebra_node(rasqal_query* query, rasqal_service* svc);
 
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
@@ -1756,9 +1769,10 @@ int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operati
 /* rasqal_bindings.c */
 rasqal_bindings* rasqal_new_bindings(rasqal_query* query, raptor_sequence* variables, raptor_sequence* rows);
 rasqal_bindings* rasqal_new_bindings_from_var_values(rasqal_query* query, rasqal_variable* var, raptor_sequence* values);
+rasqal_bindings* rasqal_new_bindings_from_bindings(rasqal_bindings* bindings);
 void rasqal_free_bindings(rasqal_bindings* bindings);
 int rasqal_bindings_print(rasqal_bindings* bindings, FILE* fh);
-int rasqal_bindings_write(rasqal_bindings* bindings, raptor_iostream *iostr);
+rasqal_row* rasqal_bindings_get_row(rasqal_bindings* bindings, int offset);
 
 /* rasqal_projection.c */
 rasqal_projection* rasqal_new_projection(rasqal_query* query, raptor_sequence* variables, int wildcard, int distinct);

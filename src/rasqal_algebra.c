@@ -624,6 +624,40 @@ rasqal_new_having_algebra_node(rasqal_query* query,
 
 
 /*
+ * rasqal_new_values_algebra_node:
+ * @query: #rasqal_query query object
+ * @bindings: variable bindings
+ *
+ * INTERNAL - Create a new VALUES algebra node for a binidngs
+ *
+ * The input @bindings become owned by the new node
+ *
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
+ **/
+rasqal_algebra_node*
+rasqal_new_values_algebra_node(rasqal_query* query,
+                               rasqal_bindings* bindings)
+{
+  rasqal_algebra_node* node;
+
+  if(!query || !bindings)
+    goto fail;
+
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_VALUES);
+  if(node) {
+    node->bindings = bindings;
+    return node;
+  }
+
+  fail:
+  if(bindings)
+    rasqal_free_bindings(bindings);
+
+  return NULL;
+}
+
+
+/*
  * rasqal_new_service_algebra_node:
  * @query: #rasqal_query query object
  * @svc: service
@@ -694,6 +728,9 @@ rasqal_free_algebra_node(rasqal_algebra_node* node)
   if(node->var)
     rasqal_free_variable(node->var);
 
+  if(node->bindings)
+    rasqal_free_bindings(node->bindings);
+
   if(node->svc)
     rasqal_free_service(node->svc);
 
@@ -741,6 +778,7 @@ static struct {
   { "Group", 5 },
   { "Aggregate", 9 },
   { "Having", 6 },
+  { "Values", 6 },
   { "Service", 7 }
 };
 
@@ -1121,6 +1159,34 @@ rasqal_algebra_union_graph_pattern_to_algebra(rasqal_query* query,
 
 
 /*
+ * Takes a reference to @bindings
+ */
+static rasqal_algebra_node*
+rasqal_algebra_bindings_to_algebra(rasqal_query* query,
+                                   rasqal_bindings* bindings)
+{
+  rasqal_algebra_node* node;
+
+  bindings = rasqal_new_bindings_from_bindings(bindings);
+  node = rasqal_new_values_algebra_node(query, bindings);
+
+  return node;
+}
+
+
+static rasqal_algebra_node*
+rasqal_algebra_values_graph_pattern_to_algebra(rasqal_query* query,
+                                               rasqal_graph_pattern* gp)
+{
+  rasqal_algebra_node* node;
+
+  node = rasqal_algebra_bindings_to_algebra(query, gp->bindings);
+
+  return node;
+}
+
+
+/*
  * rasqal_algebra_new_boolean_constant_expr:
  * @query: query object
  * @value: boolean constant
@@ -1355,10 +1421,12 @@ rasqal_algebra_select_graph_pattern_to_algebra(rasqal_query* query,
   rasqal_algebra_node* where_node;
   rasqal_algebra_node* node;
   rasqal_algebra_aggregate* ae;
+  rasqal_bindings* bindings;
   
   where_gp = rasqal_graph_pattern_get_sub_graph_pattern(gp, 0);
   projection = gp->projection;
   modifier = gp->modifier;
+  bindings = gp->bindings;
 
   where_node = rasqal_algebra_graph_pattern_to_algebra(query, where_gp);
   if(!where_node)
@@ -1398,6 +1466,22 @@ rasqal_algebra_select_graph_pattern_to_algebra(rasqal_query* query,
     goto fail;
 
   node = rasqal_algebra_query_add_slice(query, node, modifier);
+  if(!node)
+    goto fail;
+
+  if(bindings) {
+    rasqal_algebra_node* bindings_node;
+
+    bindings_node = rasqal_algebra_bindings_to_algebra(query, bindings);
+    if(!bindings_node) {
+      rasqal_free_algebra_node(node);
+      goto fail;
+    }
+
+    node = rasqal_new_2op_algebra_node(query,
+                                       RASQAL_ALGEBRA_OPERATOR_JOIN,
+                                       node, bindings_node);
+  }
 
   return node;
 
@@ -1510,12 +1594,15 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
       node = rasqal_algebra_filter_graph_pattern_to_algebra(query, gp);
       break;
 
+    case RASQAL_GRAPH_PATTERN_OPERATOR_VALUES:
+      node = rasqal_algebra_values_graph_pattern_to_algebra(query, gp);
+      break;
+
     case RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE:
       node = rasqal_algebra_service_graph_pattern_to_algebra(query, gp);
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
-    case RASQAL_GRAPH_PATTERN_OPERATOR_VALUES:
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
     default:
@@ -1566,7 +1653,10 @@ rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
   int is_z1;
   int is_z2;
   rasqal_algebra_node *anode;
-  
+
+  if(!node)
+    return 1;
+
   /* Look for join operations with no variable join conditions and see if they
    * can be merged, when one of node1 or node2 is an empty graph pattern.
    */
@@ -1922,9 +2012,23 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
     return NULL;
   
   node = rasqal_algebra_graph_pattern_to_algebra(query, query_gp);
-
   if(!node)
     return NULL;
+
+  /* FIXME - this does not seem right to be here */
+  if(query->bindings) {
+    rasqal_algebra_node* bindings_node;
+
+    bindings_node = rasqal_algebra_bindings_to_algebra(query, query->bindings);
+    if(!bindings_node) {
+      rasqal_free_algebra_node(node);
+      return NULL;
+    }
+
+    node = rasqal_new_2op_algebra_node(query,
+                                       RASQAL_ALGEBRA_OPERATOR_JOIN,
+                                       node, bindings_node);
+  }
 
   rasqal_algebra_node_visit(query, node, 
                             rasqal_algebra_remove_znodes,
@@ -2230,7 +2334,7 @@ rasqal_algebra_query_add_aggregation(rasqal_query* query,
   exprs_seq = ae->agg_exprs; ae->agg_exprs = NULL;
   vars_seq = ae->agg_vars_seq; ae->agg_vars_seq = NULL;
 
-  rasqal_free_algebra_aggregate(ae);
+  rasqal_free_algebra_aggregate(ae); ae = NULL;
   
   node = rasqal_new_aggregation_algebra_node(query, node, exprs_seq, vars_seq);
   exprs_seq = NULL; vars_seq = NULL;

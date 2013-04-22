@@ -718,6 +718,8 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
   }
 
   if(gp->bindings) {
+    int i;
+
     if(pending_nl) {
       raptor_iostream_counted_string_write(" ,", 2, iostr);
 
@@ -728,7 +730,33 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     }
 
     raptor_iostream_counted_string_write("bindings: [", 11, iostr);
-    rasqal_bindings_write(gp->bindings, iostr);
+    if(indent >= 0) {
+      raptor_iostream_write_byte('\n', iostr);
+      indent += 2;
+      rasqal_graph_pattern_write_indent(iostr, indent);
+    }
+
+    raptor_iostream_counted_string_write("variables: [", 12, iostr);
+    rasqal_variables_write(gp->bindings->variables, iostr);
+    raptor_iostream_counted_string_write("]\n", 2, iostr);
+
+    rasqal_graph_pattern_write_indent(iostr, indent);
+    raptor_iostream_counted_string_write("rows: [", 7, iostr);
+
+    indent += 2;
+    for(i = 0; 1; i++) {
+      rasqal_row* row = rasqal_bindings_get_row(gp->bindings, i);
+      if(!row)
+        break;
+
+      raptor_iostream_write_byte('\n', iostr);
+      rasqal_graph_pattern_write_indent(iostr, indent);
+      rasqal_row_write(row, iostr);
+    }
+    indent -= 2;
+
+    raptor_iostream_write_byte('\n', iostr);
+    rasqal_graph_pattern_write_indent(iostr, indent);
     raptor_iostream_counted_string_write("]", 1, iostr);
     
     if(indent >= 0)

@@ -433,6 +433,17 @@ rasqal_algebra_slice_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
 
 
 static rasqal_rowsource*
+rasqal_algebra_values_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                                rasqal_algebra_node* node,
+                                                rasqal_engine_error *error_p)
+{
+  rasqal_query *query = execution_data->query;
+  rasqal_bindings* bindings = rasqal_new_bindings_from_bindings(node->bindings);
+  return rasqal_new_bindings_rowsource(query->world, query, bindings);
+}
+
+
+static rasqal_rowsource*
 rasqal_algebra_service_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
                                                  rasqal_algebra_node* node,
                                                  rasqal_engine_error *error_p)
@@ -524,6 +535,11 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
     case RASQAL_ALGEBRA_OPERATOR_SLICE:
       rs = rasqal_algebra_slice_algebra_node_to_rowsource(execution_data,
                                                           node, error_p);
+      break;
+
+    case RASQAL_ALGEBRA_OPERATOR_VALUES:
+      rs = rasqal_algebra_values_algebra_node_to_rowsource(execution_data,
+                                                           node, error_p);
       break;
 
     case RASQAL_ALGEBRA_OPERATOR_SERVICE:

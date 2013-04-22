@@ -2,7 +2,7 @@
  *
  * rasqal_bindings.c - Rasqal result bindings class
  *
- * Copyright (C) 2010, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2010-2013, David Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -40,7 +40,7 @@
 #include "rasqal_internal.h"
 
 
-/**
+/*
  * rasqal_new_bindings:
  * @query: rasqal query
  * @variables: sequence of variables
@@ -66,6 +66,7 @@ rasqal_new_bindings(rasqal_query* query,
   if(!bindings)
     return NULL;
 
+  bindings->usage = 1;
   bindings->query = query;
   bindings->variables = variables;
   bindings->rows = rows;
@@ -75,7 +76,29 @@ rasqal_new_bindings(rasqal_query* query,
 
 
   
-/**
+/*
+ * rasqal_new_bindings_from_bindings:
+ * @bindings: #rasqal_bindings to copy
+ *
+ * INTERNAL - Copy Constructor - Create a new Rasqal bindings from an existing one
+ *
+ * This adds a new reference to the bindings, it does not do a deep copy
+ *
+ * Return value: a new #rasqal_bindings or NULL on failure.
+ **/
+rasqal_bindings*
+rasqal_new_bindings_from_bindings(rasqal_bindings* bindings)
+{
+  if(!bindings)
+    return NULL;
+  
+  bindings->usage++;
+
+  return bindings;
+}
+
+
+/*
  * rasqal_new_bindings_from_var_values:
  * @query: rasqal query
  * @var: variable
@@ -103,11 +126,13 @@ rasqal_new_bindings_from_var_values(rasqal_query* query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(var, rasqal_variable, NULL);
 
-  RASQAL_DEBUG1("InlineDataOneVar var ");
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1  
+  RASQAL_DEBUG1("binding ");
   rasqal_variable_print(var, stderr);
-  fputs(" and values ", stderr);
+  fputs(" and row values ", stderr);
   raptor_sequence_print(values, stderr);
   fputc('\n', stderr);
+#endif
 
   varlist = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                                 (raptor_data_print_handler)rasqal_variable_print);
@@ -178,6 +203,9 @@ rasqal_free_bindings(rasqal_bindings* bindings)
   if(!bindings)
     return;
   
+  if(--bindings->usage)
+    return;
+  
   raptor_free_sequence(bindings->variables);
   if(bindings->rows)
     raptor_free_sequence(bindings->rows);
@@ -224,36 +252,24 @@ rasqal_bindings_print(rasqal_bindings* bindings, FILE* fh)
 }
 
 /*
- * rasqal_bindings_write:
+ * rasqal_bindings_get_row:
  * @bindings: the #rasqal_bindings object
- * @iostr: the iostream to write to
+ * @offset: row offset into bindings (0+)
  *
- * INTERNAL - Write a #rasqal_bindings in a debug format.
- * 
- * Return value: non-0 on failure
- **/
-int
-rasqal_bindings_write(rasqal_bindings* bindings, raptor_iostream *iostr)
+ * INTERNAL - get a row from a binding at the given offset
+ *
+ * Return value: new row or NULL if out of range
+ */
+rasqal_row*
+rasqal_bindings_get_row(rasqal_bindings* bindings, int offset)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(bindings, rasqal_bindings, 1);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, 1);
-
-  raptor_iostream_counted_string_write("\n  variables: ", 15, iostr);
-  rasqal_variables_write(bindings->variables, iostr);
-  raptor_iostream_counted_string_write("\n  rows: [\n    ", 17, iostr);
+  rasqal_row* row = NULL;
 
   if(bindings->rows) {
-    int i;
-    
-    for(i = 0; i < raptor_sequence_size(bindings->rows); i++) {
-      rasqal_row* row;
-      row = (rasqal_row*)raptor_sequence_get_at(bindings->rows, i);
-      if(i > 0)
-        raptor_iostream_counted_string_write("\n    ", 5, iostr);
-      rasqal_row_write(row, iostr);
-    }
+    row = (rasqal_row*)raptor_sequence_get_at(bindings->rows, offset);
+    if(row)
+      row = rasqal_new_row_from_row(row);
   }
-  raptor_iostream_counted_string_write("\n  ]\n", 5, iostr);
 
-  return 0;
+  return row;
 }
