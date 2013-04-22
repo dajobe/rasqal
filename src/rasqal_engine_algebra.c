@@ -450,8 +450,9 @@ rasqal_algebra_service_algebra_node_to_rowsource(rasqal_engine_algebra_data* exe
 {
   rasqal_query *query = execution_data->query;
   rasqal_service* svc = rasqal_new_service_from_service(node->svc);
+  unsigned int flags = (node->flags & RASQAL_ENGINE_BITFLAG_SILENT);
 
-  return rasqal_new_service_rowsource(query->world, query, svc);
+  return rasqal_new_service_rowsource(query->world, query, svc, flags);
 }
 
 

@@ -670,7 +670,8 @@ rasqal_new_values_algebra_node(rasqal_query* query,
  **/
 rasqal_algebra_node*
 rasqal_new_service_algebra_node(rasqal_query* query,
-                                rasqal_service* svc)
+                                rasqal_service* svc,
+                                int silent)
 {
   rasqal_algebra_node* node;
 
@@ -680,6 +681,7 @@ rasqal_new_service_algebra_node(rasqal_query* query,
   node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_SERVICE);
   if(node) {
     node->svc = svc;
+    node->flags = (silent ? RASQAL_ENGINE_BITFLAG_SILENT : 0);
     
     return node;
   }
@@ -1528,7 +1530,7 @@ rasqal_algebra_service_graph_pattern_to_algebra(rasqal_query* query,
   if(!svc)
     goto fail;
 
-  node = rasqal_new_service_algebra_node(query, svc);
+  node = rasqal_new_service_algebra_node(query, svc, gp->silent);
   if(!node) {
     RASQAL_DEBUG1("rasqal_new_service_algebra_node() failed\n");
     goto fail;

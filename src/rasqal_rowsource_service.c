@@ -49,6 +49,8 @@ typedef struct
   rasqal_query* query;
   rasqal_rowsource* rowsource;
   int count;
+  /* bit flags; currently using RASQAL_ENGINE_BITFLAG_SILENT */
+  unsigned int flags;
 } rasqal_service_rowsource_context;
 
 
@@ -143,6 +145,7 @@ static const rasqal_rowsource_handler rasqal_service_rowsource_handler = {
  * @world: world object
  * @query: query object
  * @svc: service
+ * @rs_flags: service rowsource flags
  *
  * INTERNAL - create a new rowsource that takes rows from a service
  *
@@ -152,7 +155,7 @@ static const rasqal_rowsource_handler rasqal_service_rowsource_handler = {
  */
 rasqal_rowsource*
 rasqal_new_service_rowsource(rasqal_world *world, rasqal_query* query,
-                             rasqal_service *svc)
+                             rasqal_service *svc, unsigned int rs_flags)
 {
   rasqal_service_rowsource_context* con;
   int flags = 0;
@@ -166,6 +169,7 @@ rasqal_new_service_rowsource(rasqal_world *world, rasqal_query* query,
 
   con->svc = svc;
   con->query = query;
+  con->flags = rs_flags;
 
   return rasqal_new_rowsource_from_handler(world, query,
                                            con,

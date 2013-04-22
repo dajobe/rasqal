@@ -675,7 +675,7 @@ rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_world *world, rasqal_q
 rasqal_rowsource* rasqal_new_slice_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, int limit, int offset);
 
 /* rasqal_rowsource_service.c */
-rasqal_rowsource* rasqal_new_service_rowsource(rasqal_world *world, rasqal_query* query, rasqal_service *svc);
+rasqal_rowsource* rasqal_new_service_rowsource(rasqal_world *world, rasqal_query* query, rasqal_service *svc, unsigned int flags);
   
 /* rasqal_rowsource_sort.c */
 rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource *rowsource, raptor_sequence* order_seq, int distinct);
@@ -1633,7 +1633,7 @@ rasqal_algebra_node* rasqal_new_groupby_algebra_node(rasqal_query* query, rasqal
 rasqal_algebra_node* rasqal_new_aggregation_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* exprs_seq, raptor_sequence* vars_seq);
 rasqal_algebra_node* rasqal_new_having_algebra_node(rasqal_query* query,rasqal_algebra_node* node1, raptor_sequence* exprs_seq);
 rasqal_algebra_node* rasqal_new_values_algebra_node(rasqal_query* query, rasqal_bindings* bindings);
-rasqal_algebra_node* rasqal_new_service_algebra_node(rasqal_query* query, rasqal_service* svc);
+rasqal_algebra_node* rasqal_new_service_algebra_node(rasqal_query* query, rasqal_service* svc, int silent);
 
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);
