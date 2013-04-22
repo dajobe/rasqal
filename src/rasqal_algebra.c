@@ -1501,37 +1501,28 @@ rasqal_algebra_service_graph_pattern_to_algebra(rasqal_query* query,
   rasqal_graph_pattern* inner_gp;
   char* string = NULL;
   raptor_iostream *iostr = NULL;
-  
+
   service_uri = rasqal_literal_as_uri(gp->origin);
   if(!service_uri)
     goto fail;
 
-  /* FIXME: format inner_sgp into query_string in SPARQL syntax using
-   * a query formatter and iostream and stringbuffer
-   */
   inner_gp = rasqal_graph_pattern_get_sub_graph_pattern(gp, 0);
   if(!inner_gp)
     goto fail;
-  
+
   iostr = raptor_new_iostream_to_string(query->world->raptor_world_ptr,
                                         (void**)&string, NULL,
                                         rasqal_alloc_memory);
   if(!iostr)
     goto fail;
 
-  rasqal_subquery_gp_write(iostr,
-                           /* query->verb */ RASQAL_QUERY_VERB_SELECT,
-                           /* query->distinct flag; query->wildcard flag */ 0,
-                           /* query->query_graph_pattern */ gp,
-                           /* query->data_graphs ??? */ NULL,
-                           /* query->bindings */ NULL,
-                           /* format_uri */ NULL,
-                           query->base_uri);
+  rasqal_query_write_sparql_20060406_graph_pattern(inner_gp, iostr,
+                                                   query->base_uri);
   raptor_free_iostream(iostr); iostr = NULL;
-  
+
   RASQAL_DEBUG2("Formatted query string is '%s'", string);
-  
-  svc = rasqal_new_service(query->world, service_uri, 
+
+  svc = rasqal_new_service(query->world, service_uri,
                            (const unsigned char*)string,
                            data_graphs);
   if(!svc)
@@ -1544,7 +1535,7 @@ rasqal_algebra_service_graph_pattern_to_algebra(rasqal_query* query,
   }
 
   return node;
-  
+
   fail:
   if(node)
     rasqal_free_algebra_node(node);
@@ -1552,7 +1543,7 @@ rasqal_algebra_service_graph_pattern_to_algebra(rasqal_query* query,
     raptor_free_iostream(iostr);
   if(string)
     RASQAL_FREE(char*, string);
-  
+
   return node;
 }
 
