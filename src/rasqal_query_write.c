@@ -1036,6 +1036,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   rasqal_query_verb verb;
   rasqal_projection* projection;
   
+  memset(&wc, '\0', sizeof(wc));
   wc.world = query->world;
   wc.base_uri = NULL;
 
