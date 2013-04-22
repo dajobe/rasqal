@@ -449,13 +449,9 @@ rasqal_algebra_service_algebra_node_to_rowsource(rasqal_engine_algebra_data* exe
                                                  rasqal_engine_error *error_p)
 {
   rasqal_query *query = execution_data->query;
-  rasqal_rowsource *rs;
+  rasqal_service* svc = rasqal_new_service_from_service(node->svc);
 
-  rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
-  if(!rs || *error_p)
-    return NULL;
-
-  return rasqal_new_service_rowsource(query->world, query, node->svc);
+  return rasqal_new_service_rowsource(query->world, query, svc);
 }
 
 
