@@ -1493,6 +1493,13 @@ typedef enum {
 } rasqal_algebra_node_operator;
 
 
+/* bitflags used by rasqal_algebra_node and rasqal_rowsource */
+typedef enum {
+  /* used by */
+  RASQAL_ENGINE_BITFLAG_SILENT = 1
+} rasqal_engine_bitflags;
+
+
 /*
  * Algebra Node
  *
