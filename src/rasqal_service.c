@@ -457,8 +457,9 @@ rasqal_service_execute_as_rowsource(rasqal_service* svc,
                                                       /* format URI */ NULL);
   if(!read_formatter) {
     rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Failed to create query formatter for type %s",
-                            svc->content_type);
+                            "Failed to find query results reader for content type %s returned from %s",
+                            svc->content_type,
+                            raptor_uri_as_string(read_base_uri));
     goto error;
   }
 
@@ -472,7 +473,9 @@ rasqal_service_execute_as_rowsource(rasqal_service* svc,
   read_iostr = NULL;
   if(!rowsource) {
     rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Failed to get rowsource from query formatter");
+                            "Failed to decode %s query results data returned from %s",
+                            svc->content_type,
+                            raptor_uri_as_string(read_base_uri));
     goto error;
   }
 
