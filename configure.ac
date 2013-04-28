@@ -71,7 +71,7 @@ if test "X$LEX" != "X:" ; then
 fi
  
 FLEX_MIN_VERSION=2.5.19
-FLEX_REC_VERSION=2.5.33
+FLEX_REC_VERSION=2.5.36
 if test "$USE_MAINTAINER_MODE" = yes; then
   AC_MSG_CHECKING(flex version)
   if test "X$LEX" != "X:"; then
