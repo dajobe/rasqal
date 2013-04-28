@@ -64,8 +64,17 @@ rasqal_service_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   con->rowsource = rasqal_service_execute_as_rowsource(con->svc,
                                                        con->query->vars_table);
 
-  if(!con->rowsource)
+  if(!con->rowsource) {
+    /* Silent errors return an empty rowsource */
+
+    if(con->flags & RASQAL_ENGINE_BITFLAG_SILENT) {
+      con->rowsource = rasqal_new_empty_rowsource(con->query->world,
+                                                  con->query);
+      return 0;
+    }
+
     return 1;
+  }
   
   return 0;
 }
@@ -144,28 +153,49 @@ static const rasqal_rowsource_handler rasqal_service_rowsource_handler = {
  * rasqal_new_service_rowsource:
  * @world: world object
  * @query: query object
- * @svc: service
+ * @service_uri: service URI
+ * @query_string: query to send to service
+ * @data_graphs: sequence of data graphs (or NULL)
  * @rs_flags: service rowsource flags
  *
  * INTERNAL - create a new rowsource that takes rows from a service
  *
- * Takes ownership of @svc
+ * All arguments are copied.
  *
  * Return value: new rowsource or NULL on failure
  */
 rasqal_rowsource*
 rasqal_new_service_rowsource(rasqal_world *world, rasqal_query* query,
-                             rasqal_service *svc, unsigned int rs_flags)
+                             raptor_uri* service_uri,
+                             const unsigned char* query_string,
+                             raptor_sequence* data_graphs,
+                             unsigned int rs_flags)
 {
-  rasqal_service_rowsource_context* con;
+  rasqal_service_rowsource_context* con = NULL;
+  rasqal_service* svc = NULL;
   int flags = 0;
+  int silent = (rs_flags & RASQAL_ENGINE_BITFLAG_SILENT);
 
-  if(!world || !query)
-    return NULL;
+  if(!world || !query_string)
+    goto fail;
   
+  svc = rasqal_new_service(query->world, service_uri, query_string,
+                           data_graphs);
+  if(!svc) {
+    if(!silent)
+      goto fail;
+
+    /* Silent errors so tidy up and return empty rowsource */
+    RASQAL_FREE(cstring, query_string);
+    if(data_graphs)
+      raptor_free_sequence(data_graphs);
+
+    return rasqal_new_empty_rowsource(world, query);
+  }
+
   con = RASQAL_CALLOC(rasqal_service_rowsource_context*, 1, sizeof(*con));
   if(!con)
-    return NULL;
+    goto fail;
 
   con->svc = svc;
   con->query = query;
@@ -176,6 +206,16 @@ rasqal_new_service_rowsource(rasqal_world *world, rasqal_query* query,
                                            &rasqal_service_rowsource_handler,
                                            query->vars_table,
                                            flags);
+
+  fail:
+  if(con)
+    RASQAL_FREE(rasqal_service_rowsource_context, con);
+  if(query_string)
+    RASQAL_FREE(cstring, query_string);
+  if(data_graphs)
+    raptor_free_sequence(data_graphs);
+
+  return NULL;
 }
 
 
@@ -199,6 +239,10 @@ main(int argc, char *argv[])
   int count;
   raptor_sequence* seq = NULL;
   int failures = 0;
+  raptor_uri* service_uri;
+  const unsigned char* query_string;
+  raptor_sequence* data_graphs = NULL;
+  unsigned int rs_flags = 0;
 
   world = rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
@@ -208,9 +252,14 @@ main(int argc, char *argv[])
   
   query = rasqal_new_query(world, "sparql", NULL);
   
-  rowsource = rasqal_new_service_rowsource(world, query, svc);
+  service_uri = raptor_new_uri(world->raptor_world_ptr,
+                               (const unsigned char *)"http://example.org/service");
+  query_string = (const unsigned char*)"SELECT * WHERE { ?s ?p ?o }";
+  rowsource = rasqal_new_service_rowsource(world, query, service_uri,
+                                           query_string, data_graphs,
+                                           rs_flags);
   if(!rowsource) {
-    fprintf(stderr, "%s: failed to create empty rowsource\n", program);
+    fprintf(stderr, "%s: failed to create service rowsource\n", program);
     failures++;
     goto tidy;
   }
@@ -218,7 +267,7 @@ main(int argc, char *argv[])
   row = rasqal_rowsource_read_row(rowsource);
   if(!row) {
     fprintf(stderr,
-            "%s: read_row failed to return a row for an empty rowsource\n",
+            "%s: read_row failed to return a row for an service rowsource\n",
             program);
     failures++;
     goto tidy;
@@ -226,7 +275,7 @@ main(int argc, char *argv[])
 
   if(row->size) {
     fprintf(stderr,
-            "%s: read_row returned an non-empty row size %d for a empty stream\n",
+            "%s: read_row returned an non-service row size %d for a service stream\n",
             program, row->size);
     failures++;
     goto tidy;
@@ -234,7 +283,7 @@ main(int argc, char *argv[])
   
   count = rasqal_rowsource_get_rows_count(rowsource);
   if(count != 1) {
-    fprintf(stderr, "%s: read_rows returned count %d for a empty stream\n",
+    fprintf(stderr, "%s: read_rows returned count %d for a service stream\n",
             program, count);
     failures++;
     goto tidy;
@@ -243,11 +292,13 @@ main(int argc, char *argv[])
   rasqal_free_rowsource(rowsource);
 
   /* re-init rowsource */
-  rowsource = rasqal_new_service_rowsource(world, query);
+  rowsource = rasqal_new_service_rowsource(world, query, service_uri,
+                                           query_string, data_graphs,
+                                           rs_flags);
   
   seq = rasqal_rowsource_read_all_rows(rowsource);
   if(!seq) {
-    fprintf(stderr, "%s: read_rows returned a NULL seq for a empty stream\n",
+    fprintf(stderr, "%s: read_rows returned a NULL seq for a service stream\n",
             program);
     failures++;
     goto tidy;
@@ -255,7 +306,7 @@ main(int argc, char *argv[])
 
   count = raptor_sequence_size(seq);
   if(count != 1) {
-    fprintf(stderr, "%s: read_rows returned size %d seq for a empty stream\n",
+    fprintf(stderr, "%s: read_rows returned size %d seq for a service stream\n",
             program, count);
     failures++;
     goto tidy;

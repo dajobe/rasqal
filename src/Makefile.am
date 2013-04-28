@@ -47,6 +47,7 @@ rasqal_rowsource_triples_test$(EXEEXT) \
 rasqal_row_compatible_test$(EXEEXT) \
 rasqal_rowsource_groupby_test$(EXEEXT) \
 rasqal_rowsource_aggregation_test$(EXEEXT) \
+rasqal_rowsource_service_test$(EXEEXT) \
 rasqal_literal_test$(EXEEXT) \
 rasqal_regex_test$(EXEEXT) \
 rasqal_random_test$(EXEEXT)
@@ -267,6 +268,10 @@ rasqal_rowsource_project_test_LDADD = librasqal.la
 rasqal_rowsource_join_test_SOURCES = rasqal_rowsource_join.c
 rasqal_rowsource_join_test_CPPFLAGS = -DSTANDALONE
 rasqal_rowsource_join_test_LDADD = librasqal.la
+
+rasqal_rowsource_service_test_SOURCES = rasqal_rowsource_service.c
+rasqal_rowsource_service_test_CPPFLAGS = -DSTANDALONE
+rasqal_rowsource_service_test_LDADD = librasqal.la
 
 rasqal_row_compatible_test_SOURCES = rasqal_row_compatible.c
 rasqal_row_compatible_test_CPPFLAGS = -DSTANDALONE
