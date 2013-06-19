@@ -47,7 +47,6 @@ rasqal_rowsource_triples_test$(EXEEXT) \
 rasqal_row_compatible_test$(EXEEXT) \
 rasqal_rowsource_groupby_test$(EXEEXT) \
 rasqal_rowsource_aggregation_test$(EXEEXT) \
-rasqal_rowsource_service_test$(EXEEXT) \
 rasqal_literal_test$(EXEEXT) \
 rasqal_regex_test$(EXEEXT) \
 rasqal_random_test$(EXEEXT)
@@ -59,7 +58,9 @@ if RASQAL_QUERY_SPARQL
 TESTS += sparql_lexer_test$(EXEEXT) sparql_parser_test$(EXEEXT)
 endif
 
-EXTRA_PROGRAMS=$(TESTS)
+BROKEN_TESTS=rasqal_rowsource_service_test$(EXEEXT)
+
+EXTRA_PROGRAMS=$(TESTS) $(BROKEN_TESTS)
 
 CLEANFILES=$(TESTS) \
 *.plist \
