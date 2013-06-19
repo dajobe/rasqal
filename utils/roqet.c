@@ -1071,8 +1071,11 @@ main(int argc, char *argv[])
         break;
 
       case 'r':
-        if(optarg)
+        if(optarg) {
+          if(!strcmp(result_format, "simple"))
+            optarg = NULL;
           result_format = optarg;
+        }
         break;
 
       case 'i':
