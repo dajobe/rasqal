@@ -307,7 +307,7 @@ check-version:
 	  git_version="unknown"; \
 	fi; \
 	$(RECHO) "GIT version $$git_version"; \
-	tmp="$$file.tmp"; \
+	tmp="$$file$$$$.tmp"; \
 	$(RECHO) "#define GIT_VERSION \"$$git_version\"" > $$tmp; \
         if test -f $$file; then \
           if cmp $$file $$tmp >/dev/null 2>&1; then \
