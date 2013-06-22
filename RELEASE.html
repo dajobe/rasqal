@@ -14,6 +14,79 @@
 </p>
 
 
+<h3>Query engine changes</h3>
+
+<p>Internal work to support executing the SERVICE graph pattern.</p>
+
+<p>Query engine can execute the new <code>VALUES</code> graph
+pattern.</p>
+
+<p>SPARQL lexer and parser handles <code>VALUES</code> replacing the
+old <code>BINDINGS</code> syntax.</p>
+
+<p>Fixed crash when a SERVICE returns no rowsource.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=527">Issue #0000527</a>
+</p>
+
+
+<h3>API changes</h3>
+
+<p><code>rasqal_prefix_id()</code> now uses a q rather than _ to help
+raptor N-Triples 2008 conformance.</p>
+
+<p>Improved SPARQL 1.1 query formatter to handle <code>VALUES</code>
+forms and to print in a prettier form with better indenting.</p>
+
+<p><code>rasqal_graph_pattern_op</code> gains
+<code>RASQAL_GRAPH_PATTERN_OPERATOR_VALUES</code></p>
+
+
+<h3>Portability changes</h3>
+
+<p>Win32 build fix patches from Michael Stahl:
+Fixes Issues
+<a href="http://bugs.librdf.org/mantis/view.php?id=539">#0000539</a>
+and
+<a href="http://bugs.librdf.org/mantis/view.php?id=538">#0000538</a>
+</p>
+
+
+<h3>Configuration changes</h3>
+
+<p><code>configure</code> was fixed to correctly find and use OSSP
+libuuid even in the presence of half installed / broken UUID systems
+like on OSX where just the headers are present.</p>
+
+<p>Fixes for building with parallel make such as <code>make -jN</code></p>
+
+<p><code>configure</code> now uses PKG_CHECK_MODULES() to enable
+overriding discovery of pkg-config if needed.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=537">Issue #0000537</a>
+</p>
+
+<p>Fix crash if <code>xml2-config(1)</code> when pointed at a non
+executable file. Patch from Michael Stahl
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=536">Issue #0000536</a>
+</p>
+
+
+
+<h3>Other changes</h3>
+
+<p>The <code>roqet(1)</code> utility now supports <code>-r
+simple</code> / <code>--results simple</code> as it says in the
+documentation.</p>
+
+<p>Flex code generation updates - now recommend flex 2.5.36.</p>
+
+<p>Fixes in tests data for N-Triples conformance that is checked by
+newer Raptor.</p>
+
+<p>The <code>roqet(1)</code> utility now prints row: in debug result
+format (which was never promised to stay the same).</p>
+
+
+
 <h2 id="rel0_9_30"><a name="rel0_9_30">Rasqal 0.9.30 changes</a></h2>
 
 <p>Removed RDQL support as promised.  So long and thanks for all the
