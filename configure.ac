@@ -559,10 +559,10 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #undef VERSION
 #include <mhash.h>]], [[ MHASH m; mhash_init(MHASH_MD5); ]])],[have_digest_mhash=yes],[have_digest_mhash=no])
 
-CPPFLAGS="$LIBRDF_CPPFLAGS"
-LIBS="$oLIBS"
-
 AC_MSG_RESULT($have_digest_mhash)
+
+CPPFLAGS="$oCPPFLAGS"
+LIBS="$oLIBS"
 
 
 AC_CHECK_PROG(LIBGCRYPT_CONFIG, libgcrypt-config, libgcrypt-config)
@@ -992,6 +992,8 @@ if test "$ac_cv_header_mpfr_h" = yes; then
     AC_MSG_RESULT(no)
   fi
 fi
+CPPFLAGS="$oCPPFLAGS"
+LIBS="$oLIBS"
 
 have_gmp_version=0
 have_gmp_random=no
@@ -1027,9 +1029,9 @@ gmp_randclear(r);
   AC_MSG_CHECKING(for gmp_version)
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <gmp.h>]], [[const char* v=gmp_version; ]])],[have_gmp_version=1
 	      AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
-  LIBS="$oLIBS"
-  CPPFLAGS="$oCPPFLAGS"
 fi
+CPPFLAGS="$oCPPFLAGS"
+LIBS="$oLIBS"
 
 if test $have_gmp_version = 1; then
   AC_DEFINE(HAVE_GMP_VERSION, 1, [Have gmp_version constant])
