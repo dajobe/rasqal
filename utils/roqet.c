@@ -1072,7 +1072,7 @@ main(int argc, char *argv[])
 
       case 'r':
         if(optarg) {
-          if(!strcmp(result_format, "simple"))
+          if(!strcmp(optarg, "simple"))
             optarg = NULL;
           result_format = optarg;
         }
