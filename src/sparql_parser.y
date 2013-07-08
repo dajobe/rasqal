@@ -2609,7 +2609,7 @@ VarListOpt: VarList
 {
   $$ = $1;
 }
-| '(' ')' 
+| /* empty */
 {
   $$ = NULL;
 }
