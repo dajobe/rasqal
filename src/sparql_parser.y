@@ -245,7 +245,7 @@ free_uri_applies(sparql_uri_applies* ua)
 
 /* string */
 %token <name> STRING "string"
-%token <name> LANG_TAG "language tag"
+%token <name> LANGTAG "langtag"
 
 /* literals */
 %token <literal> DOUBLE_LITERAL "double literal"
@@ -373,7 +373,7 @@ URI_LITERAL URI_LITERAL_BRACE
   if($$)
     RASQAL_FREE(char*, $$);
 }
-STRING QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
+STRING LANGTAG QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
 
 %destructor {
   if($$)
@@ -2771,7 +2771,7 @@ RDFLiteral: STRING
 	                         NULL /* language */,
                                  NULL /* dt uri */, NULL /* dt_qname */);
 }
-| STRING LANG_TAG
+| STRING LANGTAG
 {
   $$ = rasqal_new_string_literal(((rasqal_query*)rq)->world, $1, 
 	                         RASQAL_GOOD_CAST(const char*, $2),

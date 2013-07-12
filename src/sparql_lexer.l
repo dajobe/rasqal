@@ -204,7 +204,7 @@ static jmp_buf sparql_lexer_log_error_longjmp_env;
 } while(0)
 %}
 
-LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
+LANGTAG "@"[A-Za-z][-A-Z_a-z0-9]*
 
 
 /*
@@ -480,14 +480,14 @@ EXPONENT [eE][+-]?[0-9]+
 
 ":="         { return ASSIGN; }
 
-"@"{LANGUAGETOKEN} {
+{LANGTAG} {
 			sparql_parser_lval->name = RASQAL_MALLOC(unsigned char*, yyleng);
                         if(!sparql_parser_lval->name)
                           YY_REPORT_ERROR_EOF("Out of memory");
 
                         memcpy(sparql_parser_lval->name, yytext + 1, yyleng - 1);
                         sparql_parser_lval->name[yyleng - 1] = '\0';
-                  return LANG_TAG;
+                  return LANGTAG;
 		}
 
 "^^"         { return HATHAT; }
@@ -1817,8 +1817,8 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
       sprintf(buffer, "DECIMAL_LITERAL(%s)", lval->literal->string);
       return buffer;
 
-    case LANG_TAG:
-      sprintf(buffer, "LANG_TAG(%s)", lval->name);
+    case LANGTAG:
+      sprintf(buffer, "LANGTAG(%s)", lval->name);
       return buffer;
 
     case HATHAT:
