@@ -72,6 +72,7 @@
 
 /* Slow down the grammar operation and watch it work */
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
+#undef YYDEBUG 1
 #define YYDEBUG 1
 #endif
 
@@ -5485,15 +5486,16 @@ sparql_parse(rasqal_query* rq)
   locator->column = -1; /* No column info */
   locator->byte = -1; /* No bytes info */
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
-  sparql_parser_debug = 1;
-#endif
-
   rqe->lineno = 1;
 
   if(sparql_lexer_lex_init(&rqe->scanner))
     return 1;
   rqe->scanner_set = 1;
+
+ #if defined(YYDEBUG) && YYDEBUG > 0
+   sparql_lexer_set_debug(1 ,&sparql_parser->scanner);
+   sparql_parser_debug = 1;
+ #endif
 
   sparql_lexer_set_extra(((rasqal_query*)rq), rqe->scanner);
 
