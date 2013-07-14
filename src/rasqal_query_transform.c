@@ -2007,6 +2007,7 @@ rasqal_query_build_variables_use_map_binds(rasqal_query* query,
 {
   int rc;
   unsigned short* vars_scope;
+  raptor_sequence* seq;
 
   vars_scope = RASQAL_CALLOC(unsigned short*, width, sizeof(unsigned short));
   if(!vars_scope)
@@ -2017,6 +2018,38 @@ rasqal_query_build_variables_use_map_binds(rasqal_query* query,
                                                                 width,
                                                                 gp,
                                                                 vars_scope);
+
+  /* Record variable binding for GROUP BY expressions (SPARQL 1.1) */
+  seq = rasqal_query_get_group_conditions_sequence(query);
+  if(seq) {
+    int size = raptor_sequence_size(seq);
+    int i;
+    unsigned short *use_map_row;
+
+    use_map_row = &use_map[RASQAL_VAR_USE_MAP_OFFSET_GROUP_BY * width];
+
+    /* sequence of rasqal_expression of operation RASQAL_EXPR_LITERAL
+     * containing a variable literal, with the variable having
+     * ->expression set to the expression
+     */
+    for(i = 0; i < size; i++) {
+      rasqal_expression *e;
+      rasqal_literal *l;
+
+      e = (rasqal_expression*)raptor_sequence_get_at(seq, i);
+
+      l = e->literal;
+      if(l) {
+        rasqal_variable* v = l->value.variable;
+        if(v && v->expression) {
+          use_map_row[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
+
+          vars_scope[v->offset] = 1;
+        }
+      }
+    }
+  }
+
   RASQAL_FREE(intarray, vars_scope);
 
   return rc;
