@@ -457,11 +457,11 @@ static const char* const sparql_xsd_names[SPARQL_XSD_NAMES_COUNT + 1] =
 #define CHECKFNS_COUNT (RASQAL_LITERAL_LAST_XSD - RASQAL_LITERAL_FIRST_XSD + 2)
 static int (*const sparql_xsd_checkfns[CHECKFNS_COUNT])(const unsigned char* string, int flags) =
 {
-  NULL, /* RASQAL_LITERAL_STRING */
+  NULL, /* RASQAL_LITERAL_XSD_STRING */
   rasqal_xsd_check_boolean_format, /* RASQAL_LITERAL_BOOLEAN */
   rasqal_xsd_check_integer_format, /* RASQAL_LITERAL_INTEGER */
-  rasqal_xsd_check_double_format, /* RASQAL_LITERAL_DOUBLE */
   rasqal_xsd_check_float_format, /* RASQAL_LITERAL_FLOAT */
+  rasqal_xsd_check_double_format, /* RASQAL_LITERAL_DOUBLE */
   rasqal_xsd_check_decimal_format, /* RASQAL_LITERAL_DECIMAL */
   rasqal_xsd_check_dateTime_format, /* RASQAL_LITERAL_DATETIME */
   /* GAP */
