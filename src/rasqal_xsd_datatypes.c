@@ -347,18 +347,6 @@ rasqal_xsd_format_double(double d, size_t *len_p)
   unsigned int exponent_start;
   size_t len = 0;
   unsigned char* buf = NULL;
-  
-  if(!RASQAL_FLOATING_AS_INT(d)) {
-    len = 5;
-    buf = RASQAL_MALLOC(unsigned char*, len + 1);
-    if(!buf)
-      return NULL;
-
-    memcpy(buf, "0.0E0", len + 1);
-    if(len_p)
-      *len_p = len;
-    return buf;
-  }
 
   len = 20;
   buf = RASQAL_MALLOC(unsigned char*, len + 1);
