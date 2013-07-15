@@ -49,7 +49,8 @@ rasqal_rowsource_groupby_test$(EXEEXT) \
 rasqal_rowsource_aggregation_test$(EXEEXT) \
 rasqal_literal_test$(EXEEXT) \
 rasqal_regex_test$(EXEEXT) \
-rasqal_random_test$(EXEEXT)
+rasqal_random_test$(EXEEXT) \
+rasqal_xsd_datatypes_test$(EXEEXT)
 
 # These 2 test programs are compiled here and run here as 'smoke
 # tests' but mostly used in tests in $(srcdir)/../tests/sparql
@@ -289,6 +290,10 @@ rasqal_regex_test_LDADD = librasqal.la
 rasqal_random_test_SOURCES = rasqal_random.c
 rasqal_random_test_CPPFLAGS = -DSTANDALONE
 rasqal_random_test_LDADD = librasqal.la
+
+rasqal_xsd_datatypes_test_SOURCES = rasqal_xsd_datatypes.c
+rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE
+rasqal_xsd_datatypes_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la

@@ -182,6 +182,14 @@ rasqal_xsd_check_decimal_format(const unsigned char* string, int flags)
 }
 
 
+/* Legal special double values */
+#define XSD_DOUBLE_SPECIALS_LEN 3
+static const char * const xsd_double_specials[XSD_DOUBLE_SPECIALS_LEN] = {
+  "-INF",
+  "INF",
+  "NaN"
+};
+
 /**
  * rasqal_xsd_check_double_format:
  * @string: lexical form string
@@ -194,16 +202,74 @@ rasqal_xsd_check_decimal_format(const unsigned char* string, int flags)
 static int
 rasqal_xsd_check_double_format(const unsigned char* string, int flags) 
 {
-  /* FIXME validate using
-   * http://www.w3.org/TR/xmlschema-2/#double
-   */
-  char* eptr = NULL;
+  const char *p = RASQAL_GOOD_CAST(const char*, string);
+  const char *saved_p;
+  int i;
+  
+  if(!*p)
+    return 0;
 
-  (void)strtod(RASQAL_GOOD_CAST(const char*, string), &eptr);
-  if(RASQAL_GOOD_CAST(unsigned char*, eptr) != string && *eptr == '\0')
+  /* Validating http://www.w3.org/TR/xmlschema-2/#double */
+
+  /* check for specials */
+  for(i = 0; i < XSD_DOUBLE_SPECIALS_LEN; i++) {
+    if(!strcmp(xsd_double_specials[i], p))
+      return 1;
+  }
+
+  /* mantissa: follows http://www.w3.org/TR/xmlschema-2/#decimal */
+  if(*p == '-' || *p == '+')
+    p++;
+  if(!*p)
+    return 0;
+
+  saved_p = p;
+  while(isdigit(*p))
+    p++;
+  
+  /* no digits is a failure */
+  if(p == saved_p)
+    return 0;
+
+  /* ending now is ok - whole number (-1, +2, 3) */
+  if(!*p)
     return 1;
 
-  return 0;
+  /* .DIGITS is optional */
+  if(*p == '.') {
+    p++;
+    /* ending after . is not ok */
+    if(!*p)
+      return 0;
+
+    while(isdigit(*p))
+      p++;
+
+    /* ending with digits now is ok (-1.2, +2.3, 2.3) */
+    if(!*p)
+      return 1;
+  }
+
+  /* must be an exponent letter here (-1E... +2e... , -1.3E...,
+   * +2.4e..., 2E..., -4e...) */
+  if(*p != 'e' && *p != 'E')
+    return 0;
+  p++;
+
+  /* exponent: follows http://www.w3.org/TR/xmlschema-2/#integer */
+  if(*p == '-' || *p == '+')
+    p++;
+
+  saved_p = p;
+  while(isdigit(*p))
+    p++;
+  if(p == saved_p)
+    return 0;
+
+  if(*p)
+    return 0;
+
+  return 1;
 }
 
 
@@ -219,16 +285,8 @@ rasqal_xsd_check_double_format(const unsigned char* string, int flags)
 static int
 rasqal_xsd_check_float_format(const unsigned char* string, int flags) 
 {
-  /* FIXME validate using
-   * http://www.w3.org/TR/xmlschema-2/#float
-   */
-  char* eptr = NULL;
-
-  (void)strtod(RASQAL_GOOD_CAST(const char*, string), &eptr);
-  if(RASQAL_GOOD_CAST(unsigned char*, eptr) != string && *eptr == '\0')
-    return 1;
-
-  return 0;
+  /* http://www.w3.org/TR/xmlschema-2/#float is the same as double */
+  return rasqal_xsd_check_double_format(string, flags);
 }
 
 
@@ -654,4 +712,86 @@ rasqal_xsd_datatype_parent_type(rasqal_literal_type type)
     return parent_xsd_type[type];
 
   return RASQAL_LITERAL_UNKNOWN;
+}
+
+#include <stdio.h>
+
+int main(int argc, char *argv[]);
+
+#define N_VALID_TESTS 27
+const char *double_valid_tests[N_VALID_TESTS+1] = {
+  "-INF", "INF", 
+  "NaN",
+  "-0", "+0", "0",
+  "-12", "+12", "12",
+  "-12.34", "+12.34", "12.34",
+  "-1E4", "+1E4", "1267.43233E12", "-1267.43233E12", "12.78E-2",
+  "-1e4", "+1e4", "1267.43233e12", "-1267.43233e12", "12.78e-2",
+  "-1e0", "1e0",  "1267.43233e0",  "-1267.43233e0",  "12.78e-0",
+  NULL
+};
+
+#define N_INVALID_TESTS 27
+const char *double_invalid_tests[N_INVALID_TESTS+1] = {
+  "-inf", "inf", "+inf", "+INF",
+  "NAN", "nan",
+  "-0.", "+0.", "0.",
+  "-12.", "+12.", "12.",
+  "-E4", "E4", "+E4",
+  "-e4", "e4", "+e4",
+  "-1E", "+1E", "1E",
+  "-1e", "+1e", "1e",
+  "-1.E", "+1.E", "1.E",
+  NULL
+};
+
+int
+main(int argc, char *argv[])
+{
+  rasqal_world* world;
+  const char *program = rasqal_basename(argv[0]);
+  int failures = 0;
+  int test = 0;
+
+  world = rasqal_new_world();
+  if(!world || rasqal_world_open(world)) {
+    fprintf(stderr, "%s: rasqal_world init failed\n", program);
+    failures++;
+    goto tidy;
+  }
+
+  for(test = 0; test < N_VALID_TESTS; test++) {
+    const unsigned char *str;
+    str = RASQAL_GOOD_CAST(const unsigned char*, double_valid_tests[test]);
+    
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+    fprintf(stderr, "%s: Valid Test %3d value: %s\n", program, test, str);
+#endif
+    if(!rasqal_xsd_check_double_format(str, 0 /* flags */)) {
+      fprintf(stderr, "%s: Valid Test %3d value: %s FAILED\n", 
+              program, test, str);
+      failures++;
+    }
+  }
+
+  for(test = 0; test < N_INVALID_TESTS; test++) {
+    const unsigned char *str;
+    str = RASQAL_GOOD_CAST(const unsigned char*, double_invalid_tests[test]);
+    
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+    fprintf(stderr, "%s: Invalid Test %3d value: %s\n", program, test, str);
+#endif
+    if(rasqal_xsd_check_double_format(str, 0 /* flags */)) {
+      fprintf(stderr,
+              "%s: Invalid Test %3d value: %s PASSED (expected failure)\n", 
+              program, test, str);
+      failures++;
+    }
+  }
+
+  tidy:
+
+  rasqal_free_world(world);
+
+  return failures;
 }
