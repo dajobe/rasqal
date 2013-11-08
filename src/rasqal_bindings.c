@@ -115,7 +115,7 @@ rasqal_new_bindings_from_var_values(rasqal_query* query,
                                     rasqal_variable* var,
                                     raptor_sequence* values)
 {
-  rasqal_bindings* bindings;
+  rasqal_bindings* bindings = NULL;
   raptor_sequence* varlist = NULL;
   rasqal_row* row = NULL;
   raptor_sequence* rowlist = NULL;
