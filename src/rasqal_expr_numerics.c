@@ -271,7 +271,7 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
 {
   rasqal_world* world = eval_context->world;
   rasqal_digest_type md_type = RASQAL_DIGEST_NONE;
-  rasqal_literal* l1;
+  rasqal_literal* l1 = NULL;
   const unsigned char *s;
   unsigned char *new_s;
   size_t len;
