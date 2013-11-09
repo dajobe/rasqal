@@ -24,7 +24,7 @@ noinst_SCRIPTS = rasqal-src-config
 
 ACLOCAL_AMFLAGS = -I build
 
-SUBDIRS=src utils tests docs data win32 scripts
+SUBDIRS=libmtwist src utils tests docs data win32 scripts
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = rasqal.pc

@@ -1321,6 +1321,7 @@ data/Makefile
 docs/Makefile
 docs/version.xml
 scripts/Makefile
+libmtwist/Makefile
 src/Makefile
 src/rasqal.h
 src/win32_rasqal_config.h

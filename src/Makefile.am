@@ -149,23 +149,16 @@ nodist_librasqal_la_SOURCES += git-version.h
 rasqal_algebra.c: git-version.h
 endif
 
-if RASQAL_MTWIST
-
-librasqal_la_SOURCES += \
-$(top_srcdir)/libmtwist/mt.c \
-$(top_srcdir)/libmtwist/seed.c \
-$(top_srcdir)/libmtwist/mtwist.h \
-$(top_srcdir)/libmtwist/mtwist_internal.h \
-mtwist_config.h
-
-AM_CFLAGS += -DMTWIST_CONFIG -I$(top_srcdir)/libmtwist
-
-endif
-
-
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 librasqal_la_LIBADD = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 librasqal_la_DEPENDENCIES = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@
+
+if RASQAL_MTWIST
+
+AM_CFLAGS += -DMTWIST_CONFIG -I$(top_srcdir)/libmtwist
+librasqal_la_LIBADD += $(top_builddir)/libmtwist/libmtwist.la
+
+endif
 
 
 EXTRA_DIST= \
