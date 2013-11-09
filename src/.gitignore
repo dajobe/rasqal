@@ -16,7 +16,6 @@
 .gdb_history
 .libs
 TAGS
-dmalloc*
 example?
 rasqal.h
 rasqal-config
@@ -24,11 +23,6 @@ rasqal_config.h
 rasqal_config.h.in
 stamp-h*
 test*
-rdql_lexer.c
-rdql_lexer.h
-rdql_parser.c
-rdql_parser.h
-rdql_parser.output
 sparql_lexer.c
 sparql_lexer.h
 sparql_parser.c
