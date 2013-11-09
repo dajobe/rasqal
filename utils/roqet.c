@@ -1225,7 +1225,8 @@ main(int argc, char *argv[])
 
 #ifdef STORE_RESULTS_FLAG
       case STORE_RESULTS_FLAG:
-        store_results = (!strcmp(optarg, "yes") || !strcmp(optarg, "YES"));
+        if(optarg)
+          store_results = (!strcmp(optarg, "yes") || !strcmp(optarg, "YES"));
         break;
 #endif
 
