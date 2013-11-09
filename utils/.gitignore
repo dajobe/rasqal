@@ -3,6 +3,7 @@
 .libs
 *.lo
 *.o
+*.plist
 roqet
 roqet.exe
 roqet.html
