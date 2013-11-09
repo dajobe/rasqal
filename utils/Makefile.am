@@ -23,7 +23,7 @@
 bin_PROGRAMS = roqet
 EXTRA_PROGRAMS = srxread srxwrite check-query
 
-CLEANFILES = $(EXTRA_PROGRAMS)
+CLEANFILES = $(EXTRA_PROGRAMS) *.plist
 
 man_MANS = roqet.1
 
