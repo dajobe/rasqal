@@ -1,3 +1,111 @@
+2013-11-08  Dave Beckett <dave@dajobe.org>
+
+	* src/.gitignore: no more rdql
+
+	* src/rasqal_random.c:
+	(rasqal_random_drand): For mtwist do not calculate unused d [clang]
+
+	* Makefile.am, configure.ac, src/Makefile.am: Make libmtwist a
+	convienience library
+
+	* libmtwist: Update libmtwist submodule
+
+	* libmtwist: Update submodule libmtwist
+
+	* utils/Makefile.am: clean plist
+
+	* utils/.gitignore: ignore plist
+
+	* utils/roqet.c:
+	check for flag when optarg is not NULL [clang]
+
+	* utils/Makefile.am: Add analyze target
+
+2013-11-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_digest_md5.c: Use unions to align unsigned char and
+	u32 [clang]
+
+	* src/rasqal_bindings.c:
+	(rasqal_new_bindings_from_var_values): Init bindings for error
+	path [clang]
+
+	* src/rasqal_expr_numerics.c:
+	(rasqal_expression_evaluate_digest): Init l1 for error path [clang]
+
+2013-11-02  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac:
+	Check for clang to enable correct discovery of
+	supported warnings
+
+2013-08-25  Dave Beckett <dave@dajobe.org>
+
+	* tests/engine/rasqal_construct_test.c,
+	tests/engine/rasqal_limit_test.c: Conditionalize RASQAL_DEBUG
+	check
+
+	* tests/sparql/check-sparql: update compare_rdf_graphs for newer
+	jena
+
+2013-07-14  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/rasqal_xsd_datatypes.c: Check XSD double
+	format and add tests.
+
+	(rasqal_xsd_check_double_format): Validate according to
+	http://www.w3.org/TR/xmlschema-2/#double which also refers to
+	#decimal and #integer.
+
+	(rasqal_xsd_check_float_format): Use
+	rasqal_xsd_check_double_format() which is the same.
+
+	(main): Add positive and negative tests for
+	rasqal_xsd_check_double_format
+
+	* src/rasqal_xsd_datatypes.c: sparql_xsd_checkfns - fix order so
+	double and float are correct
+
+	* src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_format_double): Removed bogus zero check
+
+	* src/rasqal_query_transform.c: Mark GROUP BY ... AS ?var as
+	binding ?var
+
+	(rasqal_query_build_variables_use_map_binds): Add scan for group by
+	and mark variables there as bound
+
+2013-07-12  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Switch LANGUAGETOKEN to
+	LANGTAG to match SPARQL grammar
+
+	* src/sparql_parser.y:
+	Set sparql_parser_debug to 1 when YYDEBUG
+
+2013-07-08  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_numerics.c:
+	(rasqal_expression_evaluate_digest): Return failure in error_p
+	NULL is failure but error_p should also be set
+
+	* src/sparql_parser.y: Fix VALUES ()
+
+2013-07-06  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c: Really support -r simple / --results simple
+
+2013-07-04  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Ensure CPPFLAGS can be passed through without
+	destruction.
+
+	This helps Debian hardening https://wiki.debian.org/Hardening
+
+2013-06-22  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, RELEASE.html: 0.9.31
+
 2013-06-19  Dave Beckett <dave@dajobe.org>
 
 	* tests/sparql/Expr1/Makefile.am, tests/sparql/Expr2/Makefile.am,
