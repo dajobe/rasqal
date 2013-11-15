@@ -157,6 +157,10 @@ if RASQAL_MTWIST
 
 AM_CFLAGS += -DMTWIST_CONFIG -I$(top_srcdir)/libmtwist
 librasqal_la_LIBADD += $(top_builddir)/libmtwist/libmtwist.la
+librasqal_la_DEPENDENCIES += $(top_builddir)/libmtwist/libmtwist.la
+
+$(top_builddir)/libmtwist/libmtwist.la:
+	cd $(top_builddir)/libmtwist && $(MAKE) libmtwist.la
 
 endif
 
