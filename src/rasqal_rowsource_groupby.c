@@ -690,7 +690,7 @@ static const struct {
   int rows;
   int ngroups;
   const char* const *data;
-  const int const *group_ids;
+  const int *group_ids;
   const char* const expr_vars[MAX_TEST_VARS];
 } test_data[GROUP_TESTS_COUNT] = {
   /* Test 0: No GROUP BY : 1 group expected */

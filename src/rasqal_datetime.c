@@ -1706,7 +1706,7 @@ static int
 test_datetime_parser_tostring(const char *in_str, const char *out_expected)
 {
   rasqal_xsd_datetime d; /* allocated on stack */
-  char const *s;
+  char const *s = NULL;
   int r = 1;
 
   if(!test_datetime_parse_and_normalize(in_str, &d)) {
@@ -1739,7 +1739,7 @@ static int
 test_date_parser_tostring(const char *in_str, const char *out_expected)
 {
   rasqal_xsd_date d; /* allocated on stack */
-  char const *s;
+  char const *s = NULL;
   int r = 1;
 
   if(!test_date_parse_and_normalize(in_str, &d)) {

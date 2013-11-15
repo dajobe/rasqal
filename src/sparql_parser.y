@@ -5869,7 +5869,7 @@ int
 main(int argc, char *argv[]) 
 {
   const char *program = rasqal_basename(argv[0]);
-  rasqal_query *query;
+  rasqal_query *query = NULL;
   FILE *fh;
   int rc;
   const char *filename = NULL;
