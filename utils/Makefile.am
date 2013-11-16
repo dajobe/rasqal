@@ -42,18 +42,22 @@ ANALYZE_COMMAND = $(ANALYZE) \
 
 
 roqet_SOURCES = roqet.c
-if GETOPT
-roqet_SOURCES += getopt.c rasqal_getopt.h
-endif
+roqet_CPPFLAGS = $(AM_CPPFLAGS)
 roqet_LDADD = $(top_builddir)/src/librasqal.la
 roqet_LDFLAGS = @RAPTOR2_LIBS@
+if GETOPT
+roqet_CPPFLAGS += -I$(top_srcdir)/getopt
+roqet_LDADD += $(top_builddir)/getopt/libgetopt.la
+endif
 
 check_query_SOURCES = check_query.c
-if GETOPT
-check_query_SOURCES += getopt.c rasqal_getopt.h
-endif
+check_query_CPPFLAGS = $(AM_CPPFLAGS)
 check_query_LDADD = $(top_builddir)/src/librasqal.la
 check_query_LDFLAGS = @RAPTOR2_LIBS@
+if GETOPT
+check_query_CPPFLAGS += -I$(top_srcdir)/getopt
+check_query_LDADD += $(top_builddir)/getopt/libgetopt.la
+endif
 
 srxread_SOURCES = srxread.c
 srxread_LDADD = $(top_builddir)/src/librasqal.la
@@ -75,6 +79,9 @@ endif
 
 $(top_builddir)/src/librasqal.la:
 	cd $(top_builddir)/src && $(MAKE) librasqal.la
+
+$(top_builddir)/libgetopt/libgetopt.la:
+	cd $(top_builddir)/libgetopt && $(MAKE) libgetopt.la
 
 examples: srxread$(EXTEXE) srxwrite$(EXTEXE)
 

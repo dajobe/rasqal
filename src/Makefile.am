@@ -164,6 +164,11 @@ $(top_builddir)/libmtwist/libmtwist.la:
 
 endif
 
+if GETOPT
+$(top_builddir)/libgetopt/libgetopt.la:
+	cd $(top_builddir)/libgetopt && $(MAKE) libgetopt.la
+endif
+
 
 EXTRA_DIST= \
 sparql_lexer.l sparql_parser.y \
@@ -204,8 +209,8 @@ sparql_parser_test_SOURCES = sparql_parser.c
 sparql_parser_test_CPPFLAGS = -DSTANDALONE
 sparql_parser_test_LDADD = librasqal.la
 if GETOPT
-sparql_parser_test_SOURCES += $(top_srcdir)/utils/getopt.c
-sparql_parser_test_CPPFLAGS += -I$(top_srcdir)/utils
+sparql_parser_test_CPPFLAGS += -I$(top_srcdir)/getopt
+sparql_parser_test_LDADD += $(top_builddir)/getopt/libgetopt.la
 endif
 
 rasqal_expr_test_SOURCES = rasqal_expr.c
