@@ -174,8 +174,8 @@ EXTRA_DIST= \
 sparql_lexer.l sparql_parser.y \
 rasqal-config.in \
 $(man_MANS) \
-rasqal_query_test.c
-
+rasqal_query_test.c \
+mtwist_config.h
 
 LEX=@LEX@
 YACC=@YACC@
