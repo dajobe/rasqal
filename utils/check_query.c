@@ -67,7 +67,6 @@
  *   rasqal_dataset_load_graph_iostream()
  *   rasqal_free_dataset()
  *   rasqal_literal_equals_flags()
- *   rasqal_literal_write()
  *   rasqal_query_results_sort()
  *  
  */
