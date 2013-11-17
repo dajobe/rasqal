@@ -68,6 +68,9 @@
  *   rasqal_free_dataset()
  *   rasqal_literal_equals_flags()
  *   rasqal_query_results_sort()
+ *
+ * The dataset API calls are used to read RDF graphs but nothing is
+ * done with the data at present.
  *  
  */
 #include <rasqal_internal.h>
