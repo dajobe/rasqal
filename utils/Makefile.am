@@ -21,7 +21,8 @@
 # 
 
 bin_PROGRAMS = roqet
-EXTRA_PROGRAMS = srxread srxwrite check-query
+noinst_PROGRAMS = check-query
+EXTRA_PROGRAMS = srxread srxwrite
 
 CLEANFILES = $(EXTRA_PROGRAMS) *.plist
 
@@ -41,9 +42,16 @@ ANALYZE_COMMAND = $(ANALYZE) \
 	$(ANALYZE_FLAGS)
 
 
+noinst_LTLIBRARIES = librasqalcmdline.la
+
+librasqalcmdline_la_SOURCES = \
+read_files.c \
+rasqalcmdline.h
+
+
 roqet_SOURCES = roqet.c
 roqet_CPPFLAGS = $(AM_CPPFLAGS)
-roqet_LDADD = $(top_builddir)/src/librasqal.la
+roqet_LDADD = $(top_builddir)/src/librasqal.la librasqalcmdline.la
 roqet_LDFLAGS = @RAPTOR2_LIBS@
 if GETOPT
 roqet_CPPFLAGS += -I$(top_srcdir)/getopt
@@ -52,7 +60,7 @@ endif
 
 check_query_SOURCES = check_query.c
 check_query_CPPFLAGS = $(AM_CPPFLAGS)
-check_query_LDADD = $(top_builddir)/src/librasqal.la
+check_query_LDADD = $(top_builddir)/src/librasqal.la librasqalcmdline.la
 check_query_LDFLAGS = @RAPTOR2_LIBS@
 if GETOPT
 check_query_CPPFLAGS += -I$(top_srcdir)/getopt

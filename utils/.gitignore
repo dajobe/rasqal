@@ -1,6 +1,7 @@
 .deps
 .gdb_history
 .libs
+*.la
 *.lo
 *.o
 *.plist

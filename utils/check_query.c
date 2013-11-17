@@ -74,12 +74,7 @@
 #include <rasqal_internal.h>
 
 
-#ifdef BUFSIZ
-#define FILE_READ_BUF_SIZE BUFSIZ
-#else
-#define FILE_READ_BUF_SIZE 1024
-#endif
-
+#include "rasqalcmdline.h"
 
 #ifdef NEED_OPTIND_DECLARATION
 extern int optind;
@@ -152,73 +147,6 @@ check_query_log_handler(void* user_data, raptor_log_message *message)
 
   error_count++;
 }
-
-
-static unsigned char*
-check_query_read_file_string(const char* filename, 
-                             const char* label,
-                             size_t* len_p)
-{
-  raptor_stringbuffer *sb;
-  size_t len;
-  FILE *fh = NULL;
-  unsigned char* string = NULL;
-  unsigned char* buffer = NULL;
-
-  sb = raptor_new_stringbuffer();
-  if(!sb)
-    return NULL;
-
-  fh = fopen(filename, "r");
-  if(!fh) {
-    fprintf(stderr, "%s: %s '%s' open failed - %s", 
-            program, label, filename, strerror(errno));
-    goto tidy;
-  }
-    
-  buffer = (unsigned char*)malloc(FILE_READ_BUF_SIZE);
-  if(!buffer)
-    goto tidy;
-
-  while(!feof(fh)) {
-    size_t read_len;
-    
-    read_len = fread((char*)buffer, 1, FILE_READ_BUF_SIZE, fh);
-    if(read_len > 0)
-      raptor_stringbuffer_append_counted_string(sb, buffer, read_len, 1);
-    
-    if(read_len < FILE_READ_BUF_SIZE) {
-      if(ferror(fh)) {
-        fprintf(stderr, "%s: file '%s' read failed - %s\n",
-                program, filename, strerror(errno));
-        goto tidy;
-      }
-      
-      break;
-    }
-  }
-  len = raptor_stringbuffer_length(sb);
-  
-  string = (unsigned char*)malloc(len + 1);
-  if(string) {
-    raptor_stringbuffer_copy_to_string(sb, string, len);
-    if(len_p)
-      *len_p = len;
-  }
-  
-  tidy:
-  if(buffer)
-    free(buffer);
-
-  if(fh)
-    fclose(fh);
-
-  if(sb)
-    raptor_free_stringbuffer(sb);
-
-  return string;
-}
-
 
 
 static rasqal_query*
@@ -933,8 +861,8 @@ main(int argc, char *argv[])
   }
 
   /* Read query from file into a string */
-  query_string = check_query_read_file_string(query_filename,
-                                              "query file", &query_len);
+  query_string = rasqal_cmdline_read_file_string(program, query_filename,
+                                                 "query file", &query_len);
   if(!query_string) {
     rc = 1;
     goto tidy_setup;
