@@ -962,6 +962,15 @@ main(int argc, char *argv[])
 
           raptor_free_iostream(result_iostr); result_iostr = NULL;
 
+          /* FIXME
+           *
+           * The code at this point should do something with triples
+           * in the dataset; save them for later to compare them to
+           * the expected triples.  that requires a triples compare
+           * OR a true RDF graph compare.
+           *
+           * Deleting the dataset here frees the triples just loaded.
+           */
           rasqal_free_dataset(ds); ds = NULL;
         }
         break;
