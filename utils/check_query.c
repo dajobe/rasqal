@@ -353,7 +353,8 @@ check_query_read_results(rasqal_world* world,
                                          qrf, results,
                                          query_results_base_uri))
   {
-    fprintf(stderr, "%s: Failed to read query results from %s with format %s",
+    fprintf(stderr,
+            "%s: Failed to read query results from %s with format %s\n",
             program, result_filename, format_name);
     goto tidy_fail;
   }
@@ -973,7 +974,7 @@ main(int argc, char *argv[])
     result_iostr = raptor_new_iostream_from_filename(raptor_world_ptr,
                                                      result_filename);
     if(!result_iostr) {
-      fprintf(stderr, "%s: result file '%s' open failed - %s", 
+      fprintf(stderr, "%s: result file '%s' open failed - %s\n", 
               program, result_filename, strerror(errno));
       rc = 1;
       goto tidy_setup;
@@ -991,6 +992,10 @@ main(int argc, char *argv[])
                                                     result_filename,
                                                     result_format_name);
         raptor_free_iostream(result_iostr); result_iostr = NULL;
+        if(!expected_results) {
+          rc = 1;
+          goto tidy_setup;
+        }
 
         break;
 
