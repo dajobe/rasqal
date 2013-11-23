@@ -103,9 +103,6 @@ rasqal_cmdline_read_file_fh(const char* program,
   if(buffer)
     free(buffer);
 
-  if(fh)
-    fclose(fh);
-
   if(sb)
     raptor_free_stringbuffer(sb);
 
