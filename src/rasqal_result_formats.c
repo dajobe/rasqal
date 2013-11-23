@@ -498,8 +498,8 @@ rasqal_query_results_formatter_read(rasqal_world *world,
                                     rasqal_query_results* results,
                                     raptor_uri *base_uri)
 {
-  rasqal_rowsource* rowsource = NULL;
-  rasqal_variables_table* vars_table;
+  rasqal_query_results_type type;
+  int rc = 0;
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, 1);
@@ -507,26 +507,38 @@ rasqal_query_results_formatter_read(rasqal_world *world,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(results, rasqal_query_results, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(base_uri, raptor_uri, 1);
 
-  vars_table = rasqal_query_results_get_variables_table(results);
-  rowsource = rasqal_query_results_formatter_get_read_rowsource(world,
-                                                                iostr,
-                                                                formatter,
-                                                                vars_table,
-                                                                base_uri, 0);
-  if(!rowsource)
-    return 1;
+  type = rasqal_query_results_get_type(results);
 
-  while(1) {
-    rasqal_row* row = rasqal_rowsource_read_row(rowsource);
-    if(!row)
-      break;
-    rasqal_query_results_add_row(results, row);
+  /* Read bindings results */
+  if(type == RASQAL_QUERY_RESULTS_BINDINGS) {
+    rasqal_rowsource* rowsource = NULL;
+    rasqal_variables_table* vars_table;
+
+    vars_table = rasqal_query_results_get_variables_table(results);
+    rowsource = rasqal_query_results_formatter_get_read_rowsource(world,
+                                                                  iostr,
+                                                                  formatter,
+                                                                  vars_table,
+                                                                  base_uri, 0);
+    if(!rowsource)
+      return 1;
+
+    while(1) {
+      rasqal_row* row = rasqal_rowsource_read_row(rowsource);
+      if(!row)
+        break;
+      rasqal_query_results_add_row(results, row);
+    }
+
+    if(rowsource)
+      rasqal_free_rowsource(rowsource);
+  } else {
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                            "Can only read bindings query results\n");
+    rc = 1;
   }
 
-  if(rowsource)
-    rasqal_free_rowsource(rowsource);
-  
-  return 0;
+  return rc;
 }
 
 
