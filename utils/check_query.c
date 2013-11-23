@@ -458,7 +458,7 @@ compare_query_results_compare(compare_query_results* cqr)
 
 #define DEFAULT_QUERY_LANGUAGE "sparql"
 #define DEFAULT_DATA_FORMAT_NAME_GRAPH "guess"
-#define DEFAULT_RESULT_FORMAT_NAME_GRAPH "xml"
+#define DEFAULT_RESULT_FORMAT_NAME "xml"
 
 
 int
@@ -729,7 +729,7 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("F", "data-format NAME     ", "Set the data source format NAME (default: " DEFAULT_DATA_FORMAT_NAME_GRAPH ")"));
     puts(HELP_TEXT("h", "help                 ", "Print this help, then exit"));
     puts(HELP_TEXT("Q URI", "query-base-uri URI", "Set the base URI for the query"));
-    puts(HELP_TEXT("R", "result-format NAME   ", "Set the result format NAME (default: " DEFAULT_RESULT_FORMAT_NAME_GRAPH ")"));
+    puts(HELP_TEXT("R", "result-format NAME   ", "Set the result format NAME (default: " DEFAULT_RESULT_FORMAT_NAME ")"));
     puts("    For variable bindings and boolean results:");
 
     for(i = 0; 1; i++) {
@@ -741,7 +741,7 @@ main(int argc, char *argv[])
  
       if(desc->flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER) {
         printf("      %-10s     %s", desc->names[0], desc->label);
-        if(!strcmp(desc->names[0], DEFAULT_RESULT_FORMAT_NAME_GRAPH))
+        if(!strcmp(desc->names[0], DEFAULT_RESULT_FORMAT_NAME))
           puts(" (default)");
         else
           putchar('\n');
@@ -870,7 +870,7 @@ main(int argc, char *argv[])
           }
 
           if(!format_name)
-            format_name = DEFAULT_RESULT_FORMAT_NAME_GRAPH;
+            format_name = DEFAULT_RESULT_FORMAT_NAME;
 
           
           ds = rasqal_new_dataset(world);
