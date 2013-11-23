@@ -23,8 +23,12 @@
 #ifndef RASQAL_CMDLINE_H
 #define RASQAL_CMDLINE_H
 
+/* read_files.c */
 unsigned char* rasqal_cmdline_read_file_fh(const char* program, FILE* fh, const char* filename, const char* label, size_t* len_p);
 
 unsigned char* rasqal_cmdline_read_file_string(const char* program, const char* filename,  const char* label, size_t* len_p);
+
+/* results.c */
+rasqal_query_results* rasqal_cmdline_read_results(rasqal_world* world, raptor_world* raptor_world_ptr, rasqal_query_results_type results_type, raptor_iostream* result_iostr, const char* result_filename, const char* result_format_name);
 
 #endif
