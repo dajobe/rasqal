@@ -1,3 +1,135 @@
+2013-11-24  Dave Beckett <dave@dajobe.org>
+
+	* README.html, utils/roqet.1: Docs for roqet args and SPARQL 1.1
+	references
+
+	* utils/roqet.c: -t is --results-input
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_type_label): unsigned/signed check
+
+	* utils/roqet.c: help words
+
+	* utils/roqet.c: help message improvements
+
+	* utils/results.c, utils/roqet.c: Use
+	rasqal_query_results_formats_check to check -r/-R arguments
+
+	* utils/results.c: Use rasqal_query_results_formats_check to check
+	valid result format
+
+	* utils/roqet.c: code style - declare at start of block
+
+	* utils/roqet.c: Use mode to wrap info and execution code
+
+	* utils/roqet.c: mode switch around quiet block
+
+	* utils/rasqalcmdline.h, utils/read_files.c, utils/roqet.c:
+	(rasqal_cmdline_read_uri_file_stdin_contents): Added and used
+
+	* utils/roqet.c: Use mode to wrap stdin/file/uri reading for query
+	uri mode
+
+	* utils/roqet.c: Add roqet_mode for 4 main program modes
+
+	* utils/roqet.c: docs words
+
+	* utils/roqet.c: Make result reading work
+
+	* src/rasqal_result_formats.c: Tidy error message
+
+	* utils/roqet.c: Added new major mode for reading bindings results
+	from a file (-t)
+
+	Added -t for new mode: read from results bindings file
+	Added -R for above: set the input result format
+	Renamed result_format to result_format_name
+
+2013-11-23  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c: Tidied help messages
+
+	* utils/check_query.c: Use rasqal_query_results_type_label() for
+	better error messages
+
+	* src/rasqal_format_html.c, src/rasqal_format_json.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_result_formats.c: Use rasqal_query_results_type_label()
+	for better error messages
+
+	* src/rasqal.h.in, src/rasqal_query_results.c:
+	(rasqal_query_results_type_label): Added
+
+	* src/rasqal_result_formats.c: Only allow reading into query
+	results of type bindings
+
+	(rasqal_query_results_formatter_read): Enforce that currently this
+	can ony read into bindings query results.
+
+	* utils/rasqalcmdline.h: Add rasqal_cmdline_read_results
+
+	* utils/check_query.c: Rename DEFAULT_RESULT_FORMAT_NAME_GRAPH to
+	DEFAULT_RESULT_FORMAT_NAME
+
+	* utils/check_query.c: Use rasqal_cmdline_read_results
+
+	* utils/Makefile.am, utils/results.c:
+	(rasqal_cmdline_read_results): Added
+
+	* utils/read_files.c:
+	(rasqal_cmdline_read_file_fh): Do not close fh
+
+2013-11-16  Dave Beckett <dave@dajobe.org>
+
+	* utils/check_query.c: more implementation notes
+
+	* utils/check_query.c: implementation note
+
+	* src/rasqal_graph.c: init factory [clang]
+
+	* utils/check_query.c: docs
+
+	* utils/read_files.c: -caveat
+
+	* utils/.gitignore, utils/Makefile.am, utils/check_query.c,
+	utils/rasqalcmdline.h, utils/read_files.c, utils/roqet.c: Add
+	convienience library librasqalcmdline to share cmdline tool code
+
+	* libmtwist: bump libmtwist
+
+	* src/rasqal_rowsource.c:
+	(rasqal_new_rowsource_from_handler): Allow NULL query Used when
+	making a rowsource for reading from a file with no query present.
+
+	* utils/check_query.c: Fail if results file cannot be read
+
+	* Makefile.am: Adjust DIST_SUBDIRS to be constant so we don't
+	include libmtwist and getopt twice (breaks make distcheck)
+
+	* libmtwist: Update libmtwist
+
+	* src/Makefile.am: Add mtwist_config.h to dist
+
+	* Makefile.am, configure.ac, getopt/.gitignore,
+	getopt/Makefile.am, getopt/getopt.c, getopt/rasqal_getopt.h,
+	src/Makefile.am, utils/Makefile.am, utils/getopt.c,
+	utils/rasqal_getopt.h: Add libgetopt convienience library To stop
+	automake warnings
+
+	Also make libmtwist and getopt dirs optional; do not compile in them
+	if they are not needed.
+
+	* src/Makefile.am: Add extra rules to build libmtwist.la if it
+	wasn't built first
+
+	* src/rasqal_datetime.c, src/rasqal_row_compatible.c,
+	src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_groupby.c, src/rasqal_rowsource_triples.c,
+	src/sparql_parser.y: Clang test code fixes
+
+	- Initialise test vars to NULL to allow checks on error paths
+	- Remove extra consts around int/double const arrays
+
 2013-11-08  Dave Beckett <dave@dajobe.org>
 
 	* src/.gitignore: no more rdql
