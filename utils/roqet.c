@@ -882,6 +882,15 @@ print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
 }
 
 
+typedef enum {
+  MODE_EXEC_UNKNOWN,
+  MODE_EXEC_QUERY_STRING,
+  MODE_EXEC_QUERY_URI,
+  MODE_CALL_PROTOCOL_URI,
+  MODE_READ_RESULTS
+} roqet_mode;
+
+
 int
 main(int argc, char *argv[]) 
 { 
@@ -921,6 +930,7 @@ main(int argc, char *argv[])
   raptor_uri* service_uri = NULL;
   const char* result_filename = NULL;
   const char *result_input_format_name = NULL;
+  roqet_mode mode = MODE_EXEC_UNKNOWN;
   
   program = argv[0];
   if((p = strrchr(program, '/')))
@@ -1310,30 +1320,35 @@ main(int argc, char *argv[])
     exit(0);
   }
 
-
   if(service_uri_string) {
+    mode = MODE_CALL_PROTOCOL_URI;
     service_uri = raptor_new_uri(raptor_world_ptr, service_uri_string);
     if(optind == argc-1) {
       base_uri_string = (unsigned char*)argv[optind];
     }
   } else if(query_string) {
+    mode = MODE_EXEC_QUERY_STRING;
     if(optind == argc-1)
       base_uri_string = (unsigned char*)argv[optind];
   } else if(result_filename) {
+    mode = MODE_READ_RESULTS;
     if(optind == argc-1)
       base_uri_string = (unsigned char*)argv[optind];
   } else {
+    /* read a query from stdin, file or URI */
+    mode = MODE_EXEC_QUERY_URI;
     if(optind == argc-1)
       uri_string = (unsigned char*)argv[optind];
     else {
       uri_string = (unsigned char*)argv[optind++];
       base_uri_string = (unsigned char*)argv[optind];
     }
-    
+
     /* If uri_string is "path-to-file", turn it into a file: URI */
     if(!strcmp((const char*)uri_string, "-")) {
       if(!base_uri_string) {
-        fprintf(stderr, "%s: A Base URI is required when reading from standard input.\n",
+        fprintf(stderr,
+                "%s: A base URI is required when reading a query from standard input.\n",
                 program);
         return(1);
       }
