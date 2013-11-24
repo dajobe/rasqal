@@ -1080,8 +1080,8 @@ main(int argc, char *argv[])
         if(optarg) {
           if(!raptor_world_is_parser_name(raptor_world_ptr, optarg)) {
               fprintf(stderr,
-                      "%s: invalid parser name `%s' for `" HELP_ARG(F, format) "'\n\n",
-                      program, optarg);
+                      "%s: invalid parser name `%s' for `" HELP_ARG(F, format)  "'\nTry '%s -h' for a list of valid parsers\n",
+                      program, optarg, program);
               usage = 1;
           } else {
             data_graph_parser_name = optarg;
@@ -1143,9 +1143,9 @@ main(int argc, char *argv[])
           unsigned int i;
 
           fprintf(stderr,
-                  "%s: invalid argument `%s' for `" HELP_ARG(i, input) "'\n",
+                  "%s: invalid query language `%s' for `" HELP_ARG(i, input) "'\n",
                   program, optarg);
-          fprintf(stderr, "Valid arguments are:\n");
+          fprintf(stderr, "Valid query languages are:\n");
           for(i = 0; 1; i++) {
             const raptor_syntax_description* desc;
             desc = rasqal_world_get_query_language_description(world, i);
