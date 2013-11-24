@@ -1476,24 +1476,26 @@ main(int argc, char *argv[])
       }
       
       /* Read result set from filename */
-      rasqal_query_results_type results_type = RASQAL_QUERY_RESULTS_BINDINGS;
-      raptor_iostream* result_iostr;
-      
-      result_iostr = raptor_new_iostream_from_filename(raptor_world_ptr,
-                                                       result_filename);
-      if(!result_iostr) {
-        fprintf(stderr, "%s: results file '%s' open failed - %s\n",
-                program, result_filename, strerror(errno));
-        rc = 1;
-        goto tidy_setup;
+      if(1) {
+        raptor_iostream* result_iostr;
+
+        result_iostr = raptor_new_iostream_from_filename(raptor_world_ptr,
+                                                         result_filename);
+        if(!result_iostr) {
+          fprintf(stderr, "%s: results file '%s' open failed - %s\n",
+                  program, result_filename, strerror(errno));
+          rc = 1;
+          goto tidy_setup;
+        }
+
+        results = rasqal_cmdline_read_results(world, raptor_world_ptr,
+                                              RASQAL_QUERY_RESULTS_BINDINGS,
+                                              result_iostr,
+                                              result_filename,
+                                              result_input_format_name);
+        raptor_free_iostream(result_iostr); result_iostr = NULL;
       }
-      
-      results = rasqal_cmdline_read_results(world, raptor_world_ptr,
-                                            results_type,
-                                            result_iostr,
-                                            result_filename,
-                                            result_input_format_name);
-      raptor_free_iostream(result_iostr); result_iostr = NULL;
+
       if(!results) {
         fprintf(stderr, "%s: Failed to read results from '%s'\n", program,
                 result_filename);
