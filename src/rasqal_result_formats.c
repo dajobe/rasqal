@@ -534,7 +534,8 @@ rasqal_query_results_formatter_read(rasqal_world *world,
       rasqal_free_rowsource(rowsource);
   } else {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Can only read bindings query results\n");
+                            "Cannot read %s query results format\n",
+                            rasqal_query_results_type_label(type));
     rc = 1;
   }
 

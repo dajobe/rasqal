@@ -81,15 +81,19 @@ rasqal_query_results_write_json1(rasqal_query_results_formatter* formatter,
   int i;
   int row_comma;
   int column_comma = 0;
-  
-  if(!rasqal_query_results_is_bindings(results) &&
-     !rasqal_query_results_is_boolean(results)) {
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Can only write JSON format for variable binding and boolean results");
+  rasqal_query_results_type type;
+
+  type = rasqal_query_results_get_type(results);
+
+  if(type != RASQAL_QUERY_RESULTS_BINDINGS &&
+     type != RASQAL_QUERY_RESULTS_BOOLEAN) {
+    rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
+                            &query->locator,
+                            "Cannot write JSON for %s query result format",
+                            rasqal_query_results_type_label(type));
     return 1;
   }
-  
-  
+
   raptor_iostream_counted_string_write("{\n", 2, iostr);
   
   /* Header */

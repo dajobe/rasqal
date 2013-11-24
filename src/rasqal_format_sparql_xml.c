@@ -97,15 +97,18 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
   raptor_xml_element *variable_element=NULL;
   raptor_qname **attrs=NULL;
   int i;
+  rasqal_query_results_type type;
 
-  if(!rasqal_query_results_is_bindings(results) &&
-     !rasqal_query_results_is_boolean(results)) {
+  type = rasqal_query_results_get_type(results);
+
+  if(type != RASQAL_QUERY_RESULTS_BINDINGS &&
+     type != RASQAL_QUERY_RESULTS_BOOLEAN) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
                             NULL,
-                            "Can only write XML format v3 for variable binding and boolean results");
+                            "Cannot write XML format v3 for %s query result format",
+                            rasqal_query_results_type_label(type));
     return 1;
   }
-  
 
   nstack = raptor_new_namespaces(world->raptor_world_ptr, 1);
   if(!nstack)
