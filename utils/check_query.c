@@ -836,7 +836,6 @@ main(int argc, char *argv[])
 
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
-      case RASQAL_QUERY_RESULTS_BOOLEAN:
         /* read results via rasqal query results format */
         expected_results = rasqal_cmdline_read_results(world,
                                                        raptor_world_ptr,
@@ -903,20 +902,14 @@ main(int argc, char *argv[])
         break;
         
       case RASQAL_QUERY_RESULTS_SYNTAX:
-        fprintf(stderr, 
-                "%s: Reading query results format 'syntax' is not supported", 
-                program);
-        rc = 1;
-        goto tidy_setup;
-        break;
-
+      case RASQAL_QUERY_RESULTS_BOOLEAN:
       case RASQAL_QUERY_RESULTS_UNKNOWN:
         /* failure */
-        fprintf(stderr, "%s: Unknown query result format cannot be tested.", 
-                program);
+        fprintf(stderr,
+                "%s: Reading %s query results format is not supported",
+                program, rasqal_query_results_type_label(results_type));
         rc = 1;
         goto tidy_setup;
-        break;
     }
     
   }
