@@ -1488,10 +1488,10 @@ main(int argc, char *argv[])
       if(!quiet) {
         if(base_uri_string)
           fprintf(stderr,
-                  "%s: Reading results from filename %s in format %s with base URI %s\n", program,
+                  "%s: Reading results from file %s in format %s with base URI %s\n", program,
                   result_filename, result_input_format_name, base_uri_string);
         else
-          fprintf(stderr, "%s: Reading results from %s\n", program,
+          fprintf(stderr, "%s: Reading results from file %s\n", program,
                   result_filename);
       }
       
