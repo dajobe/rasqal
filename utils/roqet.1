@@ -2,10 +2,10 @@
 .\"
 .\" roqet.1 - Rasqal RDF query utility
 .\"
-.\" Copyright (C) 2004-2011 David Beckett - http://www.dajobe.org/
+.\" Copyright (C) 2004-2013 David Beckett - http://www.dajobe.org/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH roqet 1 "2011-06-11"
+.TH roqet 1 "2013-11-24"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 roqet \- Rasqal RDF query utility
@@ -26,6 +26,10 @@ roqet \- Rasqal RDF query utility
 .RB [ -e
 .IR "query-string"
 .RB ]
+.IR "[base-URI]"
+.B roqet
+.RB [ OPTIONS ] -t
+.IR "query results file" 
 .IR "[base-URI]"
 .SH DESCRIPTION
 The
@@ -60,7 +64,7 @@ Call the SPARQL HTTP protocol \fISERVICE-URI\fP to execute the query
 instead of executing it inside the Rasqal query engine locally.
 .TP
 .B \-r, \-\-results FORMAT
-Set the query results format.
+Set the query results output format.
 .IP
 For variable bindings, the values of
 .I FORMAT
@@ -79,6 +83,12 @@ or 'rss-1.0' (RSS 1.0, also an RDF/XML syntax).
 .IP
 The exact list of formats depends on what libraptor2(3) was built with
 but is given correct in the usage message with \-h.
+.TP
+.B \-R, \-\-results FORMAT
+Set the query results input format for use with \-t
+.TP
+.B \-t, \-\-results\-input FILE
+Read query results from FILE.
 .SH OTHER OPTIONS
 .TP
 .B \-c, \-\-count
@@ -168,17 +178,28 @@ messages.
 Run a SPARQL query given on the command line against data in
 the file stuff.rdf.  The type of the file will be guessed and likely
 is of format RDF/XML.
+.IP
+.B roqet -t result.srx -r html
+.LP
+Read a SPARQL query results in SPARQL Query Results XML format (default)
+and print it in HTML.
+.IP
+.B roqet -t result.ttl -R turtle -r csv
+.LP
+Read a SPARQL query results in RDF/Turtle format and print it in CSV.
 .SH "CONFORMING TO"
-\fISPARQL Query Language for RDF\fR, 
-Eric Prud'hommeaux and Andy Seaborne (eds), W3C Recommendation, 15 January 2008.
-.UR http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/
-http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/
+\fISPARQL 1.1 Query Language\fR,
+Steve Harris and Andy Seaborne (eds),
+W3C Recommendation, 21 March 2013
+.UR http://www.w3.org/TR/2013/REC-sparql11-query-20130321/
+http://www.w3.org/TR/2013/REC-sparql11-query-20130321/
 .UE
 .LP
-\fISPARQL Query Results XML Format\fR, 
-Jeen Broekstra and Dave Beckett (eds), W3C Recommendation, 15 January 2008.
-.UR http://www.w3.org/TR/2008/REC-rdf-sparql-XMLres-20080115/
-http://www.w3.org/TR/2008/REC-rdf-sparql-XMLres-20080115/
+\fISPARQL Query Results XML Format (Second Edition)\fR, 
+Sandro Hawke (Second Edition ed), Jeen Broekstra and Dave Beckett (eds),
+W3C Recommendation, 21 March 2013.
+.UR http://www.w3.org/TR/2013/REC-rdf-sparql-XMLres-20130321/
+http://www.w3.org/TR/2013/REC-rdf-sparql-XMLres-20130321/
 .UE
 .SH SEE ALSO
 .BR librasqal(3), libraptor(3)

@@ -26,7 +26,8 @@ and Turtle / N3 and read them in SPARQL XML, RDF/XML and Turtle / N3.
 
 <p>Rasqal was designed to work closely with the
 <a href="http://librdf.org/">Redland RDF library</a>
-and the Raptor[2] RDF Syntax Library but is entirely separate from both.
+and the <a href="http://librdf.org/raptor/">Raptor</a>
+RDF Syntax Library but is entirely separate from both.
 </p>
 
 <p>This is a beta quality library - the code is mature, the API is
@@ -86,14 +87,14 @@ the triples from Raptor into memory when the queries are complex.
 developed by the W3C
 <a href="http://www.w3.org/2001/sw/DataAccess/">RDF Data Access Working Group</a>,
 as defined in
-<a href="http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/">SPARQL Query Language for RDF</a>, W3C Recommendation 15 January 2008.
+<a href="http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/">SPARQL Query Language for RDF (1.0)</a>, W3C Recommendation 15 January 2008.
 </p>
 
 <p>Rasqal implements most of the
-<a href="http://www.w3.org/TR/2012/WD-sparql11-query-20120105/">SPARQL 1.1 Query</a>
+<a href="http://www.w3.org/TR/2013/REC-sparql11-query-20130321/">SPARQL 1.1 Query Language</a>
 and
-<a href="http://www.w3.org/TR/2012/WD-sparql11-update-20120105/">SPARQL 1.1 Update</a>
-W3C Working Drafts of 05 January 2012 including aggregates,
+<a href="http://www.w3.org/TR/2013/REC-sparql11-update-20130321/">SPARQL 1.1 Update</a>
+W3C Recommendations 21 March 2013 including aggregates,
 subqueries, expression in SELECT, assignment, short form for
 <code>CONSTRUCT</code> and all the new set of builtin functions and
 operators.</p>
@@ -101,8 +102,7 @@ operators.</p>
 <p>Unimplemented parts of SPARQL 1.1:</p>
 <ul>
   <li><code>BIND</code> scope</li>
-  <li><code>VALUES</code> (formerly called <code>BINDINGS</code>): part
-  of federated query</li>
+  <li><code>VALUES</code>: part of federated query</li>
   <li>Decimal and double canonical format details</li>
   <li><code>EXISTS</code> / <code>NOT EXISTS</code></li>
   <li>JSON result format reading</li>
