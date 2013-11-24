@@ -87,9 +87,9 @@ static char *program=NULL;
 
 #ifdef RASQAL_INTERNAL
 /* add 'g:' */
-#define GETOPT_STRING "cd:D:e:Ef:F:g:G:hi:np:r:qs:vW:"
+#define GETOPT_STRING "cd:D:e:Ef:F:g:G:hi:np:qr:R:s:t:vW:"
 #else
-#define GETOPT_STRING "cd:D:e:Ef:F:G:hi:np:r:qs:vW:"
+#define GETOPT_STRING "cd:D:e:Ef:F:G:hi:np:qr:R:s:t:vW:"
 #endif
 
 #ifdef HAVE_GETOPT_LONG
@@ -115,7 +115,9 @@ static struct option long_options[] =
   {"protocol", 0, 0, 'p'},
   {"quiet", 0, 0, 'q'},
   {"results", 1, 0, 'r'},
+  {"results-input-format", 1, 0, 'R'},
   {"source", 1, 0, 's'},
+  {"result", 1, 0, 't'},
   {"version", 0, 0, 'v'},
   {"warnings", 1, 0, 'W'},
 #ifdef STORE_RESULTS_FLAG
@@ -589,7 +591,7 @@ print_formatted_query_results(rasqal_world* world,
                               rasqal_query_results* results,
                               raptor_world* raptor_world_ptr,
                               FILE* output,
-                              const char* result_format,
+                              const char* result_format_name,
                               raptor_uri* base_uri,
                               int quiet)
 {
@@ -598,11 +600,11 @@ print_formatted_query_results(rasqal_world* world,
   int rc = 0;
   
   results_formatter = rasqal_new_query_results_formatter(world,
-                                                         result_format,
+                                                         result_format_name,
                                                          NULL, NULL);
   if(!results_formatter) {
     fprintf(stderr, "%s: Invalid bindings result format `%s'\n",
-            program, result_format);
+            program, result_format_name);
     rc = 1;
     goto tidy;
   }
@@ -762,6 +764,14 @@ void roqet_print_query(rasqal_query* rq,
 }
 
 
+/* Default parser for input graphs */
+#define DEFAULT_DATA_GRAPH_FORMAT "guess"
+/* Default serializer for output graphs */
+#define DEFAULT_GRAPH_FORMAT "ntriples"
+/* Default input result format name */
+#define DEFAULT_RESULT_FORMAT_NAME "xml"
+
+
 static void
 print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
 {
@@ -771,7 +781,8 @@ print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
   puts("Run an RDF query giving variable bindings or RDF triples.");
   printf("Usage: %s [OPTIONS] <query URI> [base URI]\n", program);
   printf("       %s [OPTIONS] -e <query string> [base URI]\n", program);
-  printf("       %s [OPTIONS] -p <SPARQL protocol service URI> -e <query string> [base URI]\n\n", program);
+  printf("       %s [OPTIONS] -p <SPARQL protocol URI> -e <query string> [base URI]\n", program);
+  printf("       %s [OPTIONS] -t <query results bindings file> [base URI]\n\n", program);
   
   fputs(rasqal_copyright_string, stdout);
   fputs("\nLicense: ", stdout);
@@ -828,6 +839,24 @@ print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
     else
       putchar('\n');
   }
+  puts(HELP_TEXT("t", "results FILE    ", "Read query results from a FILE"));
+  puts(HELP_TEXT("R", "results-input-format FORMAT", HELP_PAD "Read query results file in FORMAT:"));
+  for(i = 0; 1; i++) {
+    const raptor_syntax_description* desc;
+    
+    desc = rasqal_world_get_query_results_format_description(world, i);
+    if(!desc)
+      break;
+    
+    if(desc->flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER) {
+      printf("      %-10s            %s", desc->names[0], desc->label);
+      if(!strcmp(desc->names[0], DEFAULT_RESULT_FORMAT_NAME))
+        puts(" (default)");
+      else
+        putchar('\n');
+    }
+  }
+  
   puts("\nAdditional options:");
   puts(HELP_TEXT("c", "count           ", "Count triples - no output"));
   puts(HELP_TEXT("d FORMAT", "dump-query FORMAT", HELP_PAD "Print the parsed query out in FORMAT:"));
@@ -853,11 +882,6 @@ print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
 }
 
 
-/* Default parser for input graphs */
-#define DEFAULT_DATA_GRAPH_FORMAT "guess"
-/* Default serializer for output graphs */
-#define DEFAULT_GRAPH_FORMAT "ntriples"
-
 int
 main(int argc, char *argv[]) 
 { 
@@ -881,7 +905,7 @@ main(int argc, char *argv[])
   int count = 0;
   int dryrun = 0;
   raptor_sequence* data_graphs = NULL;
-  const char *result_format = NULL;
+  const char *result_format_name = NULL;
   query_output_format output_format = QUERY_OUTPUT_NONE;
   rasqal_feature query_feature = (rasqal_feature)-1;
   int query_feature_value= -1;
@@ -895,6 +919,8 @@ main(int argc, char *argv[])
   raptor_iostream* iostr = NULL;
   const unsigned char* service_uri_string = 0;
   raptor_uri* service_uri = NULL;
+  const char* result_filename = NULL;
+  const char *result_input_format_name = NULL;
   
   program = argv[0];
   if((p = strrchr(program, '/')))
@@ -1070,7 +1096,13 @@ main(int argc, char *argv[])
         if(optarg) {
           if(!strcmp(optarg, "simple"))
             optarg = NULL;
-          result_format = optarg;
+          result_format_name = optarg;
+        }
+        break;
+
+      case 'R':
+        if(optarg) {
+          result_input_format_name = optarg;
         }
         break;
 
@@ -1213,6 +1245,12 @@ main(int argc, char *argv[])
         ignore_errors = 1;
         break;
 
+      case 't':
+        if(optarg) {
+          result_filename = optarg;
+        }
+        break;
+
       case 'v':
         fputs(rasqal_version_string, stdout);
         fputc('\n', stdout);
@@ -1235,6 +1273,9 @@ main(int argc, char *argv[])
       if(optind != argc && optind != argc-1)
         usage = 2; /* Title and usage */
     } else if(query_string) {
+      if(optind != argc && optind != argc-1)
+        usage = 2; /* Title and usage */
+    } else if(result_filename) {
       if(optind != argc && optind != argc-1)
         usage = 2; /* Title and usage */
     } else {
@@ -1402,6 +1443,13 @@ main(int argc, char *argv[])
                 uri_string, base_uri_string);
       else
         fprintf(stderr, "%s: Querying URI %s\n", program, uri_string);
+    } else if(result_filename) {
+      if(base_uri_string)
+        fprintf(stderr,
+                "%s: Reading result set from filename %s in format %s with base URI %s\n", program,
+                result_filename, result_input_format_name, base_uri_string);
+      else
+        fprintf(stderr, "%s: Reading result set from %s\n", program, result_filename);
     }
   }
   
@@ -1413,6 +1461,32 @@ main(int argc, char *argv[])
       results = roqet_call_sparql_service(world, service_uri, query_string,
                                           data_graphs,
                                           /* service_format */ NULL);
+  } else if(result_filename) {
+    /* Read result set from filename */
+    rasqal_query_results_type results_type = RASQAL_QUERY_RESULTS_UNKNOWN;
+    raptor_iostream* result_iostr;
+
+    result_iostr = raptor_new_iostream_from_filename(raptor_world_ptr,
+                                                     result_filename);
+    if(!result_iostr) {
+      fprintf(stderr, "%s: result file '%s' open failed - %s\n",
+              program, result_filename, strerror(errno));
+      rc = 1;
+      goto tidy_setup;
+    }
+
+    results = rasqal_cmdline_read_results(world, raptor_world_ptr,
+                                          results_type,
+                                          result_iostr,
+                                          result_filename,
+                                          result_input_format_name);
+    raptor_free_iostream(result_iostr); result_iostr = NULL;
+    if(!results) {
+      fprintf(stderr, "%s: Failed to read results from '%s'\n", program,
+              result_filename);
+      rc = 1;
+      goto tidy_setup;
+    }
   } else {
     /* Execute query in this query engine (from URI or from -e QUERY) */
     rq = roqet_init_query(world,
@@ -1449,25 +1523,25 @@ main(int argc, char *argv[])
   }
 
   if(rasqal_query_results_is_bindings(results)) {
-    if(result_format)
+    if(result_format_name)
       rc = print_formatted_query_results(world, results,
                                          raptor_world_ptr, stdout,
-                                         result_format, base_uri, quiet);
+                                         result_format_name, base_uri, quiet);
     else
       print_bindings_result_simple(results, stdout, quiet, count);
   } else if(rasqal_query_results_is_boolean(results)) {
-    if(result_format)
+    if(result_format_name)
       rc = print_formatted_query_results(world, results,
                                          raptor_world_ptr, stdout,
-                                         result_format, base_uri, quiet);
+                                         result_format_name, base_uri, quiet);
     else
       print_boolean_result_simple(results, stdout, quiet);
   } else if(rasqal_query_results_is_graph(results)) {
-    if(!result_format)
-      result_format = DEFAULT_GRAPH_FORMAT;
+    if(!result_format_name)
+      result_format_name = DEFAULT_GRAPH_FORMAT;
     
     rc = print_graph_result(rq, results, raptor_world_ptr,
-                            stdout, result_format, base_uri, quiet);
+                            stdout, result_format_name, base_uri, quiet);
   } else {
     fprintf(stderr, "%s: Query returned unknown result format\n", program);
     rc = 1;
