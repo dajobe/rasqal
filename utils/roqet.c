@@ -1319,6 +1319,9 @@ main(int argc, char *argv[])
   } else if(query_string) {
     if(optind == argc-1)
       base_uri_string = (unsigned char*)argv[optind];
+  } else if(result_filename) {
+    if(optind == argc-1)
+      base_uri_string = (unsigned char*)argv[optind];
   } else {
     if(optind == argc-1)
       uri_string = (unsigned char*)argv[optind];
@@ -1370,6 +1373,8 @@ main(int argc, char *argv[])
     /* NOP - nothing to do here */
   } else if(query_string) {
     /* NOP - already got it */
+  } else if(result_filename) {
+    /* NOP - nothing to do here */
   } else if(!uri_string) {
     size_t read_len;
     
@@ -1463,7 +1468,7 @@ main(int argc, char *argv[])
                                           /* service_format */ NULL);
   } else if(result_filename) {
     /* Read result set from filename */
-    rasqal_query_results_type results_type = RASQAL_QUERY_RESULTS_UNKNOWN;
+    rasqal_query_results_type results_type = RASQAL_QUERY_RESULTS_BINDINGS;
     raptor_iostream* result_iostr;
 
     result_iostr = raptor_new_iostream_from_filename(raptor_world_ptr,
