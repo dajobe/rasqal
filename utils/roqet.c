@@ -778,11 +778,11 @@ print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
   unsigned int i;
     
   printf(title_format_string, rasqal_version_string);
-  puts("Run an RDF query giving variable bindings or RDF triples.");
+  puts("Run an RDF query against data into formatted results.");
   printf("Usage: %s [OPTIONS] <query URI> [base URI]\n", program);
   printf("       %s [OPTIONS] -e <query string> [base URI]\n", program);
   printf("       %s [OPTIONS] -p <SPARQL protocol URI> -e <query string> [base URI]\n", program);
-  printf("       %s [OPTIONS] -t <query results bindings file> [base URI]\n\n", program);
+  printf("       %s [OPTIONS] -t <query results file> [base URI]\n\n", program);
   
   fputs(rasqal_copyright_string, stdout);
   fputs("\nLicense: ", stdout);
@@ -840,7 +840,7 @@ print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
       putchar('\n');
   }
   puts(HELP_TEXT("t", "results FILE    ", "Read query results from a FILE"));
-  puts(HELP_TEXT("R", "results-input-format FORMAT", HELP_PAD "Read query results file in FORMAT:"));
+  puts(HELP_TEXT("R", "results-input-format FORMAT", HELP_PAD "Set input query results format to one of:"));
   for(i = 0; 1; i++) {
     const raptor_syntax_description* desc;
     
