@@ -134,3 +134,39 @@ rasqal_cmdline_read_file_string(const char* program,
 
   return string;
 }
+
+
+/*
+ * uri: uri
+ * filename != NULL: file
+ * otherwise: stdin
+ */
+unsigned char*
+rasqal_cmdline_read_uri_file_stdin_contents(const char* program,
+                                            raptor_world* world,
+                                            raptor_uri* uri,
+                                            const char* filename,
+                                            size_t* len_p)
+{
+  unsigned char* string = NULL;
+  
+  if(uri) {
+    raptor_www *www;
+    
+    www = raptor_new_www(world);
+    if(www) {
+      raptor_www_fetch_to_string(www, uri, (void**)&string, len_p,
+                                 malloc);
+      raptor_free_www(www);
+    }
+  } else if(filename) {
+    string = rasqal_cmdline_read_file_string(program, filename,
+                                             "query file", len_p);
+  } else {
+    /* stdin */
+    string = rasqal_cmdline_read_file_fh(program, stdin, "stdin",
+                                         "query string stdin", len_p);
+  }
+  
+  return string;
+}

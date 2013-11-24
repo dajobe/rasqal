@@ -1369,8 +1369,19 @@ main(int argc, char *argv[])
       }
     } else
       uri = NULL; /* stdin */
+
+    query_string = rasqal_cmdline_read_uri_file_stdin_contents(program,
+                                                               raptor_world_ptr,
+                                                               uri, filename,
+                                                               NULL);
+    if(!query_string) {
+      rc = 1;
+      goto tidy_setup;
+    }
   }
 
+
+  /* Compute base URI */
   if(!base_uri_string) {
     if(uri)
       base_uri = raptor_uri_copy(uri);
@@ -1381,51 +1392,6 @@ main(int argc, char *argv[])
     fprintf(stderr, "%s: Failed to create URI for %s\n",
             program, base_uri_string);
     return(1);
-  }
-
-
-  if(mode == MODE_EXEC_QUERY_URI)  {
-    if(!uri_string) {
-      size_t read_len;
-
-      query_string = rasqal_cmdline_read_file_fh(program, stdin, "stdin",
-                                                 "query string stdin",
-                                                 &read_len);
-      if(!query_string) {
-        rc = 1;
-        goto tidy_setup;
-      }
-
-      query_from_string = 0;
-    } else if(filename) {
-      size_t len;
-
-      query_string = rasqal_cmdline_read_file_string(program, filename,
-                                                     "query file",
-                                                     &len);
-      if(!query_string) {
-        rc = 1;
-        goto tidy_setup;
-      }
-      query_from_string = 0;
-    } else {
-      raptor_www *www;
-
-      www = raptor_new_www(raptor_world_ptr);
-      if(www) {
-        raptor_www_fetch_to_string(www, uri, (void**)&query_string, NULL, malloc);
-        raptor_free_www(www);
-      }
-
-      if(!query_string || error_count) {
-        fprintf(stderr, "%s: Retrieving query at URI '%s' failed\n",
-                program, uri_string);
-        rc = 1;
-        goto tidy_setup;
-      }
-
-      query_from_string = 0;
-    }
   }
 
 
