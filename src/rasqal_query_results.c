@@ -383,6 +383,35 @@ rasqal_query_results_get_type(rasqal_query_results* query_results)
 }
 
 
+static const char* const rasqal_query_results_type_labels[RASQAL_QUERY_RESULTS_LAST + 1] = {
+  "Bindings",
+  "Boolean",
+  "Graph",
+  "Syntax",
+  "Unknown"
+};
+
+
+
+/**
+ * rasqal_query_results_type_label:
+ * @type: #rasqal_query_results_type type
+ *
+ * Get a label for a query results type
+ *
+ * Return value: label or NULL on failure (invalid type)
+ **/
+const char*
+rasqal_query_results_type_label(rasqal_query_results_type type)
+{
+  if(type < RASQAL_QUERY_RESULTS_BINDINGS ||
+     type > RASQAL_QUERY_RESULTS_LAST)
+    type = RASQAL_QUERY_RESULTS_UNKNOWN;
+
+  return rasqal_query_results_type_labels[RASQAL_GOOD_CAST(int, type)];
+}
+
+
 /**
  * rasqal_query_results_is_bindings:
  * @query_results: #rasqal_query_results object
