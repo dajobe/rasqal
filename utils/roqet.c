@@ -1384,52 +1384,48 @@ main(int argc, char *argv[])
   }
 
 
-  if(service_uri_string) {
-    /* NOP - nothing to do here */
-  } else if(query_string) {
-    /* NOP - already got it */
-  } else if(result_filename) {
-    /* NOP - nothing to do here */
-  } else if(!uri_string) {
-    size_t read_len;
-    
-    query_string = rasqal_cmdline_read_file_fh(program, stdin, "stdin",
-                                               "query string stdin",
-                                               &read_len);
-    if(!query_string) {
-      rc = 1;
-      goto tidy_setup;
+  if(mode == MODE_EXEC_QUERY_URI)  {
+    if(!uri_string) {
+      size_t read_len;
+
+      query_string = rasqal_cmdline_read_file_fh(program, stdin, "stdin",
+                                                 "query string stdin",
+                                                 &read_len);
+      if(!query_string) {
+        rc = 1;
+        goto tidy_setup;
+      }
+
+      query_from_string = 0;
+    } else if(filename) {
+      size_t len;
+
+      query_string = rasqal_cmdline_read_file_string(program, filename,
+                                                     "query file",
+                                                     &len);
+      if(!query_string) {
+        rc = 1;
+        goto tidy_setup;
+      }
+      query_from_string = 0;
+    } else {
+      raptor_www *www;
+
+      www = raptor_new_www(raptor_world_ptr);
+      if(www) {
+        raptor_www_fetch_to_string(www, uri, (void**)&query_string, NULL, malloc);
+        raptor_free_www(www);
+      }
+
+      if(!query_string || error_count) {
+        fprintf(stderr, "%s: Retrieving query at URI '%s' failed\n",
+                program, uri_string);
+        rc = 1;
+        goto tidy_setup;
+      }
+
+      query_from_string = 0;
     }
-
-    query_from_string = 0;
-  } else if(filename) {
-    size_t len;
-
-    query_string = rasqal_cmdline_read_file_string(program, filename,
-                                                   "query file",
-                                                   &len);
-    if(!query_string) {
-      rc = 1;
-      goto tidy_setup;
-    }
-    query_from_string = 0;
-  } else {
-    raptor_www *www;
-
-    www = raptor_new_www(raptor_world_ptr);
-    if(www) {
-      raptor_www_fetch_to_string(www, uri, (void**)&query_string, NULL, malloc);
-      raptor_free_www(www);
-    }
-
-    if(!query_string || error_count) {
-      fprintf(stderr, "%s: Retrieving query at URI '%s' failed\n", 
-              program, uri_string);
-      rc = 1;
-      goto tidy_setup;
-    }
-
-    query_from_string = 0;
   }
 
 
