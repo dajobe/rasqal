@@ -2,7 +2,7 @@
  *
  * roqet.c - Rasqal RDF Query utility
  *
- * Copyright (C) 2004-2010, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2013, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -117,7 +117,7 @@ static struct option long_options[] =
   {"results", 1, 0, 'r'},
   {"results-input-format", 1, 0, 'R'},
   {"source", 1, 0, 's'},
-  {"result", 1, 0, 't'},
+  {"results-input", 1, 0, 't'},
   {"version", 0, 0, 'v'},
   {"warnings", 1, 0, 'W'},
 #ifdef STORE_RESULTS_FLAG
