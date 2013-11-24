@@ -1396,42 +1396,57 @@ main(int argc, char *argv[])
 
 
   if(!quiet) {
-    if(service_uri) {
-      fprintf(stderr, "%s: Calling SPARQL service at URI %s", program,
-              service_uri_string);
-      if(query_string)
-        fprintf(stderr, " with query '%s'", query_string);
+    switch(mode) {
+      case MODE_CALL_PROTOCOL_URI:
+        fprintf(stderr, "%s: Calling SPARQL service at URI %s", program,
+                service_uri_string);
+        if(query_string)
+          fprintf(stderr, " with query '%s'", query_string);
+        
+        if(base_uri_string)
+          fprintf(stderr, " with base URI %s\n", base_uri_string);
 
-      if(base_uri_string)
-        fprintf(stderr, " with base URI %s\n", base_uri_string);
+        fputc('\n', stderr);
+        break;
+        
+      case MODE_EXEC_QUERY_STRING:
+        if(base_uri_string)
+          fprintf(stderr, "%s: Running query '%s' with base URI %s\n", program,
+                  query_string, base_uri_string);
+        else
+          fprintf(stderr, "%s: Running query '%s'\n", program,
+                  query_string);
+        break;
+        
+      case MODE_EXEC_QUERY_URI:
+        if(filename) {
+          if(base_uri_string)
+            fprintf(stderr, "%s: Querying from file %s with base URI %s\n",
+                    program, filename, base_uri_string);
+          else
+            fprintf(stderr, "%s: Querying from file %s\n", program, filename);
+        } else if(uri_string) {
+          if(base_uri_string)
+            fprintf(stderr, "%s: Querying URI %s with base URI %s\n", program,
+                    uri_string, base_uri_string);
+          else
+            fprintf(stderr, "%s: Querying URI %s\n", program, uri_string);
+        }
+        break;
+        
+      case MODE_READ_RESULTS:
+        if(base_uri_string)
+          fprintf(stderr,
+                  "%s: Reading result set from filename %s in format %s with base URI %s\n", program,
+                  result_filename, result_input_format_name, base_uri_string);
+        else
+          fprintf(stderr, "%s: Reading result set from %s\n", program,
+                  result_filename);
+        break;
+        
 
-      fputc('\n', stderr);
-    } else if(query_from_string) {
-      if(base_uri_string)
-        fprintf(stderr, "%s: Running query '%s' with base URI %s\n", program,
-                query_string, base_uri_string);
-      else
-        fprintf(stderr, "%s: Running query '%s'\n", program,
-                query_string);
-    } else if(filename) {
-      if(base_uri_string)
-        fprintf(stderr, "%s: Querying from file %s with base URI %s\n", program,
-                filename, base_uri_string);
-      else
-        fprintf(stderr, "%s: Querying from file %s\n", program, filename);
-    } else if(uri_string) {
-      if(base_uri_string)
-        fprintf(stderr, "%s: Querying URI %s with base URI %s\n", program,
-                uri_string, base_uri_string);
-      else
-        fprintf(stderr, "%s: Querying URI %s\n", program, uri_string);
-    } else if(result_filename) {
-      if(base_uri_string)
-        fprintf(stderr,
-                "%s: Reading result set from filename %s in format %s with base URI %s\n", program,
-                result_filename, result_input_format_name, base_uri_string);
-      else
-        fprintf(stderr, "%s: Reading result set from %s\n", program, result_filename);
+      case MODE_EXEC_UNKNOWN:
+        break;
     }
   }
   
