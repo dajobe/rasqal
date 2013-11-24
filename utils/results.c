@@ -56,7 +56,6 @@ rasqal_cmdline_read_results(rasqal_world* world,
                              const char* result_format_name)
 {
   rasqal_variables_table* vars_table = NULL;
-  const char* format_name = NULL;
   rasqal_query_results_formatter* qrf = NULL;
   unsigned char *query_results_base_uri_string = NULL;
   raptor_uri* query_results_base_uri = NULL;
@@ -75,22 +74,24 @@ rasqal_cmdline_read_results(rasqal_world* world,
     goto tidy_fail;
 
   if(result_format_name) {
-    /* FIXME validate result format name is legal query
-     * results formatter name
-     */
-    format_name = result_format_name;
+    /* check name */
+    if(!rasqal_query_results_formats_check(world, result_format_name,
+                               NULL /* uri */,
+                               NULL /* mime type */,
+                               RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER))
+      return 1;
+  } else {
+    /* or use default */
+    result_format_name = rasqal_world_guess_query_results_format_name(world,
+                               NULL /* uri */,
+                               NULL /* mime_type */,
+                               NULL /*buffer */,
+                               0,
+                               (const unsigned char*)result_filename);
   }
 
-  if(!format_name)
-    format_name = rasqal_world_guess_query_results_format_name(world,
-                                                               NULL /* uri */,
-                                                               NULL /* mime_type */,
-                                                               NULL /*buffer */,
-                                                               0,
-                                                               (const unsigned char*)result_filename);
-
   qrf = rasqal_new_query_results_formatter(world,
-                                           format_name,
+                                           result_format_name,
                                            NULL /* mime type */,
                                            NULL /* uri */);
   if(!qrf)
