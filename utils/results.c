@@ -75,11 +75,11 @@ rasqal_cmdline_read_results(rasqal_world* world,
 
   if(result_format_name) {
     /* check name */
-    if(!rasqal_query_results_formats_check(world, result_format_name,
+    if(rasqal_query_results_formats_check(world, result_format_name,
                                NULL /* uri */,
                                NULL /* mime type */,
                                RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER))
-      return 1;
+      return NULL;
   } else {
     /* or use default */
     result_format_name = rasqal_world_guess_query_results_format_name(world,

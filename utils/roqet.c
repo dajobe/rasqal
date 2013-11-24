@@ -1106,13 +1106,33 @@ main(int argc, char *argv[])
         if(optarg) {
           if(!strcmp(optarg, "simple"))
             optarg = NULL;
-          result_format_name = optarg;
+          else {
+            if(rasqal_query_results_formats_check(world, optarg,
+                                                   NULL /* uri */,
+                                                   NULL /* mime type */,
+                                                   RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER)) {
+              fprintf(stderr,
+                      "%s: invalid output result format `%s' for `" HELP_ARG(r, results)  "'\nTry '%s -h' for a list of valid formats\n",
+                      program, optarg, program);
+              usage = 1;
+            } else
+              result_format_name = optarg;
+          }
         }
         break;
 
       case 'R':
         if(optarg) {
-          result_input_format_name = optarg;
+          if(rasqal_query_results_formats_check(world, optarg,
+                                                NULL /* uri */,
+                                                NULL /* mime type */,
+                                                RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER)) {
+            fprintf(stderr,
+                    "%s: invalid input result format `%s' for `" HELP_ARG(R, results-input-format)  "'\nTry '%s -h' for a list of valid formats\n",
+                    program, optarg, program);
+            usage = 1;
+          } else
+            result_input_format_name = optarg;
         }
         break;
 
