@@ -404,8 +404,7 @@ static const char* const rasqal_query_results_type_labels[RASQAL_QUERY_RESULTS_L
 const char*
 rasqal_query_results_type_label(rasqal_query_results_type type)
 {
-  if(type < RASQAL_QUERY_RESULTS_BINDINGS ||
-     type > RASQAL_QUERY_RESULTS_LAST)
+  if(type > RASQAL_QUERY_RESULTS_LAST)
     type = RASQAL_QUERY_RESULTS_UNKNOWN;
 
   return rasqal_query_results_type_labels[RASQAL_GOOD_CAST(int, type)];
