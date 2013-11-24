@@ -1395,9 +1395,9 @@ main(int argc, char *argv[])
   }
 
 
-  if(!quiet) {
-    switch(mode) {
-      case MODE_CALL_PROTOCOL_URI:
+  switch(mode) {
+    case MODE_CALL_PROTOCOL_URI:
+      if(!quiet) {
         fprintf(stderr, "%s: Calling SPARQL service at URI %s", program,
                 service_uri_string);
         if(query_string)
@@ -1407,105 +1407,104 @@ main(int argc, char *argv[])
           fprintf(stderr, " with base URI %s\n", base_uri_string);
 
         fputc('\n', stderr);
-        break;
+      }
+      
+      /* Execute query remotely */
+      if(!dryrun)
+        results = roqet_call_sparql_service(world, service_uri, query_string,
+                                            data_graphs,
+                                            /* service_format */ NULL);
+    break;
         
-      case MODE_EXEC_QUERY_STRING:
-        if(base_uri_string)
-          fprintf(stderr, "%s: Running query '%s' with base URI %s\n", program,
-                  query_string, base_uri_string);
-        else
-          fprintf(stderr, "%s: Running query '%s'\n", program,
-                  query_string);
-        break;
-        
-      case MODE_EXEC_QUERY_URI:
-        if(filename) {
+    case MODE_EXEC_QUERY_STRING:
+    case MODE_EXEC_QUERY_URI:
+      if(!quiet) {
+        if(mode == MODE_EXEC_QUERY_STRING) {
           if(base_uri_string)
-            fprintf(stderr, "%s: Querying from file %s with base URI %s\n",
-                    program, filename, base_uri_string);
+            fprintf(stderr, "%s: Running query '%s' with base URI %s\n",
+                    program, query_string, base_uri_string);
           else
-            fprintf(stderr, "%s: Querying from file %s\n", program, filename);
-        } else if(uri_string) {
-          if(base_uri_string)
-            fprintf(stderr, "%s: Querying URI %s with base URI %s\n", program,
-                    uri_string, base_uri_string);
-          else
-            fprintf(stderr, "%s: Querying URI %s\n", program, uri_string);
+            fprintf(stderr, "%s: Running query '%s'\n", program,
+                    query_string);
+        } else {
+          if(filename) {
+            if(base_uri_string)
+              fprintf(stderr, "%s: Querying from file %s with base URI %s\n",
+                      program, filename, base_uri_string);
+            else
+              fprintf(stderr, "%s: Querying from file %s\n", program, filename);
+          } else if(uri_string) {
+            if(base_uri_string)
+              fprintf(stderr, "%s: Querying URI %s with base URI %s\n", program,
+                      uri_string, base_uri_string);
+            else
+              fprintf(stderr, "%s: Querying URI %s\n", program, uri_string);
+          }
         }
-        break;
+      }
+      
+      /* Execute query in this query engine (from URI or from -e QUERY) */
+      rq = roqet_init_query(world,
+                            ql_name, ql_uri, query_string,
+                            base_uri,
+                            query_feature, query_feature_value,
+                            query_feature_string_value,
+                            store_results,
+                            data_graphs);
+      
+      if(!rq) {
+        rc = 1;
+        goto tidy_query;
+      }
+      
+      if(output_format != QUERY_OUTPUT_NONE && !quiet)
+        roqet_print_query(rq, raptor_world_ptr, output_format, base_uri);
+      
+      if(!dryrun)
+        results = rasqal_query_execute(rq);
+      break;
         
-      case MODE_READ_RESULTS:
+    case MODE_READ_RESULTS:
+      if(!quiet) {
         if(base_uri_string)
           fprintf(stderr,
-                  "%s: Reading result set from filename %s in format %s with base URI %s\n", program,
+                  "%s: Reading results from filename %s in format %s with base URI %s\n", program,
                   result_filename, result_input_format_name, base_uri_string);
         else
-          fprintf(stderr, "%s: Reading result set from %s\n", program,
+          fprintf(stderr, "%s: Reading results from %s\n", program,
                   result_filename);
-        break;
-        
-
-      case MODE_EXEC_UNKNOWN:
-        break;
-    }
-  }
-  
-
-
-  if(service_uri) {
-    /* Execute query remotely */
-    if(!dryrun)
-      results = roqet_call_sparql_service(world, service_uri, query_string,
-                                          data_graphs,
-                                          /* service_format */ NULL);
-  } else if(result_filename) {
-    /* Read result set from filename */
-    rasqal_query_results_type results_type = RASQAL_QUERY_RESULTS_BINDINGS;
-    raptor_iostream* result_iostr;
-
-    result_iostr = raptor_new_iostream_from_filename(raptor_world_ptr,
-                                                     result_filename);
-    if(!result_iostr) {
-      fprintf(stderr, "%s: result file '%s' open failed - %s\n",
-              program, result_filename, strerror(errno));
-      rc = 1;
-      goto tidy_setup;
-    }
-
-    results = rasqal_cmdline_read_results(world, raptor_world_ptr,
-                                          results_type,
-                                          result_iostr,
-                                          result_filename,
-                                          result_input_format_name);
-    raptor_free_iostream(result_iostr); result_iostr = NULL;
-    if(!results) {
-      fprintf(stderr, "%s: Failed to read results from '%s'\n", program,
-              result_filename);
-      rc = 1;
-      goto tidy_setup;
-    }
-  } else {
-    /* Execute query in this query engine (from URI or from -e QUERY) */
-    rq = roqet_init_query(world,
-                          ql_name, ql_uri, query_string,
-                          base_uri,
-                          query_feature, query_feature_value,
-                          query_feature_string_value,
-                          store_results,
-                          data_graphs);
-
-    if(!rq) {
-      rc = 1;
-      goto tidy_query;
-    }
-
-    if(output_format != QUERY_OUTPUT_NONE && !quiet)
-      roqet_print_query(rq, raptor_world_ptr, output_format, base_uri);
-    
-    if(!dryrun) {
-      results = rasqal_query_execute(rq);
-    }
-
+      }
+      
+      /* Read result set from filename */
+      rasqal_query_results_type results_type = RASQAL_QUERY_RESULTS_BINDINGS;
+      raptor_iostream* result_iostr;
+      
+      result_iostr = raptor_new_iostream_from_filename(raptor_world_ptr,
+                                                       result_filename);
+      if(!result_iostr) {
+        fprintf(stderr, "%s: results file '%s' open failed - %s\n",
+                program, result_filename, strerror(errno));
+        rc = 1;
+        goto tidy_setup;
+      }
+      
+      results = rasqal_cmdline_read_results(world, raptor_world_ptr,
+                                            results_type,
+                                            result_iostr,
+                                            result_filename,
+                                            result_input_format_name);
+      raptor_free_iostream(result_iostr); result_iostr = NULL;
+      if(!results) {
+        fprintf(stderr, "%s: Failed to read results from '%s'\n", program,
+                result_filename);
+        rc = 1;
+        goto tidy_setup;
+      }
+      break;
+      
+      
+    case MODE_EXEC_UNKNOWN:
+      break;
   }
 
 
