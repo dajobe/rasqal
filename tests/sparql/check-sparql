@@ -32,7 +32,6 @@
 
 use strict;
 use File::Basename;
-use XML::DOM;
 use Getopt::Long;
 use Pod::Usage;
 use Cwd;
@@ -208,65 +207,44 @@ sub read_srx_results_file($) {
 
   my(%results)=(rows => []);
 
-  my $parser = new XML::DOM::Parser;
-  my $doc = $parser->parsefile($result_file);
+  my $cmd="$roqet -q -R xml -r simple -t $result_file";
 
-  my(@variables)=();
-  for my $variable_el ($doc->getElementsByTagName("variable")) {
-    next unless ref($variable_el) eq 'XML::DOM::Element';
-    push(@variables, $variable_el->getAttribute('name'));
-  }
+  warn "$program: Opening pipe from '$cmd'\n"
+    if $debug;
+  open(PIPE, "$cmd 2>roqet.err |");
+  my(@vars)=();
+  while(<PIPE>) {
+    chomp;
+    s/\s+\.$//;
 
-  for my $result ($doc->getElementsByTagName("result")) {
-    next unless ref($result) eq 'XML::DOM::Element';
-    my($row)= { map { $_ => undef } @variables };
+    next unless /^row: (.+)$/;
+    my(@row_vars)=();
+    my(@values)=();
+    for my $col (split(/, /, $1)) {
+      my($var,$val)=split(/=/, $col, 2);
+      push(@row_vars, $var);
+      push(@values, $val);
+    }
 
-    warn "Result Element ".$result->getNodeName()."\n"
-      if $debug > 1;
+    if(!@vars) {
+      @vars = @row_vars;
+      warn "$program: vars are @vars\n"
+	  if $debug;
+      next;
+    }
 
-    for my $binding ($result->getChildNodes()) {
-      next unless ref($binding) eq 'XML::DOM::Element';
+    my($row) = {};
+    for my $i (0..$#vars) {
+      my($variable) = $vars[$i];
+      my $value = $values[$i];
 
-      my $variable=$binding->getAttribute('name');
-
-      warn "   Binding Element ".$binding->getNodeName()." name=$variable\n"
-	if $debug > 1;
-
-      for my $el ($binding->getChildNodes()) {
-	next unless ref($el) eq 'XML::DOM::Element';
-	my $el_name=$el->getTagName();
-
-	warn "   Binding sub-element $el_name\n"
-	  if $debug > 1;
-
-	my $value;
-	if($el_name eq 'uri') {
-	  my $contents=$el->getFirstChild()->getNodeValue();
-	  $value="uri<$contents>";
-	} elsif($el_name eq 'literal') {
-	  my $contents=$el->getFirstChild() ? ($el->getFirstChild()->getNodeValue()) : '';
-	  if(my $datatype=$el->getAttribute('datatype')) {
-	    $value="string(\"".$contents."\"^^<$datatype>)";
-	  } elsif(my $language=$el->getAttribute('xml:lang')) {
-	    $value="string(\"$contents\"\@$language)";
-	  } else {
-	    $value="string(\"$contents\")";
-	  }
-	} elsif($el_name eq 'bnode') {
-	  $value="blank _";
-	} else {
-	  $value='';
-	}
-	warn "   Encoded value: $value\n"
-	  if $debug > 1;
-        $row->{$variable}=$value;
-      }
-
-    } # end for binding
-
+      $row->{$variable} = $value;
+      warn "$variable : ".(defined $value ? $value : "(undefined)")."\n"
+	  if $debug;
+    }
     push(@{$results{rows}}, $row);
 
-  } # end for my result
+  }
 
   return \%results;
 }
