@@ -215,9 +215,8 @@ sub read_srx_results_file($) {
   my(@vars)=();
   while(<PIPE>) {
     chomp;
-    s/\s+\.$//;
+    next unless /^row: \[(.+)\]$/;
 
-    next unless /^row: (.+)$/;
     my(@row_vars)=();
     my(@values)=();
     for my $col (split(/, /, $1)) {
@@ -228,9 +227,8 @@ sub read_srx_results_file($) {
 
     if(!@vars) {
       @vars = @row_vars;
-      warn "$program: vars are @vars\n"
+      warn "$program: results variables are @vars\n"
 	  if $debug;
-      next;
     }
 
     my($row) = {};
@@ -243,8 +241,8 @@ sub read_srx_results_file($) {
 	  if $debug;
     }
     push(@{$results{rows}}, $row);
-
   }
+  close(PIPE);
 
   return \%results;
 }
