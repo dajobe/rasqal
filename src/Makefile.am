@@ -153,6 +153,13 @@ librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 librasqal_la_LIBADD = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 librasqal_la_DEPENDENCIES = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@
 
+AM_CFLAGS += -DSV_CONFIG -I$(top_srcdir)/libsv
+librasqal_la_LIBADD += $(top_builddir)/libsv/libsv.la
+librasqal_la_DEPENDENCIES += $(top_builddir)/libsv/libsv.la
+
+$(top_builddir)/libsv/libsv.la:
+	cd $(top_builddir)/libsv && $(MAKE) libsv.la
+
 if RASQAL_MTWIST
 
 AM_CFLAGS += -DMTWIST_CONFIG -I$(top_srcdir)/libmtwist

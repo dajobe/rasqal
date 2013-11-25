@@ -1321,6 +1321,7 @@ data/Makefile
 docs/Makefile
 docs/version.xml
 scripts/Makefile
+libsv/Makefile
 libmtwist/Makefile
 getopt/Makefile
 src/Makefile
