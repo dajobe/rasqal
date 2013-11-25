@@ -202,12 +202,12 @@ sub read_rdf_results_file($$) {
 }
 
 
-sub read_srx_results_file($) {
-  my($result_file)=@_;
+sub read_query_results_file($$) {
+  my($result_file,$results_input_format)=@_;
 
   my(%results)=(rows => []);
 
-  my $cmd="$roqet -q -R xml -r simple -t $result_file";
+  my $cmd="$roqet -q -R $results_input_format -r simple -t $result_file";
 
   warn "$program: Opening pipe from '$cmd'\n"
     if $debug;
@@ -215,7 +215,7 @@ sub read_srx_results_file($) {
   my(@vars)=();
   while(<PIPE>) {
     chomp;
-    next unless /^row: \[(.+)\]$/;
+    next unless /^row: \[(.*)\]$/;
 
     my(@row_vars)=();
     my(@values)=();
@@ -235,6 +235,8 @@ sub read_srx_results_file($) {
     for my $i (0..$#vars) {
       my($variable) = $vars[$i];
       my $value = $values[$i];
+
+      $value =~ s/blank \w+/blank _/;
 
       $row->{$variable} = $value;
       warn "$variable : ".(defined $value ? $value : "(undefined)")."\n"
@@ -580,7 +582,7 @@ sub run_test {
       if($result_file =~ /\.srx$/) {
 	warn "$program: Reading SPARQL XML bindings result file $result_file\n"
 	  if $debug;
-	$results = read_srx_results_file($result_file);
+	$results = read_query_results_file($result_file, 'xml');
       } elsif($result_file =~ /\.srj$/) {
 	warn "$program: '$name' FAILED (Cannot read SPARQL results in JSON)\n";
 	$test_result->{'result'}='failure';
@@ -594,7 +596,8 @@ sub run_test {
       } else {
 	warn "$program: Reading RDF syntax encoding bindings result file $result_file\n"
 	  if $debug;
-	$results = read_rdf_results_file($result_file, $result_file_base_uri);
+	my $result_format = ($result_file =~ /\.rdf/ ? 'rdfxml' : 'turtle');
+	$results = read_query_results_file($result_file, $result_format);
       }
     }
   }
