@@ -12,3 +12,6 @@
 #define sv_get_header rasqal_sv_get_header
 #define sv_parse_chunk rasqal_sv_parse_chunk
 
+#if defined(RASQAL_DEBUG)
+#define SV_DEBUG 1
+#endif
