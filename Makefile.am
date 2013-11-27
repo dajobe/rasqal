@@ -24,7 +24,7 @@ noinst_SCRIPTS = rasqal-src-config
 
 ACLOCAL_AMFLAGS = -I build
 
-SUBDIRS =
+SUBDIRS = libsv
 if RASQAL_MTWIST
 SUBDIRS += libmtwist
 endif
