@@ -468,8 +468,9 @@ rasqal_rowsource_sv_process(rasqal_rowsource_sv_context* con)
                                           FILE_READ_BUF_SIZE,
                                           con->iostr);
     if(read_len > 0) {
-      RASQAL_DEBUG2("processing %d bytes\n", RASQAL_GOOD_CAST(int, read_len));
       sv_status_t status;
+
+      RASQAL_DEBUG2("processing %d bytes\n", RASQAL_GOOD_CAST(int, read_len));
 
       status = sv_parse_chunk(con->t, con->buffer, read_len);
       if(status != SV_STATUS_OK) {
