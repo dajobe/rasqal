@@ -261,6 +261,16 @@ library for serializing to a syntax.
 @RASQAL_QUERY_RESULTS_GRAPH: 
 @RASQAL_QUERY_RESULTS_SYNTAX: 
 @RASQAL_QUERY_RESULTS_UNKNOWN: 
+@RASQAL_QUERY_RESULTS_LAST: 
+
+<!-- ##### FUNCTION rasqal_query_results_type_label ##### -->
+<para>
+
+</para>
+
+@type: 
+@Returns: 
+
 
 <!-- ##### FUNCTION rasqal_query_results_rewind ##### -->
 <para>
