@@ -922,8 +922,8 @@ static const rasqal_rowsource_handler rasqal_rowsource_sparql_xml_handler={
  * @iostr: #raptor_iostream to read the query results from
  * @base_uri: #raptor_uri base URI of the input format
  *
- * Read the fourth version of the SPARQL XML query results format from an
- * iostream in a format returning a rwosurce - INTERNAL.
+ * INTERNAL - Read the fourth version of the SPARQL XML query results
+ * format from an iostream in a format returning a rowsource.
  * 
  * Return value: a new rasqal_rowsource or NULL on failure
  **/
