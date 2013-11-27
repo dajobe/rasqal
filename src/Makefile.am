@@ -25,7 +25,7 @@ lib_LTLIBRARIES = librasqal.la
 
 nodist_pkginclude_HEADERS = rasqal.h
 
-noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h
+noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h sv_config.h
 
 man_MANS = rasqal-config.1
 
