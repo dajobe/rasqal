@@ -62,6 +62,8 @@ my $mfx='http://jena.hpl.hp.com/2005/05/test-manifest-extra#';
 my $qt='http://www.w3.org/2001/sw/DataAccess/tests/test-query#';
 my $dawgt='http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#';
 my $ut='http://www.w3.org/2009/sparql/tests/test-update#';
+my $sd='http://www.w3.org/ns/sparql-service-description#';
+my $ent='http://www.w3.org/ns/entailment/';
 
 my $program=basename $0;
 my $debug=0;
@@ -260,8 +262,9 @@ sub compare_rdf_graphs($$$) {
     $cmd="$ntc $file1 $file2 > $out 2>&1";
     $rc = system($cmd);
   } elsif(defined $ENV{JENAROOT}) {
-    my $jena = $ENV{JENAROOT};
-    $cmd = qq{$jena/bin/rdfcompare $file1 $file2 N-TRIPLE N-TRIPLE > $out};
+    my $j = $ENV{JENAROOT};
+    my $classpath=join(':',glob("$j/lib/*jar"));
+    $cmd = qq{java -cp $classpath jena.rdfcompare $file1 $file2 N-TRIPLE N-TRIPLE > $out};
     $rc = system($cmd);
     if($rc) {
       $cmd = "$diff_cmd -u $file1 $file2 > $out";
@@ -284,11 +287,11 @@ sub defined_or_NULL($) {
 sub run_test {
   my($config)=@_;
   my($name,$dir,$test_file,$result_file,$expect_fail,$language,
-     $warning_level)
+     $warning_level,$cardinality_mode)
       =
     ($config->{name}, $config->{dir}, $config->{test_file}, 
      $config->{result_file}, $config->{expect_fail}, $config->{language},
-     $config->{warning_level});
+     $config->{warning_level}, $config->{cardinality_mode});
   my($test_uri)=$config->{test_uri};
   my(@data_files)=@{$config->{data_files}};
   my(@named_data_files)=@{$config->{named_data_files}};
@@ -302,7 +305,7 @@ sub run_test {
 
   $name ||= $test_uri;
 
-  warn "run_test(\n  name       : $name\n  dir        : $dir\n  language   : $language\n  query      : $test_file\n  data       : ",join("; ",@data_files),"\n  named data : ",join("; ",@named_data_files),"\n  result     : ",($result_file||"none"),"\n  expect     : ",($expect_fail ? "failure":"success"),"\n)\n"
+  warn "run_test(\n  name       : $name\n  dir        : $dir\n  language   : $language\n  query      : $test_file\n  data       : ",join("; ",@data_files),"\n  named data : ",join("; ",@named_data_files),"\n  result     : ",($result_file||"none"),"\n  expect     : ",($expect_fail ? "failure":"success"),"\n  card mode  : $cardinality_mode\n)\n"
     if $debug;
 
   my(@args)=();
@@ -543,6 +546,14 @@ sub run_test {
     $cmd = "$diff_cmd -u result.out roqet.out > diff.out";
     $rc = system($cmd);
   }
+
+  if($rc && $result_type eq 'bindings' && $roqet_results_count <= $count &&
+     $cardinality_mode eq 'lax') {
+    warn "$program: Cardinality lax - letting $roqet_results_count result match [1, $count] expected results\n"
+	  if $debug;
+    $rc = 0;
+  }
+
   if($rc) {
     if($result_type eq 'bindings' && $count != $roqet_results_count) {
       warn "$program: '$name' FAILED (Expected ".plural("result","s",$count).", got $roqet_results_count)\n";
@@ -701,7 +712,8 @@ while($list_node) {
 
   if(defined $query_type &&
      ($query_type eq "<${ut}UpdateEvaluationTest>" ||
-      $query_type eq "<${mf}UpdateEvaluationTest>")) {
+      $query_type eq "<${mf}UpdateEvaluationTest>" ||
+      $query_type eq "<${mf}ProtocolTest>" )) {
     warn "Skipping query type $query_type - not supported\n"
       if $debug > 1;
     goto next_list_node;
@@ -730,24 +742,31 @@ while($list_node) {
     $query_node=$triples{$action_node}->{"<${qt}query>"}->[0];
   }
 
+  my $resultCardinality = $triples{$entry_node}->{"<${mf}resultCardinality>"}->[0];
+  my $cardinality_mode = (defined $resultCardinality && $resultCardinality eq "<${mf}LaxCardinality>") ? 'lax' : 'strict';
+  warn "Cardinality mode is $cardinality_mode\n"
+    if $debug > 1;
+
   my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
   my $test_type=$query_type; $test_type =~ s/^<(.+)>$/$1/ if defined $test_type;
 
   my $test_approval=$triples{$entry_node}->{"<${dawgt}approval>"}->[0];
+  my $is_approved = 0;
+  my $is_withdrawn = 0;
   if($test_approval) {
     warn "Test $name ($test_uri) state $test_approval\n"
       if $debug > 1;
     if($test_approval eq "<${dawgt}Withdrawn>") {
       warn "Test $name ($test_uri) was withdrawn\n"
 	if $debug;
-      goto next_list_node;
+      $is_withdrawn = 1;
+    }
+    if($test_approval eq "<${dawgt}Approved>") {
+      $is_approved = 1;
     }
   }
-  if($approved &&
-    (!$test_approval || $test_approval ne "<${dawgt}Approved>")) {
-    warn "$program: Test $name ($test_uri) was not approved by DAWG - skipping\n";
-    goto next_list_node;
-  }
+
+  my $has_entailment_regime = exists $triples{$action_node}->{"<${ent}entailmentRegime>"} || $triples{$action_node}->{"<${sd}entailmentRegime>"};;
 
   my $query_file=undef;
   if($query_node) {
@@ -774,7 +793,11 @@ while($list_node) {
 		  test_type => $test_type,
 		  test_uri => $test_uri,
 		  execute => $execute,
-		  language => $lang
+		  language => $lang,
+		  cardinality_mode => $cardinality_mode,
+		  is_withdrawn => $is_withdrawn,
+		  is_approved => $is_approved,
+		  has_entailment_regime => $has_entailment_regime
 	 } );
 
     last if $unique_test;
@@ -789,6 +812,7 @@ die "$program: Test $unique_test not found\n" if $unique_test && !@tests;
 
 my(@failed);
 my(@passed);
+my(@skipped);
 my(@test_results);
 my $result=0;
 my $start_time = time;
@@ -797,6 +821,28 @@ for my $test (@tests) {
 
   $config->{language} = $language;
   $config->{warning_level} = $warning_level;
+
+  my $test_uri = $config->{test_uri};
+  my $name = $config->{name} || $test_uri;
+
+  if($config->{is_withdrawn}) {
+    warn "$program: Test $name ($test_uri) was withdrawn - skipping\n"
+	if $debug;
+    push(@skipped, $test);
+    next;
+  }
+  if($approved && !$config->{is_approved}) {
+    warn "$program: Test $name ($test_uri) not approved - skipping\n"
+	if $debug;
+    push(@skipped, $test);
+    next;
+  }
+  if($config->{has_entailment_regime}) {
+    warn "$program: Test $name ($test_uri) has entailment - skipping\n"
+	if $debug > 1;
+    push(@skipped, $test);
+    next;
+  }
 
   my $test_result = run_test($config);
 
@@ -980,7 +1026,7 @@ warn "$program: $failed_count FAILED tests:\n$program:   " .
      "\n"
   if $failed_count;
 }
-warn "$program: Summary: ".scalar(@passed)." tests passed  ".scalar(@failed)." tests failed\n";
+warn "$program: Summary: ".scalar(@passed)." tests passed  ".scalar(@failed)." tests failed ".scalar(@skipped)." tests skipped\n";
 
 exit $failed_count;
 
