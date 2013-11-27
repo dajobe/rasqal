@@ -1,4 +1,50 @@
+2013-11-26  Dave Beckett <dave@dajobe.org>
+
+	* libsv: update
+
+	* src/rasqal_format_sv.c:
+	Added reading CSV/TSV results Uses libsv
+
+	* src/rasqal_format_sparql_xml.c: docs
+
+	* src/sv_config.h: redefine sv_set_option
+
+2013-11-25  Dave Beckett <dave@dajobe.org>
+
+	* src/sv_config.h: Set SV_DEBUG
+
+	* libsv: update
+
 2013-11-24  Dave Beckett <dave@dajobe.org>
+
+	* .gitmodules: fix libsv url
+
+	* .gitmodules, configure.ac, libsv, src/Makefile.am,
+	src/sv_config.h: libsv
+
+	* tests/sparql/check-sparql: Remove unused read_rdf_results_file
+
+	* tests/sparql/check-sparql:
+	Switch to use roqet -t for reading rdf
+	and turtle results
+
+	(read_query_results_file): Renamed from read_srx_results_file
+	Allow empty rows.  Anonymize blanks
+
+	(run_test): Use read_query_results_file to read rdf/xml and turtle
+	results.
+
+	* tests/sparql/check-sparql:
+	Fix pipe from results Don't lose first row Ignore []s
+
+	* tests/sparql/check-sparql: Remove XML::DOM perl and use roqet -t
+	FILE
+
+	Seems to increase test running time dramatically as well as remove
+	an annoying build-time dependency.
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt: Add
+	rasqal_query_results_type_label to docs
 
 	* README.html, utils/roqet.1: Docs for roqet args and SPARQL 1.1
 	references
