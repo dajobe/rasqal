@@ -363,7 +363,10 @@ rasqal_rowsource_sv_data_callback(sv *t, void *user_data,
   for(i = 0; i < count; i++) {
     rasqal_literal* l;
 
-    if(widths[i] > 7 && !strncmp(fields[i], "http://", 7)) {
+    if(!widths[i]) {
+      /* missing */
+      l = NULL;
+    } else if(widths[i] > 7 && !strncmp(fields[i], "http://", 7)) {
       /* FIXME */
       raptor_uri* uri;
       uri = raptor_new_uri(con->world->raptor_world_ptr, RASQAL_GOOD_CAST(const unsigned char*, fields[i]));
@@ -371,6 +374,8 @@ rasqal_rowsource_sv_data_callback(sv *t, void *user_data,
         goto fail;
 
       l = rasqal_new_uri_literal(con->world, uri);
+      if(!l)
+        goto fail;
     } else {
       unsigned char* lvalue;
 
@@ -384,10 +389,9 @@ rasqal_rowsource_sv_data_callback(sv *t, void *user_data,
         memcpy(lvalue, fields[i], widths[i] + 1);
 
       l = rasqal_new_string_literal_node(con->world, lvalue, NULL, NULL);
+      if(!l)
+        goto fail;
     }
-
-    if(!l)
-      goto fail;
 
     rasqal_row_set_value_at(row, i, l);
     rasqal_free_literal(l);
