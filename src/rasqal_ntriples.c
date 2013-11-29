@@ -42,14 +42,16 @@
 #include "rasqal_internal.h"
 
 
+#if RAPTOR_VERSION >= 20012
+
+#else
 
 /**********************************************************************/
 
-/** Internals imported from raptor */
+/* sparql_lexer.l */
+extern const raptor_unichar rasqal_unicode_max_codepoint;
 
-/* raptor_unicode.c */
-/* Unicode defines only the range U+0000 to U+10FFFF */
-const raptor_unichar rasqal_unicode_max_codepoint = 0x10FFFF;
+/** Internals imported from raptor */
 
 /* turtle_common.c */
 static int
@@ -662,7 +664,7 @@ rasqal_ntriples_parse_term(rasqal_world* world, raptor_locator* locator,
  *
  * Return value: new term or NULL on failure
 */
-raptor_term*
+static raptor_term*
 rasqal_new_term_from_counted_string(rasqal_world* world,
                                     unsigned char* string, size_t length)
 {
@@ -689,4 +691,42 @@ rasqal_new_term_from_counted_string(rasqal_world* world,
   }
 
   return term;
+}
+
+#endif
+
+
+/*
+ * rasqal_new_literal_from_ntriples_counted_string:
+ * @world: rasqal world
+ * @string: N-Triples format string (UTF-8)
+ * @length: length of @string (or 0)
+ *
+ * INTERNAL - create a new literal from an N-Triples format string in UTF-8
+ *
+ * Return value: new literal or NULL on failure
+*/
+rasqal_literal*
+rasqal_new_literal_from_ntriples_counted_string(rasqal_world* world,
+                                                unsigned char* string,
+                                                size_t length)
+{
+  raptor_term* term;
+  rasqal_literal* l;
+
+#if RAPTOR_VERSION >= 20012
+  term = raptor_new_term_from_counted_string(world->raptor_world_ptr,
+                                             string, length);
+#else
+  term = rasqal_new_term_from_counted_string(world, string, length);
+#endif
+
+  if(!term)
+    return NULL;
+
+  l = rasqal_new_literal_from_term(world, term);
+
+  raptor_free_term(term);
+
+  return l;
 }

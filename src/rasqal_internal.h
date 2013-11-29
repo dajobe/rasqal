@@ -1788,6 +1788,9 @@ void rasqal_free_bindings(rasqal_bindings* bindings);
 int rasqal_bindings_print(rasqal_bindings* bindings, FILE* fh);
 rasqal_row* rasqal_bindings_get_row(rasqal_bindings* bindings, int offset);
 
+/* rasqal_ntriples.c */
+rasqal_literal* rasqal_new_literal_from_ntriples_counted_string(rasqal_world* world, unsigned char* string, size_t length);
+
 /* rasqal_projection.c */
 rasqal_projection* rasqal_new_projection(rasqal_query* query, raptor_sequence* variables, int wildcard, int distinct);
 void rasqal_free_projection(rasqal_projection* projection);
