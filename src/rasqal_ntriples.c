@@ -48,9 +48,6 @@
 
 /**********************************************************************/
 
-/* sparql_lexer.l */
-extern const raptor_unichar rasqal_unicode_max_codepoint;
-
 /** Internals imported from raptor */
 
 /* turtle_common.c */

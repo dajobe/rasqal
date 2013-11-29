@@ -698,6 +698,8 @@ rasqal_basename(const char *name)
 }
 
 
+const raptor_unichar rasqal_unicode_max_codepoint = 0x10FFFF;
+
 /**
  * rasqal_escaped_name_to_utf8_string:
  * @src: source name string

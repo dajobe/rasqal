@@ -1091,6 +1091,8 @@ void rasqal_log_warning_simple(rasqal_world* world, rasqal_warning_level warn_le
 const char* rasqal_basename(const char* name);
 unsigned char* rasqal_world_default_generate_bnodeid_handler(void *user_data, unsigned char *user_bnodeid);
 
+extern const raptor_unichar rasqal_unicode_max_codepoint;
+
 unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size_t len, size_t* dest_lenp, int (*error_handler)(rasqal_query *error_data, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3), rasqal_query* error_data);
 
 /* rasqal_graph_pattern.c */

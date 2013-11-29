@@ -965,8 +965,6 @@ sparql_skip_c_comment(rasqal_query *rq)
 }
 
 
-const raptor_unichar rasqal_unicode_max_codepoint = 0x10FFFF;
-
 /**
  * sparql_stringbuffer_append_sparql_string:
  * @rq: rasqal query
