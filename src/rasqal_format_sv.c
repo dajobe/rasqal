@@ -306,6 +306,8 @@ typedef struct
   int variables_count;
 
   unsigned int flags;
+
+  int data_is_turtle;
 } rasqal_rowsource_sv_context;
   
 
@@ -430,6 +432,9 @@ rasqal_rowsource_sv_init(rasqal_rowsource* rowsource, void *user_data)
                    con->sep);
   if(!con->t)
     return 1;
+
+  if(con->data_is_turtle)
+    sv_set_option(con->t, SV_OPTION_QUOTED_FIELDS, 0L);
 
   return 0;
 }
@@ -654,6 +659,7 @@ rasqal_query_results_get_rowsource_tsv(rasqal_query_results_formatter* formatter
   con->vars_table = rasqal_new_variables_table_from_variables_table(vars_table);
 
   con->sep = '\t';
+  con->data_is_turtle = 1;
 
   return rasqal_new_rowsource_from_handler(world, NULL,
                                            con,
