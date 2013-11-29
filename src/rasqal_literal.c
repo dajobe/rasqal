@@ -4678,6 +4678,75 @@ rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world,
 }
 
 
+
+/*
+ * rasqal_new_literal_from_term:
+ * @world: rasqal world
+ * @term: term object
+ *
+ * INTERNAL - create a new literal from a #raptor_term
+ *
+ * Return value: new literal or NULL on failure
+*/
+rasqal_literal*
+rasqal_new_literal_from_term(rasqal_world* world, raptor_term* term)
+{
+  rasqal_literal* l = NULL;
+  size_t len;
+  unsigned char* new_str = NULL;
+
+  if(!term)
+    return NULL;
+
+  if(term->type == RAPTOR_TERM_TYPE_LITERAL) {
+    char *language = NULL;
+    raptor_uri* uri = NULL;
+
+    len = term->value.literal.string_len;
+    new_str = RASQAL_MALLOC(unsigned char*, len + 1);
+    if(!new_str)
+      goto fail;
+
+    memcpy(new_str, term->value.literal.string, len + 1);
+
+    if(term->value.literal.language) {
+      len = term->value.literal.language_len;
+      language = RASQAL_MALLOC(char*, len + 1);
+      if(!language)
+        goto fail;
+
+      memcpy(language, term->value.literal.language, len + 1);
+    }
+
+    if(term->value.literal.datatype)
+      uri = raptor_uri_copy(term->value.literal.datatype);
+
+    l = rasqal_new_string_literal(world, new_str, language, uri, NULL);
+  } else if(term->type == RAPTOR_TERM_TYPE_BLANK) {
+    len = term->value.blank.string_len;
+    new_str = RASQAL_MALLOC(unsigned char*, len + 1);
+    if(!new_str)
+      goto fail;
+
+    memcpy(new_str, term->value.blank.string, len + 1);
+    l = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_str);
+  } else if(term->type == RAPTOR_TERM_TYPE_URI) {
+    raptor_uri* uri;
+    uri = raptor_uri_copy((raptor_uri*)term->value.uri);
+    l = rasqal_new_uri_literal(world, uri);
+  } else
+    goto fail;
+
+  return l;
+
+  fail:
+  if(new_str)
+    RASQAL_FREE(unsigned char*, new_str);
+
+  return NULL;
+}
+
+
 #endif /* not STANDALONE */
 
 

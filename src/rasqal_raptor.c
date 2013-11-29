@@ -86,54 +86,10 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
                                   const raptor_statement *statement)
 {
   rasqal_literal *s, *p, *o;
-  raptor_uri *uri;
-  unsigned char *new_str;
-  size_t len;
 
-  /* subject */
-  if(statement->subject->type == RAPTOR_TERM_TYPE_BLANK) {
-    len = statement->subject->value.blank.string_len;
-    new_str = RASQAL_MALLOC(unsigned char*, len + 1);
-    memcpy(new_str, statement->subject->value.blank.string, len + 1);
-    s = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_str);
-  } else {
-    uri = raptor_uri_copy((raptor_uri*)statement->subject->value.uri);
-    s = rasqal_new_uri_literal(world, uri);
-  }
-
-  /* predicate */
-  uri = raptor_uri_copy((raptor_uri*)statement->predicate->value.uri);
-  p = rasqal_new_uri_literal(world, uri);
-  
-  /* object */
-  if(statement->object->type == RAPTOR_TERM_TYPE_LITERAL) {
-    char *language = NULL;
-
-    len = statement->object->value.literal.string_len;
-    new_str = RASQAL_MALLOC(unsigned char*, len + 1);
-    memcpy(new_str, statement->object->value.literal.string, len + 1);
-
-    if(statement->object->value.literal.language) {
-      len = statement->object->value.literal.language_len;
-      language = RASQAL_MALLOC(char*, len + 1);
-      memcpy(language, statement->object->value.literal.language, len + 1);
-    }
-
-    if(statement->object->value.literal.datatype)
-      uri = raptor_uri_copy(statement->object->value.literal.datatype);
-    else
-      uri = NULL;
-
-    o = rasqal_new_string_literal(world, new_str, language, uri, NULL);
-  } else if(statement->object->type == RAPTOR_TERM_TYPE_BLANK) {
-    len = statement->object->value.blank.string_len;
-    new_str = RASQAL_MALLOC(unsigned char*, len + 1);
-    memcpy(new_str, statement->object->value.blank.string, len + 1);
-    o = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_str);
-  } else {
-    uri = raptor_uri_copy((raptor_uri*)statement->object->value.uri);
-    o = rasqal_new_uri_literal(world, uri);
-  }
+  s = rasqal_new_literal_from_term(world, statement->subject);
+  p = rasqal_new_literal_from_term(world, statement->predicate);
+  o = rasqal_new_literal_from_term(world, statement->object);
 
   return rasqal_new_triple(s, p, o);
 }

@@ -1279,6 +1279,7 @@ int rasqal_literal_array_compare(rasqal_literal** values_a, rasqal_literal** val
 rasqal_map* rasqal_new_literal_sequence_sort_map(int is_distinct, int compare_flags);
 int rasqal_literal_sequence_sort_map_add_literal_sequence(rasqal_map* map, raptor_sequence* literals_sequence);
 raptor_sequence* rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world, const char* const row_data[], int width);
+rasqal_literal* rasqal_new_literal_from_term(rasqal_world* world, raptor_term* term);
 
 
 /* rasqal_map.c */
