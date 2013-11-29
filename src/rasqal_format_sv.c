@@ -370,15 +370,23 @@ rasqal_rowsource_sv_data_callback(sv *t, void *user_data,
   con->offset++;
 
   for(i = 0; i < count; i++) {
+    char* field = fields[i];
+    size_t field_len = widths[i];
     rasqal_literal* l;
 
-    if(!widths[i]) {
+    if(!field_len) {
       /* missing */
       l = NULL;
-    } else if(widths[i] > 7 && !strncmp(fields[i], "http://", 7)) {
+    } else if(con->data_is_turtle) {
+      l = rasqal_new_literal_from_ntriples_counted_string(con->world,
+                                                          RASQAL_GOOD_CAST(unsigned char*,field),
+                                                          field_len);
+      if(!l)
+        goto fail;
+    } else if(field_len > 7 && !strncmp(field, "http://", 7)) {
       /* FIXME */
       raptor_uri* uri;
-      uri = raptor_new_uri(con->world->raptor_world_ptr, RASQAL_GOOD_CAST(const unsigned char*, fields[i]));
+      uri = raptor_new_uri(con->world->raptor_world_ptr, RASQAL_GOOD_CAST(const unsigned char*, field));
       if(!uri)
         goto fail;
 
@@ -388,14 +396,14 @@ rasqal_rowsource_sv_data_callback(sv *t, void *user_data,
     } else {
       unsigned char* lvalue;
 
-      lvalue = RASQAL_MALLOC(unsigned char*, widths[i] + 1);
+      lvalue = RASQAL_MALLOC(unsigned char*, field_len + 1);
       if(!lvalue)
         goto fail;
 
       if(!widths[i])
         *lvalue = '\0';
       else
-        memcpy(lvalue, fields[i], widths[i] + 1);
+        memcpy(lvalue, field, field_len + 1);
 
       l = rasqal_new_string_literal_node(con->world, lvalue, NULL, NULL);
       if(!l)
@@ -403,9 +411,9 @@ rasqal_rowsource_sv_data_callback(sv *t, void *user_data,
     }
 
     rasqal_row_set_value_at(row, i, l);
+    RASQAL_DEBUG4("Saving row result %d %s value at offset %d\n",
+                  con->offset, rasqal_literal_type_label(l->type), i);
     rasqal_free_literal(l);
-    RASQAL_DEBUG3("Saving row result %d string value at offset %d\n",
-                  con->offset, i);
   }
   raptor_sequence_push(con->results_sequence, row);
 
