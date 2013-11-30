@@ -383,16 +383,6 @@ rasqal_rowsource_sv_data_callback(sv *t, void *user_data,
                                                           field_len);
       if(!l)
         goto fail;
-    } else if(field_len > 7 && !strncmp(field, "http://", 7)) {
-      /* FIXME */
-      raptor_uri* uri;
-      uri = raptor_new_uri(con->world->raptor_world_ptr, RASQAL_GOOD_CAST(const unsigned char*, field));
-      if(!uri)
-        goto fail;
-
-      l = rasqal_new_uri_literal(con->world, uri);
-      if(!l)
-        goto fail;
     } else {
       unsigned char* lvalue;
 
