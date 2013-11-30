@@ -411,9 +411,14 @@ rasqal_rowsource_sv_data_callback(sv *t, void *user_data,
     }
 
     rasqal_row_set_value_at(row, i, l);
-    RASQAL_DEBUG4("Saving row result %d %s value at offset %d\n",
-                  con->offset, rasqal_literal_type_label(l->type), i);
-    rasqal_free_literal(l);
+    if(l) {
+      RASQAL_DEBUG4("Saving row result %d %s value at offset %d\n",
+                    con->offset, rasqal_literal_type_label(l->type), i);
+      rasqal_free_literal(l);
+    } else {
+      RASQAL_DEBUG3("Saving row result %d NULL value at offset %d\n",
+                    con->offset, i);
+    }
   }
   raptor_sequence_push(con->results_sequence, row);
 
