@@ -13,6 +13,32 @@
 <p>Not yet released.
 </p>
 
+<h3><code>roqet(1)</code> utility changes</h3>
+
+<p><code>roqet(1)</code> gains a new operating mode: reading query
+result files in a given format and generating them in different
+format.  This is done with the <code>-t RESULT-FILE</code> and
+<code>-R INPUT-RESULT-FORMAT</code> arguments respectively.
+<code>-r OUTPUT-RESULT-FORMAT</code> already exists and is used
+here.</p>
+
+<p>Tidied and improved the help and error messages.</p>
+
+<p>The utility now supports <code>-r simple</code> / <code>--results
+simple</code> as it says in the documentation.</p>
+
+<p>The debug result format now prints 'row:' when writing. (This
+format has always promised it may change).</p>
+
+
+<h3>Query result changes</h3>
+
+<p>Added support for reading the
+<a href="http://www.w3.org/TR/2013/REC-sparql11-results-csv-tsv-20130321/">SPARQL 1.1 Query Results CSV and TSV Formats</a>
+W3C Recommendation, 21 March 2013.  Writing support already existed.
+This is a modular addition so the APIs that handle reading results
+automatically get this support.</p>
+
 
 <h3>Query engine changes</h3>
 
@@ -28,6 +54,8 @@ old <code>BINDINGS</code> syntax.</p>
 Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=527">Issue #0000527</a>
 </p>
 
+<p>Added proper validation of xsd:double and xsd:float literal format.</p>
+
 
 <h3>API changes</h3>
 
@@ -40,6 +68,10 @@ forms and to print in a prettier form with better indenting.</p>
 <p><code>rasqal_graph_pattern_op</code> gains
 <code>RASQAL_GRAPH_PATTERN_OPERATOR_VALUES</code></p>
 
+<p><code>rasqal_new_rowsource_from_handler()</code> now allows a NULL
+query so that rowsources can be fully independent of a query, such as
+when building from a syntax string or other independent object.</p>
+
 
 <h3>Portability changes</h3>
 
@@ -51,13 +83,29 @@ and
 </p>
 
 
-<h3>Configuration changes</h3>
+<h3>Configuration and build changes</h3>
+
+<p>Added new internal convienience library
+<a href="https://github.com/dajobe/libtsv">libsv</a>
+providing support for reading CSV and TSV files (and others
+potentially).  Required for the updated support for reading SPARQL
+CSV and TSV result formats.
+</p>
+
+<p>Added new librasqalcmdline convienience library to share code
+between <code>roqet(1)</code> and <code>check-query</code> (under
+development, not installed).</p>
+
+<p>Build internal libmtwist, libgetopt (new) as libtool convienience
+libraries to stop automake moans about subdir-objects.</p>
 
 <p><code>configure</code> was fixed to correctly find and use OSSP
 libuuid even in the presence of half installed / broken UUID systems
 like on OSX where just the headers are present.</p>
 
 <p>Fixes for building with parallel make such as <code>make -jN</code></p>
+
+<p>Fixed alignments and error paths found via clang.</p>
 
 <p><code>configure</code> now uses PKG_CHECK_MODULES() to enable
 overriding discovery of pkg-config if needed.
@@ -69,21 +117,23 @@ executable file. Patch from Michael Stahl
 Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=536">Issue #0000536</a>
 </p>
 
+<p><code>configure</code> ensures CPPFLAGS can be passed through
+without destruction.  This helps
+<a href="https://wiki.debian.org/Hardening">Debian hardening</a>
+</p>
+
+<p>Removed the need for Perl XML::DOM to be installed in order for
+'make test' to run via <code>check-sparql</code>.  This requires
+the <code>roqet(1)</code> new '-'t mode.
+</p>
 
 
 <h3>Other changes</h3>
-
-<p>The <code>roqet(1)</code> utility now supports <code>-r
-simple</code> / <code>--results simple</code> as it says in the
-documentation.</p>
 
 <p>Flex code generation updates - now recommend flex 2.5.36.</p>
 
 <p>Fixes in tests data for N-Triples conformance that is checked by
 newer Raptor.</p>
-
-<p>The <code>roqet(1)</code> utility now prints row: in debug result
-format (which was never promised to stay the same).</p>
 
 
 
