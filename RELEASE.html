@@ -17,10 +17,18 @@
 
 <p><code>roqet(1)</code> gains a new operating mode: reading query
 result files in a given format and generating them in different
-format.  This is done with the <code>-t RESULT-FILE</code> and
-<code>-R INPUT-RESULT-FORMAT</code> arguments respectively.
-<code>-r OUTPUT-RESULT-FORMAT</code> already exists and is used
-here.</p>
+format.  This means it can be used to convert result formats.
+Use this mode with the <code>-t RESULT-FILE</code> major option
+and <code>-R INPUT-RESULT-FORMAT</code> to set the input format.
+<code>-r OUTPUT-RESULT-FORMAT</code> can be used to set the ouutput
+format.</p>
+<pre>
+  # Convert a SPARQL TSV result to XML
+  $ roqet -t result.tsv -R tsv -r xml
+
+  # Convert a SPARQL XML result (default input format) to TSV
+  $ roqet -t result.srx -r tsv
+</pre>
 
 <p>Tidied and improved the help and error messages.</p>
 
