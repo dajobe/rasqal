@@ -1,3 +1,85 @@
+2013-11-30  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: Import check-sparql from
+	redland-testing
+
+	* src/rasqal_format_sv.c:
+	(rasqal_rowsource_sv_data_callback): do not guess URIs
+
+	* src/rasqal_format_sv.c:
+	(rasqal_rowsource_sv_data_callback): Handle NULL l in debug message
+
+	* src/rasqal_ntriples.c: Port from raptor and correct things
+
+2013-11-29  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_general.c, src/rasqal_internal.h,
+	src/rasqal_ntriples.c, src/sparql_lexer.l: Declare raptor_unichar
+	rasqal_unicode_max_codepoint once
+
+	* src/rasqal_format_sv.c: Parse TSV fields as N-Triples
+
+	After
+	http://www.w3.org/TR/2013/REC-sparql11-results-csv-tsv-20130321/#tsv
+
+	(rasqal_rowsource_sv_data_callback): Use
+	rasqal_new_literal_from_ntriples_counted_string to parse the
+	fields
+
+	NOTE: This is not totally correct since it does not handle turtle
+	abbreviated forms such as integers, booleans.
+
+	* src/rasqal_format_sv.c: For TSV parsing set option on libsv to
+	not parse quoted fields.
+
+	* libsv: update libsv
+
+	* src/rasqal_internal.h, src/rasqal_ntriples.c: Use internal
+	n-triples string parsing to get a literal
+
+	(rasqal_new_literal_from_ntriples_counted_string): Added
+
+	* src/rasqal_internal.h, src/rasqal_literal.c, src/rasqal_raptor.c:
+	Added rasqal_new_literal_from_term to hold term->literal code
+
+	(rasqal_new_literal_from_term): Added with proper error handling
+
+	(raptor_statement_as_rasqal_triple): Use above and now is trivial.
+
+2013-11-28  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/rasqal_ntriples.c:
+	Import raptor_ntriples.c
+
+	(rasqal_new_term_from_counted_string): Internal version of GIT
+	head raptor_new_term_from_counted_string taking a rasqal_world
+	instead.
+
+	* src/rasqal_format_sv.c:
+	(rasqal_rowsource_sv_header_callback): Strip ? from varname
+
+2013-11-27  Dave Beckett <dave@dajobe.org>
+
+	* src/sv_config.h: boilerplate
+
+	* src/rasqal_format_sv.c:
+	(rasqal_rowsource_sv_data_callback): Fail on NULL l
+
+	* tests/sparql/check-sparql: Merge in changes from redland-testing
+
+	* docs/tmpl/section-query_results.sgml: tmpls
+
+	* src/Makefile.am: Add sv_config.h to dist
+
+	* Makefile.am: Add libsv to DIST_SUBDIRS too
+
+	* Makefile.am: Add libsv to SUBDIRS
+
+	* libsv: update libsv
+
+	* src/rasqal_format_sv.c:
+	(rasqal_rowsource_sv_process): C90 fix
+
 2013-11-26  Dave Beckett <dave@dajobe.org>
 
 	* libsv: update
