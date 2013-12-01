@@ -3,4 +3,4 @@
 	url = git://github.com/dajobe/libmtwist.git
 [submodule "libsv"]
 	path = libsv
-	url = git://github.com/dajobe/libtsv.git
+	url = git://github.com/dajobe/libsv.git
