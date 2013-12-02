@@ -140,7 +140,9 @@ rasqal_digest_buffer(rasqal_digest_type type, unsigned char *output,
 #ifdef RASQAL_DIGEST_GCRYPT
 
 #ifdef HAVE_GCRYPT_H
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <gcrypt.h>
+#pragma GCC diagnostic warning "-Wdeprecated-declarations"
 #endif
 
 static enum gcry_md_algos rasqal_digest_to_gcry_md_algos[RASQAL_DIGEST_LAST + 1]={
