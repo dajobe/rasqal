@@ -192,42 +192,6 @@ check_query_init_query(rasqal_world *world,
 }
 
 
-static void
-print_bindings_result_simple(rasqal_query_results *results, FILE* output,
-                             int quiet)
-{
-  while(!rasqal_query_results_finished(results)) {
-    int i;
-    
-    fputs("result: [", output);
-    for(i = 0; i < rasqal_query_results_get_bindings_count(results); i++) {
-      const unsigned char *name;
-      rasqal_literal *value;
-      
-      name = rasqal_query_results_get_binding_name(results, i);
-      value = rasqal_query_results_get_binding_value(results, i);
-      
-      if(i > 0)
-        fputs(", ", output);
-      
-      fprintf(output, "%s=", name);
-      
-      if(value)
-        rasqal_literal_print(value, output);
-      else
-        fputs("NULL", output);
-    }
-    fputs("]\n", output);
-    
-    rasqal_query_results_next(results);
-  }
-
-  if(!quiet)
-    fprintf(stderr, "%s: Query returned %d results\n", program, 
-            rasqal_query_results_get_count(results));
-}
-
-
 typedef struct 
 {
   rasqal_world* world;
@@ -924,10 +888,12 @@ main(int argc, char *argv[])
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
         fprintf(stderr, "%s: Expected bindings results:\n", program);
-        print_bindings_result_simple(expected_results, stderr, 1);
+        rasqal_cmdline_print_bindings_results_simple(program, expected_results,
+                                                     stderr, 1, 0);
         
         fprintf(stderr, "%s: Actual bindings results:\n", program);
-        print_bindings_result_simple(results, stderr, 1);
+        rasqal_cmdline_print_bindings_results_simple(program, results,
+                                                     stderr, 1, 0);
 
         rasqal_query_results_rewind(expected_results);
         rasqal_query_results_rewind(results);

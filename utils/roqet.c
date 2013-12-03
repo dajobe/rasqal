@@ -483,43 +483,6 @@ const char* query_output_format_labels[QUERY_OUTPUT_LAST + 1][2] = {
 
 
 static void
-print_bindings_result_simple(rasqal_query_results *results,
-                             FILE* output, int quiet, int count)
-{
-  if(!quiet)
-    fprintf(stderr, "%s: Query has a variable bindings result\n", program);
-  
-  while(!rasqal_query_results_finished(results)) {
-    if(!count) {
-      int i;
-      
-      fputs("row: [", output);
-      for(i = 0; i < rasqal_query_results_get_bindings_count(results); i++) {
-        const unsigned char *name;
-        rasqal_literal *value;
-
-        name = rasqal_query_results_get_binding_name(results, i);
-        value = rasqal_query_results_get_binding_value(results, i);
-        
-        if(i > 0)
-          fputs(", ", output);
-
-        fprintf(output, "%s=", name);
-        rasqal_literal_print(value, output);
-      }
-      fputs("]\n", output);
-    }
-    
-    rasqal_query_results_next(results);
-  }
-
-  if(!quiet)
-    fprintf(stderr, "%s: Query returned %d results\n", program, 
-            rasqal_query_results_get_count(results));
-}
-
-
-static void
 print_boolean_result_simple(rasqal_query_results *results,
                             FILE* output, int quiet)
 {
@@ -1546,7 +1509,8 @@ main(int argc, char *argv[])
                                          raptor_world_ptr, stdout,
                                          result_format_name, base_uri, quiet);
     else
-      print_bindings_result_simple(results, stdout, quiet, count);
+      rasqal_cmdline_print_bindings_results_simple(program, results,
+                                                   stdout, quiet, count);
   } else if(rasqal_query_results_is_boolean(results)) {
     if(result_format_name)
       rc = print_formatted_query_results(world, results,

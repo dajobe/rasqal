@@ -33,4 +33,6 @@ unsigned char* rasqal_cmdline_read_uri_file_stdin_contents(const char* program, 
 /* results.c */
 rasqal_query_results* rasqal_cmdline_read_results(rasqal_world* world, raptor_world* raptor_world_ptr, rasqal_query_results_type results_type, raptor_iostream* result_iostr, const char* result_filename, const char* result_format_name);
 
+void rasqal_cmdline_print_bindings_results_simple(const char* program, rasqal_query_results *results, FILE* output, int quiet, int count);
+
 #endif

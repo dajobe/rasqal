@@ -116,3 +116,41 @@ rasqal_cmdline_read_results(rasqal_world* world,
 
   return NULL;
 }
+
+
+void
+rasqal_cmdline_print_bindings_results_simple(const char* program,
+                                             rasqal_query_results *results,
+                                             FILE* output, int quiet, int count)
+{
+  if(!quiet)
+    fprintf(stderr, "%s: Query has a variable bindings result\n", program);
+
+  while(!rasqal_query_results_finished(results)) {
+    if(!count) {
+      int i;
+
+      fputs("row: [", output);
+      for(i = 0; i < rasqal_query_results_get_bindings_count(results); i++) {
+        const unsigned char *name;
+        rasqal_literal *value;
+
+        name = rasqal_query_results_get_binding_name(results, i);
+        value = rasqal_query_results_get_binding_value(results, i);
+
+        if(i > 0)
+          fputs(", ", output);
+
+        fprintf(output, "%s=", name);
+        rasqal_literal_print(value, output);
+      }
+      fputs("]\n", output);
+    }
+
+    rasqal_query_results_next(results);
+  }
+
+  if(!quiet)
+    fprintf(stderr, "%s: Query returned %d results\n", program,
+            rasqal_query_results_get_count(results));
+}
