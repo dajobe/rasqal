@@ -782,11 +782,6 @@ rasqal_expression_clear(rasqal_expression* e)
       raptor_free_sequence(e->args);
       break;
 
-    case RASQAL_EXPR_EXISTS:
-    case RASQAL_EXPR_NOT_EXISTS:
-      rasqal_free_graph_pattern(e->gp);
-      break;
-
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -835,13 +830,12 @@ rasqal_free_expression(rasqal_expression* e)
 
 
 /**
- * rasqal_expression_visit2:
- * @query: query (or NULL)
+ * rasqal_expression_visit:
  * @e:  #rasqal_expression to visit
  * @fn: visit function
  * @user_data: user data to pass to visit function
  * 
- * INTERNAL - Visit a user function over a #rasqal_expression in a query
+ * Visit a user function over a #rasqal_expression
  * 
  * If the user function @fn returns non-0, the visit is truncated
  * and the value is returned.
@@ -849,10 +843,9 @@ rasqal_free_expression(rasqal_expression* e)
  * Return value: non-0 if the visit was truncated.
  **/
 int
-rasqal_expression_visit2(rasqal_query* query,
-                         rasqal_expression* e,
-                         rasqal_expression_visit_fn fn,
-                         void *user_data)
+rasqal_expression_visit(rasqal_expression* e, 
+                        rasqal_expression_visit_fn fn,
+                        void *user_data)
 {
   int i;
   int result = 0;
@@ -896,23 +889,23 @@ rasqal_expression_visit2(rasqal_query* query,
     case RASQAL_EXPR_CONTAINS:
     case RASQAL_EXPR_STRBEFORE:
     case RASQAL_EXPR_STRAFTER:
-      return rasqal_expression_visit2(query, e->arg1, fn, user_data) ||
-             rasqal_expression_visit2(query, e->arg2, fn, user_data);
+      return rasqal_expression_visit(e->arg1, fn, user_data) ||
+             rasqal_expression_visit(e->arg2, fn, user_data);
       break;
 
     case RASQAL_EXPR_REGEX:
     case RASQAL_EXPR_IF:
     case RASQAL_EXPR_SUBSTR:
-      return rasqal_expression_visit2(query, e->arg1, fn, user_data) ||
-             rasqal_expression_visit2(query, e->arg2, fn, user_data) ||
-             (e->arg3 && rasqal_expression_visit2(query, e->arg3, fn, user_data));
+      return rasqal_expression_visit(e->arg1, fn, user_data) ||
+             rasqal_expression_visit(e->arg2, fn, user_data) ||
+             (e->arg3 && rasqal_expression_visit(e->arg3, fn, user_data));
       break;
 
     case RASQAL_EXPR_REPLACE:
-      return rasqal_expression_visit2(query, e->arg1, fn, user_data) ||
-             rasqal_expression_visit2(query, e->arg2, fn, user_data) ||
-             rasqal_expression_visit2(query, e->arg3, fn, user_data) ||
-             (e->arg4 && rasqal_expression_visit2(query, e->arg4, fn, user_data));
+      return rasqal_expression_visit(e->arg1, fn, user_data) ||
+             rasqal_expression_visit(e->arg2, fn, user_data) ||
+             rasqal_expression_visit(e->arg3, fn, user_data) ||
+             (e->arg4 && rasqal_expression_visit(e->arg4, fn, user_data));
       break;
 
     case RASQAL_EXPR_TILDE:
@@ -967,7 +960,7 @@ rasqal_expression_visit2(rasqal_query* query,
     case RASQAL_EXPR_UUID:
     case RASQAL_EXPR_STRUUID:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
-      return (e->arg1) ? rasqal_expression_visit2(query, e->arg1, fn, user_data) : 0;
+      return (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 0;
       break;
 
     case RASQAL_EXPR_STR_MATCH:
@@ -985,7 +978,7 @@ rasqal_expression_visit2(rasqal_query* query,
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
         e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
-        result = rasqal_expression_visit2(query, e2, fn, user_data);
+        result = rasqal_expression_visit(e2, fn, user_data);
         if(result)
           break;
       }
@@ -999,23 +992,18 @@ rasqal_expression_visit2(rasqal_query* query,
       
     case RASQAL_EXPR_IN:
     case RASQAL_EXPR_NOT_IN:
-      result = rasqal_expression_visit2(query, e->arg1, fn, user_data);
+      result = rasqal_expression_visit(e->arg1, fn, user_data);
       if(result)
         return result;
 
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
         e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
-        result = rasqal_expression_visit2(query, e2, fn, user_data);
+        result = rasqal_expression_visit(e2, fn, user_data);
         if(result)
           break;
       }
       return result;
-      break;
-
-    case RASQAL_EXPR_EXISTS:
-    case RASQAL_EXPR_NOT_EXISTS:
-      result = rasqal_graph_pattern_visit(query, e->gp, fn, user_data);
       break;
 
     case RASQAL_EXPR_UNKNOWN:
@@ -1025,28 +1013,6 @@ rasqal_expression_visit2(rasqal_query* query,
   }
 
   return result;
-}
-
-
-/**
- * rasqal_expression_visit:
- * @e:  #rasqal_expression to visit
- * @fn: visit function
- * @user_data: user data to pass to visit function
- *
- * Visit a user function over a #rasqal_expression
- *
- * If the user function @fn returns non-0, the visit is truncated
- * and the value is returned.
- *
- * Return value: non-0 if the visit was truncated.
- **/
-int
-rasqal_expression_visit(rasqal_expression* e,
-                        rasqal_expression_visit_fn fn,
-                        void *user_data)
-{
-  return rasqal_expression_visit2(NULL, e, fn, user_data);
 }
 
 
@@ -1143,9 +1109,7 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "strafter",
   "replace",
   "uuid",
-  "struuid",
-  "not_exists",
-  "exists"
+  "struuid"
 };
 
 
@@ -1431,11 +1395,6 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
       raptor_iostream_write_byte(')', iostr);
       break;
 
-    case RASQAL_EXPR_EXISTS:
-    case RASQAL_EXPR_NOT_EXISTS:
-      rasqal_graph_pattern_write_internal(e->gp, iostr, -1);
-      break;
-
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -1642,11 +1601,6 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       fputc(')', fh);
       break;
 
-    case RASQAL_EXPR_EXISTS:
-    case RASQAL_EXPR_NOT_EXISTS:
-      rasqal_graph_pattern_print(e->gp, fh);
-      break;
-
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -1848,11 +1802,6 @@ rasqal_expression_is_constant(rasqal_expression* e)
       }
       break;
       
-    case RASQAL_EXPR_EXISTS:
-    case RASQAL_EXPR_NOT_EXISTS:
-      result = rasqal_graph_pattern_is_constant(e->gp);
-      break;
-
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -1901,10 +1850,9 @@ rasqal_expression_has_variable(void *user_data, rasqal_expression *e)
 
 
 int
-rasqal_expression_mentions_variable(rasqal_query* query,
-                                    rasqal_expression* e, rasqal_variable* v)
+rasqal_expression_mentions_variable(rasqal_expression* e, rasqal_variable* v)
 {
-  return rasqal_expression_visit2(query, e, rasqal_expression_has_variable, v);
+  return rasqal_expression_visit(e, rasqal_expression_has_variable, v);
 }
 
 
@@ -2027,7 +1975,7 @@ rasqal_expression_sequence_evaluate(rasqal_query* query,
  *
  * See rasqal_literal_compare() for comparison flags.
  * 
- * If @error_p is not NULL, *error is set to non-0 on error or incomparible.
+ * If @error is not NULL, *error is set to non-0 on error
  *
  * Return value: <0, 0, or >0 as described above.
  **/
@@ -2276,11 +2224,6 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
       }
       break;
 
-    case RASQAL_EXPR_EXISTS:
-    case RASQAL_EXPR_NOT_EXISTS:
-      rc = rasqal_graph_pattern_compare(e1->gp, e2->gp, flags, error_p);
-      break;
-
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e1->op);
@@ -2329,12 +2272,11 @@ rasqal_expression_mentions_aggregate_visitor(void *user_data,
  * Return non-0 if the expression tree mentions an aggregate expression
  */
 int
-rasqal_expression_mentions_aggregate(rasqal_query* query,
-                                     rasqal_expression* e)
+rasqal_expression_mentions_aggregate(rasqal_expression* e)
 {
-  return rasqal_expression_visit2(query, e,
-                                  rasqal_expression_mentions_aggregate_visitor,
-                                  NULL);
+  return rasqal_expression_visit(e,
+                                 rasqal_expression_mentions_aggregate_visitor,
+                                 NULL);
 }
 
 

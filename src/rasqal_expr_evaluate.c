@@ -1569,14 +1569,6 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       result = rasqal_expression_evaluate_struuid(e, eval_context, error_p);
       break;
 
-    case RASQAL_EXPR_EXISTS:
-    case RASQAL_EXPR_NOT_EXISTS:
-      rasqal_log_warning_simple(world, RASQAL_WARNING_LEVEL_NOT_IMPLEMENTED,
-                                eval_context->locator,
-                                "EXIST operators are not implemented. Returning false.");
-      result = rasqal_new_boolean_literal(world, 0);
-      break;
-
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL3("Unknown operation %s (%d)",

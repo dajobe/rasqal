@@ -722,8 +722,6 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_REPLACE: Expression for SPARQL 1.1 REPLACE()
  * @RASQAL_EXPR_UUID: Expression for SPARQL 1.1 UUID()
  * @RASQAL_EXPR_STRUUID: Expression for SPARQL 1.1 STRUUID()
- * @RASQAL_EXPR_NOT_EXISTS: Expression for SPARQL 1.1 NOT EXISTS
- * @RASQAL_EXPR_EXISTS: Expression for SPARQL 1.1 EXISTS
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
@@ -826,10 +824,8 @@ typedef enum {
   RASQAL_EXPR_REPLACE,
   RASQAL_EXPR_UUID,
   RASQAL_EXPR_STRUUID,
-  RASQAL_EXPR_NOT_EXISTS,
-  RASQAL_EXPR_EXISTS,
   /* internal */
-  RASQAL_EXPR_LAST = RASQAL_EXPR_EXISTS
+  RASQAL_EXPR_LAST = RASQAL_EXPR_STRUUID
 } rasqal_op;
 
 
@@ -883,8 +879,6 @@ struct rasqal_expression_s {
   raptor_sequence* params;
   unsigned int flags;
   struct rasqal_expression_s* arg4;
-
-  rasqal_graph_pattern* gp;
 };
 typedef struct rasqal_expression_s rasqal_expression;
 
@@ -1607,10 +1601,8 @@ int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int 
  * Return value: non-0 to truncate the visit
  */
 typedef int (*rasqal_expression_visit_fn)(void *user_data, rasqal_expression *e);
-RASQAL_API RASQAL_DEPRECATED
-int rasqal_expression_visit(rasqal_expression* e, rasqal_expression_visit_fn fn, void *user_data);
 RASQAL_API
-int rasqal_expression_visit2(rasqal_query* query, rasqal_expression* e,  rasqal_expression_visit_fn fn,void *user_data);
+int rasqal_expression_visit(rasqal_expression* e, rasqal_expression_visit_fn fn, void *user_data);
 
 RASQAL_API
 rasqal_evaluation_context* rasqal_new_evaluation_context(rasqal_world* world, raptor_locator* locator, int flags);

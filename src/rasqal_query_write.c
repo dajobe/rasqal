@@ -50,7 +50,6 @@ typedef struct
 } sparql_writer_context;
 
 static void rasqal_query_write_sparql_expression(sparql_writer_context *wc, raptor_iostream* iostr, rasqal_expression* e);
-static void rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc, raptor_iostream* iostr, rasqal_graph_pattern *gp, int gp_index, int indent);
 
 
 static void
@@ -544,11 +543,6 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
         rasqal_query_write_sparql_expression(wc, iostr, e2);
       }
       raptor_iostream_counted_string_write(" )", 2, iostr);
-      break;
-
-    case RASQAL_EXPR_EXISTS:
-    case RASQAL_EXPR_NOT_EXISTS:
-      rasqal_query_write_sparql_graph_pattern(wc, iostr, e->gp, 0, 0);
       break;
 
     case RASQAL_EXPR_UNKNOWN:

@@ -1105,11 +1105,7 @@ rasqal_graph_pattern* rasqal_new_2_group_graph_pattern(rasqal_query* query, rasq
 
 rasqal_graph_pattern* rasqal_graph_pattern_get_parent(rasqal_query *query, rasqal_graph_pattern* gp, rasqal_graph_pattern* tree_gp);
 
-int rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp, raptor_iostream* iostr, int indent);
-int rasqal_graph_pattern_is_constant(rasqal_graph_pattern* gp);
-int rasqal_graph_pattern_compare(rasqal_graph_pattern* gp1, rasqal_graph_pattern* gp2, int flags, int* error_p);
 
-  
 /* sparql_parser.y */
 typedef struct 
 {
@@ -1158,12 +1154,12 @@ int rasqal_literal_ebv(rasqal_literal* l);
 int rasqal_expression_is_constant(rasqal_expression* e);
 void rasqal_expression_clear(rasqal_expression* e);
 void rasqal_expression_convert_to_literal(rasqal_expression* e, rasqal_literal* l);
-int rasqal_expression_mentions_variable(rasqal_query* query, rasqal_expression* e, rasqal_variable* v);
+int rasqal_expression_mentions_variable(rasqal_expression* e, rasqal_variable* v);
 void rasqal_triple_write(rasqal_triple* t, raptor_iostream* iostr);
 void rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr);
 int rasqal_expression_is_aggregate(rasqal_expression* e);
 int rasqal_expression_convert_aggregate_to_variable(rasqal_expression* e_in, rasqal_variable* v, rasqal_expression** e_out);
-int rasqal_expression_mentions_aggregate(rasqal_query* query, rasqal_expression* e);
+int rasqal_expression_mentions_aggregate(rasqal_expression* e);
 
 raptor_sequence* rasqal_expression_copy_expression_sequence(raptor_sequence* exprs_seq);
 int rasqal_literal_sequence_compare(int compare_flags, raptor_sequence* values_a, raptor_sequence* values_b);

@@ -799,7 +799,7 @@ SelectTerm: Var
                         "SELECT ( expression ) AS Variable cannot be used with SPARQL 1.0");
     YYERROR;
   } else if($2 && $4) {
-    if(rasqal_expression_mentions_variable((rasqal_query*)rq, $2, $4)) {
+    if(rasqal_expression_mentions_variable($2, $4)) {
       sparql_query_error_full((rasqal_query*)rq, 
                               "Expression in SELECT ( expression ) AS %s contains the variable name '%s'",
                               $4->name, $4->name);
@@ -2323,7 +2323,7 @@ GroupCondition: BuiltInCall
 
   $$ = $2;
   if($3) {
-    if(rasqal_expression_mentions_variable((rasqal_query*)rq, $$, $3)) {
+    if(rasqal_expression_mentions_variable($$, $3)) {
       sparql_query_error_full((rasqal_query*)rq, 
                               "Expression in GROUP BY ( expression ) AS %s contains the variable name '%s'",
                               $3->name, $3->name);
