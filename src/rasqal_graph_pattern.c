@@ -510,7 +510,7 @@ rasqal_graph_pattern_write_plurals(raptor_iostream *iostr,
  * INTERNAL - Print a #rasqal_graph_pattern in a debug format with indenting
  * 
  **/
-static int
+int
 rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
                                     raptor_iostream* iostr, int indent)
 {
@@ -1200,7 +1200,7 @@ rasqal_graph_pattern_variable_bound_below(rasqal_graph_pattern *gp,
 
 
 
-/**
+/*
  * rasqal_new_basic_graph_pattern_from_triples:
  * @query: #rasqal_graph_pattern query object
  * @triples: triples sequence containing the graph pattern
@@ -1462,4 +1462,57 @@ rasqal_graph_pattern_get_parent(rasqal_query *query,
                                    &fpd);
 
   return fpd.parent_gp;
+}
+
+
+/*
+ * rasqal_graph_pattern_is_constant:
+ * @gp: Graph pattern
+ *
+ * INTERNAL - Check if a graph pattern always binds the same values
+ *
+ * FIXME - Not implemented which just makes queries slower, not wrong
+ *
+ * Return value: non-0 if constant
+ */
+int
+rasqal_graph_pattern_is_constant(rasqal_graph_pattern* gp)
+{
+  return 0;
+}
+
+
+/*
+ * rasqal_graph_pattern_compare:
+ * @gp1: #rasqal_graph_pattern first graph_pattern
+ * @gp2: #rasqal_graph_pattern second graph_pattern
+ * @flags: comparison flags - none defined.
+ * @error_p: pointer to error
+ * 
+ * INTERNAL - Compare two graph patterns
+ * 
+ * FIXME - Not fully implemented; mostly returns incomparible
+ *
+ * See rasqal_expression_compare() for semantics.
+ * 
+ * If @error_p is not NULL, *error is set to non-0 on error or incomparable
+ *
+ * Return value: <0, 0, or >0 as described above.
+ **/
+int
+rasqal_graph_pattern_compare(rasqal_graph_pattern* gp1,
+                             rasqal_graph_pattern* gp2,
+                             int flags, int* error_p)
+{
+  if(gp1 == gp2)
+    return 0;
+
+  if(gp1->op != gp1->op)
+    return gp2->op - gp1->op;
+  
+  /* FIXME - all other GPs are incomparable */
+  if(error_p)
+    *error_p = 1;
+  
+  return 2;
 }

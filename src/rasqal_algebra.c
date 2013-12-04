@@ -1981,9 +1981,9 @@ rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
       if(!expr)
 	continue;
 
-      if(rasqal_expression_visit(expr,
-				 rasqal_algebra_extract_aggregate_expression_visit,
-				 ae)) {
+      if(rasqal_expression_visit2(query, expr,
+                                  rasqal_algebra_extract_aggregate_expression_visit,
+                                  ae)) {
 	rc = 1;
 	goto tidy;
       }
@@ -2088,9 +2088,9 @@ rasqal_algebra_replace_aggregate_expressions(rasqal_query* query,
       (expr = (rasqal_expression*)raptor_sequence_get_at(exprs_seq, i));
       i++) {
     
-    if(rasqal_expression_visit(expr,
-                               rasqal_algebra_extract_aggregate_expression_visit,
-                               ae)) {
+    if(rasqal_expression_visit2(query, expr,
+                                rasqal_algebra_extract_aggregate_expression_visit,
+                                ae)) {
       return 1;
     }
     
