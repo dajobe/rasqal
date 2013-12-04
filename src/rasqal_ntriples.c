@@ -42,6 +42,36 @@
 #include "rasqal_internal.h"
 
 
+/* from raptor_uri.c */
+#if RAPTOR_VERSION >= 20010
+
+#else
+static int
+raptor_uri_uri_string_is_absolute(const unsigned char* uri_string)
+{
+  const unsigned char* s = uri_string;
+  
+  /* 
+   * scheme = alpha *( alpha | digit | "+" | "-" | "." )
+   *    RFC 2396 section 3.1 Scheme Component
+   */
+  if(*s && isalpha((int)*s)) {
+    s++;
+
+    while(*s && (isalnum((int)*s) ||
+                 (*s == '+') || (*s == '-') || (*s == '.')))
+      s++;
+  
+    if(*s == ':')
+      return 1;
+  }
+
+
+  return 0;
+}
+#endif
+
+
 #if RAPTOR_VERSION >= 20012
 
 #else
