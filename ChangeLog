@@ -1,3 +1,21 @@
+2013-12-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_ntriples.c: Add a static
+	raptor_uri_uri_string_is_absolute() for older raptors
+
+2013-12-02  Dave Beckett <dave@dajobe.org>
+
+	* utils/check_query.c, utils/rasqalcmdline.h, utils/results.c,
+	utils/roqet.c: Pull out shared code to print bindings results in a
+	simple format
+
+	(rasqal_cmdline_print_bindings_results_simple): Added
+
+	* src/rasqal_digest.c: silence warnings caused by gcrypt.h
+	including internal function prototypes.
+
+	It marks them as deprecated if not _GCRYPT_IN_LIBGCRYPT
+
 2013-12-01  Dave Beckett <dave@dajobe.org>
 
 	* RELEASE.html:
