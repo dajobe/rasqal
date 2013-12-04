@@ -47,7 +47,7 @@
 
 #else
 static int
-raptor_uri_uri_string_is_absolute(const unsigned char* uri_string)
+rasqal_uri_uri_string_is_absolute(const unsigned char* uri_string)
 {
   const unsigned char* s = uri_string;
   
@@ -69,6 +69,9 @@ raptor_uri_uri_string_is_absolute(const unsigned char* uri_string)
 
   return 0;
 }
+
+#define raptor_uri_uri_string_is_absolute rasqal_uri_uri_string_is_absolute
+
 #endif
 
 
