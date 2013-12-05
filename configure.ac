@@ -50,12 +50,18 @@ AM_SANITY_CHECK
 AM_PROG_AR
 AC_PROG_CC
 AM_PROG_CC_C_O
+AC_MSG_CHECKING(whether $CC is clang)
+CC_IS_CLANG=no
+if $CC 2>&1 | grep clang >/dev/null 2>&1; then
+  CC_IS_CLANG=yes
+else
+  :
+fi
+AC_MSG_RESULT($CC_IS_CLANG)
 
-m4_undefine([AC_PROG_CXX])
-m4_defun([AC_PROG_CXX],[])
-m4_undefine([AC_PROG_F77])
-m4_defun([AC_PROG_F77],[])
+dnl Initialize libtool
 LT_INIT
+
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
@@ -73,7 +79,7 @@ if test "X$LEX" != "X:" ; then
 fi
  
 FLEX_MIN_VERSION=2.5.19
-FLEX_REC_VERSION=2.5.33
+FLEX_REC_VERSION=2.5.36
 if test "$USE_MAINTAINER_MODE" = yes; then
   AC_MSG_CHECKING(flex version)
   if test "X$LEX" != "X:"; then
@@ -164,6 +170,10 @@ dnl compiler checks
 AC_DEFUN([REDLAND_CC_TRY_FLAG], [
   AC_MSG_CHECKING([whether $CC supports $1])
   redland_save_CFLAGS="$CFLAGS"
+  if test $CC_IS_CLANG = yes; then
+    # Make unknown warnings into errors for clang so the test below works
+    CFLAGS="-Werror $CFLAGS"
+  fi
   CFLAGS="$CFLAGS $1"
   AC_COMPILE_IFELSE([AC_LANG_SOURCE([ ])], [redland_cc_flag=yes], [redland_cc_flag=no])
   CFLAGS="$redland_save_CFLAGS"
@@ -394,25 +404,15 @@ fi
 RAPTOR_MIN_VERSION=2.0.7
 
 
-AC_CHECK_PROGS(PKG_CONFIG, pkg-config)
-if test "X$PKG_CONFIG" = X; then
-  AC_MSG_ERROR(pkg-config not found. configuring raptor V2 requires it.  Get it from http://pkg-config.freedesktop.org/)
-fi
+PKG_PROG_PKG_CONFIG
 
-AC_MSG_CHECKING(for raptor)
-if $PKG_CONFIG raptor2 --exists; then
+PKG_CHECK_MODULES([RAPTOR2],[raptor2 >= $RAPTOR_MIN_VERSION],[
   RAPTOR_VERSION=`$PKG_CONFIG raptor2 --modversion 2>/dev/null`
-  AC_MSG_RESULT(system $RAPTOR_VERSION)
-
-  if $PKG_CONFIG raptor2 --atleast-version=$RAPTOR_MIN_VERSION; then
-    :
-  else
-    AC_MSG_ERROR(Installed raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
-  fi
-else
-  AC_MSG_RESULT(not found)
+],[
   AC_MSG_ERROR(Raptor is not installed - see http://librdf.org/raptor/ to get a version newer than $RAPTOR_MIN_VERSION)
-fi
+])
+AC_SUBST(RAPTOR2_CFLAGS)
+AC_SUBST(RAPTOR2_LIBS)
 
 RAPTOR_VERSION_DEC=`echo $RAPTOR_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 AC_SUBST(RAPTOR_VERSION_DEC)
@@ -571,10 +571,10 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #undef VERSION
 #include <mhash.h>]], [[ MHASH m; mhash_init(MHASH_MD5); ]])],[have_digest_mhash=yes],[have_digest_mhash=no])
 
-CPPFLAGS="$LIBRDF_CPPFLAGS"
-LIBS="$oLIBS"
-
 AC_MSG_RESULT($have_digest_mhash)
+
+CPPFLAGS="$oCPPFLAGS"
+LIBS="$oLIBS"
 
 
 AC_CHECK_PROG(LIBGCRYPT_CONFIG, libgcrypt-config, libgcrypt-config)
@@ -609,7 +609,7 @@ elif test "$ac_cv_header_gcrypt_h" = "yes"; then
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
   #include <gcrypt.h>]], [[ gcry_md_hd_t hash; gcry_md_open(hash, GCRY_MD_MD5, 0); ]])],[have_digest_gcrypt=yes],[have_digest_gcrypt=no])
 
-  CPPFLAGS="$LIBRDF_CPPFLAGS"
+  CPPFLAGS="$oCPPFLAGS"
   LIBS="$oLIBS"
 else
   have_digest_gcrypt=no
@@ -676,8 +676,7 @@ need_uuid_libc=no
 need_uuid_internal=no
 need_uuid_ossp=no
 
-AC_MSG_CHECKING(for libuuid)
-if $PKG_CONFIG uuid --exists; then
+PKG_CHECK_MODULES(UUID, uuid, [
   LIBUUID_VERSION=`$PKG_CONFIG uuid --modversion 2>/dev/null`
 
   oCPPFLAGS="$CPPFLAGS"
@@ -686,12 +685,18 @@ if $PKG_CONFIG uuid --exists; then
   CPPFLAGS="$CPPFLAGS `$PKG_CONFIG uuid --cflags`"
   LIBS="$LIBS `$PKG_CONFIG uuid --libs`"
 
+  dnl check for OSSP uuid defines and error out so we only get linux libuuid
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-  #include <uuid.h>]], [[ uuid_t data; uuid_clear(&data); ]])],[have_uuid_libuuid=yes],[have_uuid_libuuid=no])
+  #include <uuid.h>]], [[
+  #if defined(UUID_LEN_BIN) && defined(UUID_VERSION)
+  FAIL
+  #endif
+  uuid_t data; uuid_clear(&data); ]])],[have_uuid_libuuid=yes],[have_uuid_libuuid=no])
 
-  CPPFLAGS="$LIBRDF_CPPFLAGS"
+  CPPFLAGS="$oCPPFLAGS"
   LIBS="$oLIBS"
-fi
+], [have_uuid_libuuid=no])
+AC_MSG_CHECKING(for libuuid)
 AC_MSG_RESULT($have_uuid_libuuid)
 
 AC_CHECK_PROGS(UUID_CONFIG, uuid-config)
@@ -708,7 +713,7 @@ if test "X$UUID_CONFIG" != X; then
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
   #include <uuid.h>]], [[ uuid_t *data; uuid_create(&data); ]])],[have_uuid_ossp=yes],[have_uuid_ossp=no])
 
-  CPPFLAGS="$LIBRDF_CPPFLAGS"
+  CPPFLAGS="$oCPPFLAGS"
   LIBS="$oLIBS"
 fi
 AC_MSG_RESULT($have_uuid_ossp)
@@ -795,11 +800,11 @@ if test "x$enable_xml2" != "xno" ; then
   if test "X$xml2_config" != "X" ; then
     AC_MSG_CHECKING(for $xml2_config)
 
-    if test -f $xml2_config ; then
+    if test -x $xml2_config ; then
       XML_CONFIG=$xml2_config
       AC_MSG_RESULT(yes)
     else
-      AC_MSG_RESULT(no - searching PATH)
+      AC_MSG_ERROR([xml2-config not found at specified path $xml2_config])
     fi
   fi
   if test "X$XML_CONFIG" = "X"; then
@@ -879,8 +884,8 @@ AM_CONDITIONAL(RASQAL_QUERY_SPARQL, test $sparql_query_language = yes)
 
 
 
-RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS `$PKG_CONFIG raptor2 --cflags`"
-RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$PKG_CONFIG raptor2 --libs`"
+RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $RAPTOR2_CFLAGS"
+RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $RAPTOR2_LIBS"
 RAPPER_PATH=""
 
 if test $need_regex_pcre = 1; then
@@ -924,15 +929,11 @@ fi
 
 
 if test $need_uuid_libuuid = yes; then
-  C=`$PKG_CONFIG uuid --cflags`
-  L=`$PKG_CONFIG uuid --libs`
-  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $C"
-  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
+  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $UUID_CFLAGS"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $UUID_LIBS"
 
-  PKGCONFIG_CFLAGS="$PKGCONFIG_CFLAGS $C"
-  PKGCONFIG_LIBS="$PKGCONFIG_LIBS $L"
-  unset C
-  unset L
+  PKGCONFIG_CFLAGS="$PKGCONFIG_CFLAGS $UUID_CFLAGS"
+  PKGCONFIG_LIBS="$PKGCONFIG_LIBS $UUID_LIBS"
 fi
 
 
@@ -1003,6 +1004,8 @@ if test "$ac_cv_header_mpfr_h" = yes; then
     AC_MSG_RESULT(no)
   fi
 fi
+CPPFLAGS="$oCPPFLAGS"
+LIBS="$oLIBS"
 
 have_gmp_version=0
 have_gmp_random=no
@@ -1038,9 +1041,9 @@ gmp_randclear(r);
   AC_MSG_CHECKING(for gmp_version)
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <gmp.h>]], [[const char* v=gmp_version; ]])],[have_gmp_version=1
 	      AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
-  LIBS="$oLIBS"
-  CPPFLAGS="$oCPPFLAGS"
 fi
+CPPFLAGS="$oCPPFLAGS"
+LIBS="$oLIBS"
 
 if test $have_gmp_version = 1; then
   AC_DEFINE(HAVE_GMP_VERSION, 1, [Have gmp_version constant])
@@ -1318,6 +1321,9 @@ data/Makefile
 docs/Makefile
 docs/version.xml
 scripts/Makefile
+libsv/Makefile
+libmtwist/Makefile
+getopt/Makefile
 src/Makefile
 src/rasqal.h
 src/win32_rasqal_config.h

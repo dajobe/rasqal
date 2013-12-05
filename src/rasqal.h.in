@@ -970,6 +970,7 @@ typedef enum {
  * @RASQAL_QUERY_RESULTS_GRAPH: an RDF graph
  * @RASQAL_QUERY_RESULTS_SYNTAX: a syntax
  * @RASQAL_QUERY_RESULTS_UNKNOWN: unknown type
+ * @RASQAL_QUERY_RESULTS_LAST: internal
  *
  * Query result type.
  */
@@ -979,7 +980,8 @@ typedef enum {
   RASQAL_QUERY_RESULTS_BOOLEAN,
   RASQAL_QUERY_RESULTS_GRAPH,
   RASQAL_QUERY_RESULTS_SYNTAX,
-  RASQAL_QUERY_RESULTS_UNKNOWN
+  RASQAL_QUERY_RESULTS_UNKNOWN,
+  RASQAL_QUERY_RESULTS_LAST = RASQAL_QUERY_RESULTS_UNKNOWN
 } rasqal_query_results_type;
 
 
@@ -1100,6 +1102,7 @@ typedef struct {
  * @RASQAL_GRAPH_PATTERN_OPERATOR_SELECT: SELECT graph pattern
  * @RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE: SERVICE graph pattern
  * @RASQAL_GRAPH_PATTERN_OPERATOR_MINUS: MINUS graph pattern
+ * @RASQAL_GRAPH_PATTERN_OPERATOR_VALUES: VALUES graph pattern
  * @RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN: Internal.
  * @RASQAL_GRAPH_PATTERN_OPERATOR_LAST: Internal.
  *
@@ -1117,8 +1120,9 @@ typedef enum {
   RASQAL_GRAPH_PATTERN_OPERATOR_SELECT    = 8,
   RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE   = 9,
   RASQAL_GRAPH_PATTERN_OPERATOR_MINUS     = 10,
+  RASQAL_GRAPH_PATTERN_OPERATOR_VALUES    = 11,
 
-  RASQAL_GRAPH_PATTERN_OPERATOR_LAST = RASQAL_GRAPH_PATTERN_OPERATOR_MINUS
+  RASQAL_GRAPH_PATTERN_OPERATOR_LAST = RASQAL_GRAPH_PATTERN_OPERATOR_VALUES
 } rasqal_graph_pattern_operator;
 
 
@@ -1393,6 +1397,8 @@ rasqal_query* rasqal_query_results_get_query(rasqal_query_results* query_results
 /* Bindings result format */
 RASQAL_API
 rasqal_query_results_type rasqal_query_results_get_type(rasqal_query_results* query_results);
+RASQAL_API
+const char* rasqal_query_results_type_label(rasqal_query_results_type type);
 RASQAL_API
 int rasqal_query_results_is_bindings(rasqal_query_results *query_results);
 RASQAL_API

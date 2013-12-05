@@ -40,7 +40,10 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
-#if defined(RASQAL_UUID_LIBUUID) || defined(RASQAL_UUID_OSSP)
+#if defined(RASQAL_UUID_OSSP)
+#include <ossp/uuid.h>
+#endif
+#if defined(RASQAL_UUID_LIBUUID)
 #include <uuid.h>
 #endif
 #ifdef RASQAL_UUID_LIBC
@@ -253,6 +256,7 @@ rasqal_expression_evaluate_rand(rasqal_expression *e,
  * rasqal_expression_evaluate_digest:
  * @e: The expression to evaluate.
  * @eval_context: Evaluation context
+ * @error_p: pointer to error flag or NULL
  *
  * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_MD5, RASQAL_EXPR_SHA1,
  * RASQAL_EXPR_SHA224, RASQAL_EXPR_SHA256, RASQAL_EXPR_SHA384,
@@ -267,7 +271,7 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
 {
   rasqal_world* world = eval_context->world;
   rasqal_digest_type md_type = RASQAL_DIGEST_NONE;
-  rasqal_literal* l1;
+  rasqal_literal* l1 = NULL;
   const unsigned char *s;
   unsigned char *new_s;
   size_t len;
@@ -278,9 +282,9 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
   
   /* Turn EXPR enum into DIGEST enum - we know they are ordered the same */
   if(e->op >= RASQAL_EXPR_MD5 && e->op <= RASQAL_EXPR_SHA512)
-    md_type = (rasqal_digest_type)(e->op - RASQAL_EXPR_MD5 + RASQAL_DIGEST_MD5);
+    md_type = RASQAL_GOOD_CAST(rasqal_digest_type, e->op - RASQAL_EXPR_MD5 + RASQAL_DIGEST_MD5);
   else
-    return NULL;
+    goto failed;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(*error_p || !l1)
@@ -292,11 +296,11 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
 
   output_len = rasqal_digest_buffer(md_type, NULL, NULL, 0);
   if(output_len < 0)
-    return NULL;
+    goto failed;
 
   output = RASQAL_MALLOC(unsigned char*, output_len);
   if(!output)
-    return NULL;
+    goto failed;
   
   output_len = rasqal_digest_buffer(md_type, output, s, len);
   if(output_len < 0)
@@ -325,6 +329,9 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
   return rasqal_new_string_literal(world, new_s, NULL, NULL, NULL);
   
   failed:
+  if(error_p)
+    *error_p = 1;
+
   if(output)
     RASQAL_FREE(char, output);
   if(l1)

@@ -186,7 +186,7 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
   rasqal_rowsource* rowsource = row->rowsource;
   int i;
   
-  fputs("result[", fh);
+  fputs("row[", fh);
   for(i = 0; i < row->size; i++) {
     /* Do not use rasqal_query_results_get_binding_name(row->results, i); 
      * as it does not work for a construct result
@@ -207,10 +207,7 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
     if(name)
       fprintf(fh, "%s=", name);
 
-    if(value)
-      rasqal_literal_print(value, fh);
-    else
-      fputs("NULL", fh);
+    rasqal_literal_print(value, fh);
   }
 
   if(row->order_size > 0) {
@@ -221,10 +218,7 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
       
       if(i > 0)
         fputs(", ", fh);
-      if(value)
-        rasqal_literal_print(value, fh);
-      else
-        fputs("NULL", fh);
+      rasqal_literal_print(value, fh);
     }
     fputs("]", fh);
 
@@ -234,6 +228,78 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
     fprintf(fh, " group %d", row->group_id);
 
   fprintf(fh, " offset %d]", row->offset);
+
+  return 0;
+}
+
+
+/*
+ * rasqal_row_write:
+ * @row: query result row
+ * @iostr: raptor iostream
+ *
+ * INTERNAL - Write a query result row to an iostream.
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_row_write(rasqal_row* row, raptor_iostream* iostr)
+{
+  rasqal_rowsource* rowsource;
+  int i;
+
+  if(!row || !iostr)
+    return 1;
+
+  rowsource = row->rowsource;
+  raptor_iostream_counted_string_write("row[", 4, iostr);
+  for(i = 0; i < row->size; i++) {
+    /* Do not use rasqal_query_results_get_binding_name(row->results, i);
+     * as it does not work for a construct result
+     */
+    const unsigned char *name = NULL;
+    rasqal_literal *value;
+
+    if(rowsource) {
+      rasqal_variable* v;
+      v = rasqal_rowsource_get_variable_by_offset(rowsource, i);
+      if(v)
+        name = v->name;
+    }
+
+    value = row->values[i];
+    if(i > 0)
+      raptor_iostream_counted_string_write(", ", 2, iostr);
+    if(name) {
+      raptor_iostream_string_write(name, iostr);
+      raptor_iostream_counted_string_write("=", 1, iostr);
+    }
+
+    rasqal_literal_write(value, iostr);
+  }
+
+  if(row->order_size > 0) {
+    raptor_iostream_counted_string_write(" with ordering values [", 23, iostr);
+
+    for(i = 0; i < row->order_size; i++) {
+      rasqal_literal *value = row->order_values[i];
+
+      if(i > 0)
+        raptor_iostream_counted_string_write(", ", 2, iostr);
+      rasqal_literal_write(value, iostr);
+    }
+    raptor_iostream_counted_string_write("]", 1, iostr);
+
+  }
+
+  if(row->group_id >= 0) {
+    raptor_iostream_counted_string_write(" group ", 7, iostr);
+    raptor_iostream_decimal_write(row->group_id, iostr);
+  }
+
+  raptor_iostream_counted_string_write(" offset ", 8, iostr);
+  raptor_iostream_decimal_write(row->offset, iostr);
+  raptor_iostream_counted_string_write("]", 1, iostr);
 
   return 0;
 }

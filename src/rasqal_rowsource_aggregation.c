@@ -720,11 +720,7 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
   
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG2("Aggregation %d ending group with result: ", i);
-      if(result)
-        rasqal_literal_print(result, DEBUG_FH);
-      else
-        fputs("NULL", DEBUG_FH);
-      
+      rasqal_literal_print(result, DEBUG_FH);
       fputc('\n', DEBUG_FH);
 #endif
       
@@ -937,19 +933,19 @@ static const char* const data_xyz_3_rows[] =
 };
 
 /* MAX(?y) GROUP BY ?x result */
-static const int const test0_output_rows[] =
+static const int test0_output_rows[] =
 { 3, 5, };
 /* MIN(?x) GROUP BY ?x result */
-static const int const test1_output_rows[] =
+static const int test1_output_rows[] =
 { 1, 2, };
 /* SUM(?z) GROUP BY ?x result */
-static const int const test2_output_rows[] =
+static const int test2_output_rows[] =
 { 7, 6, };
 /* AVG(?x) GROUP BY ?x result */
-static const double const test3_output_rows[] =
+static const double test3_output_rows[] =
 { 1.0, 2.0, };
 /* SAMPLE(?y) GROUP BY ?x result */
-static const int const test4_output_rows[] =
+static const int test4_output_rows[] =
 { 2, 5, };
 /* GROUP_CONCAT(?z) GROUP BY ?x result */
 static const char* const test5_output_rows[] =
@@ -969,10 +965,10 @@ static const struct {
   int output_vars;
   int output_rows;
   const char* const *data;
-  const int const *group_ids;
+  const int *group_ids;
   rasqal_literal_type result_type;
-  const int const *result_int_data;
-  const double const *result_double_data;
+  const int *result_int_data;
+  const double *result_double_data;
   const char* const *result_string_data;
   rasqal_op op;
   const char* const expr_agg_vars[MAX_TEST_VARS];

@@ -67,19 +67,16 @@
  *   rasqal_dataset_load_graph_iostream()
  *   rasqal_free_dataset()
  *   rasqal_literal_equals_flags()
- *   rasqal_literal_write()
  *   rasqal_query_results_sort()
+ *
+ * The dataset API calls are used to read RDF graphs but nothing is
+ * done with the data at present.
  *  
  */
 #include <rasqal_internal.h>
 
 
-#ifdef BUFSIZ
-#define FILE_READ_BUF_SIZE BUFSIZ
-#else
-#define FILE_READ_BUF_SIZE 1024
-#endif
-
+#include "rasqalcmdline.h"
 
 #ifdef NEED_OPTIND_DECLARATION
 extern int optind;
@@ -154,73 +151,6 @@ check_query_log_handler(void* user_data, raptor_log_message *message)
 }
 
 
-static unsigned char*
-check_query_read_file_string(const char* filename, 
-                             const char* label,
-                             size_t* len_p)
-{
-  raptor_stringbuffer *sb;
-  size_t len;
-  FILE *fh = NULL;
-  unsigned char* string = NULL;
-  unsigned char* buffer = NULL;
-
-  sb = raptor_new_stringbuffer();
-  if(!sb)
-    return NULL;
-
-  fh = fopen(filename, "r");
-  if(!fh) {
-    fprintf(stderr, "%s: %s '%s' open failed - %s", 
-            program, label, filename, strerror(errno));
-    goto tidy;
-  }
-    
-  buffer = (unsigned char*)malloc(FILE_READ_BUF_SIZE);
-  if(!buffer)
-    goto tidy;
-
-  while(!feof(fh)) {
-    size_t read_len;
-    
-    read_len = fread((char*)buffer, 1, FILE_READ_BUF_SIZE, fh);
-    if(read_len > 0)
-      raptor_stringbuffer_append_counted_string(sb, buffer, read_len, 1);
-    
-    if(read_len < FILE_READ_BUF_SIZE) {
-      if(ferror(fh)) {
-        fprintf(stderr, "%s: file '%s' read failed - %s\n",
-                program, filename, strerror(errno));
-        goto tidy;
-      }
-      
-      break;
-    }
-  }
-  len = raptor_stringbuffer_length(sb);
-  
-  string = (unsigned char*)malloc(len + 1);
-  if(string) {
-    raptor_stringbuffer_copy_to_string(sb, string, len);
-    if(len_p)
-      *len_p = len;
-  }
-  
-  tidy:
-  if(buffer)
-    free(buffer);
-
-  if(fh)
-    fclose(fh);
-
-  if(sb)
-    raptor_free_stringbuffer(sb);
-
-  return string;
-}
-
-
-
 static rasqal_query*
 check_query_init_query(rasqal_world *world, 
                        const char* ql_name,
@@ -259,118 +189,6 @@ check_query_init_query(rasqal_world *world,
 
   tidy_query:
   return rq;
-}
-
-
-static void
-print_bindings_result_simple(rasqal_query_results *results, FILE* output,
-                             int quiet)
-{
-  while(!rasqal_query_results_finished(results)) {
-    int i;
-    
-    fputs("result: [", output);
-    for(i = 0; i < rasqal_query_results_get_bindings_count(results); i++) {
-      const unsigned char *name;
-      rasqal_literal *value;
-      
-      name = rasqal_query_results_get_binding_name(results, i);
-      value = rasqal_query_results_get_binding_value(results, i);
-      
-      if(i > 0)
-        fputs(", ", output);
-      
-      fprintf(output, "%s=", name);
-      
-      if(value)
-        rasqal_literal_print(value, output);
-      else
-        fputs("NULL", output);
-    }
-    fputs("]\n", output);
-    
-    rasqal_query_results_next(results);
-  }
-
-  if(!quiet)
-    fprintf(stderr, "%s: Query returned %d results\n", program, 
-            rasqal_query_results_get_count(results));
-}
-
-
-static rasqal_query_results*
-check_query_read_results(rasqal_world* world,
-                         raptor_world* raptor_world_ptr,
-                         rasqal_query_results_type results_type,
-                         raptor_iostream* result_iostr,
-                         const char* result_filename,
-                         const char* result_format_name)
-{
-  rasqal_variables_table* vars_table = NULL;
-  const char* format_name = NULL;
-  rasqal_query_results_formatter* qrf = NULL;
-  unsigned char *query_results_base_uri_string = NULL;
-  raptor_uri* query_results_base_uri = NULL;
-  rasqal_query_results* results = NULL;
-  
-  query_results_base_uri_string = raptor_uri_filename_to_uri_string(result_filename);
-  
-  query_results_base_uri = raptor_new_uri(raptor_world_ptr,
-                                          query_results_base_uri_string);
-  
-  vars_table = rasqal_new_variables_table(world);
-  results = rasqal_new_query_results(world, NULL, results_type, vars_table);
-  rasqal_free_variables_table(vars_table); vars_table = NULL;
-  
-  if(!results) {
-    fprintf(stderr, "%s: Failed to create query results\n", program);
-    goto tidy_fail;
-  }
-  
-  if(result_format_name) {
-    /* FIXME validate result format name is legal query
-     * results formatter name 
-     */
-    format_name = result_format_name;
-  }
-  
-  if(!format_name)
-    format_name = rasqal_world_guess_query_results_format_name(world,
-                                                               NULL /* uri */,
-                                                               NULL /* mime_type */,
-                                                               NULL /*buffer */,
-                                                               0,
-                                                               (const unsigned char*)result_filename);
-  
-  qrf = rasqal_new_query_results_formatter(world, 
-                                           format_name, 
-                                           NULL /* mime type */,
-                                           NULL /* uri */);
-  if(!qrf)
-    goto tidy_fail;
-  
-  if(rasqal_query_results_formatter_read(world, result_iostr, 
-                                         qrf, results,
-                                         query_results_base_uri))
-  {
-    fprintf(stderr, "%s: Failed to read query results from %s with format %s",
-            program, result_filename, format_name);
-    goto tidy_fail;
-  }
-  
-  rasqal_free_query_results_formatter(qrf); qrf = NULL;
-  
-  return results;
-
-  tidy_fail:
-  if(vars_table)
-    rasqal_free_variables_table(vars_table);
-  if(results)
-    rasqal_free_query_results(results);
-  if(query_results_base_uri)
-    raptor_free_uri(query_results_base_uri);
-
-  return NULL;
 }
 
 
@@ -604,7 +422,7 @@ compare_query_results_compare(compare_query_results* cqr)
 
 #define DEFAULT_QUERY_LANGUAGE "sparql"
 #define DEFAULT_DATA_FORMAT_NAME_GRAPH "guess"
-#define DEFAULT_RESULT_FORMAT_NAME_GRAPH "xml"
+#define DEFAULT_RESULT_FORMAT_NAME "xml"
 
 
 int
@@ -875,7 +693,7 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("F", "data-format NAME     ", "Set the data source format NAME (default: " DEFAULT_DATA_FORMAT_NAME_GRAPH ")"));
     puts(HELP_TEXT("h", "help                 ", "Print this help, then exit"));
     puts(HELP_TEXT("Q URI", "query-base-uri URI", "Set the base URI for the query"));
-    puts(HELP_TEXT("R", "result-format NAME   ", "Set the result format NAME (default: " DEFAULT_RESULT_FORMAT_NAME_GRAPH ")"));
+    puts(HELP_TEXT("R", "result-format NAME   ", "Set the result format NAME (default: " DEFAULT_RESULT_FORMAT_NAME ")"));
     puts("    For variable bindings and boolean results:");
 
     for(i = 0; 1; i++) {
@@ -887,7 +705,7 @@ main(int argc, char *argv[])
  
       if(desc->flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER) {
         printf("      %-10s     %s", desc->names[0], desc->label);
-        if(!strcmp(desc->names[0], DEFAULT_RESULT_FORMAT_NAME_GRAPH))
+        if(!strcmp(desc->names[0], DEFAULT_RESULT_FORMAT_NAME))
           puts(" (default)");
         else
           putchar('\n');
@@ -932,8 +750,8 @@ main(int argc, char *argv[])
   }
 
   /* Read query from file into a string */
-  query_string = check_query_read_file_string(query_filename,
-                                              "query file", &query_len);
+  query_string = rasqal_cmdline_read_file_string(program, query_filename,
+                                                 "query file", &query_len);
   if(!query_string) {
     rc = 1;
     goto tidy_setup;
@@ -973,7 +791,7 @@ main(int argc, char *argv[])
     result_iostr = raptor_new_iostream_from_filename(raptor_world_ptr,
                                                      result_filename);
     if(!result_iostr) {
-      fprintf(stderr, "%s: result file '%s' open failed - %s", 
+      fprintf(stderr, "%s: result file '%s' open failed - %s\n", 
               program, result_filename, strerror(errno));
       rc = 1;
       goto tidy_setup;
@@ -982,15 +800,19 @@ main(int argc, char *argv[])
 
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
-      case RASQAL_QUERY_RESULTS_BOOLEAN:
         /* read results via rasqal query results format */
-        expected_results = check_query_read_results(world,
-                                                    raptor_world_ptr,
-                                                    results_type,
-                                                    result_iostr,
-                                                    result_filename,
-                                                    result_format_name);
+        expected_results = rasqal_cmdline_read_results(world,
+                                                       raptor_world_ptr,
+                                                       results_type,
+                                                       result_iostr,
+                                                       result_filename,
+                                                       result_format_name);
         raptor_free_iostream(result_iostr); result_iostr = NULL;
+        if(!expected_results) {
+          fprintf(stderr, "%s: Failed to create query results\n", program);
+          rc = 1;
+          goto tidy_setup;
+        }
 
         break;
 
@@ -1011,7 +833,7 @@ main(int argc, char *argv[])
           }
 
           if(!format_name)
-            format_name = DEFAULT_RESULT_FORMAT_NAME_GRAPH;
+            format_name = DEFAULT_RESULT_FORMAT_NAME;
 
           
           ds = rasqal_new_dataset(world);
@@ -1030,25 +852,28 @@ main(int argc, char *argv[])
 
           raptor_free_iostream(result_iostr); result_iostr = NULL;
 
+          /* FIXME
+           *
+           * The code at this point should do something with triples
+           * in the dataset; save them for later to compare them to
+           * the expected triples.  that requires a triples compare
+           * OR a true RDF graph compare.
+           *
+           * Deleting the dataset here frees the triples just loaded.
+           */
           rasqal_free_dataset(ds); ds = NULL;
         }
         break;
         
       case RASQAL_QUERY_RESULTS_SYNTAX:
-        fprintf(stderr, 
-                "%s: Reading query results format 'syntax' is not supported", 
-                program);
-        rc = 1;
-        goto tidy_setup;
-        break;
-
+      case RASQAL_QUERY_RESULTS_BOOLEAN:
       case RASQAL_QUERY_RESULTS_UNKNOWN:
         /* failure */
-        fprintf(stderr, "%s: Unknown query result format cannot be tested.", 
-                program);
+        fprintf(stderr,
+                "%s: Reading %s query results format is not supported",
+                program, rasqal_query_results_type_label(results_type));
         rc = 1;
         goto tidy_setup;
-        break;
     }
     
   }
@@ -1063,10 +888,12 @@ main(int argc, char *argv[])
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
         fprintf(stderr, "%s: Expected bindings results:\n", program);
-        print_bindings_result_simple(expected_results, stderr, 1);
+        rasqal_cmdline_print_bindings_results_simple(program, expected_results,
+                                                     stderr, 1, 0);
         
         fprintf(stderr, "%s: Actual bindings results:\n", program);
-        print_bindings_result_simple(results, stderr, 1);
+        rasqal_cmdline_print_bindings_results_simple(program, results,
+                                                     stderr, 1, 0);
 
         rasqal_query_results_rewind(expected_results);
         rasqal_query_results_rewind(results);

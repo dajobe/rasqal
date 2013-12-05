@@ -283,15 +283,20 @@ rasqal_query_results_write_table(rasqal_query_results_formatter* formatter,
                                  raptor_uri *base_uri)
 {
   rasqal_query* query = rasqal_query_results_get_query(results);
+  rasqal_query_results_type type;
 
-  if(rasqal_query_results_is_bindings(results)) {
+  type = rasqal_query_results_get_type(results);
+
+
+  if(type == RASQAL_QUERY_RESULTS_BINDINGS) {
     return rasqal_query_results_write_table_bindings(iostr, results, base_uri);
-  } else if(rasqal_query_results_is_boolean(results)) {
+  } else if(type == RASQAL_QUERY_RESULTS_BOOLEAN) {
     return rasqal_query_results_write_table_boolean(iostr, results, base_uri);
   } else {
     rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                             &query->locator,
-                            "Can only write table format for variable binding and boolean results");
+                            "Cannot write table format for %s query result format",
+                            rasqal_query_results_type_label(type));
     return 1;
   }
 }

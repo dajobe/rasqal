@@ -222,6 +222,7 @@ rasqal_new_let_graph_pattern(rasqal_query *query,
  * @data_graphs: sequence of #rasqal_data_graph (or NULL)
  * @where: WHERE graph pattern
  * @modifier: solution modifier
+ * @bindings: binding VALUES (or NULL)
  *
  * INTERNAL - Create a new SELECT graph pattern
  *
@@ -241,7 +242,8 @@ rasqal_new_select_graph_pattern(rasqal_query *query,
                                 rasqal_projection* projection,
                                 raptor_sequence* data_graphs,
                                 rasqal_graph_pattern* where,
-                                rasqal_solution_modifier* modifier)
+                                rasqal_solution_modifier* modifier,
+                                rasqal_bindings* bindings)
 {
   rasqal_graph_pattern* gp;
 
@@ -258,12 +260,16 @@ rasqal_new_select_graph_pattern(rasqal_query *query,
     if(modifier)
       rasqal_free_solution_modifier(modifier);
 
+    if(bindings)
+      rasqal_free_bindings(bindings);
+
     return NULL;
   }
 
   gp->projection = projection;
   gp->data_graphs = data_graphs;
   gp->modifier = modifier;
+  gp->bindings = bindings;
   
   if(rasqal_graph_pattern_add_sub_graph_pattern(gp, where)) {
     rasqal_free_graph_pattern(gp);
@@ -341,7 +347,10 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   
   if(gp->var)
     rasqal_free_variable(gp->var);
-  
+
+  if(gp->bindings)
+    rasqal_free_bindings(gp->bindings);
+
   RASQAL_FREE(rasqal_graph_pattern, gp);
 }
 
@@ -435,7 +444,8 @@ static const char* const rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTE
   "Let",
   "Select",
   "Service",
-  "Minus"
+  "Minus",
+  "Values"
 };
 
 
@@ -676,7 +686,6 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
   }
 
   if(gp->projection) {
-    int i;
     raptor_sequence* vars_seq;
     
     if(pending_nl) {
@@ -696,19 +705,58 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
 
     raptor_iostream_counted_string_write("select-variables: [", 19, iostr);
     vars_seq = rasqal_projection_get_variables_sequence(gp->projection);
-    if(!vars_seq) {
+    if(!vars_seq)
       raptor_iostream_write_byte('*', iostr);
-    } else {
-      for(i = 0; i < raptor_sequence_size(vars_seq); i++) {
-        rasqal_variable* v;
-        v = (rasqal_variable*)raptor_sequence_get_at(vars_seq, i);
+    else
+      rasqal_variables_write(vars_seq, iostr);
+    raptor_iostream_counted_string_write("]", 1, iostr);
+    
+    if(indent >= 0)
+      indent -= 2;
 
-        if(i > 0)
-          raptor_iostream_counted_string_write(", ", 2, iostr);
+    pending_nl = 1;
+  }
 
-        rasqal_variable_write(v, iostr);
+  if(gp->bindings) {
+    int i;
+
+    if(pending_nl) {
+      raptor_iostream_counted_string_write(" ,", 2, iostr);
+
+      if(indent >= 0) {
+        raptor_iostream_write_byte('\n', iostr);
+        rasqal_graph_pattern_write_indent(iostr, indent);
       }
     }
+
+    raptor_iostream_counted_string_write("bindings: [", 11, iostr);
+    if(indent >= 0) {
+      raptor_iostream_write_byte('\n', iostr);
+      indent += 2;
+      rasqal_graph_pattern_write_indent(iostr, indent);
+    }
+
+    raptor_iostream_counted_string_write("variables: [", 12, iostr);
+    rasqal_variables_write(gp->bindings->variables, iostr);
+    raptor_iostream_counted_string_write("]\n", 2, iostr);
+
+    rasqal_graph_pattern_write_indent(iostr, indent);
+    raptor_iostream_counted_string_write("rows: [", 7, iostr);
+
+    indent += 2;
+    for(i = 0; 1; i++) {
+      rasqal_row* row = rasqal_bindings_get_row(gp->bindings, i);
+      if(!row)
+        break;
+
+      raptor_iostream_write_byte('\n', iostr);
+      rasqal_graph_pattern_write_indent(iostr, indent);
+      rasqal_row_write(row, iostr);
+    }
+    indent -= 2;
+
+    raptor_iostream_write_byte('\n', iostr);
+    rasqal_graph_pattern_write_indent(iostr, indent);
     raptor_iostream_counted_string_write("]", 1, iostr);
     
     if(indent >= 0)
@@ -1187,6 +1235,32 @@ rasqal_new_basic_graph_pattern_from_triples(rasqal_query* query,
   gp = rasqal_new_basic_graph_pattern(query, graph_triples,
                                       offset, 
                                       offset + triple_pattern_size - 1);
+
+  return gp;
+}
+
+
+/**
+ * rasqal_new_values_graph_pattern:
+ * @query: #rasqal_graph_pattern query object
+ * @bindings: bindings object
+ *
+ * INTERNAL - Create a new values graph pattern object from a bindings
+ *
+ * The @bindings becomes owned by the graph pattern
+ *
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_values_graph_pattern(rasqal_query* query,
+                                rasqal_bindings* bindings)
+{
+  rasqal_graph_pattern* gp;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+
+  gp = rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_VALUES);
+  gp->bindings = bindings;
 
   return gp;
 }

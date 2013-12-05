@@ -260,6 +260,7 @@ rasqal_query_results_next_triple
 rasqal_query_results_read
 rasqal_query_results_write
 rasqal_query_results_type
+rasqal_query_results_type_label
 rasqal_query_results_rewind
 </SECTION>
 

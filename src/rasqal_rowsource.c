@@ -68,7 +68,7 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
 {
   rasqal_rowsource* rowsource;
 
-  if(!world || !query || !handler)
+  if(!world || !handler)
     return NULL;
 
   if(handler->version < 1 || handler->version > 1)

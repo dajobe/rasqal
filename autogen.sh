@@ -80,6 +80,7 @@ automake_min_vers=011102
 aclocal_min_vers=$automake_min_vers
 autoconf_min_vers=026200
 autoheader_min_vers=$autoconf_min_vers
+# libtool 2.2 required for LT_INIT language fix
 libtoolize_min_vers=020200
 gtkdocize_min_vers=010300
 swig_min_vers=010324
@@ -369,7 +370,7 @@ do
 
       echo "$program: Running $aclocal $aclocal_args"
       $DRYRUN $aclocal $aclocal_args
-      if grep "^AM_CONFIG_HEADER" configure.ac >/dev/null; then
+      if grep "^A[CM]_CONFIG_HEADER" configure.ac >/dev/null; then
 	echo "$program: Running $autoheader"
 	$DRYRUN $autoheader
         status=$?

@@ -26,6 +26,13 @@
 #ifndef RASQAL_INTERNAL_H
 #define RASQAL_INTERNAL_H
 
+#if defined(_MSC_VER) && _MSC_VER < 1600
+typedef unsigned __int32 uint32_t;
+typedef __int16 int16_t;
+#else
+#include <stdint.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #define RASQAL_EXTERN_C extern "C"
@@ -248,6 +255,9 @@ typedef struct {
  *
  */
 typedef struct {
+  /* usage/reference count */
+  int usage;
+  
   rasqal_query* query;
   
   raptor_sequence* variables;
@@ -294,14 +304,18 @@ struct rasqal_graph_pattern_s {
 
   /* SELECT graph pattern: sequence of #rasqal_data_graph */
   raptor_sequence* data_graphs;
+
+  /* VALUES bindings for VALUES and sub-SELECT graph patterns */
+  rasqal_bindings* bindings;
 };
 
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, rasqal_graph_pattern_operator op);
 rasqal_graph_pattern* rasqal_new_filter_graph_pattern(rasqal_query* query, rasqal_expression* expr);
 rasqal_graph_pattern* rasqal_new_let_graph_pattern(rasqal_query *query, rasqal_variable *var, rasqal_expression *expr);  
-rasqal_graph_pattern* rasqal_new_select_graph_pattern(rasqal_query *query, rasqal_projection* projection, raptor_sequence* data_graphs, rasqal_graph_pattern* where, rasqal_solution_modifier* modifier);
+rasqal_graph_pattern* rasqal_new_select_graph_pattern(rasqal_query *query, rasqal_projection* projection, raptor_sequence* data_graphs, rasqal_graph_pattern* where, rasqal_solution_modifier* modifier, rasqal_bindings* bindings);
 rasqal_graph_pattern* rasqal_new_single_graph_pattern(rasqal_query* query, rasqal_graph_pattern_operator op, rasqal_graph_pattern* single);
+rasqal_graph_pattern* rasqal_new_values_graph_pattern(rasqal_query* query, rasqal_bindings* bindings);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
@@ -322,10 +336,11 @@ typedef enum {
 
 /**
  * rasqal_var_use_map_offset:
- * @RASQAL_VAR_USE_MAP_OFFSET_VERBS: Variables in query verbs: ASK: never, SELECT: project-expressions (SPARQL 1.1 TBD), CONSTRUCT: in constructed triple patterns, DESCRIBE: in argument (SPARQL 1.0)
- * @RASQAL_VAR_USE_MAP_OFFSET_GROUP_BY: Variables in GROUP BY expr/var (SPARQL 1.1 TBD)
- * @RASQAL_VAR_USE_MAP_OFFSET_HAVING: Variables in HAVING expr (SPARQL 1.1 TBD)
+ * @RASQAL_VAR_USE_MAP_OFFSET_VERBS: Variables in query verbs: ASK: never, SELECT: project-expressions (SPARQL 1.1), CONSTRUCT: in constructed triple patterns, DESCRIBE: in argument (SPARQL 1.0)
+ * @RASQAL_VAR_USE_MAP_OFFSET_GROUP_BY: Variables in GROUP BY expr/var (SPARQL 1.1)
+ * @RASQAL_VAR_USE_MAP_OFFSET_HAVING: Variables in HAVING expr (SPARQL 1.1)
  * @RASQAL_VAR_USE_MAP_OFFSET_ORDER_BY: Variables in ORDER BY list-of-expr (SPARQL 1.0)
+ * @RASQAL_VAR_USE_MAP_OFFSET_VALUES: Variables bound in VALUES (SPARQL 1.1)
  * @RASQAL_VAR_USE_MAP_OFFSET_LAST: internal
  *
  * Offsets into variables use-map for non-graph pattern parts of #rasqal_query structure
@@ -335,7 +350,8 @@ typedef enum {
   RASQAL_VAR_USE_MAP_OFFSET_GROUP_BY = 1,
   RASQAL_VAR_USE_MAP_OFFSET_HAVING   = 2,
   RASQAL_VAR_USE_MAP_OFFSET_ORDER_BY = 3,
-  RASQAL_VAR_USE_MAP_OFFSET_LAST     = RASQAL_VAR_USE_MAP_OFFSET_ORDER_BY,
+  RASQAL_VAR_USE_MAP_OFFSET_VALUES   = 4,
+  RASQAL_VAR_USE_MAP_OFFSET_LAST     = RASQAL_VAR_USE_MAP_OFFSET_VALUES,
 } rasqal_var_use_map_offset;
 
 
@@ -628,6 +644,9 @@ rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_res
 /* rasqal_rowsource_assignment.c */
 rasqal_rowsource* rasqal_new_assignment_rowsource(rasqal_world *world, rasqal_query *query, rasqal_variable* var, rasqal_expression* expr);
 
+/* rasqal_rowsource_bindings.c */
+rasqal_rowsource* rasqal_new_bindings_rowsource(rasqal_world *world, rasqal_query *query, rasqal_bindings* bindings);
+
 /* rasqal_rowsource_distinct.c */
 rasqal_rowsource* rasqal_new_distinct_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rs);
 
@@ -655,6 +674,9 @@ rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_world *world, rasqal_q
 /* rasqal_rowsource_slice.c */
 rasqal_rowsource* rasqal_new_slice_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, int limit, int offset);
 
+/* rasqal_rowsource_service.c */
+rasqal_rowsource* rasqal_new_service_rowsource(rasqal_world *world, rasqal_query* query, raptor_uri* service_uri, const unsigned char* query_string, raptor_sequence* data_graphs, unsigned int rs_flags);
+  
 /* rasqal_rowsource_sort.c */
 rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource *rowsource, raptor_sequence* order_seq, int distinct);
 
@@ -1070,6 +1092,8 @@ void rasqal_log_warning_simple(rasqal_world* world, rasqal_warning_level warn_le
 const char* rasqal_basename(const char* name);
 unsigned char* rasqal_world_default_generate_bnodeid_handler(void *user_data, unsigned char *user_bnodeid);
 
+extern const raptor_unichar rasqal_unicode_max_codepoint;
+
 unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size_t len, size_t* dest_lenp, int (*error_handler)(rasqal_query *error_data, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3), rasqal_query* error_data);
 
 /* rasqal_graph_pattern.c */
@@ -1258,6 +1282,7 @@ int rasqal_literal_array_compare(rasqal_literal** values_a, rasqal_literal** val
 rasqal_map* rasqal_new_literal_sequence_sort_map(int is_distinct, int compare_flags);
 int rasqal_literal_sequence_sort_map_add_literal_sequence(rasqal_map* map, raptor_sequence* literals_sequence);
 raptor_sequence* rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world, const char* const row_data[], int width);
+rasqal_literal* rasqal_new_literal_from_term(rasqal_world* world, raptor_term* term);
 
 
 /* rasqal_map.c */
@@ -1303,6 +1328,7 @@ int rasqal_query_results_sort(rasqal_query_results* query_result, raptor_data_co
 
 
 /* rasqal_query_write.c */
+int rasqal_query_write_sparql_20060406_graph_pattern(rasqal_graph_pattern* gp, raptor_iostream *iostr,raptor_uri* base_uri);
 int rasqal_query_write_sparql_20060406(raptor_iostream *iostr, rasqal_query* query, raptor_uri *base_uri);
 
 /* rasqal_result_formats.c */
@@ -1336,6 +1362,7 @@ int rasqal_init_result_format_rdf(rasqal_world*);
 rasqal_row* rasqal_new_row(rasqal_rowsource* rowsource);
 rasqal_row* rasqal_new_row_from_row(rasqal_row* row);
 int rasqal_row_print(rasqal_row* row, FILE* fh);
+int rasqal_row_write(rasqal_row* row, raptor_iostream* iostr);
 raptor_sequence* rasqal_new_row_sequence(rasqal_world* world, rasqal_variables_table* vt, const char* const row_data[], int vars_count, raptor_sequence** vars_seq_p);
 int rasqal_row_to_nodes(rasqal_row* row);
 void rasqal_row_set_values_from_variables_table(rasqal_row* row, rasqal_variables_table* vars_table);
@@ -1463,9 +1490,18 @@ typedef enum {
   RASQAL_ALGEBRA_OPERATOR_GROUP    = 15,
   RASQAL_ALGEBRA_OPERATOR_AGGREGATION = 16,
   RASQAL_ALGEBRA_OPERATOR_HAVING   = 17,
+  RASQAL_ALGEBRA_OPERATOR_VALUES   = 18,
+  RASQAL_ALGEBRA_OPERATOR_SERVICE  = 19,
 
-  RASQAL_ALGEBRA_OPERATOR_LAST = RASQAL_ALGEBRA_OPERATOR_HAVING
+  RASQAL_ALGEBRA_OPERATOR_LAST = RASQAL_ALGEBRA_OPERATOR_SERVICE
 } rasqal_algebra_node_operator;
+
+
+/* bitflags used by rasqal_algebra_node and rasqal_rowsource */
+typedef enum {
+  /* used by */
+  RASQAL_ENGINE_BITFLAG_SILENT = 1
+} rasqal_engine_bitflags;
 
 
 /*
@@ -1521,6 +1557,17 @@ struct rasqal_algebra_node_s {
 
   /* type ORDERBY */
   int distinct;
+
+  /* type VALUES */
+  rasqal_bindings *bindings;
+
+  /* type SERVICE */
+  raptor_uri* service_uri;
+  const unsigned char* query_string;
+  raptor_sequence* data_graphs;
+
+  /* flags */
+  unsigned int flags;
 };
 typedef struct rasqal_algebra_node_s rasqal_algebra_node;
 
@@ -1591,6 +1638,8 @@ rasqal_algebra_node* rasqal_new_let_algebra_node(rasqal_query* query, rasqal_var
 rasqal_algebra_node* rasqal_new_groupby_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* seq);
 rasqal_algebra_node* rasqal_new_aggregation_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* exprs_seq, raptor_sequence* vars_seq);
 rasqal_algebra_node* rasqal_new_having_algebra_node(rasqal_query* query,rasqal_algebra_node* node1, raptor_sequence* exprs_seq);
+rasqal_algebra_node* rasqal_new_values_algebra_node(rasqal_query* query, rasqal_bindings* bindings);
+rasqal_algebra_node* rasqal_new_service_algebra_node(rasqal_query* query, raptor_uri* service_uri, const unsigned char* query_string, raptor_sequence* data_graphs, int silent);
 
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);
@@ -1624,6 +1673,7 @@ raptor_sequence* rasqal_variables_table_get_named_variables_sequence(rasqal_vari
 raptor_sequence* rasqal_variables_table_get_anonymous_variables_sequence(rasqal_variables_table* vt);
 const unsigned char** rasqal_variables_table_get_names(rasqal_variables_table* vt);
 raptor_sequence* rasqal_variable_copy_variable_sequence(raptor_sequence* vars_seq);
+int rasqal_variables_write(raptor_sequence* seq, raptor_iostream* iostr);
 
 /**
  * rasqal_engine_error:
@@ -1735,9 +1785,14 @@ int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operati
 
 /* rasqal_bindings.c */
 rasqal_bindings* rasqal_new_bindings(rasqal_query* query, raptor_sequence* variables, raptor_sequence* rows);
+rasqal_bindings* rasqal_new_bindings_from_var_values(rasqal_query* query, rasqal_variable* var, raptor_sequence* values);
+rasqal_bindings* rasqal_new_bindings_from_bindings(rasqal_bindings* bindings);
 void rasqal_free_bindings(rasqal_bindings* bindings);
 int rasqal_bindings_print(rasqal_bindings* bindings, FILE* fh);
+rasqal_row* rasqal_bindings_get_row(rasqal_bindings* bindings, int offset);
 
+/* rasqal_ntriples.c */
+rasqal_literal* rasqal_new_literal_from_ntriples_counted_string(rasqal_world* world, unsigned char* string, size_t length);
 
 /* rasqal_projection.c */
 rasqal_projection* rasqal_new_projection(rasqal_query* query, raptor_sequence* variables, int wildcard, int distinct);
@@ -1748,6 +1803,9 @@ int rasqal_projection_add_variable(rasqal_projection* projection, rasqal_variabl
 
 /* rasqal_regex.c */
 int rasqal_regex_match(rasqal_world* world, raptor_locator* locator, const char* pattern, const char* regex_flags, const char* subject, size_t subject_len);
+
+/* rasqal_service.c */
+rasqal_service* rasqal_new_service_from_service(rasqal_service* svc);
 
 /* rasqal_solution_modifier.c */
 rasqal_solution_modifier* rasqal_new_solution_modifier(rasqal_query* query, raptor_sequence* order_conditions, raptor_sequence* group_conditions, raptor_sequence* having_conditions, int limit, int offset);

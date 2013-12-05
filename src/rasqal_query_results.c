@@ -383,6 +383,34 @@ rasqal_query_results_get_type(rasqal_query_results* query_results)
 }
 
 
+static const char* const rasqal_query_results_type_labels[RASQAL_QUERY_RESULTS_LAST + 1] = {
+  "Bindings",
+  "Boolean",
+  "Graph",
+  "Syntax",
+  "Unknown"
+};
+
+
+
+/**
+ * rasqal_query_results_type_label:
+ * @type: #rasqal_query_results_type type
+ *
+ * Get a label for a query results type
+ *
+ * Return value: label or NULL on failure (invalid type)
+ **/
+const char*
+rasqal_query_results_type_label(rasqal_query_results_type type)
+{
+  if(type > RASQAL_QUERY_RESULTS_LAST)
+    type = RASQAL_QUERY_RESULTS_UNKNOWN;
+
+  return rasqal_query_results_type_labels[RASQAL_GOOD_CAST(int, type)];
+}
+
+
 /**
  * rasqal_query_results_is_bindings:
  * @query_results: #rasqal_query_results object
@@ -1051,7 +1079,7 @@ rasqal_prefix_id(int prefix_id, unsigned char *string)
 {
   int tmpid = prefix_id;
   unsigned char* buffer;
-  size_t length = strlen(RASQAL_GOOD_CAST(const char*, string)) + 4;  /* "r" +... + "_" +... \0 */
+  size_t length = strlen(RASQAL_GOOD_CAST(const char*, string)) + 4;  /* "r" +... + "q" +... \0 */
 
   while(tmpid /= 10)
     length++;
@@ -1060,7 +1088,7 @@ rasqal_prefix_id(int prefix_id, unsigned char *string)
   if(!buffer)
     return NULL;
   
-  sprintf(RASQAL_GOOD_CAST(char*, buffer), "r%d_%s", prefix_id, string);
+  sprintf(RASQAL_GOOD_CAST(char*, buffer), "r%dq%s", prefix_id, string);
   
   return buffer;
 }

@@ -2,6 +2,7 @@
 *~
 *.gz
 *.log
+*.trs
 .gdb_history
 .gdbinit
 INSTALL

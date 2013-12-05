@@ -48,7 +48,15 @@ CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
 RECHO=/bin/echo
 
-build-roqet:
+.PHONY: build-core build-roqet check-lcoal
+
+# This sequence allows parallel building of build-core and then once
+# that is built, parallel building of the dependent programs: roqet
+
+build-core:
+	@(cd $(top_builddir)/src ; $(MAKE))
+
+build-roqet: build-core
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
 check-local: build-roqet

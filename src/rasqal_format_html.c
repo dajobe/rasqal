@@ -208,12 +208,16 @@ rasqal_query_results_write_html(rasqal_query_results_formatter* formatter,
                                 raptor_uri *base_uri)
 {
   rasqal_query* query = rasqal_query_results_get_query(results);
+  rasqal_query_results_type type;
 
-  if(!rasqal_query_results_is_bindings(results) &&
-     !rasqal_query_results_is_boolean(results)) {
+  type = rasqal_query_results_get_type(results);
+
+  if(type != RASQAL_QUERY_RESULTS_BINDINGS &&
+     type != RASQAL_QUERY_RESULTS_BOOLEAN) {
     rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                             &query->locator,
-                            "Can only write HTML Table for variable binding and boolean results");
+                            "Cannot write HTML Table for %s query result format",
+                            rasqal_query_results_type_label(type));
     return 1;
   }
 

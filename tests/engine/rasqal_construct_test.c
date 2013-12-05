@@ -87,7 +87,7 @@ main(int argc, char **argv) {
   unsigned char *data_dir_string;
   unsigned char *query_string;
   int count = 0;
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   raptor_serializer* serializer=NULL;
 #endif
 
@@ -147,7 +147,7 @@ main(int argc, char **argv) {
     goto done;
   }
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   serializer = raptor_new_serializer("ntriples");
   raptor_serialize_start_to_file_handle(serializer, base_uri, stdout);
 #endif
@@ -159,14 +159,14 @@ main(int argc, char **argv) {
       break;
     count++;
     
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     raptor_serialize_statement(serializer, triple);
 #endif
     if(rasqal_query_results_next_triple(results))
       break;
   }
   
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   raptor_serialize_end(serializer);
   raptor_free_serializer(serializer);
 #endif

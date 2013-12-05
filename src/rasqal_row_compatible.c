@@ -270,7 +270,7 @@ main(int argc, char *argv[])
   int vars_count;
   rasqal_variables_table* vt;
   raptor_sequence* vars_seq = NULL;
-  rasqal_row_compatible* rc_map;
+  rasqal_row_compatible* rc_map = NULL;
   int i;
   
   world = rasqal_new_world(); rasqal_world_open(world);

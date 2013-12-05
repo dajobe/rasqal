@@ -25,7 +25,7 @@ lib_LTLIBRARIES = librasqal.la
 
 nodist_pkginclude_HEADERS = rasqal.h
 
-noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h
+noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h sv_config.h
 
 man_MANS = rasqal-config.1
 
@@ -49,7 +49,8 @@ rasqal_rowsource_groupby_test$(EXEEXT) \
 rasqal_rowsource_aggregation_test$(EXEEXT) \
 rasqal_literal_test$(EXEEXT) \
 rasqal_regex_test$(EXEEXT) \
-rasqal_random_test$(EXEEXT)
+rasqal_random_test$(EXEEXT) \
+rasqal_xsd_datatypes_test$(EXEEXT)
 
 # These 2 test programs are compiled here and run here as 'smoke
 # tests' but mostly used in tests in $(srcdir)/../tests/sparql
@@ -58,7 +59,9 @@ if RASQAL_QUERY_SPARQL
 TESTS += sparql_lexer_test$(EXEEXT) sparql_parser_test$(EXEEXT)
 endif
 
-EXTRA_PROGRAMS=$(TESTS)
+BROKEN_TESTS=rasqal_rowsource_service_test$(EXEEXT)
+
+EXTRA_PROGRAMS=$(TESTS) $(BROKEN_TESTS)
 
 CLEANFILES=$(TESTS) \
 *.plist \
@@ -100,6 +103,7 @@ rasqal_rowsource_project.c rasqal_rowsource_join.c \
 rasqal_rowsource_graph.c rasqal_rowsource_distinct.c \
 rasqal_rowsource_groupby.c rasqal_rowsource_aggregation.c \
 rasqal_rowsource_having.c rasqal_rowsource_slice.c \
+rasqal_rowsource_bindings.c rasqal_rowsource_service.c \
 rasqal_row_compatible.c rasqal_format_table.c rasqal_query_write.c \
 rasqal_format_json.c rasqal_format_sv.c rasqal_format_html.c \
 rasqal_format_rdf.c \
@@ -113,7 +117,8 @@ rasqal_digest.c \
 rasqal_iostream.c \
 rasqal_regex.c \
 snprintf.c \
-rasqal_double.c
+rasqal_double.c \
+rasqal_ntriples.c
 
 if RASQAL_QUERY_SPARQL
 librasqal_la_SOURCES += sparql_lexer.c sparql_lexer.h \
@@ -145,31 +150,40 @@ nodist_librasqal_la_SOURCES += git-version.h
 rasqal_algebra.c: git-version.h
 endif
 
-if RASQAL_MTWIST
-
-librasqal_la_SOURCES += \
-$(top_srcdir)/libmtwist/mt.c \
-$(top_srcdir)/libmtwist/seed.c \
-$(top_srcdir)/libmtwist/mtwist.h \
-$(top_srcdir)/libmtwist/mtwist_internal.h \
-mtwist_config.h
-
-AM_CFLAGS += -DMTWIST_CONFIG -I$(top_srcdir)/libmtwist
-
-endif
-
-
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 librasqal_la_LIBADD = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 librasqal_la_DEPENDENCIES = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@
+
+AM_CFLAGS += -DSV_CONFIG -I$(top_srcdir)/libsv
+librasqal_la_LIBADD += $(top_builddir)/libsv/libsv.la
+librasqal_la_DEPENDENCIES += $(top_builddir)/libsv/libsv.la
+
+$(top_builddir)/libsv/libsv.la:
+	cd $(top_builddir)/libsv && $(MAKE) libsv.la
+
+if RASQAL_MTWIST
+
+AM_CFLAGS += -DMTWIST_CONFIG -I$(top_srcdir)/libmtwist
+librasqal_la_LIBADD += $(top_builddir)/libmtwist/libmtwist.la
+librasqal_la_DEPENDENCIES += $(top_builddir)/libmtwist/libmtwist.la
+
+$(top_builddir)/libmtwist/libmtwist.la:
+	cd $(top_builddir)/libmtwist && $(MAKE) libmtwist.la
+
+endif
+
+if GETOPT
+$(top_builddir)/libgetopt/libgetopt.la:
+	cd $(top_builddir)/libgetopt && $(MAKE) libgetopt.la
+endif
 
 
 EXTRA_DIST= \
 sparql_lexer.l sparql_parser.y \
 rasqal-config.in \
 $(man_MANS) \
-rasqal_query_test.c
-
+rasqal_query_test.c \
+mtwist_config.h
 
 LEX=@LEX@
 YACC=@YACC@
@@ -203,8 +217,8 @@ sparql_parser_test_SOURCES = sparql_parser.c
 sparql_parser_test_CPPFLAGS = -DSTANDALONE
 sparql_parser_test_LDADD = librasqal.la
 if GETOPT
-sparql_parser_test_SOURCES += $(top_srcdir)/utils/getopt.c
-sparql_parser_test_CPPFLAGS += -I$(top_srcdir)/utils
+sparql_parser_test_CPPFLAGS += -I$(top_srcdir)/getopt
+sparql_parser_test_LDADD += $(top_builddir)/getopt/libgetopt.la
 endif
 
 rasqal_expr_test_SOURCES = rasqal_expr.c
@@ -267,6 +281,10 @@ rasqal_rowsource_join_test_SOURCES = rasqal_rowsource_join.c
 rasqal_rowsource_join_test_CPPFLAGS = -DSTANDALONE
 rasqal_rowsource_join_test_LDADD = librasqal.la
 
+rasqal_rowsource_service_test_SOURCES = rasqal_rowsource_service.c
+rasqal_rowsource_service_test_CPPFLAGS = -DSTANDALONE
+rasqal_rowsource_service_test_LDADD = librasqal.la
+
 rasqal_row_compatible_test_SOURCES = rasqal_row_compatible.c
 rasqal_row_compatible_test_CPPFLAGS = -DSTANDALONE
 rasqal_row_compatible_test_LDADD = librasqal.la
@@ -282,6 +300,10 @@ rasqal_regex_test_LDADD = librasqal.la
 rasqal_random_test_SOURCES = rasqal_random.c
 rasqal_random_test_CPPFLAGS = -DSTANDALONE
 rasqal_random_test_LDADD = librasqal.la
+
+rasqal_xsd_datatypes_test_SOURCES = rasqal_xsd_datatypes.c
+rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE
+rasqal_xsd_datatypes_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
@@ -300,7 +322,7 @@ check-version:
 	  git_version="unknown"; \
 	fi; \
 	$(RECHO) "GIT version $$git_version"; \
-	tmp="$$file.tmp"; \
+	tmp="$$file$$$$.tmp"; \
 	$(RECHO) "#define GIT_VERSION \"$$git_version\"" > $$tmp; \
         if test -f $$file; then \
           if cmp $$file $$tmp >/dev/null 2>&1; then \

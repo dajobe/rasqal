@@ -170,10 +170,7 @@ int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner);
 #define YY_INPUT(buf,result,max_size) { return YY_NULL; }
 
 
-/* Missing sparql_lexer.c/h prototypes */
-int sparql_lexer_get_column(yyscan_t yyscanner);
-void sparql_lexer_set_column(int column_no, yyscan_t yyscanner);
-
+/* flex version 2.5.36 released 2012-07-20 added the column header prototypes */
 static void sparql_lexer_cleanup(yyscan_t yyscanner);
 
 /* Log error handler wrapper */
@@ -207,7 +204,7 @@ static jmp_buf sparql_lexer_log_error_longjmp_env;
 } while(0)
 %}
 
-LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
+LANGTAG "@"[A-Za-z][-A-Z_a-z0-9]*
 
 
 /*
@@ -451,6 +448,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Rr][Ee][Pp][Ll][Aa][Cc][Ee] { return REPLACE; }
 [Uu][Uu][Ii][Dd] { return UUID; }
 [Ss][Tt][Rr][Uu][Uu][Ii][Dd] { return STRUUID; }
+[Vv][Aa][Ll][Uu][Ee][Ss] { return VALUES; }
 
 "a" { return A; }
 
@@ -482,14 +480,14 @@ EXPONENT [eE][+-]?[0-9]+
 
 ":="         { return ASSIGN; }
 
-"@"{LANGUAGETOKEN} {
+{LANGTAG} {
 			sparql_parser_lval->name = RASQAL_MALLOC(unsigned char*, yyleng);
                         if(!sparql_parser_lval->name)
                           YY_REPORT_ERROR_EOF("Out of memory");
 
                         memcpy(sparql_parser_lval->name, yytext + 1, yyleng - 1);
                         sparql_parser_lval->name[yyleng - 1] = '\0';
-                  return LANG_TAG;
+                  return LANGTAG;
 		}
 
 "^^"         { return HATHAT; }
@@ -966,8 +964,6 @@ sparql_skip_c_comment(rasqal_query *rq)
   return lines;
 }
 
-
-const raptor_unichar rasqal_unicode_max_codepoint = 0x10FFFF;
 
 /**
  * sparql_stringbuffer_append_sparql_string:
@@ -1763,6 +1759,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
     case STRUUID:
       return "STRUUID";
 
+    case VALUES:
+      return "VALUES";
+
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
     case INTEGER_NEGATIVE_LITERAL:
@@ -1816,8 +1815,8 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
       sprintf(buffer, "DECIMAL_LITERAL(%s)", lval->literal->string);
       return buffer;
 
-    case LANG_TAG:
-      sprintf(buffer, "LANG_TAG(%s)", lval->name);
+    case LANGTAG:
+      sprintf(buffer, "LANGTAG(%s)", lval->name);
       return buffer;
 
     case HATHAT:

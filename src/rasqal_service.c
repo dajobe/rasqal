@@ -65,6 +65,8 @@ struct rasqal_service_s
   raptor_uri* final_uri;
   raptor_stringbuffer* sb;
   char* content_type;
+
+  int usage;
 };
 
 
@@ -100,7 +102,8 @@ rasqal_new_service(rasqal_world* world, raptor_uri* service_uri,
   svc = RASQAL_CALLOC(rasqal_service*, 1, sizeof(*svc));
   if(!svc)
     return NULL;
-  
+
+  svc->usage = 1;
   svc->world = world;
   svc->service_uri = raptor_uri_copy(service_uri);
 
@@ -140,6 +143,28 @@ rasqal_new_service(rasqal_world* world, raptor_uri* service_uri,
 }
 
 
+/*
+ * rasqal_new_service_from_service:
+ * @service: #rasqal_service to copy
+ *
+ * INTERNAL - Copy Constructor - Create a new Rasqal service from an existing one
+ *
+ * This adds a new reference to the service, it does not do a deep copy
+ *
+ * Return value: a new #rasqal_service or NULL on failure.
+ **/
+rasqal_service*
+rasqal_new_service_from_service(rasqal_service* svc)
+{
+  if(!svc)
+    return NULL;
+  
+  svc->usage++;
+
+  return svc;
+}
+
+
 /**
  * rasqal_free_service:
  * @svc: #rasqal_service object
@@ -150,6 +175,9 @@ void
 rasqal_free_service(rasqal_service* svc)
 {
   if(!svc)
+    return;
+  
+  if(--svc->usage)
     return;
   
   if(svc->service_uri)
@@ -429,8 +457,9 @@ rasqal_service_execute_as_rowsource(rasqal_service* svc,
                                                       /* format URI */ NULL);
   if(!read_formatter) {
     rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Failed to create query formatter for type %s",
-                            svc->content_type);
+                            "Failed to find query results reader for content type %s returned from %s",
+                            svc->content_type,
+                            raptor_uri_as_string(read_base_uri));
     goto error;
   }
 
@@ -444,7 +473,9 @@ rasqal_service_execute_as_rowsource(rasqal_service* svc,
   read_iostr = NULL;
   if(!rowsource) {
     rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Failed to get rowsource from query formatter");
+                            "Failed to decode %s query results data returned from %s",
+                            svc->content_type,
+                            raptor_uri_as_string(read_base_uri));
     goto error;
   }
 

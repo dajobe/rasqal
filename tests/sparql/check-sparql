@@ -32,7 +32,6 @@
 
 use strict;
 use File::Basename;
-use XML::DOM;
 use Getopt::Long;
 use Pod::Usage;
 use Cwd;
@@ -63,12 +62,23 @@ my $mfx='http://jena.hpl.hp.com/2005/05/test-manifest-extra#';
 my $qt='http://www.w3.org/2001/sw/DataAccess/tests/test-query#';
 my $dawgt='http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#';
 my $ut='http://www.w3.org/2009/sparql/tests/test-update#';
+my $sd='http://www.w3.org/ns/sparql-service-description#';
+my $ent='http://www.w3.org/ns/entailment/';
 
 my $program=basename $0;
 my $debug=0;
 my $srcdir='.';
 
 $debug=1 if defined $ENV{'RASQAL_DEBUG'};
+
+# Temporary file names
+our $roqet_out  = "roqet.out";
+our $result_out = "result.out";
+our $roqet_tmp  = 'roqet.tmp';
+our $roqet_err  = 'roqet.err';
+our $diff_out   = 'diff.out';
+our $rapper_err = 'rapper.err';
+
 
 # plural('result', 's', 2);
 sub plural($$$) {
@@ -100,256 +110,71 @@ sub toDebug($) {
   return qq{string("$str")};
 }
 
-sub read_rdf_results_file($$) {
-  my($result_file, $base_uri)=@_;
-  my(@node_order);
-  my(%nodes);
-  my(%node_type);
 
-  my $cmd="$rapper -q -g -o ntriples $result_file $base_uri";
+sub read_query_results_file($$) {
+  my($result_file,$results_input_format)=@_;
+
+  my(%results)=(rows => []);
+
+  my $cmd="$roqet -q -R $results_input_format -r simple -t '$result_file'";
 
   warn "$program: Opening pipe from '$cmd'\n"
     if $debug;
-  open(PIPE, "$cmd 2>rapper.err |");
+  open(PIPE, "$cmd 2>'$roqet_err' |");
+  my(@vars)=();
   while(<PIPE>) {
     chomp;
-    s/\s+\.$//;
+    next unless /^row: \[(.*)\]$/;
 
-    my($subject, $predicate, $object)=split(/ /, $_, 3);
-    push(@node_order, $subject)
-	unless exists $nodes{$subject} || exists $node_type{$subject};
-
-    if ($predicate eq "<${rdf}type>") {
-	$node_type{$subject}=$object;
-    } else {
-	push(@{$nodes{$subject}->{$predicate}}, $object);
+    my(@row_vars)=();
+    my(@values)=();
+    for my $col (split(/, /, $1)) {
+      my($var,$val)=split(/=/, $col, 2);
+      push(@row_vars, $var);
+      push(@values, $val);
     }
-  }
-  close(PIPE);
-
-  open(ERR, "<rapper.err") or die "$program: Cannot open rapper.err - $!\n";
-  my(@errs)=();
-  while(<ERR>) {
-    chomp;
-    push(@errs, "$result_file: $1") if m{rapper: Error - (.*)$};
-  }
-  close(ERR);
-  if(@errs) {
-    warn "$program: parsing '$result_file' FAILED - rapper returned errors:\n$program:   ".join("\n$program:   ",@errs)."\n";
-    warn "Failing program was:\n";
-    warn "  $cmd\n";
-    my $curdir=getcwd;
-    my $r=$cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir/,,g;
-    warn "  OR $r\n";
-    return undef;
-  }
-
-  unlink "rapper.err";
-
-  my(%results)=(rows => []);
-
-  # Find ResultSet node
-  my $resultset_node=undef;
-  for my $node (@node_order) {
-    my $type=$node_type{$node};
-    next if !$type || $type ne "<${rs}ResultSet>";
-    $resultset_node=$node;
-    last;
-  }
-  
-  warn "$program: Resultset node $resultset_node\n"
-    if $debug > 1;
-
-  if(!defined $resultset_node) {
-    # No result defined
-    return {expect_empty => 1};
-  }
-
-  my(@variables);
-  for my $vname (@{$nodes{$resultset_node}->{$resultVariable_predicate}}) {
-    push(@variables, $vname);
-  }
-
-  for my $node (@{$nodes{$resultset_node}->{$solution_predicate}}) {
-    warn "$program: Row node $node\n"
-      if $debug > 1;
-
-    # Get binding nodes
-    my $row = { map { $_ => undef} @variables };
-    for my $binding_node (@{$nodes{$node}->{$binding_predicate}}) {
-      warn "Binding node $binding_node\n"
-	if $debug > 1;
-
-      my $variable=$nodes{$binding_node}->{$variable_predicate}->[0];
-      $variable=~ s/^"(.*)"$/$1/;
-      my $value=$nodes{$binding_node}->{$value_predicate}->[0];
-      $row->{$variable}=toDebug($value);
-      warn "variable $variable value $value\n"
-	if $debug > 1;
-    }
-
-    my $row_index=$nodes{$node}->{$index_predicate};
-    if(defined $row_index) {
-      # Some - but not all - result sets use rs:index to order results
-      my $ri=$row_index->[0]; $ri =~ s/^\"(\d+)\".*$/$1/;
-      $results{rows}->[$ri-1]=$row;
-    } else {
-      push(@{$results{rows}}, $row);
-    }
-  }
-  warn "$program: Found ".scalar(@{$results{rows}})." rows in results\n"
-    if $debug > 0;
-  return \%results;
-}
-
-
-sub read_srx_results_file($) {
-  my($result_file)=@_;
-
-  my(%results)=(rows => []);
-
-  my $parser = new XML::DOM::Parser;
-  my $doc = $parser->parsefile($result_file);
-
-  my(@variables)=();
-  for my $variable_el ($doc->getElementsByTagName("variable")) {
-    next unless ref($variable_el) eq 'XML::DOM::Element';
-    push(@variables, $variable_el->getAttribute('name'));
-  }
-
-  for my $result ($doc->getElementsByTagName("result")) {
-    next unless ref($result) eq 'XML::DOM::Element';
-    my($row)= { map { $_ => undef } @variables };
-
-    warn "Result Element ".$result->getNodeName()."\n"
-      if $debug > 1;
-
-    for my $binding ($result->getChildNodes()) {
-      next unless ref($binding) eq 'XML::DOM::Element';
-
-      my $variable=$binding->getAttribute('name');
-
-      warn "   Binding Element ".$binding->getNodeName()." name=$variable\n"
-	if $debug > 1;
-
-      for my $el ($binding->getChildNodes()) {
-	next unless ref($el) eq 'XML::DOM::Element';
-	my $el_name=$el->getTagName();
-
-	warn "   Binding sub-element $el_name\n"
-	  if $debug > 1;
-
-	my $value;
-	if($el_name eq 'uri') {
-	  my $contents=$el->getFirstChild()->getNodeValue();
-	  $value="uri<$contents>";
-	} elsif($el_name eq 'literal') {
-	  my $contents=$el->getFirstChild() ? ($el->getFirstChild()->getNodeValue()) : '';
-	  if(my $datatype=$el->getAttribute('datatype')) {
-	    $value="string(\"".$contents."\"^^<$datatype>)";
-	  } elsif(my $language=$el->getAttribute('xml:lang')) {
-	    $value="string(\"$contents\"\@$language)";
-	  } else {
-	    $value="string(\"$contents\")";
-	  }
-	} elsif($el_name eq 'bnode') {
-	  $value="blank _";
-	} else {
-	  $value='';
-	}
-	warn "   Encoded value: $value\n"
-	  if $debug > 1;
-        $row->{$variable}=$value;
-      }
-
-    } # end for binding
-
-    push(@{$results{rows}}, $row);
-
-  } # end for my result
-
-  return \%results;
-}
-
-
-sub read_sv_results_file($$) {
-  my($result_file, $sv_type)=@_;
-  my $sep = ($sv_type eq 'csv') ? ',' : '\t';
-
-  my(%results)=(rows => []);
-
-  if(!open(IN, "<$result_file")) {
-    warn "$program: Failed to read result file $result_file - $!\n";
-    return undef;
-  }
-  my $data=join('', <IN>);
-  close(IN);
-
-  warn "$program: Reading SV type $sv_type with sep '$sep'\n"
-      if $debug;
-  my(@vars);
-  for my $line (split(/(?:\r\n|\r|\n)/, $data)) {
-    # warn ">>$line<<\n";
-
-    # Replace $sep in quotes with \001
-    $line =~ s/("[^"]*")/$a = $1; $a =~ s%$sep%\001%g; $a/eg;
-    my(@values)=split(/$sep/, $line);
-    # Restore $sep
-    @values = map { s/\001/$sep/g; $_ } @values;
 
     if(!@vars) {
-      @vars = map { s/^\?//; $_ } @values;
-      warn "$program: SV vars are @vars\n"
+      @vars = @row_vars;
+      warn "$program: results variables are @vars\n"
 	  if $debug;
-      next;
     }
 
     my($row) = {};
     for my $i (0..$#vars) {
       my($variable) = $vars[$i];
       my $value = $values[$i];
-      if(defined $value) {
-	if($value =~ /^http/) {
-	  $value="uri<".$value.">";
-	} elsif($value =~ /^_:/) {
-	  $value = "blank _";
-	} elsif($value =~ /^\d+\.\d+$/) {
-	  $value="string(\"$value\"^^<http://www.w3.org/2001/XMLSchema#decimal>)";
-	} elsif($value =~ /^\d+$/) {
-	  $value="string(\"$value\"^^<http://www.w3.org/2001/XMLSchema#integer>)";
-	} elsif($value =~ /^\d+\.\d+[eE]\d+$/) {
-	  $value="string(\"$value\"^^<http://www.w3.org/2001/XMLSchema#double>)";
-	} else {
-	  $value = toDebug($value);
-	}
-      }
+
+      $value =~ s/blank \w+/blank _/;
+
       $row->{$variable} = $value;
       warn "$variable : ".(defined $value ? $value : "(undefined)")."\n"
 	  if $debug;
     }
     push(@{$results{rows}}, $row);
   }
-  close(IN);
+  close(PIPE);
 
   return \%results;
 }
 
+
 sub read_rdf_graph_file($$) {
   my($result_file, $base_uri)=@_;
 
-  my $cmd="$rapper -q -g -o ntriples $result_file $base_uri";
+  my $cmd="$rapper -q -g -o ntriples '$result_file' $base_uri";
 
   warn "$program: (read_rdf_graph_file): Opening pipe from '$cmd'\n"
     if $debug;
 
   my $result_string='';
-  open(PIPE, "$cmd 2>rapper.err |");
+  open(PIPE, "$cmd 2>'$rapper_err' |");
   while(<PIPE>) {
     $result_string .= $_;
   }
   close(PIPE);
 
-  open(ERR, "<rapper.err") or die "$program: Cannot open rapper.err - $!\n";
+  open(ERR, "<", $rapper_err) or die "$program: Cannot open $rapper_err - $!\n";
   my(@errs)=();
   while(<ERR>) {
     chomp;
@@ -366,7 +191,7 @@ sub read_rdf_graph_file($$) {
     return undef;
   }
 
-  unlink "rapper.err";
+  unlink $rapper_err;
 
   my(%results)=(graph_ntriples => $result_string);
 
@@ -381,19 +206,19 @@ sub compare_rdf_graphs($$$) {
   my $errors;
   if(defined $ENV{NTC}) {
     my $ntc = $ENV{NTC};
-    $cmd="$ntc $file1 $file2 > $out 2>&1";
+    $cmd="$ntc '$file1' '$file2' >'$out' 2>&1";
     $rc = system($cmd);
   } elsif(defined $ENV{JENAROOT}) {
     my $j = $ENV{JENAROOT};
     my $classpath=join(':',glob("$j/lib/*jar"));
-    $cmd = qq{java -cp $classpath jena.rdfcompare $file1 $file2 N-TRIPLE N-TRIPLE > $out};
+    $cmd = qq{java -cp $classpath jena.rdfcompare '$file1' '$file2' N-TRIPLE N-TRIPLE > '$out'};
     $rc = system($cmd);
     if($rc) {
-      $cmd = "$diff_cmd -u $file1 $file2 > $out";
+      $cmd = "$diff_cmd -u '$file1' '$file2' >'$out'";
       system($cmd);
     }
   } else {
-    $cmd = "$diff_cmd -u $file1 $file2 > $out";
+    $cmd = "$diff_cmd -u '$file1' '$file2' >'$out'";
     $rc = system($cmd);
   }
 
@@ -406,17 +231,34 @@ sub defined_or_NULL($) {
 }
 
 
+sub slurp_file($) {
+  my $file=shift;
+  return do {
+    local $/ = undef;
+    open my $fh, "<", $file or die "$program: Could not read $file - $!\n";
+    <$fh>;
+  }
+}
+
+sub cat_file($) {
+  my $file=shift;
+  my $fh;
+  open $fh, "<", $file or die "$program: Could not read $file - $!\n";
+  print <$fh>;
+}
+
 sub run_test {
   my($config)=@_;
   my($name,$dir,$test_file,$result_file,$expect_fail,$language,
-     $warning_level)
+     $warning_level,$cardinality_mode)
       =
     ($config->{name}, $config->{dir}, $config->{test_file}, 
      $config->{result_file}, $config->{expect_fail}, $config->{language},
-     $config->{warning_level});
+     $config->{warning_level}, $config->{cardinality_mode});
   my($test_uri)=$config->{test_uri};
   my(@data_files)=@{$config->{data_files}};
   my(@named_data_files)=@{$config->{named_data_files}};
+  my $test_type = $config->{test_type};
 
   $language ||= 'sparql';
 
@@ -427,20 +269,35 @@ sub run_test {
 
   $name ||= $test_uri;
 
-  warn "run_test(\n  name       : $name\n  dir        : $dir\n  language   : $language\n  query      : $test_file\n  data       : ",join("; ",@data_files),"\n  named data : ",join("; ",@named_data_files),"\n  result     : ",($result_file||"none"),"\n  expect     : ",($expect_fail ? "failure":"success"),"\n)\n"
+  warn "run_test(\n  name       : $name\n  dir        : $dir\n  language   : $language\n  query      : $test_file\n  data       : ",join("; ",@data_files),"\n  named data : ",join("; ",@named_data_files),"\n  result     : ",($result_file||"none"),"\n  expect     : ",($expect_fail ? "failure":"success"),"\n  card mode  : $cardinality_mode\n)\n"
     if $debug;
 
   my(@args)=();
-  push(@args, (map "-D $_", @data_files)) if @data_files;
-  push(@args, (map "-G $_", @named_data_files)) if @named_data_files;
+  push(@args, "-i", $language);
+  # http://www.w3.org/2009/sparql/docs/tests/README.html#csvtests
+  if($test_type eq "${mf}CSVResultFormatTest") {
+    push(@args, "-r", "csv");
+  } else {
+    push(@args, "-d", "debug");
+  }
+  push(@args, "-W", $warning_level);
 
+  my $curdir = getcwd;
+  for my $df (@data_files) {
+    $df =~ s,^file://$curdir/,,;
+    push(@args, "-D", $df);
+  }
+  for my $ndf (@named_data_files) {
+    $ndf =~ s,^file://$curdir/,,;
+    push(@args, "-G", $ndf);
+  }
   push(@args, "-n")
     unless $config->{execute};
 
-  my $args_s=join(" ",@args);
-  my $roqet_tmp='roqet.tmp';
-  my $roqet_err='roqet.err';
-  my $roqet_cmd="$roqet -d debug -W $warning_level -i $language $args_s $test_file 2>$roqet_err > $roqet_tmp";
+  my $tf = $test_file; $tf =~ s,^$curdir/,,;
+
+  my $args_s = join(" ",@args);
+  my $roqet_cmd="$roqet $args_s '$tf' 2>'$roqet_err' >'$roqet_tmp'";
   my $sort="sort";
 
   warn "$program: Running '$roqet_cmd'\n"
@@ -453,16 +310,10 @@ sub run_test {
   my $core_dumped = WCOREDUMP($rc);
   $test_result->{'elapsed-time'}= $end_time - $start_time;
   $test_result->{'roqet-status-code'}= WIFEXITED($rc) ? WEXITSTATUS($rc) : undef;
-  $test_result->{'stdout'}=`cat $roqet_tmp`; 
-  $test_result->{'stderr'}=`cat $roqet_err`;
-
-  unlink $roqet_tmp;
+  $test_result->{'stdout'} = slurp_file($roqet_tmp); 
+  $test_result->{'stderr'} = slurp_file($roqet_err);
 
   $test_result->{'query'}=$roqet_cmd;
-  my $curdir = getcwd;
-  my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir/,,g;
-  $test_result->{'tidy-query'} = $r;
-
 
   if(WIFSIGNALED($rc)) {
     # exec()ed but died on a signal
@@ -489,13 +340,33 @@ sub run_test {
     } else {
       warn "$program: '$name' FAILED ($rc)\n";
       print STDERR "Failing program was:\n";
-      my $tidy_query = $test_result->{'tidy-query'};
-      print STDERR "  $roqet_cmd\n  OR $tidy_query\n";
+      print STDERR "  $roqet_cmd\n";
       print STDERR $test_result->{'stderr'};
     }
 
     return $test_result;
   }
+
+  if($test_type eq "${mf}CSVResultFormatTest") {
+    my $file = $result_file; $file =~ s%^file://%%;
+    my $cmd = "$diff_cmd -u '$roqet_tmp' '$file' > $diff_out";
+    $rc = system($cmd);
+    if($rc) {
+      warn "$program: '$name' FAILED\n";
+      print STDERR "Failing program was:\n";
+      print STDERR "  $roqet_cmd\n";
+      warn "Difference is:\n";
+      cat_file($diff_out);
+      $test_result->{'result'}='failure';
+      return $test_result;
+    }
+    warn "$program: '$name' ok\n";
+    $test_result->{'result'}='success';
+    return $test_result;
+  }
+
+
+  unlink $roqet_tmp;
 
   my $sorted=0;
   my $first_result=1;
@@ -529,14 +400,14 @@ sub run_test {
       $sort=$sorted ? "cat " : "sort ";
     }
 
-    if (m/^result: \[(.*)\]$/) {
+    if (m/^(?:row|result): \[(.*)\]$/) {
       s/=INV:/=/g;
       s/=udt/=string/g;
       s%=xsdstring\((.*?)\)%=string("$1"^^<http://www.w3.org/2001/XMLSchema#string>)%g;
       my $line=$_;
 
       if($first_result) {
-        open(OUT, "|$sort >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
+        open(OUT, "|$sort >$roqet_out") or die "$program: Cannot create pipe to $roqet_out - $!\n";
 	$first_result=0;
       }
 
@@ -548,7 +419,7 @@ sub run_test {
     if(m/^[_<]/) {
       my $line = $_;
       if($first_result) {
-        open(OUT, "|$sort -u >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
+        open(OUT, "|$sort -u >$roqet_out") or die "$program: Cannot create pipe to $roqet_out - $!\n";
         $first_result=0;
       }
 
@@ -558,14 +429,14 @@ sub run_test {
   }
 
   if($first_result) {
-    open(OUT, ">roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
+    open(OUT, ">", $roqet_out) or die "$program: Cannot create pipe to $roqet_out - $!\n";
   }
   close(OUT);
 
   $test_result->{'result-type'} = $result_type;
 
 
-  open(ERR, "<roqet.err") or die "$program: Cannot open roqet.err - $!\n";
+  open(ERR, "<", $roqet_err) or die "$program: Cannot open $roqet_err - $!\n";
   my(@errs)=();
   while(<ERR>) {
     chomp;
@@ -577,8 +448,7 @@ sub run_test {
 
     $test_result->{'errors'} = join("\n", @errs);
     print STDERR "Failing program was:\n";
-    my $tidy_query = $test_result->{'tidy-query'};
-    print STDERR "  $roqet_cmd\n  OR $tidy_query\n";
+    print STDERR "  $roqet_cmd\n";
     print STDERR $test_result->{'stderr'};
     $test_result->{'result'}='failure';
     
@@ -605,21 +475,22 @@ sub run_test {
       if($result_file =~ /\.srx$/) {
 	warn "$program: Reading SPARQL XML bindings result file $result_file\n"
 	  if $debug;
-	$results = read_srx_results_file($result_file);
+	$results = read_query_results_file($result_file, 'xml');
       } elsif($result_file =~ /\.srj$/) {
 	warn "$program: '$name' FAILED (Cannot read SPARQL results in JSON)\n";
 	$test_result->{'result'}='failure';
     
 	return $test_result;
       } elsif($result_file =~ /\.(csv|tsv)$/) {
-	my $sv_type = $1;
+	my $result_format = $1;
 	warn "$program: Reading CSV/TSV bindings result file $result_file\n"
 	    if $debug;
-	$results = read_sv_results_file($result_file, $sv_type);
+	$results = read_query_results_file($result_file, $result_format);
       } else {
 	warn "$program: Reading RDF syntax encoding bindings result file $result_file\n"
 	  if $debug;
-	$results = read_rdf_results_file($result_file, $result_file_base_uri);
+	my $result_format = ($result_file =~ /\.rdf/ ? 'rdfxml' : 'turtle');
+	$results = read_query_results_file($result_file, $result_format);
       }
     }
   }
@@ -639,13 +510,13 @@ sub run_test {
 
   my $count;
   if($result_type eq 'bindings') {
-    open(OUT, "|$sort >result.out")
-      or die "$program: Cannot create pipe to result.out - $!\n";
+    open(OUT, "|$sort >$result_out")
+      or die "$program: Cannot create pipe to $result_out - $!\n";
 
     $count=0;
     for my $row (@{$results->{rows}}) {
       my(@vals) = map { $_ . '=' . defined_or_NULL($row->{$_}) } @vars_order;
-      print OUT "result: [", join(", ", @vals), "]\n";
+      print OUT "row: [", join(", ", @vals), "]\n";
       $count++;
     }
     close(OUT);
@@ -654,19 +525,27 @@ sub run_test {
     $test_result->{'actual-results-count'} = $roqet_results_count;
   } else {
     # graph: sort N-Triples in attempt to get canonical graph
-    open(OUT, "| sort -u >result.out")
-      or die "$program: Cannot create pipe to result.out - $!\n";
+    open(OUT, "| sort -u >$result_out")
+      or die "$program: Cannot create pipe to $result_out - $!\n";
     print OUT $results->{graph_ntriples}
       if exists $results->{graph_ntriples};
     close(OUT);
   }   
 
   if($result_type eq 'graph') {
-    $rc = compare_rdf_graphs('result.out', 'roqet.out', 'diff.out');
+    $rc = compare_rdf_graphs($result_out, $roqet_out, $diff_out);
   } else {
-    $cmd = "$diff_cmd -u result.out roqet.out > diff.out";
+    $cmd = "$diff_cmd -u '$result_out' '$roqet_out' >'$diff_out'";
     $rc = system($cmd);
   }
+
+  if($rc && $result_type eq 'bindings' && $roqet_results_count <= $count &&
+     $cardinality_mode eq 'lax') {
+    warn "$program: Cardinality lax - letting $roqet_results_count result match [1, $count] expected results\n"
+	  if $debug;
+    $rc = 0;
+  }
+
   if($rc) {
     if($result_type eq 'bindings' && $count != $roqet_results_count) {
       warn "$program: '$name' FAILED (Expected ".plural("result","s",$count).", got $roqet_results_count)\n";
@@ -674,10 +553,9 @@ sub run_test {
       warn "$program: '$name' FAILED\n";
     }
     print STDERR "Failing program was:\n";
-    my $tidy_query = $test_result->{'tidy-query'};
-    print STDERR "  $roqet_cmd\n  OR $tidy_query\n";
+    print STDERR "  $roqet_cmd\n";
     warn "Difference is:\n";
-    system("cat diff.out");
+    cat_file($diff_out);
     $test_result->{'result'}='failure';
     return $test_result;
   }
@@ -743,7 +621,7 @@ die "$program: No manifest file found in $srcdir\n"
 
 my(%triples);
 my $entries_node;
-my $cmd="$rapper -q -i turtle -o ntriples $srcdir$manifest_file";
+my $cmd="$rapper -q -i turtle -o ntriples '$srcdir$manifest_file'";
 open(MF, "$cmd |") 
   or die "Cannot open pipe from '$cmd' - $!\n";
 while(<MF>) {
@@ -825,7 +703,8 @@ while($list_node) {
 
   if(defined $query_type &&
      ($query_type eq "<${ut}UpdateEvaluationTest>" ||
-      $query_type eq "<${mf}UpdateEvaluationTest>")) {
+      $query_type eq "<${mf}UpdateEvaluationTest>" ||
+      $query_type eq "<${mf}ProtocolTest>" )) {
     warn "Skipping query type $query_type - not supported\n"
       if $debug > 1;
     goto next_list_node;
@@ -854,24 +733,31 @@ while($list_node) {
     $query_node=$triples{$action_node}->{"<${qt}query>"}->[0];
   }
 
+  my $resultCardinality = $triples{$entry_node}->{"<${mf}resultCardinality>"}->[0];
+  my $cardinality_mode = (defined $resultCardinality && $resultCardinality eq "<${mf}LaxCardinality>") ? 'lax' : 'strict';
+  warn "Cardinality mode is $cardinality_mode\n"
+    if $debug > 1;
+
   my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
   my $test_type=$query_type; $test_type =~ s/^<(.+)>$/$1/ if defined $test_type;
 
   my $test_approval=$triples{$entry_node}->{"<${dawgt}approval>"}->[0];
+  my $is_approved = 0;
+  my $is_withdrawn = 0;
   if($test_approval) {
     warn "Test $name ($test_uri) state $test_approval\n"
       if $debug > 1;
     if($test_approval eq "<${dawgt}Withdrawn>") {
       warn "Test $name ($test_uri) was withdrawn\n"
 	if $debug;
-      goto next_list_node;
+      $is_withdrawn = 1;
+    }
+    if($test_approval eq "<${dawgt}Approved>") {
+      $is_approved = 1;
     }
   }
-  if($approved &&
-    (!$test_approval || $test_approval ne "<${dawgt}Approved>")) {
-    warn "$program: Test $name ($test_uri) was not approved by DAWG - skipping\n";
-    goto next_list_node;
-  }
+
+  my $has_entailment_regime = exists $triples{$action_node}->{"<${ent}entailmentRegime>"} || $triples{$action_node}->{"<${sd}entailmentRegime>"};;
 
   my $query_file=undef;
   if($query_node) {
@@ -898,7 +784,11 @@ while($list_node) {
 		  test_type => $test_type,
 		  test_uri => $test_uri,
 		  execute => $execute,
-		  language => $lang
+		  language => $lang,
+		  cardinality_mode => $cardinality_mode,
+		  is_withdrawn => $is_withdrawn,
+		  is_approved => $is_approved,
+		  has_entailment_regime => $has_entailment_regime
 	 } );
 
     last if $unique_test;
@@ -913,6 +803,7 @@ die "$program: Test $unique_test not found\n" if $unique_test && !@tests;
 
 my(@failed);
 my(@passed);
+my(@skipped);
 my(@test_results);
 my $result=0;
 my $start_time = time;
@@ -921,6 +812,28 @@ for my $test (@tests) {
 
   $config->{language} = $language;
   $config->{warning_level} = $warning_level;
+
+  my $test_uri = $config->{test_uri};
+  my $name = $config->{name} || $test_uri;
+
+  if($config->{is_withdrawn}) {
+    warn "$program: Test $name ($test_uri) was withdrawn - skipping\n"
+	if $debug;
+    push(@skipped, $test);
+    next;
+  }
+  if($approved && !$config->{is_approved}) {
+    warn "$program: Test $name ($test_uri) not approved - skipping\n"
+	if $debug;
+    push(@skipped, $test);
+    next;
+  }
+  if($config->{has_entailment_regime}) {
+    warn "$program: Test $name ($test_uri) has entailment - skipping\n"
+	if $debug > 1;
+    push(@skipped, $test);
+    next;
+  }
 
   my $test_result = run_test($config);
 
@@ -939,20 +852,20 @@ for my $test (@tests) {
 my $end_time = time;
 my $elapsed_time = ($end_time - $start_time);
 
-unlink "roqet.out", "result.out", "diff.out", "roqet.err", "roqet.tmp"
+unlink $roqet_out, $result_out, $roqet_tmp, $roqet_err, $diff_out, $rapper_err
   unless $unique_test;
+
+my $rasqal_version=`$roqet -v`;
+chomp $rasqal_version;
 
 if($earl_report_file) {
   my $is_new=(!-r $earl_report_file);
-  my $rasqal_version=`$roqet -v`;
-  chomp $rasqal_version;
-
   my(@t)=gmtime;
   my $rasqal_date=sprintf("%04d-%02d-%02d", 1900+$t[5], 1+$t[4], $t[3]);
 
   my $rasqal_name="Rasqal $rasqal_version";
 
-  open(OUT, ">>$earl_report_file") 
+  open(OUT, ">>", $earl_report_file) 
     or die "Cannot write to $earl_report_file - $!\n";
   print OUT <<"EOT"
 \@prefix doap: <http://usefulinc.com/ns/doap\#> .
@@ -1005,9 +918,6 @@ EOT
 
 
 if($junit_report_file) {
-  my $rasqal_version=`$roqet -v`;
-  chomp $rasqal_version;
-
   my(@t)=gmtime;
   my $timestamp=sprintf("%04d-%02d-%02dT%02d:%02d:%02d",
 			1900+$t[5], 1+$t[4], $t[3], $t[2], $t[1], $t[0]);
@@ -1022,7 +932,7 @@ if($junit_report_file) {
   my $runtime = $elapsed_time;
   my $id = 0; # this <testsuites> has only 1 testsuite
 
-  open(OUT, ">$junit_report_file") 
+  open(OUT, ">", $junit_report_file) 
     or die "Cannot write to $junit_report_file - $!\n";
   print OUT <<"EOT";
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -1104,7 +1014,7 @@ warn "$program: $failed_count FAILED tests:\n$program:   " .
      "\n"
   if $failed_count;
 }
-warn "$program: Summary: ".scalar(@passed)." tests passed  ".scalar(@failed)." tests failed\n";
+warn "$program: Summary: ".scalar(@passed)." tests passed  ".scalar(@failed)." tests failed ".scalar(@skipped)." tests skipped\n";
 
 exit $failed_count;
 
