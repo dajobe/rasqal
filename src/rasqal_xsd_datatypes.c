@@ -373,20 +373,23 @@ rasqal_xsd_format_integer(int i, size_t *len_p)
 unsigned char*
 rasqal_xsd_format_float(float f, size_t *len_p)
 {
-  unsigned char* string;
-  
-  /* FIXME: This is big enough for C float formatted in decimal as %1g */
-#define FLOAT_BUFFER_SIZE 30
-  string = RASQAL_MALLOC(unsigned char*, FLOAT_BUFFER_SIZE + 1);
-  if(!string)
-    return NULL;
-  /* snprintf() takes as length the buffer size including NUL */
-  /* FIXME: %1g may not be the nearest to XSD xsd:float canonical format */
-  snprintf(RASQAL_GOOD_CAST(char*, string), FLOAT_BUFFER_SIZE + 1, "%1g", (double)f);
-  if(len_p)
-    *len_p = strlen(RASQAL_GOOD_CAST(const char*, string));
+  size_t len = 0;
+  unsigned char* buf = NULL;
+  double d = (double)f;
 
-  return string;
+#define FLOAT_NSD 7
+  len = rasqal_format_double(NULL, 0, d, 1, FLOAT_NSD);
+
+  buf = RASQAL_MALLOC(unsigned char*, len + 1);
+  if(!buf)
+    return NULL;
+
+  len = rasqal_format_double((char*)buf, len, d, 1, FLOAT_NSD);
+
+  if(len_p)
+    *len_p = len;
+
+  return buf;
 }
 
 
@@ -405,13 +408,14 @@ rasqal_xsd_format_double(double d, size_t *len_p)
   size_t len = 0;
   unsigned char* buf = NULL;
 
-  len = rasqal_format_double(NULL, 0, d, 1, 15);
+#define DOUBLE_NSD 15
+  len = rasqal_format_double(NULL, 0, d, 1, DOUBLE_NSD);
 
   buf = RASQAL_MALLOC(unsigned char*, len + 1);
   if(!buf)
     return NULL;
 
-  (void)rasqal_format_double((char*)buf, len, d, 1, 15);
+  len = rasqal_format_double((char*)buf, len, d, 1, DOUBLE_NSD);
 
   if(len_p)
     *len_p = len;
