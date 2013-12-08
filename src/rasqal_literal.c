@@ -3005,13 +3005,33 @@ rasqal_literal_as_node(rasqal_literal* l)
         new_l->usage = 1;
         new_l->world = l->world;
         new_l->type = RASQAL_LITERAL_STRING;
-        new_l->string_len = l->string_len;
-        new_l->string = RASQAL_MALLOC(unsigned char*, l->string_len + 1);
-        if(!new_l->string) {
-          rasqal_free_literal(new_l);
-          return NULL; 
+        if(l->type == RASQAL_LITERAL_DOUBLE) {
+          /* Normalize xsd:double string when making a resoult */
+          size_t slen = 0;
+          new_l->string = rasqal_xsd_format_double(l->value.floating, &slen);
+          if(!new_l->string) {
+            rasqal_free_literal(new_l);
+            return NULL; 
+          }
+          new_l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
+        } else if(l->type == RASQAL_LITERAL_FLOAT) {
+          /* Normalize xsd:float string when making a resoult */
+          size_t slen = 0;
+          new_l->string = rasqal_xsd_format_float(RASQAL_GOOD_CAST(float, l->value.floating), &slen);
+          if(!new_l->string) {
+            rasqal_free_literal(new_l);
+            return NULL; 
+          }
+          new_l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
+        } else {
+          new_l->string_len = l->string_len;
+          new_l->string = RASQAL_MALLOC(unsigned char*, l->string_len + 1);
+          if(!new_l->string) {
+            rasqal_free_literal(new_l);
+            return NULL; 
+          }
+          memcpy((void*)new_l->string, l->string, l->string_len + 1);
         }
-        memcpy((void*)new_l->string, l->string, l->string_len + 1);
 
         if(l->type <= RASQAL_LITERAL_LAST_XSD) {
           dt_uri = rasqal_xsd_datatype_type_to_uri(l->world, l->type);
