@@ -177,8 +177,6 @@ rasqal_format_double(char *buffer, size_t bufsize, double dvalue,
     prefix = '-';
   }
 
-  /* Normalize realvalue to within 10.0 > realvalue >= 1.0 */
-  exp = 0;
   if( isnan(realvalue) ) {
     length = 3;
     if(buffer) {
@@ -314,11 +312,8 @@ rasqal_format_double(char *buffer, size_t bufsize, double dvalue,
     *p++ = (char)(exp % 10 + '0');
   length++;
 
-  if(p) {
+  if(p)
     *p = 0;
-
-    //assert(strlen(buffer) == length);
-  }
   
   return length;
 }
