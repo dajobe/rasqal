@@ -120,15 +120,20 @@ rasqal_format_integer(char* buffer, size_t bufsize, int integer,
 
 static const char* const static_str = "NaN-Inf+Inf";
 
-static char et_getdigit(long double *val, int *cnt){
+static char
+rasqal_double_getdigit(long double *val, int *cnt)
+{
   int digit;
   long double d;
-  if( (*cnt)<=0 ) return '0';
+  if((*cnt) <= 0)
+    return '0';
+
   (*cnt)--;
   digit = (int)*val;
   d = digit;
   digit += '0';
   *val = (*val - d)*10.0;
+
   return (char)digit;
 }
 
@@ -250,7 +255,7 @@ rasqal_format_double(char *buffer, size_t bufsize, double dvalue,
     length++;
   }
   /* Digit prior to the decimal point */
-  c = et_getdigit(&realvalue, &nsd);
+  c = rasqal_double_getdigit(&realvalue, &nsd);
   if(p)
     *p++ = c;
   length++;
@@ -262,7 +267,7 @@ rasqal_format_double(char *buffer, size_t bufsize, double dvalue,
 
   /* Significant digits after the decimal point */
   for(zc = 0, last_c = '\0'; nsd; last_c = c, length++) {
-    c = et_getdigit(&realvalue,&nsd);
+    c = rasqal_double_getdigit(&realvalue, &nsd);
     if(p)
       *p++ = c;
     if(c == '0') {
