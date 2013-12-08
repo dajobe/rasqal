@@ -83,6 +83,11 @@ void rasqal_sign_free(void *ptr);
 
 #endif
 
+#ifdef HAVE___FUNC__
+#else
+#define __func__ "???"
+#endif
+
 #ifdef RASQAL_DEBUG
 /* Debugging messages */
 #define RASQAL_DEBUG1(msg) do {fprintf(stderr, "%s:%d:%s: " msg, __FILE__, __LINE__, __func__); } while(0)
