@@ -118,43 +118,27 @@ rasqal_format_integer(char* buffer, size_t bufsize, int integer,
 }
 
 
-#ifndef HAVE_ROUND
-/* round (C99): round x to the nearest integer, away from zero */
-#define round(x) (((x) < 0) ? (long)((x)-0.5) : (long)((x)+0.5))
-#endif
+static const char* const static_str = "NaN-Inf+Inf";
 
-#ifndef HAVE_TRUNC
-/* trunc (C99): round x to the nearest integer, towards zero */
-#define trunc(x) (((x) < 0) ? ceil((x)) : floor((x)))
-#endif
-
-#ifndef HAVE_LROUND
-static long
-rasqal_lround(double d)
-{
-  /* Add +/- 0.5 then then round towards zero.  */
-  d = floor(d);
-
-  if(isnan(d) || d > (double)LONG_MAX || d < (double)LONG_MIN) {
-    errno = ERANGE;
-    /* Undefined behaviour, so we could return anything.  */
-    /* return tmp > 0.0 ? LONG_MAX : LONG_MIN;  */
-  }
-  return (long)d;
+static char et_getdigit(long double *val, int *cnt){
+  int digit;
+  long double d;
+  if( (*cnt)<=0 ) return '0';
+  (*cnt)--;
+  digit = (int)*val;
+  d = digit;
+  digit += '0';
+  *val = (*val - d)*10.0;
+  return (char)digit;
 }
-#define lround(x) rasqal_lround(x)
-#endif
-
-
-static const char* const inf_string = "-INF";
 
 /**
  * rasqal_format_double:
  * @buffer: buffer (or NULL)
  * @bufsize: size of above (or 0)
  * @dvalue: double value to format
- * @min: min width
- * @max: max width
+ * @min: min width - currently unused
+ * @max: max width (16 for a 64-bit double)
  *
  * INTERNAL - Format a double as an XSD decimal into a buffer or
  * calculate the size needed.
@@ -166,118 +150,170 @@ static const char* const inf_string = "-INF";
  *
  * Return value: number of bytes needed or written (excluding NUL) or 0 on failure
  */
+#define MAX_DOUBLE_EXPONENT 350
+
 size_t
 rasqal_format_double(char *buffer, size_t bufsize, double dvalue,
                      unsigned int min, unsigned int max)
 {
-  double dfvalue;
-  long intpart;
-  double fracpart = 0.0;
-  double frac;
-  double frac_delta = 10.0;
-  double mod_10;
-  size_t exp_len;
-  size_t frac_len = 0;
-  size_t idx;
+  char prefix = '\0'; /* Prefix character.  "+" or "-" or '\0'. */
+  size_t length = 0;
+  int exp = 0;
+  char *p = buffer;
+  int nsd = max; /* Number of significant digits returned */
+  long double realvalue = dvalue;
+  int c;
+  double rounder = 0.5;
+  int zc;
+  int last_c;
 
-  if(isinf(dvalue)) {
-    size_t len = (dvalue < 0) ? 5 : 4;
+  if( realvalue < 0.0 ) {
+    realvalue = -realvalue;
+    prefix = '-';
+  }
 
+  /* Normalize realvalue to within 10.0 > realvalue >= 1.0 */
+  exp = 0;
+  if( isnan(realvalue) ) {
+    length = 3;
     if(buffer) {
-      if(bufsize < len + 1)
-        return 0;
-      memcpy(buffer, inf_string + (5 - len), len + 1);
+      if(bufsize < length)
+        length -= bufsize;
+      else
+        memcpy(buffer, static_str, length + 1);
     }
-    return len;
+    return length;
   }
-  
-  if(isnan(dvalue)) {
-    size_t len = 4;
 
-    if(buffer) {
-      if(bufsize < len + 1)
-        return 0;
-      memcpy(buffer, "NaN", len + 1);
+  /* For non-zero realvalues, find the exponent */
+  if( realvalue > 0.0 ) {
+    long double scale = 1.0;
+    const char* result;
+
+    /* Calculate exponent */
+    while( realvalue >= 1e100 * scale && exp <= MAX_DOUBLE_EXPONENT ) {
+      scale *= 1e100; exp += 100;
     }
-    return len;
-  }
-  
-  if(max < min)
-    max = min;
-
-  if(!buffer)
-    bufsize = 1000; /* large enough it will never underflow to 0 */
-
-  /* index to the last char */
-  idx = bufsize - 1;
-
-  if(buffer)
-    buffer[idx] = '\0';
-  idx--;
-  
-  dfvalue = fabs(dvalue);
-  intpart = lround(dfvalue);
-
-  /* We "cheat" by converting the fractional part to integer by
-   * multiplying by a factor of 10
-   */
-
-  frac = (dfvalue - intpart);
-  
-  for(exp_len = 0; exp_len <= max; ++exp_len) {
-    frac *= 10;
-
-    mod_10 = trunc(fmod(trunc(frac), 10));
-    
-    if(fabs(frac_delta - (fracpart / pow(10, exp_len))) < (DBL_EPSILON * 2.0)) {
-      break;
+    while( realvalue >= 1e64 * scale && exp <= MAX_DOUBLE_EXPONENT ) {
+      scale *= 1e64; exp += 64;
     }
-    
-    frac_delta = fracpart / pow(10, exp_len);
+    while( realvalue >= 1e8 * scale && exp <= MAX_DOUBLE_EXPONENT ) {
+      scale *= 1e8; exp += 8;
+    }
+    while( realvalue >= 10.0 * scale && exp <= MAX_DOUBLE_EXPONENT ) {
+      scale *= 10.0; exp++;
+    }
 
-    /* Only "append" (numerically) if digit is not a zero */
-    if(mod_10 > 0 && mod_10 < 10) {
-      fracpart = round(frac);
-      frac_len = exp_len;
+    /* Adjust double value for chosen exponent until it is just > 1.0 */
+    realvalue /= scale;
+    while( realvalue < 1e-8 ) {
+      realvalue *= 1e8; exp -= 8;
+    }
+    while( realvalue < 1.0 ) {
+      realvalue *= 10.0; exp--;
+    }
+
+    if( exp > MAX_DOUBLE_EXPONENT ) {
+      if( prefix == '-' ){
+        result = static_str + 3;
+        length = 4;
+      } else if( prefix == '+' ){
+        result = static_str + 7;
+        length = 4;
+      }else{
+        result = static_str + 8;
+        length = 3;
+      }
+
+      if(bufsize < length)
+        length -= bufsize;
+      else
+        memcpy(buffer, result, length + 1);
+
+      return length;
     }
   }
-  
-  if(frac_len < min) {
-    if(buffer)
-      buffer[idx] = '0';
-    idx--;
-  } else {
-    /* Convert/write fractional part (right to left) */
-    do {
-      mod_10 = fmod(trunc(fracpart), 10);
-      --frac_len;
 
-      if(buffer)
-        buffer[idx] = digits[(unsigned)mod_10];
-      idx--;
-      fracpart /= 10;
+  /* Round floating point value final digit */
+  for(c = max; c > 0; c--)
+    rounder *= 0.1;
 
-    } while(fracpart > 1 && (frac_len + 1) > 0);
+  realvalue += rounder;
+  if(realvalue >= 10.0) {
+    realvalue *= 0.1; exp++;
   }
 
-  if(buffer)
-    buffer[idx] = '.';
-  idx--;
+  /* The sign in front of the number */
+  if(prefix) {
+    if(p)
+      *p++ = prefix;
+    length++;
+  }
+  /* Digit prior to the decimal point */
+  c = et_getdigit(&realvalue, &nsd);
+  if(p)
+    *p++ = c;
+  length++;
 
-  /* Convert/write integer part (right to left) */
-  do {
-    if(buffer)
-      buffer[idx] = digits[intpart % 10];
-    idx--;
-    intpart /= 10;
-  } while(intpart);
-  
-  /* Write a sign, if requested */
-  if(dvalue < 0) {
-    if(buffer)
-      buffer[idx] = '-';
-    idx--;
+  /* The decimal point */
+  if(p)
+    *p++ = '.';
+  length++;
+
+  /* Significant digits after the decimal point */
+  for(zc = 0, last_c = '\0'; nsd; last_c = c, length++) {
+    c = et_getdigit(&realvalue,&nsd);
+    if(p)
+      *p++ = c;
+    if(c == '0') {
+      if(!last_c || last_c == '0')
+        zc++;
+    } else
+      zc = 0;
+  }
+
+  /* Remove trailing zeros but always keep 1 digit after . */
+  if(zc > 1) {
+    zc--;
+    length -= zc;
+    if(p) {
+      p -= zc;
+      *p = '0';
+    }
+  }
+
+  /* Add the "E<NNN>" suffix */
+  if(p)
+    *p++ = 'E';
+  length++;
+  if( exp < 0 ) {
+    if(p) {
+      *p++ = '-'; exp = -exp;
+    }
+    length++;
+  }
+
+  /* Write exponent in decimal */
+  if(exp >= 100) {
+    if(p)
+      *p++ = (char)((exp / 100) + '0');
+    length++;
+    exp %= 100;
+  }
+  if(exp >= 10) {
+    if(p)
+      *p++ = (char)(exp / 10  +'0');
+    length++;
+  }
+  if(p)
+    *p++ = (char)(exp % 10 + '0');
+  length++;
+
+  if(p) {
+    *p = 0;
+
+    //assert(strlen(buffer) == length);
   }
   
-  return bufsize - idx - 2;
+  return length;
 }
