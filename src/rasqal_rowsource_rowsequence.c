@@ -232,10 +232,10 @@ rasqal_new_rowsequence_rowsource(rasqal_world *world,
   rasqal_rowsequence_rowsource_context* con;
   int flags = 0;
   
-  if(!world || !query || !vt || !rows_seq || !vars_seq)
+  if(!world || !query || !vt || !vars_seq)
     return NULL;
 
-  if(!raptor_sequence_size(rows_seq) || !raptor_sequence_size(vars_seq))
+  if(!raptor_sequence_size(vars_seq))
     return NULL;
   
   con = RASQAL_CALLOC(rasqal_rowsequence_rowsource_context*, 1, sizeof(*con));
