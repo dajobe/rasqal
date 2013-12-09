@@ -277,7 +277,7 @@ PKGCONFIG_CFLAGS=
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(errno.h stddef.h stdlib.h stdint.h unistd.h string.h strings.h getopt.h regex.h sys/time.h time.h math.h limits.h errno.h float.h)
+AC_CHECK_HEADERS(errno.h stddef.h stdlib.h stdint.h unistd.h string.h getopt.h regex.h sys/time.h time.h math.h limits.h errno.h float.h)
 AC_HEADER_TIME
 
 if test "$ac_cv_header_sys_time_h" = "yes"; then
