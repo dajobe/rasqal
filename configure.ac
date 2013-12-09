@@ -67,9 +67,11 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 
 
-AM_PROG_LEX
 FLEX_MIN_VERSION=2.5.19
 FLEX_REC_VERSION=2.5.36
+
+# Do not want AM_PROG_LEX which adds 'missing' to LEX if it's not around
+AC_PROG_LEX
 AC_MSG_CHECKING(flex)
 if test "$USE_MAINTAINER_MODE" = yes; then
   # maintainer mode - flex is required
@@ -104,7 +106,7 @@ if test "$USE_MAINTAINER_MODE" = yes; then
   fi
 else
   # not maintainer mode; flex is not required
-  AC_MSG_RESULT(not present)
+  AC_MSG_RESULT(not present - not required for non maintainer builds)
   LEX="$SHELL $missing_dir/missing flex"
   AC_SUBST(LEX_OUTPUT_ROOT, lex.yy)
   AC_SUBST(LEXLIB, '')
