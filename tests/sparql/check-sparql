@@ -275,7 +275,7 @@ sub run_test {
   my(@args)=();
   push(@args, "-i", $language);
   # http://www.w3.org/2009/sparql/docs/tests/README.html#csvtests
-  if($test_type eq "${mf}CSVResultFormatTest") {
+  if(defined $test_type && $test_type eq "${mf}CSVResultFormatTest") {
     push(@args, "-r", "csv");
   } else {
     push(@args, "-d", "debug");
@@ -347,7 +347,7 @@ sub run_test {
     return $test_result;
   }
 
-  if($test_type eq "${mf}CSVResultFormatTest") {
+  if(defined $test_type && $test_type eq "${mf}CSVResultFormatTest") {
     my $file = $result_file; $file =~ s%^file://%%;
     my $cmd = "$diff_cmd -u '$roqet_tmp' '$file' > $diff_out";
     $rc = system($cmd);
