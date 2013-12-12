@@ -43,7 +43,7 @@
 
 
 /* from raptor_uri.c */
-#if RAPTOR_VERSION >= 20010
+#if RAPTOR_VERSION >= 20011
 
 #else
 static int
