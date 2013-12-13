@@ -67,6 +67,11 @@ Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=527">Issue #0000527</a>
 
 <p>Added proper validation of xsd:double and xsd:float literal format.</p>
 
+<p>Correctly handle <code>GROUP BY</code> over no data - returning
+one row with all bindings missing.</p>
+
+<p>Literal languages are now normalized to lowercase (RDF Concepts)</p>
+
 
 <h3>API changes</h3>
 
@@ -82,6 +87,9 @@ forms and to print in a prettier form with better indenting.</p>
 <p><code>rasqal_new_rowsource_from_handler()</code> now allows a NULL
 query so that rowsources can be fully independent of a query, such as
 when building from a syntax string or other independent object.</p>
+
+<p><code>rasqal_new_rowsequence_rowsource()</code> now allows an empty
+sequence of rows.</p>
 
 
 <h3>Portability changes</h3>
@@ -137,6 +145,14 @@ without destruction.  This helps
 'make test' to run via <code>check-sparql</code>.  This requires
 the <code>roqet(1)</code> new '-'t mode.
 </p>
+
+<p>Add a <code>configure</code> check for the debugging
+<code>__func__</code> so that on systems where it does not exist the
+debug macros work.  It may or may not be a macro, so it cannot be
+tested with #ifdef in the CPP.</p>
+
+<p>Improved the <code>configure</code> check for Flex to allow it to
+be missing for non-maintainer mode.</p>
 
 
 <h3>Other changes</h3>
