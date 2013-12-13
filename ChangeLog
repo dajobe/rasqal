@@ -1,3 +1,7 @@
+2013-12-13  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_31 for 0.9.31 release (GIT fbef8580f666de2cd99eed102fe21422773672a0)
+
 2013-12-12  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_ntriples.c: raptor_uri_uri_string_is_absolute
