@@ -918,7 +918,7 @@ fi
 if test $need_digest_mhash = yes; then
   C=""
   L="-lmhash"
-  if test "Xmhash_dir" != "X" ; then
+  if test "X$mhash_dir" != "X" ; then
     C="-I$mhash_dir/include"
     L="-L$mhash_dir/lib $L"
   fi
