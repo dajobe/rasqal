@@ -432,6 +432,7 @@ RAPTOR_VERSION_DEC=`echo $RAPTOR_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 
 AC_SUBST(RAPTOR_VERSION_DEC)
 AC_SUBST(RAPTOR_MIN_VERSION)
 
+RAPTOR2_EXEC_PREFIX=`$PKG_CONFIG raptor2 --variable=exec_prefix 2>/dev/null`
 
 dnl Checks for regex libraries
 have_regex_pcre=0
@@ -900,7 +901,8 @@ AM_CONDITIONAL(RASQAL_QUERY_SPARQL, test $sparql_query_language = yes)
 
 RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $RAPTOR2_CFLAGS"
 RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $RAPTOR2_LIBS"
-RAPPER_PATH=""
+RAPPER_PATH="$RAPTOR2_EXEC_PREFIX/bin"
+
 
 if test $need_regex_pcre = 1; then
   C=`$PCRE_CONFIG --cflags`
