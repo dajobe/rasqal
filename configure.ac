@@ -591,21 +591,21 @@ CPPFLAGS="$oCPPFLAGS"
 LIBS="$oLIBS"
 
 
-AC_CHECK_PROG(LIBGCRYPT_CONFIG, libgcrypt-config, libgcrypt-config)
-AC_ARG_WITH(libgcrypt, [  --with-libgcrypt-config=PATH     Location of GCRYPT libgcrypt-config (auto)], libgcrypt_config="$withval", libgcrypt_config="")
+AC_ARG_WITH(libgcrypt-config, [  --with-libgcrypt-config=PATH     Location of GCRYPT libgcrypt-config (auto)], libgcrypt_config="$withval", libgcrypt_config="")
+if test "X$libgcrypt_config" != "Xno" ; then
+  if test "X$libgcrypt_config" != "X" ; then
+    AC_MSG_CHECKING(for $libgcrypt_config)
 
-if test "X$libgcrypt_config" != "X" ; then
-  AC_MSG_CHECKING(for $libgcrypt_config)
-
-  if test -f $libgcrypt_config ; then
-    GCRYPT_CONFIG=$libgcrypt_config
-    AC_MSG_RESULT(yes)
-  else
-    AC_MSG_RESULT(no - searching PATH)
+    if test -x $libgcrypt_config ; then
+	LIBGCRYPT_CONFIG=$libgcrypt_config
+	AC_MSG_RESULT(yes)
+    else
+	AC_MSG_ERROR([libgcrypt-config not found at specified path $libgcrypt_config])
+    fi
   fi
-fi
-if test "X$LIBGCRYPT_CONFIG" = "X"; then
-  AC_CHECK_PROGS(LIBGCRYPT_CONFIG, libgcrypt-config)
+  if test "X$LIBGCRYPT_CONFIG" = "X" ; then
+    AC_CHECK_PROG(LIBGCRYPT_CONFIG, libgcrypt-config)
+  fi
 fi
 
 AC_CHECK_HEADERS(gcrypt.h)
