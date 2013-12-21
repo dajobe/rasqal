@@ -445,23 +445,23 @@ AC_ARG_ENABLE(pcre,
 
 if test "x$enable_pcre" != "xno" ; then
 
-  AC_CHECK_PROG(PCRE_CONFIG, pcre-config, pcre-config)
-  AC_ARG_WITH(pcre, [  --with-pcre-config=PATH     Location of PCRE pcre-config (auto)], pcre_config="$withval", pcre_config="")
+  AC_ARG_WITH(pcre-config, [  --with-pcre-config=PATH     Location of PCRE pcre-config (auto)], pcre_config="$withval", pcre_config="")
 
-  if test "X$pcre_config" != "X" ; then
-    AC_MSG_CHECKING(for $pcre_config)
+  if test "X$pcre_config" != "Xno" ; then
+    if test "X$pcre_config" != "X" ; then
+      AC_MSG_CHECKING(for $pcre_config)
 
-    if test -f $pcre_config ; then
-      PCRE_CONFIG=$pcre_config
-      AC_MSG_RESULT(yes)
-    else
-      AC_MSG_RESULT(no - searching PATH)
+      if test -x $pcre_config ; then
+	PCRE_CONFIG=$pcre_config
+	AC_MSG_RESULT(yes)
+      else
+	AC_MSG_ERROR([pcre-config not found at specified path $pcre_config])
+      fi
+    fi
+    if test "X$PCRE_CONFIG" = "X" ; then
+      AC_CHECK_PROG(PCRE_CONFIG, pcre-config)
     fi
   fi
-  if test "X$PCRE_CONFIG" = "X"; then
-    AC_CHECK_PROGS(PCRE_CONFIG, pcre-config)
-  fi
-
 
   AC_MSG_CHECKING(for pcre)
   PCRE_VERSION=`$PCRE_CONFIG --version 2>/dev/null`
