@@ -71,7 +71,9 @@
 
 %option extra-type="rasqal_query*"
 
-/* Makes yyget_lval() yyset_lval() and yylval appear */
+/* Makes sparql_lexer_get_lval() sparql_lexer_set_lval() functions
+ * and yylval macro appear 
+ */
 %option bison-bridge
 /* Makes yyget_lloc() yyset_lloc() and yylloc appear */
 /* %option bison-locations */
