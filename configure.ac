@@ -113,37 +113,35 @@ else
 fi
 
 
-AC_PROG_YACC
-BISON_MIN_VERSION=2.0
-BISON_REC_VERSION=2.6
-BISON_VERSION_DEC=0000
+BISON_MIN_VERSION=3.0.0
+AC_CHECK_PROGS(BISON, bison3 bison)
 if test "$USE_MAINTAINER_MODE" = yes; then
   AC_MSG_CHECKING(for GNU bison)
   # Match these styles of versions
   # GNU Bison version 1.28
   # bison (GNU Bison) 1.875
-  BISON_VERSION=`$YACC bison --version 2>&1 | grep "GNU Bison" | head -1 | awk '{print $NF}'`
-  BISON_VERSION_DEC=`echo $BISON_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
-
-  BISON_MIN_VERSION_DEC=`echo $BISON_MIN_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
-
+dnl need to change quotes to allow square brackets
+changequote(<<, >>)dnl
+  BISON_VERSION=`$BISON --version 2>&1 | sed -ne 's/^.*GNU Bison[^0-9]*//p'`
+changequote([, ])dnl
   if test "X$BISON_VERSION" != X; then
+    BISON_VERSION_DEC=`echo $BISON_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+
+    BISON_MIN_VERSION_DEC=`echo $BISON_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+
     if test $BISON_VERSION_DEC -ge $BISON_MIN_VERSION_DEC; then
       AC_MSG_RESULT($BISON_VERSION - OK)
     else
-      AC_MSG_RESULT(version $BISON_VERSION - too old)
+      AC_MSG_RESULT(version $BISON_VERSION is too old)
       AC_MSG_WARN(Please get GNU Bison from http://www.gnu.org/software/bison/)
-      AC_MSG_WARN(version $BISON_MIN_VERSION ($BISON_REC_VERSION recommended))
-      AC_MSG_FAILURE(Bison too old)
+      AC_MSG_WARN(version $BISON_MIN_VERSION or newer)
+      AC_MSG_FAILURE(GNU Bison too old)
     fi
   else
-    AC_MSG_RESULT(not present or $YACC is not GNU Bison)
-    AC_MSG_WARN(Please get GNU Bison from http://www.gnu.org/software/bison/)
-    AC_MSG_WARN(version $BISON_MIN_VERSION ($BISON_REC_VERSION recommended))
-    AC_MSG_FAILURE(Bison not present)
+    AC_MSG_FAILURE($BISON is not GNU bison)
   fi
 fi
-AC_DEFINE_UNQUOTED(BISON_VERSION, $BISON_VERSION_DEC, [Bison version as a decimal])
+AC_SUBST(BISON)
 
 AC_CHECK_PROGS(AWK, awk gawk nawk)
 # Find a tar command for 'make dist'

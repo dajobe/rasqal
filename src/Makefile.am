@@ -202,10 +202,13 @@ sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/../scripts/fi
 	mv sparql_lexer.t $@
 
 sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/../scripts/fix-bison
-	$(YACC) -b sparql_parser -p sparql_parser_ -d -v $(srcdir)/sparql_parser.y
+	$(BISON) $(srcdir)/sparql_parser.y
 	$(PERL) $(srcdir)/../scripts/fix-bison sparql_parser.tab.c > $@
 	mv sparql_parser.tab.h sparql_parser.h
 	rm -f sparql_parser.tab.c
+
+sparql_parser.h: sparql_parser.c ; @exit 0
+
 endif
 
 

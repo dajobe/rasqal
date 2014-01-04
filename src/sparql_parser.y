@@ -40,11 +40,8 @@
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
-/* Pure parser argument (a void*) */
-#define YYPARSE_PARAM rq
 #include <sparql_parser.h>
 
-#define YY_DECL int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner)
 #define YY_NO_UNISTD_H 1
 #include <sparql_lexer.h>
 
@@ -79,30 +76,22 @@
 /* the lexer does not seem to track this */
 #undef RASQAL_SPARQL_USE_ERROR_COLUMNS
 
-/* Missing sparql_lexer.c/h prototypes on Bison < 2.6 */
-#if defined(BISON_VERSION) && BISON_VERSION < 206
-int sparql_lexer_get_column(yyscan_t yyscanner);
-#endif
-
-/* What the lexer wants */
-extern int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t scanner);
-#define YYLEX_PARAM ((rasqal_sparql_query_language*)(((rasqal_query*)rq)->context))->scanner
-
-/* Pure parser argument (a void*) */
-#define YYPARSE_PARAM rq
-
-/* Make the yyerror below use the rdf_parser */
-#undef yyerror
-#define yyerror(message) sparql_query_error((rasqal_query*)rq, message)
+/* Prototypes */ 
+int sparql_parser_error(rasqal_query* rq, void* scanner, const char *msg);
 
 /* Make lex/yacc interface as small as possible */
 #undef yylex
 #define yylex sparql_lexer_lex
 
+/* Make the yyerror below use the rdf_parser */
+#undef yyerror
+#define yyerror(rq, scanner, message) sparql_query_error(rq, message)
 
+/* Prototypes for local functions */
 static int sparql_parse(rasqal_query* rq);
 static void sparql_query_error(rasqal_query* rq, const char *message);
 static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
+
 
 static sparql_uri_applies*
 new_uri_applies(raptor_uri* uri, rasqal_update_graph_applies applies) 
@@ -135,8 +124,32 @@ free_uri_applies(sparql_uri_applies* ua)
 
 /* directives */
 
+%require "3.0.0"
 
-%pure-parser
+/* File prefix (bison -b) */
+%file-prefix "sparql_parser"
+
+/* Symbol prefix (bison -d : deprecated) */
+%name-prefix "sparql_parser_"
+
+/* Write parser header file with macros (bison -d) */
+%defines
+
+/* Write output file with verbose descriptions of parser states */
+%verbose
+
+/* Generate code processing locations */
+ /* %locations */
+
+/* Pure parser - want a reentrant parser  */
+%define api.pure full
+
+/* Push or pull parser? */
+%define api.push-pull pull
+
+/* Pure parser argument: lexer - yylex() and parser - yyparse() */
+%lex-param { yyscan_t yyscanner }
+%parse-param { rasqal_query* rq } { void* yyscanner }
 
 
 /* Interface between lexer and parser */
@@ -5504,7 +5517,7 @@ sparql_parse(rasqal_query* rq)
 
   rqe->error_count = 0;
 
-  sparql_parser_parse(rq);
+  sparql_parser_parse(rq, rqe->scanner);
 
   sparql_lexer_lex_destroy(rqe->scanner);
   rqe->scanner_set = 0;
