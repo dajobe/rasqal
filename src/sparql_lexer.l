@@ -208,9 +208,6 @@ static jmp_buf sparql_lexer_log_error_longjmp_env;
     yyterminate(); \
 } while(0)
 
-/* Do not need input() to to read from stdin */
-#define YY_NO_INPUT 1
-
 %}
 
 LANGTAG "@"[A-Za-z][-A-Z_a-z0-9]*
