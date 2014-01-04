@@ -175,10 +175,10 @@ int sparql_lexer_get_column(yyscan_t yyscanner);
 
 static void sparql_lexer_cleanup(yyscan_t yyscanner);
 
-/* Log error handler wrapper */
 /* Remove the re-fill function since it should never be called */
 #define YY_INPUT(buf,result,max_size) { return YY_NULL; }
 
+/* Log error handler wrapper */
 static void sparql_lexer_log_error(yyconst char *msg, raptor_log_level level, yyscan_t yyscanner);
 
 
@@ -207,6 +207,10 @@ static jmp_buf sparql_lexer_log_error_longjmp_env;
     sparql_lexer_log_error(msg, RAPTOR_LOG_LEVEL_ERROR, yyscanner); \
     yyterminate(); \
 } while(0)
+
+/* Do not need input() to to read from stdin */
+#define YY_NO_INPUT 1
+
 %}
 
 LANGTAG "@"[A-Za-z][-A-Z_a-z0-9]*
