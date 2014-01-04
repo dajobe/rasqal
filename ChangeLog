@@ -1,4 +1,59 @@
-2013-12-13  Dave Beckett  <dave@dajobe.org>
+2014-01-04  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l: Set YY_NO_INPUT
+
+	* src/sparql_lexer.l:
+	Add missing get/set column prototypes.
+
+	debian flex 2.5.35-10.1 added these column header prototypes in
+	re-entrant mode.  standard flex omits them
+
+2014-01-03  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, src/Makefile.am, src/sparql_lexer.l,
+	src/sparql_parser.y:
+	Update to use Bison 3.0
+
+	Update configure check to accept only Bison (not yacc) 3.0.0 or
+	newer
+
+	Updated sparql parser with 3.0 directives
+
+	Updated sparql lexer to add bison bridge
+
+2013-12-21  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac:
+	Set RAPPER_PATH so rapper can be found from
+	pkg-config
+
+	Fixes Issue #0000561
+	http://bugs.librdf.org/mantis/view.php?id=561
+
+	* INSTALL.html: Mention libmtwist near --with-random-approach
+	Suggested by Issue #0000560
+
+	* configure.ac:
+	Make --with-libgcrypt-config work same way as
+	--with-pcre-config
+
+	* configure.ac:
+	Make --with-pcre-config work
+
+	Fixes Issue#0000560
+	http://bugs.librdf.org/mantis/view.php?id=560
+
+2013-12-13  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Fix noisy mhash_dir addition error.
+
+	It always added the cflags and includes even when mhash_dir was
+	blank.
+
+	* RELEASE.html: word
+
+	* NEWS.html, RELEASE.html, configure.ac:
+	Bumped version to 0.9.32
 
 	* Snapshotted rasqal_0_9_31 for 0.9.31 release (GIT fbef8580f666de2cd99eed102fe21422773672a0)
 
