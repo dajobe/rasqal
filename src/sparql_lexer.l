@@ -167,14 +167,18 @@ const char * sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval);
 #define INPUT_FN input
 #endif
 
-/* Remove the re-fill function since it should never be called */
-#define YY_INPUT(buf,result,max_size) { return YY_NULL; }
+/* debian flex 2.5.35-10.1 added these column header prototypes in
+ * re-entrant mode.  standard flex omits them
+ */
+void sparql_lexer_set_column(int column_no, yyscan_t yyscanner);
+int sparql_lexer_get_column(yyscan_t yyscanner);
 
-
-/* flex version 2.5.36 released 2012-07-20 added the column header prototypes */
 static void sparql_lexer_cleanup(yyscan_t yyscanner);
 
 /* Log error handler wrapper */
+/* Remove the re-fill function since it should never be called */
+#define YY_INPUT(buf,result,max_size) { return YY_NULL; }
+
 static void sparql_lexer_log_error(yyconst char *msg, raptor_log_level level, yyscan_t yyscanner);
 
 
