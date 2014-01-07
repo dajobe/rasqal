@@ -458,7 +458,7 @@ if test "x$enable_pcre" != "xno" ; then
       fi
     fi
     if test "X$PCRE_CONFIG" = "X" ; then
-      AC_CHECK_PROG(PCRE_CONFIG, pcre-config)
+      AC_CHECK_PROGS(PCRE_CONFIG, pcre-config)
     fi
   fi
 
@@ -603,7 +603,7 @@ if test "X$libgcrypt_config" != "Xno" ; then
     fi
   fi
   if test "X$LIBGCRYPT_CONFIG" = "X" ; then
-    AC_CHECK_PROG(LIBGCRYPT_CONFIG, libgcrypt-config)
+    AC_CHECK_PROGS(LIBGCRYPT_CONFIG, libgcrypt-config)
   fi
 fi
 
