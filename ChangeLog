@@ -1,4 +1,27 @@
+2014-01-07  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Make ossp work as a uuid library option
+
+	--with-uuid-library=ossp and automatic discovery of ossp UUID now
+	work
+
+	* configure.ac: Use AC_CHECK_PROGS to find pcre-config and
+	libgcrypt-config
+
+	AC_CHECK_PROG doesn't default to setting it as found!
+
 2014-01-04  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_general.c, src/sparql_lexer.l, src/sparql_parser.y:
+	2014
+
+	* src/sparql_parser.y: Remove lots of (rasqal_query*)rq casts no
+	longer needed
+
+	* src/sparql_lexer.l: docs
+
+	* src/sparql_lexer.l: Remove YY_NO_INPUT - do need yyinput() /
+	input()
 
 	* src/sparql_lexer.l: Set YY_NO_INPUT
 
