@@ -13,6 +13,47 @@
 <p>Not yet released.
 </p>
 
+<h3>SPARQL changes</h3>
+
+<p>Updated the SPARQL parser to use and require Bison 3.0 (for
+maintainer, building from GIT sources).
+</p>
+
+<p>Updated the SPARQL lexer for Bison 3.0.
+</p>
+
+<h3>Configuration changes</h3>
+
+<p>Make ossp work as a UUID library option.
+<code>--with-uuid-library=ossp</code> and automatic discovery of ossp
+UUID now work.</p>
+
+<p>Fix the searching for the pcre-config and libgcrypt-config
+configuration utilities.  This probably never worked unless the
+envariables form (PCRE_CONFIG and LIBGCRYPT_CONFIG) were set.
+</p>
+
+<p>Set RAPPER_PATH so <code>rapper(1)</code> can be found from
+<code>pkg-config(1)</code>.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=561">Issue #0000561</a>
+</p>
+
+<p>Make <code>--with-libgcrypt-config</code> work.
+</p>
+
+<p>Make <code>--with-pcre-config</code> work.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=560">Issue# 0000560</a>
+</p>
+
+<p>Fix noisy mhash_dir addition error; it was always added the cflags
+and includes even when mhash_dir was blank.</p>
+
+<h3>Other changes</h3>
+
+<p>Mention libmtwist near <code>--with-random-approach.</code>
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=561">Issue #0000561</a>
+</p>
+
 
 <h2 id="rel0_9_31"><a name="rel0_9_31">Rasqal 0.9.31 changes</a></h2>
 
