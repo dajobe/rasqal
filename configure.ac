@@ -742,7 +742,7 @@ AC_MSG_RESULT($have_uuid_libc)
 
 AC_ARG_WITH(uuid-library, [  --with-uuid-library=NAME   Use UUID library - libuuid, libc (auto)], uuid_library="$withval", uuid_library="")
 
-for uuid_library_name in $uuid_library libuuid libc internal; do
+for uuid_library_name in $uuid_library libuuid ossp libc internal; do
   case $uuid_library_name in
     libuuid)
       if test $have_uuid_libuuid = yes; then
