@@ -1,0 +1,13 @@
+# see
+#   http://about.travis-ci.org/docs/user/getting-started/
+#   http://about.travis-ci.org/docs/user/languages/c/
+#   http://about.travis-ci.org/docs/user/build-configuration/
+#
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq -y gtk-doc-tools libraptor2-dev libgmp-dev libmhash-dev libpcre3-dev uuid-dev
+language: c
+compiler:
+  - gcc
+  - clang
+script: ./autogen.sh && make && make test
