@@ -1,4 +1,24 @@
+2014-01-19  Dave Beckett <dave@dajobe.org>
+
+	* libsv: Update libsv
+
+2014-01-15  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh: Create NEWS and README
+
+2014-01-14  Dave Beckett <dave@dajobe.org>
+
+	* libmtwist, libsv: Update submodules
+
+	* Makefile.am: Fix HTML rules
+
+2014-01-12  Dave Beckett <dave@dajobe.org>
+
+	* .travis.yml: travis CI
+
 2014-01-07  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, RELEASE.html: 0.9.32
 
 	* configure.ac: Make ossp work as a uuid library option
 
