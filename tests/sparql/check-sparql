@@ -211,7 +211,7 @@ sub compare_rdf_graphs($$$) {
   } elsif(defined $ENV{JENAROOT}) {
     my $j = $ENV{JENAROOT};
     my $classpath=join(':',glob("$j/lib/*jar"));
-    $cmd = qq{java -cp $classpath jena.rdfcompare '$file1' '$file2' N-TRIPLE N-TRIPLE > '$out'};
+    $cmd = qq{java -cp $classpath jena.rdfcompare '$file1' '$file2' N-TRIPLE N-TRIPLE >'$out'};
     $rc = system($cmd);
     if($rc) {
       $cmd = "$diff_cmd -u '$file1' '$file2' >'$out'";
@@ -349,7 +349,7 @@ sub run_test {
 
   if(defined $test_type && $test_type eq "${mf}CSVResultFormatTest") {
     my $file = $result_file; $file =~ s%^file://%%;
-    my $cmd = "$diff_cmd -u '$roqet_tmp' '$file' > $diff_out";
+    my $cmd = "$diff_cmd -u '$roqet_tmp' '$file' >'$diff_out'";
     $rc = system($cmd);
     if($rc) {
       warn "$program: '$name' FAILED\n";
@@ -407,7 +407,7 @@ sub run_test {
       my $line=$_;
 
       if($first_result) {
-        open(OUT, "|$sort >$roqet_out") or die "$program: Cannot create pipe to $roqet_out - $!\n";
+        open(OUT, "|$sort >'$roqet_out'") or die "$program: Cannot create pipe to $roqet_out - $!\n";
 	$first_result=0;
       }
 
@@ -419,7 +419,7 @@ sub run_test {
     if(m/^[_<]/) {
       my $line = $_;
       if($first_result) {
-        open(OUT, "|$sort -u >$roqet_out") or die "$program: Cannot create pipe to $roqet_out - $!\n";
+        open(OUT, "|$sort -u >'$roqet_out'") or die "$program: Cannot create pipe to $roqet_out - $!\n";
         $first_result=0;
       }
 
@@ -510,7 +510,7 @@ sub run_test {
 
   my $count;
   if($result_type eq 'bindings') {
-    open(OUT, "|$sort >$result_out")
+    open(OUT, "|$sort >'$result_out'")
       or die "$program: Cannot create pipe to $result_out - $!\n";
 
     $count=0;
@@ -525,7 +525,7 @@ sub run_test {
     $test_result->{'actual-results-count'} = $roqet_results_count;
   } else {
     # graph: sort N-Triples in attempt to get canonical graph
-    open(OUT, "| sort -u >$result_out")
+    open(OUT, "| sort -u >'$result_out'")
       or die "$program: Cannot create pipe to $result_out - $!\n";
     print OUT $results->{graph_ntriples}
       if exists $results->{graph_ntriples};
