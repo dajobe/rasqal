@@ -1,3 +1,26 @@
+2014-01-26  Dave Beckett <dave@dajobe.org>
+
+	* libsv:
+	update libsv
+
+2014-01-26  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Reverting "Make libsv into a config subdir"
+
+	Revert "Make libsv into a config subdir" This reverts commit
+	a453c53656de630709a9b61854b90f8aa6d1c32b.
+
+	* configure.ac: Make libsv into a config subdir
+
+2014-01-25  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: Tidy redirect syntax
+
+2014-01-22  Dave Beckett <dave@dajobe.org>
+
+	* INSTALL.html, LICENSE.html, NEWS.html, README.html,
+	RELEASE.html, TODO.html: 2014
+
 2014-01-19  Dave Beckett <dave@dajobe.org>
 
 	* libsv: Update libsv
