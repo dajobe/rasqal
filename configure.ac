@@ -1330,12 +1330,13 @@ AC_SUBST(abs_top_builddir)
 dnl automake 1.11
 AM_SILENT_RULES([no])
 
+AC_CONFIG_SUBDIRS([libsv])
+
 AC_CONFIG_FILES([Makefile
 data/Makefile
 docs/Makefile
 docs/version.xml
 scripts/Makefile
-libsv/Makefile
 libmtwist/Makefile
 getopt/Makefile
 src/Makefile
