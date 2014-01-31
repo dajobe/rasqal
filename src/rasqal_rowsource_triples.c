@@ -473,7 +473,7 @@ main(int argc, char *argv[])
   int end_column;
   int rc;
   raptor_sequence* triples;
-  rasqal_triples_source* triples_source;
+  rasqal_triples_source* triples_source = NULL;
   raptor_uri *base_uri = NULL;
   unsigned char *data_string = NULL;
   unsigned char *uri_string = NULL;

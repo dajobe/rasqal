@@ -24,15 +24,25 @@ noinst_SCRIPTS = rasqal-src-config
 
 ACLOCAL_AMFLAGS = -I build
 
-SUBDIRS=src utils tests docs data win32 scripts
+SUBDIRS = libsv
+if RASQAL_MTWIST
+SUBDIRS += libmtwist
+endif
+if GETOPT
+SUBDIRS += getopt
+endif
+SUBDIRS += src utils tests docs data win32 scripts
+
+DIST_SUBDIRS=libsv libmtwist getopt src utils tests docs data win32 scripts
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = rasqal.pc
 
 
-EXTRA_DIST=ChangeLog ChangeLog.1 ChangeLog.2 ChangeLog.3 ChangeLog.4 \
-ChangeLog.5 ChangeLog.6 ChangeLog.7 ChangeLog.8 \
-README      NEWS      LICENSE.txt \
+EXTRA_DIST=\
+ChangeLog.1 ChangeLog.2 ChangeLog.3 ChangeLog.4 ChangeLog.5 \
+ChangeLog.6 ChangeLog.7 ChangeLog.8 ChangeLog.9 ChangeLog.10 \
+README                LICENSE.txt \
 README.html NEWS.html LICENSE.html INSTALL.html \
 RELEASE.html \
 LICENSE-2.0.txt NOTICE \
@@ -45,6 +55,8 @@ rasqal.pc.in
 
 DISTCHECK_CONFIGURE_FLAGS=--enable-gtk-doc
 
+if MAINTAINER_MODE
+
 # Create some text files from HTML sources
 LYNX=lynx
 HTML_TO_TEXT=TERM=vt100 $(LYNX) -dump -nolist
@@ -54,8 +66,13 @@ SUFFIXES = .html .txt
 .html.txt:
 	$(HTML_TO_TEXT) $< > $@
 
-README: README.html
+$(srcdir)/README: $(srcdir)/README.html
 	$(HTML_TO_TEXT) $< > $@
 
-NEWS: NEWS.html
+$(srcdir)/NEWS: $(srcdir)/NEWS.html
 	$(HTML_TO_TEXT) $< > $@
+
+endif
+
+# Some people need a little help ;-)
+test: check

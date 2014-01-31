@@ -21,9 +21,6 @@
 # 
 
 SUBDIRS= algebra engine
-if RASQAL_QUERY_RDQL
-SUBDIRS += rdql
-endif
 if RASQAL_QUERY_SPARQL
 SUBDIRS += sparql
 endif

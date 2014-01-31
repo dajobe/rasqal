@@ -78,6 +78,7 @@ operators on the Decimals suitable for SPARQL.
 
 @d1: 
 @d2: 
+@incomparible_p: 
 @Returns: 
 
 
@@ -191,6 +192,17 @@ operators on the Decimals suitable for SPARQL.
 
 @dt1: 
 @dt2: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_datetime_equals2 ##### -->
+<para>
+
+</para>
+
+@dt1: 
+@dt2: 
+@incomparible_p: 
 @Returns: 
 
 

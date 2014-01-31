@@ -168,10 +168,11 @@ option.
 </p></dd>
 
 <dt><code>--enable-query-languages=</code><em>LANGUAGES</em><br /></dt>
-<dd><p>Pick the RDF query languages to build from the list:<br />
-<code>rdql sparql laqrs</code><br />
+<dd><p>Select the RDF query languages to build from the list:<br />
+<code>sparql laqrs</code><br />
 The default when this option is omitted is to enable all query languages
-except the experimental one, laqrs.
+except the experimental one, laqrs.  <em>LANGUAGES</em> takes a
+space-separated value.
 </p>
 </dd>
 
@@ -181,16 +182,24 @@ except the experimental one, laqrs.
 option.
 </p></dd>
 
+<dt><code>--with-digest-library=</code><em>NAME</em><br /></dt>
+<dd><p>Pick the message digest library approach to use from the
+choices of <tt>mhash</tt> (the default when available),
+<tt>gcrypt</tt> (when libgcrypt is available) and <tt>internal</tt>
+(always available, providing only MD5 and SHA1).
+</p></dd>
+
 <dt><code>--with-gmp=</code><em>PATH</em><br /></dt>
 <dd><p>Set the installation path for the
 <a href="http://gmplib.org/">GNU Multiple Precision Arithmetic Library (GMP)</a>
 if it is not in the standard lib/include prefix.
 </p></dd>
 
-<dt><code>--with-mpfr=</code><em>PATH</em><br /></dt>
-<dd><p>Set the installation path for the
-<a href="http://www.mpfr.org/">GNU multiple-precision floating-point library (MPFR)</a>
-if it is not in the standard lib/include prefix.
+<dt><code>--with-libgcrypt-config=</code><em>PATH</em><br /></dt>
+<dd><p>Set the path of the libgcrypt <code>libgcrypt-config</code>
+program that provides the compiling and linking flags.  Enables
+libgcrypt for use as a message digest.
+See also <code>--with-digest-library</code>
 </p></dd>
 
 <dt><code>--with-memory-signing</code><br /></dt>
@@ -198,15 +207,20 @@ if it is not in the standard lib/include prefix.
 allocated with malloc() and released free(), a check is made that the
 memory was allocated in the same library.</p></dd>
 
-<dt><code>--with-random-approach=</code>ALGO<br /></dt>
+<dt><code>--with-mpfr=</code><em>PATH</em><br /></dt>
+<dd><p>Set the installation path for the
+<a href="http://www.mpfr.org/">GNU multiple-precision floating-point library (MPFR)</a>
+if it is not in the standard lib/include prefix.
+</p></dd>
+
+<dt><code>--with-random-approach=</code><em>ALGO</em><br /></dt>
 <dd><p>Pick the random number generator approach to use from the
-choices of <tt>mtwist</tt> (the default), <tt>gmp</tt> (when GMP is
-available and used for decimals), <tt>random_r</tt> (glibc
-initstate_r and random_r), <tt>rand_r</tt> (POSIX
-rand_r), <tt>random</tt> (BSD initstate and random) and <tt>rand</tt>
-(POSIX srand and rand).
-</p>
-</dd>
+choices of <tt>mtwist</tt> (the default - this is bundled with rasqal
+and can be used without any additional installs), <tt>gmp</tt> (when
+GMP is available and used for decimals), <tt>random_r</tt> (glibc
+initstate_r and random_r), <tt>rand_r</tt> (POSIX rand_r),
+<tt>random</tt> (BSD initstate and random) and <tt>rand</tt> (POSIX
+srand and rand).  </p></dd>
 
 <dt><code>--with-regex-library=</code>NAME<br /></dt>
 <dd><p>Pick a regex library to use - either <tt>pcre</tt> (default)
@@ -335,7 +349,7 @@ or read the HTML version in docs/roqet.html or on the
 
 <hr />
 
-<p>Copyright (C) 2003-2012 <a href="http://www.dajobe.org/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
+<p>Copyright (C) 2003-2014 <a href="http://www.dajobe.org/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
 
 </body>
 </html>

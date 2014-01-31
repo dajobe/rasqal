@@ -286,6 +286,8 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_expression *e,
   if(!dt_uri)
     goto failed;
   
+  rasqal_free_literal(l);
+
   /* after this s and dt_uri are owned by the result literal */
   return rasqal_new_string_literal(world, s, NULL, dt_uri, NULL);
 
@@ -334,6 +336,8 @@ rasqal_expression_evaluate_datetime_tz(rasqal_expression *e,
   if(!s)
     goto failed;
   
+  rasqal_free_literal(l);
+
   /* after this s is owned by the result literal */
   return rasqal_new_string_literal(world, s, NULL, NULL, NULL);
 

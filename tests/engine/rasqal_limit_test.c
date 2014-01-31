@@ -186,7 +186,7 @@ main(int argc, char **argv) {
         return(1);
       }
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       fprintf(stderr, 
               "%s: preparing query %d test %d - %s\n", program, query_i, test_i,
               query_string);
@@ -202,7 +202,7 @@ main(int argc, char **argv) {
         rasqal_query_set_offset(query, test->offset);
       }
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       fprintf(stderr, "%s: executing query %d test %d\n", program, query_i,
               test_i);
 #endif
@@ -270,7 +270,7 @@ main(int argc, char **argv) {
       if(!test_ok) {
         tests_failed_count++;
       } else {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
         fprintf(stderr, "%s: query %d test %d OK\n", program, query_i, test_i);
 #endif
       }

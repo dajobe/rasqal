@@ -163,7 +163,7 @@ rasqal_init_graph_factory(rasqal_world *world,
 void
 rasqal_free_graph_factory(rasqal_world *world)
 {
-  rasqal_graph_factory *factory;
+  rasqal_graph_factory *factory = NULL;
 
   if(!world)
     return;

@@ -1,0 +1,12 @@
+*.a
+*.deps
+*.dylib
+*.libs
+*.lo
+*.o
+*.plist
+*.so*
+*~
+Makefile
+Makefile.in
+libgetopt.la

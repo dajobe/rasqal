@@ -383,6 +383,34 @@ rasqal_query_results_get_type(rasqal_query_results* query_results)
 }
 
 
+static const char* const rasqal_query_results_type_labels[RASQAL_QUERY_RESULTS_LAST + 1] = {
+  "Bindings",
+  "Boolean",
+  "Graph",
+  "Syntax",
+  "Unknown"
+};
+
+
+
+/**
+ * rasqal_query_results_type_label:
+ * @type: #rasqal_query_results_type type
+ *
+ * Get a label for a query results type
+ *
+ * Return value: label or NULL on failure (invalid type)
+ **/
+const char*
+rasqal_query_results_type_label(rasqal_query_results_type type)
+{
+  if(type > RASQAL_QUERY_RESULTS_LAST)
+    type = RASQAL_QUERY_RESULTS_UNKNOWN;
+
+  return rasqal_query_results_type_labels[RASQAL_GOOD_CAST(int, type)];
+}
+
+
 /**
  * rasqal_query_results_is_bindings:
  * @query_results: #rasqal_query_results object
@@ -1051,7 +1079,7 @@ rasqal_prefix_id(int prefix_id, unsigned char *string)
 {
   int tmpid = prefix_id;
   unsigned char* buffer;
-  size_t length = strlen(RASQAL_GOOD_CAST(const char*, string)) + 4;  /* "r" +... + "_" +... \0 */
+  size_t length = strlen(RASQAL_GOOD_CAST(const char*, string)) + 4;  /* "r" +... + "q" +... \0 */
 
   while(tmpid /= 10)
     length++;
@@ -1060,7 +1088,7 @@ rasqal_prefix_id(int prefix_id, unsigned char *string)
   if(!buffer)
     return NULL;
   
-  sprintf(RASQAL_GOOD_CAST(char*, buffer), "r%d_%s", prefix_id, string);
+  sprintf(RASQAL_GOOD_CAST(char*, buffer), "r%dq%s", prefix_id, string);
   
   return buffer;
 }
@@ -1102,12 +1130,8 @@ rasqal_literal_to_result_term(rasqal_query_results* query_results,
                                       RASQAL_LITERAL_BLANK,
                                       nodeid);
 
-      if(!nodeid || !l) {
-        rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_FATAL,
-                                NULL,
-                                "Could not create a new blank identifier");
+      if(!nodeid || !l)
         goto done;
-      }
       
       t = raptor_new_term_from_blank(query_results->world->raptor_world_ptr,
                                      nodeid);
@@ -1169,7 +1193,6 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
   int rc;
   rasqal_triple *t;
   raptor_statement *rs = NULL;
-  int skipped;
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, NULL);
 
@@ -1191,21 +1214,9 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
   if(rasqal_query_results_ensure_have_row_internal(query_results))
     return NULL;
 
-  skipped = 0;
   while(1) {
-    if(skipped) {
-      /* Had to move to next triple internally */
-      skipped = 0;
+    int skip = 0;
 
-      rc = rasqal_query_results_next_internal(query_results);
-      if(rc) {
-        /* end of results or failed */
-        rs = NULL;
-        break;
-      }
-      query_results->current_triple_result = -1;
-    }
-    
     if(query_results->current_triple_result < 0)
       query_results->current_triple_result = 0;
 
@@ -1222,7 +1233,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
                                 RASQAL_WARNING_LEVEL_BAD_TRIPLE,
                                 &query->locator,
                                 "Triple with non-RDF subject term skipped");
-      skipped = 1;
+      skip = 1;
     } else {
       rs->predicate = rasqal_literal_to_result_term(query_results, t->predicate);
       if(!rs->predicate || rs->predicate->type != RAPTOR_TERM_TYPE_URI) {
@@ -1230,7 +1241,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
                                   RASQAL_WARNING_LEVEL_BAD_TRIPLE,
                                   &query->locator,
                                   "Triple with non-RDF predicate term skipped");
-        skipped = 1;
+        skip = 1;
       } else {
         rs->object = rasqal_literal_to_result_term(query_results, t->object);
         if(!rs->object) {
@@ -1238,13 +1249,23 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
                                     RASQAL_WARNING_LEVEL_BAD_TRIPLE,
                                     &query->locator,
                                     "Triple with non-RDF object term skipped");
-          skipped = 1;
-        } else {
-          /* got triple, return it */
-          break;
-        }
+          skip = 1;
+        } 
       }
     }
+
+    if(!skip)
+      /* got triple, return it */
+      break;
+
+    /* Have to move to next triple internally */
+    rc = rasqal_query_results_next_internal(query_results);
+    if(rc) {
+      /* end of results or failed */
+      rs = NULL;
+      break;
+    }
+    query_results->current_triple_result = -1;
   }
   
   return rs;

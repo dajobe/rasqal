@@ -81,8 +81,8 @@ rasqal_engine_rowsort_row_compare(void* user_data, const void *a, const void *b)
   rowsort_compare_data* rcd;
   int result = 0;
   rcd = (rowsort_compare_data*)user_data;
-  row_a = *(rasqal_row**)a;
-  row_b = *(rasqal_row**)b;
+  row_a = (rasqal_row*)a;
+  row_b = (rasqal_row*)b;
 
   if(rcd->is_distinct) {
     result = !rasqal_literal_array_equals(row_a->values, row_b->values,
@@ -142,6 +142,10 @@ rasqal_engine_new_rowsort_map(int is_distinct, int compare_flags,
     return NULL;
   
   rcd->is_distinct = is_distinct;
+  if(is_distinct) {
+    compare_flags &= ~RASQAL_COMPARE_XQUERY;
+    compare_flags |= RASQAL_COMPARE_RDF;
+  }
   rcd->compare_flags = compare_flags;
   rcd->order_conditions_sequence = order_conditions_sequence;
   
@@ -160,7 +164,8 @@ rasqal_engine_new_rowsort_map(int is_distinct, int compare_flags,
  * @map: row map
  * @row: row to add
  *
- * INTERNAL - Add a row o a rowsort_map for sorting
+ * INTERNAL - Add a row to a rowsort_map for sorting.  The row
+ * becomes owned by the map
  *
  * return value: non-0 if the row was a duplicate (and not added)
  */

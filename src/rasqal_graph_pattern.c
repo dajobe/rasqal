@@ -222,6 +222,7 @@ rasqal_new_let_graph_pattern(rasqal_query *query,
  * @data_graphs: sequence of #rasqal_data_graph (or NULL)
  * @where: WHERE graph pattern
  * @modifier: solution modifier
+ * @bindings: binding VALUES (or NULL)
  *
  * INTERNAL - Create a new SELECT graph pattern
  *
@@ -241,7 +242,8 @@ rasqal_new_select_graph_pattern(rasqal_query *query,
                                 rasqal_projection* projection,
                                 raptor_sequence* data_graphs,
                                 rasqal_graph_pattern* where,
-                                rasqal_solution_modifier* modifier)
+                                rasqal_solution_modifier* modifier,
+                                rasqal_bindings* bindings)
 {
   rasqal_graph_pattern* gp;
 
@@ -258,12 +260,16 @@ rasqal_new_select_graph_pattern(rasqal_query *query,
     if(modifier)
       rasqal_free_solution_modifier(modifier);
 
+    if(bindings)
+      rasqal_free_bindings(bindings);
+
     return NULL;
   }
 
   gp->projection = projection;
   gp->data_graphs = data_graphs;
   gp->modifier = modifier;
+  gp->bindings = bindings;
   
   if(rasqal_graph_pattern_add_sub_graph_pattern(gp, where)) {
     rasqal_free_graph_pattern(gp);
@@ -339,6 +345,12 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->data_graphs)
     raptor_free_sequence(gp->data_graphs);
   
+  if(gp->var)
+    rasqal_free_variable(gp->var);
+
+  if(gp->bindings)
+    rasqal_free_bindings(gp->bindings);
+
   RASQAL_FREE(rasqal_graph_pattern, gp);
 }
 
@@ -432,7 +444,8 @@ static const char* const rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTE
   "Let",
   "Select",
   "Service",
-  "Minus"
+  "Minus",
+  "Values"
 };
 
 
@@ -673,7 +686,6 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
   }
 
   if(gp->projection) {
-    int i;
     raptor_sequence* vars_seq;
     
     if(pending_nl) {
@@ -693,19 +705,58 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
 
     raptor_iostream_counted_string_write("select-variables: [", 19, iostr);
     vars_seq = rasqal_projection_get_variables_sequence(gp->projection);
-    if(!vars_seq) {
+    if(!vars_seq)
       raptor_iostream_write_byte('*', iostr);
-    } else {
-      for(i = 0; i < raptor_sequence_size(vars_seq); i++) {
-        rasqal_variable* v;
-        v = (rasqal_variable*)raptor_sequence_get_at(vars_seq, i);
+    else
+      rasqal_variables_write(vars_seq, iostr);
+    raptor_iostream_counted_string_write("]", 1, iostr);
+    
+    if(indent >= 0)
+      indent -= 2;
 
-        if(i > 0)
-          raptor_iostream_counted_string_write(", ", 2, iostr);
+    pending_nl = 1;
+  }
 
-        rasqal_variable_write(v, iostr);
+  if(gp->bindings) {
+    int i;
+
+    if(pending_nl) {
+      raptor_iostream_counted_string_write(" ,", 2, iostr);
+
+      if(indent >= 0) {
+        raptor_iostream_write_byte('\n', iostr);
+        rasqal_graph_pattern_write_indent(iostr, indent);
       }
     }
+
+    raptor_iostream_counted_string_write("bindings: [", 11, iostr);
+    if(indent >= 0) {
+      raptor_iostream_write_byte('\n', iostr);
+      indent += 2;
+      rasqal_graph_pattern_write_indent(iostr, indent);
+    }
+
+    raptor_iostream_counted_string_write("variables: [", 12, iostr);
+    rasqal_variables_write(gp->bindings->variables, iostr);
+    raptor_iostream_counted_string_write("]\n", 2, iostr);
+
+    rasqal_graph_pattern_write_indent(iostr, indent);
+    raptor_iostream_counted_string_write("rows: [", 7, iostr);
+
+    indent += 2;
+    for(i = 0; 1; i++) {
+      rasqal_row* row = rasqal_bindings_get_row(gp->bindings, i);
+      if(!row)
+        break;
+
+      raptor_iostream_write_byte('\n', iostr);
+      rasqal_graph_pattern_write_indent(iostr, indent);
+      rasqal_row_write(row, iostr);
+    }
+    indent -= 2;
+
+    raptor_iostream_write_byte('\n', iostr);
+    rasqal_graph_pattern_write_indent(iostr, indent);
     raptor_iostream_counted_string_write("]", 1, iostr);
     
     if(indent >= 0)
@@ -1084,19 +1135,19 @@ rasqal_new_2_group_graph_pattern(rasqal_query* query,
  * @gp: graph pattern
  * @v: variable
  *
- * Is a variable bound in a graph pattern?
+ * Is the variable bound in this graph pattern (not including children)?
  *
  * Return value: non-0 if variable is bound in the given graph pattern.
  */
 int
 rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp,
-                                       rasqal_variable *v) 
+                                       rasqal_variable *v)
 {
   rasqal_query* query;
   int width;
   int gp_offset;
   unsigned short *row;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, 0);
   
   query = gp->query;
@@ -1105,6 +1156,46 @@ rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp,
   row = &query->variables_use_map[gp_offset];
 
   return ((row[v->offset] & RASQAL_VAR_USE_BOUND_HERE) != 0);
+}
+
+
+
+/*
+ * rasqal_graph_pattern_variable_bound_below:
+ * @gp: graph pattern
+ * @v: variable
+ *
+ * INTERNAL - Is the variable bound in the graph pattern or below?
+ *
+ * Return value: non-0 if variable is bound in the graph pattern tree
+ */
+int
+rasqal_graph_pattern_variable_bound_below(rasqal_graph_pattern *gp,
+                                          rasqal_variable *v)
+{
+  int bound;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, 0);
+
+  bound = rasqal_graph_pattern_variable_bound_in(gp, v);
+  if(bound)
+    return bound;
+
+  if(gp->graph_patterns) {
+    int size = raptor_sequence_size(gp->graph_patterns);
+    int i;
+    
+    for(i = 0; i < size; i++) {
+      rasqal_graph_pattern *sgp;
+
+      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      bound = rasqal_graph_pattern_variable_bound_below(sgp, v);
+      if(bound)
+        break;
+    }
+  }
+  
+  return bound;
 }
 
 
@@ -1144,6 +1235,32 @@ rasqal_new_basic_graph_pattern_from_triples(rasqal_query* query,
   gp = rasqal_new_basic_graph_pattern(query, graph_triples,
                                       offset, 
                                       offset + triple_pattern_size - 1);
+
+  return gp;
+}
+
+
+/**
+ * rasqal_new_values_graph_pattern:
+ * @query: #rasqal_graph_pattern query object
+ * @bindings: bindings object
+ *
+ * INTERNAL - Create a new values graph pattern object from a bindings
+ *
+ * The @bindings becomes owned by the graph pattern
+ *
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_values_graph_pattern(rasqal_query* query,
+                                rasqal_bindings* bindings)
+{
+  rasqal_graph_pattern* gp;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+
+  gp = rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_VALUES);
+  gp->bindings = bindings;
 
   return gp;
 }
@@ -1282,4 +1399,67 @@ rasqal_graph_pattern_get_flattened_triples(rasqal_query* query,
   }
 
   return state.triples;
+}
+
+
+
+struct find_parent_data {
+  rasqal_graph_pattern* child_gp;
+  rasqal_graph_pattern* parent_gp;
+};
+
+static int
+rasqal_graph_pattern_find_parent(rasqal_query* query,
+                                 rasqal_graph_pattern* gp,
+                                 void* data)
+{
+  struct find_parent_data* fpd = (struct find_parent_data*)data;
+  int i;
+
+  if(gp->graph_patterns) {
+    int size = raptor_sequence_size(gp->graph_patterns);
+
+    for(i = 0; i< size; i++) {
+      rasqal_graph_pattern* sgp;
+      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      if(sgp == fpd->child_gp) {
+        fpd->parent_gp = gp;
+        /* Found - truncate search */
+        return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+
+
+/**
+ * rasqal_graph_pattern_get_parent:
+ * @query: query
+ * @gp: graph pattern to find parent
+ * @tree_gp: graph pattern tree to search for @gp
+ *
+ * Find the parent graph pattern of @gp in the tree of graph patterns @gp_tree
+ *
+ * Return value: pointer to parent GP or NULL on error/not found
+ */
+rasqal_graph_pattern*
+rasqal_graph_pattern_get_parent(rasqal_query *query,
+                                rasqal_graph_pattern* gp,
+                                rasqal_graph_pattern* tree_gp)
+{
+  struct find_parent_data fpd;
+
+  fpd.child_gp = gp;
+  fpd.parent_gp = NULL;
+
+  if(gp == tree_gp || gp == query->query_graph_pattern)
+    return NULL;
+
+  (void)rasqal_graph_pattern_visit(query, tree_gp,
+                                   rasqal_graph_pattern_find_parent,
+                                   &fpd);
+
+  return fpd.parent_gp;
 }

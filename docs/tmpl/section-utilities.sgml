@@ -1,0 +1,39 @@
+<!-- ##### SECTION Title ##### -->
+Utilities
+
+<!-- ##### SECTION Short_Description ##### -->
+Utility functions.
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+Miscellaneous utility functions.
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### FUNCTION rasqal_regex_replace ##### -->
+<para>
+
+</para>
+
+@world: 
+@locator: 
+@pattern: 
+@regex_flags: 
+@subject: 
+@subject_len: 
+@replace: 
+@replace_len: 
+@result_len_p: 
+@Returns: 
+
+

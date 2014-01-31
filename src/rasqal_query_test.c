@@ -49,17 +49,7 @@
          WHERE \
          { $person $x foaf:Person }"
 #else
-#ifdef RASQAL_QUERY_RDQL
-#define QUERY_LANGUAGE "rdql"
-#define QUERY_FORMAT "SELECT ?person \
-         FROM <%s> \
-         WHERE \
-         (?person, ?x, foaf:Person) USING \
-         rdf FOR <http://www.w3.org/1999/02/22-rdf-syntax-ns#>, \
-         foaf FOR <http://xmlns.com/foaf/0.1/>"
-#else
 #define NO_QUERY_LANGUAGE
-#endif
 #endif
 
 #define EXPECTED_RESULTS_COUNT 1

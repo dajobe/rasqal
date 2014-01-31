@@ -22,13 +22,13 @@ dnl the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 dnl 
 
 
-AC_PREREQ(2.62)
-AC_INIT(Rasqal RDF Query Library, 0.9.29, http://bugs.librdf.org/, rasqal)
+AC_PREREQ([2.62])
+AC_INIT([Rasqal RDF Query Library],[0.9.32],[http://bugs.librdf.org/],[rasqal])
 AC_CONFIG_SRCDIR([src/rasqal_general.c])
-AM_CONFIG_HEADER([src/rasqal_config.h])
+AC_CONFIG_HEADERS([src/rasqal_config.h])
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR(build)
-AM_INIT_AUTOMAKE([1.11 check-news std-options -Wall -Wextra-portability])
+AM_INIT_AUTOMAKE([1.11 check-news std-options -Wobsolete -Wportability -Wsyntax -Wunsupported -Wextra-portability])
 
 AM_MAINTAINER_MODE
 
@@ -50,34 +50,42 @@ AM_SANITY_CHECK
 AM_PROG_AR
 AC_PROG_CC
 AM_PROG_CC_C_O
+AC_MSG_CHECKING(whether $CC is clang)
+CC_IS_CLANG=no
+if $CC 2>&1 | grep clang >/dev/null 2>&1; then
+  CC_IS_CLANG=yes
+else
+  :
+fi
+AC_MSG_RESULT($CC_IS_CLANG)
 
-m4_undefine([AC_PROG_CXX])
-m4_defun([AC_PROG_CXX],[])
-m4_undefine([AC_PROG_F77])
-m4_defun([AC_PROG_F77],[])
-AC_PROG_LIBTOOL
+dnl Initialize libtool
+LT_INIT
+
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 
 
-AM_PROG_LEX
-if test "X$LEX" != "X:" ; then
-  if echo "$LEX" | grep flex >/dev/null 2>&1; then
-    :
-  else
-    LEX="$SHELL $missing_dir/missing flex"
-    AC_SUBST(LEX_OUTPUT_ROOT, lex.yy)
-    AC_SUBST(LEXLIB, '')
-  fi
-fi
- 
 FLEX_MIN_VERSION=2.5.19
-FLEX_REC_VERSION=2.5.33
+FLEX_REC_VERSION=2.5.36
+
+# Do not want AM_PROG_LEX which adds 'missing' to LEX if it's not around
+AC_PROG_LEX
+AC_MSG_CHECKING(flex)
 if test "$USE_MAINTAINER_MODE" = yes; then
-  AC_MSG_CHECKING(flex version)
-  if test "X$LEX" != "X:"; then
-    FLEX_VERSION=`$LEX -V 2>&1 | $AWK '{print $NF}'`
+  # maintainer mode - flex is required
+  if test "X$LEX" = "X:" ; then
+    AC_MSG_RESULT(not present)
+    AC_MSG_WARN(Please get flex from http://flex.sourceforge.net/)
+    AC_MSG_WARN(version $FLEX_MIN_VERSION ($FLEX_REC_VERSION recommended))
+    AC_MSG_FAILURE(flex not present)
+  fi
+
+  # some kind of lexer is present
+  if echo "$LEX" | grep flex >/dev/null 2>&1; then
+    # flex is present
+    FLEX_VERSION=`$LEX -V 2>&1 | $AWK '{print $2}'`
     FLEX_VERSION_DEC=`echo $FLEX_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 
     FLEX_MIN_VERSION_DEC=`echo $FLEX_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
@@ -88,17 +96,25 @@ if test "$USE_MAINTAINER_MODE" = yes; then
       AC_MSG_RESULT(version $FLEX_VERSION - too old)
       AC_MSG_WARN(Please get flex from http://flex.sourceforge.net/)
       AC_MSG_WARN(version $FLEX_MIN_VERSION ($FLEX_REC_VERSION recommended))
-      AC_MSG_FAILURE(flex too old)
+      AC_MSG_FAILURE(flex is too old)
     fi
   else
-    AC_MSG_RESULT(not present)
+    AC_MSG_RESULT(present - but is not flex)
     AC_MSG_WARN(Please get flex from http://flex.sourceforge.net/)
     AC_MSG_WARN(version $FLEX_MIN_VERSION ($FLEX_REC_VERSION recommended))
-    AC_MSG_FAILURE(flex not present)
+    AC_MSG_FAILURE($LEX is not not flex)
   fi
+else
+  # not maintainer mode; flex is not required
+  AC_MSG_RESULT(not present - not required for non maintainer builds)
+  LEX="$SHELL $missing_dir/missing flex"
+  AC_SUBST(LEX_OUTPUT_ROOT, lex.yy)
+  AC_SUBST(LEXLIB, '')
 fi
 
-AC_PROG_YACC
+
+BISON_MIN_VERSION=3.0.0
+AC_CHECK_PROGS(BISON, bison3 bison)
 if test "$USE_MAINTAINER_MODE" = yes; then
   AC_MSG_CHECKING(for GNU bison)
   # Match these styles of versions
@@ -106,15 +122,26 @@ if test "$USE_MAINTAINER_MODE" = yes; then
   # bison (GNU Bison) 1.875
 dnl need to change quotes to allow square brackets
 changequote(<<, >>)dnl
-  YACC_VERSION=`$YACC --version 2>&1 | sed -ne 's/^.*GNU Bison[^0-9]*//p'`
+  BISON_VERSION=`$BISON --version 2>&1 | sed -ne 's/^.*GNU Bison[^0-9]*//p'`
 changequote([, ])dnl
-  if test "X$YACC_VERSION" != X; then
-    AC_MSG_RESULT($YACC_VERSION - OK)
+  if test "X$BISON_VERSION" != X; then
+    BISON_VERSION_DEC=`echo $BISON_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+
+    BISON_MIN_VERSION_DEC=`echo $BISON_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+
+    if test $BISON_VERSION_DEC -ge $BISON_MIN_VERSION_DEC; then
+      AC_MSG_RESULT($BISON_VERSION - OK)
+    else
+      AC_MSG_RESULT(version $BISON_VERSION is too old)
+      AC_MSG_WARN(Please get GNU Bison from http://www.gnu.org/software/bison/)
+      AC_MSG_WARN(version $BISON_MIN_VERSION or newer)
+      AC_MSG_FAILURE(GNU Bison too old)
+    fi
   else
-    AC_MSG_FAILURE($YACC is not GNU bison)
+    AC_MSG_FAILURE($BISON is not GNU bison)
   fi
 fi
-
+AC_SUBST(BISON)
 
 AC_CHECK_PROGS(AWK, awk gawk nawk)
 # Find a tar command for 'make dist'
@@ -150,6 +177,10 @@ dnl compiler checks
 AC_DEFUN([REDLAND_CC_TRY_FLAG], [
   AC_MSG_CHECKING([whether $CC supports $1])
   redland_save_CFLAGS="$CFLAGS"
+  if test $CC_IS_CLANG = yes; then
+    # Make unknown warnings into errors for clang so the test below works
+    CFLAGS="-Werror $CFLAGS"
+  fi
   CFLAGS="$CFLAGS $1"
   AC_COMPILE_IFELSE([AC_LANG_SOURCE([ ])], [redland_cc_flag=yes], [redland_cc_flag=no])
   CFLAGS="$redland_save_CFLAGS"
@@ -166,11 +197,9 @@ AC_DEFUN([REDLAND_CC_TRY_FLAG], [
 #
 # Too noisy:
 #  -Wconversion
-#  -Wunused-parameter : variables can be marked  __attribute__('unused')
-#  -Wformat-nonliteral : variables are used in raptor_rdfxml.c for format strings: fixable with code change
-#  -Wsign-conversion: : many int / unsigned int / size_t
-#  -Wfloat-equal : too many false positives; it's ok to compare with whole small integers like 0.0
-#  -Wundef : using undefined macros is just fine
+#  -Wformat-nonliteral : variables used for format strings in a several places
+#  -Wno-system-headers : not debugging system
+#  -Wunused-parameter  : variables can be marked  __attribute__('unused')
 #
 # Apple gcc specific (probably): -Wshorten-64-to-32
 possible_warnings="\
@@ -187,6 +216,7 @@ possible_warnings="\
 -Wdiv-by-zero \
 -Wendif-labels \
 -Werror-implicit-function-declaration \
+-Wfloat-equal \
 -Wformat-security \
 -Wframe-larger-than=4096 \
 -Winit-self \
@@ -204,14 +234,14 @@ possible_warnings="\
 -Wsign-compare \
 -Wstrict-prototypes \
 -Wswitch-enum \
+-Wundef \
 -Wunsafe-loop-optimizations \
 -Wwrite-strings \
 \
 -Wshorten-64-to-32
 \
 -Wno-conversion \
--Wno-sign-conversion \
--Wno-missing-field-initializers \
+-Wno-format-nonliteral \
 -Wno-system-headers \
 -Wno-unused-parameter \
 "
@@ -254,7 +284,7 @@ PKGCONFIG_CFLAGS=
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(errno.h stddef.h stdlib.h stdint.h unistd.h string.h strings.h getopt.h regex.h sys/time.h time.h math.h limits.h errno.h)
+AC_CHECK_HEADERS(errno.h stddef.h stdlib.h stdint.h unistd.h string.h strings.h getopt.h regex.h sys/time.h time.h math.h limits.h errno.h float.h)
 AC_HEADER_TIME
 
 if test "$ac_cv_header_sys_time_h" = "yes"; then
@@ -275,6 +305,11 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_C_BIGENDIAN
 
+AC_MSG_CHECKING(whether __func__ is available)
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() { printf(__func__); }])],
+    [AC_DEFINE([HAVE___FUNC__], [1], [Is __func__ available])
+     AC_MSG_RESULT(yes)],
+    [AC_MSG_RESULT(no)])
 
 
 # Libtool versioning
@@ -353,28 +388,24 @@ AM_CONDITIONAL(GETTIMEOFDAY, test $ac_cv_func_gettimeofday = no)
 
 
 AC_MSG_CHECKING(whether need to declare optind)
-AC_TRY_LINK([#ifdef HAVE_GETOPT_H
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-], [int x=optind;],
-            AC_MSG_RESULT(no),
-            AC_DEFINE(NEED_OPTIND_DECLARATION, 1, [need 'extern int optind' declaration?])
-            AC_MSG_RESULT(yes))
+]], [[int x=optind;]])],[AC_MSG_RESULT(no)],[AC_DEFINE(NEED_OPTIND_DECLARATION, 1, need 'extern int optind' declaration?)
+            AC_MSG_RESULT(yes)])
 
 
 AC_MSG_CHECKING(whether struct tm has tm_gmtoff field)
-AC_TRY_COMPILE([#ifdef HAVE_TIME_H
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#ifdef HAVE_TIME_H
 #include <time.h>
 #endif
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-], [struct tm my_time; my_time.tm_gmtoff = 0;],
-    have_tm_gmtoff="yes",
-    have_tm_gmtoff="no")
+]], [[struct tm my_time; my_time.tm_gmtoff = 0;]])],[have_tm_gmtoff="yes"],[have_tm_gmtoff="no"])
 AC_MSG_RESULT($have_tm_gmtoff)
 if test $have_tm_gmtoff = "yes" ; then
   AC_DEFINE(HAVE_TM_GMTOFF, 1, [struct tm has tm_gmtoff field])
@@ -382,33 +413,24 @@ fi
 
 
 # raptor V2 is REQUIRED; --enable-raptor2 option was removed
-RAPTOR_MIN_VERSION=2.0.4
+RAPTOR_MIN_VERSION=2.0.7
 
 
-AC_CHECK_PROGS(PKG_CONFIG, pkg-config)
-if test "X$PKG_CONFIG" = X; then
-  AC_MSG_ERROR(pkg-config not found. configuring raptor V2 requires it.  Get it from http://pkg-config.freedesktop.org/)
-fi
+PKG_PROG_PKG_CONFIG
 
-AC_MSG_CHECKING(for raptor)
-if $PKG_CONFIG raptor2 --exists; then
+PKG_CHECK_MODULES([RAPTOR2],[raptor2 >= $RAPTOR_MIN_VERSION],[
   RAPTOR_VERSION=`$PKG_CONFIG raptor2 --modversion 2>/dev/null`
-  AC_MSG_RESULT(system $RAPTOR_VERSION)
-
-  if $PKG_CONFIG raptor2 --atleast-version=$RAPTOR_MIN_VERSION; then
-    :
-  else
-    AC_MSG_ERROR(Installed raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
-  fi
-else
-  AC_MSG_RESULT(not found)
+],[
   AC_MSG_ERROR(Raptor is not installed - see http://librdf.org/raptor/ to get a version newer than $RAPTOR_MIN_VERSION)
-fi
+])
+AC_SUBST(RAPTOR2_CFLAGS)
+AC_SUBST(RAPTOR2_LIBS)
 
 RAPTOR_VERSION_DEC=`echo $RAPTOR_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 AC_SUBST(RAPTOR_VERSION_DEC)
 AC_SUBST(RAPTOR_MIN_VERSION)
 
+RAPTOR2_EXEC_PREFIX=`$PKG_CONFIG raptor2 --variable=exec_prefix 2>/dev/null`
 
 dnl Checks for regex libraries
 have_regex_pcre=0
@@ -422,23 +444,23 @@ AC_ARG_ENABLE(pcre,
 
 if test "x$enable_pcre" != "xno" ; then
 
-  AC_CHECK_PROG(PCRE_CONFIG, pcre-config, pcre-config)
-  AC_ARG_WITH(pcre, [  --with-pcre-config=PATH     Location of PCRE pcre-config (auto)], pcre_config="$withval", pcre_config="")
+  AC_ARG_WITH(pcre-config, [  --with-pcre-config=PATH     Location of PCRE pcre-config (auto)], pcre_config="$withval", pcre_config="")
 
-  if test "X$pcre_config" != "X" ; then
-    AC_MSG_CHECKING(for $pcre_config)
+  if test "X$pcre_config" != "Xno" ; then
+    if test "X$pcre_config" != "X" ; then
+      AC_MSG_CHECKING(for $pcre_config)
 
-    if test -f $pcre_config ; then
-      PCRE_CONFIG=$pcre_config
-      AC_MSG_RESULT(yes)
-    else
-      AC_MSG_RESULT(no - searching PATH)
+      if test -x $pcre_config ; then
+	PCRE_CONFIG=$pcre_config
+	AC_MSG_RESULT(yes)
+      else
+	AC_MSG_ERROR([pcre-config not found at specified path $pcre_config])
+      fi
+    fi
+    if test "X$PCRE_CONFIG" = "X" ; then
+      AC_CHECK_PROGS(PCRE_CONFIG, pcre-config)
     fi
   fi
-  if test "X$PCRE_CONFIG" = "X"; then
-    AC_CHECK_PROGS(PCRE_CONFIG, pcre-config)
-  fi
-
 
   AC_MSG_CHECKING(for pcre)
   PCRE_VERSION=`$PCRE_CONFIG --version 2>/dev/null`
@@ -467,10 +489,8 @@ fi
 AC_MSG_CHECKING(for posix regex library)
 oLIBS="$LIBS"
 if test $ac_cv_header_regex_h = yes; then
-  AC_TRY_LINK([#include <sys/types.h>
-              #include <regex.h>],
-             [regex_t reg; char *pat="abc"; regcomp(&reg, pat, 0);],
-             worked=yes, worked=no, worked=no)
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
+              #include <regex.h>]], [[regex_t reg; char *pat="abc"; regcomp(&reg, pat, 0);]])],[worked=yes],[worked=no])
   if test $worked = yes; then
     have_regex_posix=1
   fi
@@ -554,7 +574,7 @@ AC_CHECK_HEADERS(mhash.h)
 
 AC_MSG_CHECKING(for mhash)
 
-AC_TRY_LINK([
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #undef PACKAGE
 #undef PACKAGE_BUGREPORT
 #undef PACKAGE_NAME
@@ -562,15 +582,52 @@ AC_TRY_LINK([
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
 #undef VERSION
-#include <mhash.h>],
-[ MHASH m; mhash_init(MHASH_MD5); ],
-  have_digest_mhash=yes,
-  have_digest_mhash=no)
-
-CPPFLAGS="$LIBRDF_CPPFLAGS"
-LIBS="$oLIBS"
+#include <mhash.h>]], [[ MHASH m; mhash_init(MHASH_MD5); ]])],[have_digest_mhash=yes],[have_digest_mhash=no])
 
 AC_MSG_RESULT($have_digest_mhash)
+
+CPPFLAGS="$oCPPFLAGS"
+LIBS="$oLIBS"
+
+
+AC_ARG_WITH(libgcrypt-config, [  --with-libgcrypt-config=PATH     Location of GCRYPT libgcrypt-config (auto)], libgcrypt_config="$withval", libgcrypt_config="")
+if test "X$libgcrypt_config" != "Xno" ; then
+  if test "X$libgcrypt_config" != "X" ; then
+    AC_MSG_CHECKING(for $libgcrypt_config)
+
+    if test -x $libgcrypt_config ; then
+	LIBGCRYPT_CONFIG=$libgcrypt_config
+	AC_MSG_RESULT(yes)
+    else
+	AC_MSG_ERROR([libgcrypt-config not found at specified path $libgcrypt_config])
+    fi
+  fi
+  if test "X$LIBGCRYPT_CONFIG" = "X" ; then
+    AC_CHECK_PROGS(LIBGCRYPT_CONFIG, libgcrypt-config)
+  fi
+fi
+
+AC_CHECK_HEADERS(gcrypt.h)
+
+AC_MSG_CHECKING(for gcrypt)
+GCRYPT_VERSION=`$LIBGCRYPT_CONFIG --version 2>/dev/null`
+if test "X$GCRYPT_VERSION" = X; then
+  have_digest_gcrypt=no
+elif test "$ac_cv_header_gcrypt_h" = "yes"; then
+  oCPPFLAGS="$CPPFLAGS"
+  oLIBS="$LIBS"
+  CPPFLAGS="$CPPFLAGS `$LIBGCRYPT_CONFIG --cflags`"
+  LIBS="$LIBS `$LIBGCRYPT_CONFIG --libs`"
+
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+  #include <gcrypt.h>]], [[ gcry_md_hd_t hash; gcry_md_open(hash, GCRY_MD_MD5, 0); ]])],[have_digest_gcrypt=yes],[have_digest_gcrypt=no])
+
+  CPPFLAGS="$oCPPFLAGS"
+  LIBS="$oLIBS"
+else
+  have_digest_gcrypt=no
+fi
+AC_MSG_RESULT($have_digest_gcrypt)
 
 
 AC_ARG_WITH(digest-library, [  --with-digest-library=NAME   Use message digest library - mhash, gcrypt, internal (auto)], digest_library="$withval", digest_library="")
@@ -623,6 +680,124 @@ AC_MSG_RESULT($digest_library)
 AM_CONDITIONAL(RASQAL_DIGEST_INTERNAL, test $digest_library = internal)
 
 
+dnl Check for uuid libraries
+have_uuid_libuuid=no
+have_uuid_libc=no
+have_uuid_ossp=no
+need_uuid_libuuid=no
+need_uuid_libc=no
+need_uuid_internal=no
+need_uuid_ossp=no
+
+PKG_CHECK_MODULES(UUID, uuid, [
+  LIBUUID_VERSION=`$PKG_CONFIG uuid --modversion 2>/dev/null`
+
+  oCPPFLAGS="$CPPFLAGS"
+  oLIBS="$LIBS"
+
+  CPPFLAGS="$CPPFLAGS `$PKG_CONFIG uuid --cflags`"
+  LIBS="$LIBS `$PKG_CONFIG uuid --libs`"
+
+  dnl check for OSSP uuid defines and error out so we only get linux libuuid
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+  #include <uuid.h>]], [[
+  #if defined(UUID_LEN_BIN) && defined(UUID_VERSION)
+  FAIL
+  #endif
+  uuid_t data; uuid_clear(&data); ]])],[have_uuid_libuuid=yes],[have_uuid_libuuid=no])
+
+  CPPFLAGS="$oCPPFLAGS"
+  LIBS="$oLIBS"
+], [have_uuid_libuuid=no])
+AC_MSG_CHECKING(for libuuid)
+AC_MSG_RESULT($have_uuid_libuuid)
+
+AC_CHECK_PROGS(UUID_CONFIG, uuid-config)
+AC_MSG_CHECKING(for ossp libuuid)
+if test "X$UUID_CONFIG" != X; then
+  OSSP_UUID_VERSION=`$UUID_CONFIG --version 2>/dev/null`
+
+  oCPPFLAGS="$CPPFLAGS"
+  oLIBS="$LIBS"
+
+  CPPFLAGS="$CPPFLAGS `$UUID_CONFIG --cflags`"
+  LIBS="$LIBS `$UUID_CONFIG --ldflags --libs`"
+
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+  #include <uuid.h>]], [[ uuid_t *data; uuid_create(&data); ]])],[have_uuid_ossp=yes],[have_uuid_ossp=no])
+
+  CPPFLAGS="$oCPPFLAGS"
+  LIBS="$oLIBS"
+fi
+AC_MSG_RESULT($have_uuid_ossp)
+
+AC_CHECK_HEADERS(uuid/uuid.h)
+AC_MSG_CHECKING(for UUID in libc)
+if test "$ac_cv_header_uuid_uuid_h" = "yes"; then
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+  #include <uuid/uuid.h>]], [[ uuid_t data; uuid_clear(&data); ]])],[have_uuid_libc=yes],[have_uuid_libc=no])
+fi
+AC_MSG_RESULT($have_uuid_libc)
+
+
+AC_ARG_WITH(uuid-library, [  --with-uuid-library=NAME   Use UUID library - libuuid, libc (auto)], uuid_library="$withval", uuid_library="")
+
+for uuid_library_name in $uuid_library libuuid ossp libc internal; do
+  case $uuid_library_name in
+    libuuid)
+      if test $have_uuid_libuuid = yes; then
+        need_uuid_libuuid=yes
+        AC_DEFINE(RASQAL_UUID_LIBUUID, 1, [Use libuuid library for UUID])
+        break
+      fi
+      ;;
+
+    ossp)
+      if test $have_uuid_ossp = yes; then
+        need_uuid_ossp=yes
+        AC_DEFINE(RASQAL_UUID_OSSP, 1, [Use OSSP library for UUID])
+        break
+      fi
+      ;;
+
+    libc)
+      if test $have_uuid_libc = yes; then
+        need_uuid_libc=yes
+        AC_DEFINE(RASQAL_UUID_LIBC, 1, [Use UUID in libc library for UUID])
+        break
+      fi
+      ;;
+
+    internal)
+      need_uuid_internal=yes
+      AC_DEFINE(RASQAL_UUID_INTERNAL, 1, [Use internal routines for UUID])
+      break
+      ;;
+
+    *)
+      AC_MSG_ERROR(No such UUID library $uuid_library_name)
+      ;;
+esac
+done
+
+AC_MSG_CHECKING(UUID library to use)
+uuid_library=
+if test $need_uuid_libuuid = yes; then
+  uuid_library="libuuid $LIBUUID_VERSION"
+elif test $need_uuid_ossp = yes; then
+  uuid_library="ossp $OSSP_UUID_VERSION"
+elif test $need_uuid_libc = yes; then
+  uuid_library=libc
+elif test $need_uuid_internal = yes; then
+  uuid_library=internal
+else
+  uuid_library=none
+  AC_DEFINE(RASQAL_UUID_NONE, 1, [Use no UUID library])
+  AC_MSG_WARN(No UUID library selected - no UUID support will work)
+fi
+AC_MSG_RESULT($uuid_library)
+
+
 
 have_libxml=0
 need_libxml=0
@@ -638,11 +813,11 @@ if test "x$enable_xml2" != "xno" ; then
   if test "X$xml2_config" != "X" ; then
     AC_MSG_CHECKING(for $xml2_config)
 
-    if test -f $xml2_config ; then
+    if test -x $xml2_config ; then
       XML_CONFIG=$xml2_config
       AC_MSG_RESULT(yes)
     else
-      AC_MSG_RESULT(no - searching PATH)
+      AC_MSG_ERROR([xml2-config not found at specified path $xml2_config])
     fi
   fi
   if test "X$XML_CONFIG" = "X"; then
@@ -685,18 +860,16 @@ fi
 
 
 dnl RDF Query Languages
-rdql_query_language=no
 sparql_query_language=no
 laqrs_query_language=no
 
-rdf_query_languages_available="rdql sparql laqrs"
+rdf_query_languages_available="sparql laqrs"
 rdf_query_languages_enabled=
 
 
 # This is needed because autoheader can't work out which computed
 # symbols must be pulled from acconfig.h into config.h.in
 if test "x" = "y"; then
-  AC_DEFINE(RASQAL_QUERY_RDQL, 1, [Building RDQL query])
   AC_DEFINE(RASQAL_QUERY_LAQRS, 1, [Building LAQRS query])
   AC_DEFINE(RASQAL_QUERY_SPARQL, 1, [Building SPARQL query])
 fi
@@ -719,15 +892,15 @@ for query_language in $query_languages; do
   rdf_query_languages_enabled="$rdf_query_languages_enabled $query_language"
 done
 
-AM_CONDITIONAL(RASQAL_QUERY_RDQL, test $rdql_query_language = yes)
 AM_CONDITIONAL(RASQAL_QUERY_LAQRS, test $laqrs_query_language = yes)
 AM_CONDITIONAL(RASQAL_QUERY_SPARQL, test $sparql_query_language = yes)
 
 
 
-RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS `$PKG_CONFIG raptor2 --cflags`"
-RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$PKG_CONFIG raptor2 --libs`"
-RAPPER_PATH=""
+RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $RAPTOR2_CFLAGS"
+RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $RAPTOR2_LIBS"
+RAPPER_PATH="$RAPTOR2_EXEC_PREFIX/bin"
+
 
 if test $need_regex_pcre = 1; then
   C=`$PCRE_CONFIG --cflags`
@@ -745,11 +918,42 @@ fi
 if test $need_digest_mhash = yes; then
   C=""
   L="-lmhash"
-  if test "Xmhash_dir" != "X" ; then
+  if test "X$mhash_dir" != "X" ; then
     C="-I$mhash_dir/include"
     L="-L$mhash_dir/lib $L"
   fi
 
+  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $C"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
+
+  unset C
+  unset L
+fi
+
+
+if test $need_digest_gcrypt = yes; then
+  C=`$LIBGCRYPT_CONFIG --cflags`
+  L=`$LIBGCRYPT_CONFIG --libs`
+  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $C"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
+
+  unset C
+  unset L
+fi
+
+
+if test $need_uuid_libuuid = yes; then
+  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $UUID_CFLAGS"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $UUID_LIBS"
+
+  PKGCONFIG_CFLAGS="$PKGCONFIG_CFLAGS $UUID_CFLAGS"
+  PKGCONFIG_LIBS="$PKGCONFIG_LIBS $UUID_LIBS"
+fi
+
+
+if test $need_uuid_ossp = yes; then
+  C=`$UUID_CONFIG --cflags`
+  L=`$UUID_CONFIG --ldflags --libs`
   RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $C"
   RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
 
@@ -798,21 +1002,24 @@ if test "$ac_cv_header_mpfr_h" = yes; then
   LIBS="$LIBS $mpfr_libs -lmpfr"
   AC_CHECK_FUNC(mpfr_init, have_mpfr_init=yes, have_mpfr_init=no)
   # Several functions are used that are not in GMP version of MPFR:
-  #   mpfr_get_default_rounding_mode mpfr_zero_p mpfr_equal_p mpfr_free_str
-  # All added in MPFR 2.1.0 released 3 Nov 2004
-  # http://www.mpfr.org/mpfr-2.1.0/
-  # so just test for one.
-  AC_CHECK_FUNC(mpfr_zero_p, have_mpfr_zero_p=yes, have_mpfr_zero_p=no)
+  #   mpfr_get_default_rounding_mode mpfr_equal_p mpfr_free_str
+  #     MPFR 2.1.0 released 3 Nov 2004 http://www.mpfr.org/mpfr-2.1.0/
+  #   mpfr_snprintf
+  #     MPFR 2.4.0 released 26 January 2009 http://www.mpfr.org/mpfr-2.4.0/
+  # so just test for the latter.
+  AC_CHECK_FUNC(mpfr_snprintf, have_mpfr_snprintf=yes, have_mpfr_snprintf=no)
   LIBS="$oLIBS"
   CPPFLAGS="$oCPPFLAGS"
   AC_MSG_CHECKING(for working MPFR library)
-  if test $have_mpfr_init = yes -a $have_mpfr_zero_p = yes; then
+  if test $have_mpfr_init = yes -a $have_mpfr_snprintf = yes; then
     have_mpfr=1
     AC_MSG_RESULT(yes)
   else
     AC_MSG_RESULT(no)
   fi
 fi
+CPPFLAGS="$oCPPFLAGS"
+LIBS="$oLIBS"
 
 have_gmp_version=0
 have_gmp_random=no
@@ -820,12 +1027,10 @@ if test "$ac_cv_header_gmp_h" = yes; then
   CPPFLAGS="$CPPFLAGS $gmp_includes"
   LIBS="$LIBS $gmp_libs -lgmp"
   AC_MSG_CHECKING(for working GNU MP library)
-  AC_TRY_LINK([#include <gmp.h>], [mpz_t n; mpz_init(n);],
-              have_gmp=1
-	      AC_MSG_RESULT(yes),
-	      AC_MSG_RESULT(no))
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <gmp.h>]], [[mpz_t n; mpz_init(n);]])],[have_gmp=1
+	      AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
   AC_MSG_CHECKING(for GNU MP library random support)
-  AC_TRY_LINK([#include <gmp.h>], [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <gmp.h>]], [[
 gmp_randstate_t r;
 unsigned int ui = 12345;
 mpz_t iresult;
@@ -845,18 +1050,14 @@ mpf_clear(fresult);
 mpz_clear(n);
 
 gmp_randclear(r);
-],
-              have_gmp_random=yes
-	      AC_MSG_RESULT(yes),
-	      AC_MSG_RESULT(no))
+]])],[have_gmp_random=yes
+	      AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
   AC_MSG_CHECKING(for gmp_version)
-  AC_TRY_LINK([#include <gmp.h>], [const char* v=gmp_version; ],
-              have_gmp_version=1
-	      AC_MSG_RESULT(yes),
-	      AC_MSG_RESULT(no))
-  LIBS="$oLIBS"
-  CPPFLAGS="$oCPPFLAGS"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <gmp.h>]], [[const char* v=gmp_version; ]])],[have_gmp_version=1
+	      AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
 fi
+CPPFLAGS="$oCPPFLAGS"
+LIBS="$oLIBS"
 
 if test $have_gmp_version = 1; then
   AC_DEFINE(HAVE_GMP_VERSION, 1, [Have gmp_version constant])
@@ -989,7 +1190,7 @@ for random_algo in $random_with $random_approaches; do
 esac
 done
 
-if test "$random_approach" == none; then
+if test "$random_approach" = none; then
     AC_MSG_ERROR(No random number generator approach. POSIX rand should always be available)
 fi
 AC_MSG_RESULT($random_approach)
@@ -1017,7 +1218,7 @@ return (int)(ceil(t) * floor(t) * round(t));
    AC_MSG_RESULT(yes)
    ceil_lib=libc,
    AC_MSG_RESULT(no),
-   ceil_lib=none)
+   ceil_lib=cross)
 if test $ceil_lib = none; then
   LIBS="$LIBS -lm"
   AC_MSG_CHECKING([for ceil, floor and round with -lm])
@@ -1037,10 +1238,13 @@ return (int)(ceil(t) * floor(t) * round(t));
      need_libm=1
      ceil_lib=libm,
      AC_MSG_RESULT(no),
-     ceil_lib=none)
+     ceil_lib=cross)
   LIBS="$oLIBS"
 fi
-if test $ceil_lib = none; then
+if test $ceil_lib = cross; then
+  AC_MSG_WARN([Assuming ceil, floor and round are in default libs for cross compiling])
+  ceil_lib=libc
+elif test $ceil_lib = none; then
   AC_MSG_ERROR([Could not find ceil, floor, round in default libs or with -lm])
 fi
 if test $need_libm = 1; then
@@ -1131,14 +1335,15 @@ data/Makefile
 docs/Makefile
 docs/version.xml
 scripts/Makefile
+libsv/Makefile
+libmtwist/Makefile
+getopt/Makefile
 src/Makefile
 src/rasqal.h
 src/win32_rasqal_config.h
 tests/Makefile
 tests/algebra/Makefile
 tests/engine/Makefile
-tests/rdql/Makefile
-tests/rdql/testsuite/Makefile
 tests/laqrs/Makefile
 tests/laqrs/syntax/Makefile
 tests/sparql/Makefile
@@ -1187,5 +1392,7 @@ Rasqal build summary:
   Decimal library               : $decimal_library
   Regex library                 : $regex_library
   Message digest library        : $digest_library
+  UUID library                  : $uuid_library
   Random approach               : $random_approach
+  ceil, floor, round source     : $ceil_lib
 ])

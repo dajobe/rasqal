@@ -41,6 +41,9 @@
 #include <math.h>
 #endif
 #include <stdarg.h>
+#ifdef HAVE_FLOAT_H
+#include <float.h>
+#endif
 
 #include "rasqal.h"
 #include "rasqal_internal.h"
@@ -56,7 +59,6 @@ static void rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec);
  * Based on http://www2.hursley.ibm.com/decimal/
  */
 
-#include <float.h>
 #define RASQAL_DECIMAL_RAW _Decimal64
 #define RASQAL_DECIMAL_ROUNDING int
 
@@ -623,20 +625,19 @@ rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result,
 int
 rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d)
 {
+  int rc = 0;
+
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  if(!d->raw)
-    return 1;
+  rc = fabs(d->raw) < RASQAL_DOUBLE_EPSILON;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  if(mpfr_zero_p(d->raw))
-    return 1;
+  rc = mpfr_zero_p(d->raw);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
-  if(!mpf_sgn(d->raw))
-    return 1;
+  rc = !mpf_sgn(d->raw);
 #endif
 
-  return 0;
+  return rc;
 }
 
 
@@ -852,19 +853,10 @@ rasqal_xsd_decimal_floor(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
 int
 rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
 {
-#if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  double d;
-#endif
-  int rc=0;
+  int rc = 0;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  d = (a->raw - b->raw);
-  /* do this carefully to avoid rounding e.g. (int)0.5 = 0 but is >0 */
-  if(d < 0.0)
-    rc = -1;
-  else if (d > 0.0)
-    rc = 1;
-  /* else rc is 0 set above */
+  rc = rasqal_double_approximately_compare(a->raw, b->raw);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   rc = mpfr_cmp(a->raw, b->raw);
@@ -892,7 +884,7 @@ rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
   int rc;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  rc= (b->raw == a->raw);
+  rc = rasqal_double_approximately_equal(b->raw, a->raw);
 #elif defined(RASQAL_DECIMAL_MPFR)
   rc = mpfr_equal_p(a->raw, b->raw);
 #elif defined(RASQAL_DECIMAL_GMP)
@@ -971,7 +963,7 @@ main(int argc, char *argv[]) {
   rasqal_xsd_decimal_set_string(&b, b_string);
 
   result_d=rasqal_xsd_decimal_get_double(&a);
-  if(result_d != a_double) {
+  if(!rasqal_double_approximately_equal(result_d, a_double)) {
     fprintf(stderr, "FAILED: a=%f expected %f\n", result_d, a_double);
     FAIL;
   }

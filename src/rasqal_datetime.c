@@ -926,6 +926,7 @@ rasqal_xsd_datetime_equals2(const rasqal_xsd_datetime *dt1,
 }
 
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_xsd_datetime_equals:
  * @dt1: first XSD dateTime
@@ -943,7 +944,7 @@ rasqal_xsd_datetime_equals(const rasqal_xsd_datetime *dt1,
 {
   return rasqal_xsd_datetime_equals2(dt1, dt2, NULL);
 }
-
+#endif
 
 /*
  * 3.2.7.4 Order relation on dateTime
@@ -1041,6 +1042,7 @@ rasqal_xsd_datetime_compare2(const rasqal_xsd_datetime *dt1,
                                      incomparible_p);
 }
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_xsd_datetime_compare:
  * @dt1: first XSD dateTime
@@ -1058,7 +1060,7 @@ rasqal_xsd_datetime_compare(const rasqal_xsd_datetime *dt1,
 {
   return rasqal_xsd_datetime_compare2(dt1, dt2, NULL);
 }
-
+#endif
 
 /**
  * rasqal_xsd_datetime_get_seconds_as_decimal:
@@ -1324,7 +1326,8 @@ rasqal_xsd_datetime_set_from_timeval(rasqal_xsd_datetime *dt,
   dt->second = my_time->tm_sec;
   dt->microseconds = tv->tv_usec;
   dt->timezone_minutes = 0; /* always Zulu time */
-
+  dt->have_tz = 'Z';
+  
   return 0;
 }
 
@@ -1703,7 +1706,7 @@ static int
 test_datetime_parser_tostring(const char *in_str, const char *out_expected)
 {
   rasqal_xsd_datetime d; /* allocated on stack */
-  char const *s;
+  char const *s = NULL;
   int r = 1;
 
   if(!test_datetime_parse_and_normalize(in_str, &d)) {
@@ -1736,7 +1739,7 @@ static int
 test_date_parser_tostring(const char *in_str, const char *out_expected)
 {
   rasqal_xsd_date d; /* allocated on stack */
-  char const *s;
+  char const *s = NULL;
   int r = 1;
 
   if(!test_date_parse_and_normalize(in_str, &d)) {

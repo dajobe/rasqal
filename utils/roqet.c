@@ -2,7 +2,7 @@
  *
  * roqet.c - Rasqal RDF Query utility
  *
- * Copyright (C) 2004-2010, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2013, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -60,6 +60,7 @@
 #include <rasqal_internal.h>
 #endif
 
+#include "rasqalcmdline.h"
 
 #ifdef NEED_OPTIND_DECLARATION
 extern int optind;
@@ -76,7 +77,7 @@ static char *program=NULL;
 #define HELP_TEXT(short, long, description) "  -" short ", --" long "  " description
 #define HELP_TEXT_LONG(long, description) "      --" long "  " description
 #define HELP_ARG(short, long) "--" #long
-#define HELP_PAD "\n                            "
+#define HELP_PAD "\n                          "
 #else
 #define HELP_TEXT(short, long, description) "  -" short "  " description
 #define HELP_TEXT_LONG(long, description)
@@ -86,9 +87,9 @@ static char *program=NULL;
 
 #ifdef RASQAL_INTERNAL
 /* add 'g:' */
-#define GETOPT_STRING "cd:D:e:Ef:F:g:G:hi:np:r:qs:vW:"
+#define GETOPT_STRING "cd:D:e:Ef:F:g:G:hi:np:qr:R:s:t:vW:"
 #else
-#define GETOPT_STRING "cd:D:e:Ef:F:G:hi:np:r:qs:vW:"
+#define GETOPT_STRING "cd:D:e:Ef:F:G:hi:np:qr:R:s:t:vW:"
 #endif
 
 #ifdef HAVE_GETOPT_LONG
@@ -114,7 +115,9 @@ static struct option long_options[] =
   {"protocol", 0, 0, 'p'},
   {"quiet", 0, 0, 'q'},
   {"results", 1, 0, 'r'},
+  {"results-input-format", 1, 0, 'R'},
   {"source", 1, 0, 's'},
+  {"results-input", 1, 0, 't'},
   {"version", 0, 0, 'v'},
   {"warnings", 1, 0, 'W'},
 #ifdef STORE_RESULTS_FLAG
@@ -132,12 +135,6 @@ static int warning_level = -1;
 static int ignore_errors = 0;
 
 static const char *title_format_string = "Rasqal RDF query utility %s\n";
-
-#ifdef BUFSIZ
-#define FILE_READ_BUF_SIZE BUFSIZ
-#else
-#define FILE_READ_BUF_SIZE 1024
-#endif
 
 #define MAX_QUERY_ERROR_REPORT_LEN 512
 
@@ -188,10 +185,10 @@ static void
 roqet_write_indent(FILE *fh, int indent) 
 {
   while(indent > 0) {
-    int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
+    size_t sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
 
     (void)fwrite(spaces, sizeof(char), sp, fh);
-    indent -= sp;
+    indent -= RASQAL_GOOD_CAST(int, sp);
   }
 }
 
@@ -361,8 +358,23 @@ roqet_query_walk(rasqal_query *rq, FILE *fh, int indent) {
   
   seq = rasqal_query_get_bound_variable_sequence(rq);
   if(seq && raptor_sequence_size(seq) > 0) {
-    fprintf(fh, "query bound variables (%d): ", 
-            raptor_sequence_size(seq));
+    int size = raptor_sequence_size(seq);
+    fprintf(fh, "query projected variable names (%d): ", size);
+    i = 0;
+    while(1) {
+      rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
+      if(!v)
+        break;
+
+      if(i > 0)
+        fputs(", ", fh);
+
+      fputs((const char*)v->name, fh);
+      i++;
+    }
+    fputc('\n', fh);
+
+    fprintf(fh, "query bound variables (%d): ", size);
     i = 0;
     while(1) {
       rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
@@ -453,6 +465,7 @@ roqet_query_walk(rasqal_query *rq, FILE *fh, int indent) {
 
 typedef enum {
   QUERY_OUTPUT_UNKNOWN,
+  QUERY_OUTPUT_NONE,
   QUERY_OUTPUT_DEBUG,
   QUERY_OUTPUT_STRUCTURE,
   QUERY_OUTPUT_SPARQL,
@@ -461,52 +474,12 @@ typedef enum {
 
 const char* query_output_format_labels[QUERY_OUTPUT_LAST + 1][2] = {
   { NULL, NULL },
+  { "none", "No debug data" },
   { "debug", "Debug query dump (output format may change)" },
   { "structure", "Query structure walk (output format may change)" },
   { "sparql", "SPARQL" }
 };
 
-
-
-static void
-print_bindings_result_simple(rasqal_query_results *results,
-                             FILE* output, int quiet, int count)
-{
-  if(!quiet)
-    fprintf(stderr, "%s: Query has a variable bindings result\n", program);
-  
-  while(!rasqal_query_results_finished(results)) {
-    if(!count) {
-      int i;
-      
-      fputs("result: [", output);
-      for(i = 0; i < rasqal_query_results_get_bindings_count(results); i++) {
-        const unsigned char *name;
-        rasqal_literal *value;
-
-        name = rasqal_query_results_get_binding_name(results, i);
-        value = rasqal_query_results_get_binding_value(results, i);
-        
-        if(i > 0)
-          fputs(", ", output);
-
-        fprintf(output, "%s=", name);
-
-        if(value)
-          rasqal_literal_print(value, output);
-        else
-          fputs("NULL", output);
-      }
-      fputs("]\n", output);
-    }
-    
-    rasqal_query_results_next(results);
-  }
-
-  if(!quiet)
-    fprintf(stderr, "%s: Query returned %d results\n", program, 
-            rasqal_query_results_get_count(results));
-}
 
 
 static void
@@ -581,7 +554,7 @@ print_formatted_query_results(rasqal_world* world,
                               rasqal_query_results* results,
                               raptor_world* raptor_world_ptr,
                               FILE* output,
-                              const char* result_format,
+                              const char* result_format_name,
                               raptor_uri* base_uri,
                               int quiet)
 {
@@ -590,11 +563,11 @@ print_formatted_query_results(rasqal_world* world,
   int rc = 0;
   
   results_formatter = rasqal_new_query_results_formatter(world,
-                                                         result_format,
+                                                         result_format_name,
                                                          NULL, NULL);
   if(!results_formatter) {
     fprintf(stderr, "%s: Invalid bindings result format `%s'\n",
-            program, result_format);
+            program, result_format_name);
     rc = 1;
     goto tidy;
   }
@@ -685,8 +658,9 @@ roqet_init_query(rasqal_world *world,
     
     fprintf(stderr, "%s: Parsing query '", program);
     if(len > MAX_QUERY_ERROR_REPORT_LEN) {
-      (void)fwrite(query_string, MAX_QUERY_ERROR_REPORT_LEN, sizeof(char),
-                   stderr);
+      (void)fwrite(query_string,
+                   RASQAL_GOOD_CAST(size_t, MAX_QUERY_ERROR_REPORT_LEN),
+                   sizeof(char), stderr);
       fprintf(stderr, "...' (%d bytes) failed\n", RASQAL_BAD_CAST(int, len));
     } else {
       (void)fwrite(query_string, len, sizeof(char), stderr);
@@ -723,6 +697,9 @@ void roqet_print_query(rasqal_query* rq,
   fprintf(stderr, "Query:\n");
   
   switch(output_format) {
+    case QUERY_OUTPUT_NONE:
+      break;
+
     case QUERY_OUTPUT_DEBUG:
       rasqal_query_print(rq, stdout);
       break;
@@ -750,11 +727,132 @@ void roqet_print_query(rasqal_query* rq,
 }
 
 
-
 /* Default parser for input graphs */
 #define DEFAULT_DATA_GRAPH_FORMAT "guess"
 /* Default serializer for output graphs */
 #define DEFAULT_GRAPH_FORMAT "ntriples"
+/* Default input result format name */
+#define DEFAULT_RESULT_FORMAT_NAME "xml"
+
+
+static void
+print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
+{
+  unsigned int i;
+    
+  printf(title_format_string, rasqal_version_string);
+  puts("Run an RDF query against data into formatted results.");
+  printf("Usage: %s [OPTIONS] <query URI> [base URI]\n", program);
+  printf("       %s [OPTIONS] -e <query string> [base URI]\n", program);
+  printf("       %s [OPTIONS] -p <SPARQL protocol URI> -e <query string> [base URI]\n", program);
+  printf("       %s [OPTIONS] -t <query results file> [base URI]\n\n", program);
+  
+  fputs(rasqal_copyright_string, stdout);
+  fputs("\nLicense: ", stdout);
+  puts(rasqal_license_string);
+  fputs("Rasqal home page: ", stdout);
+  puts(rasqal_home_url_string);
+  
+  puts("\nNormal operation is to execute the query retrieved from URI <query URI>");
+  puts("and print the results in a simple text format.");
+  puts("\nMain options:");
+  puts(HELP_TEXT("e", "exec QUERY      ", "Execute QUERY string instead of <query URI>"));
+  puts(HELP_TEXT("p", "protocol URI    ", "Execute QUERY against a SPARQL protocol service URI"));
+  puts(HELP_TEXT("i", "input LANGUAGE  ", "Set query language name to one of:"));
+  for(i = 0; 1; i++) {
+    const raptor_syntax_description* desc;
+    
+    desc = rasqal_world_get_query_language_description(world, i);
+    if(!desc)
+      break;
+    
+    printf("    %-15s         %s", desc->names[0], desc->label);
+    if(!i)
+      puts(" (default)");
+    else
+      putchar('\n');
+  }
+  
+  puts(HELP_TEXT("r", "results FORMAT  ", "Set query results output format to one of:"));
+  puts("    For variable bindings and boolean results:");
+  puts("      simple                A simple text format (default)");
+  
+  for(i = 0; 1; i++) {
+    const raptor_syntax_description* desc;
+    
+    desc = rasqal_world_get_query_results_format_description(world, i);
+    if(!desc)
+      break;
+    
+    if(desc->flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER)
+      printf("      %-10s            %s\n", desc->names[0], desc->label);
+  }
+  
+  puts("    For RDF graph results:");
+  
+  for(i = 0; 1; i++) {
+    const raptor_syntax_description *desc;
+    desc = raptor_world_get_parser_description(raptor_world_ptr, i);
+    if(!desc)
+      break;
+    
+    printf("      %-15s       %s", desc->names[0], desc->label);
+    if(!i)
+      puts(" (default)");
+    else
+      putchar('\n');
+  }
+  puts(HELP_TEXT("t", "results FILE    ", "Read query results from a FILE"));
+  puts(HELP_TEXT("R", "results-input-format FORMAT", HELP_PAD "Set input query results format to one of:"));
+  for(i = 0; 1; i++) {
+    const raptor_syntax_description* desc;
+    
+    desc = rasqal_world_get_query_results_format_description(world, i);
+    if(!desc)
+      break;
+    
+    if(desc->flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER) {
+      printf("      %-10s            %s", desc->names[0], desc->label);
+      if(!strcmp(desc->names[0], DEFAULT_RESULT_FORMAT_NAME))
+        puts(" (default)");
+      else
+        putchar('\n');
+    }
+  }
+  
+  puts("\nAdditional options:");
+  puts(HELP_TEXT("c", "count           ", "Count triples - no output"));
+  puts(HELP_TEXT("d FORMAT", "dump-query FORMAT", HELP_PAD "Print the parsed query out in FORMAT:"));
+  for(i = 1; i <= QUERY_OUTPUT_LAST; i++)
+    printf("      %-15s       %s\n", query_output_format_labels[i][0],
+           query_output_format_labels[i][1]);
+  puts(HELP_TEXT("D URI", "data URI    ", "RDF data source URI"));
+  puts(HELP_TEXT("E", "ignore-errors   ", "Ignore error messages"));
+  puts(HELP_TEXT("f FEATURE(=VALUE)", "feature FEATURE(=VALUE)", HELP_PAD "Set query features" HELP_PAD "  Use `-f help' for a list of valid features"));
+  puts(HELP_TEXT("F NAME", "format NAME", "Set data source format name (default: guess)"));
+  puts(HELP_TEXT("G URI", "named URI   ", "RDF named graph data source URI"));
+  puts(HELP_TEXT("h", "help            ", "Print this help, then exit"));
+  puts(HELP_TEXT("n", "dryrun          ", "Prepare but do not run the query"));
+  puts(HELP_TEXT("q", "quiet           ", "No extra information messages"));
+  puts(HELP_TEXT("s URI", "source URI  ", "Same as `-G URI'"));
+  puts(HELP_TEXT("v", "version         ", "Print the Rasqal version"));
+  puts(HELP_TEXT("W LEVEL", "warnings LEVEL", HELP_PAD "Set warning message LEVEL from 0: none to 100: all"));
+#ifdef STORE_RESULTS_FLAG
+  puts("\nDEBUG options:");
+  puts(HELP_TEXT_LONG("store-results BOOL", "Set store results yes/no BOOL"));
+#endif
+  puts("\nReport bugs to http://bugs.librdf.org/");
+}
+
+
+typedef enum {
+  MODE_EXEC_UNKNOWN,
+  MODE_EXEC_QUERY_STRING,
+  MODE_EXEC_QUERY_URI,
+  MODE_CALL_PROTOCOL_URI,
+  MODE_READ_RESULTS
+} roqet_mode;
+
 
 int
 main(int argc, char *argv[]) 
@@ -779,8 +877,8 @@ main(int argc, char *argv[])
   int count = 0;
   int dryrun = 0;
   raptor_sequence* data_graphs = NULL;
-  const char *result_format = NULL;
-  query_output_format output_format = QUERY_OUTPUT_UNKNOWN;
+  const char *result_format_name = NULL;
+  query_output_format output_format = QUERY_OUTPUT_NONE;
   rasqal_feature query_feature = (rasqal_feature)-1;
   int query_feature_value= -1;
   unsigned char* query_feature_string_value = NULL;
@@ -793,6 +891,9 @@ main(int argc, char *argv[])
   raptor_iostream* iostr = NULL;
   const unsigned char* service_uri_string = 0;
   raptor_uri* service_uri = NULL;
+  const char* result_filename = NULL;
+  const char *result_input_format_name = NULL;
+  roqet_mode mode = MODE_EXEC_UNKNOWN;
   
   program = argv[0];
   if((p = strrchr(program, '/')))
@@ -942,8 +1043,8 @@ main(int argc, char *argv[])
         if(optarg) {
           if(!raptor_world_is_parser_name(raptor_world_ptr, optarg)) {
               fprintf(stderr,
-                      "%s: invalid parser name `%s' for `" HELP_ARG(F, format) "'\n\n",
-                      program, optarg);
+                      "%s: invalid parser name `%s' for `" HELP_ARG(F, format)  "'\nTry '%s -h' for a list of valid parsers\n",
+                      program, optarg, program);
               usage = 1;
           } else {
             data_graph_parser_name = optarg;
@@ -965,20 +1066,49 @@ main(int argc, char *argv[])
         break;
 
       case 'r':
-        if(optarg)
-          result_format = optarg;
+        if(optarg) {
+          if(!strcmp(optarg, "simple"))
+            optarg = NULL;
+          else {
+            if(rasqal_query_results_formats_check(world, optarg,
+                                                   NULL /* uri */,
+                                                   NULL /* mime type */,
+                                                   RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER)) {
+              fprintf(stderr,
+                      "%s: invalid output result format `%s' for `" HELP_ARG(r, results)  "'\nTry '%s -h' for a list of valid formats\n",
+                      program, optarg, program);
+              usage = 1;
+            } else
+              result_format_name = optarg;
+          }
+        }
+        break;
+
+      case 'R':
+        if(optarg) {
+          if(rasqal_query_results_formats_check(world, optarg,
+                                                NULL /* uri */,
+                                                NULL /* mime type */,
+                                                RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER)) {
+            fprintf(stderr,
+                    "%s: invalid input result format `%s' for `" HELP_ARG(R, results-input-format)  "'\nTry '%s -h' for a list of valid formats\n",
+                    program, optarg, program);
+            usage = 1;
+          } else
+            result_input_format_name = optarg;
+        }
         break;
 
       case 'i':
         if(rasqal_language_name_check(world, optarg))
           ql_name = optarg;
         else {
-          int i;
+          unsigned int i;
 
           fprintf(stderr,
-                  "%s: invalid argument `%s' for `" HELP_ARG(i, input) "'\n",
+                  "%s: invalid query language `%s' for `" HELP_ARG(i, input) "'\n",
                   program, optarg);
-          fprintf(stderr, "Valid arguments are:\n");
+          fprintf(stderr, "Valid query languages are:\n");
           for(i = 0; 1; i++) {
             const raptor_syntax_description* desc;
             desc = rasqal_world_get_query_language_description(world, i);
@@ -1000,7 +1130,7 @@ main(int argc, char *argv[])
       case 'G':
         if(optarg) {
           rasqal_data_graph *dg = NULL;
-          rasqal_data_graph_flags type;
+          unsigned int type;
 
           type = (c == 's' || c == 'G') ? RASQAL_DATA_GRAPH_NAMED : 
                                           RASQAL_DATA_GRAPH_BACKGROUND;
@@ -1108,6 +1238,12 @@ main(int argc, char *argv[])
         ignore_errors = 1;
         break;
 
+      case 't':
+        if(optarg) {
+          result_filename = optarg;
+        }
+        break;
+
       case 'v':
         fputs(rasqal_version_string, stdout);
         fputc('\n', stdout);
@@ -1116,7 +1252,8 @@ main(int argc, char *argv[])
 
 #ifdef STORE_RESULTS_FLAG
       case STORE_RESULTS_FLAG:
-        store_results = (!strcmp(optarg, "yes") || !strcmp(optarg, "YES"));
+        if(optarg)
+          store_results = (!strcmp(optarg, "yes") || !strcmp(optarg, "YES"));
         break;
 #endif
 
@@ -1129,6 +1266,9 @@ main(int argc, char *argv[])
       if(optind != argc && optind != argc-1)
         usage = 2; /* Title and usage */
     } else if(query_string) {
+      if(optind != argc && optind != argc-1)
+        usage = 2; /* Title and usage */
+    } else if(result_filename) {
       if(optind != argc && optind != argc-1)
         usage = 2; /* Title and usage */
     } else {
@@ -1157,117 +1297,41 @@ main(int argc, char *argv[])
   }
 
   if(help) {
-    int i;
-    
-    printf(title_format_string, rasqal_version_string);
-    puts("Run an RDF query giving variable bindings or RDF triples.");
-    printf("Usage: %s [OPTIONS] <query URI> [base URI]\n", program);
-    printf("       %s [OPTIONS] -e <query string> [base URI]\n", program);
-    printf("       %s [OPTIONS] -p <SPARQL protocol service URI> -e <query string> [base URI]\n\n", program);
-
-    fputs(rasqal_copyright_string, stdout);
-    fputs("\nLicense: ", stdout);
-    puts(rasqal_license_string);
-    fputs("Rasqal home page: ", stdout);
-    puts(rasqal_home_url_string);
-
-    puts("\nNormal operation is to execute the query retrieved from URI <query URI>");
-    puts("and print the results in a simple text format.");
-    puts("\nMain options:");
-    puts(HELP_TEXT("e", "exec QUERY      ", "Execute QUERY string instead of <query URI>"));
-    puts(HELP_TEXT("p", "protocol URI    ", "Execute QUERY against a SPARQL protocol service URI"));
-    puts(HELP_TEXT("i", "input LANGUAGE  ", "Set query language name to one of:"));
-    for(i = 0; 1; i++) {
-      const raptor_syntax_description* desc;
-
-      desc = rasqal_world_get_query_language_description(world, i);
-      if(!desc)
-         break;
-
-      printf("    %-15s         %s", desc->names[0], desc->label);
-      if(!i)
-        puts(" (default)");
-      else
-        putchar('\n');
-    }
-
-    puts(HELP_TEXT("r", "results FORMAT  ", "Set query results output format to one of:"));
-    puts("    For variable bindings and boolean results:");
-    puts("      simple                A simple text format (default)");
-
-    for(i = 0; 1; i++) {
-      const raptor_syntax_description* desc;
- 
-      desc = rasqal_world_get_query_results_format_description(world, i);
-      if(!desc)
-         break;
- 
-      if(desc->flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER)
-        printf("      %-10s            %s\n", desc->names[0], desc->label);
-    }
-
-    puts("    For RDF graph results:");
-
-    for(i = 0; 1; i++) {
-      const raptor_syntax_description *desc;
-      desc = raptor_world_get_parser_description(raptor_world_ptr, i);
-      if(!desc)
-        break;
-
-      printf("      %-15s       %s", desc->names[0], desc->label);
-      if(!i)
-        puts(" (default)");
-      else
-        putchar('\n');
-    }
-    puts("\nAdditional options:");
-    puts(HELP_TEXT("c", "count             ", "Count triples - no output"));
-    puts(HELP_TEXT("d FORMAT", "dump-query FORMAT", HELP_PAD "Print the parsed query out in FORMAT:"));
-    for(i = 1; i <= QUERY_OUTPUT_LAST; i++)
-      printf("      %-15s         %s\n", query_output_format_labels[i][0],
-             query_output_format_labels[i][1]);
-    puts(HELP_TEXT("D URI", "data URI      ", "RDF data source URI"));
-    puts(HELP_TEXT("E", "ignore-errors     ", "Ignore error messages"));
-    puts(HELP_TEXT("f FEATURE(=VALUE)", "feature FEATURE(=VALUE)", HELP_PAD "Set query features" HELP_PAD "Use `-f help' for a list of valid features"));
-    puts(HELP_TEXT("F NAME", "format NAME  ", "Set data source format name (default: guess)"));
-    puts(HELP_TEXT("G URI", "named URI     ", "RDF named graph data source URI"));
-    puts(HELP_TEXT("h", "help              ", "Print this help, then exit"));
-    puts(HELP_TEXT("n", "dryrun            ", "Prepare but do not run the query"));
-    puts(HELP_TEXT("q", "quiet             ", "No extra information messages"));
-    puts(HELP_TEXT("s URI", "source URI    ", "Same as `-G URI'"));
-    puts(HELP_TEXT("v", "version           ", "Print the Rasqal version"));
-    puts(HELP_TEXT("W LEVEL", "warnings LEVEL", HELP_PAD "Set warning message LEVEL from 0: none to 100: all"));
-#ifdef STORE_RESULTS_FLAG
-    puts(HELP_TEXT_LONG("store-results BOOL", "DEBUG: Set store results yes/no BOOL"));
-#endif
-    puts("\nReport bugs to http://bugs.librdf.org/");
-
+    print_help(world, raptor_world_ptr);
     rasqal_free_world(world);
-    
+
     exit(0);
   }
 
-
   if(service_uri_string) {
+    mode = MODE_CALL_PROTOCOL_URI;
     service_uri = raptor_new_uri(raptor_world_ptr, service_uri_string);
     if(optind == argc-1) {
       base_uri_string = (unsigned char*)argv[optind];
     }
   } else if(query_string) {
+    mode = MODE_EXEC_QUERY_STRING;
+    if(optind == argc-1)
+      base_uri_string = (unsigned char*)argv[optind];
+  } else if(result_filename) {
+    mode = MODE_READ_RESULTS;
     if(optind == argc-1)
       base_uri_string = (unsigned char*)argv[optind];
   } else {
+    /* read a query from stdin, file or URI */
+    mode = MODE_EXEC_QUERY_URI;
     if(optind == argc-1)
       uri_string = (unsigned char*)argv[optind];
     else {
       uri_string = (unsigned char*)argv[optind++];
       base_uri_string = (unsigned char*)argv[optind];
     }
-    
+
     /* If uri_string is "path-to-file", turn it into a file: URI */
     if(!strcmp((const char*)uri_string, "-")) {
       if(!base_uri_string) {
-        fprintf(stderr, "%s: A Base URI is required when reading from standard input.\n",
+        fprintf(stderr,
+                "%s: A base URI is required when reading a query from standard input.\n",
                 program);
         return(1);
       }
@@ -1288,8 +1352,19 @@ main(int argc, char *argv[])
       }
     } else
       uri = NULL; /* stdin */
+
+    query_string = rasqal_cmdline_read_uri_file_stdin_contents(program,
+                                                               raptor_world_ptr,
+                                                               uri, filename,
+                                                               NULL);
+    if(!query_string) {
+      rc = 1;
+      goto tidy_setup;
+    }
   }
 
+
+  /* Compute base URI */
   if(!base_uri_string) {
     if(uri)
       base_uri = raptor_uri_copy(uri);
@@ -1303,154 +1378,118 @@ main(int argc, char *argv[])
   }
 
 
-  if(service_uri_string) {
-    /* NOP - nothing to do here */
-  } else if(query_string) {
-    /* NOP - already got it */
-  } else if(!uri_string) {
-    size_t read_len;
-    
-    query_string = (unsigned char*)calloc(FILE_READ_BUF_SIZE, 1);
-    read_len = fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
-    if(read_len < FILE_READ_BUF_SIZE) {
-      if(ferror(stdin))
-        fprintf(stderr, "%s: query string stdin read failed - %s\n",
-                program, strerror(errno));
-      else
-        fprintf(stderr, "%s: query string stdin read failed - no error\n",
-                program);
-      rc = 1;
-      goto tidy_setup;
-    }
+  switch(mode) {
+    case MODE_CALL_PROTOCOL_URI:
+      if(!quiet) {
+        fprintf(stderr, "%s: Calling SPARQL service at URI %s", program,
+                service_uri_string);
+        if(query_string)
+          fprintf(stderr, " with query '%s'", query_string);
+        
+        if(base_uri_string)
+          fprintf(stderr, " with base URI %s\n", base_uri_string);
 
-    query_from_string = 0;
-  } else if(filename) {
-    raptor_stringbuffer *sb = raptor_new_stringbuffer();
-    size_t len;
-    FILE *fh;
-    unsigned char* buffer;
+        fputc('\n', stderr);
+      }
+      
+      /* Execute query remotely */
+      if(!dryrun)
+        results = roqet_call_sparql_service(world, service_uri, query_string,
+                                            data_graphs,
+                                            /* service_format */ NULL);
+    break;
+        
+    case MODE_EXEC_QUERY_STRING:
+    case MODE_EXEC_QUERY_URI:
+      if(!quiet) {
+        if(mode == MODE_EXEC_QUERY_STRING) {
+          if(base_uri_string)
+            fprintf(stderr, "%s: Running query '%s' with base URI %s\n",
+                    program, query_string, base_uri_string);
+          else
+            fprintf(stderr, "%s: Running query '%s'\n", program,
+                    query_string);
+        } else {
+          if(filename) {
+            if(base_uri_string)
+              fprintf(stderr, "%s: Querying from file %s with base URI %s\n",
+                      program, filename, base_uri_string);
+            else
+              fprintf(stderr, "%s: Querying from file %s\n", program, filename);
+          } else if(uri_string) {
+            if(base_uri_string)
+              fprintf(stderr, "%s: Querying URI %s with base URI %s\n", program,
+                      uri_string, base_uri_string);
+            else
+              fprintf(stderr, "%s: Querying URI %s\n", program, uri_string);
+          }
+        }
+      }
+      
+      /* Execute query in this query engine (from URI or from -e QUERY) */
+      rq = roqet_init_query(world,
+                            ql_name, ql_uri, query_string,
+                            base_uri,
+                            query_feature, query_feature_value,
+                            query_feature_string_value,
+                            store_results,
+                            data_graphs);
+      
+      if(!rq) {
+        rc = 1;
+        goto tidy_query;
+      }
+      
+      if(output_format != QUERY_OUTPUT_NONE && !quiet)
+        roqet_print_query(rq, raptor_world_ptr, output_format, base_uri);
+      
+      if(!dryrun)
+        results = rasqal_query_execute(rq);
+      break;
+        
+    case MODE_READ_RESULTS:
+      if(!quiet) {
+        if(base_uri_string)
+          fprintf(stderr,
+                  "%s: Reading results from file %s in format %s with base URI %s\n", program,
+                  result_filename, result_input_format_name, base_uri_string);
+        else
+          fprintf(stderr, "%s: Reading results from file %s\n", program,
+                  result_filename);
+      }
+      
+      /* Read result set from filename */
+      if(1) {
+        raptor_iostream* result_iostr;
 
-    fh = fopen(filename, "r");
-    if(!fh) {
-      fprintf(stderr, "%s: file '%s' open failed - %s", 
-              program, filename, strerror(errno));
-      rc = 1;
-      goto tidy_setup;
-    }
-    
-    buffer = (unsigned char*)malloc(FILE_READ_BUF_SIZE);
-
-    while(!feof(fh)) {
-      size_t read_len;
-
-      read_len = fread((char*)buffer, 1, FILE_READ_BUF_SIZE, fh);
-      if(read_len > 0)
-        raptor_stringbuffer_append_counted_string(sb, buffer, read_len, 1);
-
-      if(read_len < FILE_READ_BUF_SIZE) {
-        if(ferror(fh)) {
-          fprintf(stderr, "%s: file '%s' read failed - %s\n",
-                  program, filename, strerror(errno));
-          free(buffer);
-          fclose(fh);
+        result_iostr = raptor_new_iostream_from_filename(raptor_world_ptr,
+                                                         result_filename);
+        if(!result_iostr) {
+          fprintf(stderr, "%s: results file '%s' open failed - %s\n",
+                  program, result_filename, strerror(errno));
           rc = 1;
           goto tidy_setup;
         }
 
-        break;
+        results = rasqal_cmdline_read_results(world, raptor_world_ptr,
+                                              RASQAL_QUERY_RESULTS_BINDINGS,
+                                              result_iostr,
+                                              result_filename,
+                                              result_input_format_name);
+        raptor_free_iostream(result_iostr); result_iostr = NULL;
       }
-    }
-    free(buffer);
-    fclose(fh);
 
-    len = raptor_stringbuffer_length(sb);
-    query_string = (unsigned char*)malloc(len + 1);
-    raptor_stringbuffer_copy_to_string(sb, query_string, len);
-    raptor_free_stringbuffer(sb);
-    query_from_string = 0;
-  } else {
-    raptor_www *www;
-
-    www = raptor_new_www(raptor_world_ptr);
-    if(www) {
-      raptor_www_fetch_to_string(www, uri, (void**)&query_string, NULL, malloc);
-      raptor_free_www(www);
-    }
-
-    if(!query_string || error_count) {
-      fprintf(stderr, "%s: Retrieving query at URI '%s' failed\n", 
-              program, uri_string);
-      rc = 1;
-      goto tidy_setup;
-    }
-
-    query_from_string = 0;
-  }
-
-
-  if(!quiet) {
-    if(service_uri) {
-      fprintf(stderr, "%s: Calling SPARQL service at URI %s", program,
-              service_uri_string);
-      if(query_string)
-        fprintf(stderr, " with query '%s'", query_string);
-
-      if(base_uri_string)
-        fprintf(stderr, " with base URI %s\n", base_uri_string);
-
-      fputc('\n', stderr);
-    } else if(query_from_string) {
-      if(base_uri_string)
-        fprintf(stderr, "%s: Running query '%s' with base URI %s\n", program,
-                query_string, base_uri_string);
-      else
-        fprintf(stderr, "%s: Running query '%s'\n", program,
-                query_string);
-    } else if(filename) {
-      if(base_uri_string)
-        fprintf(stderr, "%s: Querying from file %s with base URI %s\n", program,
-                filename, base_uri_string);
-      else
-        fprintf(stderr, "%s: Querying from file %s\n", program, filename);
-    } else if(uri_string) {
-      if(base_uri_string)
-        fprintf(stderr, "%s: Querying URI %s with base URI %s\n", program,
-                uri_string, base_uri_string);
-      else
-        fprintf(stderr, "%s: Querying URI %s\n", program, uri_string);
-    }
-  }
-  
-
-
-  if(service_uri) {
-    /* Execute query remotely */
-    if(!dryrun)
-      results = roqet_call_sparql_service(world, service_uri, query_string,
-                                          data_graphs,
-                                          /* service_format */ NULL);
-  } else {
-    /* Execute query in this query engine (from URI or from -e QUERY) */
-    rq = roqet_init_query(world,
-                          ql_name, ql_uri, query_string,
-                          base_uri,
-                          query_feature, query_feature_value,
-                          query_feature_string_value,
-                          store_results,
-                          data_graphs);
-
-    if(!rq) {
-      rc = 1;
-      goto tidy_query;
-    }
-
-    if(output_format != QUERY_OUTPUT_UNKNOWN && !quiet)
-      roqet_print_query(rq, raptor_world_ptr, output_format, base_uri);
-    
-    if(!dryrun) {
-      results = rasqal_query_execute(rq);
-    }
-
+      if(!results) {
+        fprintf(stderr, "%s: Failed to read results from '%s'\n", program,
+                result_filename);
+        rc = 1;
+        goto tidy_setup;
+      }
+      break;
+      
+      
+    case MODE_EXEC_UNKNOWN:
+      break;
   }
 
 
@@ -1465,25 +1504,26 @@ main(int argc, char *argv[])
   }
 
   if(rasqal_query_results_is_bindings(results)) {
-    if(result_format)
+    if(result_format_name)
       rc = print_formatted_query_results(world, results,
                                          raptor_world_ptr, stdout,
-                                         result_format, base_uri, quiet);
+                                         result_format_name, base_uri, quiet);
     else
-      print_bindings_result_simple(results, stdout, quiet, count);
+      rasqal_cmdline_print_bindings_results_simple(program, results,
+                                                   stdout, quiet, count);
   } else if(rasqal_query_results_is_boolean(results)) {
-    if(result_format)
+    if(result_format_name)
       rc = print_formatted_query_results(world, results,
                                          raptor_world_ptr, stdout,
-                                         result_format, base_uri, quiet);
+                                         result_format_name, base_uri, quiet);
     else
       print_boolean_result_simple(results, stdout, quiet);
   } else if(rasqal_query_results_is_graph(results)) {
-    if(!result_format)
-      result_format = DEFAULT_GRAPH_FORMAT;
+    if(!result_format_name)
+      result_format_name = DEFAULT_GRAPH_FORMAT;
     
     rc = print_graph_result(rq, results, raptor_world_ptr,
-                            stdout, result_format, base_uri, quiet);
+                            stdout, result_format_name, base_uri, quiet);
   } else {
     fprintf(stderr, "%s: Query returned unknown result format\n", program);
     rc = 1;

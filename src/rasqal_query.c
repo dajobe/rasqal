@@ -748,7 +748,7 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
  * Get the sequence of projected variables in the query.
  *
  * This returns the sequence of variables that are explicitly chosen
- * via SELECT in RDQL, SPARQL.  Or all variables mentioned with SELECT *
+ * via SELECT in SPARQL.  Or all variables mentioned with SELECT *
  *
  * Return value: a #raptor_sequence of #rasqal_variable pointers.
  **/
@@ -863,6 +863,7 @@ rasqal_query_has_variable2(rasqal_query* query,
 }
 
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_query_has_variable:
  * @query: #rasqal_query query object
@@ -882,7 +883,7 @@ rasqal_query_has_variable(rasqal_query* query, const unsigned char *name)
 
   return rasqal_query_has_variable2(query, RASQAL_VARIABLE_TYPE_UNKNOWN, name);
 }
-
+#endif
 
 /**
  * rasqal_query_set_variable2:
@@ -912,6 +913,7 @@ rasqal_query_set_variable2(rasqal_query* query,
 }
 
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_query_set_variable:
  * @query: #rasqal_query query object
@@ -937,7 +939,7 @@ rasqal_query_set_variable(rasqal_query* query, const unsigned char *name,
   return rasqal_query_set_variable2(query, RASQAL_VARIABLE_TYPE_NORMAL,
                                     name, value);
 }
-
+#endif
 
 /**
  * rasqal_query_get_triple_sequence:
@@ -1485,6 +1487,20 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   }
   seq = rasqal_query_get_bound_variable_sequence(query);
   if(seq) {
+    int i;
+    
+    fputs("\nprojected variable names: ", fh);
+    for(i = 0; 1; i++) {
+      rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
+      if(!v)
+        break;
+      if(i > 0)
+        fputs(", ", fh);
+
+      fputs((const char*)v->name, fh);
+    }
+    fputc('\n', fh);
+      
     fputs("\nbound variables: ", fh); 
     raptor_sequence_print(seq, fh);
   }
@@ -1808,12 +1824,44 @@ rasqal_query_get_having_condition(rasqal_query* query, int idx)
 
 
 /**
+ * rasqal_query_graph_pattern_visit2:
+ * @query: query
+ * @visit_fn: user function to operate on
+ * @data: user data to pass to function
+ * 
+ * Visit all graph patterns in a query with a user function @visit_fn.
+ *
+ * See also rasqal_graph_pattern_visit().
+ *
+ * Return value: result from visit function @visit_fn if it returns non-0
+ **/
+int
+rasqal_query_graph_pattern_visit2(rasqal_query* query, 
+                                  rasqal_graph_pattern_visit_fn visit_fn, 
+                                  void* data)
+{
+  rasqal_graph_pattern* gp;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
+
+  gp = rasqal_query_get_query_graph_pattern(query);
+  if(!gp)
+    return 1;
+
+  return rasqal_graph_pattern_visit(query, gp, visit_fn, data);
+}
+
+
+#ifndef RASQAL_DISABLE_DEPRECATED
+/**
  * rasqal_query_graph_pattern_visit:
  * @query: query
  * @visit_fn: user function to operate on
  * @data: user data to pass to function
  * 
  * Visit all graph patterns in a query with a user function @visit_fn.
+ *
+ * @Deprecated: use rasqal_query_graph_pattern_visit2() that returns the @visit_fn status code.
  *
  * See also rasqal_graph_pattern_visit().
  **/
@@ -1822,16 +1870,9 @@ rasqal_query_graph_pattern_visit(rasqal_query* query,
                                  rasqal_graph_pattern_visit_fn visit_fn, 
                                  void* data)
 {
-  rasqal_graph_pattern* gp;
-
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
-
-  gp = rasqal_query_get_query_graph_pattern(query);
-  if(!gp)
-    return;
-
-  rasqal_graph_pattern_visit(query, gp, visit_fn, data);
+  (void)rasqal_query_graph_pattern_visit2(query, visit_fn, data);
 }
+#endif
 
 
 /**

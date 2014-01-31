@@ -12,9 +12,8 @@
     <description xml:lang="en">Rasqal is a library providing
     full support for querying Resource Description Framework (RDF)
     including parsing query syntaxes, constructing the queries,
-    executing them and returning result formats.  It currently
-    handles the RDF Data Query Language (RDQL) and SPARQL Query
-    language.</description>
+    executing them and returning result formats.  It supports
+    parsing and executing the SPARQL Query language.</description>
 
     <maintainer>
       <foaf:Person>

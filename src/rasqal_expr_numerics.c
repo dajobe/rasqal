@@ -40,6 +40,15 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+#if defined(RASQAL_UUID_OSSP)
+#include <ossp/uuid.h>
+#endif
+#if defined(RASQAL_UUID_LIBUUID)
+#include <uuid.h>
+#endif
+#ifdef RASQAL_UUID_LIBC
+#include <uuid/uuid.h>
+#endif
 
 #define DEBUG_FH stderr
 
@@ -247,6 +256,7 @@ rasqal_expression_evaluate_rand(rasqal_expression *e,
  * rasqal_expression_evaluate_digest:
  * @e: The expression to evaluate.
  * @eval_context: Evaluation context
+ * @error_p: pointer to error flag or NULL
  *
  * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_MD5, RASQAL_EXPR_SHA1,
  * RASQAL_EXPR_SHA224, RASQAL_EXPR_SHA256, RASQAL_EXPR_SHA384,
@@ -261,7 +271,7 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
 {
   rasqal_world* world = eval_context->world;
   rasqal_digest_type md_type = RASQAL_DIGEST_NONE;
-  rasqal_literal* l1;
+  rasqal_literal* l1 = NULL;
   const unsigned char *s;
   unsigned char *new_s;
   size_t len;
@@ -272,9 +282,9 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
   
   /* Turn EXPR enum into DIGEST enum - we know they are ordered the same */
   if(e->op >= RASQAL_EXPR_MD5 && e->op <= RASQAL_EXPR_SHA512)
-    md_type = (rasqal_digest_type)(e->op - RASQAL_EXPR_MD5 + RASQAL_DIGEST_MD5);
+    md_type = RASQAL_GOOD_CAST(rasqal_digest_type, e->op - RASQAL_EXPR_MD5 + RASQAL_DIGEST_MD5);
   else
-    return NULL;
+    goto failed;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
   if(*error_p || !l1)
@@ -286,11 +296,11 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
 
   output_len = rasqal_digest_buffer(md_type, NULL, NULL, 0);
   if(output_len < 0)
-    return NULL;
+    goto failed;
 
   output = RASQAL_MALLOC(unsigned char*, output_len);
   if(!output)
-    return NULL;
+    goto failed;
   
   output_len = rasqal_digest_buffer(md_type, output, s, len);
   if(output_len < 0)
@@ -319,6 +329,9 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
   return rasqal_new_string_literal(world, new_s, NULL, NULL, NULL);
   
   failed:
+  if(error_p)
+    *error_p = 1;
+
   if(output)
     RASQAL_FREE(char, output);
   if(l1)
@@ -326,3 +339,176 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
   
   return NULL;
 }
+
+
+#define RASQAL_UUID_LEN 16
+#define RASQAL_UUID_HEXDIGIT_LEN (RASQAL_UUID_LEN << 1)
+/* 4 '-' chars added after 8, 12, 16, 20 output hex digit */
+#define RASQAL_UUID_STRING_LEN (RASQAL_UUID_HEXDIGIT_LEN + 4)
+#define RASQAL_UUID_URI_PREFIX "urn:uuid:"
+#define RASQAL_UUID_URI_PREFIX_LEN 9
+  
+
+#ifdef RASQAL_UUID_INTERNAL
+typedef unsigned char uuid_t[16];
+
+/*
+ * rasqal_uuid_generate:
+ * @eval_context: evaluation context
+ * @uuid: uuid object
+ *
+ * INTERNAL - Generate a random UUID based on rasqal random
+ *
+ * Byte offset
+ *  0 1 2 3  4 5  6 7  8 9 101112131415
+ * xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx   Hex string
+ *
+ * where x is any hexadecimal digit and y is one of 8, 9, a, or b.
+ */
+static void
+rasqal_uuid_generate(rasqal_evaluation_context *eval_context, uuid_t ptr)
+{
+  int16_t* out = (int16_t*)ptr;
+  unsigned char* outc = (unsigned char*)ptr;
+  unsigned int i;
+  for(i = 0; i < (RASQAL_UUID_LEN / sizeof(int16_t)); i++) {
+    *out++ = rasqal_random_irand(eval_context->random);
+  }
+
+  outc[6] = (outc[6] & 0x0F) | 0x40;
+  outc[8] = (outc[8] & 0x3F) | 0x80;
+}
+#endif
+
+/* 
+ * rasqal_expression_evaluate_uuid:
+ * @e: The expression to evaluate.
+ * @eval_context: Evaluation context
+ * @want_uri: non-0 to return URI otherwise string
+ *
+ * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_UUID, RASQAL_EXPR_STRUUID
+ *
+ * Return value: A #rasqal_literal URI / string value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_uuid(rasqal_expression *e,
+                                rasqal_evaluation_context *eval_context,
+                                int *error_p,
+                                int want_uri)
+{
+#ifdef RASQAL_UUID_NONE
+  return NULL;
+
+#else
+
+  rasqal_world* world = eval_context->world;
+#if defined(RASQAL_UUID_OSSP)
+  uuid_t* data;
+#else
+  uuid_t data; /* static */
+  int i;
+#endif
+  size_t output_len = RASQAL_UUID_STRING_LEN;
+  unsigned char* output;
+  unsigned char* p;
+
+#if defined(RASQAL_UUID_LIBUUID) || defined(RASQAL_UUID_LIBC)
+  uuid_generate(data);
+#endif
+#if defined(RASQAL_UUID_OSSP)
+  uuid_create(&data);
+  uuid_make(data, UUID_MAKE_V1);
+#endif
+#ifdef RASQAL_UUID_INTERNAL
+  rasqal_uuid_generate(eval_context, data);
+#endif
+
+  if(want_uri)
+    output_len += RASQAL_UUID_URI_PREFIX_LEN;
+
+  output = RASQAL_MALLOC(unsigned char*, output_len + 1);
+  if(!output) {
+#if defined(RASQAL_UUID_OSSP)
+    uuid_destroy(data);
+#endif
+    return NULL;
+  }
+
+  p = output;
+  if(want_uri) {
+    memcpy(p, RASQAL_UUID_URI_PREFIX, RASQAL_UUID_URI_PREFIX_LEN);
+    p += RASQAL_UUID_URI_PREFIX_LEN;
+  }
+
+#if defined(RASQAL_UUID_OSSP)
+  uuid_export(data, UUID_FMT_STR, p, /* data_len */ NULL);
+  uuid_destroy(data);
+#else
+  for(i = 0; i < RASQAL_UUID_LEN; i++) {
+    unsigned short hex;
+    unsigned char c = data[i];
+
+    hex = (c & 0xf0) >> 4;
+    *p++ = (hex < 10) ? ('0' + hex) : ('a' + hex - 10);
+    hex = (c & 0x0f);
+    *p++ = (hex < 10) ? ('0' + hex) : ('a' + hex - 10);
+    if(i == 3 || i == 5 || i == 7 || i == 9)
+      *p++ = '-';
+  }
+  *p = '\0';
+#endif /* end if !RASQAL_UUID_OSSP */
+
+  /* after this output becomes owned by result */
+  if(want_uri) {
+    raptor_uri* u;
+    rasqal_literal* l = NULL;
+
+    u = raptor_new_uri(world->raptor_world_ptr, output);
+    if(u)
+      l = rasqal_new_uri_literal(world, u);
+
+    RASQAL_FREE(char*, output);
+    return l;
+  } else {
+    return rasqal_new_string_literal(world, output, NULL, NULL, NULL);
+  }
+#endif
+}
+
+
+/* 
+ * rasqal_expression_evaluate_uriuuid:
+ * @e: The expression to evaluate.
+ * @eval_context: Evaluation context
+ * @want_uri: non-0 to return URI otherwise string
+ *
+ * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_UUID
+ *
+ * Return value: A #rasqal_literal URI value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_uriuuid(rasqal_expression *e,
+                                   rasqal_evaluation_context *eval_context,
+                                   int *error_p)
+{
+  return rasqal_expression_evaluate_uuid(e, eval_context, error_p, 1);
+}
+
+/* 
+ * rasqal_expression_evaluate_uuid:
+ * @e: The expression to evaluate.
+ * @eval_context: Evaluation context
+ * @want_uri: non-0 to return URI otherwise string
+ *
+ * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_STRUUID
+ *
+ * Return value: A #rasqal_literal string value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_struuid(rasqal_expression *e,
+                                   rasqal_evaluation_context *eval_context,
+                                   int *error_p)
+{
+  return rasqal_expression_evaluate_uuid(e, eval_context, error_p, 0);
+}
+

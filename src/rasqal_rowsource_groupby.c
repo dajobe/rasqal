@@ -332,16 +332,16 @@ rasqal_groupby_rowsource_process(rasqal_rowsource* rowsource,
   }
 
 #ifdef RASQAL_DEBUG
-  if(con->tree) {
-    fputs("Grouping ", DEBUG_FH);
-    raptor_avltree_print(con->tree, DEBUG_FH);
-    fputs("\n", DEBUG_FH);
-  }
+  fputs("Grouping ", DEBUG_FH);
+  raptor_avltree_print(con->tree, DEBUG_FH);
+  fputs("\n", DEBUG_FH);
 #endif
-  
-  con->group_iterator = raptor_new_avltree_iterator(con->tree,
-                                                    NULL, NULL,
-                                                    1);
+
+  if(raptor_avltree_size(con->tree))
+    con->group_iterator = raptor_new_avltree_iterator(con->tree,
+                                                      NULL, NULL,
+                                                      1);
+
   con->group_row_index = 0;
 
   con->offset = 0;
@@ -362,7 +362,7 @@ rasqal_groupby_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   if(rasqal_groupby_rowsource_process(rowsource, con))
     return NULL;
 
-  if(con->tree) {
+  if(con->tree && con->group_iterator) {
     rasqal_groupby_tree_node* node = NULL;
 
     /* Rows were grouped so iterate through grouped rows */
@@ -398,8 +398,17 @@ rasqal_groupby_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
     if(node && row)
       row->group_id = node->group_id;
+
+  } else if(con->tree && !con->group_iterator) {
+    /* we found inner rowsource with no rows - generate 1 row */
+    if(!con->offset) {
+      row = rasqal_new_row(rowsource);
+
+      if(row)
+        row->group_id = 0;
+    }
   } else {
-    /* just pass rows through all in one group */
+    /* no grouping: just pass rows through all in one group */
     row = rasqal_rowsource_read_row(con->rowsource);
 
     if(row)
@@ -476,7 +485,7 @@ rasqal_new_groupby_rowsource(rasqal_world *world,
   
   con = RASQAL_CALLOC(rasqal_groupby_rowsource_context*, 1, sizeof(*con));
   if(!con)
-    goto fail;
+    return NULL;
 
   con->rowsource = rowsource;
   con->exprs_seq_size = 0;
@@ -502,6 +511,8 @@ rasqal_new_groupby_rowsource(rasqal_world *world,
     rasqal_free_rowsource(rowsource);
   if(exprs_seq)
     raptor_free_sequence(exprs_seq);
+  if(con)
+    RASQAL_FREE(rasqal_groupby_rowsource_context*, con);
 
   return NULL;
 }
@@ -532,12 +543,20 @@ Group((?x), S) = {
 */
 
 
-#define GROUP_TESTS_COUNT 3
+#define GROUP_TESTS_COUNT 4
 
 #define MAX_TEST_GROUPS 100
 #define MAX_TEST_VARS 5
 
-/* Test 0 and Test 1 */
+/* Test 0 */
+static const char* const data_xy_no_rows[] =
+{
+  /* 2 variable names and 0 rows */
+  "x",  NULL, "y",  NULL,
+  NULL, NULL, NULL, NULL,
+};
+
+/* Test 1 and Test 2 */
 static const char* const data_xy_3_rows[] =
 {
   /* 2 variable names and 3 rows */
@@ -553,7 +572,7 @@ static const char* const data_xy_3_rows[] =
 };
 
 
-/* Test 2 */
+/* Test 3 */
 static const char* const data_us_senators_100_rows[] =
 {
   /* 3 variable names and 50 rows */
@@ -667,12 +686,16 @@ static const char* const data_us_senators_100_rows[] =
 /* Group IDs expected */
 /* Test 0 */
 static const int test0_groupids[] = {
-  0, 0, 0 
+  0
 };
-
 
 /* Test 1 */
 static const int test1_groupids[] = {
+  0, 0, 0 
+};
+
+/* Test 2 */
+static const int test2_groupids[] = {
   0, 0, 1 
 };
 
@@ -688,16 +711,19 @@ static const struct {
   int rows;
   int ngroups;
   const char* const *data;
-  const int const *group_ids;
+  const int *group_ids;
   const char* const expr_vars[MAX_TEST_VARS];
 } test_data[GROUP_TESTS_COUNT] = {
-  /* Test 0: No GROUP BY : 1 group expected */
-  {2, 3, 1, data_xy_3_rows, test0_groupids, { NULL } },
+  /* Test 0: No GROUP BY : 1 group expected with NULL values */
+  {2, 1, 1, data_xy_no_rows, test0_groupids, { "x", NULL } },
 
-  /* Test 1: GROUP BY ?x : 2 groups expected */
-  {2, 3, 2, data_xy_3_rows, test1_groupids, { "x", NULL } },
+  /* Test 1: No GROUP BY : 1 group expected */
+  {2, 3, 1, data_xy_3_rows, test1_groupids, { NULL } },
 
-  /* Test 2: GROUP BY ?year, ?name : 97 groups expected */
+  /* Test 2: GROUP BY ?x : 2 groups expected */
+  {2, 3, 2, data_xy_3_rows, test2_groupids, { "x", NULL } },
+
+  /* Test 3: GROUP BY ?year, ?name : 97 groups expected */
   {3, 100, 97, data_us_senators_100_rows, results_us_senators_97_groups, { "year", "name", NULL } },
    
 };
@@ -774,8 +800,11 @@ main(int argc, char *argv[])
 
         v = rasqal_variables_table_get_by_name(vt, RASQAL_VARIABLE_TYPE_NORMAL,
                                                var_name);
-        if(v)
+        /* returns SHARED pointer to variable */
+        if(v) {
+          v = rasqal_new_variable_from_variable(v);
           l = rasqal_new_variable_literal(world, v);
+        }
 
         if(l)
           e = rasqal_new_literal_expression(world, l);

@@ -124,6 +124,7 @@ rasqal_new_decimal_literal
 rasqal_new_decimal_literal_from_decimal
 rasqal_new_double_literal
 rasqal_new_float_literal
+rasqal_new_floating_literal
 rasqal_new_integer_literal
 rasqal_new_numeric_literal_from_long
 rasqal_new_pattern_literal
@@ -209,6 +210,7 @@ rasqal_query_has_variable2
 rasqal_query_has_variable
 rasqal_query_prepare
 rasqal_query_print
+rasqal_query_graph_pattern_visit2
 rasqal_query_graph_pattern_visit
 rasqal_query_set_distinct
 rasqal_query_set_explain
@@ -258,6 +260,7 @@ rasqal_query_results_next_triple
 rasqal_query_results_read
 rasqal_query_results_write
 rasqal_query_results_type
+rasqal_query_results_type_label
 rasqal_query_results_rewind
 </SECTION>
 
@@ -310,6 +313,11 @@ rasqal_update_operation
 rasqal_update_type
 rasqal_update_flags
 rasqal_update_graph_applies
+</SECTION>
+
+<SECTION>
+<FILE>section-utilities</FILE>
+rasqal_regex_replace
 </SECTION>
 
 <SECTION>
@@ -369,6 +377,7 @@ rasqal_free_xsd_datetime
 rasqal_xsd_datetime_compare
 rasqal_xsd_datetime_compare2
 rasqal_xsd_datetime_equals
+rasqal_xsd_datetime_equals2
 rasqal_xsd_datetime_get_as_timeval
 rasqal_xsd_datetime_get_as_unixtime
 rasqal_xsd_datetime_get_seconds_as_decimal

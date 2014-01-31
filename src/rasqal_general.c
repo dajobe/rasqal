@@ -2,7 +2,7 @@
  *
  * rasqal_general.c - Rasqal library startup, shutdown and factories
  *
- * Copyright (C) 2004-2010, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2014, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -40,6 +40,9 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+#ifdef MAINTAINER_MODE
+#include <git-version.h>
+#endif
 
 /* prototypes for helper functions */
 static void rasqal_delete_query_language_factories(rasqal_world*);
@@ -48,9 +51,9 @@ static void rasqal_free_query_language_factory(rasqal_query_language_factory *fa
 
 /* statics */
 
-const char * const rasqal_short_copyright_string = "Copyright 2003-2011 David Beckett.  Copyright 2003-2005 University of Bristol";
+const char * const rasqal_short_copyright_string = "Copyright 2003-2014 David Beckett.  Copyright 2003-2005 University of Bristol";
 
-const char * const rasqal_copyright_string = "Copyright (C) 2003-2011 David Beckett - http://www.dajobe.org/\nCopyright (C) 2003-2005 University of Bristol - http://www.bristol.ac.uk/";
+const char * const rasqal_copyright_string = "Copyright (C) 2003-2014 David Beckett - http://www.dajobe.org/\nCopyright (C) 2003-2005 University of Bristol - http://www.bristol.ac.uk/";
 
 const char * const rasqal_license_string = "LGPL 2.1 or newer, GPL 2 or newer, Apache 2.0 or newer.\nSee http://librdf.org/rasqal/LICENSE.html for full terms.";
 
@@ -192,13 +195,6 @@ rasqal_world_open(rasqal_world *world)
   if(rc)
     return rc;
 #endif
-
-#ifdef RASQAL_QUERY_RDQL
-  rc = rasqal_init_query_language_rdql(world);
-  if(rc)
-    return rc;
-#endif
-
 
   rc = rasqal_raptor_init(world);
   if(rc)
@@ -468,6 +464,7 @@ rasqal_world_get_query_language_description(rasqal_world* world,
 }
 
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_languages_enumerate:
  * @world: rasqal_world object
@@ -512,7 +509,7 @@ rasqal_languages_enumerate(rasqal_world *world,
 
   return 0;
 }
-
+#endif
 
 /**
  * rasqal_language_name_check:
@@ -592,13 +589,9 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
   if(level == RAPTOR_LOG_LEVEL_NONE)
     return;
 
-#if RAPTOR_VERSION >= 20005
   buffer = NULL;
   if(raptor_vasprintf(&buffer, message, arguments) < 0)
     buffer = NULL;
-#else
-  buffer = raptor_vsnprintf(message, arguments);
-#endif
 
   if(!buffer) {
     if(locator) {
@@ -704,6 +697,8 @@ rasqal_basename(const char *name)
   return name;
 }
 
+
+const raptor_unichar rasqal_unicode_max_codepoint = 0x10FFFF;
 
 /**
  * rasqal_escaped_name_to_utf8_string:

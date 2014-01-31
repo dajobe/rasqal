@@ -41,6 +41,9 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+#if 0
+#define RASQAL_DEBUG_VARIABLE_USAGE
+#endif
 
 #ifndef STANDALONE
 
@@ -63,6 +66,10 @@ rasqal_new_variable_from_variable(rasqal_variable* v)
   
   v->usage++;
   
+#ifdef RASQAL_DEBUG_VARIABLE_USAGE
+  RASQAL_DEBUG3("Variable %s usage increased to %d\n", v->name, v->usage);
+#endif
+
   return v;
 }
 
@@ -79,8 +86,15 @@ rasqal_free_variable(rasqal_variable* v)
   if(!v)
     return;
 
+#ifdef RASQAL_DEBUG_VARIABLE_USAGE
+  v->usage--;
+  RASQAL_DEBUG3("Variable %s usage decreased to %d\n", v->name, v->usage);
+  if(v->usage)
+    return;
+#else
   if(--v->usage)
     return;
+#endif
   
   if(v->name)
     RASQAL_FREE(char*, v->name);
@@ -108,6 +122,9 @@ rasqal_free_variable(rasqal_variable* v)
 void
 rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr)
 {
+  if(!v || !iostr)
+    return;
+    
   if(v->type == RASQAL_VARIABLE_TYPE_ANONYMOUS)
     raptor_iostream_counted_string_write("anon-variable(", 14, iostr);
   else
@@ -125,7 +142,47 @@ rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr)
     rasqal_literal_write(v->value, iostr);
   }
 
+#ifdef RASQAL_DEBUG_VARIABLE_USAGE
+  raptor_iostream_write_byte('[', iostr);
+  raptor_iostream_decimal_write(v->usage, iostr);
+  raptor_iostream_write_byte(']', iostr);
+#endif
+
   raptor_iostream_write_byte(')', iostr);
+}
+
+
+/*
+ * rasqal_variables_write:
+ * @seq: sequence of #rasqal_variable to write
+ * @iostr: the #raptor_iostream handle to write to
+ *
+ * INTERNAL - Write a sequence of Rasqal variable to an iostream in a debug format.
+ *
+ * The write debug format may change in any release.
+ *
+ **/
+int
+rasqal_variables_write(raptor_sequence* seq, raptor_iostream* iostr)
+{
+  int vars_size;
+  int i;
+
+  if(!seq || !iostr)
+    return 1;
+
+  vars_size = raptor_sequence_size(seq);
+  for(i = 0; i < vars_size; i++) {
+    rasqal_variable* v;
+
+    v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
+    if(i > 0)
+      raptor_iostream_counted_string_write(", ", 2, iostr);
+
+    rasqal_variable_write(v, iostr);
+  }
+
+  return 0;
 }
 
 
@@ -157,6 +214,11 @@ rasqal_variable_print(rasqal_variable* v, FILE* fh)
     fputc('=', fh);
     rasqal_literal_print(v->value, fh);
   }
+
+#ifdef RASQAL_DEBUG_VARIABLE_USAGE
+  fprintf(fh, "[%d]", v->usage);
+#endif
+
   fputc(')', fh);
 
   return 0;
@@ -187,11 +249,7 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l)
     RASQAL_FATAL1("variable has no name");
 
   RASQAL_DEBUG2("setting variable %s to value ", v->name);
-
-  if(v->value)
-    rasqal_literal_print(v->value, stderr);
-  else
-    fputs("(NULL)", stderr);
+  rasqal_literal_print(v->value, stderr);
   fputc('\n', stderr);
 #endif
 }
@@ -732,6 +790,8 @@ main(int argc, char *argv[])
   
   tidy:
   for(i = 0; i < NUM_VARS; i++) {
+    if(vars[i])
+      rasqal_free_variable(vars[i]);
     if(names[i])
       free(names[i]);
   }

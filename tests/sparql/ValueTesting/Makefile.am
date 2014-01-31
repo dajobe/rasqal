@@ -86,16 +86,21 @@ $(SPARQL_RESULT_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
-build-roqet:
+.PHONY: build-core build-roqet build-sparql-test-utils check-local get-testsuites-list get-testsuite-sparql-lexer get-testsuite-sparql-parser
+
+# This sequence allows parallel building of build-core and then once
+# that is built, parallel building of the dependent programs: roqet,
+# sparql_lexer_test and sparql_parser_test
+build-core:
+	@(cd $(top_builddir)/src ; $(MAKE))
+
+build-roqet: build-core
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
-build-sparql-lexer-test:
-	@(cd $(top_builddir)/src ; $(MAKE) sparql_lexer_test)
+build-sparql-test-utils: build-core
+	@(cd $(top_builddir)/src ; $(MAKE) sparql_lexer_test sparql_parser_test)
 
-build-sparql-parser-test:
-	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
-
-check-local: build-roqet build-sparql-lexer-test build-sparql-parser-test
+check-local: build-roqet build-sparql-test-utils
 	@$(PERL) $(srcdir)/../../improve .
 
 get-testsuites-list:

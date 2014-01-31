@@ -17,22 +17,25 @@
 / Open Source C library that handles Resource Description Framework
 (RDF) query language syntaxes, query construction and execution of
 queries returning results as bindings, boolean, RDF graphs/triples or
-syntaxes.  The supported query languages are SPARQL 1.0, RDQL, Draft
-SPARQL Query 1.1, Update 1.1 Syntax and Experimental SPARQL
-extensions (LAQRS).  Rasqal can write binding query results in the
-SPARQL XML, SPARQL JSON, CSV, TSV, HTML, ASCII tables, RDF/XML and
-Turtle / N3 and read them in SPARQL XML, RDF/XML and Turtle / N3.
+syntaxes.  The supported query languages are SPARQL Query 1.0, SPARQL
+Query 1.1, SPARQL Update 1.1 (no executing) and the Experimental
+SPARQL extensions (LAQRS).  Rasqal can write binding query results in
+the SPARQL XML, SPARQL JSON, CSV, TSV, HTML, ASCII tables, RDF/XML
+and Turtle / N3 and read them in SPARQL XML, CSV, TSV,
+RDF/XML and Turtle / N3.
 </p>
 
 <p>Rasqal was designed to work closely with the
 <a href="http://librdf.org/">Redland RDF library</a>
-and the Raptor[2] RDF Syntax Library but is entirely separate from both.
+and the <a href="http://librdf.org/raptor/">Raptor</a>
+RDF Syntax Library but is entirely separate from both.
 </p>
 
-<p>This is a beta quality library - the code is mature but the API is
-still changing and the SPARQL support is under development.  It is a
-portable library and has been tested on multiple POSIX systems and
-architectures.  Rasqal has no known memory leaks.
+<p>This is a beta quality library - the code is mature, the API is
+mostly stable but changing slowly. Rasqal supports all of SPARQL 1.0
+query and most of SPARQL 1.1 query. It is a portable library and has
+been tested on multiple POSIX systems and architectures.  Rasqal has
+no known memory leaks.
 </p>
 
 <p>A summary of the changes can be found in the
@@ -42,8 +45,8 @@ architectures.  Rasqal has no known memory leaks.
 <p>Rasqal provides:</p>
 <ul>
 <li>An RDF <a href="docs/api/query.html">query</a> construction and access API.</li>
-<li>Query language support for <a href="http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/">SPARQL 1.0</a>  and most of draft <a href="http://www.w3.org/TR/2011/WD-sparql11-query-20110512/">SPARQL 1.1 Query</a>.</li>
-<li>Query language support for <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL</a>.</li>
+<li>Query language support for <a href="http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/">SPARQL 1.0 Query</a>.</li>
+<li>Query language support for most of <a href="http://www.w3.org/TR/2013/REC-sparql11-query-20130321/">SPARQL 1.1 Query</a>.</li>
 <li>A query execution engine executing sub-queries, aggregate expressions and grouping.</li>
 <li>The complete SPARQL 1.1 (draft) built-in function and operator library</li>
 <li>A query result binding API.</li>
@@ -81,40 +84,56 @@ the triples from Raptor into memory when the queries are complex.
 
 <h3>SPARQL Query Language for RDF</h3>
 
-<p>Rasqal provides support for the W3C SPARQL Query Language 1.0
+<p>Rasqal provides complete support for the W3C SPARQL Query Language 1.0
 developed by the W3C
 <a href="http://www.w3.org/2001/sw/DataAccess/">RDF Data Access Working Group</a>,
 as defined in
-<a href="http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115//">SPARQL Query Language for RDF</a>, W3C Recommendation 15 January 2008.
-It currently implements most of the functionality except for some
-of the trickier corner cases (<code>FILTER</code> scope, date
-comparison, <code>DISTINCT</code> and <code>REDUCED</code>).
-For detailed information on the implementation state, see the Rasqal
-bugs in the <a href="http://bugs.librdf.org/">Redland issue tracker</a>.
-It also implements most of the
-<a href="http://www.w3.org/TR/2011/WD-sparql11-query-20110512/">SPARQL 1.1 Query</a>
-and
-<a href="http://www.w3.org/TR/2011/WD-sparql11-update-20110512/">SPARQL 1.1 Update</a>
-W3C Working Drafts of 12 May 2011 including aggregates, subqueries,
-expression in SELECT, assignment, short form
-for <code>CONSTRUCT</code> and all the new set of builtin functions
-and operators.  Property Paths will probably never be done since it
-is essentially a new query language.
+<a href="http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/">SPARQL Query Language for RDF (1.0)</a>, W3C Recommendation 15 January 2008.
 </p>
 
+<p>Rasqal implements most of the
+<a href="http://www.w3.org/TR/2013/REC-sparql11-query-20130321/">SPARQL 1.1 Query Language</a>
+and
+<a href="http://www.w3.org/TR/2013/REC-sparql11-update-20130321/">SPARQL 1.1 Update</a>
+W3C Recommendations 21 March 2013 including aggregates,
+subqueries, expression in SELECT, assignment, short form for
+<code>CONSTRUCT</code> and all the new set of builtin functions and
+operators.</p>
 
-<h3>RDF Data Query Language (RDQL)</h3>
+<p>Unimplemented parts of SPARQL 1.1:</p>
+<ul>
+  <li><code>BIND</code> scope</li>
+  <li><code>VALUES</code>: part of federated query</li>
+  <li>Decimal and double canonical format details</li>
+  <li><code>EXISTS</code> / <code>NOT EXISTS</code></li>
+  <li>JSON result format reading</li>
+  <li><code>MINUS</code></li>
+  <li><em>Property Paths</em>: These are likely never be supported
+  since it is a lot of work (estimate: 3 months full time) and might
+  need multiple new APIs to talk to the storage layer.</li>
+  <li><code>SERVICE</code>: Part of federated query</li>
+</ul>
 
-<p>Rasqal provides a complete implementation of the RDQL language, as defined in
-<a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF</a>,
+<p>Out of scope parts of SPARQL 1.1:</p>
+<ul>
+  <li>Entailment and inference: Rasqal is not an inference engine</li>
+  <li><em>SPARQL Federated Query</em></li>
+  <li><em>SPARQL Update</em> (also called SPARQL Protocol): The Update
+  syntax is parsed with parser name 'sparql-update' but nothing is
+  executed inside Rasqal. Supporting SPARQL Update requires a protocol
+  server that responds to requests to perform operations on a graph
+  store. Rasqal is a query library and does not have an event loop or
+  triple store.
+  <a href="http://www.aelius.com/njh/redstore/">Redstore</a> is a system
+  supporting SPARQL Update and Service Description built with Rasqal by
+  using Redland librdf for graph storage and query.</li>
+</ul>
 
-W3C Member Submission 9 January 2004 based on the earlier versions in
-Jena. <em>RDQL RDF Data Query Language</em> and the <em>RDQL Grammar</em>.
-The <a href="http://jena.sourceforge.net/tutorial/RDQL/">Jena RDQL Tutorial</a>
-gives an introduction on the language.
-Rasqal currently passes all the <em>Jena RDQL test suite</em> bar a couple.
-Detail of the status of the RDQL support is given in the
-<a href="http://bugs.librdf.org/">Redland issue tracker</a>.</p>
+<p>The details on the Rasqal support for SPARQL 1.1 can be found at the
+<a href="https://github.com/dajobe/redland-testing/blob/master/annotations/sparql11.md">rasqal testing SPARQL 1.1 page</a>
+which shows the SPARQL 1.1 tests that fail and any diagnosis.
+</p>
+
 
 
 <h3>LAQRS Adds to Querying RDF in SPARQL (LAQRS)</h3>
@@ -125,8 +144,9 @@ an <b>experimental</b> set of syntax extensions for SPARQL.  The
 syntax and features may change at any time.  At present Rasqal
 provides parsing and API support for alternate update syntaxes,
 the <code>EXPLAIN</code> keyword, plus executing a few experimental
-extension functions: <code>NOW()</code>
-/ <code>CURRENT_DATETIME()</code>, <code>FROM_UNIXTIME()</code> and
+extension functions:
+<code>NOW()</code> / <code>CURRENT_DATETIME()</code>,
+<code>FROM_UNIXTIME()</code> and
 <code>TO_UNIXTIME()</code>.
 </p>
 
@@ -159,7 +179,7 @@ The development GIT sources can also be
 or checked out at git://github.com/dajobe/rasqal.git
 </p>
 
-<p>Rasqal requires <a href="http://librdf.org/raptor/">Raptor</a> 2.0.4
+<p>Rasqal requires <a href="http://librdf.org/raptor/">Raptor</a> 2.0.7
 or newer to build and run, which can be downloaded from the same area
 as the Rasqal source and binaries.</p>
 
@@ -180,7 +200,7 @@ future plans and announcement of releases.</p>
 
 <hr />
 
-<p>Copyright (C) 2003-2012 <a href="http://www.dajobe.org/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
+<p>Copyright (C) 2003-2014 <a href="http://www.dajobe.org/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
 
 </body>
 </html>

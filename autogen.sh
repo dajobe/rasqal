@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# autogen.sh - Generates initial makefiles from a pristine CVS tree
+# autogen.sh - Generates initial makefiles from a pristine source tree
 #
 # USAGE:
 #   autogen.sh [configure options]
@@ -11,6 +11,11 @@
 #  If set to any value it will do no configuring but  will emit the
 #  programs that would be run.
 #   e.g. DRYRUN=1 ./autogen.sh
+#
+# NOCONFIGURE
+#  If set to any value it will generate all files but not invoke the
+#  generated configure script.
+#   e.g. NOCONFIGURE=1 ./autogen.sh
 #
 # AUTOMAKE ACLOCAL AUTOCONF AUTOHEADER LIBTOOLIZE GTKDOCIZE
 #  If set (named after program) then this overrides any searching for
@@ -68,19 +73,22 @@ if grep "^AM_SILENT_RULES" $confs >/dev/null; then
 fi
 
 # Some dependencies for autotools:
+# automake 1.13 requires autoconf 2.65
+# automake 1.12 requires autoconf 2.62
 # automake 1.11 requires autoconf 2.62 (needed for AM_SILENT_RULES)
 automake_min_vers=011102
 aclocal_min_vers=$automake_min_vers
 autoconf_min_vers=026200
 autoheader_min_vers=$autoconf_min_vers
+# libtool 2.2 required for LT_INIT language fix
 libtoolize_min_vers=020200
 gtkdocize_min_vers=010300
 swig_min_vers=010324
 
 # Default program arguments
 automake_args="--gnu --add-missing --force --copy -Wall"
-aclocal_args=
-autoconf_args=
+aclocal_args="-Wall"
+autoconf_args="-Wall"
 libtoolize_args="--force --copy --automake $ltdl_args"
 gtkdocize_args="--copy"
 # --enable-gtk-doc does no harm if it's not available
@@ -293,12 +301,12 @@ if test -f $GITMODULES ; then
   $DRYRUN git submodule update
 fi
 
-
 for coin in `find $SRCDIR -name configure.ac -print | grep -v /releases/`
 do 
+  status=0
   dir=`dirname $coin`
   if test -f "$dir/NO-AUTO-GEN"; then
-    echo $program: Skipping $dir -- flagged as no auto-gen
+    echo "$program: Skipping $dir -- flagged as no auto-generation"
   else
     echo " "
     echo $program: Processing directory $dir
@@ -339,27 +347,62 @@ do
       echo "$program: Running $libtoolize $libtoolize_args"
       $DRYRUN rm -f ltmain.sh libtool
       eval $DRYRUN $libtoolize $libtoolize_args
+      status=$?
+      if test $status != 0; then
+	  break
+      fi
 
       if grep "^GTK_DOC_CHECK" configure.ac >/dev/null; then
         # gtkdocize junk
         $DRYRUN rm -rf gtk-doc.make
         echo "$program: Running $gtkdocize $gtkdocize_args"
         $DRYRUN $gtkdocize $gtkdocize_args
+        status=$?
+	if test $status != 0; then
+	    break
+	fi
       fi
+
+      for docs in NEWS README; do
+	if test ! -f $docs; then
+	  echo "$program: Creating empty $docs file to allow configure to work"
+	  $DRYRUN touch -t 200001010000 $docs
+	fi
+      done
 
       echo "$program: Running $aclocal $aclocal_args"
       $DRYRUN $aclocal $aclocal_args
-      if grep "^AM_CONFIG_HEADER" configure.ac >/dev/null; then
+      if grep "^A[CM]_CONFIG_HEADER" configure.ac >/dev/null; then
 	echo "$program: Running $autoheader"
 	$DRYRUN $autoheader
+        status=$?
+	if test $status != 0; then
+	    break
+	fi
       fi
       echo "$program: Running $automake $automake_args"
-      $DRYRUN $automake $automake_args $automake_args
-      echo "$program: Running $autoconf"
+      $DRYRUN $automake $automake_args
+      status=$?
+      if test $status != 0; then
+	  break
+      fi
+
+      echo "$program: Running $autoconf $autoconf_args"
       $DRYRUN $autoconf $autoconf_args
+      status=$?
+      if test $status != 0; then
+	  break
+      fi
     )
   fi
+
+  if test $status != 0; then
+    echo "$program: FAILED to configure $dir"
+    exit $status
+  fi
+
 done
+
 
 
 rm -f config.cache
@@ -369,17 +412,21 @@ AUTOCONF=$autoconf
 ACLOCAL=$aclocal
 export AUTOMAKE AUTOCONF ACLOCAL
 
-echo " "
-if test -z "$*"; then
-  echo "$program: WARNING: Running \`configure' with no arguments."
-  echo "If you wish to pass any to it, please specify them on the"
-  echo "\`$program' command line."
+if test "X$NOCONFIGURE" = X; then
+  echo " "
+  if test -z "$*"; then
+    echo "$program: WARNING: Running \`configure' with no arguments."
+    echo "If you wish to pass any to it, please specify them on the"
+    echo "\`$program' command line."
+  fi
+
+  echo "$program: Running ./configure $configure_args $@"
+  if test "X$DRYRUN" = X; then
+    $DRYRUN ./configure $configure_args "$@" \
+    && echo "$program: Now type \`make' to compile this package" || exit 1
+  else
+    $DRYRUN ./configure $configure_args "$@"
+  fi
 fi
 
-echo "$program: Running ./configure $configure_args $@"
-if test "X$DRYRUN" = X; then
-  $DRYRUN ./configure $configure_args "$@" \
-  && echo "$program: Now type \`make' to compile this package" || exit 1
-else
-  $DRYRUN ./configure $configure_args "$@"
-fi
+exit $status

@@ -325,7 +325,7 @@ rasqal_builtin_agg_expression_execute_step(void* user_data,
     
     b->l = result;
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG3("Aggregation step result %s (error=%d)\n", 
                   (result ? RASQAL_GOOD_CAST(const char*, rasqal_literal_as_string(result)) : "(NULL)"),
                   b->error);
@@ -720,11 +720,7 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
   
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG2("Aggregation %d ending group with result: ", i);
-      if(result)
-        rasqal_literal_print(result, DEBUG_FH);
-      else
-        fputs("NULL", DEBUG_FH);
-      
+      rasqal_literal_print(result, DEBUG_FH);
       fputc('\n', DEBUG_FH);
 #endif
       
@@ -797,7 +793,8 @@ static const rasqal_rowsource_handler rasqal_aggregation_rowsource_handler = {
  *
  * INTERNAL - Create a new rowsource for a aggregration
  *
- * The @rowsource becomes owned by the new rowsource.
+ * The @rowsource becomes owned by the new rowsource.  The @exprs_seq
+ * and @vars_seq are not. 
  *
  * For example with the SPARQL 1.1 example queries
  *
@@ -826,7 +823,7 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
                                  raptor_sequence* exprs_seq,
                                  raptor_sequence* vars_seq)
 {
-  rasqal_aggregation_rowsource_context* con;
+  rasqal_aggregation_rowsource_context* con = NULL;
   int flags = 0;
   int size;
   int i;
@@ -899,6 +896,8 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
     raptor_free_sequence(exprs_seq);
   if(vars_seq)
     raptor_free_sequence(vars_seq);
+  if(con)
+    RASQAL_FREE(rasqal_aggregation_rowsource_context*, con);
 
   return NULL;
 }
@@ -934,19 +933,19 @@ static const char* const data_xyz_3_rows[] =
 };
 
 /* MAX(?y) GROUP BY ?x result */
-static const int const test0_output_rows[] =
+static const int test0_output_rows[] =
 { 3, 5, };
 /* MIN(?x) GROUP BY ?x result */
-static const int const test1_output_rows[] =
+static const int test1_output_rows[] =
 { 1, 2, };
 /* SUM(?z) GROUP BY ?x result */
-static const int const test2_output_rows[] =
+static const int test2_output_rows[] =
 { 7, 6, };
 /* AVG(?x) GROUP BY ?x result */
-static const double const test3_output_rows[] =
+static const double test3_output_rows[] =
 { 1.0, 2.0, };
 /* SAMPLE(?y) GROUP BY ?x result */
-static const int const test4_output_rows[] =
+static const int test4_output_rows[] =
 { 2, 5, };
 /* GROUP_CONCAT(?z) GROUP BY ?x result */
 static const char* const test5_output_rows[] =
@@ -966,10 +965,10 @@ static const struct {
   int output_vars;
   int output_rows;
   const char* const *data;
-  const int const *group_ids;
+  const int *group_ids;
   rasqal_literal_type result_type;
-  const int const *result_int_data;
-  const double const *result_double_data;
+  const int *result_int_data;
+  const double *result_double_data;
   const char* const *result_string_data;
   rasqal_op op;
   const char* const expr_agg_vars[MAX_TEST_VARS];
@@ -1152,8 +1151,11 @@ main(int argc, char *argv[])
 
         v = rasqal_variables_table_get_by_name(vt, RASQAL_VARIABLE_TYPE_NORMAL,
                                                var_name);
-        if(v)
+        /* returns SHARED pointer to variable */
+        if(v) {
+          v = rasqal_new_variable_from_variable(v);
           l = rasqal_new_variable_literal(world, v);
+        }
 
         if(l)
           e = rasqal_new_literal_expression(world, l);
@@ -1188,13 +1190,17 @@ main(int argc, char *argv[])
     
     vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                                    (raptor_data_print_handler)rasqal_variable_print);
-    output_var = rasqal_new_variable_from_variable(output_var);
     raptor_sequence_push(vars_seq, output_var);
+    /* output_var is now owned by vars_seq */
+    output_var = NULL;
 
     rowsource = rasqal_new_aggregation_rowsource(world, query, input_rs,
                                                  exprs_seq, vars_seq);
-    /* exprs_seq, vars_seq and input_rs are now owned by rowsource */
-    exprs_seq = NULL; vars_seq = NULL; input_rs = NULL;
+    /* input_rs is now owned by rowsource */
+    input_rs = NULL;
+    /* these are no longer needed; agg rowsource made copies */
+    raptor_free_sequence(exprs_seq); exprs_seq = NULL;
+    raptor_free_sequence(vars_seq); vars_seq = NULL;
 
     if(!rowsource) {
       fprintf(stderr, "%s: failed to create aggregation rowsource\n", program);
@@ -1292,7 +1298,7 @@ main(int argc, char *argv[])
 
             d = rasqal_literal_as_double(value, NULL);
             
-            if(d != expected_double) {
+            if(!rasqal_double_approximately_equal(d, expected_double)) {
               fprintf(stderr,
                     "%s: test %d row #%d %s value #%d result is %f expected %f\n",
                       program, test_id, i, row_var->name, vc,

@@ -340,7 +340,7 @@ rasqal_dataset_term_iterator_next(rasqal_dataset_term_iterator* iter)
     if(!iter->cursor)
       break;
     
-#if RASQAL_DEBUG > 2
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
     RASQAL_DEBUG1("Matching against triple: ");
     rasqal_triple_print(iter->cursor->triple, DEBUG_FH);
     fputc('\n', DEBUG_FH);

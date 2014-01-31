@@ -81,10 +81,7 @@ rasqal_formula_print(rasqal_formula* formula, FILE *stream)
   else
     fputs("[]", stream);
   fputs(", value=", stream);
-  if(formula->value)
-    rasqal_literal_print(formula->value, stream);
-  else
-    fputs("NULL", stream);
+  rasqal_literal_print(formula->value, stream);
   fputc(')', stream);
 
   return 0;

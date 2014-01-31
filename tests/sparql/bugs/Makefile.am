@@ -23,19 +23,20 @@ MANIFEST_FILES= \
 manifest.ttl
 
 BUG_DATA_FILES= \
-352.ttl 353.ttl 354.nt 459.ttl
+352.ttl 353.ttl 354.nt 459.ttl 519.ttl
 
 SPARQL_TEST_FILES= \
-352.rq 353.rq 354.rq 459.rq
+352.rq 353.rq 354.rq 459.rq 519.rq
 
 SPARQL_TEST_NAMES= \
-352 353 354 459
+352 353 354 459 519
 
 SPARQL_RESULT_FILES= \
 352-result.ttl \
 353-result.ttl \
 354-result.ttl \
-459-result.ttl
+459-result.ttl \
+519-result.ttl
 
 EXTRA_DIST= \
 $(MANIFEST_FILES) \
@@ -47,7 +48,15 @@ CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
 RECHO=/bin/echo
 
-build-roqet:
+.PHONY: build-core build-roqet check-lcoal
+
+# This sequence allows parallel building of build-core and then once
+# that is built, parallel building of the dependent programs: roqet
+
+build-core:
+	@(cd $(top_builddir)/src ; $(MAKE))
+
+build-roqet: build-core
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
 check-local: build-roqet

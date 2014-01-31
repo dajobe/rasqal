@@ -1,0 +1,6 @@
+@prefix : <http://example.org/resource/> .
+
+:a :prop "1"^^<http://www.w3.org/2001/XMLSchema#int> .
+:b :prop "2"^^<http://www.w3.org/2001/XMLSchema#int> .
+:c :prop "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+:d :prop "4"^^<http://www.w3.org/2001/XMLSchema#integer> .

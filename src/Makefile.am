@@ -25,14 +25,13 @@ lib_LTLIBRARIES = librasqal.la
 
 nodist_pkginclude_HEADERS = rasqal.h
 
-noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h
+noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h sv_config.h
 
 man_MANS = rasqal-config.1
 
 TESTS_ENVIRONMENT= \
   RDF_DATA_FILE=$(top_srcdir)/data/dc.rdf \
   NT_DATA_FILE=$(top_srcdir)/data/one.nt \
-  RDQL_QUERY_FILE=$(top_srcdir)/tests/rdql/example5.rdql \
   SPARQL_QUERY_FILE=$(top_srcdir)/tests/sparql/examples/ex11_1.rq
 
 TESTS=rasqal_algebra_test$(EXEEXT) rasqal_expr_test$(EXEEXT)	\
@@ -50,26 +49,25 @@ rasqal_rowsource_groupby_test$(EXEEXT) \
 rasqal_rowsource_aggregation_test$(EXEEXT) \
 rasqal_literal_test$(EXEEXT) \
 rasqal_regex_test$(EXEEXT) \
-rasqal_random_test$(EXEEXT)
+rasqal_random_test$(EXEEXT) \
+rasqal_xsd_datatypes_test$(EXEEXT)
 
-# These 4 test programs are compiled here and run here as 'smoke
-# tests' but mostly used in tests in $(srcdir)/../tests/{rdql,sparql}
+# These 2 test programs are compiled here and run here as 'smoke
+# tests' but mostly used in tests in $(srcdir)/../tests/sparql
 # to do detailed tests on the lext/parsers
-if RASQAL_QUERY_RDQL
-TESTS += rdql_lexer_test$(EXEEXT) rdql_parser_test$(EXEEXT)
-endif
 if RASQAL_QUERY_SPARQL
 TESTS += sparql_lexer_test$(EXEEXT) sparql_parser_test$(EXEEXT)
 endif
 
-EXTRA_PROGRAMS=$(TESTS)
+BROKEN_TESTS=rasqal_rowsource_service_test$(EXEEXT)
+
+EXTRA_PROGRAMS=$(TESTS) $(BROKEN_TESTS)
 
 CLEANFILES=$(TESTS) \
 *.plist \
 git-version.h
 
-MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
-rdql_parser.c rdql_parser.h rdql_parser.output \
+MAINTAINERCLEANFILES= \
 sparql_lexer.c sparql_lexer.h \
 sparql_parser.c sparql_parser.h sparql_parser.output
 
@@ -105,6 +103,7 @@ rasqal_rowsource_project.c rasqal_rowsource_join.c \
 rasqal_rowsource_graph.c rasqal_rowsource_distinct.c \
 rasqal_rowsource_groupby.c rasqal_rowsource_aggregation.c \
 rasqal_rowsource_having.c rasqal_rowsource_slice.c \
+rasqal_rowsource_bindings.c rasqal_rowsource_service.c \
 rasqal_row_compatible.c rasqal_format_table.c rasqal_query_write.c \
 rasqal_format_json.c rasqal_format_sv.c rasqal_format_html.c \
 rasqal_format_rdf.c \
@@ -117,12 +116,10 @@ rasqal_random.c \
 rasqal_digest.c \
 rasqal_iostream.c \
 rasqal_regex.c \
-snprintf.c
+snprintf.c \
+rasqal_double.c \
+rasqal_ntriples.c
 
-if RASQAL_QUERY_RDQL
-librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
-rdql_parser.c rdql_parser.h rdql_common.h
-endif
 if RASQAL_QUERY_SPARQL
 librasqal_la_SOURCES += sparql_lexer.c sparql_lexer.h \
 sparql_parser.c sparql_parser.h sparql_common.h
@@ -153,32 +150,40 @@ nodist_librasqal_la_SOURCES += git-version.h
 rasqal_algebra.c: git-version.h
 endif
 
-if RASQAL_MTWIST
-
-librasqal_la_SOURCES += \
-$(top_srcdir)/libmtwist/mt.c \
-$(top_srcdir)/libmtwist/seed.c \
-$(top_srcdir)/libmtwist/mtwist.h \
-$(top_srcdir)/libmtwist/mtwist_internal.h \
-mtwist_config.h
-
-AM_CFLAGS += -DMTWIST_CONFIG -I$(top_srcdir)/libmtwist
-
-endif
-
-
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 librasqal_la_LIBADD = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 librasqal_la_DEPENDENCIES = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@
 
+AM_CFLAGS += -DSV_CONFIG -I$(top_srcdir)/libsv
+librasqal_la_LIBADD += $(top_builddir)/libsv/libsv.la
+librasqal_la_DEPENDENCIES += $(top_builddir)/libsv/libsv.la
+
+$(top_builddir)/libsv/libsv.la:
+	cd $(top_builddir)/libsv && $(MAKE) libsv.la
+
+if RASQAL_MTWIST
+
+AM_CFLAGS += -DMTWIST_CONFIG -I$(top_srcdir)/libmtwist
+librasqal_la_LIBADD += $(top_builddir)/libmtwist/libmtwist.la
+librasqal_la_DEPENDENCIES += $(top_builddir)/libmtwist/libmtwist.la
+
+$(top_builddir)/libmtwist/libmtwist.la:
+	cd $(top_builddir)/libmtwist && $(MAKE) libmtwist.la
+
+endif
+
+if GETOPT
+$(top_builddir)/libgetopt/libgetopt.la:
+	cd $(top_builddir)/libgetopt && $(MAKE) libgetopt.la
+endif
+
 
 EXTRA_DIST= \
-rdql_lexer.l rdql_parser.y \
 sparql_lexer.l sparql_parser.y \
 rasqal-config.in \
 $(man_MANS) \
-rasqal_query_test.c
-
+rasqal_query_test.c \
+mtwist_config.h
 
 LEX=@LEX@
 YACC=@YACC@
@@ -190,18 +195,6 @@ HTML_TO_TEXT=TERM=vt100 $(LYNX) -dump -nolist
 SUFFIXES = .html .txt
 
 if MAINTAINER_MODE
-# Actually it needs rdql_parser.h but nevermind
-rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.c $(srcdir)/../scripts/fix-flex
-	$(LEX) -o$@ $(srcdir)/rdql_lexer.l
-	$(PERL) $(srcdir)/../scripts/fix-flex $@ > rdql_lexer.t
-	mv rdql_lexer.t $@
-
-rdql_parser.c: $(srcdir)/rdql_parser.y $(srcdir)/../scripts/fix-bison
-	$(YACC) -b rdql_parser -p rdql_parser_ -d -v $(srcdir)/rdql_parser.y
-	$(PERL) $(srcdir)/../scripts/fix-bison rdql_parser.tab.c > $@
-	mv rdql_parser.tab.h rdql_parser.h
-	rm -f rdql_parser.tab.c
-
 # Actually it needs sparql_parser.h but nevermind
 sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/../scripts/fix-flex
 	$(LEX) -o$@ $(srcdir)/sparql_lexer.l
@@ -209,20 +202,15 @@ sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/../scripts/fi
 	mv sparql_lexer.t $@
 
 sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/../scripts/fix-bison
-	$(YACC) -b sparql_parser -p sparql_parser_ -d -v $(srcdir)/sparql_parser.y
+	$(BISON) $(srcdir)/sparql_parser.y
 	$(PERL) $(srcdir)/../scripts/fix-bison sparql_parser.tab.c > $@
 	mv sparql_parser.tab.h sparql_parser.h
 	rm -f sparql_parser.tab.c
+
+sparql_parser.h: sparql_parser.c ; @exit 0
+
 endif
 
-
-rdql_lexer_test_SOURCES = rdql_lexer.c
-rdql_lexer_test_CPPFLAGS = -DSTANDALONE
-rdql_lexer_test_LDADD = librasqal.la
-
-rdql_parser_test_SOURCES = rdql_parser.c
-rdql_parser_test_CPPFLAGS = -DSTANDALONE
-rdql_parser_test_LDADD = librasqal.la
 
 sparql_lexer_test_SOURCES = sparql_lexer.c
 sparql_lexer_test_CPPFLAGS = -DSTANDALONE
@@ -232,8 +220,8 @@ sparql_parser_test_SOURCES = sparql_parser.c
 sparql_parser_test_CPPFLAGS = -DSTANDALONE
 sparql_parser_test_LDADD = librasqal.la
 if GETOPT
-sparql_parser_test_SOURCES += $(top_srcdir)/utils/getopt.c
-sparql_parser_test_CPPFLAGS += -I$(top_srcdir)/utils
+sparql_parser_test_CPPFLAGS += -I$(top_srcdir)/getopt
+sparql_parser_test_LDADD += $(top_builddir)/getopt/libgetopt.la
 endif
 
 rasqal_expr_test_SOURCES = rasqal_expr.c
@@ -296,6 +284,10 @@ rasqal_rowsource_join_test_SOURCES = rasqal_rowsource_join.c
 rasqal_rowsource_join_test_CPPFLAGS = -DSTANDALONE
 rasqal_rowsource_join_test_LDADD = librasqal.la
 
+rasqal_rowsource_service_test_SOURCES = rasqal_rowsource_service.c
+rasqal_rowsource_service_test_CPPFLAGS = -DSTANDALONE
+rasqal_rowsource_service_test_LDADD = librasqal.la
+
 rasqal_row_compatible_test_SOURCES = rasqal_row_compatible.c
 rasqal_row_compatible_test_CPPFLAGS = -DSTANDALONE
 rasqal_row_compatible_test_LDADD = librasqal.la
@@ -311,6 +303,10 @@ rasqal_regex_test_LDADD = librasqal.la
 rasqal_random_test_SOURCES = rasqal_random.c
 rasqal_random_test_CPPFLAGS = -DSTANDALONE
 rasqal_random_test_LDADD = librasqal.la
+
+rasqal_xsd_datatypes_test_SOURCES = rasqal_xsd_datatypes.c
+rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE
+rasqal_xsd_datatypes_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
@@ -329,7 +325,7 @@ check-version:
 	  git_version="unknown"; \
 	fi; \
 	$(RECHO) "GIT version $$git_version"; \
-	tmp="$$file.tmp"; \
+	tmp="$$file$$$$.tmp"; \
 	$(RECHO) "#define GIT_VERSION \"$$git_version\"" > $$tmp; \
         if test -f $$file; then \
           if cmp $$file $$tmp >/dev/null 2>&1; then \

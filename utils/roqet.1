@@ -2,10 +2,10 @@
 .\"
 .\" roqet.1 - Rasqal RDF query utility
 .\"
-.\" Copyright (C) 2004-2011 David Beckett - http://www.dajobe.org/
+.\" Copyright (C) 2004-2013 David Beckett - http://www.dajobe.org/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH roqet 1 "2011-06-11"
+.TH roqet 1 "2013-12-11"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 roqet \- Rasqal RDF query utility
@@ -27,21 +27,27 @@ roqet \- Rasqal RDF query utility
 .IR "query-string"
 .RB ]
 .IR "[base-URI]"
+.br
+.B roqet
+.RB [ OPTIONS ] -t
+.IR "query results file" 
+.IR "[base-URI]"
 .SH DESCRIPTION
 The
 .B roqet
 utility allows querying of RDF content using the
 .B Rasqal
-RDF query library, printing the results in variable bindings,
-RDF graph or boolean format.  The query is read from \fIquery-URI\fR and
-the optional \fIbase-URI\fR is used as the base URI of the query if present.
+RDF query library, printing the results for variable bindings, RDF
+graph or boolean results in a variety of formats.  The query is read
+from \fIquery-URI\fR and the optional \fIbase-URI\fR is used as the
+base URI of the query if present.
 .SH MAIN OPTIONS
 roqet uses the usual GNU command line syntax, with long
 options starting with two dashes (`-') if supported by the
 getopt_long function.  Otherwise only the short options are available.
 .TP
 .B \-e, \-\-exec QUERY
-Execute the query in the argument
+Execute the query string in the argument
 .I QUERY
 instead of reading the query from a URI (when \fB\-e\fP /
 \fB\-\-exec\fP is not given).
@@ -50,23 +56,25 @@ instead of reading the query from a URI (when \fB\-e\fP /
 Set the input query
 .I LANGUAGE
 to one of the supported languages which includes 'sparql'
-(SPARQL Query Language for RDF, default), 'sparql11', 'laqrs'
-and 'rdql' (RDF Data Query Language).   The full list of
-supported languages and susbets is given in the help summary with the
+(SPARQL Query Language for RDF, default), 'sparql11' and 'laqrs'.
+The full list of supported languages and subsets is given in the help
+summary with the
 \fB\-h\fP / \fB\-\-help\fP option.
 .TP
 .B \-p, \-\-protocol SERVICE-URI
 Call the SPARQL HTTP protocol \fISERVICE-URI\fP to execute the query
-instead of executing it inside the Rasqal query engine locally.
+instead of executing it inside the Rasqal query engine locally (
+when \fB-e\fP is given, or a query string given)
 .TP
 .B \-r, \-\-results FORMAT
-Set the query results format.
+Set the query results output
+.I FORMAT
 .IP
 For variable bindings, the values of
 .I FORMAT
-vary upon what Rasqal supports but include 'simple'
-for a simple text format (default), 'xml'
-for the SPARQL Query Results XML format, 'rdfxml'
+vary upon what Rasqal supports but include 'simple' for a simple text
+format (default), 'xml' for the SPARQL Query Results XML
+format, 'csv' for SPARQL CSV, 'tsv' for SPARQL TSV, 'rdfxml'
 and 'turtle' for RDF syntax formats,
 and 'json' for a JSON version of the results.
 .IP
@@ -79,6 +87,19 @@ or 'rss-1.0' (RSS 1.0, also an RDF/XML syntax).
 .IP
 The exact list of formats depends on what libraptor2(3) was built with
 but is given correct in the usage message with \-h.
+.TP
+.B \-R, \-\-results-input-format FORMAT
+Set the query results input
+.I
+FORMAT
+.IP
+This is for use with \-t and takes values of 'xml' for the SPARQL
+Query Results XML format,, 'csv' for SPARQL CSV,, 'tsv' for SPARQL
+TSV, 'turtle' and 'rdfxml' for RDF syntax formats.
+.TP
+.B \-t, \-\-results\-input FILE
+Read query results from
+.I FILE
 .SH OTHER OPTIONS
 .TP
 .B \-c, \-\-count
@@ -87,12 +108,12 @@ Only count the triples and produce no other output.
 .B \-d, \-\-dump\-query FORMAT
 Print the parsed query out in a given
 .I FORMAT
-one of 'debug', 'structure' or 'sparql'
+one of 'none' (default), 'debug', 'structure' or 'sparql'
 .TP
 .B \-D, \-\-data URI
 Add RDF data source URI (not a named graph).  If no data sources
 are given, the query itself must point to the data such as via
-SPARQL or RDQL FROM \fIuri\fP statements.
+SPARQL FROM \fIuri\fP statements.
 .TP
 .B \-E, \-\-ignore\-errors
 Do not print error messages and do not exit with a non-0 status.
@@ -151,10 +172,11 @@ Run a SPARQL query that is in the web at URI
 http://example.org/sparql-query.rq
 without an extra messages (quiet, -q).
 .IP
-.B roqet -q -i rdql rdql-query-file.rdql http://example.org/base/
+.B roqet -q query-file.rq http://example.org/base/
 .LP
-Run an RDQL query from a local file rdql-query-file.rdql but using
-base URI http://example.org/base/ to resolve any relative URIs.
+Run an query (default languge SPARQL) from a local file query-file.rq
+but using base URI http://example.org/base/ to resolve any relative
+URIs.
 .IP
 .B roqet -q -i sparql -r xml http://example.org/sparql-query.rq
 .LP
@@ -167,23 +189,28 @@ messages.
 Run a SPARQL query given on the command line against data in
 the file stuff.rdf.  The type of the file will be guessed and likely
 is of format RDF/XML.
+.IP
+.B roqet -t result.srx -r html
+.LP
+Read a SPARQL query results in SPARQL Query Results XML format (default)
+and print it in HTML.
+.IP
+.B roqet -t result.ttl -R turtle -r csv
+.LP
+Read a SPARQL query results in RDF/Turtle format and print it in CSV.
 .SH "CONFORMING TO"
-\fISPARQL Query Language for RDF\fR, 
-Eric Prud'hommeaux and Andy Seaborne (eds), W3C Recommendation, 15 January 2008.
-.UR http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/
-http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/
+\fISPARQL 1.1 Query Language\fR,
+Steve Harris and Andy Seaborne (eds),
+W3C Recommendation, 21 March 2013
+.UR http://www.w3.org/TR/2013/REC-sparql11-query-20130321/
+http://www.w3.org/TR/2013/REC-sparql11-query-20130321/
 .UE
 .LP
-\fISPARQL Query Results XML Format\fR, 
-Jeen Broekstra and Dave Beckett (eds), W3C Recommendation, 15 January 2008.
-.UR http://www.w3.org/TR/2008/REC-rdf-sparql-XMLres-20080115/
-http://www.w3.org/TR/2008/REC-rdf-sparql-XMLres-20080115/
-.UE
-.LP
-\fIRDQL - A Query Language for RDF\fR, Andy Seaborne,
-W3C Member Submission 9 January 2004
-.UR http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
-http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
+\fISPARQL Query Results XML Format (Second Edition)\fR, 
+Sandro Hawke (Second Edition ed), Jeen Broekstra and Dave Beckett (eds),
+W3C Recommendation, 21 March 2013.
+.UR http://www.w3.org/TR/2013/REC-rdf-sparql-XMLres-20130321/
+http://www.w3.org/TR/2013/REC-rdf-sparql-XMLres-20130321/
 .UE
 .SH SEE ALSO
 .BR librasqal(3), libraptor(3)

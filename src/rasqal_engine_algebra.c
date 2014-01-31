@@ -418,8 +418,8 @@ rasqal_algebra_having_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
 
 static rasqal_rowsource*
 rasqal_algebra_slice_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
-                                                rasqal_algebra_node* node,
-                                                rasqal_engine_error *error_p)
+                                               rasqal_algebra_node* node,
+                                               rasqal_engine_error *error_p)
 {
   rasqal_query *query = execution_data->query;
   rasqal_rowsource *rs;
@@ -429,6 +429,33 @@ rasqal_algebra_slice_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
     return NULL;
 
   return rasqal_new_slice_rowsource(query->world, query, rs, node->limit, node->offset);
+}
+
+
+static rasqal_rowsource*
+rasqal_algebra_values_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                                rasqal_algebra_node* node,
+                                                rasqal_engine_error *error_p)
+{
+  rasqal_query *query = execution_data->query;
+  rasqal_bindings* bindings = rasqal_new_bindings_from_bindings(node->bindings);
+  return rasqal_new_bindings_rowsource(query->world, query, bindings);
+}
+
+
+static rasqal_rowsource*
+rasqal_algebra_service_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                                 rasqal_algebra_node* node,
+                                                 rasqal_engine_error *error_p)
+{
+  rasqal_query *query = execution_data->query;
+  unsigned int flags = (node->flags & RASQAL_ENGINE_BITFLAG_SILENT);
+
+  return rasqal_new_service_rowsource(query->world, query,
+                                      node->service_uri,
+                                      node->query_string,
+                                      node->data_graphs,
+                                      flags);
 }
 
 
@@ -508,6 +535,16 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
     case RASQAL_ALGEBRA_OPERATOR_SLICE:
       rs = rasqal_algebra_slice_algebra_node_to_rowsource(execution_data,
                                                           node, error_p);
+      break;
+
+    case RASQAL_ALGEBRA_OPERATOR_VALUES:
+      rs = rasqal_algebra_values_algebra_node_to_rowsource(execution_data,
+                                                           node, error_p);
+      break;
+
+    case RASQAL_ALGEBRA_OPERATOR_SERVICE:
+      rs = rasqal_algebra_service_algebra_node_to_rowsource(execution_data,
+                                                            node, error_p);
       break;
 
     case RASQAL_ALGEBRA_OPERATOR_UNKNOWN:

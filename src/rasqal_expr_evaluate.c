@@ -1561,6 +1561,14 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       result = rasqal_expression_evaluate_digest(e, eval_context, error_p);
       break;
 
+    case RASQAL_EXPR_UUID:
+      result = rasqal_expression_evaluate_uriuuid(e, eval_context, error_p);
+      break;
+
+    case RASQAL_EXPR_STRUUID:
+      result = rasqal_expression_evaluate_struuid(e, eval_context, error_p);
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL3("Unknown operation %s (%d)",
@@ -1593,6 +1601,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 }
 
 
+#ifndef RASQAL_DISABLE_DEPRECATED
 /**
  * rasqal_expression_evaluate:
  * @world: #rasqal_world
@@ -1618,7 +1627,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(e, rasqal_expression, NULL);
 
-  memset(&context, sizeof(context), '\0');
+  memset(&context, '\0', sizeof(context));
   context.world = world;
   context.locator = locator;
   context.flags = flags;
@@ -1629,3 +1638,4 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
   
   return l;
 }
+#endif

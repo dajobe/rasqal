@@ -1,2 +1,2 @@
-_:r1_bnodeid1 <http://xmlns.com/foaf/0.1/name> "Alice" .
-_:r2_bnodeid1 <http://xmlns.com/foaf/0.1/name> "Bob" .
+_:r1qbnodeid1 <http://xmlns.com/foaf/0.1/name> "Alice" .
+_:r2qbnodeid1 <http://xmlns.com/foaf/0.1/name> "Bob" .

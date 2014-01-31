@@ -2,7 +2,7 @@
  *
  * rasqal_rowsource_join.c - Rasqal join rowsource class
  *
- * Copyright (C) 2008-2009, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2008-2012, David Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -83,6 +83,9 @@ typedef struct
 
   /* number of right rows joined per-left */
   int right_rows_joined_count;
+
+  /* join expression constant boolean value or < 0 if not valid */
+  int constant_join_condition;
 } rasqal_join_rowsource_context;
 
 
@@ -96,6 +99,7 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
   con->failed = 0;
   con->state = JS_START;
+  con->constant_join_condition = -1;
 
   /* If join condition is a constant - optimize it away */
   if(con->expr && rasqal_expression_is_constant(con->expr)) {
@@ -133,14 +137,17 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     /* free expression always */
     rasqal_free_expression(con->expr); con->expr = NULL;
 
-    if(!bresult) {
-      /* Constraint is always false so row source is finished */
-      con->state = JS_FINISHED;
+    if(con->join_type == RASQAL_JOIN_TYPE_NATURAL) {
+      if(!bresult) {
+        /* Constraint is always false so row source is finished */
+        con->state = JS_FINISHED;
+      }
+      /* otherwise always true so no need to evaluate on each row
+       * and deleting con->expr will handle that
+       */
     }
-    /* otherwise always true so no need to evaluate on each row
-     * and deleting con->expr will handle that
-     */
 
+    con->constant_join_condition = bresult;
   }
 
   rasqal_rowsource_set_requirements(con->left, RASQAL_ROWSOURCE_REQUIRE_RESET);
@@ -388,8 +395,11 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     }
 
 
-    /* Check join expression if present */
-    if(con->expr) {
+    if(con->constant_join_condition >= 0) {
+      /* Get constant join expression value */
+      bresult = con->constant_join_condition;
+    } else if(con->expr) {
+      /* Check join expression if present */
       rasqal_literal *result;
       int error = 0;
       

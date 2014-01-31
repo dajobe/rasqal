@@ -514,6 +514,17 @@ then retrieved.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_query_graph_pattern_visit2 ##### -->
+<para>
+
+</para>
+
+@query: 
+@visit_fn: 
+@data: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_query_graph_pattern_visit ##### -->
 <para>
 

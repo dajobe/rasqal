@@ -44,101 +44,6 @@
 #define DEBUG_FH stderr
 
 
-#if RAPTOR_VERSION < 20005
-
-static int
-rasqal_unicode_utf8_strlen(const unsigned char *string, size_t length)
-{
-  int unicode_length = 0;
-  
-  while(length > 0) {
-    int unichar_len;
-    unichar_len = raptor_unicode_utf8_string_get_char(string, length, NULL);
-    if(unichar_len < 0 || RASQAL_GOOD_CAST(size_t, unichar_len) > length) {
-      unicode_length = -1;
-      break;
-    }
-    
-    string += unichar_len;
-    length -= unichar_len;
-
-    unicode_length++;
-  }
-
-  return unicode_length;
-}
-
-
-/*
- * rasqal_unicode_utf8_substr:
- * @dest: destination string buffer to write to (or NULL)
- * @dest_length_p: location to store actual destination length (or NULL)
- * @src: source string
- * @src_length: source length in bytes
- * @startingLoc: starting location offset 0 for first Unicode character
- * @length: number of Unicode characters to copy at offset @startingLoc (or < 0)
- *
- * INTERNAL - Get a unicode (UTF-8) substring of an existing UTF-8 string
- *
- * If @dest is NULL, returns the number of bytes needed to write and
- * does no work.
- * 
- * Return value: number of bytes used in destination string or 0 on failure
- */
-static size_t
-rasqal_unicode_utf8_substr(unsigned char* dest, size_t* dest_length_p,
-                           const unsigned char* src, size_t src_length,
-                           int startingLoc, int length)
-{
-  size_t dest_length = 0; /* destination unicode characters count */
-  size_t dest_bytes = 0;  /* destination UTF-8 bytes count */
-  int dest_offset = 0; /* destination string unicode characters index */
-  unsigned char* p = dest;
-  
-  if(!src)
-    return 0;
-
-  while(src_length > 0) {
-    int unichar_len;
-
-    unichar_len = raptor_unicode_utf8_string_get_char(src, src_length, NULL);
-    if(unichar_len < 0 || RASQAL_GOOD_CAST(size_t, unichar_len) > src_length)
-      break;
-
-    if(dest_offset >= startingLoc) {
-      if(p) {
-        /* copy 1 Unicode character to dest */
-        memcpy(p, src, unichar_len);
-        p += unichar_len;
-      }
-      dest_bytes += unichar_len;
-
-      dest_length++;
-      if(length >= 0 && dest_length == RASQAL_GOOD_CAST(size_t, length))
-        break;
-    }
-
-    src += unichar_len;
-    src_length -= unichar_len;
-
-    dest_offset++;
-  }
-
-  if(p)
-    *p = '\0';
-
-  if(dest_length_p)
-    *dest_length_p = dest_length;
-
-  return dest_bytes;
-}
-
-#define raptor_unicode_utf8_strlen rasqal_unicode_utf8_strlen
-#define raptor_unicode_utf8_substr rasqal_unicode_utf8_substr
-
-#endif
-
-
 /* 
  * rasqal_expression_evaluate_strlen:
  * @e: The expression to evaluate.
@@ -660,10 +565,11 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
     arg_literal = rasqal_expression_evaluate2(arg_expr, eval_context, error_p);
     if(arg_literal) {
 
-      if(!dt)
+      if(!dt) {
         /* First datatype URI seen is the result datatype */
-        dt = raptor_uri_copy(arg_literal->datatype);
-      else {
+        if(arg_literal->datatype)
+          dt = raptor_uri_copy(arg_literal->datatype);
+      } else {
         /* Otherwise if all same so far, check the datatype URI for
          * this literal is also the same 
          */
@@ -935,7 +841,13 @@ rasqal_expression_evaluate_strbefore(rasqal_expression *e,
     haystack = RASQAL_GOOD_CAST(const unsigned char *, "");
   }
 
+  rasqal_free_literal(l1); l1 = NULL;
+  rasqal_free_literal(l2); l2 = NULL;
+
   result = RASQAL_MALLOC(unsigned char*, result_len + 1);
+  if(!result)
+    goto failed;
+
   if(result_len)
     memcpy(result, haystack, result_len);
   result[result_len] = '\0';
@@ -1015,7 +927,13 @@ rasqal_expression_evaluate_strafter(rasqal_expression *e,
     result_len = 0;
   }
 
+  rasqal_free_literal(l1); l1 = NULL;
+  rasqal_free_literal(l2); l2 = NULL;
+
   result = RASQAL_MALLOC(unsigned char*, result_len + 1);
+  if(!result)
+    goto failed;
+
   if(result_len)
     memcpy(result, ptr, result_len);
   result[result_len] = '\0';

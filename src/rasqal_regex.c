@@ -67,7 +67,8 @@
  *
  * INTERNAL - Test if a string matches a regex pattern.
  *
- * Intended to be used for RDQL string matches/does not match regex operators =~ and !~
+ * Intended to be used for executing #RASQAL_EXPR_STR_MATCH and
+ * #RASQAL_EXPR_STR_NMATCH operations (unused: formerly RDQL)
  *
  * Return value: <0 on error, 0 for no match, >0 for match
  *
@@ -658,6 +659,9 @@ rasqal_regex_replace_posix(rasqal_world* world, raptor_locator* locator,
 
 
   failed:
+  if(result)
+    RASQAL_FREE(char*, result);
+
   RASQAL_FREE(regmatch_t*, pmatch);
   
   return NULL;
@@ -666,19 +670,19 @@ rasqal_regex_replace_posix(rasqal_world* world, raptor_locator* locator,
 
 
 
-/*
+/**
  * rasqal_regex_replace:
  * @world: world
  * @locator: locator
  * @pattern: regex pattern
- * @options: regex flags string
+ * @regex_flags: regex flags string
  * @subject: input string
  * @subject_len: input string length
  * @replace: replacement string
  * @replace_len: Length of replacement string
  * @result_len_p: pointer to store result length (output)
  *
- * INTERNAL - Replace all copies of matches to a pattern with a replacement with subsitution
+ * Replace all copies of matches to a pattern with a replacement with subsitution
  *
  * Intended to be used for SPARQL 1.1 REPLACE() implementation.
  *
@@ -789,9 +793,9 @@ int
 main(int argc, char *argv[])
 {
   rasqal_world* world;
-  raptor_locator* locator;
   const char *program = rasqal_basename(argv[0]);
 #ifdef RASQAL_REGEX_PCRE
+  raptor_locator* locator = NULL;
   int test = 0;
 #endif
   int failures = 0;
@@ -803,8 +807,6 @@ main(int argc, char *argv[])
     goto tidy;
   }
     
-  locator = NULL;
-
 #if defined(RASQAL_REGEX_POSIX) || defined(RASQAL_REGEX_NONE)
     fprintf(stderr,
             "%s: WARNING: Cannot only run regex tests with PCRE regexes\n",

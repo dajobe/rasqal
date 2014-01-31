@@ -43,5 +43,14 @@
         mf:result  <459-result.ttl>
      ]
 
+     [  mf:name    "519" ;
+        rdfs:comment
+            "Handling integer^^URI data" ;
+        mf:action
+            [ qt:query  <519.rq> ;
+              qt:data   <519.ttl> ] ;
+        mf:result  <519-result.ttl>
+     ]
+
     # End of tests
    ).

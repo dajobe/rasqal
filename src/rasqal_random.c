@@ -48,6 +48,7 @@
 #ifdef HAVE_GMP_H
 #include <gmp.h>
 #endif
+#define RANDOM_ALGO_BITS 32
 #endif
 #ifdef RANDOM_ALGO_MTWIST
 #include <mtwist_config.h>
@@ -309,26 +310,26 @@ rasqal_random_drand(rasqal_random *random_object)
 #ifdef RANDOM_ALGO_GMP_RAND
   mpf_t fresult;
 #else
+#ifdef RANDOM_ALGO_MTWIST
+#else
   int r;
+#endif
 #endif
   double d;
   
 #ifdef RANDOM_ALGO_GMP_RAND
-#define RANDOM_ALGO_BITS 32
-
   mpf_init(fresult);
   mpf_urandomb(fresult, *(gmp_randstate_t*)random_object->data, 
                RANDOM_ALGO_BITS);
   d = mpf_get_d(fresult);
   mpf_clear(fresult);
 #else
-  r = rasqal_random_irand(random_object);
-
-  d = r / (double)(RAND_MAX + 1.0);
-#endif
-
 #ifdef RANDOM_ALGO_MTWIST
   d = mtwist_drand((mtwist*)random_object->data);
+#else
+  r = rasqal_random_irand(random_object);
+  d = r / (double)(RAND_MAX + 1.0);
+#endif
 #endif
 
   return d;
@@ -373,20 +374,24 @@ main(int argc, char *argv[])
   rasqal_random_seed(r, 54321);
     
   for(test = 0; test < NTESTS; test++) {
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     int v;
     
     v = rasqal_random_irand(r);
-#if RASQAL_DEBUG > 1
     fprintf(stderr, "%s: Test %3d  value: %10d\n", program, test, v);
+#else
+    (void)rasqal_random_irand(r);
 #endif
   }
 
   for(test = 0; test < NTESTS; test++) {
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     double d;
     
     d = rasqal_random_drand(r);
-#if RASQAL_DEBUG > 1
     fprintf(stderr, "%s: Test %3d  value: %10f\n", program, test, d);
+#else
+    (void)rasqal_random_drand(r);
 #endif
   }
 

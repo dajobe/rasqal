@@ -31,16 +31,20 @@ extern "C" {
 #endif
 
 #define WIN32_LEAN_AND_MEAN 1
+#include <windows.h>
 
 /* getopt is not in standard win32 C library - define if we have it */
 /* #define HAVE_GETOPT_H 1 */
 
 #define HAVE_STDLIB_H 1
 
+#define HAVE_ERRNO_H 1
+
 #define HAVE_STRICMP 1
 
 /* MS names for these functions */
-#define vsnprintf _vsnprintf
+// next line breaks build on wntmsci12
+//#define vsnprintf _vsnprintf
 #define snprintf _snprintf
 #define access _access
 #define stricmp _stricmp
@@ -101,7 +105,6 @@ int rasqal_gettimeofday(struct timeval *tv, struct timezone *tz);
  * Defines that come from config.h
  */
 
-#include <windows.h>
 #include <io.h>
 #include <memory.h>
 
@@ -139,9 +142,6 @@ int rasqal_gettimeofday(struct timeval *tv, struct timezone *tz);
 #undef RASQAL_INLINE
 #define RASQAL_INLINE __inline
 
-/* Building RDQL query */
-#define RASQAL_QUERY_RDQL 1
-
 /* Building SPARQL query */
 #define RASQAL_QUERY_SPARQL 1
 
@@ -152,7 +152,15 @@ int rasqal_gettimeofday(struct timeval *tv, struct timezone *tz);
 /* #define RAPTOR_TRIPLES_SOURCE_REDLAND 1 */
 
 /* Use PCRE regex library */
-#define RASQAL_REGEX_PCRE 1
+//#define RASQAL_REGEX_PCRE 1
+
+#define HAVE_LIBXML_SCHEMASINTERNALS_H 1
+#define HAVE_LIBXML_XMLSCHEMASTYPES_H 1
+#define HAVE_LIBXML_XMLSCHEMAS_H 1
+
+#define RASQAL_DECIMAL_NONE 1
+#define RASQAL_UUID_INTERNAL 1
+#define RASQAL_DIGEST_INTERNAL 1
 
 #ifdef _DEBUG
 #define RASQAL_DEBUG 1
