@@ -5,7 +5,7 @@
 .\" Copyright (C) 2004-2013 David Beckett - http://www.dajobe.org/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH roqet 1 "2013-11-24"
+.TH roqet 1 "2013-12-11"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 roqet \- Rasqal RDF query utility
@@ -27,6 +27,7 @@ roqet \- Rasqal RDF query utility
 .IR "query-string"
 .RB ]
 .IR "[base-URI]"
+.br
 .B roqet
 .RB [ OPTIONS ] -t
 .IR "query results file" 
@@ -36,16 +37,17 @@ The
 .B roqet
 utility allows querying of RDF content using the
 .B Rasqal
-RDF query library, printing the results in variable bindings,
-RDF graph or boolean format.  The query is read from \fIquery-URI\fR and
-the optional \fIbase-URI\fR is used as the base URI of the query if present.
+RDF query library, printing the results for variable bindings, RDF
+graph or boolean results in a variety of formats.  The query is read
+from \fIquery-URI\fR and the optional \fIbase-URI\fR is used as the
+base URI of the query if present.
 .SH MAIN OPTIONS
 roqet uses the usual GNU command line syntax, with long
 options starting with two dashes (`-') if supported by the
 getopt_long function.  Otherwise only the short options are available.
 .TP
 .B \-e, \-\-exec QUERY
-Execute the query in the argument
+Execute the query string in the argument
 .I QUERY
 instead of reading the query from a URI (when \fB\-e\fP /
 \fB\-\-exec\fP is not given).
@@ -61,16 +63,18 @@ summary with the
 .TP
 .B \-p, \-\-protocol SERVICE-URI
 Call the SPARQL HTTP protocol \fISERVICE-URI\fP to execute the query
-instead of executing it inside the Rasqal query engine locally.
+instead of executing it inside the Rasqal query engine locally (
+when \fB-e\fP is given, or a query string given)
 .TP
 .B \-r, \-\-results FORMAT
-Set the query results output format.
+Set the query results output
+.I FORMAT
 .IP
 For variable bindings, the values of
 .I FORMAT
-vary upon what Rasqal supports but include 'simple'
-for a simple text format (default), 'xml'
-for the SPARQL Query Results XML format, 'rdfxml'
+vary upon what Rasqal supports but include 'simple' for a simple text
+format (default), 'xml' for the SPARQL Query Results XML
+format, 'csv' for SPARQL CSV, 'tsv' for SPARQL TSV, 'rdfxml'
 and 'turtle' for RDF syntax formats,
 and 'json' for a JSON version of the results.
 .IP
@@ -84,11 +88,18 @@ or 'rss-1.0' (RSS 1.0, also an RDF/XML syntax).
 The exact list of formats depends on what libraptor2(3) was built with
 but is given correct in the usage message with \-h.
 .TP
-.B \-R, \-\-results FORMAT
-Set the query results input format for use with \-t
+.B \-R, \-\-results-input-format FORMAT
+Set the query results input
+.I
+FORMAT
+.IP
+This is for use with \-t and takes values of 'xml' for the SPARQL
+Query Results XML format,, 'csv' for SPARQL CSV,, 'tsv' for SPARQL
+TSV, 'turtle' and 'rdfxml' for RDF syntax formats.
 .TP
 .B \-t, \-\-results\-input FILE
-Read query results from FILE.
+Read query results from
+.I FILE
 .SH OTHER OPTIONS
 .TP
 .B \-c, \-\-count

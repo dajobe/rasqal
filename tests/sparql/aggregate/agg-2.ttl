@@ -4,4 +4,6 @@
 
 []    rdf:type      rs:ResultSet ;
       rs:resultVariable  "sum" ;
- .
+      rs:solution   [ rs:binding    [ rs:variable   "sum" ]
+      ] .
+

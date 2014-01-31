@@ -8,10 +8,65 @@
 
   <h1>Rasqal RDF Query Library - Release Notes</h1>
 
-<h2 id="rel0_9_31"><a name="rel0_9_31">Rasqal 0.9.31 changes</a></h2>
+<h2 id="rel0_9_32"><a name="rel0_9_32">Rasqal 0.9.32 changes</a></h2>
 
 <p>Not yet released.
 </p>
+
+<h3>SPARQL changes</h3>
+
+<p>Updated the SPARQL parser to use and require Bison 3.0 (for
+maintainer, building from GIT sources).
+</p>
+
+<p>Updated the SPARQL lexer for Bison 3.0.
+</p>
+
+<h3>Configuration changes</h3>
+
+<p>Make ossp work as a UUID library option.
+<code>--with-uuid-library=ossp</code> and automatic discovery of ossp
+UUID now work.</p>
+
+<p>Fix the searching for the pcre-config and libgcrypt-config
+configuration utilities.  This probably never worked unless the
+envariables form (<code>PCRE_CONFIG</code> and
+<code>LIBGCRYPT_CONFIG</code>) were set.
+</p>
+
+<p>Set RAPPER_PATH so <code>rapper(1)</code> can be found from
+<code>pkg-config(1)</code>.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=561">Issue #0000561</a>
+</p>
+
+<p>Make <code>--with-libgcrypt-config</code> work.
+</p>
+
+<p>Make <code>--with-pcre-config</code> work.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=560">Issue# 0000560</a>
+</p>
+
+<p>Fix noisy mhash_dir addition error; it was always added the cflags
+and includes even when mhash_dir was blank.</p>
+
+<h3>Other changes</h3>
+
+<p>Mention libmtwist near <code>--with-random-approach.</code>
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=561">Issue #0000561</a>
+</p>
+
+
+<h2 id="rel0_9_31"><a name="rel0_9_31">Rasqal 0.9.31 changes</a></h2>
+
+<p>Issues Fixed:</p>
+<ul>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=527">0000527</a>: segmentation fault in roqet when making a SPARQL SERVICE query that returns an HTTP error</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=536">0000536</a>: configure accepts bogus values for --with-xml2-config</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=537">0000537</a>: configure pkg-config checks not overridable</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=538">0000538</a>: work around MSVC 2008's inexcusable lack of stdint.h header</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=539">0000539</a>: win32_rasqal_config.h doesn't work on MSVC2008</li>
+</ul>
+
 
 <h3><code>roqet(1)</code> utility changes</h3>
 
@@ -20,7 +75,7 @@ result files in a given format and generating them in different
 format.  This means it can be used to convert result formats.
 Use this mode with the <code>-t RESULT-FILE</code> major option
 and <code>-R INPUT-RESULT-FORMAT</code> to set the input format.
-<code>-r OUTPUT-RESULT-FORMAT</code> can be used to set the ouutput
+<code>-r OUTPUT-RESULT-FORMAT</code> can be used to set the output
 format.</p>
 <pre>
   # Convert a SPARQL TSV result to XML
@@ -67,6 +122,11 @@ Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=527">Issue #0000527</a>
 
 <p>Added proper validation of xsd:double and xsd:float literal format.</p>
 
+<p>Correctly handle <code>GROUP BY</code> over no data - returning
+one row with all bindings missing.</p>
+
+<p>Literal languages are now normalized to lowercase (RDF Concepts)</p>
+
 
 <h3>API changes</h3>
 
@@ -82,6 +142,9 @@ forms and to print in a prettier form with better indenting.</p>
 <p><code>rasqal_new_rowsource_from_handler()</code> now allows a NULL
 query so that rowsources can be fully independent of a query, such as
 when building from a syntax string or other independent object.</p>
+
+<p><code>rasqal_new_rowsequence_rowsource()</code> now allows an empty
+sequence of rows.</p>
 
 
 <h3>Portability changes</h3>
@@ -137,6 +200,14 @@ without destruction.  This helps
 'make test' to run via <code>check-sparql</code>.  This requires
 the <code>roqet(1)</code> new '-'t mode.
 </p>
+
+<p>Add a <code>configure</code> check for the debugging
+<code>__func__</code> so that on systems where it does not exist the
+debug macros work.  It may or may not be a macro, so it cannot be
+tested with #ifdef in the CPP.</p>
+
+<p>Improved the <code>configure</code> check for Flex to allow it to
+be missing for non-maintainer mode.</p>
 
 
 <h3>Other changes</h3>
@@ -4946,7 +5017,7 @@ It is all new.
 
 <hr />
 
-<p>Copyright (C) 2004-2013 <a href="http://www.dajobe.org/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
+<p>Copyright (C) 2004-2014 <a href="http://www.dajobe.org/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
 
 </body>
 </html>

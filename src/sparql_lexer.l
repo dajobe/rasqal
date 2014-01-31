@@ -2,7 +2,7 @@
  *
  * sparql_lexer.l - Rasqal SPARQL lexer - making tokens for sparql grammar generator
  *
- * Copyright (C) 2004-2010, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2014, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -69,6 +69,15 @@
 /* Re-entrant scanner */
 %option reentrant
 
+%option extra-type="rasqal_query*"
+
+/* Makes sparql_lexer_get_lval() sparql_lexer_set_lval() functions
+ * and yylval macro appear 
+ */
+%option bison-bridge
+/* Makes yyget_lloc() yyset_lloc() and yylloc appear */
+/* %option bison-locations */
+
 
 %x ID SPID PREF LITERAL LITERAL2
 
@@ -101,10 +110,7 @@
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
-/* Pure parser argument (a void*) */
-#define YYPARSE_PARAM rq
 #include <sparql_parser.h>
-
 #include <sparql_common.h>
 
 
@@ -157,21 +163,22 @@ static int sparql_stringbuffer_append_sparql_string(rasqal_query* rq, raptor_str
 const char * sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval);
 #endif
 
-int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner);
-#define YY_DECL int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner)
-
 #ifdef __cplusplus
 #define INPUT_FN yyinput
 #else
 #define INPUT_FN input
 #endif
 
+/* debian flex 2.5.35-10.1 added these column header prototypes in
+ * re-entrant mode.  standard flex omits them
+ */
+void sparql_lexer_set_column(int column_no, yyscan_t yyscanner);
+int sparql_lexer_get_column(yyscan_t yyscanner);
+
+static void sparql_lexer_cleanup(yyscan_t yyscanner);
+
 /* Remove the re-fill function since it should never be called */
 #define YY_INPUT(buf,result,max_size) { return YY_NULL; }
-
-
-/* flex version 2.5.36 released 2012-07-20 added the column header prototypes */
-static void sparql_lexer_cleanup(yyscan_t yyscanner);
 
 /* Log error handler wrapper */
 static void sparql_lexer_log_error(yyconst char *msg, raptor_log_level level, yyscan_t yyscanner);
@@ -202,6 +209,7 @@ static jmp_buf sparql_lexer_log_error_longjmp_env;
     sparql_lexer_log_error(msg, RAPTOR_LOG_LEVEL_ERROR, yyscanner); \
     yyterminate(); \
 } while(0)
+
 %}
 
 LANGTAG "@"[A-Za-z][-A-Z_a-z0-9]*
@@ -481,12 +489,12 @@ EXPONENT [eE][+-]?[0-9]+
 ":="         { return ASSIGN; }
 
 {LANGTAG} {
-			sparql_parser_lval->name = RASQAL_MALLOC(unsigned char*, yyleng);
-                        if(!sparql_parser_lval->name)
+			yylval->name = RASQAL_MALLOC(unsigned char*, yyleng);
+                        if(!yylval->name)
                           YY_REPORT_ERROR_EOF("Out of memory");
 
-                        memcpy(sparql_parser_lval->name, yytext + 1, yyleng - 1);
-                        sparql_parser_lval->name[yyleng - 1] = '\0';
+                        memcpy(yylval->name, yytext + 1, yyleng - 1);
+                        yylval->name[yyleng - 1] = '\0';
                   return LANGTAG;
 		}
 
@@ -494,8 +502,8 @@ EXPONENT [eE][+-]?[0-9]+
 
 
 [-+]?{INTEGER}   { c = *yytext;
-                  sparql_parser_lval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_INTEGER, RASQAL_GOOD_CAST(const unsigned char*, yytext));
-                  if(!sparql_parser_lval->literal)
+                  yylval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_INTEGER, RASQAL_GOOD_CAST(const unsigned char*, yytext));
+                  if(!yylval->literal)
                     YY_REPORT_ERROR_EOF("rasqal_new_typed_literal failed");
  		  return (c=='+' ? INTEGER_POSITIVE_LITERAL : (c == '-' ? INTEGER_NEGATIVE_LITERAL : INTEGER_LITERAL));
 }
@@ -507,8 +515,8 @@ EXPONENT [eE][+-]?[0-9]+
                           sparql_syntax_error(rq, "SPARQL syntax error - Illegal decimal constant %s", yytext);
                           yyterminate();
                         }
-                        sparql_parser_lval->literal = rasqal_new_decimal_literal(rq->world, RASQAL_GOOD_CAST(const unsigned char*, yytext));
-                        if(!sparql_parser_lval->literal)
+                        yylval->literal = rasqal_new_decimal_literal(rq->world, RASQAL_GOOD_CAST(const unsigned char*, yytext));
+                        if(!yylval->literal)
                           YY_REPORT_ERROR_EOF("rasqal_new_decimal_literal failed");
                         return (c=='+' ? DECIMAL_POSITIVE_LITERAL : (c == '-' ? DECIMAL_NEGATIVE_LITERAL : DECIMAL_LITERAL));
 }
@@ -519,8 +527,8 @@ EXPONENT [eE][+-]?[0-9]+
                           sparql_syntax_error(rq, "SPARQL syntax error - Illegal double constant %s", yytext);
                           yyterminate();
                         }
-                        sparql_parser_lval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_DOUBLE, RASQAL_GOOD_CAST(const unsigned char*, yytext));
-                        if(!sparql_parser_lval->literal)
+                        yylval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_DOUBLE, RASQAL_GOOD_CAST(const unsigned char*, yytext));
+                        if(!yylval->literal)
                           YY_REPORT_ERROR_EOF("rasqal_new_typed_literal failed");
                         return (c=='+' ? DOUBLE_POSITIVE_LITERAL : (c == '-' ? DOUBLE_NEGATIVE_LITERAL : DOUBLE_LITERAL));
 }
@@ -529,14 +537,14 @@ EXPONENT [eE][+-]?[0-9]+
 "-"         { return '-'; }
 
 '([^'\\\n\r]|\\[^\n\r])*'    { /*' */
-                        sparql_parser_lval->name = sparql_copy_string_token(rq, RASQAL_GOOD_CAST(unsigned char*, yytext) + 1, yyleng - 2, '\'');
-                        if(!sparql_parser_lval->name)
+                        yylval->name = sparql_copy_string_token(rq, RASQAL_GOOD_CAST(unsigned char*, yytext) + 1, yyleng - 2, '\'');
+                        if(!yylval->name)
                           YY_REPORT_ERROR_EOF("sparql_copy_string_token failed");
                         return STRING; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"   { /* " */
-                        sparql_parser_lval->name = sparql_copy_string_token(rq, RASQAL_GOOD_CAST(unsigned char*, yytext) + 1, yyleng - 2, '"');
-                        if(!sparql_parser_lval->name)
+                        yylval->name = sparql_copy_string_token(rq, RASQAL_GOOD_CAST(unsigned char*, yytext) + 1, yyleng - 2, '"');
+                        if(!yylval->name)
                           YY_REPORT_ERROR_EOF("sparql_copy_string_token failed");
                         return STRING; }
 
@@ -551,13 +559,13 @@ EXPONENT [eE][+-]?[0-9]+
      
 		  BEGIN(INITIAL);
                   len = raptor_stringbuffer_length(rqe->sb);
-                  sparql_parser_lval->name = RASQAL_MALLOC(unsigned char*, len + 1);
-                  if(!sparql_parser_lval->name)
+                  yylval->name = RASQAL_MALLOC(unsigned char*, len + 1);
+                  if(!yylval->name)
                     YY_REPORT_ERROR_EOF("Out of memory");
 
                   raptor_stringbuffer_copy_to_string(rqe->sb,
-                                                     RASQAL_GOOD_CAST(unsigned char*, sparql_parser_lval->name), len);
-                  sparql_parser_lval->name[len] = '\0';
+                                                     RASQAL_GOOD_CAST(unsigned char*, yylval->name), len);
+                  yylval->name[len] = '\0';
 
                   raptor_free_stringbuffer(rqe->sb);
                   rqe->sb = NULL;
@@ -606,12 +614,12 @@ EXPONENT [eE][+-]?[0-9]+
      
 		  BEGIN(INITIAL);
                   len = raptor_stringbuffer_length(rqe->sb);
-                  sparql_parser_lval->name = RASQAL_MALLOC(unsigned char*, len + 1);
-                  if(!sparql_parser_lval->name)
+                  yylval->name = RASQAL_MALLOC(unsigned char*, len + 1);
+                  if(!yylval->name)
                     YY_REPORT_ERROR_EOF("Out of memory");
 
-                  raptor_stringbuffer_copy_to_string(rqe->sb, RASQAL_GOOD_CAST(unsigned char*, sparql_parser_lval->name), len);
-                  sparql_parser_lval->name[len] = '\0';
+                  raptor_stringbuffer_copy_to_string(rqe->sb, RASQAL_GOOD_CAST(unsigned char*, yylval->name), len);
+                  yylval->name[len] = '\0';
 
                   raptor_free_stringbuffer(rqe->sb);
                   rqe->sb = NULL;
@@ -649,18 +657,18 @@ EXPONENT [eE][+-]?[0-9]+
 
 
 
-[Tt][Rr][Uu][Ee]	{ sparql_parser_lval->literal = rasqal_new_boolean_literal(rq->world, 1);
-                    if(!sparql_parser_lval->literal)
+[Tt][Rr][Uu][Ee]	{ yylval->literal = rasqal_new_boolean_literal(rq->world, 1);
+                    if(!yylval->literal)
                       YY_REPORT_ERROR_EOF("rasqal_new_boolean_literal failed");
                   return BOOLEAN_LITERAL; }
 
-[Ff][Aa][Ll][Ss][Ee]	{ sparql_parser_lval->literal = rasqal_new_boolean_literal(rq->world, 0);
-                        if(!sparql_parser_lval->literal)
+[Ff][Aa][Ll][Ss][Ee]	{ yylval->literal = rasqal_new_boolean_literal(rq->world, 0);
+                        if(!yylval->literal)
                           YY_REPORT_ERROR_EOF("rasqal_new_boolean_literal failed");
                   return BOOLEAN_LITERAL; }
 
-<ID>{VARNAME}	{ sparql_parser_lval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng, SPARQL_NAME_CHECK_VARNAME);
-		  if(!sparql_parser_lval->name)
+<ID>{VARNAME}	{ yylval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng, SPARQL_NAME_CHECK_VARNAME);
+		  if(!yylval->name)
                     yyterminate();
 
                           BEGIN(INITIAL);
@@ -682,8 +690,8 @@ EXPONENT [eE][+-]?[0-9]+
 	return '$';
 }
 
-<SPID>{VARNAME}	{ sparql_parser_lval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng, SPARQL_NAME_CHECK_VARNAME);
-		  if(!sparql_parser_lval->name)
+<SPID>{VARNAME}	{ yylval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng, SPARQL_NAME_CHECK_VARNAME);
+		  if(!yylval->name)
                     yyterminate();
 
                           BEGIN(INITIAL);
@@ -696,13 +704,13 @@ EXPONENT [eE][+-]?[0-9]+
 
 <PREF>[\ \t\v]+ { /* eat up leading whitespace */ }
 <PREF>{NCNAME_PREFIX}":"	{ BEGIN(INITIAL);
-		  	  sparql_parser_lval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng - 1, SPARQL_NAME_CHECK_PREFIX);
-			  if(!sparql_parser_lval->name)
+		  	  yylval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng - 1, SPARQL_NAME_CHECK_PREFIX);
+			  if(!yylval->name)
 			    yyterminate();
 
                           return IDENTIFIER; }
 <PREF>":"	{ BEGIN(INITIAL);
-		  sparql_parser_lval->name = NULL;
+		  yylval->name = NULL;
                   return IDENTIFIER; }
 
 <PREF>(.|\n)	{ BEGIN(INITIAL);
@@ -717,22 +725,22 @@ EXPONENT [eE][+-]?[0-9]+
 		int have_brace = (yytext[yyleng-1]=='(');
 		if(have_brace)
 			yyleng--;
-		sparql_parser_lval->uri = sparql_copy_qname(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng);
-		if(!sparql_parser_lval->uri)
+		yylval->uri = sparql_copy_qname(rq, RASQAL_GOOD_CAST(const unsigned char*, yytext), yyleng);
+		if(!yylval->uri)
 		  yyterminate();
 
  		return have_brace ? URI_LITERAL_BRACE : URI_LITERAL;
 }
 
-{BNAME}	{	sparql_parser_lval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(unsigned char*, yytext) + 2, yyleng - 2, SPARQL_NAME_CHECK_NCNAME);
-		if(!sparql_parser_lval->name)
+{BNAME}	{	yylval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(unsigned char*, yytext) + 2, yyleng - 2, SPARQL_NAME_CHECK_NCNAME);
+		if(!yylval->name)
 		  yyterminate();
 
 		return BLANK_LITERAL;
 }
 
-{BNAME2}	{	sparql_parser_lval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(unsigned char*, yytext) + 3, yyleng - 4, SPARQL_NAME_CHECK_NCNAME);
-		if(!sparql_parser_lval->name)
+{BNAME2}	{	yylval->name = sparql_copy_name(rq, RASQAL_GOOD_CAST(unsigned char*, yytext) + 3, yyleng - 4, SPARQL_NAME_CHECK_NCNAME);
+		if(!yylval->name)
 		  yyterminate();
 
 		return BLANK_LITERAL;
@@ -743,7 +751,7 @@ EXPONENT [eE][+-]?[0-9]+
 		if(have_brace)
 			yyleng--;
 		if(yyleng == 2) 
-                  sparql_parser_lval->uri = raptor_uri_copy(rq->base_uri);
+                  yylval->uri = raptor_uri_copy(rq->base_uri);
                 else {
                   unsigned char* uri_string;
 
@@ -755,9 +763,9 @@ EXPONENT [eE][+-]?[0-9]+
                   if(!uri_string)
                     YY_REPORT_ERROR_EOF("rasqal_escaped_name_to_utf8_string failed");
 
-                  sparql_parser_lval->uri = raptor_new_uri_relative_to_base(rq->world->raptor_world_ptr, rq->base_uri, uri_string);
+                  yylval->uri = raptor_new_uri_relative_to_base(rq->world->raptor_world_ptr, rq->base_uri, uri_string);
                   RASQAL_FREE(char*, uri_string);
-                  if(!sparql_parser_lval->uri)
+                  if(!yylval->uri)
                     YY_REPORT_ERROR_EOF("raptor_new_uri_relative_to_base failed");
                  }
                  return have_brace ? URI_LITERAL_BRACE : URI_LITERAL; }

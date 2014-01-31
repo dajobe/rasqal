@@ -23,7 +23,7 @@ dnl
 
 
 AC_PREREQ([2.62])
-AC_INIT([Rasqal RDF Query Library],[0.9.31],[http://bugs.librdf.org/],[rasqal])
+AC_INIT([Rasqal RDF Query Library],[0.9.32],[http://bugs.librdf.org/],[rasqal])
 AC_CONFIG_SRCDIR([src/rasqal_general.c])
 AC_CONFIG_HEADERS([src/rasqal_config.h])
 AC_CONFIG_AUX_DIR(build)
@@ -67,22 +67,24 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 
 
-AM_PROG_LEX
-if test "X$LEX" != "X:" ; then
-  if echo "$LEX" | grep flex >/dev/null 2>&1; then
-    :
-  else
-    LEX="$SHELL $missing_dir/missing flex"
-    AC_SUBST(LEX_OUTPUT_ROOT, lex.yy)
-    AC_SUBST(LEXLIB, '')
-  fi
-fi
- 
 FLEX_MIN_VERSION=2.5.19
 FLEX_REC_VERSION=2.5.36
+
+# Do not want AM_PROG_LEX which adds 'missing' to LEX if it's not around
+AC_PROG_LEX
+AC_MSG_CHECKING(flex)
 if test "$USE_MAINTAINER_MODE" = yes; then
-  AC_MSG_CHECKING(flex version)
-  if test "X$LEX" != "X:"; then
+  # maintainer mode - flex is required
+  if test "X$LEX" = "X:" ; then
+    AC_MSG_RESULT(not present)
+    AC_MSG_WARN(Please get flex from http://flex.sourceforge.net/)
+    AC_MSG_WARN(version $FLEX_MIN_VERSION ($FLEX_REC_VERSION recommended))
+    AC_MSG_FAILURE(flex not present)
+  fi
+
+  # some kind of lexer is present
+  if echo "$LEX" | grep flex >/dev/null 2>&1; then
+    # flex is present
     FLEX_VERSION=`$LEX -V 2>&1 | $AWK '{print $2}'`
     FLEX_VERSION_DEC=`echo $FLEX_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 
@@ -94,47 +96,52 @@ if test "$USE_MAINTAINER_MODE" = yes; then
       AC_MSG_RESULT(version $FLEX_VERSION - too old)
       AC_MSG_WARN(Please get flex from http://flex.sourceforge.net/)
       AC_MSG_WARN(version $FLEX_MIN_VERSION ($FLEX_REC_VERSION recommended))
-      AC_MSG_FAILURE(flex too old)
+      AC_MSG_FAILURE(flex is too old)
     fi
   else
-    AC_MSG_RESULT(not present)
+    AC_MSG_RESULT(present - but is not flex)
     AC_MSG_WARN(Please get flex from http://flex.sourceforge.net/)
     AC_MSG_WARN(version $FLEX_MIN_VERSION ($FLEX_REC_VERSION recommended))
-    AC_MSG_FAILURE(flex not present)
+    AC_MSG_FAILURE($LEX is not not flex)
   fi
+else
+  # not maintainer mode; flex is not required
+  AC_MSG_RESULT(not present - not required for non maintainer builds)
+  LEX="$SHELL $missing_dir/missing flex"
+  AC_SUBST(LEX_OUTPUT_ROOT, lex.yy)
+  AC_SUBST(LEXLIB, '')
 fi
 
-AC_PROG_YACC
-BISON_MIN_VERSION=2.0
-BISON_REC_VERSION=2.6
-BISON_VERSION_DEC=0000
+
+BISON_MIN_VERSION=3.0.0
+AC_CHECK_PROGS(BISON, bison3 bison)
 if test "$USE_MAINTAINER_MODE" = yes; then
   AC_MSG_CHECKING(for GNU bison)
   # Match these styles of versions
   # GNU Bison version 1.28
   # bison (GNU Bison) 1.875
-  BISON_VERSION=`$YACC bison --version 2>&1 | grep "GNU Bison" | head -1 | awk '{print $NF}'`
-  BISON_VERSION_DEC=`echo $BISON_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
-
-  BISON_MIN_VERSION_DEC=`echo $BISON_MIN_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
-
+dnl need to change quotes to allow square brackets
+changequote(<<, >>)dnl
+  BISON_VERSION=`$BISON --version 2>&1 | sed -ne 's/^.*GNU Bison[^0-9]*//p'`
+changequote([, ])dnl
   if test "X$BISON_VERSION" != X; then
+    BISON_VERSION_DEC=`echo $BISON_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+
+    BISON_MIN_VERSION_DEC=`echo $BISON_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+
     if test $BISON_VERSION_DEC -ge $BISON_MIN_VERSION_DEC; then
       AC_MSG_RESULT($BISON_VERSION - OK)
     else
-      AC_MSG_RESULT(version $BISON_VERSION - too old)
+      AC_MSG_RESULT(version $BISON_VERSION is too old)
       AC_MSG_WARN(Please get GNU Bison from http://www.gnu.org/software/bison/)
-      AC_MSG_WARN(version $BISON_MIN_VERSION ($BISON_REC_VERSION recommended))
-      AC_MSG_FAILURE(Bison too old)
+      AC_MSG_WARN(version $BISON_MIN_VERSION or newer)
+      AC_MSG_FAILURE(GNU Bison too old)
     fi
   else
-    AC_MSG_RESULT(not present or $YACC is not GNU Bison)
-    AC_MSG_WARN(Please get GNU Bison from http://www.gnu.org/software/bison/)
-    AC_MSG_WARN(version $BISON_MIN_VERSION ($BISON_REC_VERSION recommended))
-    AC_MSG_FAILURE(Bison not present)
+    AC_MSG_FAILURE($BISON is not GNU bison)
   fi
 fi
-AC_DEFINE_UNQUOTED(BISON_VERSION, $BISON_VERSION_DEC, [Bison version as a decimal])
+AC_SUBST(BISON)
 
 AC_CHECK_PROGS(AWK, awk gawk nawk)
 # Find a tar command for 'make dist'
@@ -423,6 +430,7 @@ RAPTOR_VERSION_DEC=`echo $RAPTOR_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 
 AC_SUBST(RAPTOR_VERSION_DEC)
 AC_SUBST(RAPTOR_MIN_VERSION)
 
+RAPTOR2_EXEC_PREFIX=`$PKG_CONFIG raptor2 --variable=exec_prefix 2>/dev/null`
 
 dnl Checks for regex libraries
 have_regex_pcre=0
@@ -436,23 +444,23 @@ AC_ARG_ENABLE(pcre,
 
 if test "x$enable_pcre" != "xno" ; then
 
-  AC_CHECK_PROG(PCRE_CONFIG, pcre-config, pcre-config)
-  AC_ARG_WITH(pcre, [  --with-pcre-config=PATH     Location of PCRE pcre-config (auto)], pcre_config="$withval", pcre_config="")
+  AC_ARG_WITH(pcre-config, [  --with-pcre-config=PATH     Location of PCRE pcre-config (auto)], pcre_config="$withval", pcre_config="")
 
-  if test "X$pcre_config" != "X" ; then
-    AC_MSG_CHECKING(for $pcre_config)
+  if test "X$pcre_config" != "Xno" ; then
+    if test "X$pcre_config" != "X" ; then
+      AC_MSG_CHECKING(for $pcre_config)
 
-    if test -f $pcre_config ; then
-      PCRE_CONFIG=$pcre_config
-      AC_MSG_RESULT(yes)
-    else
-      AC_MSG_RESULT(no - searching PATH)
+      if test -x $pcre_config ; then
+	PCRE_CONFIG=$pcre_config
+	AC_MSG_RESULT(yes)
+      else
+	AC_MSG_ERROR([pcre-config not found at specified path $pcre_config])
+      fi
+    fi
+    if test "X$PCRE_CONFIG" = "X" ; then
+      AC_CHECK_PROGS(PCRE_CONFIG, pcre-config)
     fi
   fi
-  if test "X$PCRE_CONFIG" = "X"; then
-    AC_CHECK_PROGS(PCRE_CONFIG, pcre-config)
-  fi
-
 
   AC_MSG_CHECKING(for pcre)
   PCRE_VERSION=`$PCRE_CONFIG --version 2>/dev/null`
@@ -582,21 +590,21 @@ CPPFLAGS="$oCPPFLAGS"
 LIBS="$oLIBS"
 
 
-AC_CHECK_PROG(LIBGCRYPT_CONFIG, libgcrypt-config, libgcrypt-config)
-AC_ARG_WITH(libgcrypt, [  --with-libgcrypt-config=PATH     Location of GCRYPT libgcrypt-config (auto)], libgcrypt_config="$withval", libgcrypt_config="")
+AC_ARG_WITH(libgcrypt-config, [  --with-libgcrypt-config=PATH     Location of GCRYPT libgcrypt-config (auto)], libgcrypt_config="$withval", libgcrypt_config="")
+if test "X$libgcrypt_config" != "Xno" ; then
+  if test "X$libgcrypt_config" != "X" ; then
+    AC_MSG_CHECKING(for $libgcrypt_config)
 
-if test "X$libgcrypt_config" != "X" ; then
-  AC_MSG_CHECKING(for $libgcrypt_config)
-
-  if test -f $libgcrypt_config ; then
-    GCRYPT_CONFIG=$libgcrypt_config
-    AC_MSG_RESULT(yes)
-  else
-    AC_MSG_RESULT(no - searching PATH)
+    if test -x $libgcrypt_config ; then
+	LIBGCRYPT_CONFIG=$libgcrypt_config
+	AC_MSG_RESULT(yes)
+    else
+	AC_MSG_ERROR([libgcrypt-config not found at specified path $libgcrypt_config])
+    fi
   fi
-fi
-if test "X$LIBGCRYPT_CONFIG" = "X"; then
-  AC_CHECK_PROGS(LIBGCRYPT_CONFIG, libgcrypt-config)
+  if test "X$LIBGCRYPT_CONFIG" = "X" ; then
+    AC_CHECK_PROGS(LIBGCRYPT_CONFIG, libgcrypt-config)
+  fi
 fi
 
 AC_CHECK_HEADERS(gcrypt.h)
@@ -734,7 +742,7 @@ AC_MSG_RESULT($have_uuid_libc)
 
 AC_ARG_WITH(uuid-library, [  --with-uuid-library=NAME   Use UUID library - libuuid, libc (auto)], uuid_library="$withval", uuid_library="")
 
-for uuid_library_name in $uuid_library libuuid libc internal; do
+for uuid_library_name in $uuid_library libuuid ossp libc internal; do
   case $uuid_library_name in
     libuuid)
       if test $have_uuid_libuuid = yes; then
@@ -891,7 +899,8 @@ AM_CONDITIONAL(RASQAL_QUERY_SPARQL, test $sparql_query_language = yes)
 
 RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $RAPTOR2_CFLAGS"
 RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $RAPTOR2_LIBS"
-RAPPER_PATH=""
+RAPPER_PATH="$RAPTOR2_EXEC_PREFIX/bin"
+
 
 if test $need_regex_pcre = 1; then
   C=`$PCRE_CONFIG --cflags`
@@ -909,7 +918,7 @@ fi
 if test $need_digest_mhash = yes; then
   C=""
   L="-lmhash"
-  if test "Xmhash_dir" != "X" ; then
+  if test "X$mhash_dir" != "X" ; then
     C="-I$mhash_dir/include"
     L="-L$mhash_dir/lib $L"
   fi

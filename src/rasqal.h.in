@@ -612,7 +612,7 @@ struct rasqal_literal_s {
   } value;
 
   /* for string */
-  const char *language;
+  char *language;
   raptor_uri *datatype;
 
   /* various flags for literal types:

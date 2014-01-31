@@ -38,6 +38,7 @@
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
+#include <ctype.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -907,7 +908,21 @@ rasqal_new_string_literal_common(rasqal_world* world,
     l->type = RASQAL_LITERAL_STRING;
     l->string = string;
     l->string_len = RASQAL_BAD_CAST(unsigned int, strlen(RASQAL_GOOD_CAST(const char*, string)));
-    l->language = language;
+    if(language) {
+      /* Normalize language to lowercase on construction */
+      size_t lang_len = strlen(language);
+      unsigned int i;
+
+      l->language = RASQAL_MALLOC(char*, lang_len + 1);
+      for(i = 0; i < lang_len; i++) {
+        char c = language[i];
+        if(isupper(RASQAL_GOOD_CAST(int, c)))
+          c = tolower(RASQAL_GOOD_CAST(int, c));
+        l->language[i] = c;
+      }
+      l->language[i] = '\0';
+      RASQAL_FREE(char*, language);
+    }
     l->datatype = datatype;
     l->flags = datatype_qname;
 
