@@ -46,6 +46,11 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+/* local prototypes */
+int rasqal_xsd_check_double_format(const unsigned char* string, int flags);
+
+
+#ifndef STANDALONE
 
 /*
  *
@@ -199,7 +204,7 @@ static const char * const xsd_double_specials[XSD_DOUBLE_SPECIALS_LEN] = {
  *
  * Return value: non-0 if the string is valid
  */
-static int
+int
 rasqal_xsd_check_double_format(const unsigned char* string, int flags) 
 {
   const char *p = RASQAL_GOOD_CAST(const char*, string);
@@ -714,6 +719,10 @@ rasqal_xsd_datatype_parent_type(rasqal_literal_type type)
   return RASQAL_LITERAL_UNKNOWN;
 }
 
+#endif
+
+
+#ifdef STANDALONE
 #include <stdio.h>
 
 int main(int argc, char *argv[]);
@@ -795,3 +804,4 @@ main(int argc, char *argv[])
 
   return failures;
 }
+#endif
