@@ -907,8 +907,8 @@ int
 main(int argc, char *argv[]) {
   char const *program=rasqal_basename(*argv);
   int failures=0;
-  rasqal_xsd_decimal a;
-  rasqal_xsd_decimal b;
+  rasqal_xsd_decimal *a;
+  rasqal_xsd_decimal *b;
   rasqal_xsd_decimal *result;
   rasqal_xsd_decimal *result2;
   double result_d;
@@ -949,8 +949,8 @@ main(int argc, char *argv[]) {
 #define FAIL failures++; goto tidy
 #endif
 
-  rasqal_xsd_decimal_init(&a);
-  rasqal_xsd_decimal_init(&b);
+  a = rasqal_new_xsd_decimal(world);
+  b = rasqal_new_xsd_decimal(world);
 
   result = rasqal_new_xsd_decimal(world);
   result2 = rasqal_new_xsd_decimal(world);
@@ -959,23 +959,23 @@ main(int argc, char *argv[]) {
     FAIL;
   }
 
-  rasqal_xsd_decimal_set_long(&a, a_long);
-  rasqal_xsd_decimal_set_string(&b, b_string);
+  rasqal_xsd_decimal_set_long(a, a_long);
+  rasqal_xsd_decimal_set_string(b, b_string);
 
-  result_d=rasqal_xsd_decimal_get_double(&a);
+  result_d=rasqal_xsd_decimal_get_double(a);
   if(!rasqal_double_approximately_equal(result_d, a_double)) {
     fprintf(stderr, "FAILED: a=%f expected %f\n", result_d, a_double);
     FAIL;
   }
 
-  result_s=rasqal_xsd_decimal_as_string(&b);
+  result_s=rasqal_xsd_decimal_as_string(b);
   if(strcmp(result_s, b_string)) {
     fprintf(stderr, "FAILED: b=%s expected %s\n", result_s, b_string);
     FAIL;
   }
 
   /* result = a+b */
-  rasqal_xsd_decimal_add(result, &a, &b);
+  rasqal_xsd_decimal_add(result, a, b);
 
   result_s=rasqal_xsd_decimal_as_string(result);
   if(strcmp(result_s, expected_a_plus_b)) {
@@ -985,7 +985,7 @@ main(int argc, char *argv[]) {
   }
   
   /* result2 = result-b */
-  rasqal_xsd_decimal_subtract(result2, result, &b);
+  rasqal_xsd_decimal_subtract(result2, result, b);
 
   result_s=rasqal_xsd_decimal_as_string(result2);
   if(strcmp(result_s, expected_a_plus_b_minus_b)) {
@@ -995,7 +995,7 @@ main(int argc, char *argv[]) {
   }
 
   /* result = result2-a */
-  rasqal_xsd_decimal_subtract(result, result2, &a);
+  rasqal_xsd_decimal_subtract(result, result2, a);
 
   result_s=rasqal_xsd_decimal_as_string(result);
   if(strcmp(result_s, expected_a_plus_b_minus_b_minus_a)) {
@@ -1004,7 +1004,7 @@ main(int argc, char *argv[]) {
     FAIL;
   }
 
-  result_i=rasqal_xsd_decimal_compare(&a, &b);
+  result_i=rasqal_xsd_decimal_compare(a, b);
   if((expected_a_compare_b < 0 && result_i >= 0) ||
      (expected_a_compare_b > 0 && result_i <= 0) ||
      (expected_a_compare_b == 0 && result_i != 0))
@@ -1014,7 +1014,7 @@ main(int argc, char *argv[]) {
     FAIL;
   }
 
-  result_i=rasqal_xsd_decimal_equals(&a, &b);
+  result_i=rasqal_xsd_decimal_equals(a, b);
   if(result_i != expected_a_equals_b) {
     fprintf(stderr, "FAILED: a equals b = %d expected %d\n",
             result_i, expected_a_equals_b);
@@ -1022,7 +1022,7 @@ main(int argc, char *argv[]) {
   }
 
   /* result2 = -b */
-  rasqal_xsd_decimal_negate(result, &b);
+  rasqal_xsd_decimal_negate(result, b);
 
   result_s=rasqal_xsd_decimal_as_string(result);
   if(strcmp(result_s, expected_negative_b)) {
@@ -1033,8 +1033,10 @@ main(int argc, char *argv[]) {
 
 
   FAIL_LABEL
-  rasqal_xsd_decimal_clear(&a);
-  rasqal_xsd_decimal_clear(&b);
+  if(a)
+    rasqal_free_xsd_decimal(a);
+  if(b)
+    rasqal_free_xsd_decimal(b);
   if(result)
      rasqal_free_xsd_decimal(result);
   if(result2)
