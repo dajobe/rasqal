@@ -22,6 +22,8 @@
 #include "rasqal_internal.h"
 
 
+#ifndef STANDALONE
+
 int
 rasqal_strcasecmp(const char* s1, const char* s2)
 {
@@ -56,6 +58,7 @@ rasqal_strncasecmp(const char* s1, const char* s2, size_t n)
   return 0;
 }
 
+#endif /* not STANDALONE */
 
 
 #ifdef STANDALONE
