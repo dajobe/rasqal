@@ -336,8 +336,7 @@ rasqal_random_drand(rasqal_random *random_object)
 }
 
 
-
-#endif
+#endif /* not STANDALONE */
 
 
 #ifdef STANDALONE
@@ -403,4 +402,4 @@ main(int argc, char *argv[])
 
   return failures;
 }
-#endif
+#endif /* STANDALONE */

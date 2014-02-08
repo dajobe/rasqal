@@ -902,7 +902,7 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
   return NULL;
 }
 
-#endif
+#endif /* not STANDALONE */
 
 
 
@@ -1405,4 +1405,4 @@ main(int argc, char *argv[])
   return failures;
 }
 
-#endif
+#endif /* STANDALONE */

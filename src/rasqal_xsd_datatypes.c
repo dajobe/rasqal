@@ -719,7 +719,7 @@ rasqal_xsd_datatype_parent_type(rasqal_literal_type type)
   return RASQAL_LITERAL_UNKNOWN;
 }
 
-#endif
+#endif /* not STANDALONE */
 
 
 #ifdef STANDALONE
@@ -804,4 +804,4 @@ main(int argc, char *argv[])
 
   return failures;
 }
-#endif
+#endif /* STANDALONE */

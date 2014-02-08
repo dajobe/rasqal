@@ -6008,4 +6008,5 @@ main(int argc, char *argv[])
 
   return rc;
 }
-#endif
+
+#endif /* STANDALONE */

@@ -778,7 +778,7 @@ rasqal_regex_replace(rasqal_world* world, raptor_locator* locator,
   return result_s;
 }
 
-#endif
+#endif /* not STANDALONE */
 
 
 #ifdef STANDALONE
@@ -853,4 +853,4 @@ main(int argc, char *argv[])
 
   return failures;
 }
-#endif
+#endif /* STANDALONE */

@@ -418,7 +418,7 @@ rasqal_new_union_rowsource(rasqal_world *world,
 }
 
 
-#endif
+#endif /* not STANDALONE */
 
 
 
@@ -613,4 +613,4 @@ main(int argc, char *argv[])
   return failures;
 }
 
-#endif
+#endif /* STANDALONE */

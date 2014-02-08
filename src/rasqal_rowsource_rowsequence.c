@@ -253,7 +253,7 @@ rasqal_new_rowsequence_rowsource(rasqal_world *world,
 }
 
 
-#endif
+#endif /* not STANDALONE */
 
 
 
@@ -466,4 +466,4 @@ main(int argc, char *argv[])
   return failures;
 }
 
-#endif
+#endif /* STANDALONE */

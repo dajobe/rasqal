@@ -2538,4 +2538,4 @@ main(int argc, char *argv[])
 
   return error;
 }
-#endif
+#endif /* STANDALONE */

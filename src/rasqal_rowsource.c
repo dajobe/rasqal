@@ -827,7 +827,7 @@ rasqal_rowsource_print(rasqal_rowsource *rowsource, FILE* fh)
 }
 
 
-#endif
+#endif /* not STANDALONE */
 
 
 
@@ -960,4 +960,4 @@ main(int argc, char *argv[])
   return(0);
 }
 
-#endif
+#endif /* STANDALONE */

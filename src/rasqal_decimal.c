@@ -52,7 +52,7 @@
 /* prototypes */
 static void rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec);
 static void rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec);
-#endif
+#endif /* not STANDALONE */
 
 #ifdef RASQAL_DECIMAL_C99
 /* C99 Decimal
@@ -145,7 +145,6 @@ rasqal_free_xsd_decimal(rasqal_xsd_decimal* dec)
 }
 
 
-#ifndef STANDALONE
 static void
 rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec)
 {
@@ -181,7 +180,7 @@ rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec)
   dec->string = NULL;
   dec->string_len = 0;
 }
-#endif
+
 
 static void
 rasqal_xsd_decimal_clear_string(rasqal_xsd_decimal* dec)
@@ -194,7 +193,6 @@ rasqal_xsd_decimal_clear_string(rasqal_xsd_decimal* dec)
 }  
 
 
-#ifndef STANDALONE
 static void
 rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec)
 {
@@ -211,7 +209,7 @@ rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec)
   dec->raw= 0e0;
 #endif
 }  
-#endif
+
 
 /**
  * rasqal_xsd_decimal_set_string:
@@ -1057,4 +1055,5 @@ main(int argc, char *argv[]) {
   return failures;
 #endif
 }
-#endif
+
+#endif /* STANDALONE */

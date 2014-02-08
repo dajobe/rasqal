@@ -219,7 +219,7 @@ rasqal_new_service_rowsource(rasqal_world *world, rasqal_query* query,
 }
 
 
-#endif
+#endif /* not STANDALONE */
 
 
 
@@ -326,4 +326,4 @@ main(int argc, char *argv[])
   return failures;
 }
 
-#endif
+#endif /* STANDALONE */

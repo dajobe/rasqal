@@ -4926,4 +4926,4 @@ main(int argc, char *argv[])
 
   return failures;
 }
-#endif
+#endif /* STANDALONE */

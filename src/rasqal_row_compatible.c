@@ -39,6 +39,8 @@
 #include "rasqal_internal.h"
 
 
+#ifndef STANDALONE
+
 rasqal_row_compatible*
 rasqal_new_row_compatible(rasqal_variables_table* vt,
                           rasqal_rowsource *first_rowsource,
@@ -205,6 +207,9 @@ rasqal_print_row_compatible(FILE *handle, rasqal_row_compatible* map)
             ((offset1 >=0 && offset2 >= 0) ? "SHARED" : ""));
   }
 }
+
+#endif /* not STANDALONE */
+
 
 
 #ifdef STANDALONE
@@ -390,4 +395,4 @@ main(int argc, char *argv[])
   return failures;
 }
 
-#endif
+#endif /* STANDALONE */

@@ -545,7 +545,8 @@ rasqal_xsd_date_normalize(rasqal_xsd_date *date)
 
   return rc;
 }
-#endif
+#endif /* STANDALONE */
+
 
 
 /**
@@ -2248,4 +2249,5 @@ main(int argc, char *argv[])
   return 0;
 }
 
-#endif
+#endif /* STANDALONE */
+

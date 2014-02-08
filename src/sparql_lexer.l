@@ -884,7 +884,7 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len)
 #ifdef STANDALONE
   /* lexer test cannot declare namespaces - so just ignore expansion */
   uri = raptor_new_uri_relative_to_base(rq->world->raptor_world_ptr, rq->base_uri, s);
-#else
+#else /* not */
   if(!rq->namespaces) {
     sparql_syntax_error(rq, "SPARQL syntax error - no namespaces declared");
     return NULL;
@@ -892,7 +892,7 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len)
   
   uri = raptor_qname_string_to_uri(rq->namespaces,
                                    s, dest_len);
-#endif
+#endif /* STANDALONE */
   RASQAL_FREE(char*, s);
   
   return uri;
@@ -1983,4 +1983,4 @@ main(int argc, char *argv[])
  
   return 0;
 }
-#endif
+#endif /* STANDALONE */

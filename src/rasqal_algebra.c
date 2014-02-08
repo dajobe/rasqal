@@ -1630,7 +1630,7 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
     rasqal_algebra_node_print(node, stderr);
     fputc('\n', stderr);
   }
-#endif
+#endif /* not STANDALONE */
 
   return node;
 }
@@ -2875,4 +2875,5 @@ main(int argc, char *argv[]) {
   
   return failures;
 }
-#endif
+#endif /* STANDALONE */
+
