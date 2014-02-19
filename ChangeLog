@@ -1,9 +1,39 @@
+2014-02-08  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c, src/rasqal_datetime.c,
+	src/rasqal_decimal.c, src/rasqal_expr.c, src/rasqal_literal.c,
+	src/rasqal_random.c, src/rasqal_regex.c,
+	src/rasqal_row_compatible.c, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_aggregation.c, src/rasqal_rowsource_empty.c,
+	src/rasqal_rowsource_groupby.c, src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_project.c,
+	src/rasqal_rowsource_rowsequence.c,
+	src/rasqal_rowsource_service.c, src/rasqal_rowsource_triples.c,
+	src/rasqal_rowsource_union.c, src/rasqal_variable.c,
+	src/rasqal_xsd_datatypes.c, src/sparql_lexer.l,
+	src/sparql_parser.y, src/strcasecmp.c: Add STANDALONE if/ifndef
+	STANDALONE ... endif comments
+
+	* src/rasqal_decimal.c: Wrap more xsd_decimal code for internal
+	use, not in test runner
+
+	* src/rasqal_decimal.c: Rewrite test code to use usual xsd decimal
+	constructor / destructors
+
+	* src/rasqal_xsd_datatypes.c: Add STANDALONE wrappers to prevent
+	'main' symbol appearing in library
+
+	Make rasqal_xsd_check_double_format an internal non-static symbol
+
+	Fixes Issue #0000564
+	http://bugs.librdf.org/mantis/view.php?id=564
+
+	* src/strcasecmp.c: Protect rasqal_strcasecmp* from appearing in
+	standalone compile
+
 2014-01-26  Dave Beckett <dave@dajobe.org>
 
-	* libsv:
-	update libsv
-
-2014-01-26  Dave Beckett <dave@dajobe.org>
+	* libsv: update libsv
 
 	* configure.ac: Reverting "Make libsv into a config subdir"
 
