@@ -5376,8 +5376,12 @@ BlankNode: BLANK_LITERAL
 static int yy_init_globals (yyscan_t yyscanner ) { return 0; };
 
 
-/**
- * rasqal_sparql_query_language_init - Initialise the SPARQL query language parser
+/*
+ * rasqal_sparql_query_language_init:
+ * @rdf_query: query
+ * @name: language name (or NULL)
+ *
+ * Internal: Initialise the SPARQL query language parser
  *
  * Return value: non 0 on failure
  **/
@@ -5399,28 +5403,30 @@ rasqal_sparql_query_language_init(rasqal_query* rdf_query, const char *name)
   rqe->sparql11_property_paths = 1;
   rqe->sparql11_update = 1;
 
-  /* SPARQL 1.0 disables SPARQL 1.1 features */
-  if(!strncmp(name, "sparql10", 8)) {
-    rqe->sparql11_query = 0;
-    rqe->sparql11_aggregates = 0;
-    rqe->sparql11_property_paths = 0;
-    rqe->sparql11_update = 0;
-  }
+  if(name) {
+    /* SPARQL 1.0 disables SPARQL 1.1 features */
+    if(!strncmp(name, "sparql10", 8)) {
+      rqe->sparql11_query = 0;
+      rqe->sparql11_aggregates = 0;
+      rqe->sparql11_property_paths = 0;
+      rqe->sparql11_update = 0;
+    }
 
-  if(!strcmp(name, "sparql11-query")) {
-    /* No update if SPARQL 1.1 query */
-    rqe->sparql11_update = 0;
+    if(!strcmp(name, "sparql11-query")) {
+      /* No update if SPARQL 1.1 query */
+      rqe->sparql11_update = 0;
+    }
+
+    if(!strcmp(name, "sparql11-update")) {
+      /* No query if SPARQL 1.1 update */
+      rqe->sparql_query = 0;
+      rqe->sparql11_query = 0;
+    }
+
+    /* LAQRS for experiments */
+    if(!strcmp(name, "laqrs"))
+      rqe->experimental = 1;
   }
-  
-  if(!strcmp(name, "sparql11-update")) {
-    /* No query if SPARQL 1.1 update */
-    rqe->sparql_query = 0;
-    rqe->sparql11_query = 0;
-  }
-  
-  /* LAQRS for experiments */
-  if(!strcmp(name, "laqrs"))
-    rqe->experimental = 1;
 
   return 0;
 }
