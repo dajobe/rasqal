@@ -1,3 +1,26 @@
+2014-02-22  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Alter SPARQL disabled feature messages to
+	point to SPARQL 1.1
+
+	* src/sparql_common.h, src/sparql_parser.y: Adjust SPARQL 1.0 and
+	SPARQL 1.1 feature flags
+
+	Fixes Issue #0000558
+	http://bugs.librdf.org/mantis/view.php?id=558
+
+2014-02-19  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y:
+	(rasqal_sparql_query_language_init): Handle NULL name
+
+	Fixes Issue #0000567
+	http://bugs.librdf.org/mantis/view.php?id=567
+
+2014-02-18  Dave Beckett <dave@dajobe.org>
+
+	* ChangeLog, NEWS.html, RELEASE.html: 0.9.32
+
 2014-02-08  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_algebra.c, src/rasqal_datetime.c,

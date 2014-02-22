@@ -10,10 +10,22 @@
 
 <h2 id="rel0_9_32"><a name="rel0_9_32">Rasqal 0.9.32 changes</a></h2>
 
-<p>Not yet released.
-</p>
+<p>Issues Fixed:</p>
+<ul>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=558">0000558</a>: sparql11-update causes fallback to sparql10</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=560">0000560</a>: &quot;--with-pcre-config&quot; documented but not supported</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=561">0000561</a>: 'make check' fails; possibly because raptor2 built in separate directory</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=564">0000564</a>: Rasqal fails with linker error for armv7 cross-compilation: duplicate symbol _main</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=567">0000567</a>: Segfault based on documentation recommendation</li>
+</ul>
 
 <h3>SPARQL changes</h3>
+
+<p>Fixed the SPARQL 1.0 and SPARQL 1.1 syntax feature checking so
+that language <code>sparql11-update</code> allows all SPARQL 1.1
+syntax features to be used.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=558">Issue #0000558</a>
+</p>
 
 <p>Updated the SPARQL parser to use and require Bison 3.0 (for
 maintainer, building from GIT sources).
@@ -21,6 +33,15 @@ maintainer, building from GIT sources).
 
 <p>Updated the SPARQL lexer for Bison 3.0.
 </p>
+
+
+<h3>API changes</h3>
+
+<p>Made <code>rasqal_new_query()</code> match documentation in
+accepting a <code>NULL</code> name.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=567">Issue #0000567</a>
+</p>
+
 
 <h3>Configuration changes</h3>
 
