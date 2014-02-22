@@ -422,7 +422,10 @@ sub format_testsuite_result($$$;$) {
 
   print $fh $indent;
   for my $counter (@counters) {
-    my $count=ref($result->{$counter}) ? (scalar(@{$result->{$counter}}) || 0) : $result->{$counter};
+    my $count=0;
+    if(defined($result->{$counter}) && ref($result->{$counter})) {
+      $count = scalar(@{$result->{$counter}});
+    }
     print $fh ucfirst($counter).": ".$count."  ";
   }
   print $fh "\n";
