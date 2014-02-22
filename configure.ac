@@ -423,10 +423,10 @@ PKG_CHECK_MODULES([RAPTOR2],[raptor2],[
   raptor_too_old=0
   AS_VERSION_COMPARE([$RAPTOR_VERSION], $RAPTOR_MIN_VERSION, raptor_too_old="1")
   if test $raptor_too_old = 1; then
-    AC_MSG_ERROR(Raptor $RAPTOR_VERSION is too old - see http://librdf.org/raptor/ to get a version newer than $RAPTOR_MIN_VERSION)
+    AC_MSG_ERROR(Raptor $RAPTOR_VERSION is too old - see http://librdf.org/raptor/ to get a $RAPTOR_MIN_VERSION or newer)
   fi
 ],[
-  AC_MSG_ERROR(Raptor is not installed - see http://librdf.org/raptor/ to get a version newer than $RAPTOR_MIN_VERSION)
+  AC_MSG_ERROR(Raptor is not installed - see http://librdf.org/raptor/ to get $RAPTOR_MIN_VERSION or newer)
 ])
 AC_SUBST(RAPTOR2_CFLAGS)
 AC_SUBST(RAPTOR2_LIBS)
