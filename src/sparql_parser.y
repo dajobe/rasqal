@@ -809,7 +809,7 @@ SelectTerm: Var
   $$ = NULL;
   if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
-                        "SELECT ( expression ) AS Variable cannot be used with SPARQL 1.0");
+                        "SELECT ( expression ) AS Variable can only be used with SPARQL 1.1");
     YYERROR;
   } else if($2 && $4) {
     if(rasqal_expression_mentions_variable($2, $4)) {
@@ -881,7 +881,7 @@ DistinctOpt: DISTINCT
 
   if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
-                        "functions with DISTINCT cannot be used with SPARQL 1.0");
+                        "functions with DISTINCT can only be used with SPARQL 1.1");
     YYERROR;
   }
   
@@ -914,7 +914,7 @@ CountAggregateExpression: COUNT '(' DistinctOpt ExpressionOrStar ')'
   $$ = NULL;
   if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
-                        "COUNT() cannot be used with SPARQL 1.0");
+                        "COUNT() can only be used with SPARQL 1.1");
     YYERROR;
   } else {
     $$ = rasqal_new_aggregate_function_expression(rq->world,
@@ -935,7 +935,7 @@ SumAggregateExpression: SUM '(' DistinctOpt Expression ')'
   $$ = NULL;
   if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
-                        "SUM() cannot be used with SPARQL 1.0");
+                        "SUM() can only be used with SPARQL 1.1");
     YYERROR;
   } else {
     $$ = rasqal_new_aggregate_function_expression(rq->world,
@@ -956,7 +956,7 @@ AvgAggregateExpression: AVG '(' DistinctOpt Expression ')'
   $$ = NULL;
   if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
-                        "AVG() cannot be used with SPARQL 1.0");
+                        "AVG() can only be used with SPARQL 1.1");
     YYERROR;
   } else {
     $$ = rasqal_new_aggregate_function_expression(rq->world,
@@ -977,7 +977,7 @@ MinAggregateExpression: MIN '(' DistinctOpt Expression ')'
   $$ = NULL;
   if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
-                        "MIN() cannot be used with SPARQL 1.0");
+                        "MIN() can only be used with SPARQL 1.1");
     YYERROR;
   } else {
     $$ = rasqal_new_aggregate_function_expression(rq->world,
@@ -998,7 +998,7 @@ MaxAggregateExpression: MAX '(' DistinctOpt Expression ')'
   $$ = NULL;
   if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
-                        "MAX() cannot be used with SPARQL 1.0");
+                        "MAX() can only be used with SPARQL 1.1");
     YYERROR;
   } else {
     $$ = rasqal_new_aggregate_function_expression(rq->world,
@@ -1061,7 +1061,7 @@ GroupConcatAggregateExpression: GROUP_CONCAT '(' DistinctOpt ExpressionList Sepa
   $$ = NULL;
   if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
-                        "GROUP_CONCAT() cannot be used with SPARQL 1.0");
+                        "GROUP_CONCAT() can only be used with SPARQL 1.1");
     YYERROR;
   } else {
     int flags = 0;
@@ -1088,7 +1088,7 @@ SampleAggregateExpression: SAMPLE '(' DistinctOpt Expression ')'
   $$ = NULL;
   if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
-                        "SAMPLE() cannot be used with SPARQL 1.0");
+                        "SAMPLE() can only be used with SPARQL 1.1");
     YYERROR;
   } else {
     $$ = rasqal_new_aggregate_function_expression(rq->world,
@@ -2379,7 +2379,7 @@ GroupClauseOpt: GROUP BY GroupConditionList
   $$ = NULL;
   if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
-                        "GROUP BY cannot be used with SPARQL 1.0");
+                        "GROUP BY can only be used with SPARQL 1.1");
     YYERROR;
   } else
     $$ = $3;
@@ -2437,7 +2437,7 @@ HavingClauseOpt: HAVING HavingConditionList
   $$ = NULL;
   if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
-                        "HAVING cannot be used with SPARQL 1.0");
+                        "HAVING can only be used with SPARQL 1.1");
     YYERROR;
   } else 
     $$ = $2;
@@ -3282,7 +3282,7 @@ Bind: BIND '(' Expression AS Var ')'
   if($3 && $5) {
     if(!sparql->sparql11_query) {
       sparql_syntax_error(rq,
-                          "BIND cannot be used with SPARQL 1.0");
+                          "BIND can only be used with SPARQL 1.1");
       YYERROR;
     } else {
       $$ = rasqal_new_let_graph_pattern(rq, $5, $3);
@@ -3572,7 +3572,7 @@ CoalesceExpression: COALESCE ArgList
   $$ = NULL;
   if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
-                        "COALESCE cannot be used with SPARQL 1.0");
+                        "COALESCE can only be used with SPARQL 1.1");
     YYERROR;
   }
   
@@ -5166,7 +5166,7 @@ DatetimeExtensions: CURRENT_DATETIME '(' ')'
   $$ = NULL;
   if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
-                        "NOW() cannot be used with SPARQL 1.0");
+                        "NOW() can only be used with SPARQL 1.1");
     YYERROR;
   }
   
