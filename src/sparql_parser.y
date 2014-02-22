@@ -700,7 +700,7 @@ SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier
   sparql = (rasqal_sparql_query_language*)(rq->context);
 
   $$ = NULL;
-  if(!sparql->sparql_query) {
+  if(!sparql->sparql_scda) {
     sparql_syntax_error(rq,
                         "SELECT can only be used with a SPARQL query");
     YYERROR;
@@ -912,7 +912,7 @@ CountAggregateExpression: COUNT '(' DistinctOpt ExpressionOrStar ')'
   sparql = (rasqal_sparql_query_language*)(rq->context);
 
   $$ = NULL;
-  if(!sparql->sparql11_aggregates) {
+  if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
                         "COUNT() cannot be used with SPARQL 1.0");
     YYERROR;
@@ -933,7 +933,7 @@ SumAggregateExpression: SUM '(' DistinctOpt Expression ')'
   sparql = (rasqal_sparql_query_language*)(rq->context);
 
   $$ = NULL;
-  if(!sparql->sparql11_aggregates) {
+  if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
                         "SUM() cannot be used with SPARQL 1.0");
     YYERROR;
@@ -954,7 +954,7 @@ AvgAggregateExpression: AVG '(' DistinctOpt Expression ')'
   sparql = (rasqal_sparql_query_language*)(rq->context);
 
   $$ = NULL;
-  if(!sparql->sparql11_aggregates) {
+  if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
                         "AVG() cannot be used with SPARQL 1.0");
     YYERROR;
@@ -975,7 +975,7 @@ MinAggregateExpression: MIN '(' DistinctOpt Expression ')'
   sparql = (rasqal_sparql_query_language*)(rq->context);
 
   $$ = NULL;
-  if(!sparql->sparql11_aggregates) {
+  if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
                         "MIN() cannot be used with SPARQL 1.0");
     YYERROR;
@@ -996,7 +996,7 @@ MaxAggregateExpression: MAX '(' DistinctOpt Expression ')'
   sparql = (rasqal_sparql_query_language*)(rq->context);
 
   $$ = NULL;
-  if(!sparql->sparql11_aggregates) {
+  if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
                         "MAX() cannot be used with SPARQL 1.0");
     YYERROR;
@@ -1059,7 +1059,7 @@ GroupConcatAggregateExpression: GROUP_CONCAT '(' DistinctOpt ExpressionList Sepa
   sparql = (rasqal_sparql_query_language*)(rq->context);
 
   $$ = NULL;
-  if(!sparql->sparql11_aggregates) {
+  if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
                         "GROUP_CONCAT() cannot be used with SPARQL 1.0");
     YYERROR;
@@ -1086,7 +1086,7 @@ SampleAggregateExpression: SAMPLE '(' DistinctOpt Expression ')'
   sparql = (rasqal_sparql_query_language*)(rq->context);
 
   $$ = NULL;
-  if(!sparql->sparql11_aggregates) {
+  if(!sparql->sparql11_query) {
     sparql_syntax_error(rq,
                         "SAMPLE() cannot be used with SPARQL 1.0");
     YYERROR;
@@ -1110,7 +1110,7 @@ ConstructQuery: CONSTRUCT ConstructTemplate
   sparql = (rasqal_sparql_query_language*)(rq->context);
 
   $$ = NULL;
-  if(!sparql->sparql_query) {
+  if(!sparql->sparql_scda) {
     sparql_syntax_error(rq,
                         "CONSTRUCT can only be used with a SPARQL query");
     YYERROR;
@@ -1133,7 +1133,7 @@ ConstructQuery: CONSTRUCT ConstructTemplate
 
   sparql = (rasqal_sparql_query_language*)(rq->context);
 
-  if(!sparql->sparql_query) {
+  if(!sparql->sparql_scda) {
     sparql_syntax_error(rq,
                         "CONSTRUCT can only be used with a SPARQL query");
     YYERROR;
@@ -1178,7 +1178,7 @@ DescribeQuery: DESCRIBE VarOrIRIrefList
   sparql = (rasqal_sparql_query_language*)(rq->context);
 
   $$ = NULL;
-  if(!sparql->sparql_query) {
+  if(!sparql->sparql_scda) {
     sparql_syntax_error(rq,
                         "DESCRIBE can only be used with a SPARQL query");
     YYERROR;
@@ -1251,7 +1251,7 @@ AskQuery: ASK
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(rq->context);
 
-  if(!sparql->sparql_query) {
+  if(!sparql->sparql_scda) {
     sparql_syntax_error(rq,
                         "ASK can only be used with a SPARQL query");
     YYERROR;
@@ -5395,11 +5395,11 @@ rasqal_sparql_query_language_init(rasqal_query* rdf_query, const char *name)
   rdf_query->compare_flags = RASQAL_COMPARE_XQUERY;
 
   /* All the sparql query families support this */
-  rqe->sparql10 = 1;
-  rqe->sparql_query = 1;
-  /* SPARQL 1.1 is the default */
+  rqe->sparql_scda = 1; /* SELECT CONSTRUCT DESCRIBE ASK */
+
+  /* SPARQL 1.1 Query + Update is the default */
+  rqe->sparql_scda = 1; /* SELECT CONSTRUCT DESCRIBE ASK */
   rqe->sparql11_query = 1;
-  rqe->sparql11_aggregates = 1;
   rqe->sparql11_property_paths = 1;
   rqe->sparql11_update = 1;
 
@@ -5407,7 +5407,6 @@ rasqal_sparql_query_language_init(rasqal_query* rdf_query, const char *name)
     /* SPARQL 1.0 disables SPARQL 1.1 features */
     if(!strncmp(name, "sparql10", 8)) {
       rqe->sparql11_query = 0;
-      rqe->sparql11_aggregates = 0;
       rqe->sparql11_property_paths = 0;
       rqe->sparql11_update = 0;
     }
@@ -5418,9 +5417,8 @@ rasqal_sparql_query_language_init(rasqal_query* rdf_query, const char *name)
     }
 
     if(!strcmp(name, "sparql11-update")) {
-      /* No query if SPARQL 1.1 update */
-      rqe->sparql_query = 0;
-      rqe->sparql11_query = 0;
+      /* No query (SELECT, CONSTRUCT, DESCRIBE, ASK) if SPARQL 1.1 update */
+      rqe->sparql_scda = 0;
     }
 
     /* LAQRS for experiments */

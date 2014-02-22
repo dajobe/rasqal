@@ -47,17 +47,11 @@ struct rasqal_sparql_query_language_s {
 
   /* SPARQL query language language features supported */
 
-  /* querying in general (SELECT, CONSTRUCT, DESCRIBE, ASK ) */
-  int sparql_query : 1;
-
-  /* SPARQL 1.0 query language features */
-  int sparql10 : 1;
+  /* querying with SELECT, CONSTRUCT, DESCRIBE, ASK */
+  int sparql_scda : 1;
 
   /* SPARQL 1.1 query language features (e.g. SELECT (expr AS var) ) */
   int sparql11_query : 1;
-
-  /* SPARQL 1.1 aggregate functions */
-  int sparql11_aggregates : 1;
 
   /* SPARQL 1.1 property path querying */
   int sparql11_property_paths : 1;
@@ -66,7 +60,9 @@ struct rasqal_sparql_query_language_s {
    * INSERT, DELETE, MODIFY ) 
    */
   int sparql11_update : 1;
-  int experimental : 1; /* laqrs */
+
+  /* laqrs */
+  int experimental : 1;
 
   /* count of errors in current query parse */
   int error_count;
