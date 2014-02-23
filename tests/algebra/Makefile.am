@@ -54,7 +54,7 @@ get-testsuite-sparql-algebra:
 	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
 	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
 	$(RECHO) ' '; \
-	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Algebra Conversions\"; t:path \"`pwd`:$$PATH\"; t:precondition \"$(PERL) -MXML::DOM -e 'exit 0'\"; mf:entries ("; \
+	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Algebra Conversions\"; mf:entries ("; \
 	for test in $(ALGEBRA_TEST_FILES); do \
 	  comment="SPARQL algebra $$test"; \
 	  base=$(BASE_URI)$$test; \
