@@ -807,7 +807,7 @@ rasqal_expression_evaluate_strbefore(rasqal_expression *e,
   const unsigned char *needle;
   size_t haystack_len;
   size_t needle_len;
-  char *ptr;
+  const char *ptr;
   unsigned char* result;
   size_t result_len;
 
