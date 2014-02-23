@@ -15,3 +15,5 @@ srxwrite.exe
 TAGS
 check-query
 check-query.exe
+to-ntriples
+to-ntriples.exe

@@ -21,7 +21,7 @@
 # 
 
 bin_PROGRAMS = roqet
-noinst_PROGRAMS = check-query
+noinst_PROGRAMS = check-query to-ntriples
 EXTRA_PROGRAMS = srxread srxwrite
 
 CLEANFILES = $(EXTRA_PROGRAMS) *.plist
@@ -67,6 +67,10 @@ if GETOPT
 check_query_CPPFLAGS += -I$(top_srcdir)/getopt
 check_query_LDADD += $(top_builddir)/getopt/libgetopt.la
 endif
+
+to_ntriples_SOURCES = to-ntriples.c
+to_ntriples_CPPFLAGS = $(AM_CPPFLAGS)
+to_ntriples_LDFLAGS = @RAPTOR2_LIBS@
 
 srxread_SOURCES = srxread.c
 srxread_LDADD = $(top_builddir)/src/librasqal.la
