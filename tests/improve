@@ -21,7 +21,6 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 #
 # REQUIRES:
-#   'rapper' from raptor in the PATH (or where envariable RAPPER is)
 #   GNU 'make' in the PATH (or where envariable MAKE is)
 #
 
@@ -30,9 +29,22 @@ use strict;
 use File::Basename;
 use Getopt::Long;
 use Pod::Usage;
-use Cwd 'abs_path';
+use Cwd qw(abs_path getcwd);
 
-our $RAPPER=$ENV{RAPPER} || 'rapper';
+sub get_utils_dir() {
+  my $dir = getcwd;
+  while($dir ne '' && ! -d "$dir/utils") {
+    $dir =~ s{/[^/]+$}{};
+  }
+  if($dir eq '') {
+    die "$0: Could not find 'utils' dir in parent directories\n";
+  }
+  $dir . "/utils";
+}
+
+our $UTILS_DIR = get_utils_dir();
+our $TO_NTRIPLES = $ENV{TO_NTRIPLES} || $UTILS_DIR. '/to-ntriples';
+
 our $MAKE=$ENV{MAKE} || 'make';
 our $INDENT='  ';
 our $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
@@ -83,8 +95,8 @@ sub read_plan($$) {
   my $manifest_node;
   my $entries_node;
 
-  my $rapper_error='rapper.err';
-  my $cmd="$RAPPER -q -i turtle -o ntriples $plan_file 2> $rapper_error";
+  my $to_ntriples_error='to_ntriples.err';
+  my $cmd="$TO_NTRIPLES $plan_file 2> $to_ntriples_error";
   print STDERR "$program: Running pipe from $cmd\n"
     if $debug > 1;
   open(MF, "$cmd |") 
@@ -100,12 +112,12 @@ sub read_plan($$) {
     $entries_node=$o if $p eq "<${mf}entries>";
   }
   close(MF);
-  if(!-z $rapper_error) {
-    my $status = {status => 'fail', details => `cat $rapper_error` };
-    unlink $rapper_error;
+  if(!-z $to_ntriples_error) {
+    my $status = {status => 'fail', details => `cat $to_ntriples_error` };
+    unlink $to_ntriples_error;
     return $status;
   }
-  unlink $rapper_error;
+  unlink $to_ntriples_error;
 
 
   warn "Manifest node is '$manifest_node'\n"

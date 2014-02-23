@@ -24,7 +24,6 @@
 #
 # Requires:
 #   roqet (from rasqal) compiled in the parent directory
-#   rapper (from raptor) in the PATH
 #
 # Depends on a variety of rasqal internal debug print formats
 # 
@@ -42,9 +41,25 @@ sub WCOREDUMP($) {
   return $_[0] & 0200;
 }
 
-my $roqet=$ENV{ROQET} || "roqet";
+my $CURDIR = getcwd;
+
+
+sub get_utils_dir() {
+  my $dir = $CURDIR;
+  while($dir ne '' && ! -d "$dir/utils") {
+    $dir =~ s{/[^/]+$}{};
+  }
+  if($dir eq '') {
+    die "$0: Could not find 'utils' dir in parent directories\n";
+  }
+  $dir . "/utils";
+}
+
+our $UTILS_DIR = get_utils_dir();
+our $TO_NTRIPLES = $ENV{TO_NTRIPLES} || $UTILS_DIR. '/to-ntriples';
+our $ROQET = $ENV{ROQET} || $UTILS_DIR . '/roqet';
+
 my $rasqal_url="http://librdf.org/rasqal/";
-my $rapper=$ENV{RAPPER} || "rapper";
 my $diff_cmd=$ENV{DIFF} || "diff";
 
 my $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
@@ -77,7 +92,7 @@ our $result_out = "result.out";
 our $roqet_tmp  = 'roqet.tmp';
 our $roqet_err  = 'roqet.err';
 our $diff_out   = 'diff.out';
-our $rapper_err = 'rapper.err';
+our $to_ntriples_err = 'to_ntriples.err';
 
 
 # plural('result', 's', 2);
@@ -116,9 +131,9 @@ sub read_query_results_file($$) {
 
   my(%results)=(rows => []);
 
-  my $cmd="$roqet -q -R $results_input_format -r simple -t '$result_file'";
+  my $cmd="$ROQET -q -R $results_input_format -r simple -t '$result_file'";
 
-  warn "$program: Opening pipe from '$cmd'\n"
+  warn "$program: (read_query_results_file): Running $cmd\n"
     if $debug;
   open(PIPE, "$cmd 2>'$roqet_err' |");
   my(@vars)=();
@@ -162,36 +177,35 @@ sub read_query_results_file($$) {
 sub read_rdf_graph_file($$) {
   my($result_file, $base_uri)=@_;
 
-  my $cmd="$rapper -q -g -o ntriples '$result_file' $base_uri";
+  my $cmd="$TO_NTRIPLES '$result_file' '$base_uri'";
 
-  warn "$program: (read_rdf_graph_file): Opening pipe from '$cmd'\n"
+  warn "$program: (read_rdf_graph_file): Running $cmd\n"
     if $debug;
 
   my $result_string='';
-  open(PIPE, "$cmd 2>'$rapper_err' |");
+  open(PIPE, "$cmd 2>'$to_ntriples_err' |");
   while(<PIPE>) {
     $result_string .= $_;
   }
   close(PIPE);
 
-  open(ERR, "<", $rapper_err) or die "$program: Cannot open $rapper_err - $!\n";
+  open(ERR, "<", $to_ntriples_err) or die "$program: Cannot open $to_ntriples_err - $!\n";
   my(@errs)=();
   while(<ERR>) {
     chomp;
-    push(@errs, "$result_file: $1") if m{rapper: Error - (.*)$};
+    push(@errs, "$result_file: $1") if m{to-ntriples: Error - (.*)$};
   }
   close(ERR);
   if(@errs) {
-    warn "$program: parsing RDF graph result file '$result_file' FAILED - rapper returned errors:\n  ".join("\n  ",@errs)."\n";
+    warn "$program: parsing RDF graph result file '$result_file' FAILED - to_ntriples returned errors:\n  ".join("\n  ",@errs)."\n";
     warn "Failing program was:\n";
     warn "  $cmd\n";
-    my $curdir=getcwd;
-    my $r=$cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir/,,g;
+    my $r=$cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$CURDIR/,,g;
     warn "  OR $r\n";
     return undef;
   }
 
-  unlink $rapper_err;
+  unlink $to_ntriples_err;
 
   my(%results)=(graph_ntriples => $result_string);
 
@@ -282,25 +296,24 @@ sub run_test {
   }
   push(@args, "-W", $warning_level);
 
-  my $curdir = getcwd;
   for my $df (@data_files) {
-    $df =~ s,^file://$curdir/,,;
+    $df =~ s,^$CURDIR/,,;
     push(@args, "-D", $df);
   }
   for my $ndf (@named_data_files) {
-    $ndf =~ s,^file://$curdir/,,;
+    $ndf =~ s,^$CURDIR/,,;
     push(@args, "-G", $ndf);
   }
   push(@args, "-n")
     unless $config->{execute};
 
-  my $tf = $test_file; $tf =~ s,^$curdir/,,;
+  my $tf = $test_file; $tf =~ s,^$CURDIR/,,;
 
   my $args_s = join(" ",@args);
-  my $roqet_cmd="$roqet $args_s '$tf' 2>'$roqet_err' >'$roqet_tmp'";
+  my $roqet_cmd="$ROQET $args_s '$tf' 2>'$roqet_err' >'$roqet_tmp'";
   my $sort="sort";
 
-  warn "$program: Running '$roqet_cmd'\n"
+  warn "$program: Running $roqet_cmd\n"
     if $debug;
   my $start_time = time;
   system($roqet_cmd);
@@ -348,7 +361,7 @@ sub run_test {
   }
 
   if(defined $test_type && $test_type eq "${mf}CSVResultFormatTest") {
-    my $file = $result_file; $file =~ s%^file://%%;
+    my $file = $result_file;
     my $cmd = "$diff_cmd -u '$roqet_tmp' '$file' >'$diff_out'";
     $rc = system($cmd);
     if($rc) {
@@ -459,19 +472,21 @@ sub run_test {
 
   my $results = {expect_empty => 1};
 
+  my $result_file_base_uri;
+  if(defined $result_file) {
+    $result_file_base_uri = "file://$result_file";
+    $result_file =~ s,^$CURDIR/,,;
+  }
+
+
   if($result_type eq 'graph') {
     warn "$program: Reading RDF graph result file $result_file\n"
       if $debug;
     if(defined $result_file) {
-      $results = read_rdf_graph_file($result_file, "file://$result_file");
+      $results = read_rdf_graph_file($result_file, $result_file_base_uri);
     }
   } else {
     if(defined $result_file) {
-      my $result_file_base_uri = $result_file;
-
-      # File URI to filename
-      $result_file =~ s%^file://%%;
-
       if($result_file =~ /\.srx$/) {
 	warn "$program: Reading SPARQL XML bindings result file $result_file\n"
 	  if $debug;
@@ -621,7 +636,7 @@ die "$program: No manifest file found in $srcdir\n"
 
 my(%triples);
 my $entries_node;
-my $cmd="$rapper -q -i turtle -o ntriples '$srcdir$manifest_file'";
+my $cmd="$TO_NTRIPLES '$srcdir$manifest_file'";
 open(MF, "$cmd |") 
   or die "Cannot open pipe from '$cmd' - $!\n";
 while(<MF>) {
@@ -665,7 +680,7 @@ while($list_node) {
   my $result_file=undef;
   if(defined $result_node) {
     $result_file=($result_node =~ /^<(.+)>$/, $1);
-    $result_file =~ s,^file:([^/]+),$1,;
+    $result_file =~ s,^file:/+,/,;
   }
 
   warn "Entry result_file=".($result_file || "NONE")."\n"
@@ -682,14 +697,14 @@ while($list_node) {
     warn "Entry graph data_node $data_node\n"
      if $debug > 1;
     my $data_file=($data_node =~ /^<(.+)>$/, $1);
-    $data_file =~ s,^file:([^/]+),$1,;
+    $data_file =~ s,^file:/+,/,;
     push(@data_files, $data_file);
   }
   for my $data_node (@{$triples{$action_node}->{"<${qt}graphData>"}}) { 
     warn "Entry named graph data_node $data_node\n"
      if $debug > 1;
     my $data_file=($data_node =~ /^<(.+)>$/, $1);
-    $data_file =~ s,^file:([^/]+),$1,;
+    $data_file =~ s,^file:/+,/,;
     push(@named_data_files, $data_file);
   }
 
@@ -852,10 +867,10 @@ for my $test (@tests) {
 my $end_time = time;
 my $elapsed_time = ($end_time - $start_time);
 
-unlink $roqet_out, $result_out, $roqet_tmp, $roqet_err, $diff_out, $rapper_err
+unlink $roqet_out, $result_out, $roqet_tmp, $roqet_err, $diff_out, $to_ntriples_err
   unless $unique_test;
 
-my $rasqal_version=`$roqet -v`;
+my $rasqal_version=`$ROQET -v`;
 chomp $rasqal_version;
 
 if($earl_report_file) {
