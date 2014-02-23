@@ -99,7 +99,7 @@ get-testsuite-sparql-query:
 	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
 	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
 	$(RECHO) ' '; \
-	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Query Execution\"; t:path \"$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH\"; t:precondition \"$(PERL) -MXML::DOM -e 'exit 0'\"; mf:entries ("; \
+	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Query Execution\"; t:precondition \"$(PERL) -MXML::DOM -e 'exit 0'\"; mf:entries ("; \
 	for test in $(EXPECTED_SPARQL_CORRECT); do \
 	  comment="sparql query $$test"; \
 	  expect="PositiveTest"; \
