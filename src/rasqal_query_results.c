@@ -1075,7 +1075,7 @@ rasqal_query_results_get_bindings_count(rasqal_query_results* query_results)
 
 
 static unsigned char*
-rasqal_prefix_id(int prefix_id, unsigned char *string)
+rasqal_prefix_id(int prefix_id, const unsigned char *string)
 {
   int tmpid = prefix_id;
   unsigned char* buffer;
@@ -1118,7 +1118,7 @@ rasqal_literal_to_result_term(rasqal_query_results* query_results,
          * blank node value so make a new one every result, not every triple
          */
         nodeid = rasqal_prefix_id(query_results->result_count,
-                                  RASQAL_GOOD_CAST(unsigned char*, nodel->string));
+                                  nodel->string);
       } else {
         nodeid = RASQAL_MALLOC(unsigned char*, nodel->string_len + 1);
         if(nodeid)
