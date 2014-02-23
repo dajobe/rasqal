@@ -1,3 +1,7 @@
+2014-02-23  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_32 for 0.9.32 release (GIT cdb85abbfe2dc7c740970a92399b734be544cc1c)
+
 2014-02-22  Dave Beckett <dave@dajobe.org>
 
 	* tests/algebra/Makefile.am: Restore t:path with current dir so
