@@ -1,5 +1,62 @@
 2014-02-22  Dave Beckett <dave@dajobe.org>
 
+	* tests/algebra/Makefile.am: Restore t:path with current dir so
+	that convert_graph_pattern is found
+
+	* tests/algebra/Makefile.am, tests/sparql/Expr1/Makefile.am,
+	tests/sparql/Expr2/Makefile.am,
+	tests/sparql/ExprBuiltins/Makefile.am,
+	tests/sparql/ExprEquals/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am,
+	tests/sparql/SyntaxFull/Makefile.am,
+	tests/sparql/ValueTesting/Makefile.am,
+	tests/sparql/aggregate/Makefile.am,
+	tests/sparql/bound/Makefile.am, tests/sparql/bugs/Makefile.am,
+	tests/sparql/examples/Makefile.am, tests/sparql/part1/Makefile.am,
+	tests/sparql/regex/Makefile.am, tests/sparql/simple/Makefile.am,
+	tests/sparql/sort/Makefile.am, tests/sparql/survey/Makefile.am,
+	tests/sparql/syntax/Makefile.am,
+	tests/sparql/warnings/Makefile.am: No need for manifest ttl
+	t:precondition now that XML::DOM is not needed
+
+	* INSTALL.html: No need for XML::DOM check
+
+	* src/rasqal_expr_numerics.c: Fix OSSP UUID include
+
+	* configure.ac, tests/sparql/Expr1/Makefile.am,
+	tests/sparql/Expr2/Makefile.am,
+	tests/sparql/ExprBuiltins/Makefile.am,
+	tests/sparql/ExprEquals/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am,
+	tests/sparql/SyntaxFull/Makefile.am,
+	tests/sparql/ValueTesting/Makefile.am,
+	tests/sparql/aggregate/Makefile.am,
+	tests/sparql/bound/Makefile.am, tests/sparql/bugs/Makefile.am,
+	tests/sparql/examples/Makefile.am, tests/sparql/part1/Makefile.am,
+	tests/sparql/regex/Makefile.am, tests/sparql/simple/Makefile.am,
+	tests/sparql/sort/Makefile.am, tests/sparql/survey/Makefile.am,
+	tests/sparql/syntax/Makefile.am,
+	tests/sparql/warnings/Makefile.am: Remove use of rapper,
+	RAPPER_PATH and t:path in test ttl config
+
+	* tests/improve, tests/sparql/check-sparql: Make improve and
+	check-sparql use to-ntriples instead of rapper
+
+	* utils/.gitignore, utils/Makefile.am, utils/to-ntriples.c: Add
+	to-ntriples utility for use by test scripts
+
+	* tests/improve: Make improve not use undefined array references
+
+	* configure.ac: Reword raptor version message since
+	RAPTOR_MIN_VERSION is a minimum (>=)
+
+	* configure.ac: Improve raptor2 check to distinguish raptor too
+	old from not present.
+
 	* src/sparql_parser.y: Alter SPARQL disabled feature messages to
 	point to SPARQL 1.1
 

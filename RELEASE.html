@@ -37,7 +37,7 @@ maintainer, building from GIT sources).
 
 <h3>API changes</h3>
 
-<p>Made <code>rasqal_new_query()</code> match documentation in
+<p>Made <code>rasqal_new_query()</code> match the documentation in
 accepting a <code>NULL</code> name.
 Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=567">Issue #0000567</a>
 </p>
@@ -47,7 +47,7 @@ Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=567">Issue #0000567</a>
 
 <p>Make ossp work as a UUID library option.
 <code>--with-uuid-library=ossp</code> and automatic discovery of ossp
-UUID now work.</p>
+UUID now work.  Fixed the inclusion of OSSP's uuid.h header.</p>
 
 <p>Fix the searching for the pcre-config and libgcrypt-config
 configuration utilities.  This probably never worked unless the
@@ -55,8 +55,9 @@ envariables form (<code>PCRE_CONFIG</code> and
 <code>LIBGCRYPT_CONFIG</code>) were set.
 </p>
 
-<p>Set RAPPER_PATH so <code>rapper(1)</code> can be found from
-<code>pkg-config(1)</code>.
+<p>Added a new internal <code>to-ntriples</code> utility to remove all
+use of <code>rapper(1)</code> so that the raptor utilities do not
+need to be available for running tests with 'make check'.
 Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=561">Issue #0000561</a>
 </p>
 
@@ -69,6 +70,8 @@ Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=560">Issue# 0000560</a>
 
 <p>Fix noisy mhash_dir addition error; it was always added the cflags
 and includes even when mhash_dir was blank.</p>
+
+<p>Improve raptor missing / too old error message.</p>
 
 <h3>Other changes</h3>
 
