@@ -299,12 +299,10 @@ sub prepare_testsuite($) {
 }
 
 
-sub run_testsuite($) {
-  my($testsuite)=@_;
+sub run_testsuite($$$) {
+  my($testsuite, $indent, $verbose)=@_;
   my $dir = $testsuite->{dir};
   my $name = $testsuite->{name};
-  my $indent = $testsuite->{indent};
-  my $verbose = $testsuite->{verbose};
 
   my(@tests)=@{$testsuite->{tests}};
 
@@ -445,13 +443,9 @@ sub format_testsuite_result($$$;$) {
 }
 
 
-sub run_testsuites_in_dir($) {
-  my($config)=@_;
-  my $dir=$config->{dir};
-  my(@testsuites)=@{$config->{testsuites}};
-  my $verbose=$config->{verbose};
-  my $dryrun=$config->{dryrun};
-  my $indent=$config->{indent};
+sub run_testsuites_in_dir($$$$$) {
+  my($dir,$ts,$indent,$verbose,$dryrun)=@_;
+  my(@testsuites)=@{$ts};
 
   chdir($dir) or die "$program: Directory $dir not found\n";
   
@@ -482,13 +476,10 @@ sub run_testsuites_in_dir($) {
 
   for my $testsuite_name (@testsuites) {
     my $testsuite = {dir => $dir,
-		     name => $testsuite_name,
-		     verbose => $verbose,
-		     indent => $indent.$INDENT,
-		     dryrun => $dryrun
+		     name => $testsuite_name
     };
 
-    my $result=prepare_testsuite($testsuite);
+    my $result = prepare_testsuite($testsuite);
     if($result->{status} eq 'fail') {
       my $details=$result->{details};
       print "$indent$program: Suite $testsuite->{name} failed preparation - $details\n";
@@ -496,7 +487,7 @@ sub run_testsuites_in_dir($) {
       next;
     }
 
-    $result=run_testsuite($testsuite);
+    $result=run_testsuite($testsuite, $indent, $verbose);
 
     format_testsuite_result(*STDOUT, $result, $indent.$INDENT, $verbose);
 
@@ -577,15 +568,7 @@ my $total_result = {  };
 
 my $rc = 0;
 for my $dir (@dirs) {
-  my(%config)=(
-    dir => $dir,
-    testsuites => \@testsuites,
-    verbose => $verbose,
-    dryrun => $dryrun,
-    indent => '',
-  );
-
-  my $result=run_testsuites_in_dir(\%config);
+  my $result = run_testsuites_in_dir($dir, \@testsuites, '', $verbose, $dryrun);
 
   for my $counter (@counters) {
     my $r = $result->{$counter};
