@@ -924,7 +924,6 @@ main(int argc, char *argv[])
                 program, results_type);
         rc = 1;
         goto tidy_setup;
-        break;
     }
   } else
     rc = 1;

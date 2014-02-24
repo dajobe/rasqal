@@ -158,7 +158,6 @@ rasqal_raptor_support_feature(void *user_data,
   switch(feature) {
     case RASQAL_TRIPLES_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH:
       return 1;
-      break;
       
     default:
     case RASQAL_TRIPLES_SOURCE_FEATURE_NONE:

@@ -862,7 +862,6 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_CURRENT_DATETIME:
     case RASQAL_EXPR_NOW:
     case RASQAL_EXPR_RAND:
-      return 0;
       break;
 
     case RASQAL_EXPR_AND:
@@ -889,23 +888,23 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_CONTAINS:
     case RASQAL_EXPR_STRBEFORE:
     case RASQAL_EXPR_STRAFTER:
-      return rasqal_expression_visit(e->arg1, fn, user_data) ||
-             rasqal_expression_visit(e->arg2, fn, user_data);
+      result = rasqal_expression_visit(e->arg1, fn, user_data) ||
+               rasqal_expression_visit(e->arg2, fn, user_data);
       break;
 
     case RASQAL_EXPR_REGEX:
     case RASQAL_EXPR_IF:
     case RASQAL_EXPR_SUBSTR:
-      return rasqal_expression_visit(e->arg1, fn, user_data) ||
-             rasqal_expression_visit(e->arg2, fn, user_data) ||
-             (e->arg3 && rasqal_expression_visit(e->arg3, fn, user_data));
+      result = rasqal_expression_visit(e->arg1, fn, user_data) ||
+               rasqal_expression_visit(e->arg2, fn, user_data) ||
+               (e->arg3 && rasqal_expression_visit(e->arg3, fn, user_data));
       break;
 
     case RASQAL_EXPR_REPLACE:
-      return rasqal_expression_visit(e->arg1, fn, user_data) ||
-             rasqal_expression_visit(e->arg2, fn, user_data) ||
-             rasqal_expression_visit(e->arg3, fn, user_data) ||
-             (e->arg4 && rasqal_expression_visit(e->arg4, fn, user_data));
+      result = rasqal_expression_visit(e->arg1, fn, user_data) ||
+               rasqal_expression_visit(e->arg2, fn, user_data) ||
+               rasqal_expression_visit(e->arg3, fn, user_data) ||
+               (e->arg4 && rasqal_expression_visit(e->arg4, fn, user_data));
       break;
 
     case RASQAL_EXPR_TILDE:
@@ -960,16 +959,16 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_UUID:
     case RASQAL_EXPR_STRUUID:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
-      return (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 0;
+      result = (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 0;
       break;
 
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
-      return fn(user_data, e->arg1);
+      result = fn(user_data, e->arg1);
       break;
 
     case RASQAL_EXPR_LITERAL:
-      return 0;
+      break;
 
     case RASQAL_EXPR_FUNCTION:
     case RASQAL_EXPR_COALESCE:
@@ -982,34 +981,31 @@ rasqal_expression_visit(rasqal_expression* e,
         if(result)
           break;
       }
-      return result;
       break;
 
     case RASQAL_EXPR_VARSTAR:
       /* constants */
-      return 0;
       break;
       
     case RASQAL_EXPR_IN:
     case RASQAL_EXPR_NOT_IN:
       result = rasqal_expression_visit(e->arg1, fn, user_data);
-      if(result)
-        return result;
-
-      for(i = 0; i < raptor_sequence_size(e->args); i++) {
-        rasqal_expression* e2;
-        e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
-        result = rasqal_expression_visit(e2, fn, user_data);
-        if(result)
-          break;
+      if(!result) {
+        for(i = 0; i < raptor_sequence_size(e->args); i++) {
+          rasqal_expression* e2;
+          e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+          result = rasqal_expression_visit(e2, fn, user_data);
+          if(result)
+            break;
+        }
       }
-      return result;
       break;
 
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
-      return -1; /* keep some compilers happy */
+      result= -1; /* keep some compilers happy */
+      break;
   }
 
   return result;
