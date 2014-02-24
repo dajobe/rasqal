@@ -176,17 +176,17 @@ rasqal_dataset_statement_handler(void *user_data,
 /*
  * rasqal_dataset_load_graph_iostream:
  * @ds: dataset
- * @format_name: query result format name (or NULL to guess)
- * @iostr: iostream to read query result format from
+ * @name: rdf graph format name (or NULL to guess)
+ * @iostr: iostream to rdf graph from
  * @base_uri: base URI for reading from stream (or NULL)
  *
- * INTERNAL - Load a query result format from an iostream into a dataset
+ * INTERNAL - Load an rdf graph format from an iostream into a dataset
  *
  * Return value: non-0 on failure
  */
 int
 rasqal_dataset_load_graph_iostream(rasqal_dataset* ds,
-                                   const char* format_name,
+                                   const char* name,
                                    raptor_iostream* iostr,
                                    raptor_uri* base_uri)
 {
@@ -198,32 +198,89 @@ rasqal_dataset_load_graph_iostream(rasqal_dataset* ds,
   if(base_uri) {
     if(ds->base_uri_literal)
       rasqal_free_literal(ds->base_uri_literal);
-    
+
     ds->base_uri_literal = rasqal_new_uri_literal(ds->world,
                                                   raptor_uri_copy(base_uri));
   }
 
-  if(format_name) {
-    if(!raptor_world_is_parser_name(ds->world->raptor_world_ptr, format_name)) {
+  if(name) {
+    if(!raptor_world_is_parser_name(ds->world->raptor_world_ptr, name)) {
       rasqal_log_error_simple(ds->world, RAPTOR_LOG_LEVEL_ERROR,
                               /* locator */ NULL,
-                              "Invalid format name %s ignored",
-                              format_name);
-      format_name = NULL;
+                              "Invalid rdf syntax name %s ignored",
+                              name);
+      name = NULL;
     }
   }
 
-  if(!format_name)
-    format_name = "guess";
+  if(!name)
+    name = "guess";
 
   /* parse iostr with parser and base_uri */
-  parser = raptor_new_parser(ds->world->raptor_world_ptr, format_name);
+  parser = raptor_new_parser(ds->world->raptor_world_ptr, name);
   raptor_parser_set_statement_handler(parser, ds,
                                       rasqal_dataset_statement_handler);
-  
+
   /* parse and store triples */
   raptor_parser_parse_iostream(parser, iostr, base_uri);
-    
+
+  raptor_free_parser(parser);
+
+  return 0;
+}
+
+
+/*
+ * rasqal_dataset_load_graph_iostream:
+ * @ds: dataset
+ * @name: rdf graph format name (or NULL to guess)
+ * @uri: URI to read rdf graph from
+ * @base_uri: base URI for reading from stream (or NULL)
+ *
+ * INTERNAL - Load an rdf graph format from a URI into a dataset
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_dataset_load_graph_uri(rasqal_dataset* ds,
+                              const char* name,
+                              raptor_uri* uri,
+                              raptor_uri* base_uri)
+{
+  raptor_parser* parser;
+
+  if(!ds)
+    return 1;
+
+  if(base_uri) {
+    if(ds->base_uri_literal)
+      rasqal_free_literal(ds->base_uri_literal);
+
+    ds->base_uri_literal = rasqal_new_uri_literal(ds->world,
+                                                  raptor_uri_copy(base_uri));
+  }
+
+  if(name) {
+    if(!raptor_world_is_parser_name(ds->world->raptor_world_ptr, name)) {
+      rasqal_log_error_simple(ds->world, RAPTOR_LOG_LEVEL_ERROR,
+                              /* locator */ NULL,
+                              "Invalid rdf syntax name %s ignored",
+                              name);
+      name = NULL;
+    }
+  }
+
+  if(!name)
+    name = "guess";
+
+  /* parse iostr with parser and base_uri */
+  parser = raptor_new_parser(ds->world->raptor_world_ptr, name);
+  raptor_parser_set_statement_handler(parser, ds,
+                                      rasqal_dataset_statement_handler);
+
+  /* parse and store triples */
+  raptor_parser_parse_uri(parser, uri, base_uri);
+
   raptor_free_parser(parser);
 
   return 0;

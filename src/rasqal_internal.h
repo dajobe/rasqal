@@ -1043,7 +1043,8 @@ typedef struct rasqal_dataset_term_iterator_s rasqal_dataset_term_iterator;
 
 rasqal_dataset* rasqal_new_dataset(rasqal_world* world);
 void rasqal_free_dataset(rasqal_dataset* ds);
-int rasqal_dataset_load_graph_iostream(rasqal_dataset* ds, const char* format_name, raptor_iostream* iostr, raptor_uri* base_uri);
+int rasqal_dataset_load_graph_iostream(rasqal_dataset* ds, const char* name, raptor_iostream* iostr, raptor_uri* base_uri);
+int rasqal_dataset_load_graph_uri(rasqal_dataset* ds, const char* name, raptor_uri* uri, raptor_uri* base_uri);
 void rasqal_free_dataset_term_iterator(rasqal_dataset_term_iterator* iter);
 rasqal_literal* rasqal_dataset_term_iterator_get(rasqal_dataset_term_iterator* iter);
 int rasqal_dataset_term_iterator_next(rasqal_dataset_term_iterator* iter);
