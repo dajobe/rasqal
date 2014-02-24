@@ -17,3 +17,5 @@ check-query
 check-query.exe
 to-ntriples
 to-ntriples.exe
+manifest
+manifest.exe
