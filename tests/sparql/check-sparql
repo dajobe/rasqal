@@ -4,7 +4,7 @@
 #
 # USAGE: check-sparql [options] [TEST]
 # 
-# Copyright (C) 2004-2012, David Beckett http://www.dajobe.org/
+# Copyright (C) 2004-2014, David Beckett http://www.dajobe.org/
 # Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
@@ -261,18 +261,28 @@ sub cat_file($) {
   print <$fh>;
 }
 
+
+sub yesno($) {
+  $_[0] ? "yes" : "no";
+}
+
+
 sub run_test {
   my($config)=@_;
-  my($name,$dir,$test_file,$result_file,$expect_fail,$language,
+  my($name,$dir,$test_file,$result_file,$expect,$language,
      $warning_level,$cardinality_mode)
       =
     ($config->{name}, $config->{dir}, $config->{test_file}, 
-     $config->{result_file}, $config->{expect_fail}, $config->{language},
+     $config->{result_file}, $config->{expect}, $config->{language},
      $config->{warning_level}, $config->{cardinality_mode});
   my($test_uri)=$config->{test_uri};
   my(@data_files)=@{$config->{data_files}};
   my(@named_data_files)=@{$config->{named_data_files}};
   my $test_type = $config->{test_type};
+  my $execute = $config->{execute};
+
+  # Make sure we don't use any more config
+  $config = undef;
 
   $language ||= 'sparql';
 
@@ -283,7 +293,7 @@ sub run_test {
 
   $name ||= $test_uri;
 
-  warn "run_test(\n  name       : $name\n  dir        : $dir\n  language   : $language\n  query      : $test_file\n  data       : ",join("; ",@data_files),"\n  named data : ",join("; ",@named_data_files),"\n  result     : ",($result_file||"none"),"\n  expect     : ",($expect_fail ? "failure":"success"),"\n  card mode  : $cardinality_mode\n)\n"
+  warn "run_test(\n  name       : $name\n  dir        : $dir\n  language   : $language\n  query      : $test_file\n  data       : ",join("; ",@data_files),"\n  named data : ",join("; ",@named_data_files),"\n  result     : ",($result_file||"none"),"\n  expect     : $expect\n  card mode  : $cardinality_mode\n  execute    : ".yesno($execute).")\n"
     if $debug;
 
   my(@args)=();
@@ -305,7 +315,7 @@ sub run_test {
     push(@args, "-G", $ndf);
   }
   push(@args, "-n")
-    unless $config->{execute};
+    unless $execute;
 
   my $tf = $test_file; $tf =~ s,^$CURDIR/,,;
 
@@ -348,7 +358,7 @@ sub run_test {
   if($rc) {
     $test_result->{'result'}='failure';
 
-    if($expect_fail && !$core_dumped) {
+    if($expect eq "fail" && !$core_dumped) {
       warn "$program: '$name' ok - got expected failure\n";
     } else {
       warn "$program: '$name' FAILED ($rc)\n";
@@ -518,7 +528,7 @@ sub run_test {
 
   if(exists $results->{expect_empty}) {
     warn "$program: '$name' ok (no result)\n";
-    $test_result->{'result'} = $expect_fail ? 'failure' : 'success';
+    $test_result->{'result'} = ($expect eq 'fail') ? 'failure' : 'success';
 
     return $test_result;
   }
@@ -713,7 +723,7 @@ while($list_node) {
     if $debug > 1;
 
   my $query_node;
-  my $expect_fail=0;
+  my $expect='pass';
   my $execute=1;
 
   if(defined $query_type &&
@@ -740,7 +750,7 @@ while($list_node) {
 
     $query_node=$action_node;
     $execute=0; # Syntax checks do not need execution, just parsing
-    $expect_fail=1 if
+    $expect='fail' if
       $query_type =~ /^<${mf}Negative/ ||
       $query_type eq "<${mf}NegativeSyntaxTest>" ||
       $query_type eq "<${mfx}TestBadSyntax>";
@@ -795,7 +805,7 @@ while($list_node) {
 		  data_files => \@data_files,
 		  named_data_files => \@named_data_files,
 		  result_file => $result_file,
-		  expect_fail => $expect_fail,
+		  expect => $expect,
 		  test_type => $test_type,
 		  test_uri => $test_uri,
 		  execute => $execute,
@@ -853,7 +863,7 @@ for my $test (@tests) {
   my $test_result = run_test($config);
 
   my $is_success = ($test_result->{'result'} eq 'success');
-  $is_success = !$is_success if $config->{expect_fail};
+  $is_success = !$is_success if $config->{expect} eq 'fail';
 
   $test_result->{'is-success'} = $is_success;
   push(@test_results, $test_result);
