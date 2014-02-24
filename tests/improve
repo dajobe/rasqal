@@ -166,10 +166,10 @@ sub read_plan($$) {
     warn "Entry type is ".($entry_type ? $entry_type : "NONE")."\n"
       if $debug > 1;
 
-    my $expect_fail=0;
+    my $expect='pass';
     my $execute=1;
 
-    $expect_fail=1 if
+    $expect='fail' if
       $entry_type eq "<${t}NegativeTest>" ||
       $entry_type eq "<${t}XFailTest>";
 
@@ -180,7 +180,7 @@ sub read_plan($$) {
     push(@tests, {name => $name,
 		  comment => $comment,
 		  dir => $dir,
-		  expect_fail => $expect_fail,
+		  expect => $expect,
 		  test_uri => $test_uri,
 		  action => $action
 	   } );
@@ -249,7 +249,7 @@ sub run_test($$) {
   }
   unlink $log;
 
-  if($test->{expect_fail}) {
+  if($test->{expect} eq 'fail') {
     if($status eq 'fail') {
       $status='xfail' ;
       $test->{detail}="Test failed as expected"
@@ -333,7 +333,7 @@ sub run_testsuite($) {
       run_test($testsuite,$test);
     }
 
-    $expected_failures_count++ if $test->{expect_fail};
+    $expected_failures_count++ if $test->{expect} eq 'fail';
 
     my $rc=$test->{status};
 
