@@ -91,6 +91,32 @@ manifest_log_handler(void *data, raptor_log_message *message)
   }
 }
 
+typedef enum
+{
+  STATUS_PASS,
+  STATUS_FAIL
+} manifest_test_state;
+
+typedef struct 
+{
+  const char* dir;
+  raptor_uri* test_uri; /* the test uri */
+  const char* name; /* <test-uri> mf:name ?value */
+  const char* description; /* <test-uri> rdfs:comment ?value */
+  manifest_test_state expect; /* derived from <test-uri> rdf:type ?value */
+  const char* action; /* <test-uri> mf:action ?value */
+} manifest_test;
+
+
+typedef struct 
+{
+  const char* name; /* short name */
+  const char* desc; /* description from ?manifest rdfs:comment ?value */
+  const char* dir; /* directory */
+  const char* path; /* for envariable PATH */
+  raptor_sequence* tests; /* sequence of manifest_test */
+} manifest_testsuite;
+
 
 static int
 manifest_read_plan(rasqal_world* world,
@@ -98,6 +124,7 @@ manifest_read_plan(rasqal_world* world,
 {
   rasqal_dataset* ds = NULL;
   int rc = 0;
+  raptor_world* raptor_world_ptr = rasqal_world_get_raptor(world);
 
   ds = rasqal_new_dataset(world);
   if(!ds) {
@@ -113,7 +140,66 @@ manifest_read_plan(rasqal_world* world,
   }
 
 
+  raptor_uri* rdfs_namespace_uri = raptor_new_uri(raptor_world_ptr, raptor_rdf_schema_namespace_uri);
+  raptor_uri* mf_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#");
+  raptor_uri* t_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://ns.librdf.org/2009/test-manifest#");
+
+  raptor_uri* mf_Manifest_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"Manifest");
+  raptor_uri* mf_entries_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"entries");
+  rasqal_literal* mf_Manifest_literal = rasqal_new_uri_literal(world, mf_Manifest_uri);
+  rasqal_literal* mf_entries_literal = rasqal_new_uri_literal(world, mf_entries_uri);
+  raptor_uri* type_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"type");
+  rasqal_literal* type_literal = rasqal_new_uri_literal(world, type_uri);
+  raptor_uri* rdfs_comment_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, rdfs_namespace_uri, (const unsigned char*)"comment");
+  rasqal_literal* rdfs_comment_literal = rasqal_new_uri_literal(world, rdfs_comment_uri);
+  raptor_uri* t_path_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, t_namespace_uri, (const unsigned char*)"path");
+  rasqal_literal* t_path_literal = rasqal_new_uri_literal(world, t_path_uri);
+
+  rasqal_literal* manifest_node;
+  manifest_node = rasqal_dataset_get_source(ds,
+                                            type_literal,
+                                            mf_Manifest_literal);
+
+  fputs("Manifest node is: ", stderr);
+  rasqal_literal_print(manifest_node, stderr);
+  fputc('\n', stderr);
+
+  if(!manifest_node) {
+    rc = 1;
+    goto tidy;
+  }
+
+  rasqal_literal* desc_node;
+  desc_node = rasqal_dataset_get_target(ds,
+                                        manifest_node,
+                                        rdfs_comment_literal);
+  fputs("Description is: ", stderr);
+  rasqal_literal_print(desc_node, stderr);
+  fputc('\n', stderr);
+
+  rasqal_literal* path_node;
+  path_node = rasqal_dataset_get_target(ds,
+                                        manifest_node,
+                                        t_path_literal);
+  fputs("Path is: ", stderr);
+  rasqal_literal_print(path_node, stderr);
+  fputc('\n', stderr);
+
+  rasqal_literal* entries_node;
+  entries_node = rasqal_dataset_get_target(ds,
+                                           manifest_node,
+                                           mf_entries_literal);
+
+  fputs("Entries node is: ", stderr);
+  rasqal_literal_print(entries_node, stderr);
+  fputc('\n', stderr);
+  
+
 /*
+our $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
+our $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+our $rdfs='http://www.w3.org/2000/01/rdf-schema#';
+our $t='http://ns.librdf.org/2009/test-manifest#';
 
 sub read_plan($$) {
   my($testsuite, $plan_file)=@_;
