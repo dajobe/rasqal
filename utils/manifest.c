@@ -132,6 +132,19 @@ typedef struct
 } manifest_test_result;
 
 
+static void
+manifest_free_test_result(manifest_test_result* result)
+{
+  if(!result)
+    return;
+
+  if(result->details)
+    free(result->details);
+  free(result);
+}
+
+
+
 /**
  * manifest_new_testsuite:
  * @world: rasqal world
@@ -393,6 +406,8 @@ manifest_test_manifests(rasqal_world* world,
   int i = 0;
 
   total_result = (manifest_test_result*)malloc(sizeof(*total_result));
+  total_result->state = STATE_FAIL;
+  total_result->details = NULL;
 
   for(i = 0; (uri = manifest_uris[i]); i++) {
     manifest_testsuite *ts;
@@ -493,6 +508,9 @@ main(int argc, char *argv[])
 
   manifest_test_result* result;
   result = manifest_test_manifests(world, manifest_uris, base_uri, 0);
+
+  if(result)
+    manifest_free_test_result(result);
 
   raptor_free_uri(base_uri);
   raptor_free_uri(uri);
