@@ -46,17 +46,23 @@
 
 #include <rasqal_internal.h>
 
+#include <raptor2.h>
+
 
 int main(int argc, char *argv[]);
 
 
 static const char *program = "manifest";
 
+static int dryrun = 0;
 static int verbose = 1;
 
 static int error_count = 0;
 static int warning_count = 0;
 
+static const int indent_step = 2;
+static const int linewrap = 78;
+static const int banner_width = linewrap - 10;
 
 static void
 manifest_log_handler(void *data, raptor_log_message *message)
@@ -98,10 +104,14 @@ manifest_log_handler(void *data, raptor_log_message *message)
 typedef enum
 {
   STATE_PASS,
-  STATE_FAIL
+  STATE_FAIL,
+  STATE_XFAIL,
+  STATE_UXPASS,
+  STATE_SKIP,
+  STATE_LAST = STATE_SKIP
 } manifest_test_state;
 
-typedef struct 
+typedef struct
 {
   char* dir;
   raptor_uri* test_uri; /* the test uri */
@@ -109,10 +119,15 @@ typedef struct
   char* description; /* <test-uri> rdfs:comment ?value */
   manifest_test_state expect; /* derived from <test-uri> rdf:type ?value */
   char* action; /* <test-uri> mf:action ?value */
+
+  /* Test output */
+  manifest_test_state result;
+  char* details; /* error details */
+  char* log; /* error log */
 } manifest_test;
 
 
-typedef struct 
+typedef struct
 {
   rasqal_world* world;
   manifest_test_state state;
@@ -125,24 +140,92 @@ typedef struct
 } manifest_testsuite;
 
 
-typedef struct 
+typedef struct
 {
   manifest_test_state state;
   char* details;
+  raptor_sequence* states[STATE_LAST + 1];
 } manifest_test_result;
 
+
+static const char manifest_test_state_chars[STATE_LAST + 1] = ".F*!-";
+static const char* manifest_test_state_labels[STATE_LAST + 1] = {
+  "pass",
+  "FAIL",
+  "XFAIL",
+  "UXPASS",
+  "SKIP"
+};
+
+
+/* prototypes */
+static void manifest_free_test(manifest_test* t);
+
+
+static char
+manifest_test_state_char(manifest_test_state state)
+{
+  if(state > STATE_LAST)
+    return '\0';
+
+  return manifest_test_state_chars[(unsigned int)state];
+}
+
+
+static const char*
+manifest_test_state_label(manifest_test_state state)
+{
+  if(state > STATE_LAST)
+    return NULL;
+
+  return manifest_test_state_labels[(unsigned int)state];
+}
+
+
+static manifest_test_result*
+manifest_new_test_result(void)
+{
+  manifest_test_result* result;
+  int i;
+
+  result = (manifest_test_result*)calloc(sizeof(*result), 1);
+  if(!result)
+    return NULL;
+
+  result->state = STATE_FAIL;
+  /* total_result->details = NULL; */
+  for(i = 0; i < STATE_LAST; i++)
+    result->states[i] = raptor_new_sequence((raptor_data_free_handler)manifest_free_test, NULL);
+  return result;
+}
 
 static void
 manifest_free_test_result(manifest_test_result* result)
 {
+  int i;
+
   if(!result)
     return;
 
   if(result->details)
     free(result->details);
+
+  for(i = 0; i < STATE_LAST; i++) {
+    if(result->states[i])
+      raptor_free_sequence(result->states[i]);
+  }
+
   free(result);
 }
 
+
+static void
+manifest_free_test(manifest_test* t)
+{
+  if(!t)
+    return;
+  free(t);
+}
 
 
 /**
@@ -392,6 +475,96 @@ manifest_free_testsuite(manifest_testsuite* ts)
 }
 
 
+static void
+manifest_indent(FILE* fh, unsigned int indent)
+{
+  while(indent--)
+    fputc(' ', fh);
+}
+
+
+static manifest_test_result*
+manifest_run_testsuite(manifest_testsuite* ts, unsigned int indent)
+{
+  char* name = ts->name;
+  char* desc = ts->desc ? ts->desc : name;
+  int i;
+  unsigned int expected_failures_count = 0;
+  manifest_test* t = NULL;
+  unsigned int column;
+  manifest_test_result* result;
+
+  /* Initialize */
+  result = manifest_new_test_result();
+
+  /* Run testsuite */
+  manifest_indent(stdout, indent);
+  fprintf(stdout, "Running testsuite %s: %s\n", name, desc);
+
+  column = indent;
+  for(i = 0; (t = raptor_sequence_get_at(ts->tests, i)); i++) {
+    if(dryrun) {
+      t->result = STATE_SKIP;
+      t->details = NULL;
+    } else {
+      t->result = STATE_PASS;
+#if 0
+      t->result = manifest_run_test(ts, t);
+#endif
+    }
+
+    if(t->expect == STATE_FAIL)
+      expected_failures_count++;
+
+
+    manifest_test_state state = t->result;
+    if(!verbose)
+      fputc(stdout, manifest_test_state_char(state));
+    raptor_sequence_push(result->states[(unsigned int)state], t);
+
+    column++;
+    if(!verbose && column > linewrap) {
+      fputc(stdout, '\n');
+      manifest_indent(stdout, indent);
+      column = indent;
+    }
+
+    if(verbose) {
+      const char* label = manifest_test_state_label(state);
+      unsigned int my_indent = indent + indent_step;
+      manifest_indent(stdout, my_indent);
+      fputs(t->name, stdout);
+      fputs(": ", stdout);
+      fputs(label, stdout);
+      if(t->details) {
+        fputs(" - ", stdout);
+        fputs(t->details, stdout);
+      }
+      fputc(stdout, '\n');
+      if(verbose > 1) {
+	if(state == STATE_FAIL && t->log) {
+#if 0
+	  my(@lines)=split(/\n/, $t->{log});
+	  print $i."  ".join("\n${i}  ", @lines)."\n";
+#endif
+	}
+      }
+    }
+
+  }
+
+  if(!verbose)
+    fputc('\n', stderr);
+
+  unsigned int xfailed_count = raptor_sequence_size(result->states[STATE_XFAIL]);
+  unsigned int failed_count = raptor_sequence_size(result->states[STATE_FAIL]);
+
+  result->state = ((xfailed_count == expected_failures_count) && !failed_count) ? STATE_PASS : STATE_FAIL;
+
+  return result;
+}
+
+
 /**
  * manifest_test_manifests:
  * @world: world
@@ -415,19 +588,20 @@ manifest_test_manifests(rasqal_world* world,
   raptor_uri* uri;
   int i = 0;
 
-  total_result = (manifest_test_result*)calloc(sizeof(*total_result), 1);
-  total_result->state = STATE_FAIL;
-  /* total_result->details = NULL; */
+  total_result = manifest_new_test_result();
+  if(!total_result)
+    return NULL;
 
   for(i = 0; (uri = manifest_uris[i]); i++) {
+    int j;
     manifest_testsuite *ts;
     manifest_test_result* result = NULL;
 
-    ts = manifest_new_testsuite(world, 
+    ts = manifest_new_testsuite(world,
                                 /* name */ (char*)raptor_uri_as_string(uri),
                                 /* dir */ NULL,
                                 uri, base_uri);
-    
+
     if(rc) {
       fprintf(stderr, "%s: Suite %s failed preparation - %s\n",
               program, ts->name, ts->details);
@@ -435,37 +609,40 @@ manifest_test_manifests(rasqal_world* world,
       break;
     }
 
-#if 0
     result = manifest_run_testsuite(ts, indent);
-    format_testsuite_result(stdout, result, indent+1);
 
-    for my $counter (@counters) {
-      push(@{$total_result->{$counter}}, @{$result->{$counter}});
-    }
-
+#if 0
+    format_testsuite_result(stdout, result, indent + indent_step);
 #endif
+    for(j = 0; j < STATE_LAST; j++)
+      raptor_sequence_join(total_result->states[i], result->states[i]);
+
     if(result) {
       if(result->state == STATE_FAIL)
         total_state = STATE_FAIL;
     }
 
+    manifest_free_test_result(result);
+
     if(i > 1)
-      fputc(stdout, '\n');
+      fputc('\n', stdout);
 
     if(ts)
       manifest_free_testsuite(ts);
   }
-  
+
   total_result->state = total_state;
 
-#if 0
-  printf $indent."Testsuites summary%s:\n", ($verbose ? " for dir $dir" : '');
-  format_testsuite_result(*STDOUT, $total_result, $indent.$INDENT, $verbose);
+  manifest_indent(stdout, indent);
+  fputs("Testsuites summary:\n", stdout);
 
-  print_indent(stderr, indent);
+#if 0
+  format_testsuite_result(stdout, total_result, indent + indent_step);
 #endif
-  if(verbose)
-    fprintf(stderr, "Result status: %d\n", total_state);
+  if(verbose) {
+    manifest_indent(stdout, indent);
+    fprintf(stdout, "Result status: %d\n", total_state);
+  }
 
   return total_result;
 }
