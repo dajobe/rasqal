@@ -93,8 +93,8 @@ manifest_log_handler(void *data, raptor_log_message *message)
 
 typedef enum
 {
-  STATUS_PASS,
-  STATUS_FAIL
+  STATE_PASS,
+  STATE_FAIL
 } manifest_test_state;
 
 typedef struct 
