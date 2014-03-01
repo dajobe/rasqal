@@ -373,10 +373,17 @@ manifest_free_testsuite(manifest_testsuite* ts)
   if(!ts)
     return;
 
-  if(ts->dir)
-    free(ts->dir);
   if(ts->name)
     free(ts->name);
+  if(ts->desc)
+    free(ts->desc);
+  if(ts->dir)
+    free(ts->dir);
+  if(ts->path)
+    free(ts->path);
+  /* FIXME: free tests */
+  if(ts->details)
+    free(ts->details);
   free(ts);
 }
 
