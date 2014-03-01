@@ -209,7 +209,7 @@ manifest_new_testsuite(rasqal_world* world,
     rc = 1;
     goto tidy;
   }
-  
+
   if(rasqal_dataset_load_graph_uri(ds, /* graph name */ NULL,
                                    uri, base_uri)) {
     fprintf(stderr, "%s: Failed to load graph into dataset", program);
@@ -244,7 +244,7 @@ manifest_new_testsuite(rasqal_world* world,
   fputs("Entries node is: ", stderr);
   rasqal_literal_print(entries_node, stderr);
   fputc('\n', stderr);
-  
+
 
   /* Get some text fields */
   node = rasqal_dataset_get_target(ds,
@@ -255,11 +255,11 @@ manifest_new_testsuite(rasqal_world* world,
     if(str) {
       ts->desc = (char*)malloc(size + 1);
       memcpy(ts->desc, str, size + 1);
-      
+
       fprintf(stderr, "Description is: '%s'\n", ts->desc);
     }
   }
-  
+
   node = rasqal_dataset_get_target(ds,
                                    manifest_node,
                                    t_path_literal);
@@ -268,7 +268,7 @@ manifest_new_testsuite(rasqal_world* world,
     if(str) {
       ts->path = (char*)malloc(size + 1);
       memcpy(ts->path, str, size + 1);
-      
+
       fprintf(stderr, "Path is: '%s'\n", ts->path);
     }
   }
@@ -372,7 +372,7 @@ manifest_new_testsuite(rasqal_world* world,
 
 
 static void
-manifest_free_testsuite(manifest_testsuite* ts) 
+manifest_free_testsuite(manifest_testsuite* ts)
 {
   if(!ts)
     return;
@@ -494,7 +494,7 @@ main(int argc, char *argv[])
     rc = 1;
     goto tidy;
   }
-  
+
   raptor_world_ptr = rasqal_world_get_raptor(world);
   rasqal_world_set_log_handler(world, world, manifest_log_handler);
 
