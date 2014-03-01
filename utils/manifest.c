@@ -171,14 +171,18 @@ manifest_new_testsuite(rasqal_world* world,
   size_t size;
 
   /* Initialize base */
-  ts = (manifest_testsuite*)malloc(sizeof(*ts));
+  ts = (manifest_testsuite*)calloc(sizeof(*ts), 1);
   if(!ts)
     return NULL;
 
   ts->world = world;
-  ts->name = strdup(name);
-  ts->dir = dir ? strdup(dir) : NULL;
   ts->state = STATE_PASS;
+  ts->name = strdup(name);
+  /* ts->desc = NULL; */
+  ts->dir = dir ? strdup(dir) : NULL;
+  /* ts->path = NULL; */
+  /* ts->tests = NULL; */
+  /* ts->details = NULL; */
 
   /* Create Namespace URIs, concept URIs and rasqal literal concepts  */
   raptor_uri* rdfs_namespace_uri = raptor_new_uri(raptor_world_ptr, raptor_rdf_schema_namespace_uri);
@@ -363,7 +367,7 @@ manifest_new_testsuite(rasqal_world* world,
   if(t_path_literal)
     rasqal_free_literal(t_path_literal);
 
-  return rc;
+  return ts;
 }
 
 
@@ -411,9 +415,9 @@ manifest_test_manifests(rasqal_world* world,
   raptor_uri* uri;
   int i = 0;
 
-  total_result = (manifest_test_result*)malloc(sizeof(*total_result));
+  total_result = (manifest_test_result*)calloc(sizeof(*total_result), 1);
   total_result->state = STATE_FAIL;
-  total_result->details = NULL;
+  /* total_result->details = NULL; */
 
   for(i = 0; (uri = manifest_uris[i]); i++) {
     manifest_testsuite *ts;
