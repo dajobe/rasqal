@@ -180,6 +180,24 @@ manifest_new_testsuite(rasqal_world* world,
   ts->dir = dir ? strdup(dir) : NULL;
   ts->state = STATE_PASS;
 
+  /* Create Namespace URIs, concept URIs and rasqal literal concepts  */
+  raptor_uri* rdfs_namespace_uri = raptor_new_uri(raptor_world_ptr, raptor_rdf_schema_namespace_uri);
+  raptor_uri* mf_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#");
+  raptor_uri* t_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://ns.librdf.org/2009/test-manifest#");
+
+  raptor_uri* mf_Manifest_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"Manifest");
+  raptor_uri* mf_entries_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"entries");
+  raptor_uri* type_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"type");
+  raptor_uri* rdfs_comment_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, rdfs_namespace_uri, (const unsigned char*)"comment");
+  raptor_uri* t_path_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, t_namespace_uri, (const unsigned char*)"path");
+
+  rasqal_literal* mf_Manifest_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_Manifest_uri));
+  rasqal_literal* mf_entries_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_entries_uri));
+  rasqal_literal* type_literal = rasqal_new_uri_literal(world, raptor_uri_copy(type_uri));
+  rasqal_literal* rdfs_comment_literal = rasqal_new_uri_literal(world, raptor_uri_copy(rdfs_comment_uri));
+  rasqal_literal* t_path_literal = rasqal_new_uri_literal(world, raptor_uri_copy(t_path_uri));
+
+
   /* Make an RDF graph (dataset) to query */
   ds = rasqal_new_dataset(world);
   if(!ds) {
@@ -195,21 +213,6 @@ manifest_new_testsuite(rasqal_world* world,
     goto tidy;
   }
 
-
-  raptor_uri* rdfs_namespace_uri = raptor_new_uri(raptor_world_ptr, raptor_rdf_schema_namespace_uri);
-  raptor_uri* mf_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#");
-  raptor_uri* t_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://ns.librdf.org/2009/test-manifest#");
-
-  raptor_uri* mf_Manifest_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"Manifest");
-  raptor_uri* mf_entries_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"entries");
-  rasqal_literal* mf_Manifest_literal = rasqal_new_uri_literal(world, mf_Manifest_uri);
-  rasqal_literal* mf_entries_literal = rasqal_new_uri_literal(world, mf_entries_uri);
-  raptor_uri* type_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"type");
-  rasqal_literal* type_literal = rasqal_new_uri_literal(world, type_uri);
-  raptor_uri* rdfs_comment_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, rdfs_namespace_uri, (const unsigned char*)"comment");
-  rasqal_literal* rdfs_comment_literal = rasqal_new_uri_literal(world, rdfs_comment_uri);
-  raptor_uri* t_path_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, t_namespace_uri, (const unsigned char*)"path");
-  rasqal_literal* t_path_literal = rasqal_new_uri_literal(world, t_path_uri);
 
   manifest_node = rasqal_dataset_get_source(ds,
                                             type_literal,
@@ -331,6 +334,34 @@ manifest_new_testsuite(rasqal_world* world,
   tidy:
   if(ds)
     rasqal_free_dataset(ds);
+
+  if(rdfs_namespace_uri)
+    raptor_free_uri(rdfs_namespace_uri);
+  if(mf_namespace_uri)
+    raptor_free_uri(mf_namespace_uri);
+  if(t_namespace_uri)
+    raptor_free_uri(t_namespace_uri);
+  if(mf_Manifest_uri)
+    raptor_free_uri(mf_Manifest_uri);
+  if(mf_entries_uri)
+    raptor_free_uri(mf_entries_uri);
+  if(type_uri)
+    raptor_free_uri(type_uri);
+  if(rdfs_comment_uri)
+    raptor_free_uri(rdfs_comment_uri);
+  if(t_path_uri)
+    raptor_free_uri(t_path_uri);
+
+  if(mf_Manifest_literal)
+    rasqal_free_literal(mf_Manifest_literal);
+  if(mf_entries_literal)
+    rasqal_free_literal(mf_entries_literal);
+  if(type_literal)
+    rasqal_free_literal(type_literal);
+  if(rdfs_comment_literal)
+    rasqal_free_literal(rdfs_comment_literal);
+  if(t_path_literal)
+    rasqal_free_literal(t_path_literal);
 
   return rc;
 }
