@@ -39,6 +39,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 
 #include <rasqal.h>
 
@@ -49,6 +52,8 @@ int main(int argc, char *argv[]);
 
 
 static const char *program = "manifest";
+
+static int verbose = 1;
 
 static int error_count = 0;
 static int warning_count = 0;
@@ -99,32 +104,63 @@ typedef enum
 
 typedef struct 
 {
-  const char* dir;
+  char* dir;
   raptor_uri* test_uri; /* the test uri */
-  const char* name; /* <test-uri> mf:name ?value */
-  const char* description; /* <test-uri> rdfs:comment ?value */
+  char* name; /* <test-uri> mf:name ?value */
+  char* description; /* <test-uri> rdfs:comment ?value */
   manifest_test_state expect; /* derived from <test-uri> rdf:type ?value */
-  const char* action; /* <test-uri> mf:action ?value */
+  char* action; /* <test-uri> mf:action ?value */
 } manifest_test;
 
 
 typedef struct 
 {
-  const char* name; /* short name */
-  const char* desc; /* description from ?manifest rdfs:comment ?value */
-  const char* dir; /* directory */
-  const char* path; /* for envariable PATH */
+  rasqal_world* world;
+  manifest_test_state state;
+  char* name; /* short name */
+  char* desc; /* description from ?manifest rdfs:comment ?value */
+  char* dir; /* directory */
+  char* path; /* for envariable PATH */
   raptor_sequence* tests; /* sequence of manifest_test */
+  char* details; /* error details */
 } manifest_testsuite;
 
 
-static int
-manifest_read_plan(rasqal_world* world,
-                   raptor_uri* uri, raptor_uri* base_uri)
+typedef struct 
 {
+  manifest_test_state state;
+  char* details;
+} manifest_test_result;
+
+
+/**
+ * manifest_new_testsuite:
+ * @world: rasqal world
+ * @name: testsuite name
+ * @dir: directory containing testsuite
+ * @uri: manifest URI
+ * @base_uri: manifest base URI
+ *
+ * Create a new testsuite from a manifest
+ */
+static manifest_testsuite*
+manifest_new_testsuite(rasqal_world* world,
+                       char *name, char* dir,
+                       raptor_uri* uri, raptor_uri* base_uri)
+{
+  manifest_testsuite *ts;
   rasqal_dataset* ds = NULL;
   int rc = 0;
   raptor_world* raptor_world_ptr = rasqal_world_get_raptor(world);
+
+  ts = (manifest_testsuite*)malloc(sizeof(*ts));
+  if(!ts)
+    return NULL;
+
+  ts->world = world;
+  ts->name = strdup(name);
+  ts->dir = dir ? strdup(dir) : NULL;
+  ts->state = STATE_PASS;
 
   ds = rasqal_new_dataset(world);
   if(!ds) {
@@ -133,7 +169,8 @@ manifest_read_plan(rasqal_world* world,
     goto tidy;
   }
   
-  if(rasqal_dataset_load_graph_uri(ds, NULL, uri, NULL)) {
+  if(rasqal_dataset_load_graph_uri(ds, /* graph name */ NULL,
+                                   uri, base_uri)) {
     fprintf(stderr, "%s: Failed to load graph into dataset", program);
     rc = 1;
     goto tidy;
@@ -319,6 +356,96 @@ sub read_plan($$) {
 }
 
 
+static void
+manifest_free_testsuite(manifest_testsuite* ts) 
+{
+  if(!ts)
+    return;
+
+  if(ts->dir)
+    free(ts->dir);
+  if(ts->name)
+    free(ts->name);
+  free(ts);
+}
+
+
+/**
+ * manifest_test_manifests:
+ * @world: world
+ * @manifest_uris: array of manifest URIs
+ * @base_uri: base URI for manifest
+ * @indent: indent size
+ *
+ * Run the given manifest testsuites returning a test result
+ *
+ * Return value: test result or NULL on failure
+ */
+static manifest_test_result*
+manifest_test_manifests(rasqal_world* world,
+                        raptor_uri** manifest_uris,
+                        raptor_uri* base_uri,
+                        unsigned int indent)
+{
+  manifest_test_state total_state = STATE_PASS;
+  manifest_test_result* total_result = NULL;
+  int rc = 0;
+  raptor_uri* uri;
+  int i = 0;
+
+  total_result = (manifest_test_result*)malloc(sizeof(*total_result));
+
+  for(i = 0; (uri = manifest_uris[i]); i++) {
+    manifest_testsuite *ts;
+    manifest_test_result* result = NULL;
+
+    ts = manifest_new_testsuite(world, 
+                                /* name */ (char*)raptor_uri_as_string(uri),
+                                /* dir */ NULL,
+                                uri, base_uri);
+    
+    if(rc) {
+      fprintf(stderr, "%s: Suite %s failed preparation - %s\n",
+              program, ts->name, ts->details);
+      manifest_free_testsuite(ts);
+      break;
+    }
+
+#if 0
+    result = manifest_run_testsuite(ts, indent);
+    format_testsuite_result(stdout, result, indent+1);
+
+    for my $counter (@counters) {
+      push(@{$total_result->{$counter}}, @{$result->{$counter}});
+    }
+
+#endif
+    if(result) {
+      if(result->state == STATE_FAIL)
+        total_state = STATE_FAIL;
+    }
+
+    if(i > 1)
+      fputc(stdout, '\n');
+
+    if(ts)
+      manifest_free_testsuite(ts);
+  }
+  
+  total_result->state = total_state;
+
+#if 0
+  printf $indent."Testsuites summary%s:\n", ($verbose ? " for dir $dir" : '');
+  format_testsuite_result(*STDOUT, $total_result, $indent.$INDENT, $verbose);
+
+  print_indent(stderr, indent);
+#endif
+  if(verbose)
+    fprintf(stderr, "Result status: %d\n", total_state);
+
+  return total_result;
+}
+
 
 int
 main(int argc, char *argv[])
@@ -363,7 +490,10 @@ main(int argc, char *argv[])
     base_uri = raptor_uri_copy(uri);
   }
 
-  rc = manifest_read_plan(world, uri, base_uri);
+  raptor_uri* manifest_uris[2] = { uri, NULL };
+
+  manifest_test_result* result;
+  result = manifest_test_manifests(world, manifest_uris, base_uri, 0);
 
   raptor_free_uri(base_uri);
   raptor_free_uri(uri);
