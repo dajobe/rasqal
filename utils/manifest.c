@@ -164,7 +164,13 @@ manifest_new_testsuite(rasqal_world* world,
   rasqal_dataset* ds = NULL;
   int rc = 0;
   raptor_world* raptor_world_ptr = rasqal_world_get_raptor(world);
+  rasqal_literal* manifest_node = NULL;
+  rasqal_literal* entries_node = NULL;
+  rasqal_literal* node = NULL;
+  const unsigned char* str = NULL;
+  size_t size;
 
+  /* Initialize base */
   ts = (manifest_testsuite*)malloc(sizeof(*ts));
   if(!ts)
     return NULL;
@@ -174,6 +180,7 @@ manifest_new_testsuite(rasqal_world* world,
   ts->dir = dir ? strdup(dir) : NULL;
   ts->state = STATE_PASS;
 
+  /* Make an RDF graph (dataset) to query */
   ds = rasqal_new_dataset(world);
   if(!ds) {
     fprintf(stderr, "%s: Failed to create dataset", program);
@@ -204,102 +211,62 @@ manifest_new_testsuite(rasqal_world* world,
   raptor_uri* t_path_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, t_namespace_uri, (const unsigned char*)"path");
   rasqal_literal* t_path_literal = rasqal_new_uri_literal(world, t_path_uri);
 
-  rasqal_literal* manifest_node;
   manifest_node = rasqal_dataset_get_source(ds,
                                             type_literal,
                                             mf_Manifest_literal);
+  if(!manifest_node) {
+    fprintf(stderr, "No manifest found in graph\n");
+    rc = 1;
+    goto tidy;
+  }
 
   fputs("Manifest node is: ", stderr);
   rasqal_literal_print(manifest_node, stderr);
   fputc('\n', stderr);
 
-  if(!manifest_node) {
-    rc = 1;
-    goto tidy;
-  }
 
-  rasqal_literal* desc_node;
-  desc_node = rasqal_dataset_get_target(ds,
-                                        manifest_node,
-                                        rdfs_comment_literal);
-  fputs("Description is: ", stderr);
-  rasqal_literal_print(desc_node, stderr);
-  fputc('\n', stderr);
-
-  rasqal_literal* path_node;
-  path_node = rasqal_dataset_get_target(ds,
-                                        manifest_node,
-                                        t_path_literal);
-  fputs("Path is: ", stderr);
-  rasqal_literal_print(path_node, stderr);
-  fputc('\n', stderr);
-
-  rasqal_literal* entries_node;
   entries_node = rasqal_dataset_get_target(ds,
                                            manifest_node,
                                            mf_entries_literal);
+  if(!entries_node) {
+    fprintf(stderr, "No tests found in manifest graph\n");
+    rc = 0;
+    goto tidy;
+  }
 
   fputs("Entries node is: ", stderr);
   rasqal_literal_print(entries_node, stderr);
   fputc('\n', stderr);
   
 
+  /* Get some text fields */
+  node = rasqal_dataset_get_target(ds,
+                                   manifest_node,
+                                   rdfs_comment_literal);
+  if(node) {
+    str = rasqal_literal_as_counted_string(node, &size, 0, NULL);
+    if(str) {
+      ts->desc = (char*)malloc(size + 1);
+      memcpy(ts->desc, str, size + 1);
+      
+      fprintf(stderr, "Description is: '%s'\n", ts->desc);
+    }
+  }
+  
+  node = rasqal_dataset_get_target(ds,
+                                   manifest_node,
+                                   t_path_literal);
+  if(node) {
+    str = rasqal_literal_as_counted_string(node, &size, 0, NULL);
+    if(str) {
+      ts->path = (char*)malloc(size + 1);
+      memcpy(ts->path, str, size + 1);
+      
+      fprintf(stderr, "Path is: '%s'\n", ts->path);
+    }
+  }
+
 /*
-our $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
-our $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
-our $rdfs='http://www.w3.org/2000/01/rdf-schema#';
-our $t='http://ns.librdf.org/2009/test-manifest#';
-
-sub read_plan($$) {
-  my($testsuite, $plan_file)=@_;
-
-  my $dir = $testsuite->{dir};
-
-  my(%triples);
-  my $manifest_node;
-  my $entries_node;
-
-  my $to_ntriples_error='to_ntriples.err';
-  my $cmd="$TO_NTRIPLES $plan_file 2> $to_ntriples_error";
-  print STDERR "$program: Running pipe from $cmd\n"
-    if $debug > 1;
-  open(MF, "$cmd |") 
-    or die "Cannot open pipe from '$cmd' - $!\n";
-  while(<MF>) {
-    chomp;
-    s/\s+\.$//;
-    my($s,$p,$o)=split(/ /,$_,3);
-    die "no p in '$_'\n" unless defined $p;
-    die "no o in '$_'\n" unless defined $o;
-    push(@{$triples{$s}->{$p}}, $o);
-    $manifest_node=$s if $p eq "<${rdf}type>" && $o eq "<${mf}Manifest>";
-    $entries_node=$o if $p eq "<${mf}entries>";
-  }
-  close(MF);
-  if(!-z $to_ntriples_error) {
-    my $status = {status => 'fail', details => `cat $to_ntriples_error` };
-    unlink $to_ntriples_error;
-    return $status;
-  }
-  unlink $to_ntriples_error;
-
-
-  warn "Manifest node is '$manifest_node'\n"
-    if $debug > 1;
-  if($manifest_node) {
-    my $desc=$triples{$manifest_node}->{"<${rdfs}comment>"}->[0];
-    if($desc) {
-      $testsuite->{desc}=decode_literal($desc);
-    }
-    my $path=$triples{$manifest_node}->{"<${t}path>"}->[0];
-    if($path) {
-      $testsuite->{path}=decode_literal($path);
-    }
-  }
-
-  warn "Entries node is '$entries_node'\n"
-    if $debug > 1;
-
   my $list_node=$entries_node;
 
   my(@tests);
@@ -362,7 +329,8 @@ sub read_plan($$) {
 
 
   tidy:
-  rasqal_free_dataset(ds); ds = NULL;
+  if(ds)
+    rasqal_free_dataset(ds);
 
   return rc;
 }
