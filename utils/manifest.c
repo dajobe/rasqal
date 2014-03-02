@@ -121,7 +121,9 @@ typedef enum {
 
   /* these are extras */
   FLAG_LANG_SPARQL_11 = 16, /* "sparql11" else "sparql10" */
-  FLAG_MUST_FAIL      = 32  /* must FAIL otherwise must PASS  */
+  FLAG_MUST_FAIL      = 32, /* must FAIL otherwise must PASS  */
+  FLAG_HAS_ENTAILMENT_REGIME = 64,
+  FLAG_RESULT_CARDINALITY_LAX = 128, /* else strict (exact match) */
 } manifest_test_type_bitflags;
 
 
@@ -316,16 +318,16 @@ manifest_decode_test_type(raptor_uri* test_type)
 
   str = (const char*)raptor_uri_as_string(test_type);
 
-  if(!strstr(str, "UpdateEvaluationTest"))
+  if(strstr(str, "UpdateEvaluationTest"))
     return FLAG_IS_UPDATE;
 
-  if(!strstr(str, "ProtocolTest"))
+  if(strstr(str, "ProtocolTest"))
     return FLAG_IS_PROTOCOL;
 
-  if(!strstr(str, "Syntax")) {
+  if(strstr(str, "Syntax")) {
     flags |= FLAG_IS_SYNTAX;
 
-    if(!strstr(str, "Negative") || !strstr(str, "TestBadSyntax")) {
+    if(strstr(str, "Negative") || strstr(str, "TestBadSyntax")) {
       flags |= FLAG_MUST_FAIL;
     }
   }
@@ -390,6 +392,7 @@ manifest_new_testsuite(rasqal_world* world,
   raptor_uri* mf_name_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"name");
   raptor_uri* mf_action_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"action");
   raptor_uri* mf_result_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"result");
+  raptor_uri* mf_resultCardinality_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"resultCardinality");
   raptor_uri* rdf_type_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"type");
   raptor_uri* rdf_first_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"first");
   raptor_uri* rdf_rest_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"rest");
@@ -404,6 +407,7 @@ manifest_new_testsuite(rasqal_world* world,
   rasqal_literal* mf_name_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_name_uri));
   rasqal_literal* mf_action_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_action_uri));
   rasqal_literal* mf_result_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_result_uri));
+  rasqal_literal* mf_resultCardinality_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_resultCardinality_uri));
   rasqal_literal* rdf_type_literal = rasqal_new_uri_literal(world, raptor_uri_copy(rdf_type_uri));
   rasqal_literal* rdf_first_literal = rasqal_new_uri_literal(world, raptor_uri_copy(rdf_first_uri));
   rasqal_literal* rdf_rest_literal = rasqal_new_uri_literal(world, raptor_uri_copy(rdf_rest_uri));
@@ -625,6 +629,52 @@ manifest_new_testsuite(rasqal_world* world,
       test_flags |= FLAG_IS_QUERY;
     }
 
+    /* Get a few more flags from other nodes */
+    node = rasqal_dataset_get_target(ds,
+                                     entry_node,
+                                     mf_resultCardinality_literal);
+    if(node) {
+      uri = rasqal_literal_as_uri(node);
+      if(uri) {
+        int is_lax;
+
+        str = raptor_uri_as_string(uri);
+        is_lax = strstr((const char*)str, "LaxCardinality");
+        
+        if(is_lax)
+          test_flags |= FLAG_RESULT_CARDINALITY_LAX;
+      }
+    }
+
+    if(debug > 0) {
+      fprintf(stderr, "  Test result cardinality: %s\n",
+              (test_flags & FLAG_RESULT_CARDINALITY_LAX) ? "lax" : "strict");
+    }
+
+#if 0
+  my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
+  my $test_type=$query_type; $test_type =~ s/^<(.+)>$/$1/ if defined $test_type;
+
+  my $test_approval=$triples{$entry_node}->{"<${dawgt}approval>"}->[0];
+  my $is_approved = 0;
+  my $is_withdrawn = 0;
+  if($test_approval) {
+    warn "Test $name ($test_uri) state $test_approval\n"
+      if $debug > 1;
+    if($test_approval eq "<${dawgt}Withdrawn>") {
+      warn "Test $name ($test_uri) was withdrawn\n"
+	if $debug;
+      $is_withdrawn = 1;
+    }
+    if($test_approval eq "<${dawgt}Approved>") {
+      $is_approved = 1;
+    }
+  }
+
+  my $has_entailment_regime = exists $triples{$action_node}->{"<${ent}entailmentRegime>"} || $triples{$action_node}->{"<${sd}entailmentRegime>"};;
+#endif
+
+
     /* All the parameters become owned by the test */
     t = manifest_new_test(test_name, test_desc, dir,
                           rasqal_new_literal_from_literal(entry_node),
@@ -686,6 +736,8 @@ manifest_new_testsuite(rasqal_world* world,
     raptor_free_uri(mf_action_uri);
   if(mf_result_uri)
     raptor_free_uri(mf_result_uri);
+  if(mf_resultCardinality_uri)
+    raptor_free_uri(mf_resultCardinality_uri);
   if(rdf_type_uri)
     raptor_free_uri(rdf_type_uri);
   if(rdf_first_uri)
@@ -713,6 +765,8 @@ manifest_new_testsuite(rasqal_world* world,
     rasqal_free_literal(mf_action_literal);
   if(mf_result_literal)
     rasqal_free_literal(mf_result_literal);
+  if(mf_resultCardinality_literal)
+    rasqal_free_literal(mf_resultCardinality_literal);
   if(rdf_type_literal)
     rasqal_free_literal(rdf_type_literal);
   if(rdf_first_literal)
