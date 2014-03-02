@@ -236,7 +236,7 @@ manifest_new_test(char *name, char *description, char* dir,
   t->expect = expect;
   t->test_node = rasqal_new_literal_from_literal(test_node);
   t->action = strdup(action);
-  
+
   return t;
 }
 
@@ -403,7 +403,7 @@ manifest_new_testsuite(rasqal_world* world,
   while(list_node) {
     rasqal_literal* entry_node;
     manifest_test* t;
-    
+
     if(debug > 2) {
       fputs("List node is: ", stderr);
       rasqal_literal_print(list_node, stderr);
@@ -418,7 +418,7 @@ manifest_new_testsuite(rasqal_world* world,
       rasqal_literal_print(entry_node, stderr);
       fputc('\n', stderr);
     }
-    
+
     /* Get some text fields */
     char* test_name = NULL;
     node = rasqal_dataset_get_target(ds,
@@ -429,7 +429,7 @@ manifest_new_testsuite(rasqal_world* world,
       if(str) {
         test_name = (char*)malloc(size + 1);
         memcpy(test_name, str, size + 1);
-        
+
         fprintf(stderr, "Test name is: '%s'\n", test_name);
       }
     }
@@ -443,7 +443,7 @@ manifest_new_testsuite(rasqal_world* world,
       if(str) {
         test_desc = (char*)malloc(size + 1);
         memcpy(test_desc, str, size + 1);
-        
+
         fprintf(stderr, "Test desc is: '%s'\n", test_desc);
       }
     }
@@ -457,7 +457,7 @@ manifest_new_testsuite(rasqal_world* world,
       if(str) {
         test_action = (char*)malloc(size + 1);
         memcpy(test_action, str, size + 1);
-        
+
         fprintf(stderr, "Test action is: '%s'\n", test_action);
       }
     }
@@ -468,7 +468,7 @@ manifest_new_testsuite(rasqal_world* world,
                                      rdf_type_literal);
     if(node) {
       test_type = rasqal_literal_as_uri(node);
-        
+
       fprintf(stderr, "Test type is: '%s'\n", raptor_uri_as_string(test_type));
     }
 
@@ -482,8 +482,8 @@ manifest_new_testsuite(rasqal_world* world,
     t = manifest_new_test(test_name, test_desc, dir,
                           test_expect, entry_node, test_action);
     raptor_sequence_push(tests, t);
-    
-    
+
+
     list_node = rasqal_dataset_get_target(ds,
                                           list_node,
                                           rdf_rest_literal);
@@ -496,7 +496,7 @@ manifest_new_testsuite(rasqal_world* world,
         break;
     }
   }
-  
+
   ts->tests = tests;
   ts->state = STATE_PASS;
   ts->details = NULL;
