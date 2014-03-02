@@ -120,6 +120,7 @@ typedef struct
   char* desc; /* <test-uri> rdfs:comment ?value */
   manifest_test_state expect; /* derived from <test-uri> rdf:type ?value */
   char* action; /* <test-uri> mf:action ?value */
+  raptor_uri* expected_result; /* <test-uri> mf:result ?uri */
 
   /* Test output */
   manifest_test_state result;
@@ -229,6 +230,7 @@ manifest_free_test_result(manifest_test_result* result)
  * @expect: expected result - pass or fail
  * @test_node: identifier for this test
  * @action: action string
+ * @expected_result: expected result file
  *
  * Create a new test from paramters
  *
@@ -238,7 +240,7 @@ manifest_free_test_result(manifest_test_result* result)
 static manifest_test*
 manifest_new_test(char *name, char *description, char* dir,
                   manifest_test_state expect, rasqal_literal* test_node,
-                  char* action)
+                  char* action, raptor_uri* expected_result)
 {
   manifest_test* t;
 
@@ -250,6 +252,7 @@ manifest_new_test(char *name, char *description, char* dir,
   t->expect = expect;
   t->test_node = test_node;
   t->action = action;
+  t->expected_result = expected_result;
 
   return t;
 }
@@ -270,6 +273,8 @@ manifest_free_test(manifest_test* t)
     rasqal_free_literal(t->test_node);
   if(t->action)
     free(t->action);
+  if(t->expected_result)
+    raptor_free_uri(t->expected_result);
   free(t);
 }
 
@@ -322,6 +327,7 @@ manifest_new_testsuite(rasqal_world* world,
   raptor_uri* mf_entries_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"entries");
   raptor_uri* mf_name_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"name");
   raptor_uri* mf_action_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"action");
+  raptor_uri* mf_result_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"result");
   raptor_uri* rdf_type_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"type");
   raptor_uri* rdf_first_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"first");
   raptor_uri* rdf_rest_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"rest");
@@ -333,6 +339,7 @@ manifest_new_testsuite(rasqal_world* world,
   rasqal_literal* mf_entries_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_entries_uri));
   rasqal_literal* mf_name_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_name_uri));
   rasqal_literal* mf_action_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_action_uri));
+  rasqal_literal* mf_result_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_result_uri));
   rasqal_literal* rdf_type_literal = rasqal_new_uri_literal(world, raptor_uri_copy(rdf_type_uri));
   rasqal_literal* rdf_first_literal = rasqal_new_uri_literal(world, raptor_uri_copy(rdf_first_uri));
   rasqal_literal* rdf_rest_literal = rasqal_new_uri_literal(world, raptor_uri_copy(rdf_rest_uri));
@@ -476,6 +483,20 @@ manifest_new_testsuite(rasqal_world* world,
       }
     }
 
+    raptor_uri* test_result_uri = NULL;
+    node = rasqal_dataset_get_target(ds,
+                                     entry_node,
+                                     mf_result_literal);
+    if(node) {
+      uri = rasqal_literal_as_uri(node);
+      if(uri) {
+        test_result_uri = uri;
+
+        fprintf(stderr, "Test result URI is: '%s'\n",
+                raptor_uri_as_string(test_result_uri));
+      }
+    }
+
     raptor_uri* test_type = NULL;
     node = rasqal_dataset_get_target(ds,
                                      entry_node,
@@ -498,7 +519,8 @@ manifest_new_testsuite(rasqal_world* world,
     t = manifest_new_test(test_name, test_desc, dir,
                           test_expect, 
                           rasqal_new_literal_from_literal(entry_node),
-                          test_action);
+                          test_action,
+                          raptor_uri_copy(test_result_uri));
     raptor_sequence_push(tests, t);
 
 
@@ -537,6 +559,8 @@ manifest_new_testsuite(rasqal_world* world,
     raptor_free_uri(mf_name_uri);
   if(mf_action_uri)
     raptor_free_uri(mf_action_uri);
+  if(mf_result_uri)
+    raptor_free_uri(mf_result_uri);
   if(rdf_type_uri)
     raptor_free_uri(rdf_type_uri);
   if(rdf_first_uri)
@@ -558,6 +582,8 @@ manifest_new_testsuite(rasqal_world* world,
     rasqal_free_literal(mf_name_literal);
   if(mf_action_literal)
     rasqal_free_literal(mf_action_literal);
+  if(mf_result_literal)
+    rasqal_free_literal(mf_result_literal);
   if(rdf_type_literal)
     rasqal_free_literal(rdf_type_literal);
   if(rdf_first_literal)
