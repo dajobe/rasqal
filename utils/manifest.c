@@ -54,7 +54,7 @@ int main(int argc, char *argv[]);
 
 static const char *program = "manifest";
 
-static int debug = 5;
+static int debug = 1;
 static int dryrun = 0;
 static int verbose = 1;
 
@@ -435,9 +435,11 @@ manifest_new_testsuite(rasqal_world* world,
     goto tidy;
   }
 
-  fputs("Manifest node is: ", stderr);
-  rasqal_literal_print(manifest_node, stderr);
-  fputc('\n', stderr);
+  if(debug > 2) {
+    fputs("Manifest node is: ", stderr);
+    rasqal_literal_print(manifest_node, stderr);
+    fputc('\n', stderr);
+  }
 
 
   entries_node = rasqal_dataset_get_target(ds,
@@ -449,10 +451,11 @@ manifest_new_testsuite(rasqal_world* world,
     goto tidy;
   }
 
-  fputs("Entries node is: ", stderr);
-  rasqal_literal_print(entries_node, stderr);
-  fputc('\n', stderr);
-
+  if(debug > 2) {
+    fputs("Entries node is: ", stderr);
+    rasqal_literal_print(entries_node, stderr);
+    fputc('\n', stderr);
+  }
 
   /* Get some text fields */
   node = rasqal_dataset_get_target(ds,
@@ -464,7 +467,9 @@ manifest_new_testsuite(rasqal_world* world,
       ts->desc = (char*)malloc(size + 1);
       memcpy(ts->desc, str, size + 1);
 
-      fprintf(stderr, "Description is: '%s'\n", ts->desc);
+      if(debug > 0) {
+        fprintf(stderr, "Testsuite Description is: '%s'\n", ts->desc);
+      }
     }
   }
 
@@ -500,7 +505,7 @@ manifest_new_testsuite(rasqal_world* world,
     entry_node = rasqal_dataset_get_target(ds,
                                            list_node,
                                            rdf_first_literal);
-    if(debug > 2) {
+    if(debug > 0) {
       fputs("Test resource is: ", stderr);
       rasqal_literal_print(entry_node, stderr);
       fputc('\n', stderr);
@@ -517,7 +522,7 @@ manifest_new_testsuite(rasqal_world* world,
         test_name = (char*)malloc(size + 1);
         memcpy(test_name, str, size + 1);
 
-        if(debug > 2) {
+        if(debug > 0) {
           fprintf(stderr, "  Test name: '%s'\n", test_name);
         }
       }
@@ -533,7 +538,7 @@ manifest_new_testsuite(rasqal_world* world,
         test_desc = (char*)malloc(size + 1);
         memcpy(test_desc, str, size + 1);
 
-        if(debug > 2) {
+        if(debug > 0) {
           fprintf(stderr, "  Test desc: '%s'\n", test_desc);
         }
       }
@@ -545,8 +550,8 @@ manifest_new_testsuite(rasqal_world* world,
     raptor_uri* test_data_uri = NULL;
     raptor_uri* test_graph_data_uri = NULL;
     if(action_node) {
-      if(debug > 2) {
-        fputs("Action node is: ", stderr);
+      if(debug > 1) {
+        fputs("  Action node is: ", stderr);
         rasqal_literal_print(action_node, stderr);
         fputc('\n', stderr);
       }
@@ -558,8 +563,7 @@ manifest_new_testsuite(rasqal_world* world,
         uri = rasqal_literal_as_uri(node);
         if(uri) {
           test_data_uri = uri;
-          
-          if(debug > 2) {
+                   if(debug > 0) {
             fprintf(stderr, "  Test data URI: '%s'\n",
                     raptor_uri_as_string(test_data_uri));
           }
@@ -605,7 +609,7 @@ manifest_new_testsuite(rasqal_world* world,
     if(node) {
       test_type = rasqal_literal_as_uri(node);
 
-      if(debug > 2) {
+      if(debug > 0) {
         fprintf(stderr, "  Test type: '%s'\n",
                 raptor_uri_as_string(test_type));
       }
