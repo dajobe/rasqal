@@ -540,7 +540,7 @@ manifest_run_testsuite(manifest_testsuite* ts, unsigned int indent)
         fputs(" - ", stdout);
         fputs(t->details, stdout);
       }
-      fputc(stdout, '\n');
+      fputc('\n', stdout);
       if(verbose > 1) {
 	if(state == STATE_FAIL && t->log) {
 #if 0
