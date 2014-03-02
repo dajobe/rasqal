@@ -286,6 +286,54 @@ manifest_free_test(manifest_test* t)
 }
 
 
+typedef enum {
+  /* these are alternatives */
+  FLAG_IS_QUERY     = 1, /* SPARQL query; lang="sparql10" or "sparql11" */
+  FLAG_IS_UPDATE    = 2, /* SPARQL update; lang="sparql-update" */
+  FLAG_IS_PROTOCOL  = 4, /* SPARQL protocol */
+  FLAG_IS_SYNTAX    = 8, /* syntax test: implies no execution */
+
+  /* these are extras */
+  FLAG_LANG_SPARQL_11 = 16, /* "sparql11" else "sparql10" */
+  FLAG_MUST_FAIL      = 32  /* must FAIL otherwise must PASS  */
+} manifest_test_type_bitflags;
+
+
+static unsigned int
+manifest_decode_test_type(rasqal_literal* entry_node, raptor_uri* test_type){
+  unsigned int flags = FLAG_IS_QUERY;
+  const char* str;
+
+  if(!test_type) {
+    fprintf(stderr, "%s: Test resource %s has no type - assuming a query\n",
+            program, rasqal_literal_as_string(entry_node));
+    return FLAG_IS_QUERY;
+  }
+
+  str = (const char*)raptor_uri_as_string(test_type);
+
+  if(!strstr(str, "UpdateEvaluationTest"))
+    return FLAG_IS_UPDATE;
+
+  if(!strstr(str, "ProtocolTest"))
+    return FLAG_IS_PROTOCOL;
+
+  if(!strstr(str, "Syntax")) {
+    flags |= FLAG_IS_SYNTAX;
+
+    if(!strstr(str, "Negative") || !strstr(str, "TestBadSyntax")) {
+      flags |= FLAG_MUST_FAIL;
+    }
+  }
+
+  if(strstr(str, "Test11"))
+    flags |= FLAG_LANG_SPARQL_11;
+
+  return flags;
+}
+
+
+
 /**
  * manifest_new_testsuite:
  * @world: rasqal world
@@ -561,20 +609,25 @@ manifest_new_testsuite(rasqal_world* world,
 
     manifest_test_state test_expect = STATE_PASS;
 
-/*
-    $expect='fail' if
-      $entry_type eq "<${t}NegativeTest>" ||
-      $entry_type eq "<${t}XFailTest>";
-*/
+    unsigned int test_flags = manifest_decode_test_type(entry_node, test_type);
 
-    /* All the parameters become owned by the test */
+    if(test_flags & FLAG_MUST_FAIL)
+      test_expect = STATE_FAIL;
+       /* All the parameters become owned by the test */
     t = manifest_new_test(test_name, test_desc, dir,
-                          test_expect, 
-                          rasqal_new_literal_from_literal(entry_node),
+                          test_expect,                          rasqal_new_literal_from_literal(entry_node),
                           raptor_uri_copy(test_data_uri),
-                          raptor_uri_copy(test_graph_data_uri),
-                          raptor_uri_copy(test_result_uri));
-    raptor_sequence_push(tests, t);
+                          test_graph_data_uri,
+                          test_result_uri);
+    test_name = NULL;
+
+    if(test_flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
+      manifest_free_test(t);
+      t = NULL;
+      fprintf(stderr, "%s: Ignoring test %s type UPDATE / PROTOCOL - not supported\n", program, rasqal_literal_as_string(entry_node));
+    } else {
+      raptor_sequence_push(tests, t);
+    }
 
 
     list_node = rasqal_dataset_get_target(ds,
