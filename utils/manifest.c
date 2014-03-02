@@ -435,7 +435,7 @@ manifest_new_testsuite(rasqal_world* world,
                                            list_node,
                                            rdf_first_literal);
     if(debug > 2) {
-      fputs("Entry node is: ", stderr);
+      fputs("Test resource is: ", stderr);
       rasqal_literal_print(entry_node, stderr);
       fputc('\n', stderr);
     }
@@ -451,7 +451,9 @@ manifest_new_testsuite(rasqal_world* world,
         test_name = (char*)malloc(size + 1);
         memcpy(test_name, str, size + 1);
 
-        fprintf(stderr, "Test name is: '%s'\n", test_name);
+        if(debug > 2) {
+          fprintf(stderr, "  Test name: '%s'\n", test_name);
+        }
       }
     }
 
@@ -465,7 +467,9 @@ manifest_new_testsuite(rasqal_world* world,
         test_desc = (char*)malloc(size + 1);
         memcpy(test_desc, str, size + 1);
 
-        fprintf(stderr, "Test desc is: '%s'\n", test_desc);
+        if(debug > 2) {
+          fprintf(stderr, "  Test desc: '%s'\n", test_desc);
+        }
       }
     }
 
@@ -479,7 +483,9 @@ manifest_new_testsuite(rasqal_world* world,
         test_action = (char*)malloc(size + 1);
         memcpy(test_action, str, size + 1);
 
-        fprintf(stderr, "Test action is: '%s'\n", test_action);
+        if(debug > 2) {
+          fprintf(stderr, "  Test action string: '%s'\n", test_action);
+        }
       }
     }
 
@@ -492,8 +498,10 @@ manifest_new_testsuite(rasqal_world* world,
       if(uri) {
         test_result_uri = uri;
 
-        fprintf(stderr, "Test result URI is: '%s'\n",
-                raptor_uri_as_string(test_result_uri));
+        if(debug > 2) {
+          fprintf(stderr, "  Test result URI: '%s'\n",
+                  raptor_uri_as_string(test_result_uri));
+        }
       }
     }
 
@@ -504,7 +512,10 @@ manifest_new_testsuite(rasqal_world* world,
     if(node) {
       test_type = rasqal_literal_as_uri(node);
 
-      fprintf(stderr, "Test type is: '%s'\n", raptor_uri_as_string(test_type));
+      if(debug > 2) {
+        fprintf(stderr, "  Test type: '%s'\n",
+                raptor_uri_as_string(test_type));
+      }
     }
 
     manifest_test_state test_expect = STATE_PASS;
