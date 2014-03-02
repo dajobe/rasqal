@@ -163,6 +163,7 @@ static const char* manifest_test_state_labels[STATE_LAST + 1] = {
 
 /* prototypes */
 static void manifest_free_test(manifest_test* t);
+static void manifest_free_testsuite(manifest_testsuite* ts);
 
 
 static char
@@ -355,9 +356,11 @@ manifest_new_testsuite(rasqal_world* world,
   raptor_world* raptor_world_ptr = rasqal_world_get_raptor(world);
   rasqal_literal* manifest_node = NULL;
   rasqal_literal* entries_node = NULL;
+  rasqal_literal* list_node = NULL;
   rasqal_literal* node = NULL;
   const unsigned char* str = NULL;
   size_t size;
+  raptor_sequence* tests = NULL;
 
   /* Initialize base */
   ts = (manifest_testsuite*)calloc(sizeof(*ts), 1);
@@ -474,19 +477,21 @@ manifest_new_testsuite(rasqal_world* world,
       ts->path = (char*)malloc(size + 1);
       memcpy(ts->path, str, size + 1);
 
-      fprintf(stderr, "Path is: '%s'\n", ts->path);
+      if(debug > 0) {
+        fprintf(stderr, "Testsuite PATH is: '%s'\n", ts->path);
+      }
     }
   }
 
 
-  rasqal_literal* list_node = entries_node;
-  raptor_sequence* tests = raptor_new_sequence((raptor_data_free_handler)manifest_free_test, NULL);
-  while(list_node) {
+  tests = raptor_new_sequence((raptor_data_free_handler)manifest_free_test,
+                              NULL);
+  for(list_node = entries_node; list_node; ) {
     rasqal_literal* entry_node;
     rasqal_literal* action_node;
     manifest_test* t;
 
-    if(debug > 2) {
+    if(debug > 1) {
       fputs("List node is: ", stderr);
       rasqal_literal_print(list_node, stderr);
       fputc('\n', stderr);
@@ -567,9 +572,8 @@ manifest_new_testsuite(rasqal_world* world,
       if(node) {
         uri = rasqal_literal_as_uri(node);
         if(uri) {
-          test_graph_data_uri = uri;
-          
-          if(debug > 2) {
+          test_graph_data_uri = raptor_uri_copy(uri);
+                   if(debug > 0) {
             fprintf(stderr, "  Test graph data URI: '%s'\n",
                     raptor_uri_as_string(test_graph_data_uri));
           }
@@ -585,9 +589,9 @@ manifest_new_testsuite(rasqal_world* world,
     if(node) {
       uri = rasqal_literal_as_uri(node);
       if(uri) {
-        test_result_uri = uri;
+        test_result_uri = raptor_uri_copy(uri);
 
-        if(debug > 2) {
+        if(debug > 0) {
           fprintf(stderr, "  Test result URI: '%s'\n",
                   raptor_uri_as_string(test_result_uri));
         }
@@ -641,15 +645,18 @@ manifest_new_testsuite(rasqal_world* world,
       if(uri && raptor_uri_equals(uri, rdf_nil_uri))
         break;
     }
-  }
+  } /* end for list_node */
 
-  ts->tests = tests;
+  ts->tests = tests; tests = NULL;
   ts->state = STATE_PASS;
   ts->details = NULL;
 
   tidy:
   if(ds)
     rasqal_free_dataset(ds);
+
+  if(tests)
+    raptor_free_sequence(tests);
 
   if(rdfs_namespace_uri)
     raptor_free_uri(rdfs_namespace_uri);
@@ -847,7 +854,6 @@ manifest_test_manifests(rasqal_world* world,
 {
   manifest_test_state total_state = STATE_PASS;
   manifest_test_result* total_result = NULL;
-  int rc = 0;
   raptor_uri* uri;
   int i = 0;
 
@@ -859,16 +865,16 @@ manifest_test_manifests(rasqal_world* world,
     int j;
     manifest_testsuite *ts;
     manifest_test_result* result = NULL;
+    char* testsuite_name = (char*)raptor_uri_as_string(uri);
 
     ts = manifest_new_testsuite(world,
-                                /* name */ (char*)raptor_uri_as_string(uri),
+                                /* name */ testsuite_name,
                                 /* dir */ NULL,
                                 uri, base_uri);
 
-    if(rc) {
-      fprintf(stderr, "%s: Suite %s failed preparation - %s\n",
-              program, ts->name, ts->details);
-      manifest_free_testsuite(ts);
+    if(!ts) {
+      fprintf(stderr, "%s: Failed to create test suite %s\n",
+              program, testsuite_name);
       break;
     }
 
