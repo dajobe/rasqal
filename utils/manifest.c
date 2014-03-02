@@ -112,6 +112,19 @@ typedef enum
   STATE_LAST = STATE_SKIP
 } manifest_test_state;
 
+typedef enum {
+  /* these are alternatives */
+  FLAG_IS_QUERY     = 1, /* SPARQL query; lang="sparql10" or "sparql11" */
+  FLAG_IS_UPDATE    = 2, /* SPARQL update; lang="sparql-update" */
+  FLAG_IS_PROTOCOL  = 4, /* SPARQL protocol */
+  FLAG_IS_SYNTAX    = 8, /* syntax test: implies no execution */
+
+  /* these are extras */
+  FLAG_LANG_SPARQL_11 = 16, /* "sparql11" else "sparql10" */
+  FLAG_MUST_FAIL      = 32  /* must FAIL otherwise must PASS  */
+} manifest_test_type_bitflags;
+
+
 typedef struct
 {
   char* dir;
@@ -122,6 +135,7 @@ typedef struct
   raptor_uri* data; /* <test-uri> qt:data ?uri */
   raptor_uri* data_graph;  /* <test-uri> qt:dataGraph ?uri */
   raptor_uri* expected_result; /* <test-uri> mf:result ?uri */
+  unsigned int flags; /* bit flags from #manifest_test_type_bitflags */
 
   /* Test output */
   manifest_test_state result;
@@ -234,6 +248,7 @@ manifest_free_test_result(manifest_test_result* result)
  * @data: data URI
  * @data_graph: data graph URI
  * @expected_result: expected result file
+ * @flags: bit flags
  *
  * Create a new test from paramters
  *
@@ -242,12 +257,14 @@ manifest_free_test_result(manifest_test_result* result)
  */
 static manifest_test*
 manifest_new_test(char *name, char *description, char* dir,
-                  manifest_test_state expect, rasqal_literal* test_node,
+                  rasqal_literal* test_node,
                   raptor_uri* data,
                   raptor_uri* data_graph,
-                  raptor_uri* expected_result)
+                  raptor_uri* expected_result,
+                  unsigned int flags)
 {
   manifest_test* t;
+  manifest_test_state expect = (flags & FLAG_MUST_FAIL) ? STATE_FAIL : STATE_PASS;
 
   t = (manifest_test*)calloc(sizeof(*t), 1);
   t->name = name;
@@ -259,6 +276,7 @@ manifest_new_test(char *name, char *description, char* dir,
   t->data = data;
   t->data_graph = data_graph;
   t->expected_result = expected_result;
+  t->flags = flags;
 
   return t;
 }
@@ -285,19 +303,6 @@ manifest_free_test(manifest_test* t)
     raptor_free_uri(t->expected_result);
   free(t);
 }
-
-
-typedef enum {
-  /* these are alternatives */
-  FLAG_IS_QUERY     = 1, /* SPARQL query; lang="sparql10" or "sparql11" */
-  FLAG_IS_UPDATE    = 2, /* SPARQL update; lang="sparql-update" */
-  FLAG_IS_PROTOCOL  = 4, /* SPARQL protocol */
-  FLAG_IS_SYNTAX    = 8, /* syntax test: implies no execution */
-
-  /* these are extras */
-  FLAG_LANG_SPARQL_11 = 16, /* "sparql11" else "sparql10" */
-  FLAG_MUST_FAIL      = 32  /* must FAIL otherwise must PASS  */
-} manifest_test_type_bitflags;
 
 
 static unsigned int
@@ -615,18 +620,15 @@ manifest_new_testsuite(rasqal_world* world,
       }
     }
 
-    manifest_test_state test_expect = STATE_PASS;
-
     unsigned int test_flags = manifest_decode_test_type(entry_node, test_type);
 
-    if(test_flags & FLAG_MUST_FAIL)
-      test_expect = STATE_FAIL;
-       /* All the parameters become owned by the test */
+    /* All the parameters become owned by the test */
     t = manifest_new_test(test_name, test_desc, dir,
-                          test_expect,                          rasqal_new_literal_from_literal(entry_node),
+                          rasqal_new_literal_from_literal(entry_node),
                           raptor_uri_copy(test_data_uri),
                           test_graph_data_uri,
-                          test_result_uri);
+                          test_result_uri,
+                          test_flags);
     test_name = NULL;
 
     if(test_flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
