@@ -54,6 +54,7 @@ int main(int argc, char *argv[]);
 
 static const char *program = "manifest";
 
+static int debug = 5;
 static int dryrun = 0;
 static int verbose = 1;
 
@@ -114,9 +115,9 @@ typedef enum
 typedef struct
 {
   char* dir;
-  raptor_uri* test_uri; /* the test uri */
+  rasqal_literal* test_node; /* the test node (URI or blank node) */
   char* name; /* <test-uri> mf:name ?value */
-  char* description; /* <test-uri> rdfs:comment ?value */
+  char* desc; /* <test-uri> rdfs:comment ?value */
   manifest_test_state expect; /* derived from <test-uri> rdf:type ?value */
   char* action; /* <test-uri> mf:action ?value */
 
@@ -219,11 +220,42 @@ manifest_free_test_result(manifest_test_result* result)
 }
 
 
+static manifest_test*
+manifest_new_test(char *name, char *description, char* dir,
+                  manifest_test_state expect, rasqal_literal* test_node,
+                  char* action)
+{
+  manifest_test* t;
+
+  t = (manifest_test*)calloc(sizeof(*t), 1);
+  t->name = strdup(name);
+  if(description)
+    t->desc = strdup(description);
+  if(dir)
+    t->dir = strdup(dir);
+  t->expect = expect;
+  t->test_node = rasqal_new_literal_from_literal(test_node);
+  t->action = strdup(action);
+  
+  return t;
+}
+
 static void
 manifest_free_test(manifest_test* t)
 {
   if(!t)
     return;
+
+  if(t->name)
+    free(t->name);
+  if(t->desc)
+    free(t->desc);
+  if(t->dir)
+    free(t->dir);
+  if(t->test_node)
+    rasqal_free_literal(t->test_node);
+  if(t->action)
+    free(t->action);
   free(t);
 }
 
@@ -274,13 +306,22 @@ manifest_new_testsuite(rasqal_world* world,
 
   raptor_uri* mf_Manifest_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"Manifest");
   raptor_uri* mf_entries_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"entries");
-  raptor_uri* type_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"type");
+  raptor_uri* mf_name_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"name");
+  raptor_uri* mf_action_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mf_namespace_uri, (const unsigned char*)"action");
+  raptor_uri* rdf_type_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"type");
+  raptor_uri* rdf_first_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"first");
+  raptor_uri* rdf_rest_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"rest");
+  raptor_uri* rdf_nil_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"nil");
   raptor_uri* rdfs_comment_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, rdfs_namespace_uri, (const unsigned char*)"comment");
   raptor_uri* t_path_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, t_namespace_uri, (const unsigned char*)"path");
 
   rasqal_literal* mf_Manifest_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_Manifest_uri));
   rasqal_literal* mf_entries_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_entries_uri));
-  rasqal_literal* type_literal = rasqal_new_uri_literal(world, raptor_uri_copy(type_uri));
+  rasqal_literal* mf_name_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_name_uri));
+  rasqal_literal* mf_action_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mf_action_uri));
+  rasqal_literal* rdf_type_literal = rasqal_new_uri_literal(world, raptor_uri_copy(rdf_type_uri));
+  rasqal_literal* rdf_first_literal = rasqal_new_uri_literal(world, raptor_uri_copy(rdf_first_uri));
+  rasqal_literal* rdf_rest_literal = rasqal_new_uri_literal(world, raptor_uri_copy(rdf_rest_uri));
   rasqal_literal* rdfs_comment_literal = rasqal_new_uri_literal(world, raptor_uri_copy(rdfs_comment_uri));
   rasqal_literal* t_path_literal = rasqal_new_uri_literal(world, raptor_uri_copy(t_path_uri));
 
@@ -302,7 +343,7 @@ manifest_new_testsuite(rasqal_world* world,
 
 
   manifest_node = rasqal_dataset_get_source(ds,
-                                            type_literal,
+                                            rdf_type_literal,
                                             mf_Manifest_literal);
   if(!manifest_node) {
     fprintf(stderr, "No manifest found in graph\n");
@@ -356,67 +397,109 @@ manifest_new_testsuite(rasqal_world* world,
     }
   }
 
+
+  rasqal_literal* list_node = entries_node;
+  raptor_sequence* tests = raptor_new_sequence((raptor_data_free_handler)manifest_free_test, NULL);
+  while(list_node) {
+    rasqal_literal* entry_node;
+    manifest_test* t;
+    
+    if(debug > 2) {
+      fputs("List node is: ", stderr);
+      rasqal_literal_print(list_node, stderr);
+      fputc('\n', stderr);
+    }
+
+    entry_node = rasqal_dataset_get_target(ds,
+                                           list_node,
+                                           rdf_first_literal);
+    if(debug > 2) {
+      fputs("Entry node is: ", stderr);
+      rasqal_literal_print(entry_node, stderr);
+      fputc('\n', stderr);
+    }
+    
+    /* Get some text fields */
+    char* test_name = NULL;
+    node = rasqal_dataset_get_target(ds,
+                                     entry_node,
+                                     mf_name_literal);
+    if(node) {
+      str = rasqal_literal_as_counted_string(node, &size, 0, NULL);
+      if(str) {
+        test_name = (char*)malloc(size + 1);
+        memcpy(test_name, str, size + 1);
+        
+        fprintf(stderr, "Test name is: '%s'\n", test_name);
+      }
+    }
+
+    char* test_desc = NULL;
+    node = rasqal_dataset_get_target(ds,
+                                     entry_node,
+                                     rdfs_comment_literal);
+    if(node) {
+      str = rasqal_literal_as_counted_string(node, &size, 0, NULL);
+      if(str) {
+        test_desc = (char*)malloc(size + 1);
+        memcpy(test_desc, str, size + 1);
+        
+        fprintf(stderr, "Test desc is: '%s'\n", test_desc);
+      }
+    }
+
+    char* test_action = NULL;
+    node = rasqal_dataset_get_target(ds,
+                                     entry_node,
+                                     mf_action_literal);
+    if(node) {
+      str = rasqal_literal_as_counted_string(node, &size, 0, NULL);
+      if(str) {
+        test_action = (char*)malloc(size + 1);
+        memcpy(test_action, str, size + 1);
+        
+        fprintf(stderr, "Test action is: '%s'\n", test_action);
+      }
+    }
+
+    raptor_uri* test_type = NULL;
+    node = rasqal_dataset_get_target(ds,
+                                     entry_node,
+                                     rdf_type_literal);
+    if(node) {
+      test_type = rasqal_literal_as_uri(node);
+        
+      fprintf(stderr, "Test type is: '%s'\n", raptor_uri_as_string(test_type));
+    }
+
+    manifest_test_state test_expect = STATE_PASS;
+
 /*
-  my $list_node=$entries_node;
-
-  my(@tests);
-  while($list_node) {
-    warn "List node is '$list_node'\n"
-      if $debug > 2;
-
-    my $entry_node=$triples{$list_node}->{"<${rdf}first>"}->[0];
-    warn "Entry node is '$entry_node'\n"
-      if $debug > 2;
-
-    my $name=$triples{$entry_node}->{"<${mf}name>"}->[0] | '';
-    $name = decode_literal($name);
-    warn "Entry name=$name\n"
-      if $debug > 1;
-
-    my $comment=$triples{$entry_node}->{"<${rdfs}comment>"}->[0] || '';
-    $comment = decode_literal($comment);
-    warn "Entry comment=$comment\n"
-      if $debug > 1;
-
-    my $action=$triples{$entry_node}->{"<${mf}action>"}->[0] || '';
-    $action = decode_literal($action);
-    warn "Entry action $action\n"
-       if $debug > 1;
-
-    my $entry_type=$triples{$entry_node}->{"<${rdf}type>"}->[0] || '';
-    warn "Entry type is ".($entry_type ? $entry_type : "NONE")."\n"
-      if $debug > 1;
-
-    my $expect='pass';
-    my $execute=1;
-
     $expect='fail' if
       $entry_type eq "<${t}NegativeTest>" ||
       $entry_type eq "<${t}XFailTest>";
-
-    my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
-    warn "Test uri $test_uri\n"
-       if $debug > 1;
-
-    push(@tests, {name => $name,
-		  comment => $comment,
-		  dir => $dir,
-		  expect => $expect,
-		  test_uri => $test_uri,
-		  action => $action
-	   } );
-
-  next_list_node:
-    $list_node=$triples{$list_node}->{"<${rdf}rest>"}->[0];
-    last if $list_node eq "<${rdf}nil>";
-  }
-
-  $testsuite->{tests}=\@tests;
-
-  return {status => 'pass', details => ''};
-}
 */
+    t = manifest_new_test(test_name, test_desc, dir,
+                          test_expect, entry_node, test_action);
+    raptor_sequence_push(tests, t);
+    
+    
+    list_node = rasqal_dataset_get_target(ds,
+                                          list_node,
+                                          rdf_rest_literal);
+    if(!list_node)
+      break;
 
+    if(list_node->type == RASQAL_LITERAL_URI) {
+      uri = rasqal_literal_as_uri(list_node);
+      if(uri && raptor_uri_equals(uri, rdf_nil_uri))
+        break;
+    }
+  }
+  
+  ts->tests = tests;
+  ts->state = STATE_PASS;
+  ts->details = NULL;
 
   tidy:
   if(ds)
@@ -432,8 +515,8 @@ manifest_new_testsuite(rasqal_world* world,
     raptor_free_uri(mf_Manifest_uri);
   if(mf_entries_uri)
     raptor_free_uri(mf_entries_uri);
-  if(type_uri)
-    raptor_free_uri(type_uri);
+  if(rdf_type_uri)
+    raptor_free_uri(rdf_type_uri);
   if(rdfs_comment_uri)
     raptor_free_uri(rdfs_comment_uri);
   if(t_path_uri)
@@ -443,8 +526,8 @@ manifest_new_testsuite(rasqal_world* world,
     rasqal_free_literal(mf_Manifest_literal);
   if(mf_entries_literal)
     rasqal_free_literal(mf_entries_literal);
-  if(type_literal)
-    rasqal_free_literal(type_literal);
+  if(rdf_type_literal)
+    rasqal_free_literal(rdf_type_literal);
   if(rdfs_comment_literal)
     rasqal_free_literal(rdfs_comment_literal);
   if(t_path_literal)
