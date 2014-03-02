@@ -306,15 +306,13 @@ manifest_free_test(manifest_test* t)
 
 
 static unsigned int
-manifest_decode_test_type(rasqal_literal* entry_node, raptor_uri* test_type){
-  unsigned int flags = FLAG_IS_QUERY;
+manifest_decode_test_type(raptor_uri* test_type)
+{
+  unsigned int flags = 0;
   const char* str;
 
-  if(!test_type) {
-    fprintf(stderr, "%s: Test resource %s has no type - assuming a query\n",
-            program, rasqal_literal_as_string(entry_node));
-    return FLAG_IS_QUERY;
-  }
+  if(!test_type)
+    return flags;
 
   str = (const char*)raptor_uri_as_string(test_type);
 
@@ -620,7 +618,12 @@ manifest_new_testsuite(rasqal_world* world,
       }
     }
 
-    unsigned int test_flags = manifest_decode_test_type(entry_node, test_type);
+    unsigned int test_flags = manifest_decode_test_type(test_type);
+    if(!test_flags & (FLAG_IS_QUERY | FLAG_IS_UPDATE | FLAG_IS_PROTOCOL | FLAG_IS_SYNTAX) ) {
+      fprintf(stderr, "%s: Test resource %s has no type - assuming a query\n",
+              program, rasqal_literal_as_string(entry_node));
+      test_flags |= FLAG_IS_QUERY;
+    }
 
     /* All the parameters become owned by the test */
     t = manifest_new_test(test_name, test_desc, dir,
