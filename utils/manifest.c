@@ -196,7 +196,8 @@ manifest_new_test_result(void)
   result->state = STATE_FAIL;
   /* total_result->details = NULL; */
   for(i = 0; i < STATE_LAST; i++)
-    result->states[i] = raptor_new_sequence((raptor_data_free_handler)manifest_free_test, NULL);
+    /* Holding pointers; the tests are owned by the testsuites */
+    result->states[i] = raptor_new_sequence(NULL, NULL);
   return result;
 }
 
@@ -220,6 +221,20 @@ manifest_free_test_result(manifest_test_result* result)
 }
 
 
+/**
+ * manifest_new_test:
+ * @name: test name
+ * @description: description (or NULL)
+ * @dir: directory (or NULL)
+ * @expect: expected result - pass or fail
+ * @test_node: identifier for this test
+ * @action: action string
+ *
+ * Create a new test from paramters
+ *
+ * These are all input parameters and become owned by this object.
+ *
+ */
 static manifest_test*
 manifest_new_test(char *name, char *description, char* dir,
                   manifest_test_state expect, rasqal_literal* test_node,
@@ -228,14 +243,13 @@ manifest_new_test(char *name, char *description, char* dir,
   manifest_test* t;
 
   t = (manifest_test*)calloc(sizeof(*t), 1);
-  t->name = strdup(name);
+  t->name = name;
   if(description)
-    t->desc = strdup(description);
-  if(dir)
-    t->dir = strdup(dir);
+    t->desc = description;
+  t->dir = dir;
   t->expect = expect;
-  t->test_node = rasqal_new_literal_from_literal(test_node);
-  t->action = strdup(action);
+  t->test_node = test_node;
+  t->action = action;
 
   return t;
 }
@@ -479,8 +493,12 @@ manifest_new_testsuite(rasqal_world* world,
       $entry_type eq "<${t}NegativeTest>" ||
       $entry_type eq "<${t}XFailTest>";
 */
+
+    /* All the parameters become owned by the test */
     t = manifest_new_test(test_name, test_desc, dir,
-                          test_expect, entry_node, test_action);
+                          test_expect, 
+                          rasqal_new_literal_from_literal(entry_node),
+                          test_action);
     raptor_sequence_push(tests, t);
 
 
@@ -515,8 +533,18 @@ manifest_new_testsuite(rasqal_world* world,
     raptor_free_uri(mf_Manifest_uri);
   if(mf_entries_uri)
     raptor_free_uri(mf_entries_uri);
+  if(mf_name_uri)
+    raptor_free_uri(mf_name_uri);
+  if(mf_action_uri)
+    raptor_free_uri(mf_action_uri);
   if(rdf_type_uri)
     raptor_free_uri(rdf_type_uri);
+  if(rdf_first_uri)
+    raptor_free_uri(rdf_first_uri);
+  if(rdf_rest_uri)
+    raptor_free_uri(rdf_rest_uri);
+  if(rdf_nil_uri)
+    raptor_free_uri(rdf_nil_uri);
   if(rdfs_comment_uri)
     raptor_free_uri(rdfs_comment_uri);
   if(t_path_uri)
@@ -526,8 +554,16 @@ manifest_new_testsuite(rasqal_world* world,
     rasqal_free_literal(mf_Manifest_literal);
   if(mf_entries_literal)
     rasqal_free_literal(mf_entries_literal);
+  if(mf_name_literal)
+    rasqal_free_literal(mf_name_literal);
+  if(mf_action_literal)
+    rasqal_free_literal(mf_action_literal);
   if(rdf_type_literal)
     rasqal_free_literal(rdf_type_literal);
+  if(rdf_first_literal)
+    rasqal_free_literal(rdf_first_literal);
+  if(rdf_rest_literal)
+    rasqal_free_literal(rdf_rest_literal);
   if(rdfs_comment_literal)
     rasqal_free_literal(rdfs_comment_literal);
   if(t_path_literal)
@@ -551,7 +587,8 @@ manifest_free_testsuite(manifest_testsuite* ts)
     free(ts->dir);
   if(ts->path)
     free(ts->path);
-  /* FIXME: free tests */
+  if(ts->tests)
+    raptor_free_sequence(ts->tests);
   if(ts->details)
     free(ts->details);
   free(ts);
