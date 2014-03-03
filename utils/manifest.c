@@ -571,7 +571,7 @@ manifest_new_test(manifest_world* mw,
   }
 
   unsigned int test_flags = manifest_decode_test_type(test_type);
-  if(!test_flags & (FLAG_IS_QUERY | FLAG_IS_UPDATE | FLAG_IS_PROTOCOL | FLAG_IS_SYNTAX) ) {
+  if(!(test_flags & (FLAG_IS_QUERY | FLAG_IS_UPDATE | FLAG_IS_PROTOCOL | FLAG_IS_SYNTAX) )) {
     fprintf(stderr, "%s: Test resource %s has no type - assuming a query\n",
             program, rasqal_literal_as_string(entry_node));
     test_flags |= FLAG_IS_QUERY;
