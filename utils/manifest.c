@@ -411,73 +411,6 @@ manifest_free_test_result(manifest_test_result* result)
 }
 
 
-/**
- * manifest_new_test:
- * @name: test name
- * @description: description (or NULL)
- * @dir: directory (or NULL)
- * @expect: expected result - pass or fail
- * @test_node: identifier for this test
- * @data: data URI
- * @data_graph: data graph URI
- * @expected_result: expected result file
- * @flags: bit flags
- *
- * Create a new test from paramters
- *
- * These are all input parameters and become owned by this object.
- *
- */
-static manifest_test*
-manifest_new_test(char *name, char *description, char* dir,
-                  rasqal_literal* test_node,
-                  raptor_uri* data,
-                  raptor_uri* data_graph,
-                  raptor_uri* expected_result,
-                  unsigned int flags)
-{
-  manifest_test* t;
-  manifest_test_state expect = (flags & FLAG_MUST_FAIL) ? STATE_FAIL : STATE_PASS;
-
-  t = (manifest_test*)calloc(sizeof(*t), 1);
-  t->name = name;
-  if(description)
-    t->desc = description;
-  t->dir = dir;
-  t->expect = expect;
-  t->test_node = test_node;
-  t->data = data;
-  t->data_graph = data_graph;
-  t->expected_result = expected_result;
-  t->flags = flags;
-
-  return t;
-}
-
-static void
-manifest_free_test(manifest_test* t)
-{
-  if(!t)
-    return;
-
-  if(t->name)
-    free(t->name);
-  if(t->desc)
-    free(t->desc);
-  if(t->dir)
-    free(t->dir);
-  if(t->test_node)
-    rasqal_free_literal(t->test_node);
-  if(t->data)
-    raptor_free_uri(t->data);
-  if(t->data_graph)
-    raptor_free_uri(t->data_graph);
-  if(t->expected_result)
-    raptor_free_uri(t->expected_result);
-  free(t);
-}
-
-
 static unsigned int
 manifest_decode_test_type(raptor_uri* test_type)
 {
@@ -509,6 +442,226 @@ manifest_decode_test_type(raptor_uri* test_type)
   return flags;
 }
 
+
+/**
+ * manifest_new_test:
+ * @mw: manifest world
+ * @ds: dataset to read from
+ * @entry_node: test identifier node
+ * @dir: directory
+ *
+ * Create a new test from parameters
+ *
+ * These are all input parameters and become owned by this object.
+ *
+ */
+static manifest_test*
+manifest_new_test(manifest_world* mw,
+                  rasqal_dataset* ds, rasqal_literal* entry_node, char* dir)
+{
+  rasqal_literal* node = NULL;
+  const unsigned char* str = NULL;
+  raptor_uri *uri;
+  size_t size;
+  manifest_test* t;
+
+  /* Get test fields */
+  char* test_name = NULL;
+  node = rasqal_dataset_get_target(ds,
+                                   entry_node,
+                                   mw->mf_name_literal);
+  if(node) {
+    str = rasqal_literal_as_counted_string(node, &size, 0, NULL);
+    if(str) {
+      test_name = (char*)malloc(size + 1);
+      memcpy(test_name, str, size + 1);
+      
+      if(debug > 0) {
+        fprintf(stderr, "  Test name: '%s'\n", test_name);
+      }
+    }
+  }
+
+  char* test_desc = NULL;
+  node = rasqal_dataset_get_target(ds,
+                                   entry_node,
+                                   mw->rdfs_comment_literal);
+  if(node) {
+    str = rasqal_literal_as_counted_string(node, &size, 0, NULL);
+    if(str) {
+      test_desc = (char*)malloc(size + 1);
+      memcpy(test_desc, str, size + 1);
+      
+      if(debug > 0) {
+        fprintf(stderr, "  Test desc: '%s'\n", test_desc);
+      }
+    }
+  }
+  
+  rasqal_literal* action_node;
+  action_node = rasqal_dataset_get_target(ds,
+                                          entry_node,
+                                          mw->mf_action_literal);
+  raptor_uri* test_data_uri = NULL;
+  raptor_uri* test_graph_data_uri = NULL;
+  if(action_node) {
+    if(debug > 1) {
+      fputs("  Action node is: ", stderr);
+      rasqal_literal_print(action_node, stderr);
+      fputc('\n', stderr);
+    }
+
+    node = rasqal_dataset_get_target(ds,
+                                     action_node,
+                                     mw->tq_data_literal);
+    if(node) {
+      uri = rasqal_literal_as_uri(node);
+      if(uri) {
+        test_data_uri = uri;
+        if(debug > 0) {
+          fprintf(stderr, "  Test data URI: '%s'\n",
+                  raptor_uri_as_string(test_data_uri));
+        }
+      }
+    }
+    
+    node = rasqal_dataset_get_target(ds,
+                                     action_node,
+                                     mw->tq_graphData_literal);
+    if(node) {
+      uri = rasqal_literal_as_uri(node);
+      if(uri) {
+        test_graph_data_uri = raptor_uri_copy(uri);
+        if(debug > 0) {
+          fprintf(stderr, "  Test graph data URI: '%s'\n",
+                  raptor_uri_as_string(test_graph_data_uri));
+        }
+      }
+    }
+    
+  } /* end if action node */
+
+  raptor_uri* test_result_uri = NULL;
+  node = rasqal_dataset_get_target(ds,
+                                   entry_node,
+                                   mw->mf_result_literal);
+  if(node) {
+    uri = rasqal_literal_as_uri(node);
+    if(uri) {
+      test_result_uri = raptor_uri_copy(uri);
+      
+      if(debug > 0) {
+        fprintf(stderr, "  Test result URI: '%s'\n",
+                raptor_uri_as_string(test_result_uri));
+      }
+    }
+  }
+
+  raptor_uri* test_type = NULL;
+  node = rasqal_dataset_get_target(ds,
+                                   entry_node,
+                                   mw->rdf_type_literal);
+  if(node) {
+    test_type = rasqal_literal_as_uri(node);
+
+    if(debug > 0) {
+      fprintf(stderr, "  Test type: '%s'\n",
+              raptor_uri_as_string(test_type));
+    }
+  }
+
+  unsigned int test_flags = manifest_decode_test_type(test_type);
+  if(!test_flags & (FLAG_IS_QUERY | FLAG_IS_UPDATE | FLAG_IS_PROTOCOL | FLAG_IS_SYNTAX) ) {
+    fprintf(stderr, "%s: Test resource %s has no type - assuming a query\n",
+            program, rasqal_literal_as_string(entry_node));
+    test_flags |= FLAG_IS_QUERY;
+  }
+
+  /* Get a few more flags from other nodes */
+  node = rasqal_dataset_get_target(ds,
+                                   entry_node,
+                                   mw->mf_resultCardinality_literal);
+  if(node) {
+    uri = rasqal_literal_as_uri(node);
+    if(uri) {
+      int is_lax;
+
+      str = raptor_uri_as_string(uri);
+      is_lax = strstr((const char*)str, "LaxCardinality");
+      
+      if(is_lax)
+        test_flags |= FLAG_RESULT_CARDINALITY_LAX;
+    }
+  }
+
+  if(debug > 0) {
+    fprintf(stderr, "  Test result cardinality: %s\n",
+            (test_flags & FLAG_RESULT_CARDINALITY_LAX) ? "lax" : "strict");
+  }
+
+#if 0
+  my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
+  my $test_type=$query_type; $test_type =~ s/^<(.+)>$/$1/ if defined $test_type;
+
+  my $test_approval=$triples{$entry_node}->{"<${dawgt}approval>"}->[0];
+  my $is_approved = 0;
+  my $is_withdrawn = 0;
+  if($test_approval) {
+    warn "Test $name ($test_uri) state $test_approval\n"
+      if $debug > 1;
+    if($test_approval eq "<${dawgt}Withdrawn>") {
+      warn "Test $name ($test_uri) was withdrawn\n"
+	if $debug;
+      $is_withdrawn = 1;
+    }
+    if($test_approval eq "<${dawgt}Approved>") {
+      $is_approved = 1;
+    }
+  }
+
+  my $has_entailment_regime = exists $triples{$action_node}->{"<${ent}entailmentRegime>"} || $triples{$action_node}->{"<${sd}entailmentRegime>"};;
+#endif
+
+  t = (manifest_test*)calloc(sizeof(*t), 1);
+  if(!t)
+    return NULL;
+
+  t->name = test_name;
+  t->desc = test_desc;
+  t->expect = (test_flags & FLAG_MUST_FAIL) ? STATE_FAIL : STATE_PASS;
+  t->dir = dir;
+  t->test_node = rasqal_new_literal_from_literal(entry_node);
+  t->data = raptor_uri_copy(test_data_uri);
+  t->data_graph = test_graph_data_uri;
+  t->expected_result = test_result_uri;
+  t->flags = test_flags;
+
+  return t;
+}
+
+
+static void
+manifest_free_test(manifest_test* t)
+{
+  if(!t)
+    return;
+
+  if(t->name)
+    free(t->name);
+  if(t->desc)
+    free(t->desc);
+  if(t->dir)
+    free(t->dir);
+  if(t->test_node)
+    rasqal_free_literal(t->test_node);
+  if(t->data)
+    raptor_free_uri(t->data);
+  if(t->data_graph)
+    raptor_free_uri(t->data_graph);
+  if(t->expected_result)
+    raptor_free_uri(t->expected_result);
+  free(t);
+}
 
 
 /**
@@ -598,7 +751,7 @@ manifest_new_testsuite(manifest_world* mw,
     fputc('\n', stderr);
   }
 
-  /* Get some text fields */
+  /* Get test suite fields */
   node = rasqal_dataset_get_target(ds,
                                    manifest_node,
                                    mw->rdfs_comment_literal);
@@ -634,7 +787,6 @@ manifest_new_testsuite(manifest_world* mw,
                               NULL);
   for(list_node = entries_node; list_node; ) {
     rasqal_literal* entry_node;
-    rasqal_literal* action_node;
     manifest_test* t;
 
     if(debug > 1) {
@@ -652,173 +804,9 @@ manifest_new_testsuite(manifest_world* mw,
       fputc('\n', stderr);
     }
 
-    /* Get some text fields */
-    char* test_name = NULL;
-    node = rasqal_dataset_get_target(ds,
-                                     entry_node,
-                                     mw->mf_name_literal);
-    if(node) {
-      str = rasqal_literal_as_counted_string(node, &size, 0, NULL);
-      if(str) {
-        test_name = (char*)malloc(size + 1);
-        memcpy(test_name, str, size + 1);
+    t = manifest_new_test(mw, ds, entry_node, dir);
 
-        if(debug > 0) {
-          fprintf(stderr, "  Test name: '%s'\n", test_name);
-        }
-      }
-    }
-
-    char* test_desc = NULL;
-    node = rasqal_dataset_get_target(ds,
-                                     entry_node,
-                                     mw->rdfs_comment_literal);
-    if(node) {
-      str = rasqal_literal_as_counted_string(node, &size, 0, NULL);
-      if(str) {
-        test_desc = (char*)malloc(size + 1);
-        memcpy(test_desc, str, size + 1);
-
-        if(debug > 0) {
-          fprintf(stderr, "  Test desc: '%s'\n", test_desc);
-        }
-      }
-    }
-
-    action_node = rasqal_dataset_get_target(ds,
-                                            entry_node,
-                                            mw->mf_action_literal);
-    raptor_uri* test_data_uri = NULL;
-    raptor_uri* test_graph_data_uri = NULL;
-    if(action_node) {
-      if(debug > 1) {
-        fputs("  Action node is: ", stderr);
-        rasqal_literal_print(action_node, stderr);
-        fputc('\n', stderr);
-      }
-
-      node = rasqal_dataset_get_target(ds,
-                                       action_node,
-                                       mw->tq_data_literal);
-      if(node) {
-        uri = rasqal_literal_as_uri(node);
-        if(uri) {
-          test_data_uri = uri;
-                   if(debug > 0) {
-            fprintf(stderr, "  Test data URI: '%s'\n",
-                    raptor_uri_as_string(test_data_uri));
-          }
-        }
-      }
-
-      node = rasqal_dataset_get_target(ds,
-                                       action_node,
-                                       mw->tq_graphData_literal);
-      if(node) {
-        uri = rasqal_literal_as_uri(node);
-        if(uri) {
-          test_graph_data_uri = raptor_uri_copy(uri);
-                   if(debug > 0) {
-            fprintf(stderr, "  Test graph data URI: '%s'\n",
-                    raptor_uri_as_string(test_graph_data_uri));
-          }
-        }
-      }
-
-    } /* end if action node */
-
-    raptor_uri* test_result_uri = NULL;
-    node = rasqal_dataset_get_target(ds,
-                                     entry_node,
-                                     mw->mf_result_literal);
-    if(node) {
-      uri = rasqal_literal_as_uri(node);
-      if(uri) {
-        test_result_uri = raptor_uri_copy(uri);
-
-        if(debug > 0) {
-          fprintf(stderr, "  Test result URI: '%s'\n",
-                  raptor_uri_as_string(test_result_uri));
-        }
-      }
-    }
-
-    raptor_uri* test_type = NULL;
-    node = rasqal_dataset_get_target(ds,
-                                     entry_node,
-                                     mw->rdf_type_literal);
-    if(node) {
-      test_type = rasqal_literal_as_uri(node);
-
-      if(debug > 0) {
-        fprintf(stderr, "  Test type: '%s'\n",
-                raptor_uri_as_string(test_type));
-      }
-    }
-
-    unsigned int test_flags = manifest_decode_test_type(test_type);
-    if(!test_flags & (FLAG_IS_QUERY | FLAG_IS_UPDATE | FLAG_IS_PROTOCOL | FLAG_IS_SYNTAX) ) {
-      fprintf(stderr, "%s: Test resource %s has no type - assuming a query\n",
-              program, rasqal_literal_as_string(entry_node));
-      test_flags |= FLAG_IS_QUERY;
-    }
-
-    /* Get a few more flags from other nodes */
-    node = rasqal_dataset_get_target(ds,
-                                     entry_node,
-                                     mw->mf_resultCardinality_literal);
-    if(node) {
-      uri = rasqal_literal_as_uri(node);
-      if(uri) {
-        int is_lax;
-
-        str = raptor_uri_as_string(uri);
-        is_lax = strstr((const char*)str, "LaxCardinality");
-        
-        if(is_lax)
-          test_flags |= FLAG_RESULT_CARDINALITY_LAX;
-      }
-    }
-
-    if(debug > 0) {
-      fprintf(stderr, "  Test result cardinality: %s\n",
-              (test_flags & FLAG_RESULT_CARDINALITY_LAX) ? "lax" : "strict");
-    }
-
-#if 0
-  my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
-  my $test_type=$query_type; $test_type =~ s/^<(.+)>$/$1/ if defined $test_type;
-
-  my $test_approval=$triples{$entry_node}->{"<${dawgt}approval>"}->[0];
-  my $is_approved = 0;
-  my $is_withdrawn = 0;
-  if($test_approval) {
-    warn "Test $name ($test_uri) state $test_approval\n"
-      if $debug > 1;
-    if($test_approval eq "<${dawgt}Withdrawn>") {
-      warn "Test $name ($test_uri) was withdrawn\n"
-	if $debug;
-      $is_withdrawn = 1;
-    }
-    if($test_approval eq "<${dawgt}Approved>") {
-      $is_approved = 1;
-    }
-  }
-
-  my $has_entailment_regime = exists $triples{$action_node}->{"<${ent}entailmentRegime>"} || $triples{$action_node}->{"<${sd}entailmentRegime>"};;
-#endif
-
-
-    /* All the parameters become owned by the test */
-    t = manifest_new_test(test_name, test_desc, dir,
-                          rasqal_new_literal_from_literal(entry_node),
-                          raptor_uri_copy(test_data_uri),
-                          test_graph_data_uri,
-                          test_result_uri,
-                          test_flags);
-    test_name = NULL;
-
-    if(test_flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
+    if(t && t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
       manifest_free_test(t);
       t = NULL;
       fprintf(stderr, "%s: Ignoring test %s type UPDATE / PROTOCOL - not supported\n", program, rasqal_literal_as_string(entry_node));
