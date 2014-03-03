@@ -137,6 +137,7 @@ typedef struct
   raptor_uri* mf_namespace_uri;
   raptor_uri* t_namespace_uri;
   raptor_uri* tq_namespace_uri;
+  raptor_uri* dawgt_namespace_uri;
 
   /* URIs */
   raptor_uri* mf_Manifest_uri;
@@ -153,6 +154,7 @@ typedef struct
   raptor_uri* t_path_uri;
   raptor_uri* tq_data_uri;
   raptor_uri* tq_graphData_uri;
+  raptor_uri* dawgt_approval_uri;
 
   /* Literals */
   rasqal_literal* mf_Manifest_literal;
@@ -168,6 +170,7 @@ typedef struct
   rasqal_literal* t_path_literal;
   rasqal_literal* tq_data_literal;
   rasqal_literal* tq_graphData_literal;
+  rasqal_literal* dawgt_approval_literal;
 } manifest_world;
 
   
@@ -264,6 +267,7 @@ manifest_new_world(rasqal_world* world)
   mw->mf_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#");
   mw->t_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://ns.librdf.org/2009/test-manifest#");
   mw->tq_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/test-query#");
+  mw->dawgt_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#");
 
   mw->mf_Manifest_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->mf_namespace_uri, (const unsigned char*)"Manifest");
   mw->mf_entries_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->mf_namespace_uri, (const unsigned char*)"entries");
@@ -279,6 +283,7 @@ manifest_new_world(rasqal_world* world)
   mw->t_path_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->t_namespace_uri, (const unsigned char*)"path");
   mw->tq_data_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->tq_namespace_uri, (const unsigned char*)"data");
   mw->tq_graphData_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->tq_namespace_uri, (const unsigned char*)"graphData");
+  mw->dawgt_approval_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->dawgt_namespace_uri, (const unsigned char*)"approval");
 
   mw->mf_Manifest_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->mf_Manifest_uri));
   mw->mf_entries_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->mf_entries_uri));
@@ -293,6 +298,7 @@ manifest_new_world(rasqal_world* world)
   mw->t_path_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->t_path_uri));
   mw->tq_data_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->tq_data_uri));
   mw->tq_graphData_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->tq_graphData_uri));
+  mw->dawgt_approval_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->dawgt_approval_uri));
 
   return mw;
 }
@@ -311,6 +317,8 @@ void manifest_free_world(manifest_world* mw)
     raptor_free_uri(mw->t_namespace_uri);
   if(mw->tq_namespace_uri)
     raptor_free_uri(mw->tq_namespace_uri);
+  if(mw->dawgt_namespace_uri)
+    raptor_free_uri(mw->dawgt_namespace_uri);
 
   if(mw->mf_Manifest_uri)
     raptor_free_uri(mw->mf_Manifest_uri);
@@ -340,6 +348,8 @@ void manifest_free_world(manifest_world* mw)
     raptor_free_uri(mw->tq_data_uri);
   if(mw->tq_graphData_uri)
     raptor_free_uri(mw->tq_graphData_uri);
+  if(mw->dawgt_approval_uri)
+    raptor_free_uri(mw->dawgt_approval_uri);
 
   if(mw->mf_Manifest_literal)
     rasqal_free_literal(mw->mf_Manifest_literal);
@@ -367,6 +377,8 @@ void manifest_free_world(manifest_world* mw)
     rasqal_free_literal(mw->tq_data_literal);
   if(mw->tq_graphData_literal)
     rasqal_free_literal(mw->tq_graphData_literal);
+  if(mw->dawgt_approval_literal)
+    rasqal_free_literal(mw->dawgt_approval_literal);
 
   free(mw);
 }
