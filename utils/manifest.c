@@ -953,7 +953,7 @@ manifest_indent(FILE* fh, unsigned int indent)
 
 
 static manifest_test_result*
-manifest_run_test(manifest_testsuite* ts, manifest_test* t)
+manifest_testsuite_run_test(manifest_testsuite* ts, manifest_test* t)
 {
   manifest_test_result* result;
   manifest_test_state state = STATE_FAIL;
@@ -1023,7 +1023,7 @@ manifest_run_test(manifest_testsuite* ts, manifest_test* t)
 
 
 static manifest_test_result*
-manifest_run_testsuite(manifest_testsuite* ts, unsigned int indent)
+manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent)
 {
   char* name = ts->name;
   char* desc = ts->desc ? ts->desc : name;
@@ -1045,7 +1045,7 @@ manifest_run_testsuite(manifest_testsuite* ts, unsigned int indent)
     if(dryrun) {
       t->result = manifest_new_test_result(STATE_SKIP);
     } else {
-      t->result = manifest_run_test(ts, t);
+      t->result = manifest_testsuite_run_test(ts, t);
     }
 
     if(t->expect == STATE_FAIL)
@@ -1103,7 +1103,7 @@ manifest_run_testsuite(manifest_testsuite* ts, unsigned int indent)
 
 
 /**
- * manifest_test_manifests:
+ * manifest_manifests_run:
  * @world: world
  * @manifest_uris: array of manifest URIs
  * @base_uri: base URI for manifest
@@ -1114,10 +1114,10 @@ manifest_run_testsuite(manifest_testsuite* ts, unsigned int indent)
  * Return value: test result or NULL on failure
  */
 static manifest_test_result*
-manifest_test_manifests(manifest_world* mw,
-                        raptor_uri** manifest_uris,
-                        raptor_uri* base_uri,
-                        unsigned int indent)
+manifest_manifests_run(manifest_world* mw,
+                       raptor_uri** manifest_uris,
+                       raptor_uri* base_uri,
+                       unsigned int indent)
 {
   manifest_test_state total_state = STATE_PASS;
   manifest_test_result* total_result = NULL;
@@ -1145,10 +1145,10 @@ manifest_test_manifests(manifest_world* mw,
       break;
     }
 
-    result = manifest_run_testsuite(ts, indent);
+    result = manifest_testsuite_run_suite(ts, indent);
 
 #if 0
-    format_testsuite_result(stdout, result, indent + indent_step);
+    manifest_testsuite_result_format(stdout, result, indent + indent_step);
 #endif
     for(j = 0; j < STATE_LAST; j++)
       raptor_sequence_join(total_result->states[i], result->states[i]);
@@ -1173,7 +1173,7 @@ manifest_test_manifests(manifest_world* mw,
   fputs("Testsuites summary:\n", stdout);
 
 #if 0
-  format_testsuite_result(stdout, total_result, indent + indent_step);
+  manifest_testsuite_result_format(stdout, total_result, indent + indent_step);
 #endif
   if(verbose) {
     manifest_indent(stdout, indent);
@@ -1237,7 +1237,7 @@ main(int argc, char *argv[])
   raptor_uri* manifest_uris[2] = { uri, NULL };
 
   manifest_test_result* result;
-  result = manifest_test_manifests(mw, manifest_uris, base_uri, 0);
+  result = manifest_manifests_run(mw, manifest_uris, base_uri, 0);
 
   if(result)
     manifest_free_test_result(result);
