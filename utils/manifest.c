@@ -141,7 +141,6 @@ typedef struct
   raptor_uri* t_namespace_uri;
   raptor_uri* tq_namespace_uri;
   raptor_uri* dawgt_namespace_uri;
-  raptor_uri* ent_namespace_uri;
   raptor_uri* sd_namespace_uri;
 
   /* URIs */
@@ -160,7 +159,6 @@ typedef struct
   raptor_uri* tq_data_uri;
   raptor_uri* tq_graphData_uri;
   raptor_uri* dawgt_approval_uri;
-  raptor_uri* ent_entailmentRegime_uri;
   raptor_uri* sd_entailmentRegime_uri;
 
   /* Literals */
@@ -178,7 +176,6 @@ typedef struct
   rasqal_literal* tq_data_literal;
   rasqal_literal* tq_graphData_literal;
   rasqal_literal* dawgt_approval_literal;
-  rasqal_literal* ent_entailmentRegime_literal;
   rasqal_literal* sd_entailmentRegime_literal;
 } manifest_world;
 
@@ -277,7 +274,6 @@ manifest_new_world(rasqal_world* world)
   mw->t_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://ns.librdf.org/2009/test-manifest#");
   mw->tq_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/test-query#");
   mw->dawgt_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#");
-  mw->ent_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/ns/entailment/");
   mw->sd_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/ns/sparql-service-description#");
 
   mw->mf_Manifest_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->mf_namespace_uri, (const unsigned char*)"Manifest");
@@ -295,7 +291,6 @@ manifest_new_world(rasqal_world* world)
   mw->tq_data_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->tq_namespace_uri, (const unsigned char*)"data");
   mw->tq_graphData_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->tq_namespace_uri, (const unsigned char*)"graphData");
   mw->dawgt_approval_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->dawgt_namespace_uri, (const unsigned char*)"approval");
-  mw->ent_entailmentRegime_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->ent_namespace_uri, (const unsigned char*)"entailmentRegime");
   mw->sd_entailmentRegime_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->sd_namespace_uri, (const unsigned char*)"entailmentRegime");
 
   mw->mf_Manifest_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->mf_Manifest_uri));
@@ -312,7 +307,6 @@ manifest_new_world(rasqal_world* world)
   mw->tq_data_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->tq_data_uri));
   mw->tq_graphData_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->tq_graphData_uri));
   mw->dawgt_approval_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->dawgt_approval_uri));
-  mw->ent_entailmentRegime_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->ent_entailmentRegime_uri));
   mw->sd_entailmentRegime_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->sd_entailmentRegime_uri));
 
   return mw;
@@ -334,8 +328,6 @@ void manifest_free_world(manifest_world* mw)
     raptor_free_uri(mw->tq_namespace_uri);
   if(mw->dawgt_namespace_uri)
     raptor_free_uri(mw->dawgt_namespace_uri);
-  if(mw->ent_namespace_uri)
-    raptor_free_uri(mw->ent_namespace_uri);
   if(mw->sd_namespace_uri)
     raptor_free_uri(mw->sd_namespace_uri);
 
@@ -369,8 +361,6 @@ void manifest_free_world(manifest_world* mw)
     raptor_free_uri(mw->tq_graphData_uri);
   if(mw->dawgt_approval_uri)
     raptor_free_uri(mw->dawgt_approval_uri);
-  if(mw->ent_entailmentRegime_uri)
-    raptor_free_uri(mw->ent_entailmentRegime_uri);
   if(mw->sd_entailmentRegime_uri)
     raptor_free_uri(mw->sd_entailmentRegime_uri);
 
@@ -402,8 +392,6 @@ void manifest_free_world(manifest_world* mw)
     rasqal_free_literal(mw->tq_graphData_literal);
   if(mw->dawgt_approval_literal)
     rasqal_free_literal(mw->dawgt_approval_literal);
-  if(mw->ent_entailmentRegime_literal)
-    rasqal_free_literal(mw->ent_entailmentRegime_literal);
   if(mw->sd_entailmentRegime_literal)
     rasqal_free_literal(mw->sd_entailmentRegime_literal);
 
@@ -666,11 +654,6 @@ manifest_new_test(manifest_world* mw,
             (test_flags & FLAG_TEST_WITHDRAWN) ? "yes" : "no");
   }
 
-  node = rasqal_dataset_get_target(ds,
-                                   action_node,
-                                   mw->ent_entailmentRegime_literal);
-  if(node)
-    test_flags |= FLAG_ENTAILMENT;
   node = rasqal_dataset_get_target(ds,
                                    action_node,
                                    mw->sd_entailmentRegime_literal);
