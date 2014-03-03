@@ -124,6 +124,8 @@ typedef enum {
   FLAG_MUST_FAIL      = 32, /* must FAIL otherwise must PASS  */
   FLAG_HAS_ENTAILMENT_REGIME = 64,
   FLAG_RESULT_CARDINALITY_LAX = 128, /* else strict (exact match) */
+  FLAG_TEST_APPROVED = 256, /* else unapproved */
+  FLAG_TEST_WITHDRAWN = 512 /* else live */
 } manifest_test_type_bitflags;
 
 
@@ -611,26 +613,34 @@ manifest_new_test(manifest_world* mw,
             (test_flags & FLAG_RESULT_CARDINALITY_LAX) ? "lax" : "strict");
   }
 
-#if 0
-  my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
-  my $test_type=$query_type; $test_type =~ s/^<(.+)>$/$1/ if defined $test_type;
-
-  my $test_approval=$triples{$entry_node}->{"<${dawgt}approval>"}->[0];
-  my $is_approved = 0;
-  my $is_withdrawn = 0;
-  if($test_approval) {
-    warn "Test $name ($test_uri) state $test_approval\n"
-      if $debug > 1;
-    if($test_approval eq "<${dawgt}Withdrawn>") {
-      warn "Test $name ($test_uri) was withdrawn\n"
-	if $debug;
-      $is_withdrawn = 1;
-    }
-    if($test_approval eq "<${dawgt}Approved>") {
-      $is_approved = 1;
+  node = rasqal_dataset_get_target(ds,
+                                   entry_node,
+                                   mw->dawgt_approval_literal);
+  if(node) {
+    uri = rasqal_literal_as_uri(node);
+    if(uri) {
+      int is_approved;
+      int is_withdrawn;
+      
+      str = raptor_uri_as_string(uri);
+      is_approved = strstr((const char*)str, "Approved");
+      is_withdrawn = strstr((const char*)str, "Withdrawn");
+      
+      if(is_approved)
+        test_flags |= FLAG_TEST_APPROVED;
+      if(is_withdrawn)
+        test_flags |= FLAG_TEST_WITHDRAWN;
     }
   }
 
+  if(debug > 0) {
+    fprintf(stderr, "  Test approved: %s\n",
+            (test_flags & FLAG_TEST_APPROVED) ? "yes" : "no");
+    fprintf(stderr, "  Test withdrawn: %s\n",
+            (test_flags & FLAG_TEST_WITHDRAWN) ? "yes" : "no");
+  }
+
+#if 0
   my $has_entailment_regime = exists $triples{$action_node}->{"<${ent}entailmentRegime>"} || $triples{$action_node}->{"<${sd}entailmentRegime>"};;
 #endif
 
