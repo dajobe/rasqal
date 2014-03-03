@@ -184,6 +184,15 @@ typedef struct
   
 typedef struct
 {
+  manifest_test_state state;
+  char* details;
+  char* log; /* error log */
+  raptor_sequence* states[STATE_LAST + 1];
+} manifest_test_result;
+
+
+typedef struct
+{
   char* dir;
   rasqal_literal* test_node; /* the test node (URI or blank node) */
   char* name; /* <test-uri> mf:name ?value */
@@ -196,9 +205,7 @@ typedef struct
   unsigned int flags; /* bit flags from #manifest_test_type_bitflags */
 
   /* Test output */
-  manifest_test_state result;
-  char* details; /* error details */
-  char* log; /* error log */
+  manifest_test_result* result;
 } manifest_test;
 
 
@@ -213,14 +220,6 @@ typedef struct
   raptor_sequence* tests; /* sequence of manifest_test */
   char* details; /* error details */
 } manifest_testsuite;
-
-
-typedef struct
-{
-  manifest_test_state state;
-  char* details;
-  raptor_sequence* states[STATE_LAST + 1];
-} manifest_test_result;
 
 
 static const char manifest_test_state_chars[STATE_LAST + 1] = ".F*!-";
@@ -410,7 +409,7 @@ void manifest_free_world(manifest_world* mw)
 
 
 static manifest_test_result*
-manifest_new_test_result(void)
+manifest_new_test_result(manifest_test_state state)
 {
   manifest_test_result* result;
   int i;
@@ -419,7 +418,7 @@ manifest_new_test_result(void)
   if(!result)
     return NULL;
 
-  result->state = STATE_FAIL;
+  result->state = state;
   /* total_result->details = NULL; */
   for(i = 0; i < STATE_LAST; i++)
     /* Holding pointers; the tests are owned by the testsuites */
@@ -437,6 +436,9 @@ manifest_free_test_result(manifest_test_result* result)
 
   if(result->details)
     free(result->details);
+
+  if(result->log)
+    free(result->log);
 
   for(i = 0; i < STATE_LAST; i++) {
     if(result->states[i])
@@ -730,6 +732,9 @@ manifest_free_test(manifest_test* t)
     raptor_free_uri(t->data_graph);
   if(t->expected_result)
     raptor_free_uri(t->expected_result);
+  if(t->result)
+    manifest_free_test_result(t->result);
+
   free(t);
 }
 
@@ -944,6 +949,76 @@ manifest_indent(FILE* fh, unsigned int indent)
 
 
 static manifest_test_result*
+manifest_run_test(manifest_testsuite* ts, manifest_test* t)
+{
+  manifest_test_result* result;
+  manifest_test_state state = STATE_FAIL;
+
+  result = manifest_new_test_result(STATE_FAIL);
+
+  if(ts->path)
+    setenv("PATH", ts->path, 1);
+
+  state = STATE_PASS;
+#if 0
+  const char* name = t->name;
+
+  my $sname=$name; $sname =~ s/\W/-/g;
+  my $log="$sname.log";
+  system "$action > '$log' 2>&1";
+  my $rc=$?;
+
+  if($rc == -1) {
+    # exec() failed
+    $test->{detail}="failed to execute $action: $!";
+    $status='fail';
+  } elsif($rc & 127) {
+    # exec()ed but died on a signal
+    my($signal,$coredump_p);
+    ($signal,$coredump_p)=(($rc & 127),  ($rc & 128));
+    $test->{detail}=sprintf("$path$action died with signal $signal, %s coredump". $coredump_p ? 'with' : 'without');
+    open(LOG, '<', $log);
+    $test->{log}=join('', <LOG>);
+    close(LOG);
+    $status='fail';
+    if($signal == 2) { # SIGINT
+      $testsuite->{abort}=1;
+    }
+  } elsif($rc) {
+    # exec()ed and exited with non-0
+    $rc >>= 8;
+    $test->{detail}="$path$action exited with code $rc";
+    if(open(LOG, '<', $log)) {
+      $test->{log}=join('', <LOG>);
+      close(LOG);
+    } else {
+      $test->{log}='';
+    }
+    $status='fail';
+  } else {
+    # exec()ed and exit 0
+    $status='pass';
+  }
+  unlink $log;
+
+#endif
+  if(t->expect == STATE_FAIL) {
+    if(state == STATE_FAIL) {
+      state=STATE_XFAIL;
+      result->details = strdup("Test failed as expected");
+    } else {
+      state = STATE_UXPASS;
+      result->details = strdup("Test passed but expected to fail");
+    }
+  }
+
+  result->state = state;
+
+  return result;
+}
+
+
+static manifest_test_result*
 manifest_run_testsuite(manifest_testsuite* ts, unsigned int indent)
 {
   char* name = ts->name;
@@ -955,7 +1030,7 @@ manifest_run_testsuite(manifest_testsuite* ts, unsigned int indent)
   manifest_test_result* result;
 
   /* Initialize */
-  result = manifest_new_test_result();
+  result = manifest_new_test_result(STATE_FAIL);
 
   /* Run testsuite */
   manifest_indent(stdout, indent);
@@ -964,27 +1039,23 @@ manifest_run_testsuite(manifest_testsuite* ts, unsigned int indent)
   column = indent;
   for(i = 0; (t = raptor_sequence_get_at(ts->tests, i)); i++) {
     if(dryrun) {
-      t->result = STATE_SKIP;
-      t->details = NULL;
+      t->result = manifest_new_test_result(STATE_SKIP);
     } else {
-      t->result = STATE_PASS;
-#if 0
       t->result = manifest_run_test(ts, t);
-#endif
     }
 
     if(t->expect == STATE_FAIL)
       expected_failures_count++;
 
 
-    manifest_test_state state = t->result;
+    manifest_test_state state = t->result->state;
     if(!verbose)
-      fputc(stdout, manifest_test_state_char(state));
+      fputc(manifest_test_state_char(state), stdout);
     raptor_sequence_push(result->states[(unsigned int)state], t);
 
     column++;
     if(!verbose && column > linewrap) {
-      fputc(stdout, '\n');
+      fputc('\n', stdout);
       manifest_indent(stdout, indent);
       column = indent;
     }
@@ -996,13 +1067,15 @@ manifest_run_testsuite(manifest_testsuite* ts, unsigned int indent)
       fputs(t->name, stdout);
       fputs(": ", stdout);
       fputs(label, stdout);
-      if(t->details) {
-        fputs(" - ", stdout);
-        fputs(t->details, stdout);
+      if(t->result) {
+        if(t->result->details) {
+          fputs(" - ", stdout);
+          fputs(t->result->details, stdout);
+        }
       }
       fputc('\n', stdout);
       if(verbose > 1) {
-	if(state == STATE_FAIL && t->log) {
+	if(state == STATE_FAIL && t->result && t->result->log) {
 #if 0
 	  my(@lines)=split(/\n/, $t->{log});
 	  print $i."  ".join("\n${i}  ", @lines)."\n";
@@ -1047,7 +1120,7 @@ manifest_test_manifests(manifest_world* mw,
   raptor_uri* uri;
   int i = 0;
 
-  total_result = manifest_new_test_result();
+  total_result = manifest_new_test_result(STATE_PASS);
   if(!total_result)
     return NULL;
 
