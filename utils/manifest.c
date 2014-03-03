@@ -65,6 +65,7 @@ static const int indent_step = 2;
 static const int linewrap = 78;
 static const int banner_width = linewrap - 10;
 
+
 static void
 manifest_log_handler(void *data, raptor_log_message *message)
 {
@@ -102,6 +103,7 @@ manifest_log_handler(void *data, raptor_log_message *message)
   }
 }
 
+
 typedef enum
 {
   STATE_PASS,
@@ -111,6 +113,7 @@ typedef enum
   STATE_SKIP,
   STATE_LAST = STATE_SKIP
 } manifest_test_state;
+
 
 typedef enum {
   /* these are alternatives */
@@ -425,6 +428,7 @@ manifest_new_test_result(manifest_test_state state)
     result->states[i] = raptor_new_sequence(NULL, NULL);
   return result;
 }
+
 
 static void
 manifest_free_test_result(manifest_test_result* result)
