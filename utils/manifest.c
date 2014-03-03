@@ -139,7 +139,7 @@ typedef struct
   raptor_uri* rdfs_namespace_uri;
   raptor_uri* mf_namespace_uri;
   raptor_uri* t_namespace_uri;
-  raptor_uri* tq_namespace_uri;
+  raptor_uri* qt_namespace_uri;
   raptor_uri* dawgt_namespace_uri;
   raptor_uri* sd_namespace_uri;
 
@@ -156,8 +156,9 @@ typedef struct
   raptor_uri* rdf_nil_uri;
   raptor_uri* rdfs_comment_uri;
   raptor_uri* t_path_uri;
-  raptor_uri* tq_data_uri;
-  raptor_uri* tq_graphData_uri;
+  raptor_uri* qt_data_uri;
+  raptor_uri* qt_graphData_uri;
+  raptor_uri* qt_query_uri;
   raptor_uri* dawgt_approval_uri;
   raptor_uri* sd_entailmentRegime_uri;
 
@@ -173,8 +174,9 @@ typedef struct
   rasqal_literal* rdf_rest_literal;
   rasqal_literal* rdfs_comment_literal;
   rasqal_literal* t_path_literal;
-  rasqal_literal* tq_data_literal;
-  rasqal_literal* tq_graphData_literal;
+  rasqal_literal* qt_data_literal;
+  rasqal_literal* qt_graphData_literal;
+  rasqal_literal* qt_query_literal;
   rasqal_literal* dawgt_approval_literal;
   rasqal_literal* sd_entailmentRegime_literal;
 } manifest_world;
@@ -187,6 +189,7 @@ typedef struct
   char* name; /* <test-uri> mf:name ?value */
   char* desc; /* <test-uri> rdfs:comment ?value */
   manifest_test_state expect; /* derived from <test-uri> rdf:type ?value */
+  raptor_uri* query; /* <test-uri> qt:query ?uri */
   raptor_uri* data; /* <test-uri> qt:data ?uri */
   raptor_uri* data_graph;  /* <test-uri> qt:dataGraph ?uri */
   raptor_uri* expected_result; /* <test-uri> mf:result ?uri */
@@ -272,7 +275,7 @@ manifest_new_world(rasqal_world* world)
   mw->rdfs_namespace_uri = raptor_new_uri(raptor_world_ptr, raptor_rdf_schema_namespace_uri);
   mw->mf_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#");
   mw->t_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://ns.librdf.org/2009/test-manifest#");
-  mw->tq_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/test-query#");
+  mw->qt_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/test-query#");
   mw->dawgt_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#");
   mw->sd_namespace_uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)"http://www.w3.org/ns/sparql-service-description#");
 
@@ -288,8 +291,9 @@ manifest_new_world(rasqal_world* world)
   mw->rdf_nil_uri = raptor_new_uri_for_rdf_concept(raptor_world_ptr, (const unsigned char*)"nil");
   mw->rdfs_comment_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->rdfs_namespace_uri, (const unsigned char*)"comment");
   mw->t_path_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->t_namespace_uri, (const unsigned char*)"path");
-  mw->tq_data_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->tq_namespace_uri, (const unsigned char*)"data");
-  mw->tq_graphData_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->tq_namespace_uri, (const unsigned char*)"graphData");
+  mw->qt_data_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->qt_namespace_uri, (const unsigned char*)"data");
+  mw->qt_graphData_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->qt_namespace_uri, (const unsigned char*)"graphData");
+  mw->qt_query_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->qt_namespace_uri, (const unsigned char*)"query");
   mw->dawgt_approval_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->dawgt_namespace_uri, (const unsigned char*)"approval");
   mw->sd_entailmentRegime_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, mw->sd_namespace_uri, (const unsigned char*)"entailmentRegime");
 
@@ -304,8 +308,9 @@ manifest_new_world(rasqal_world* world)
   mw->rdf_rest_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->rdf_rest_uri));
   mw->rdfs_comment_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->rdfs_comment_uri));
   mw->t_path_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->t_path_uri));
-  mw->tq_data_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->tq_data_uri));
-  mw->tq_graphData_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->tq_graphData_uri));
+  mw->qt_data_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->qt_data_uri));
+  mw->qt_graphData_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->qt_graphData_uri));
+  mw->qt_query_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->qt_query_uri));
   mw->dawgt_approval_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->dawgt_approval_uri));
   mw->sd_entailmentRegime_literal = rasqal_new_uri_literal(world, raptor_uri_copy(mw->sd_entailmentRegime_uri));
 
@@ -324,8 +329,8 @@ void manifest_free_world(manifest_world* mw)
     raptor_free_uri(mw->mf_namespace_uri);
   if(mw->t_namespace_uri)
     raptor_free_uri(mw->t_namespace_uri);
-  if(mw->tq_namespace_uri)
-    raptor_free_uri(mw->tq_namespace_uri);
+  if(mw->qt_namespace_uri)
+    raptor_free_uri(mw->qt_namespace_uri);
   if(mw->dawgt_namespace_uri)
     raptor_free_uri(mw->dawgt_namespace_uri);
   if(mw->sd_namespace_uri)
@@ -355,10 +360,12 @@ void manifest_free_world(manifest_world* mw)
     raptor_free_uri(mw->rdfs_comment_uri);
   if(mw->t_path_uri)
     raptor_free_uri(mw->t_path_uri);
-  if(mw->tq_data_uri)
-    raptor_free_uri(mw->tq_data_uri);
-  if(mw->tq_graphData_uri)
-    raptor_free_uri(mw->tq_graphData_uri);
+  if(mw->qt_data_uri)
+    raptor_free_uri(mw->qt_data_uri);
+  if(mw->qt_graphData_uri)
+    raptor_free_uri(mw->qt_graphData_uri);
+  if(mw->qt_query_uri)
+    raptor_free_uri(mw->qt_query_uri);
   if(mw->dawgt_approval_uri)
     raptor_free_uri(mw->dawgt_approval_uri);
   if(mw->sd_entailmentRegime_uri)
@@ -386,10 +393,12 @@ void manifest_free_world(manifest_world* mw)
     rasqal_free_literal(mw->rdfs_comment_literal);
   if(mw->t_path_literal)
     rasqal_free_literal(mw->t_path_literal);
-  if(mw->tq_data_literal)
-    rasqal_free_literal(mw->tq_data_literal);
-  if(mw->tq_graphData_literal)
-    rasqal_free_literal(mw->tq_graphData_literal);
+  if(mw->qt_data_literal)
+    rasqal_free_literal(mw->qt_data_literal);
+  if(mw->qt_graphData_literal)
+    rasqal_free_literal(mw->qt_graphData_literal);
+  if(mw->qt_query_literal)
+    rasqal_free_literal(mw->qt_query_literal);
   if(mw->dawgt_approval_literal)
     rasqal_free_literal(mw->dawgt_approval_literal);
   if(mw->sd_entailmentRegime_literal)
@@ -529,8 +538,10 @@ manifest_new_test(manifest_world* mw,
   action_node = rasqal_dataset_get_target(ds,
                                           entry_node,
                                           mw->mf_action_literal);
+  raptor_uri* test_query_uri = NULL;
   raptor_uri* test_data_uri = NULL;
-  raptor_uri* test_graph_data_uri = NULL;
+  raptor_uri* test_data_graph_uri = NULL;
+
   if(action_node) {
     if(debug > 1) {
       fputs("  Action node is: ", stderr);
@@ -540,11 +551,25 @@ manifest_new_test(manifest_world* mw,
 
     node = rasqal_dataset_get_target(ds,
                                      action_node,
-                                     mw->tq_data_literal);
-    if(node) {
+                                     mw->qt_query_literal);
+    if(node && node->type == RASQAL_LITERAL_URI) {
       uri = rasqal_literal_as_uri(node);
       if(uri) {
-        test_data_uri = uri;
+        test_query_uri = raptor_uri_copy(uri);
+        if(debug > 0) {
+          fprintf(stderr, "  Test query URI: '%s'\n",
+                  raptor_uri_as_string(test_query_uri));
+        }
+      }
+    }
+    
+    node = rasqal_dataset_get_target(ds,
+                                     action_node,
+                                     mw->qt_data_literal);
+    if(node && node->type == RASQAL_LITERAL_URI) {
+      uri = rasqal_literal_as_uri(node);
+      if(uri) {
+        test_data_uri = raptor_uri_copy(uri);
         if(debug > 0) {
           fprintf(stderr, "  Test data URI: '%s'\n",
                   raptor_uri_as_string(test_data_uri));
@@ -554,15 +579,15 @@ manifest_new_test(manifest_world* mw,
     
     node = rasqal_dataset_get_target(ds,
                                      action_node,
-                                     mw->tq_graphData_literal);
+                                     mw->qt_graphData_literal);
     if(node && node->type == RASQAL_LITERAL_URI) {
       /* FIXME: seen qt:graphData [ qt:graph <uri>; rdfs:label "string" ] */
       uri = rasqal_literal_as_uri(node);
       if(uri) {
-        test_graph_data_uri = raptor_uri_copy(uri);
+        test_data_graph_uri = raptor_uri_copy(uri);
         if(debug > 0) {
           fprintf(stderr, "  Test graph data URI: '%s'\n",
-                  raptor_uri_as_string(test_graph_data_uri));
+                  raptor_uri_as_string(test_data_graph_uri));
         }
       }
     }
@@ -573,7 +598,7 @@ manifest_new_test(manifest_world* mw,
   node = rasqal_dataset_get_target(ds,
                                    entry_node,
                                    mw->mf_result_literal);
-  if(node) {
+  if(node && node->type == RASQAL_LITERAL_URI) {
     uri = rasqal_literal_as_uri(node);
     if(uri) {
       test_result_uri = raptor_uri_copy(uri);
@@ -589,7 +614,7 @@ manifest_new_test(manifest_world* mw,
   node = rasqal_dataset_get_target(ds,
                                    entry_node,
                                    mw->rdf_type_literal);
-  if(node) {
+  if(node && node->type == RASQAL_LITERAL_URI) {
     test_type = rasqal_literal_as_uri(node);
 
     if(debug > 0) {
@@ -600,8 +625,6 @@ manifest_new_test(manifest_world* mw,
 
   unsigned int test_flags = manifest_decode_test_type(test_type);
   if(!(test_flags & (FLAG_IS_QUERY | FLAG_IS_UPDATE | FLAG_IS_PROTOCOL | FLAG_IS_SYNTAX) )) {
-    fprintf(stderr, "%s: Test resource %s has no type - assuming a query\n",
-            program, rasqal_literal_as_string(entry_node));
     test_flags |= FLAG_IS_QUERY;
   }
 
@@ -609,7 +632,7 @@ manifest_new_test(manifest_world* mw,
   node = rasqal_dataset_get_target(ds,
                                    entry_node,
                                    mw->mf_resultCardinality_literal);
-  if(node) {
+  if(node && node->type == RASQAL_LITERAL_URI) {
     uri = rasqal_literal_as_uri(node);
     if(uri) {
       int is_lax;
@@ -630,7 +653,7 @@ manifest_new_test(manifest_world* mw,
   node = rasqal_dataset_get_target(ds,
                                    entry_node,
                                    mw->dawgt_approval_literal);
-  if(node) {
+  if(node && node->type == RASQAL_LITERAL_URI) {
     uri = rasqal_literal_as_uri(node);
     if(uri) {
       int is_approved;
@@ -665,7 +688,6 @@ manifest_new_test(manifest_world* mw,
             (test_flags & FLAG_ENTAILMENT) ? "yes" : "no");
   }
 
-  
 
   t = (manifest_test*)calloc(sizeof(*t), 1);
   if(!t)
@@ -676,8 +698,9 @@ manifest_new_test(manifest_world* mw,
   t->expect = (test_flags & FLAG_MUST_FAIL) ? STATE_FAIL : STATE_PASS;
   t->dir = dir;
   t->test_node = rasqal_new_literal_from_literal(entry_node);
-  t->data = raptor_uri_copy(test_data_uri);
-  t->data_graph = test_graph_data_uri;
+  t->query = test_query_uri;
+  t->data = test_data_uri;
+  t->data_graph = test_data_graph_uri;
   t->expected_result = test_result_uri;
   t->flags = test_flags;
 
@@ -699,6 +722,8 @@ manifest_free_test(manifest_test* t)
     free(t->dir);
   if(t->test_node)
     rasqal_free_literal(t->test_node);
+  if(t->query)
+    raptor_free_uri(t->query);
   if(t->data)
     raptor_free_uri(t->data);
   if(t->data_graph)
