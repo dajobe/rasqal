@@ -41,22 +41,67 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
+#ifndef HAVE_GETOPT
+#include <rasqal_getopt.h>
+#endif
 
+/* Rasqal includes */
 #include <rasqal.h>
-
 #include <rasqal_internal.h>
 
 #include <raptor2.h>
 
 #include "manifest.h"
 
+
+#include "rasqalcmdline.h"
+
+#ifdef NEED_OPTIND_DECLARATION
+extern int optind;
+extern char *optarg;
+#endif
+
 int main(int argc, char *argv[]);
 
 
 static char *program = NULL;
 
+#ifdef HAVE_GETOPT_LONG
+#define HELP_TEXT(short, long, description) "  -" short ", --" long "  " description
+#define HELP_TEXT_LONG(long, description) "      --" long "  " description
+#define HELP_ARG(short, long) "--" #long
+#define HELP_PAD "\n                          "
+#else
+#define HELP_TEXT(short, long, description) "  -" short "  " description
+#define HELP_TEXT_LONG(long, description)
+#define HELP_ARG(short, long) "-" #short
+#define HELP_PAD "\n      "
+#endif
+
+
+#define GETOPT_STRING "hnqv"
+
+#ifdef HAVE_GETOPT_LONG
+
+static struct option long_options[] =
+{
+  /* name, has_arg, flag, val */
+  {"help", 0, 0, 'h'},
+  {"dryrun", 0, 0, 'n'},
+  {"quiet", 0, 0, 'q'},
+  {"version", 0, 0, 'v'},
+  {NULL, 0, 0, 0}
+};
+#endif
+
+
 static int error_count = 0;
 static int warning_count = 0;
+
+static const char *title_format_string = "Rasqal RDF test runner utility %s\n";
 
 
 static void
@@ -97,6 +142,28 @@ testrunner_log_handler(void *data, raptor_log_message *message)
 }
 
 
+static void
+print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
+{
+  printf(title_format_string, rasqal_version_string);
+  puts("Run an RDF test suite.");
+  printf("Usage: %s [OPTIONS] <manifest URI> [base URI]\n", program);
+  
+  fputs(rasqal_copyright_string, stdout);
+  fputs("\nLicense: ", stdout);
+  puts(rasqal_license_string);
+  fputs("Rasqal home page: ", stdout);
+  puts(rasqal_home_url_string);
+  
+  puts("\nOptions:");
+  puts(HELP_TEXT("h", "help            ", "Print this help, then exit"));
+  puts(HELP_TEXT("n", "dryrun          ", "Prepare but do not run the query"));
+  puts(HELP_TEXT("q", "quiet           ", "No extra information messages"));
+  puts(HELP_TEXT("v", "version         ", "Print the Rasqal version"));
+  puts("\nReport bugs to http://bugs.librdf.org/");
+}
+
+
 int
 main(int argc, char *argv[])
 {
@@ -108,8 +175,10 @@ main(int argc, char *argv[])
   raptor_uri *base_uri;
   int rc = 0;
   int free_uri_string = 0;
+  int usage = 0;
+  int help = 0;
+  int quiet = 0;
   int dryrun = 0;
-  int verbose = 1;
 
   program = argv[0];
   if((p = strrchr(program, '/')))
@@ -134,7 +203,80 @@ main(int argc, char *argv[])
   raptor_world_ptr = rasqal_world_get_raptor(world);
   rasqal_world_set_log_handler(world, world, testrunner_log_handler);
 
-  uri_string = (unsigned char*)argv[1];
+  while (!usage && !help)
+  {
+    int c;
+    
+#ifdef HAVE_GETOPT_LONG
+    int option_index = 0;
+
+    c = getopt_long (argc, argv, GETOPT_STRING, long_options, &option_index);
+#else
+    c = getopt (argc, argv, GETOPT_STRING);
+#endif
+    if (c == -1)
+      break;
+
+    switch (c) {
+      case 0:
+      case '?': /* getopt() - unknown option */
+        usage = 1;
+        break;
+        
+      case 'h':
+        help = 1;
+        break;
+
+      case 'n':
+        dryrun = 1;
+        break;
+
+      case 'q':
+        quiet = 1;
+        break;
+
+      case 'v':
+        fputs(rasqal_version_string, stdout);
+        fputc('\n', stdout);
+        rasqal_free_world(world);
+        exit(0);
+
+    }
+    
+  }
+
+  if(!help && !usage) {
+    if(optind != argc-1 && optind != argc-2)
+      usage = 2; /* Title and usage */
+  }
+
+  
+  if(usage) {
+    if(usage > 1) {
+      fprintf(stderr, title_format_string, rasqal_version_string);
+      fputs("Rasqal home page: ", stderr);
+      fputs(rasqal_home_url_string, stderr);
+      fputc('\n', stderr);
+      fputs(rasqal_copyright_string, stderr);
+      fputs("\nLicense: ", stderr);
+      fputs(rasqal_license_string, stderr);
+      fputs("\n\n", stderr);
+    }
+    fprintf(stderr, "Try `%s " HELP_ARG(h, help) "' for more information.\n",
+                    program);
+    rasqal_free_world(world);
+
+    exit(1);
+  }
+
+  if(help) {
+    print_help(world, raptor_world_ptr);
+    rasqal_free_world(world);
+
+    exit(0);
+  }
+
+  uri_string = (unsigned char*)argv[optind];
   if(!access((const char*)uri_string, R_OK)) {
     uri_string = raptor_uri_filename_to_uri_string((char*)uri_string);
     uri = raptor_new_uri(raptor_world_ptr, uri_string);
@@ -143,7 +285,7 @@ main(int argc, char *argv[])
     uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)uri_string);
   }
 
-  if(argc == 3) {
+  if(optind == argc-1) {
     char* base_uri_string = argv[2];
     base_uri = raptor_new_uri(raptor_world_ptr, (unsigned char*)(base_uri_string));
   } else {
@@ -161,7 +303,7 @@ main(int argc, char *argv[])
 
   manifest_test_result* result;
   result = manifest_manifests_run(mw, manifest_uris, base_uri, 0,
-                                  dryrun, verbose);
+                                  dryrun, !quiet);
 
   if(result)
     manifest_free_test_result(result);
