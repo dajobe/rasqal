@@ -22,7 +22,7 @@
 
 bin_PROGRAMS = roqet
 noinst_PROGRAMS = check-query to-ntriples
-EXTRA_PROGRAMS = srxread srxwrite manifest
+EXTRA_PROGRAMS = srxread srxwrite testrunner
 
 CLEANFILES = $(EXTRA_PROGRAMS) *.plist
 
@@ -68,13 +68,13 @@ check_query_CPPFLAGS += -I$(top_srcdir)/getopt
 check_query_LDADD += $(top_builddir)/getopt/libgetopt.la
 endif
 
-manifest_SOURCES = manifest.c
-manifest_CPPFLAGS = $(AM_CPPFLAGS)
-manifest_LDADD = $(top_builddir)/src/librasqal.la librasqalcmdline.la
-manifest_LDFLAGS = @RAPTOR2_LIBS@
+testrunner_SOURCES = testrunner.c manifest.c manifest.h
+testrunner_CPPFLAGS = $(AM_CPPFLAGS)
+testrunner_LDADD = $(top_builddir)/src/librasqal.la librasqalcmdline.la
+testrunner_LDFLAGS = @RAPTOR2_LIBS@
 if GETOPT
-manifest_CPPFLAGS += -I$(top_srcdir)/getopt
-manifest_LDADD += $(top_builddir)/getopt/libgetopt.la
+testrunner_CPPFLAGS += -I$(top_srcdir)/getopt
+testrunner_LDADD += $(top_builddir)/getopt/libgetopt.la
 endif
 
 to_ntriples_SOURCES = to-ntriples.c

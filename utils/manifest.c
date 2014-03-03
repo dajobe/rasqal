@@ -48,181 +48,11 @@
 
 #include <raptor2.h>
 
-
-int main(int argc, char *argv[]);
-
-
-static const char *program = "manifest";
-
-static int debug = 1;
-static int dryrun = 0;
-static int verbose = 1;
-
-static int error_count = 0;
-static int warning_count = 0;
+#include "manifest.h"
 
 static const int indent_step = 2;
 static const int linewrap = 78;
 static const int banner_width = linewrap - 10;
-
-
-static void
-manifest_log_handler(void *data, raptor_log_message *message)
-{
-  raptor_parser *parser = (raptor_parser*)data;
-
-  switch(message->level) {
-    case RAPTOR_LOG_LEVEL_FATAL:
-    case RAPTOR_LOG_LEVEL_ERROR:
-      fprintf(stderr, "%s: Error - ", program);
-      raptor_locator_print(message->locator, stderr);
-      fprintf(stderr, " - %s\n", message->text);
-
-      raptor_parser_parse_abort(parser);
-      error_count++;
-      break;
-
-    case RAPTOR_LOG_LEVEL_WARN:
-      fprintf(stderr, "%s: Warning - ", program);
-      raptor_locator_print(message->locator, stderr);
-      fprintf(stderr, " - %s\n", message->text);
-
-      warning_count++;
-      break;
-
-    case RAPTOR_LOG_LEVEL_NONE:
-    case RAPTOR_LOG_LEVEL_TRACE:
-    case RAPTOR_LOG_LEVEL_DEBUG:
-    case RAPTOR_LOG_LEVEL_INFO:
-
-      fprintf(stderr, "%s: Unexpected %s message - ", program,
-              raptor_log_level_get_label(message->level));
-      raptor_locator_print(message->locator, stderr);
-      fprintf(stderr, " - %s\n", message->text);
-      break;
-  }
-}
-
-
-typedef enum
-{
-  STATE_PASS,
-  STATE_FAIL,
-  STATE_XFAIL,
-  STATE_UXPASS,
-  STATE_SKIP,
-  STATE_LAST = STATE_SKIP
-} manifest_test_state;
-
-
-typedef enum {
-  /* these are alternatives */
-  FLAG_IS_QUERY     = 1, /* SPARQL query; lang="sparql10" or "sparql11" */
-  FLAG_IS_UPDATE    = 2, /* SPARQL update; lang="sparql-update" */
-  FLAG_IS_PROTOCOL  = 4, /* SPARQL protocol */
-  FLAG_IS_SYNTAX    = 8, /* syntax test: implies no execution */
-
-  /* these are extras */
-  FLAG_LANG_SPARQL_11 = 16, /* "sparql11" else "sparql10" */
-  FLAG_MUST_FAIL      = 32, /* must FAIL otherwise must PASS  */
-  FLAG_HAS_ENTAILMENT_REGIME = 64,
-  FLAG_RESULT_CARDINALITY_LAX = 128, /* else strict (exact match) */
-  FLAG_TEST_APPROVED  = 256, /* else unapproved */
-  FLAG_TEST_WITHDRAWN = 512, /* else live */
-  FLAG_ENTAILMENT     = 1024, /* else does not require entailment */
-} manifest_test_type_bitflags;
-
-
-typedef struct
-{
-  rasqal_world* world;
-  raptor_world* raptor_world_ptr;
-
-  /* Namespace URIs */
-  raptor_uri* rdfs_namespace_uri;
-  raptor_uri* mf_namespace_uri;
-  raptor_uri* t_namespace_uri;
-  raptor_uri* qt_namespace_uri;
-  raptor_uri* dawgt_namespace_uri;
-  raptor_uri* sd_namespace_uri;
-
-  /* URIs */
-  raptor_uri* mf_Manifest_uri;
-  raptor_uri* mf_entries_uri;
-  raptor_uri* mf_name_uri;
-  raptor_uri* mf_action_uri;
-  raptor_uri* mf_result_uri;
-  raptor_uri* mf_resultCardinality_uri;
-  raptor_uri* rdf_type_uri;
-  raptor_uri* rdf_first_uri;
-  raptor_uri* rdf_rest_uri;
-  raptor_uri* rdf_nil_uri;
-  raptor_uri* rdfs_comment_uri;
-  raptor_uri* t_path_uri;
-  raptor_uri* qt_data_uri;
-  raptor_uri* qt_graphData_uri;
-  raptor_uri* qt_query_uri;
-  raptor_uri* dawgt_approval_uri;
-  raptor_uri* sd_entailmentRegime_uri;
-
-  /* Literals */
-  rasqal_literal* mf_Manifest_literal;
-  rasqal_literal* mf_entries_literal;
-  rasqal_literal* mf_name_literal;
-  rasqal_literal* mf_action_literal;
-  rasqal_literal* mf_result_literal;
-  rasqal_literal* mf_resultCardinality_literal;
-  rasqal_literal* rdf_type_literal;
-  rasqal_literal* rdf_first_literal;
-  rasqal_literal* rdf_rest_literal;
-  rasqal_literal* rdfs_comment_literal;
-  rasqal_literal* t_path_literal;
-  rasqal_literal* qt_data_literal;
-  rasqal_literal* qt_graphData_literal;
-  rasqal_literal* qt_query_literal;
-  rasqal_literal* dawgt_approval_literal;
-  rasqal_literal* sd_entailmentRegime_literal;
-} manifest_world;
-
-  
-typedef struct
-{
-  manifest_test_state state;
-  char* details;
-  char* log; /* error log */
-  raptor_sequence* states[STATE_LAST + 1];
-} manifest_test_result;
-
-
-typedef struct
-{
-  char* dir;
-  rasqal_literal* test_node; /* the test node (URI or blank node) */
-  char* name; /* <test-uri> mf:name ?value */
-  char* desc; /* <test-uri> rdfs:comment ?value */
-  manifest_test_state expect; /* derived from <test-uri> rdf:type ?value */
-  raptor_uri* query; /* <test-uri> qt:query ?uri */
-  raptor_uri* data; /* <test-uri> qt:data ?uri */
-  raptor_uri* data_graph;  /* <test-uri> qt:dataGraph ?uri */
-  raptor_uri* expected_result; /* <test-uri> mf:result ?uri */
-  unsigned int flags; /* bit flags from #manifest_test_type_bitflags */
-
-  /* Test output */
-  manifest_test_result* result;
-} manifest_test;
-
-
-typedef struct
-{
-  manifest_world* mw;
-  manifest_test_state state;
-  char* name; /* short name */
-  char* desc; /* description from ?manifest rdfs:comment ?value */
-  char* dir; /* directory */
-  char* path; /* for envariable PATH */
-  raptor_sequence* tests; /* sequence of manifest_test */
-  char* details; /* error details */
-} manifest_testsuite;
 
 
 static const char manifest_test_state_chars[STATE_LAST + 1] = ".F*!-";
@@ -233,11 +63,6 @@ static const char* manifest_test_state_labels[STATE_LAST + 1] = {
   "UXPASS",
   "SKIP"
 };
-
-
-/* prototypes */
-static void manifest_free_test(manifest_test* t);
-static void manifest_free_testsuite(manifest_testsuite* ts);
 
 
 static char
@@ -260,7 +85,7 @@ manifest_test_state_label(manifest_test_state state)
 }
 
 
-static manifest_world*
+manifest_world*
 manifest_new_world(rasqal_world* world)
 {
   manifest_world* mw;
@@ -319,8 +144,9 @@ manifest_new_world(rasqal_world* world)
   return mw;
 }
 
-static 
-void manifest_free_world(manifest_world* mw)
+
+void
+manifest_free_world(manifest_world* mw)
 {
   if(!mw)
     return;
@@ -430,7 +256,7 @@ manifest_new_test_result(manifest_test_state state)
 }
 
 
-static void
+void
 manifest_free_test_result(manifest_test_result* result)
 {
   int i;
@@ -518,9 +344,9 @@ manifest_new_test(manifest_world* mw,
       test_name = (char*)malloc(size + 1);
       memcpy(test_name, str, size + 1);
       
-      if(debug > 0) {
+#if RASQAL_DEBUG > 0
         fprintf(stderr, "  Test name: '%s'\n", test_name);
-      }
+#endif
     }
   }
 
@@ -534,9 +360,9 @@ manifest_new_test(manifest_world* mw,
       test_desc = (char*)malloc(size + 1);
       memcpy(test_desc, str, size + 1);
       
-      if(debug > 0) {
+#if RASQAL_DEBUG > 0
         fprintf(stderr, "  Test desc: '%s'\n", test_desc);
-      }
+#endif
     }
   }
   
@@ -549,11 +375,11 @@ manifest_new_test(manifest_world* mw,
   raptor_uri* test_data_graph_uri = NULL;
 
   if(action_node) {
-    if(debug > 1) {
+#if RASQAL_DEBUG > 1
       fputs("  Action node is: ", stderr);
       rasqal_literal_print(action_node, stderr);
       fputc('\n', stderr);
-    }
+#endif
 
     node = rasqal_dataset_get_target(ds,
                                      action_node,
@@ -562,10 +388,10 @@ manifest_new_test(manifest_world* mw,
       uri = rasqal_literal_as_uri(node);
       if(uri) {
         test_query_uri = raptor_uri_copy(uri);
-        if(debug > 0) {
+#if RASQAL_DEBUG > 0
           fprintf(stderr, "  Test query URI: '%s'\n",
                   raptor_uri_as_string(test_query_uri));
-        }
+#endif
       }
     }
     
@@ -576,10 +402,10 @@ manifest_new_test(manifest_world* mw,
       uri = rasqal_literal_as_uri(node);
       if(uri) {
         test_data_uri = raptor_uri_copy(uri);
-        if(debug > 0) {
+#if RASQAL_DEBUG > 0
           fprintf(stderr, "  Test data URI: '%s'\n",
                   raptor_uri_as_string(test_data_uri));
-        }
+#endif
       }
     }
     
@@ -591,10 +417,10 @@ manifest_new_test(manifest_world* mw,
       uri = rasqal_literal_as_uri(node);
       if(uri) {
         test_data_graph_uri = raptor_uri_copy(uri);
-        if(debug > 0) {
+#if RASQAL_DEBUG > 0
           fprintf(stderr, "  Test graph data URI: '%s'\n",
                   raptor_uri_as_string(test_data_graph_uri));
-        }
+#endif
       }
     }
     
@@ -609,10 +435,10 @@ manifest_new_test(manifest_world* mw,
     if(uri) {
       test_result_uri = raptor_uri_copy(uri);
       
-      if(debug > 0) {
+#if RASQAL_DEBUG > 0
         fprintf(stderr, "  Test result URI: '%s'\n",
                 raptor_uri_as_string(test_result_uri));
-      }
+#endif
     }
   }
 
@@ -623,10 +449,10 @@ manifest_new_test(manifest_world* mw,
   if(node && node->type == RASQAL_LITERAL_URI) {
     test_type = rasqal_literal_as_uri(node);
 
-    if(debug > 0) {
+#if RASQAL_DEBUG > 0
       fprintf(stderr, "  Test type: '%s'\n",
               raptor_uri_as_string(test_type));
-    }
+#endif
   }
 
   unsigned int test_flags = manifest_decode_test_type(test_type);
@@ -651,10 +477,10 @@ manifest_new_test(manifest_world* mw,
     }
   }
 
-  if(debug > 0) {
+#if RASQAL_DEBUG > 0
     fprintf(stderr, "  Test result cardinality: %s\n",
             (test_flags & FLAG_RESULT_CARDINALITY_LAX) ? "lax" : "strict");
-  }
+#endif
 
   node = rasqal_dataset_get_target(ds,
                                    entry_node,
@@ -676,12 +502,12 @@ manifest_new_test(manifest_world* mw,
     }
   }
 
-  if(debug > 0) {
+#if RASQAL_DEBUG > 0
     fprintf(stderr, "  Test approved: %s\n",
             (test_flags & FLAG_TEST_APPROVED) ? "yes" : "no");
     fprintf(stderr, "  Test withdrawn: %s\n",
             (test_flags & FLAG_TEST_WITHDRAWN) ? "yes" : "no");
-  }
+#endif
 
   node = rasqal_dataset_get_target(ds,
                                    action_node,
@@ -689,10 +515,10 @@ manifest_new_test(manifest_world* mw,
   if(node)
     test_flags |= FLAG_ENTAILMENT;
 
-  if(debug > 0) {
+#if RASQAL_DEBUG > 0
     fprintf(stderr, "  Test entailment: %s\n",
             (test_flags & FLAG_ENTAILMENT) ? "yes" : "no");
-  }
+#endif
 
 
   t = (manifest_test*)calloc(sizeof(*t), 1);
@@ -786,14 +612,15 @@ manifest_new_testsuite(manifest_world* mw,
   /* Make an RDF graph (dataset) to query */
   ds = rasqal_new_dataset(mw->world);
   if(!ds) {
-    fprintf(stderr, "%s: Failed to create dataset", program);
+    RASQAL_DEBUG1("Failed to create dataset");
     rc = 1;
     goto tidy;
   }
 
   if(rasqal_dataset_load_graph_uri(ds, /* graph name */ NULL,
                                    uri, base_uri)) {
-    fprintf(stderr, "%s: Failed to load graph into dataset", program);
+    RASQAL_DEBUG2("Failed to load graph %s into dataset",
+                  raptor_uri_as_string(uri));
     rc = 1;
     goto tidy;
   }
@@ -808,12 +635,11 @@ manifest_new_testsuite(manifest_world* mw,
     goto tidy;
   }
 
-  if(debug > 2) {
+#if RASQAL_DEBUG > 2
     fputs("Manifest node is: ", stderr);
     rasqal_literal_print(manifest_node, stderr);
     fputc('\n', stderr);
-  }
-
+#endif
 
   entries_node = rasqal_dataset_get_target(ds,
                                            manifest_node,
@@ -824,11 +650,11 @@ manifest_new_testsuite(manifest_world* mw,
     goto tidy;
   }
 
-  if(debug > 2) {
+#if RASQAL_DEBUG > 2
     fputs("Entries node is: ", stderr);
     rasqal_literal_print(entries_node, stderr);
     fputc('\n', stderr);
-  }
+#endif
 
   /* Get test suite fields */
   node = rasqal_dataset_get_target(ds,
@@ -840,9 +666,9 @@ manifest_new_testsuite(manifest_world* mw,
       ts->desc = (char*)malloc(size + 1);
       memcpy(ts->desc, str, size + 1);
 
-      if(debug > 0) {
-        fprintf(stderr, "Testsuite Description is: '%s'\n", ts->desc);
-      }
+#if RASQAL_DEBUG > 0
+      fprintf(stderr, "Testsuite Description is: '%s'\n", ts->desc);
+#endif
     }
   }
 
@@ -855,9 +681,9 @@ manifest_new_testsuite(manifest_world* mw,
       ts->path = (char*)malloc(size + 1);
       memcpy(ts->path, str, size + 1);
 
-      if(debug > 0) {
+#if RASQAL_DEBUG > 0
         fprintf(stderr, "Testsuite PATH is: '%s'\n", ts->path);
-      }
+#endif
     }
   }
 
@@ -868,27 +694,27 @@ manifest_new_testsuite(manifest_world* mw,
     rasqal_literal* entry_node;
     manifest_test* t;
 
-    if(debug > 1) {
+#if RASQAL_DEBUG > 1
       fputs("List node is: ", stderr);
       rasqal_literal_print(list_node, stderr);
       fputc('\n', stderr);
-    }
+#endif
 
     entry_node = rasqal_dataset_get_target(ds,
                                            list_node,
                                            mw->rdf_first_literal);
-    if(debug > 0) {
+#if RASQAL_DEBUG > 0
       fputs("Test resource is: ", stderr);
       rasqal_literal_print(entry_node, stderr);
       fputc('\n', stderr);
-    }
+#endif
 
     t = manifest_new_test(mw, ds, entry_node, dir);
 
     if(t && t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
       manifest_free_test(t);
       t = NULL;
-      fprintf(stderr, "%s: Ignoring test %s type UPDATE / PROTOCOL - not supported\n", program, rasqal_literal_as_string(entry_node));
+      fprintf(stderr, "Ignoring test %s type UPDATE / PROTOCOL - not supported\n", rasqal_literal_as_string(entry_node));
     } else {
       raptor_sequence_push(tests, t);
     }
@@ -1022,8 +848,9 @@ manifest_testsuite_run_test(manifest_testsuite* ts, manifest_test* t)
 }
 
 
-static manifest_test_result*
-manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent)
+manifest_test_result*
+manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
+                             int dryrun, int verbose)
 {
   char* name = ts->name;
   char* desc = ts->desc ? ts->desc : name;
@@ -1113,11 +940,12 @@ manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent)
  *
  * Return value: test result or NULL on failure
  */
-static manifest_test_result*
+manifest_test_result*
 manifest_manifests_run(manifest_world* mw,
                        raptor_uri** manifest_uris,
                        raptor_uri* base_uri,
-                       unsigned int indent)
+                       unsigned int indent,
+                       int dryrun, int verbose)
 {
   manifest_test_state total_state = STATE_PASS;
   manifest_test_result* total_result = NULL;
@@ -1140,12 +968,11 @@ manifest_manifests_run(manifest_world* mw,
                                 uri, base_uri);
 
     if(!ts) {
-      fprintf(stderr, "%s: Failed to create test suite %s\n",
-              program, testsuite_name);
+      RASQAL_DEBUG2("Failed to create test suite %s\n", testsuite_name);
       break;
     }
 
-    result = manifest_testsuite_run_suite(ts, indent);
+    result = manifest_testsuite_run_suite(ts, indent, dryrun, verbose);
 
 #if 0
     manifest_testsuite_result_format(stdout, result, indent + indent_step);
@@ -1181,82 +1008,4 @@ manifest_manifests_run(manifest_world* mw,
   }
 
   return total_result;
-}
-
-
-int
-main(int argc, char *argv[])
-{
-  rasqal_world *world = NULL;
-  raptor_world* raptor_world_ptr = NULL;
-  unsigned char *uri_string;
-  raptor_uri *uri;
-  raptor_uri *base_uri;
-  int rc = 0;
-  int free_uri_string = 0;
-
-  if(argc < 2 || argc > 3) {
-    fprintf(stderr, "USAGE: %s MANIFEST-FILE [BASE-URI]\n", program);
-    rc = 1;
-    goto tidy;
-  }
-
-  world = rasqal_new_world();
-  if(!world || rasqal_world_open(world)) {
-    fprintf(stderr, "%s: rasqal_world init failed\n", program);
-    rc = 1;
-    goto tidy;
-  }
-
-  raptor_world_ptr = rasqal_world_get_raptor(world);
-  rasqal_world_set_log_handler(world, world, manifest_log_handler);
-
-  uri_string = (unsigned char*)argv[1];
-  if(!access((const char*)uri_string, R_OK)) {
-    uri_string = raptor_uri_filename_to_uri_string((char*)uri_string);
-    uri = raptor_new_uri(raptor_world_ptr, uri_string);
-    free_uri_string = 1;
-  } else {
-    uri = raptor_new_uri(raptor_world_ptr, (const unsigned char*)uri_string);
-  }
-
-  if(argc == 3) {
-    char* base_uri_string = argv[2];
-    base_uri = raptor_new_uri(raptor_world_ptr, (unsigned char*)(base_uri_string));
-  } else {
-    base_uri = raptor_uri_copy(uri);
-  }
-
-  manifest_world* mw = manifest_new_world(world);
-  if(!mw) {
-    fprintf(stderr, "%s: manifest_new_world() failed\n", program);
-    rc = 1;
-    goto tidy;
-  }
-
-  raptor_uri* manifest_uris[2] = { uri, NULL };
-
-  manifest_test_result* result;
-  result = manifest_manifests_run(mw, manifest_uris, base_uri, 0);
-
-  if(result)
-    manifest_free_test_result(result);
-
-  raptor_free_uri(base_uri);
-  raptor_free_uri(uri);
-  if(free_uri_string)
-    raptor_free_memory(uri_string);
-
-  manifest_free_world(mw);
-
-  tidy:
-  if(world)
-    rasqal_free_world(world);
-
-  if(warning_count)
-    rc = 2;
-  else if(error_count)
-    rc = 1;
-
-  return rc;
 }
