@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * manifest.c - Run tests from SPARQL query test manifests
+ * manifest.c - Decode tests and testsuites from manifests
  *
  * Copyright (C) 2014, David Beckett http://www.dajobe.org/
  *
@@ -17,14 +17,6 @@
  * See LICENSE.html or LICENSE.txt at the top of this package for the
  * complete terms and further detail along with the license texts for
  * the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
- *
- * USAGE:
- *   manifest MANIFEST-FILE [BASE-URI]
- *
- * Run the tests in MANIFEST-FILE
- *
- * NOTE: This is not a supported utility.  It is only used for testing
- * invoked by 'improve' and 'check-sparql' and may be replaced.
  *
  */
 

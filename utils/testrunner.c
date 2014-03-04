@@ -19,7 +19,7 @@
  * the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
  *
  * USAGE:
- *   manifest MANIFEST-FILE [BASE-URI]
+ *   testrunner MANIFEST-FILE [BASE-URI]
  *
  * Run the tests in MANIFEST-FILE
  *
