@@ -924,7 +924,7 @@ manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
 /**
  * manifest_manifests_run:
  * @world: world
- * @manifest_uris: array of manifest URIs
+ * @manifest_uris: sequence of #raptor_uri manifest URIs
  * @base_uri: base URI for manifest
  * @indent: indent size
  *
@@ -934,7 +934,7 @@ manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
  */
 manifest_test_result*
 manifest_manifests_run(manifest_world* mw,
-                       raptor_uri** manifest_uris,
+                       raptor_sequence* manifest_uris,
                        raptor_uri* base_uri,
                        unsigned int indent,
                        int dryrun, int verbose)
@@ -948,7 +948,7 @@ manifest_manifests_run(manifest_world* mw,
   if(!total_result)
     return NULL;
 
-  for(i = 0; (uri = manifest_uris[i]); i++) {
+  for(i = 0; (uri = (raptor_uri*)raptor_sequence_get_at(manifest_uris, i)); i++) {
     int j;
     manifest_testsuite *ts;
     manifest_test_result* result = NULL;

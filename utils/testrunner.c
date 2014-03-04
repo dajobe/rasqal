@@ -299,10 +299,13 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  raptor_uri* manifest_uris[2] = { uri, NULL };
+  raptor_sequence* seq;
+  seq = raptor_new_sequence((raptor_data_free_handler)raptor_free_uri, NULL);
+  raptor_sequence_push(seq, uri);
 
   manifest_test_result* result;
-  result = manifest_manifests_run(mw, manifest_uris, base_uri, 0,
+  result = manifest_manifests_run(mw, seq, base_uri,
+                                  /* indent */ 0,
                                   dryrun, !quiet);
 
   if(result)

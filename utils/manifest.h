@@ -154,7 +154,7 @@ typedef struct
 manifest_world* manifest_new_world(rasqal_world* world);
 void manifest_free_world(manifest_world* mw);
 
-manifest_test_result* manifest_manifests_run(manifest_world* mw, raptor_uri** manifest_uris, raptor_uri* base_uri, unsigned int indent, int dryrun, int verbose);
+manifest_test_result* manifest_manifests_run(manifest_world* mw, raptor_sequence* manifest_uris, raptor_uri* base_uri, unsigned int indent, int dryrun, int verbose);
 
 manifest_test_result* manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent, int dryrun, int verbose);
 
