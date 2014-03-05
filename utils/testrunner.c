@@ -179,6 +179,9 @@ main(int argc, char *argv[])
   int help = 0;
   int quiet = 0;
   int dryrun = 0;
+  manifest_world* mw;
+  raptor_sequence* seq;
+  manifest_test_result* result;
 
   program = argv[0];
   if((p = strrchr(program, '/')))
@@ -292,18 +295,16 @@ main(int argc, char *argv[])
     base_uri = raptor_uri_copy(uri);
   }
 
-  manifest_world* mw = manifest_new_world(world);
+  mw = manifest_new_world(world);
   if(!mw) {
     fprintf(stderr, "%s: manifest_new_world() failed\n", program);
     rc = 1;
     goto tidy;
   }
 
-  raptor_sequence* seq;
   seq = raptor_new_sequence((raptor_data_free_handler)raptor_free_uri, NULL);
   raptor_sequence_push(seq, uri);
 
-  manifest_test_result* result;
   result = manifest_manifests_run(mw, seq, base_uri,
                                   /* indent */ 0,
                                   dryrun, !quiet);
