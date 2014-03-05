@@ -59,6 +59,10 @@ static const char* manifest_test_state_labels[STATE_LAST + 1] = {
 };
 
 
+/* prototypes */
+static void manifest_free_testsuite(manifest_testsuite* ts);
+
+
 static char
 manifest_test_state_char(manifest_test_state state)
 {
@@ -464,7 +468,7 @@ manifest_new_test(manifest_world* mw,
       int is_lax;
 
       str = raptor_uri_as_string(uri);
-      is_lax = strstr((const char*)str, "LaxCardinality");
+      is_lax = (strstr((const char*)str, "LaxCardinality") != NULL);
       
       if(is_lax)
         test_flags |= FLAG_RESULT_CARDINALITY_LAX;
@@ -486,8 +490,8 @@ manifest_new_test(manifest_world* mw,
       int is_withdrawn;
       
       str = raptor_uri_as_string(uri);
-      is_approved = strstr((const char*)str, "Approved");
-      is_withdrawn = strstr((const char*)str, "Withdrawn");
+      is_approved = (strstr((const char*)str, "Approved") != NULL);
+      is_withdrawn = (strstr((const char*)str, "Withdrawn") != NULL);
       
       if(is_approved)
         test_flags |= FLAG_TEST_APPROVED;
@@ -580,7 +584,6 @@ manifest_new_testsuite(manifest_world* mw,
 {
   manifest_testsuite *ts;
   rasqal_dataset* ds = NULL;
-  int rc = 0;
   rasqal_literal* manifest_node = NULL;
   rasqal_literal* entries_node = NULL;
   rasqal_literal* list_node = NULL;
@@ -607,7 +610,7 @@ manifest_new_testsuite(manifest_world* mw,
   ds = rasqal_new_dataset(mw->world);
   if(!ds) {
     RASQAL_DEBUG1("Failed to create dataset");
-    rc = 1;
+    manifest_free_testsuite(ts); ts = NULL;
     goto tidy;
   }
 
@@ -615,7 +618,7 @@ manifest_new_testsuite(manifest_world* mw,
                                    uri, base_uri)) {
     RASQAL_DEBUG2("Failed to load graph %s into dataset",
                   raptor_uri_as_string(uri));
-    rc = 1;
+    manifest_free_testsuite(ts); ts = NULL;
     goto tidy;
   }
 
@@ -625,7 +628,7 @@ manifest_new_testsuite(manifest_world* mw,
                                             mw->mf_Manifest_literal);
   if(!manifest_node) {
     fprintf(stderr, "No manifest found in graph\n");
-    rc = 1;
+    manifest_free_testsuite(ts); ts = NULL;
     goto tidy;
   }
 
@@ -640,7 +643,7 @@ manifest_new_testsuite(manifest_world* mw,
                                            mw->mf_entries_literal);
   if(!entries_node) {
     fprintf(stderr, "No tests found in manifest graph\n");
-    rc = 0;
+    manifest_free_testsuite(ts); ts = NULL;
     goto tidy;
   }
 
