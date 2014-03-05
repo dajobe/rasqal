@@ -330,9 +330,17 @@ manifest_new_test(manifest_world* mw,
   raptor_uri *uri;
   size_t size;
   manifest_test* t;
+  char* test_name = NULL;
+  char* test_desc = NULL;
+  rasqal_literal* action_node;
+  raptor_uri* test_query_uri = NULL;
+  raptor_uri* test_data_uri = NULL;
+  raptor_uri* test_data_graph_uri = NULL;
+  raptor_uri* test_result_uri = NULL;
+  raptor_uri* test_type = NULL;
+  unsigned int test_flags;
 
   /* Get test fields */
-  char* test_name = NULL;
   node = rasqal_dataset_get_target(ds,
                                    entry_node,
                                    mw->mf_name_literal);
@@ -348,7 +356,6 @@ manifest_new_test(manifest_world* mw,
     }
   }
 
-  char* test_desc = NULL;
   node = rasqal_dataset_get_target(ds,
                                    entry_node,
                                    mw->rdfs_comment_literal);
@@ -364,14 +371,9 @@ manifest_new_test(manifest_world* mw,
     }
   }
   
-  rasqal_literal* action_node;
   action_node = rasqal_dataset_get_target(ds,
                                           entry_node,
                                           mw->mf_action_literal);
-  raptor_uri* test_query_uri = NULL;
-  raptor_uri* test_data_uri = NULL;
-  raptor_uri* test_data_graph_uri = NULL;
-
   if(action_node) {
 #if RASQAL_DEBUG > 1
       fputs("  Action node is: ", stderr);
@@ -424,7 +426,6 @@ manifest_new_test(manifest_world* mw,
     
   } /* end if action node */
 
-  raptor_uri* test_result_uri = NULL;
   node = rasqal_dataset_get_target(ds,
                                    entry_node,
                                    mw->mf_result_literal);
@@ -440,7 +441,6 @@ manifest_new_test(manifest_world* mw,
     }
   }
 
-  raptor_uri* test_type = NULL;
   node = rasqal_dataset_get_target(ds,
                                    entry_node,
                                    mw->rdf_type_literal);
@@ -453,7 +453,7 @@ manifest_new_test(manifest_world* mw,
 #endif
   }
 
-  unsigned int test_flags = manifest_decode_test_type(test_type);
+  test_flags = manifest_decode_test_type(test_type);
   if(!(test_flags & (FLAG_IS_QUERY | FLAG_IS_UPDATE | FLAG_IS_PROTOCOL | FLAG_IS_SYNTAX) )) {
     test_flags |= FLAG_IS_QUERY;
   }
@@ -856,6 +856,9 @@ manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
   manifest_test* t = NULL;
   unsigned int column;
   manifest_test_result* result;
+  manifest_test_state state;
+  unsigned int xfailed_count;
+  unsigned int failed_count;
 
   /* Initialize */
   result = manifest_new_test_result(STATE_FAIL);
@@ -876,7 +879,7 @@ manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
       expected_failures_count++;
 
 
-    manifest_test_state state = t->result->state;
+    state = t->result->state;
     if(!verbose)
       fputc(manifest_test_state_char(state), stdout);
     raptor_sequence_push(result->states[(unsigned int)state], t);
@@ -917,8 +920,8 @@ manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
   if(!verbose)
     fputc('\n', stderr);
 
-  unsigned int xfailed_count = raptor_sequence_size(result->states[STATE_XFAIL]);
-  unsigned int failed_count = raptor_sequence_size(result->states[STATE_FAIL]);
+  xfailed_count = raptor_sequence_size(result->states[STATE_XFAIL]);
+  failed_count = raptor_sequence_size(result->states[STATE_FAIL]);
 
   result->state = ((xfailed_count == expected_failures_count) && !failed_count) ? STATE_PASS : STATE_FAIL;
 
