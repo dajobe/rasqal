@@ -42,12 +42,14 @@
 
 #include "manifest.h"
 
-static const int indent_step = 2;
-static const int linewrap = 78;
-static const int banner_width = linewrap - 10;
+static const unsigned int indent_step = 2;
+static const unsigned int linewrap = 78;
+static const unsigned int banner_width = 68 /* linewrap - 10 */;
 
 
-static const char manifest_test_state_chars[STATE_LAST + 1] = ".F*!-";
+static const char manifest_test_state_chars[STATE_LAST + 1] = {
+  '.', 'F', '*', '!', '-'
+};
 static const char* manifest_test_state_labels[STATE_LAST + 1] = {
   "pass",
   "FAIL",
@@ -860,7 +862,7 @@ manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
   fprintf(stdout, "Running testsuite %s: %s\n", name, desc);
 
   column = indent;
-  for(i = 0; (t = raptor_sequence_get_at(ts->tests, i)); i++) {
+  for(i = 0; (t = (manifest_test*)raptor_sequence_get_at(ts->tests, i)); i++) {
     if(dryrun) {
       t->result = manifest_new_test_result(STATE_SKIP);
     } else {
