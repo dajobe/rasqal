@@ -350,7 +350,7 @@ manifest_new_test(manifest_world* mw,
       test_name = (char*)malloc(size + 1);
       memcpy(test_name, str, size + 1);
       
-#if RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
         fprintf(stderr, "  Test name: '%s'\n", test_name);
 #endif
     }
@@ -365,7 +365,7 @@ manifest_new_test(manifest_world* mw,
       test_desc = (char*)malloc(size + 1);
       memcpy(test_desc, str, size + 1);
       
-#if RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
         fprintf(stderr, "  Test desc: '%s'\n", test_desc);
 #endif
     }
@@ -375,7 +375,7 @@ manifest_new_test(manifest_world* mw,
                                           entry_node,
                                           mw->mf_action_literal);
   if(action_node) {
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       fputs("  Action node is: ", stderr);
       rasqal_literal_print(action_node, stderr);
       fputc('\n', stderr);
@@ -388,7 +388,7 @@ manifest_new_test(manifest_world* mw,
       uri = rasqal_literal_as_uri(node);
       if(uri) {
         test_query_uri = raptor_uri_copy(uri);
-#if RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
           fprintf(stderr, "  Test query URI: '%s'\n",
                   raptor_uri_as_string(test_query_uri));
 #endif
@@ -402,7 +402,7 @@ manifest_new_test(manifest_world* mw,
       uri = rasqal_literal_as_uri(node);
       if(uri) {
         test_data_uri = raptor_uri_copy(uri);
-#if RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
           fprintf(stderr, "  Test data URI: '%s'\n",
                   raptor_uri_as_string(test_data_uri));
 #endif
@@ -417,7 +417,7 @@ manifest_new_test(manifest_world* mw,
       uri = rasqal_literal_as_uri(node);
       if(uri) {
         test_data_graph_uri = raptor_uri_copy(uri);
-#if RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
           fprintf(stderr, "  Test graph data URI: '%s'\n",
                   raptor_uri_as_string(test_data_graph_uri));
 #endif
@@ -434,7 +434,7 @@ manifest_new_test(manifest_world* mw,
     if(uri) {
       test_result_uri = raptor_uri_copy(uri);
       
-#if RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
         fprintf(stderr, "  Test result URI: '%s'\n",
                 raptor_uri_as_string(test_result_uri));
 #endif
@@ -447,7 +447,7 @@ manifest_new_test(manifest_world* mw,
   if(node && node->type == RASQAL_LITERAL_URI) {
     test_type = rasqal_literal_as_uri(node);
 
-#if RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
       fprintf(stderr, "  Test type: '%s'\n",
               raptor_uri_as_string(test_type));
 #endif
@@ -475,7 +475,7 @@ manifest_new_test(manifest_world* mw,
     }
   }
 
-#if RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
     fprintf(stderr, "  Test result cardinality: %s\n",
             (test_flags & FLAG_RESULT_CARDINALITY_LAX) ? "lax" : "strict");
 #endif
@@ -500,7 +500,7 @@ manifest_new_test(manifest_world* mw,
     }
   }
 
-#if RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
     fprintf(stderr, "  Test approved: %s\n",
             (test_flags & FLAG_TEST_APPROVED) ? "yes" : "no");
     fprintf(stderr, "  Test withdrawn: %s\n",
@@ -513,7 +513,7 @@ manifest_new_test(manifest_world* mw,
   if(node)
     test_flags |= FLAG_ENTAILMENT;
 
-#if RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
     fprintf(stderr, "  Test entailment: %s\n",
             (test_flags & FLAG_ENTAILMENT) ? "yes" : "no");
 #endif
@@ -632,7 +632,7 @@ manifest_new_testsuite(manifest_world* mw,
     goto tidy;
   }
 
-#if RASQAL_DEBUG > 2
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
     fputs("Manifest node is: ", stderr);
     rasqal_literal_print(manifest_node, stderr);
     fputc('\n', stderr);
@@ -647,7 +647,7 @@ manifest_new_testsuite(manifest_world* mw,
     goto tidy;
   }
 
-#if RASQAL_DEBUG > 2
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
     fputs("Entries node is: ", stderr);
     rasqal_literal_print(entries_node, stderr);
     fputc('\n', stderr);
@@ -663,7 +663,7 @@ manifest_new_testsuite(manifest_world* mw,
       ts->desc = (char*)malloc(size + 1);
       memcpy(ts->desc, str, size + 1);
 
-#if RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
       fprintf(stderr, "Testsuite Description is: '%s'\n", ts->desc);
 #endif
     }
@@ -678,7 +678,7 @@ manifest_new_testsuite(manifest_world* mw,
       ts->path = (char*)malloc(size + 1);
       memcpy(ts->path, str, size + 1);
 
-#if RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
         fprintf(stderr, "Testsuite PATH is: '%s'\n", ts->path);
 #endif
     }
@@ -691,7 +691,7 @@ manifest_new_testsuite(manifest_world* mw,
     rasqal_literal* entry_node;
     manifest_test* t;
 
-#if RASQAL_DEBUG > 1
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       fputs("List node is: ", stderr);
       rasqal_literal_print(list_node, stderr);
       fputc('\n', stderr);
@@ -700,7 +700,7 @@ manifest_new_testsuite(manifest_world* mw,
     entry_node = rasqal_dataset_get_target(ds,
                                            list_node,
                                            mw->rdf_first_literal);
-#if RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
       fputs("Test resource is: ", stderr);
       rasqal_literal_print(entry_node, stderr);
       fputc('\n', stderr);
