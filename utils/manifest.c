@@ -708,14 +708,8 @@ manifest_new_testsuite(manifest_world* mw,
 
     t = manifest_new_test(mw, ds, entry_node, dir);
 
-    if(t && t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
-      manifest_free_test(t);
-      t = NULL;
-      fprintf(stderr, "Ignoring test %s type UPDATE / PROTOCOL - not supported\n", rasqal_literal_as_string(entry_node));
-    } else {
+    if(t)
       raptor_sequence_push(tests, t);
-    }
-
 
     list_node = rasqal_dataset_get_target(ds,
                                           list_node,
@@ -780,6 +774,12 @@ manifest_testsuite_run_test(manifest_testsuite* ts, manifest_test* t)
 {
   manifest_test_result* result;
   manifest_test_state state = STATE_FAIL;
+
+  if(t && t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
+    RASQAL_DEBUG2("Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
+                  rasqal_literal_as_string(t->test_node));
+    return NULL;
+  }
 
   result = manifest_new_test_result(STATE_FAIL);
 
@@ -869,6 +869,12 @@ manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
 
   column = indent;
   for(i = 0; (t = (manifest_test*)raptor_sequence_get_at(ts->tests, i)); i++) {
+    if(t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
+      RASQAL_DEBUG2("Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
+                    rasqal_literal_as_string(t->test_node));
+      continue;
+    }
+
     if(dryrun) {
       t->result = manifest_new_test_result(STATE_SKIP);
     } else {
