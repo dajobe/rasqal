@@ -766,8 +766,17 @@ manifest_indent(FILE* fh, unsigned int indent)
 }
 
 
+/**
+ * manifest_test_run:
+ * @t: test
+ * @path: env PATH
+ *
+ * Run a test
+ *
+ * Return value: a test result or NULL on failure
+ */
 static manifest_test_result*
-manifest_testsuite_run_test(manifest_testsuite* ts, manifest_test* t)
+manifest_test_run(manifest_test* t, const char* path)
 {
   manifest_test_result* result;
   manifest_test_state state = STATE_FAIL;
@@ -779,9 +788,6 @@ manifest_testsuite_run_test(manifest_testsuite* ts, manifest_test* t)
   }
 
   result = manifest_new_test_result(STATE_FAIL);
-
-  if(ts->path)
-    setenv("PATH", ts->path, 1);
 
   state = STATE_PASS;
 #if 0
@@ -875,7 +881,7 @@ manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
     if(dryrun) {
       t->result = manifest_new_test_result(STATE_SKIP);
     } else {
-      t->result = manifest_testsuite_run_test(ts, t);
+      t->result = manifest_test_run(t, ts->path);
     }
 
     if(t->expect == STATE_FAIL)
