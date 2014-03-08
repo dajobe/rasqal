@@ -35,10 +35,7 @@
 #endif
 
 #include <rasqal.h>
-
 #include <rasqal_internal.h>
-
-#include <raptor2.h>
 
 #include "manifest.h"
 
