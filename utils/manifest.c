@@ -789,49 +789,10 @@ manifest_test_run(manifest_test* t, const char* path)
 
   result = manifest_new_test_result(STATE_FAIL);
 
+  /* FIXME - run test for real here */
+
   state = STATE_PASS;
-#if 0
-  const char* name = t->name;
 
-  my $sname=$name; $sname =~ s/\W/-/g;
-  my $log="$sname.log";
-  system "$action > '$log' 2>&1";
-  my $rc=$?;
-
-  if($rc == -1) {
-    # exec() failed
-    $test->{detail}="failed to execute $action: $!";
-    $status='fail';
-  } elsif($rc & 127) {
-    # exec()ed but died on a signal
-    my($signal,$coredump_p);
-    ($signal,$coredump_p)=(($rc & 127),  ($rc & 128));
-    $test->{detail}=sprintf("$path$action died with signal $signal, %s coredump". $coredump_p ? 'with' : 'without');
-    open(LOG, '<', $log);
-    $test->{log}=join('', <LOG>);
-    close(LOG);
-    $status='fail';
-    if($signal == 2) { # SIGINT
-      $testsuite->{abort}=1;
-    }
-  } elsif($rc) {
-    # exec()ed and exited with non-0
-    $rc >>= 8;
-    $test->{detail}="$path$action exited with code $rc";
-    if(open(LOG, '<', $log)) {
-      $test->{log}=join('', <LOG>);
-      close(LOG);
-    } else {
-      $test->{log}='';
-    }
-    $status='fail';
-  } else {
-    # exec()ed and exit 0
-    $status='pass';
-  }
-  unlink $log;
-
-#endif
   if(t->expect == STATE_FAIL) {
     if(state == STATE_FAIL) {
       state=STATE_XFAIL;
