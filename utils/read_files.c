@@ -69,7 +69,7 @@ rasqal_cmdline_read_file_fh(const char* program,
   if(!sb)
     return NULL;
 
-  buffer = (unsigned char*)malloc(FILE_READ_BUF_SIZE);
+  buffer = (unsigned char*)rasqal_alloc_memory(FILE_READ_BUF_SIZE);
   if(!buffer)
     goto tidy;
 
@@ -92,7 +92,7 @@ rasqal_cmdline_read_file_fh(const char* program,
   }
   len = raptor_stringbuffer_length(sb);
   
-  string = (unsigned char*)malloc(len + 1);
+  string = (unsigned char*)rasqal_alloc_memory(len + 1);
   if(string) {
     raptor_stringbuffer_copy_to_string(sb, string, len);
     if(len_p)
@@ -101,7 +101,7 @@ rasqal_cmdline_read_file_fh(const char* program,
   
   tidy:
   if(buffer)
-    free(buffer);
+    rasqal_free_memory(buffer);
 
   if(sb)
     raptor_free_stringbuffer(sb);
@@ -156,7 +156,7 @@ rasqal_cmdline_read_uri_file_stdin_contents(const char* program,
     www = raptor_new_www(world);
     if(www) {
       raptor_www_fetch_to_string(www, uri, (void**)&string, len_p,
-                                 malloc);
+                                 rasqal_alloc_memory);
       raptor_free_www(www);
     }
   } else if(filename) {
