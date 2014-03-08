@@ -23,6 +23,14 @@
 #ifndef RASQAL_CMDLINE_H
 #define RASQAL_CMDLINE_H
 
+typedef struct compare_query_results_t compare_query_results;
+
+/* compare_results.c */
+compare_query_results* new_compare_query_results(rasqal_world* world, rasqal_query_results* qr1, const char* qr1_label, rasqal_query_results* qr2, const char* qr2_label);
+void free_compare_query_results(compare_query_results* cqr);
+void compare_query_results_set_log_handler(compare_query_results* cqr, void* log_user_data,raptor_log_handler log_handler);
+int compare_query_results_compare(compare_query_results* cqr);
+
 /* read_files.c */
 unsigned char* rasqal_cmdline_read_file_fh(const char* program, FILE* fh, const char* filename, const char* label, size_t* len_p);
 

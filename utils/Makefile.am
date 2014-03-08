@@ -46,6 +46,7 @@ noinst_LTLIBRARIES = librasqalcmdline.la
 
 librasqalcmdline_la_SOURCES = \
 read_files.c \
+compare_results.c \
 results.c \
 rasqalcmdline.h
 
