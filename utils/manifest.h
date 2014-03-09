@@ -121,6 +121,7 @@ typedef struct
 
 typedef struct
 {
+  manifest_world* mw;
   char* dir;
   rasqal_literal* test_node; /* the test node (URI or blank node) */
   char* name; /* <test-uri> mf:name ?value */

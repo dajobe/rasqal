@@ -520,6 +520,7 @@ manifest_new_test(manifest_world* mw,
   if(!t)
     return NULL;
 
+  t->mw = mw;
   t->name = test_name;
   t->desc = test_desc;
   t->expect = (test_flags & FLAG_MUST_FAIL) ? STATE_FAIL : STATE_PASS;
