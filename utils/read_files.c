@@ -43,6 +43,8 @@
 
 #include <rasqal.h>
 
+#include <rasqal_internal.h>
+
 
 #ifdef BUFSIZ
 #define FILE_READ_BUF_SIZE BUFSIZ
@@ -54,7 +56,7 @@
 
 
 unsigned char*
-rasqal_cmdline_read_file_fh(const char* program,
+rasqal_cmdline_read_file_fh(rasqal_world *world,
                             FILE* fh,
                             const char* filename, 
                             const char* label,
@@ -64,6 +66,10 @@ rasqal_cmdline_read_file_fh(const char* program,
   size_t len;
   unsigned char* string = NULL;
   unsigned char* buffer = NULL;
+  raptor_locator my_locator;
+
+  memset(&my_locator, '\0', sizeof(my_locator));
+  my_locator.file = filename;
 
   sb = raptor_new_stringbuffer();
   if(!sb)
@@ -82,8 +88,10 @@ rasqal_cmdline_read_file_fh(const char* program,
     
     if(read_len < FILE_READ_BUF_SIZE) {
       if(ferror(fh)) {
-        fprintf(stderr, "%s: file '%s' read failed - %s\n",
-                program, filename, strerror(errno));
+        rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                                &my_locator,
+                                "Read failed - %s\n",
+                                strerror(errno));
         goto tidy;
       }
       
@@ -111,22 +119,28 @@ rasqal_cmdline_read_file_fh(const char* program,
 
 
 unsigned char*
-rasqal_cmdline_read_file_string(const char* program,
+rasqal_cmdline_read_file_string(rasqal_world* world,
                                 const char* filename, 
                                 const char* label,
                                 size_t* len_p)
 {
   FILE *fh = NULL;
   unsigned char* string = NULL;
+  raptor_locator my_locator;
+
+  memset(&my_locator, '\0', sizeof(my_locator));
+  my_locator.file = filename;
   
   fh = fopen(filename, "r");
   if(!fh) {
-    fprintf(stderr, "%s: %s '%s' open failed - %s", 
-            program, label, filename, strerror(errno));
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                            &my_locator,
+                            "%s '%s' open failed - %s\n",
+                            label, filename, strerror(errno));
     goto tidy;
   }
 
-  string = rasqal_cmdline_read_file_fh(program, fh, filename, label, len_p);
+  string = rasqal_cmdline_read_file_fh(world, fh, filename, label, len_p);
   
   fclose(fh);
   
@@ -142,29 +156,29 @@ rasqal_cmdline_read_file_string(const char* program,
  * otherwise: stdin
  */
 unsigned char*
-rasqal_cmdline_read_uri_file_stdin_contents(const char* program,
-                                            raptor_world* world,
+rasqal_cmdline_read_uri_file_stdin_contents(rasqal_world* world,
                                             raptor_uri* uri,
                                             const char* filename,
                                             size_t* len_p)
 {
+  raptor_world* raptor_world_ptr = rasqal_world_get_raptor(world);
   unsigned char* string = NULL;
   
   if(uri) {
     raptor_www *www;
     
-    www = raptor_new_www(world);
+    www = raptor_new_www(raptor_world_ptr);
     if(www) {
       raptor_www_fetch_to_string(www, uri, (void**)&string, len_p,
                                  rasqal_alloc_memory);
       raptor_free_www(www);
     }
   } else if(filename) {
-    string = rasqal_cmdline_read_file_string(program, filename,
+    string = rasqal_cmdline_read_file_string(world, filename,
                                              "query file", len_p);
   } else {
     /* stdin */
-    string = rasqal_cmdline_read_file_fh(program, stdin, "stdin",
+    string = rasqal_cmdline_read_file_fh(world, stdin, "stdin",
                                          "query string stdin", len_p);
   }
   

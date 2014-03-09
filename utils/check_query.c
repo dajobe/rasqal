@@ -519,7 +519,7 @@ main(int argc, char *argv[])
   }
 
   /* Read query from file into a string */
-  query_string = rasqal_cmdline_read_file_string(program, query_filename,
+  query_string = rasqal_cmdline_read_file_string(world, query_filename,
                                                  "query file", &query_len);
   if(!query_string) {
     rc = 1;

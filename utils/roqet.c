@@ -1353,8 +1353,7 @@ main(int argc, char *argv[])
     } else
       uri = NULL; /* stdin */
 
-    query_string = rasqal_cmdline_read_uri_file_stdin_contents(program,
-                                                               raptor_world_ptr,
+    query_string = rasqal_cmdline_read_uri_file_stdin_contents(world,
                                                                uri, filename,
                                                                NULL);
     if(!query_string) {
