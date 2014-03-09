@@ -982,6 +982,7 @@ manifest_manifests_run(manifest_world* mw,
 
     if(!ts) {
       RASQAL_DEBUG2("Failed to create test suite %s\n", testsuite_name);
+      total_state = STATE_FAIL;
       break;
     }
 
