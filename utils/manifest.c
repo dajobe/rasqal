@@ -848,8 +848,14 @@ manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
     if(t->expect == STATE_FAIL)
       expected_failures_count++;
 
+    if(t->result)
+      state = t->result->state;
+    else {
+      RASQAL_DEBUG2("Test %s returned no result - failing\n",
+                    rasqal_literal_as_string(t->test_node));
+      state = STATE_FAIL;
+    }
 
-    state = t->result->state;
     if(!verbose)
       fputc(manifest_test_state_char(state), stdout);
     raptor_sequence_push(result->states[(unsigned int)state], t);
