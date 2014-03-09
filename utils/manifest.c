@@ -38,6 +38,8 @@
 #include <rasqal_internal.h>
 
 #include "manifest.h"
+#include "rasqalcmdline.h"
+
 
 static const unsigned int indent_step = 2;
 static const unsigned int linewrap = 78;
@@ -781,6 +783,8 @@ manifest_test_run(manifest_test* t, const char* path)
 {
   manifest_test_result* result;
   manifest_test_state state = STATE_FAIL;
+  unsigned char* query_string = NULL;
+  const unsigned char* query_uri_string;
 
   if(t && t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
     RASQAL_DEBUG2("Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
@@ -789,10 +793,38 @@ manifest_test_run(manifest_test* t, const char* path)
   }
 
   result = manifest_new_test_result(STATE_FAIL);
+  if(!result)
+    goto tidy;
+
+  /* Read query from file into a string */
+  query_uri_string = raptor_uri_as_string(t->query);
+  if(raptor_uri_uri_string_is_file_uri(query_uri_string)) {
+    const char* query_filename = raptor_uri_uri_string_to_filename(query_uri_string);
+    query_string = rasqal_cmdline_read_file_string(t->mw->world, query_filename,
+                                                   "query file", NULL);
+  } else {
+    raptor_www *www;
+
+    www = raptor_new_www(t->mw->raptor_world_ptr);
+    if(www) {
+      raptor_www_fetch_to_string(www, t->query, (void**)&query_string, NULL,
+                                 rasqal_alloc_memory);
+      raptor_free_www(www);
+    }
+  }
+
+  if(!query_string) {
+    manifest_free_test_result(result);
+    result = NULL;
+    goto tidy;
+  }
+
+  RASQAL_DEBUG3("Read %lu bytes query string from %s\n",
+               strlen((const char*)query_string), query_uri_string);
 
   /* FIXME - run test for real here */
-
   state = STATE_PASS;
+
 
   if(t->expect == STATE_FAIL) {
     if(state == STATE_FAIL) {
@@ -805,6 +837,10 @@ manifest_test_run(manifest_test* t, const char* path)
   }
 
   result->state = state;
+
+  tidy:
+  if(query_string)
+    rasqal_free_memory(query_string);
 
   return result;
 }
