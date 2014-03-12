@@ -39,6 +39,9 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 
 #include <rasqal.h>
@@ -183,4 +186,73 @@ rasqal_cmdline_read_uri_file_stdin_contents(rasqal_world* world,
   }
   
   return string;
+}
+
+
+/*
+ * rasqal_cmdline_read_data_graph:
+ * @world: world
+ * @type: data graph type
+ * @name: graph name filename or URI
+ * @format_name: format name (or NULL)
+ *
+ * INTERNAL - Construct a data graph object from arguments
+ *
+ * Data graph or NULL on failure
+ */
+rasqal_data_graph*
+rasqal_cmdline_read_data_graph(rasqal_world* world,
+                               rasqal_data_graph_flags type,
+                               const char* name,
+                               const char* format_name)
+{
+  raptor_world* raptor_world_ptr = rasqal_world_get_raptor(world);
+  rasqal_data_graph* dg = NULL;
+
+  if(!access(name, R_OK)) {
+    /* file: use URI */
+    unsigned char* source_uri_string;
+    raptor_uri* source_uri;
+    raptor_uri* graph_name = NULL;
+
+    source_uri_string = raptor_uri_filename_to_uri_string(name);
+    source_uri = raptor_new_uri(raptor_world_ptr, source_uri_string);
+    raptor_free_memory(source_uri_string);
+
+    if(type == RASQAL_DATA_GRAPH_NAMED)
+      graph_name = source_uri;
+
+    if(source_uri)
+      dg = rasqal_new_data_graph_from_uri(world,
+                                          source_uri,
+                                          graph_name,
+                                          type,
+                                          NULL, format_name,
+                                          NULL);
+
+    if(source_uri)
+      raptor_free_uri(source_uri);
+  } else {
+    raptor_uri* source_uri;
+    raptor_uri* graph_name = NULL;
+
+    /* URI: use URI */
+    source_uri = raptor_new_uri(raptor_world_ptr,
+                                (const unsigned char*)name);
+    if(type == RASQAL_DATA_GRAPH_NAMED)
+      graph_name = source_uri;
+
+    if(source_uri)
+      dg = rasqal_new_data_graph_from_uri(world,
+                                          source_uri,
+                                          graph_name,
+                                          type,
+                                          NULL, format_name,
+                                          NULL);
+
+    if(source_uri)
+      raptor_free_uri(source_uri);
+  }
+
+  return dg;
 }

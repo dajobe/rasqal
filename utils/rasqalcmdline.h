@@ -37,6 +37,7 @@ unsigned char* rasqal_cmdline_read_file_fh(rasqal_world* world, FILE* fh, const 
 unsigned char* rasqal_cmdline_read_file_string(rasqal_world* world, const char* filename,  const char* label, size_t* len_p);
 
 unsigned char* rasqal_cmdline_read_uri_file_stdin_contents(rasqal_world* world, raptor_uri* uri, const char* filename, size_t* len_p);
+rasqal_data_graph* rasqal_cmdline_read_data_graph(rasqal_world* world, rasqal_data_graph_flags type, const char* name, const char* format_name);
 
 /* results.c */
 rasqal_query_results* rasqal_cmdline_read_results(rasqal_world* world, raptor_world* raptor_world_ptr, rasqal_query_results_type results_type, raptor_iostream* result_iostr, const char* result_filename, const char* result_format_name);
