@@ -193,7 +193,7 @@ rasqal_cmdline_read_uri_file_stdin_contents(rasqal_world* world,
  * rasqal_cmdline_read_data_graph:
  * @world: world
  * @type: data graph type
- * @name: graph name filename or URI
+ * @name: graph name "-" (stdin) or filename or UI
  * @format_name: format name (or NULL)
  *
  * INTERNAL - Construct a data graph object from arguments
@@ -209,7 +209,31 @@ rasqal_cmdline_read_data_graph(rasqal_world* world,
   raptor_world* raptor_world_ptr = rasqal_world_get_raptor(world);
   rasqal_data_graph* dg = NULL;
 
-  if(!access(name, R_OK)) {
+  if(!strcmp(name, "-")) {
+    /* stdin: use an iostream not a URI data graph */
+    unsigned char* source_uri_string;
+    raptor_uri* iostr_base_uri = NULL;
+    raptor_uri* graph_name = NULL;
+
+    /* FIXME - get base URI from somewhere else */
+    source_uri_string = (unsigned char*)"file:///dev/stdin";
+
+    iostr_base_uri = raptor_new_uri(raptor_world_ptr, source_uri_string);
+    if(iostr_base_uri) {
+      raptor_iostream* iostr;
+      iostr = raptor_new_iostream_from_file_handle(raptor_world_ptr,
+                                                   stdin);
+      if(iostr)
+        dg = rasqal_new_data_graph_from_iostream(world,
+                                                 iostr, iostr_base_uri,
+                                                 graph_name,
+                                                 type,
+                                                 NULL,
+                                                 format_name,
+                                                 NULL);
+      raptor_free_uri(iostr_base_uri);
+    }
+  } else if(!access(name, R_OK)) {
     /* file: use URI */
     unsigned char* source_uri_string;
     raptor_uri* source_uri;
