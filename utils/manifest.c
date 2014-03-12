@@ -333,11 +333,11 @@ manifest_new_test(manifest_world* mw,
   char* test_desc = NULL;
   rasqal_literal* action_node;
   raptor_uri* test_query_uri = NULL;
-  raptor_uri* test_data_uri = NULL;
-  raptor_uri* test_data_graph_uri = NULL;
+  raptor_sequence* test_data_graphs = NULL;
   raptor_uri* test_result_uri = NULL;
   raptor_uri* test_type = NULL;
   unsigned int test_flags;
+  rasqal_dataset_term_iterator* iter = NULL;
 
   /* Get test fields */
   node = rasqal_dataset_get_target(ds,
@@ -394,34 +394,65 @@ manifest_new_test(manifest_world* mw,
       }
     }
     
+    test_data_graphs = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph, NULL);
+
     node = rasqal_dataset_get_target(ds,
                                      action_node,
                                      mw->qt_data_literal);
     if(node && node->type == RASQAL_LITERAL_URI) {
       uri = rasqal_literal_as_uri(node);
       if(uri) {
-        test_data_uri = raptor_uri_copy(uri);
+        rasqal_data_graph* dg;
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
-          fprintf(stderr, "  Test data URI: '%s'\n",
-                  raptor_uri_as_string(test_data_uri));
+        fprintf(stderr, "  Test data URI: '%s'\n",
+                raptor_uri_as_string(uri));
 #endif
+
+        dg = rasqal_new_data_graph_from_uri(mw->world,
+                                            uri,
+                                            NULL /* graph name URI */,
+                                            RASQAL_DATA_GRAPH_BACKGROUND,
+                                            NULL /* format mime type */,
+                                            NULL /* format/parser name */,
+                                            NULL /* format URI */);
+        raptor_sequence_push(test_data_graphs, dg);
       }
     }
     
-    node = rasqal_dataset_get_target(ds,
-                                     action_node,
-                                     mw->qt_graphData_literal);
-    if(node && node->type == RASQAL_LITERAL_URI) {
-      /* FIXME: seen qt:graphData [ qt:graph <uri>; rdfs:label "string" ] */
-      uri = rasqal_literal_as_uri(node);
-      if(uri) {
-        test_data_graph_uri = raptor_uri_copy(uri);
+    iter = rasqal_dataset_get_targets_iterator(ds,
+                                               action_node,
+                                               mw->qt_graphData_literal);
+    if(iter) {
+      while(1) {
+        node = rasqal_dataset_term_iterator_get(iter);
+        if(!node)
+          break;
+        if(node->type == RASQAL_LITERAL_URI) {
+          /* FIXME: seen qt:graphData [ qt:graph <uri>; rdfs:label "string" ] */
+          uri = rasqal_literal_as_uri(node);
+          if(uri) {
+            rasqal_data_graph* dg;
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
           fprintf(stderr, "  Test graph data URI: '%s'\n",
-                  raptor_uri_as_string(test_data_graph_uri));
+                  raptor_uri_as_string(uri));
 #endif
+            dg = rasqal_new_data_graph_from_uri(mw->world,
+                                                uri,
+                                                uri,
+                                                RASQAL_DATA_GRAPH_NAMED,
+                                                NULL /* format mime type */,
+                                                NULL /* format/parser name */,
+                                                NULL /* format URI */);
+            raptor_sequence_push(test_data_graphs, dg);
+          }
+        }
+
+        if(rasqal_dataset_term_iterator_next(iter))
+          break;
       }
-    }
+      rasqal_free_dataset_term_iterator(iter);
+    } /* end if graphData iter */
+
     
   } /* end if action node */
 
@@ -529,8 +560,7 @@ manifest_new_test(manifest_world* mw,
   t->dir = dir;
   t->test_node = rasqal_new_literal_from_literal(entry_node);
   t->query = test_query_uri;
-  t->data = test_data_uri;
-  t->data_graph = test_data_graph_uri;
+  t->data_graphs = test_data_graphs;
   t->expected_result = test_result_uri;
   t->flags = test_flags;
 
@@ -554,10 +584,8 @@ manifest_free_test(manifest_test* t)
     rasqal_free_literal(t->test_node);
   if(t->query)
     raptor_free_uri(t->query);
-  if(t->data)
-    raptor_free_uri(t->data);
-  if(t->data_graph)
-    raptor_free_uri(t->data_graph);
+  if(t->data_graphs)
+    raptor_free_sequence(t->data_graphs);
   if(t->expected_result)
     raptor_free_uri(t->expected_result);
   if(t->result)
@@ -854,6 +882,21 @@ manifest_test_run(manifest_test* t, const char* path)
     manifest_free_test_result(result);
     result = NULL;
     goto tidy;
+  }
+
+  /* Add any data graphs */
+  if(t->data_graphs) {
+    rasqal_data_graph* dg;
+
+    while((dg = (rasqal_data_graph*)raptor_sequence_pop(t->data_graphs))) {
+      if(rasqal_query_add_data_graph(rq, dg)) {
+        RASQAL_DEBUG2("Failed to add data graph %s to query\n",
+                      raptor_uri_as_string(dg->uri));
+        manifest_free_test_result(result);
+        result = NULL;
+        goto tidy;
+      }
+    }
   }
 
   /* FIXME - run test for real here */

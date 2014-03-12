@@ -128,8 +128,7 @@ typedef struct
   char* desc; /* <test-uri> rdfs:comment ?value */
   manifest_test_state expect; /* derived from <test-uri> rdf:type ?value */
   raptor_uri* query; /* <test-uri> qt:query ?uri */
-  raptor_uri* data; /* <test-uri> qt:data ?uri */
-  raptor_uri* data_graph;  /* <test-uri> qt:dataGraph ?uri */
+  raptor_sequence* data_graphs;  /* sequence of data graphs. background graph <test-uri> qt:data ?uri and named graphs <test-uri> qt:dataGraph ?uri */
   raptor_uri* expected_result; /* <test-uri> mf:result ?uri */
   unsigned int flags; /* bit flags from #manifest_test_type_bitflags */
 
