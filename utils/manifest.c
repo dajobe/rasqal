@@ -567,6 +567,18 @@ manifest_free_test(manifest_test* t)
 }
 
 
+const char*
+manifest_test_get_query_language(manifest_test* t)
+{
+  const char* language = "sparql";
+  if(t->flags & FLAG_IS_UPDATE)
+    language = "sparql-update";
+  if(t->flags & FLAG_LANG_SPARQL_11)
+    language = "sparql11";
+  return language;
+}
+
+
 /**
  * manifest_new_testsuite:
  * @world: rasqal world
