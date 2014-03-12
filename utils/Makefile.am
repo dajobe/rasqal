@@ -54,28 +54,34 @@ rasqalcmdline.h
 roqet_SOURCES = roqet.c
 roqet_CPPFLAGS = $(AM_CPPFLAGS)
 roqet_LDADD = $(top_builddir)/src/librasqal.la librasqalcmdline.la
+roqet_DEPENDENCIES = $(top_builddir)/src/librasqal.la librasqalcmdline.la
 roqet_LDFLAGS = @RAPTOR2_LIBS@
 if GETOPT
 roqet_CPPFLAGS += -I$(top_srcdir)/getopt
 roqet_LDADD += $(top_builddir)/getopt/libgetopt.la
+roqet_DEPENDENCIES += $(top_builddir)/libgetopt/libgetopt.la
 endif
 
 check_query_SOURCES = check_query.c
 check_query_CPPFLAGS = $(AM_CPPFLAGS)
 check_query_LDADD = $(top_builddir)/src/librasqal.la librasqalcmdline.la
+check_query_DEPENDENCIES = $(top_builddir)/src/librasqal.la librasqalcmdline.la
 check_query_LDFLAGS = @RAPTOR2_LIBS@
 if GETOPT
 check_query_CPPFLAGS += -I$(top_srcdir)/getopt
 check_query_LDADD += $(top_builddir)/getopt/libgetopt.la
+check_query_DEPENDENCIES += $(top_builddir)/libgetopt/libgetopt.la
 endif
 
 testrunner_SOURCES = testrunner.c manifest.c manifest.h
 testrunner_CPPFLAGS = $(AM_CPPFLAGS)
 testrunner_LDADD = $(top_builddir)/src/librasqal.la librasqalcmdline.la
+testrunner_DEPENDENCIES = $(top_builddir)/src/librasqal.la librasqalcmdline.la
 testrunner_LDFLAGS = @RAPTOR2_LIBS@
 if GETOPT
 testrunner_CPPFLAGS += -I$(top_srcdir)/getopt
 testrunner_LDADD += $(top_builddir)/getopt/libgetopt.la
+testrunner_DEPENDENCIES += $(top_builddir)/libgetopt/libgetopt.la
 endif
 
 to_ntriples_SOURCES = to-ntriples.c
@@ -84,10 +90,12 @@ to_ntriples_LDFLAGS = @RAPTOR2_LIBS@
 
 srxread_SOURCES = srxread.c
 srxread_LDADD = $(top_builddir)/src/librasqal.la
+srxread_DEPENDENCIES = $(top_builddir)/src/librasqal.la
 srxread_LDFLAGS = @RAPTOR2_LIBS@
 
 srxwrite_SOURCES = srxwrite.c
 srxwrite_LDADD = $(top_builddir)/src/librasqal.la
+srxwrite_DEPENDENCIES = $(top_builddir)/src/librasqal.la
 srxwrite_LDFLAGS = @RAPTOR2_LIBS@
 
 EXTRA_DIST= \
