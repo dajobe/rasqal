@@ -107,7 +107,7 @@ static const char *title_format_string = "Rasqal RDF test runner utility %s\n";
 static void
 testrunner_log_handler(void *data, raptor_log_message *message)
 {
-  raptor_parser *parser = (raptor_parser*)data;
+  /* rasqal_world *world = (rasqal_world*)data; */
 
   switch(message->level) {
     case RAPTOR_LOG_LEVEL_FATAL:
@@ -116,7 +116,6 @@ testrunner_log_handler(void *data, raptor_log_message *message)
       raptor_locator_print(message->locator, stderr);
       fprintf(stderr, " - %s\n", message->text);
 
-      raptor_parser_parse_abort(parser);
       error_count++;
       break;
 
