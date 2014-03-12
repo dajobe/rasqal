@@ -797,6 +797,9 @@ manifest_test_run(manifest_test* t, const char* path)
   manifest_test_state state = STATE_FAIL;
   unsigned char* query_string = NULL;
   const unsigned char* query_uri_string;
+  const char* ql_name;
+  rasqal_query* rq = NULL;
+  raptor_uri* base_uri = NULL;
 
   if(t && t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
     RASQAL_DEBUG2("Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
@@ -831,8 +834,27 @@ manifest_test_run(manifest_test* t, const char* path)
     goto tidy;
   }
 
-  RASQAL_DEBUG3("Read %lu bytes query string from %s\n",
-               strlen((const char*)query_string), query_uri_string);
+  ql_name = manifest_test_get_query_language(t);
+
+  RASQAL_DEBUG4("Read %lu bytes '%s' query string from %s\n",
+                strlen((const char*)query_string), ql_name,
+                query_uri_string);
+
+  /* Parse and prepare query */
+  rq = rasqal_new_query(t->mw->world, ql_name, NULL);
+  if(!rq) {
+    RASQAL_DEBUG2("Failed to create query in language %s\n", ql_name);
+    manifest_free_test_result(result);
+    result = NULL;
+    goto tidy;
+  }
+
+  if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
+    RASQAL_DEBUG3("Parsing %s query '%s' failed\n", ql_name, query_string);
+    manifest_free_test_result(result);
+    result = NULL;
+    goto tidy;
+  }
 
   /* FIXME - run test for real here */
   state = STATE_PASS;
@@ -851,6 +873,8 @@ manifest_test_run(manifest_test* t, const char* path)
   result->state = state;
 
   tidy:
+  if(rq)
+    rasqal_free_query(rq);
   if(query_string)
     rasqal_free_memory(query_string);
 
