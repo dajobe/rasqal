@@ -301,12 +301,14 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
+  /* A sequence of owned URIs */
   seq = raptor_new_sequence((raptor_data_free_handler)raptor_free_uri, NULL);
-  raptor_sequence_push(seq, uri);
+  raptor_sequence_push(seq, raptor_uri_copy(uri));
 
   result = manifest_manifests_run(mw, seq, base_uri,
                                   /* indent */ 0,
                                   dryrun, !quiet);
+  raptor_free_sequence(seq);
 
   if(result)
     manifest_free_test_result(result);
