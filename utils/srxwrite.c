@@ -110,10 +110,10 @@ main(int argc, char *argv[])
   }
 
 #define NUMBER_VARIABLES 2
-  rasqal_variables_table_add(vars_table, RASQAL_VARIABLE_TYPE_NORMAL,
-                             (const unsigned char*)strdup("a"), NULL);
-  rasqal_variables_table_add(vars_table, RASQAL_VARIABLE_TYPE_NORMAL,
-                             (const unsigned char*)strdup("b"), NULL);
+  rasqal_variables_table_add2(vars_table, RASQAL_VARIABLE_TYPE_NORMAL,
+                              (const unsigned char*)"a", 1, NULL);
+  rasqal_variables_table_add2(vars_table, RASQAL_VARIABLE_TYPE_NORMAL,
+                              (const unsigned char*)"b", 1, NULL);
 
   results = rasqal_new_query_results(world, NULL,
                                      RASQAL_QUERY_RESULTS_BINDINGS, vars_table);
