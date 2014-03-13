@@ -842,9 +842,10 @@ manifest_test_run(manifest_test* t, const char* path)
   /* Read query from file into a string */
   query_uri_string = raptor_uri_as_string(t->query);
   if(raptor_uri_uri_string_is_file_uri(query_uri_string)) {
-    const char* query_filename = raptor_uri_uri_string_to_filename(query_uri_string);
+    char* query_filename = raptor_uri_uri_string_to_filename(query_uri_string);
     query_string = rasqal_cmdline_read_file_string(t->mw->world, query_filename,
                                                    "query file", NULL);
+    raptor_free_memory(query_filename);
   } else {
     raptor_www *www;
 
