@@ -1848,7 +1848,7 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
 
   } else {
     /* No */
-    char* var_name;
+    char var_name[20];
     rasqal_expression* new_e = NULL;
         
     /* Check if a new variable is allowed to be added */
@@ -1863,17 +1863,13 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
     /* If not an error, create a new internal variable name for it
      * $$agg{id}$$ and add it to the map.
      */
-    var_name = RASQAL_MALLOC(char*, 20);
-    if(!var_name) {
-      ae->error = 1;
-      return 1;
-    }
-    
     sprintf(var_name, "$$agg$$%d", ae->counter++);
 
-    v = rasqal_variables_table_add(ae->query->vars_table, 
-                                   RASQAL_VARIABLE_TYPE_ANONYMOUS, 
-                                   RASQAL_GOOD_CAST(const unsigned char*, var_name), NULL);
+    v = rasqal_variables_table_add2(ae->query->vars_table,
+                                    RASQAL_VARIABLE_TYPE_ANONYMOUS,
+                                    RASQAL_GOOD_CAST(const unsigned char*, var_name),
+                                    0,
+                                    NULL);
     if(!v) {
       ae->error = 1;
       return 1;

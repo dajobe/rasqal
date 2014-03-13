@@ -324,7 +324,6 @@ rasqal_rowsource_sv_header_callback(sv *t, void *user_data,
   con->variables_count = count;
 
   for(i = 0; i < count; i++) {
-    unsigned char* var_name;
     rasqal_variable *v;
     char *p = fields[i];
     size_t len = widths[i];
@@ -334,12 +333,10 @@ rasqal_rowsource_sv_header_callback(sv *t, void *user_data,
       len--;
     }
     
-    var_name = RASQAL_MALLOC(unsigned char*, len + 1);
-    memcpy(var_name, p, len + 1);
-    
-    v = rasqal_variables_table_add(con->vars_table,
-                                   RASQAL_VARIABLE_TYPE_NORMAL,
-                                   var_name, NULL);
+    v = rasqal_variables_table_add2(con->vars_table,
+                                    RASQAL_VARIABLE_TYPE_NORMAL,
+                                    RASQAL_GOOD_CAST(const unsigned char*, p),
+                                    len, NULL);
     if(v) {
       rasqal_rowsource_add_variable(con->rowsource, v);
       /* above function takes a reference to v */

@@ -588,15 +588,11 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
   switch(state) {
     case STATE_variable:
       if(con->name) {
-        unsigned char* var_name;
         rasqal_variable *v;
-        
-        var_name = RASQAL_MALLOC(unsigned char*, con->name_length + 1);
-        memcpy(var_name, con->name, con->name_length + 1);
-
-        v = rasqal_variables_table_add(con->vars_table,
-                                       RASQAL_VARIABLE_TYPE_NORMAL,
-                                       var_name, NULL);
+        v = rasqal_variables_table_add2(con->vars_table,
+                                        RASQAL_VARIABLE_TYPE_NORMAL,
+                                        RASQAL_GOOD_CAST(const unsigned char*, con->name),
+                                        con->name_length, NULL);
         if(v) {
           rasqal_rowsource_add_variable(con->rowsource, v);
           /* above function takes a reference to v */

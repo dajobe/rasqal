@@ -393,17 +393,11 @@ rasqal_new_row_sequence(rasqal_world* world,
   for(column_i = 0; column_i < vars_count; column_i++) {
     const char * var_name = GET_CELL(row_i, column_i, 0);
     size_t var_name_len = strlen(var_name);
-    const unsigned char* name;
     rasqal_variable* v;
     
-    name = RASQAL_MALLOC(unsigned char*, var_name_len + 1);
-    if(!name) {
-      failed = 1;
-      goto tidy;
-    }
-
-    memcpy((void*)name, var_name, var_name_len + 1);
-    v = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL, name, NULL);
+    v = rasqal_variables_table_add2(vt, RASQAL_VARIABLE_TYPE_NORMAL,
+                                    RASQAL_GOOD_CAST(const unsigned char*, var_name),
+                                    var_name_len, NULL);
     if(!v) {
       failed = 1;
       goto tidy;

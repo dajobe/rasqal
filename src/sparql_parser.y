@@ -4412,8 +4412,8 @@ Var: '?' VarName
 /* NEW Grammar Term made from SPARQL Grammar: Var */
 VarName: IDENTIFIER
 {
-  $$ = rasqal_variables_table_add(rq->vars_table,
-                                  RASQAL_VARIABLE_TYPE_NORMAL, $1, NULL);
+  $$ = rasqal_variables_table_add2(rq->vars_table,
+                                   RASQAL_VARIABLE_TYPE_NORMAL, $1, 0, NULL);
   if(!$$)
     YYERROR_MSG("VarName: cannot create var");
 }

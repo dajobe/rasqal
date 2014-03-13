@@ -447,38 +447,42 @@ rasqal_variables_table_add_variable(rasqal_variables_table* vt,
 
 
 /**
- * rasqal_variables_table_add:
+ * rasqal_variables_table_add2:
  * @vt: #rasqal_variables_table to associate the variable with
  * @type: variable type defined by enumeration rasqal_variable_type
  * @name: variable name
+ * @name_len: length of @name (or 0)
  * @value: variable #rasqal_literal value (or NULL)
  *
  * Constructor - Create a new variable and add it to the variables table
  * 
- * The @name and @value become owned by the rasqal_variable
- * structure.  If a variable with the name already exists, that is
- * returned and the new @value is ignored.
+ * The @name and @value fields are copied.  If a variable with the
+ * name already exists, that is returned and the new @value is
+ * ignored.
  *
  * Return value: a new #rasqal_variable or NULL on failure.
  **/
 rasqal_variable*
-rasqal_variables_table_add(rasqal_variables_table* vt,
-                           rasqal_variable_type type, 
-                           const unsigned char *name, rasqal_literal *value)
+rasqal_variables_table_add2(rasqal_variables_table* vt,
+                            rasqal_variable_type type, 
+                            const unsigned char *name, size_t name_len,
+                            rasqal_literal *value)
 {
   rasqal_variable* v = NULL;
 
-  if(!vt)
+  if(!vt || !name)
+    goto failed;
+
+  if(!name_len)
+    name_len = strlen(RASQAL_GOOD_CAST(const char*, name));
+
+  if(!name_len)
     goto failed;
 
   /* If already present, just return a new reference to it */
   v = rasqal_variables_table_get_by_name(vt, type, name);
-  if(v) {
-    RASQAL_FREE(char*, name);
-    if(value)
-      rasqal_free_literal(value);
+  if(v)
     return rasqal_new_variable_from_variable(v);
-  }
 
   v = RASQAL_CALLOC(rasqal_variable*, 1, sizeof(*v));
   if(!v)
@@ -488,8 +492,9 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
   v->usage = 1;
   v->vars_table = vt;
   v->type = type;
-  v->name = name;
-  v->value = value;
+  v->name = RASQAL_MALLOC(unsigned char*, name_len + 1);
+  memcpy(RASQAL_GOOD_CAST(char*, v->name), name, name_len + 1);
+  v->value = rasqal_new_literal_from_literal(value);
   
   if(rasqal_variables_table_add_variable(vt, v))
     goto failed;
@@ -501,10 +506,43 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
   if(v)
     RASQAL_FREE(rasqal_variable*, v);
   
+  return NULL;
+}
+
+
+/**
+ * rasqal_variables_table_add:
+ * @vt: #rasqal_variables_table to associate the variable with
+ * @type: variable type defined by enumeration rasqal_variable_type
+ * @name: variable name
+ * @value: variable #rasqal_literal value (or NULL)
+ *
+ * Constructor - Create a new variable and add it to the variables table
+ *
+ * @Deprecated: for rasqal_variables_table_add2() which copies the @name
+ * and @value
+ *
+ * The @name and @value become owned by the rasqal_variable
+ * structure.  If a variable with the name already exists, that is
+ * returned and the new @value is ignored.
+ *
+ * Return value: a new #rasqal_variable or NULL on failure.
+ **/
+rasqal_variable*
+rasqal_variables_table_add(rasqal_variables_table* vt,
+                           rasqal_variable_type type,
+                           const unsigned char *name, rasqal_literal *value)
+{
+  rasqal_variable* v;
+
+  if(!vt || !name)
+    return NULL;
+
+  v = rasqal_variables_table_add2(vt, type, name, 0, value);
   RASQAL_FREE(char*, name);
   if(value)
     rasqal_free_literal(value);
-  return NULL;
+  return v;
 }
 
 
@@ -716,7 +754,6 @@ main(int argc, char *argv[])
   rasqal_variables_table* vt = NULL;
 #define NUM_VARS 3
   const char* var_names[NUM_VARS] = {"normal-null", "normal-value", "anon"};
-  unsigned char* names[NUM_VARS];
   rasqal_variable* vars[NUM_VARS];
   rasqal_literal *value = NULL;
   int i;
@@ -736,22 +773,14 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  for(i = 0; i < NUM_VARS; i++) {
-    size_t len = strlen(var_names[i]);
-    names[i] = RASQAL_GOOD_CAST(unsigned char*, malloc(len + 1));
-    memcpy(names[i], var_names[i], len + 1);
-  }
-  
-  vars[0] = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL,
-                                       names[0], NULL);
+  vars[0] = rasqal_variables_table_add2(vt, RASQAL_VARIABLE_TYPE_NORMAL,
+                                        RASQAL_GOOD_CAST(const unsigned char*, var_names[0]),
+                                        0, NULL);
   if(!vars[0]) {
     fprintf(stderr, "%s: Failed to make normal variable with NULL value\n",
             program);
     rc = 1;
     goto tidy;
-  } else {
-    /* now owned by vars[0] owned by vt */
-    names[0] = NULL;
   }
   /* vars[0] now owned by vt */
 
@@ -761,30 +790,25 @@ main(int argc, char *argv[])
     rc = 1;
     goto tidy;
   }
-  vars[1] = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL,
-                                       names[1], value);
+  vars[1] = rasqal_variables_table_add2(vt, RASQAL_VARIABLE_TYPE_NORMAL,
+                                        RASQAL_GOOD_CAST(const unsigned char*, var_names[1]),
+                                        0, value);
   if(!vars[1]) {
     fprintf(stderr, "%s: Failed to make normal variable with literal value\n",
             program);
     rc = 1;
     goto tidy;
-  } else {
-    /* now owned by vars[1] owned by vt */
-    names[1] = NULL;
-    value = NULL;
   }
   /* vars[1] now owned by vt */
   
-  vars[2] = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_ANONYMOUS,
-                                       names[2], NULL);
+  vars[2] = rasqal_variables_table_add2(vt, RASQAL_VARIABLE_TYPE_ANONYMOUS,
+                                        RASQAL_GOOD_CAST(const unsigned char*, var_names[2]),
+                                        0, NULL);
   if(!vars[2]) {
     fprintf(stderr, "%s: Failed to make anonymous variable with NULL value\n",
             program);
     rc = 1;
     goto tidy;
-  } else {
-    /* now owned by vars[2] owned by vt */
-    names[2] = NULL;
   }
   /* vars[2] now owned by vt */
   
@@ -792,8 +816,6 @@ main(int argc, char *argv[])
   for(i = 0; i < NUM_VARS; i++) {
     if(vars[i])
       rasqal_free_variable(vars[i]);
-    if(names[i])
-      free(names[i]);
   }
   
   if(value)
