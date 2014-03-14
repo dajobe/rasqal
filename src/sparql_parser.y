@@ -4416,6 +4416,7 @@ VarName: IDENTIFIER
                                    RASQAL_VARIABLE_TYPE_NORMAL, $1, 0, NULL);
   if(!$$)
     YYERROR_MSG("VarName: cannot create var");
+  RASQAL_FREE(char*, $1);
 }
 ;
 
