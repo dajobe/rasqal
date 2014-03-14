@@ -154,9 +154,15 @@ rasqal_cmdline_read_file_string(rasqal_world* world,
 
 
 /*
- * uri: uri
- * filename != NULL: file
- * otherwise: stdin
+ * rasqal_cmdline_read_uri_file_stdin_contents:
+ * @world: rasqal world
+ * @uri: uri to use (or NULL)
+ * @filename: filename to use (or NULL)
+ * @len_p: address to store length of result (or NULL)
+ *
+ * INTERNAL - Read a query string from a @uri or @filename or otherwise from stdin
+ *
+ * Return value: query string at the source or NULL on failure
  */
 unsigned char*
 rasqal_cmdline_read_uri_file_stdin_contents(rasqal_world* world,
