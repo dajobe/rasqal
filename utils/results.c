@@ -60,6 +60,7 @@ rasqal_cmdline_read_results(rasqal_world* world,
   unsigned char *query_results_base_uri_string = NULL;
   raptor_uri* query_results_base_uri = NULL;
   rasqal_query_results* results = NULL;
+  int rc;
 
   query_results_base_uri_string = raptor_uri_filename_to_uri_string(result_filename);
 
@@ -98,12 +99,12 @@ rasqal_cmdline_read_results(rasqal_world* world,
   if(!qrf)
     goto tidy_fail;
 
-  if(rasqal_query_results_formatter_read(world, result_iostr,
-                                         qrf, results,
-                                         query_results_base_uri))
-    goto tidy_fail;
-
+  rc = rasqal_query_results_formatter_read(world, result_iostr,
+                                           qrf, results,
+                                           query_results_base_uri);
   rasqal_free_query_results_formatter(qrf); qrf = NULL;
+  if(rc)
+    goto tidy_fail;
 
   return results;
 
