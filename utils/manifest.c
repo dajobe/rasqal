@@ -33,7 +33,9 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
-
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
@@ -56,6 +58,9 @@ static const char* manifest_test_state_labels[STATE_LAST + 1] = {
   "UXPASS",
   "SKIP"
 };
+
+
+#define DEFAULT_RESULT_FORMAT_NAME "xml"
 
 
 /* prototypes */
@@ -821,6 +826,8 @@ manifest_indent(FILE* fh, unsigned int indent)
 static manifest_test_result*
 manifest_test_run(manifest_test* t, const char* path)
 {
+  rasqal_world* world = t->mw->world;
+  raptor_world* raptor_world_ptr = t->mw->raptor_world_ptr;
   manifest_test_result* result;
   manifest_test_state state = STATE_FAIL;
   unsigned char* query_string = NULL;
@@ -828,6 +835,10 @@ manifest_test_run(manifest_test* t, const char* path)
   const char* ql_name;
   rasqal_query* rq = NULL;
   raptor_uri* base_uri = NULL;
+  rasqal_query_results_type results_type;
+  rasqal_query_results* expected_results = NULL;
+  char* result_filename = NULL;
+  raptor_iostream* result_iostr = NULL;
 
   if(t && t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
     RASQAL_DEBUG2("Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
@@ -843,13 +854,13 @@ manifest_test_run(manifest_test* t, const char* path)
   query_uri_string = raptor_uri_as_string(t->query);
   if(raptor_uri_uri_string_is_file_uri(query_uri_string)) {
     char* query_filename = raptor_uri_uri_string_to_filename(query_uri_string);
-    query_string = rasqal_cmdline_read_file_string(t->mw->world, query_filename,
+    query_string = rasqal_cmdline_read_file_string(world, query_filename,
                                                    "query file", NULL);
     raptor_free_memory(query_filename);
   } else {
     raptor_www *www;
 
-    www = raptor_new_www(t->mw->raptor_world_ptr);
+    www = raptor_new_www(raptor_world_ptr);
     if(www) {
       raptor_www_fetch_to_string(www, t->query, (void**)&query_string, NULL,
                                  rasqal_alloc_memory);
@@ -870,7 +881,7 @@ manifest_test_run(manifest_test* t, const char* path)
                 query_uri_string);
 
   /* Parse and prepare query */
-  rq = rasqal_new_query(t->mw->world, ql_name, NULL);
+  rq = rasqal_new_query(world, ql_name, NULL);
   if(!rq) {
     RASQAL_DEBUG2("Failed to create query in language %s\n", ql_name);
     manifest_free_test_result(result);
@@ -879,7 +890,8 @@ manifest_test_run(manifest_test* t, const char* path)
   }
 
   if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
-    RASQAL_DEBUG3("Parsing %s query '%s' failed\n", ql_name, query_string);
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                            "Parsing %s query '%s' failed", ql_name, query_string);
     manifest_free_test_result(result);
     result = NULL;
     goto tidy;
@@ -891,14 +903,121 @@ manifest_test_run(manifest_test* t, const char* path)
 
     while((dg = (rasqal_data_graph*)raptor_sequence_pop(t->data_graphs))) {
       if(rasqal_query_add_data_graph(rq, dg)) {
-        RASQAL_DEBUG2("Failed to add data graph %s to query\n",
-                      raptor_uri_as_string(dg->uri));
+        rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                                "Failed to add data graph %s to query",
+                                raptor_uri_as_string(dg->uri));
         manifest_free_test_result(result);
         result = NULL;
         goto tidy;
       }
     }
   }
+
+  /* Query prepared OK - we now know the query details such as result type */
+
+  /* Read expected results */
+  results_type = rasqal_query_get_result_type(rq);
+  RASQAL_DEBUG2("Expecting result type %d\n", results_type);
+
+  if(t->expected_result) {
+    unsigned char* expected_result_uri_string;
+
+    /* Read result file */
+    expected_result_uri_string = raptor_uri_as_string(t->expected_result);
+    if(raptor_uri_uri_string_is_file_uri(expected_result_uri_string)) {
+      result_filename = raptor_uri_uri_string_to_filename(expected_result_uri_string);
+
+      result_iostr = raptor_new_iostream_from_filename(raptor_world_ptr,
+                                                       result_filename);
+      if(!result_iostr)
+        rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                                "Result file '%s' open failed - %s",
+                                result_filename, strerror(errno));
+    } else
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                              "Result '%s' is not a local file",
+                              expected_result_uri_string);
+
+    if(!result_iostr) {
+      manifest_free_test_result(result);
+      result = NULL;
+      goto tidy;
+    }
+
+    switch(results_type) {
+      case RASQAL_QUERY_RESULTS_BINDINGS:
+        /* read results via rasqal query results format */
+#if 0
+        expected_results = rasqal_cmdline_read_results(world,
+                                                       raptor_world_ptr,
+                                                       results_type,
+                                                       result_iostr,
+                                                       result_filename,
+                                                       /* format name */ NULL);
+#endif
+        raptor_free_iostream(result_iostr); result_iostr = NULL;
+        if(!expected_results) {
+          RASQAL_DEBUG1("Failed to create query results\n");
+          manifest_free_test_result(result);
+          result = NULL;
+          goto tidy;
+        }
+
+        break;
+
+      case RASQAL_QUERY_RESULTS_GRAPH:
+        /* read results via raptor parser */
+
+        if(1) {
+          const char* format_name = DEFAULT_RESULT_FORMAT_NAME;
+          rasqal_dataset* ds;
+
+          ds = rasqal_new_dataset(world);
+          if(!ds) {
+            RASQAL_DEBUG1("Failed to create dataset\n");
+            manifest_free_test_result(result);
+            result = NULL;
+            goto tidy;
+          }
+
+          if(rasqal_dataset_load_graph_iostream(ds, format_name,
+                                                result_iostr, NULL)) {
+            RASQAL_DEBUG1("Failed to load graph into dataset\n");
+            manifest_free_test_result(result);
+            result = NULL;
+            goto tidy;
+          }
+
+          raptor_free_iostream(result_iostr); result_iostr = NULL;
+
+          /* FIXME
+           *
+           * The code at this point should do something with triples
+           * in the dataset; save them for later to compare them to
+           * the expected triples.  that requires a triples compare
+           * OR a true RDF graph compare.
+           *
+           * Deleting the dataset here frees the triples just loaded.
+           */
+          RASQAL_DEBUG1("No support for comparing RDF graph results\n");
+          rasqal_free_dataset(ds); ds = NULL;
+        }
+        break;
+
+      case RASQAL_QUERY_RESULTS_SYNTAX:
+      case RASQAL_QUERY_RESULTS_BOOLEAN:
+      case RASQAL_QUERY_RESULTS_UNKNOWN:
+        /* failure */
+        RASQAL_DEBUG2("Reading %s query results format is not supported",
+                      rasqal_query_results_type_label(results_type));
+        manifest_free_test_result(result);
+        result = NULL;
+        goto tidy;
+    }
+  }
+
+  /* save results for query execution so we can print and rewind */
+  rasqal_query_set_store_results(rq, 1);
 
   /* FIXME - run test for real here */
   state = STATE_PASS;
@@ -914,9 +1033,16 @@ manifest_test_run(manifest_test* t, const char* path)
     }
   }
 
-  result->state = state;
+  if(result)
+    result->state = state;
 
   tidy:
+  if(result_iostr)
+    raptor_free_iostream(result_iostr);
+  if(expected_results)
+    rasqal_free_query_results(expected_results);
+  if(result_filename)
+    raptor_free_memory(result_filename);
   if(rq)
     rasqal_free_query(rq);
   if(query_string)
