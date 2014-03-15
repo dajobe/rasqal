@@ -49,11 +49,11 @@
 
 rasqal_query_results*
 rasqal_cmdline_read_results(rasqal_world* world,
-                             raptor_world* raptor_world_ptr,
-                             rasqal_query_results_type results_type,
-                             raptor_iostream* result_iostr,
-                             const char* result_filename,
-                             const char* result_format_name)
+                            raptor_world* raptor_world_ptr,
+                            rasqal_query_results_type results_type,
+                            raptor_iostream* result_iostr,
+                            const char* result_filename,
+                            const char* result_format_name)
 {
   rasqal_variables_table* vars_table = NULL;
   rasqal_query_results_formatter* qrf = NULL;
@@ -65,6 +65,7 @@ rasqal_cmdline_read_results(rasqal_world* world,
 
   query_results_base_uri = raptor_new_uri(raptor_world_ptr,
                                           query_results_base_uri_string);
+  raptor_free_memory(query_results_base_uri_string);
 
   vars_table = rasqal_new_variables_table(world);
   results = rasqal_new_query_results(world, NULL, results_type, vars_table);
@@ -85,7 +86,7 @@ rasqal_cmdline_read_results(rasqal_world* world,
     result_format_name = rasqal_world_guess_query_results_format_name(world,
                                NULL /* uri */,
                                NULL /* mime_type */,
-                               NULL /*buffer */,
+                               NULL /* buffer */,
                                0,
                                (const unsigned char*)result_filename);
   }
