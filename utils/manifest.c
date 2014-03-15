@@ -1068,18 +1068,19 @@ manifest_manifests_run(manifest_world* mw,
 
     result = manifest_testsuite_run_suite(ts, indent, dryrun, verbose);
 
-#if 0
-    manifest_testsuite_result_format(stdout, result, indent + indent_step);
-#endif
-    for(j = 0; j < STATE_LAST; j++)
-      raptor_sequence_join(total_result->states[i], result->states[i]);
-
     if(result) {
+#if 0
+      manifest_testsuite_result_format(stdout, result, indent + indent_step);
+#endif
+      for(j = 0; j < STATE_LAST; j++)
+        raptor_sequence_join(total_result->states[j], result->states[j]);
+
       if(result->state == STATE_FAIL)
         total_state = STATE_FAIL;
-    }
 
-    manifest_free_test_result(result);
+      manifest_free_test_result(result);
+    } else
+      total_state = STATE_FAIL;
 
     if(i > 1)
       fputc('\n', stdout);
