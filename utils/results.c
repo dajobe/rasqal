@@ -103,6 +103,7 @@ rasqal_cmdline_read_results(rasqal_world* world,
                                            qrf, results,
                                            query_results_base_uri);
   rasqal_free_query_results_formatter(qrf); qrf = NULL;
+  raptor_free_uri(query_results_base_uri); query_results_base_uri = NULL;
   if(rc)
     goto tidy_fail;
 
