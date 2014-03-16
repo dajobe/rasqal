@@ -947,14 +947,12 @@ manifest_test_run(manifest_test* t, const char* path)
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
         /* read results via rasqal query results format */
-#if 0
         expected_results = rasqal_cmdline_read_results(world,
                                                        raptor_world_ptr,
                                                        results_type,
                                                        result_iostr,
                                                        result_filename,
                                                        /* format name */ NULL);
-#endif
         raptor_free_iostream(result_iostr); result_iostr = NULL;
         if(!expected_results) {
           RASQAL_DEBUG1("Failed to create query results\n");
