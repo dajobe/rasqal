@@ -814,6 +814,20 @@ manifest_indent(FILE* fh, unsigned int indent)
 }
 
 
+static void
+manifest_test_run_log_handler(void* user_data, raptor_log_message *message)
+{
+  manifest_test* t = (manifest_test*)user_data;
+
+  /* Only interested in errors and more severe */
+  if(message->level < RAPTOR_LOG_LEVEL_ERROR)
+    return;
+
+  fprintf(stderr, "%s\n", message->text);
+  t->error_count++;
+}
+
+
 /**
  * manifest_test_run:
  * @t: test
@@ -839,6 +853,7 @@ manifest_test_run(manifest_test* t, const char* path)
   rasqal_query_results* expected_results = NULL;
   char* result_filename = NULL;
   raptor_iostream* result_iostr = NULL;
+  rasqal_query_results *actual_results = NULL;
 
   if(t && t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
     RASQAL_DEBUG2("Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
@@ -1012,13 +1027,63 @@ manifest_test_run(manifest_test* t, const char* path)
         result = NULL;
         goto tidy;
     }
-  }
+  } /* end if results expected */
 
   /* save results for query execution so we can print and rewind */
   rasqal_query_set_store_results(rq, 1);
 
-  /* FIXME - run test for real here */
-  state = STATE_PASS;
+  actual_results = rasqal_query_execute(rq);
+  if(actual_results) {
+
+    switch(results_type) {
+      case RASQAL_QUERY_RESULTS_BINDINGS:
+        if(1) {
+          compare_query_results* cqr;
+          int rc;
+
+          RASQAL_DEBUG1("Expected bindings results:\n");
+          rasqal_cmdline_print_bindings_results_simple("fake", expected_results,
+                                                       stderr, 1, 0);
+
+          RASQAL_DEBUG1("Actual bindings results:\n");
+          rasqal_cmdline_print_bindings_results_simple("fake", actual_results,
+                                                       stderr, 1, 0);
+
+          rasqal_query_results_rewind(expected_results);
+          rasqal_query_results_rewind(actual_results);
+
+          /* FIXME: should NOT do this if results are expected to be ordered */
+          rasqal_query_results_sort(expected_results, rasqal_row_compare);
+          rasqal_query_results_sort(actual_results, rasqal_row_compare);
+
+          cqr = new_compare_query_results(world,
+                                          expected_results, "expected",
+                                          actual_results, "actual");
+          t->error_count = 0;
+          compare_query_results_set_log_handler(cqr, t,
+                                                manifest_test_run_log_handler);
+          rc = !compare_query_results_compare(cqr);
+          free_compare_query_results(cqr); cqr = NULL;
+
+          if(!rc)
+            state = STATE_PASS;
+        }
+
+        break;
+
+      case RASQAL_QUERY_RESULTS_BOOLEAN:
+      case RASQAL_QUERY_RESULTS_GRAPH:
+      case RASQAL_QUERY_RESULTS_SYNTAX:
+      case RASQAL_QUERY_RESULTS_UNKNOWN:
+        /* failure */
+        rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                                "Query result format %d cannot be tested.",
+                                results_type);
+        state = STATE_FAIL;
+        goto tidy;
+    }
+  } else
+    state = STATE_FAIL;
 
 
   if(t->expect == STATE_FAIL) {
@@ -1037,6 +1102,9 @@ manifest_test_run(manifest_test* t, const char* path)
   tidy:
   if(result_iostr)
     raptor_free_iostream(result_iostr);
+  // FIXME: Add this when crash fixed
+  //if(actual_results)
+  //  rasqal_free_query_results(actual_results);
   if(expected_results)
     rasqal_free_query_results(expected_results);
   if(result_filename)

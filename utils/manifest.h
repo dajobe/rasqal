@@ -134,6 +134,7 @@ typedef struct
 
   /* Test output */
   manifest_test_result* result;
+  int error_count;
 } manifest_test;
 
 
