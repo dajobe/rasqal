@@ -595,6 +595,7 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
   }
   rasqal_free_dataset_term_iterator(solution_iter); solution_iter = NULL;
 
+  rasqal_free_literal(predicate_uri_literal); predicate_uri_literal = NULL;
 
 
   uri = raptor_new_uri_from_uri_local_name(con->raptor_world_ptr,
@@ -691,8 +692,9 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
   }
   rasqal_free_dataset_term_iterator(solution_iter); solution_iter = NULL;
 
+  rasqal_free_literal(value_predicate); value_predicate = NULL;
+  rasqal_free_literal(variable_predicate); variable_predicate = NULL;
   rasqal_free_literal(predicate_uri_literal); predicate_uri_literal = NULL;
-
   rasqal_free_literal(binding_uri_literal); binding_uri_literal = NULL;
   
 
