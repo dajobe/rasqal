@@ -729,8 +729,10 @@ rasqal_query_engine_algebra_execute_finish(void* ex_data,
     if(execution_data->algebra_node)
       rasqal_free_algebra_node(execution_data->algebra_node);
 
-    if(execution_data->triples_source)
+    if(execution_data->triples_source) {
       rasqal_free_triples_source(execution_data->triples_source);
+      execution_data->triples_source = NULL;
+    }
 
     if(execution_data->rowsource)
       rasqal_free_rowsource(execution_data->rowsource);
