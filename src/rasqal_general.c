@@ -124,6 +124,9 @@ rasqal_new_world(void)
     return NULL;
   
   world->warning_level = RASQAL_WARNING_LEVEL_DEFAULT;
+
+  world->genid_counter = 1;
+
   return world;
 }
 
