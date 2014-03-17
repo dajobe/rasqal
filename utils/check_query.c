@@ -400,6 +400,11 @@ compare_query_results_compare(compare_query_results* cqr)
       }
     } /* end for each var */
 
+    if(row1)
+      rasqal_free_row(row1);
+    if(row2)
+      rasqal_free_row(row2);
+
     if(this_row_different)
       row_differences_count++;
 
