@@ -1420,7 +1420,6 @@ rasqal_expression_evaluate2(rasqal_expression* e,
                               "Aggregate expressions cannot be evaluated in a general scalar expression.");
       errs.e = 1;
       goto failed;
-      break;
 
     case RASQAL_EXPR_VARSTAR:
       /* constants */

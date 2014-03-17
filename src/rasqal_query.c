@@ -118,8 +118,6 @@ rasqal_new_query(rasqal_world *world, const char *name,
   
   query->factory = factory;
 
-  query->genid_counter = 1;
-
   query->context = RASQAL_CALLOC(void*, 1, factory->context_length);
   if(!query->context)
     goto tidy;
@@ -313,9 +311,6 @@ rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value)
       
       query->features[RASQAL_GOOD_CAST(int, feature)] = value;
       break;
-      
-    default:
-      break;
   }
 
   return 0;
@@ -376,9 +371,6 @@ rasqal_query_get_feature(rasqal_query *query, rasqal_feature feature)
     case RASQAL_FEATURE_NO_NET:
     case RASQAL_FEATURE_RAND_SEED:
       result = (query->features[RASQAL_GOOD_CAST(int, feature)] != 0);
-      break;
-
-    default:
       break;
   }
   
@@ -1986,34 +1978,6 @@ rasqal_query_escape_counted_string(rasqal_query* query,
   }
   
   return (unsigned char *)output_string;
-}
-
-
-unsigned char*
-rasqal_query_get_genid(rasqal_query* query, const unsigned char* base, 
-                       int counter)
-{
-  int tmpcounter;
-  size_t length;
-  unsigned char *buffer;
-
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
-
-  /* This is read-only and thread safe */
-  if(counter < 0)
-    counter= query->genid_counter++;
-  
-  length = strlen(RASQAL_GOOD_CAST(const char*, base)) + 2;  /* base + (int) + "\0" */
-  tmpcounter = counter;
-  while(tmpcounter /= 10)
-    length++;
-  
-  buffer = RASQAL_MALLOC(unsigned char*, length);
-  if(!buffer)
-    return NULL;
-
-  sprintf(RASQAL_GOOD_CAST(char*, buffer), "%s%d", base, counter);
-  return buffer;
 }
 
 

@@ -49,7 +49,7 @@ struct rasqal_raptor_triple_s {
 typedef struct rasqal_raptor_triple_s rasqal_raptor_triple;
 
 typedef struct {
-  rasqal_query* query;
+  rasqal_world* world;
 
   rasqal_raptor_triple *head;
   rasqal_raptor_triple *tail;
@@ -106,7 +106,7 @@ rasqal_raptor_statement_handler(void *user_data,
 
   triple = RASQAL_MALLOC(rasqal_raptor_triple*, sizeof(rasqal_raptor_triple));
   triple->next = NULL;
-  triple->triple = raptor_statement_as_rasqal_triple(rtsc->query->world,
+  triple->triple = raptor_statement_as_rasqal_triple(rtsc->world,
                                                      statement);
 
   /* this origin URI literal is shared amongst the triples and
@@ -121,6 +121,34 @@ rasqal_raptor_statement_handler(void *user_data,
     rtsc->head = triple;
 
   rtsc->tail = triple;
+}
+
+
+static unsigned char*
+rasqal_raptor_get_genid(rasqal_world* world, const unsigned char* base,
+                       int counter)
+{
+  int tmpcounter;
+  size_t length;
+  unsigned char *buffer;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
+  /* This is read-only and thread safe */
+  if(counter < 0)
+    counter= world->genid_counter++;
+
+  length = strlen(RASQAL_GOOD_CAST(const char*, base)) + 2;  /* base + (int) + "\0" */
+  tmpcounter = counter;
+  while(tmpcounter /= 10)
+    length++;
+
+  buffer = RASQAL_MALLOC(unsigned char*, length);
+  if(!buffer)
+    return NULL;
+
+  sprintf(RASQAL_GOOD_CAST(char*, buffer), "%s%d", base, counter);
+  return buffer;
 }
 
 
@@ -147,7 +175,7 @@ rasqal_raptor_generate_id_handler(void *user_data,
     return mapped_id;
   }
   
-  return rasqal_query_get_genid(rtsc->query, RASQAL_GOOD_CAST(const unsigned char*, "genid"), -1);
+  return rasqal_raptor_get_genid(rtsc->world, RASQAL_GOOD_CAST(const unsigned char*, "genid"), -1);
 }
 
 
@@ -158,7 +186,6 @@ rasqal_raptor_support_feature(void *user_data,
   switch(feature) {
     case RASQAL_TRIPLES_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH:
       return 1;
-      break;
       
     default:
     case RASQAL_TRIPLES_SOURCE_FEATURE_NONE:
@@ -168,15 +195,20 @@ rasqal_raptor_support_feature(void *user_data,
 
 
 static int
-rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
-                                  void *factory_user_data,
-                                  void *user_data,
-                                  rasqal_triples_source *rts,
-                                  rasqal_triples_error_handler handler)
+rasqal_raptor_init_triples_source_common(rasqal_world* world,
+                                         raptor_sequence* data_graphs,
+                                         rasqal_query* rdf_query,
+                                         void *factory_user_data,
+                                         void *user_data,
+                                         rasqal_triples_source *rts,
+                                         rasqal_triples_error_handler handler1,
+                                         rasqal_triples_error_handler2 handler2,
+                                         unsigned int flags)
 {
   rasqal_raptor_triples_source_user_data* rtsc;
   raptor_parser *parser;
   int i;
+  int rc = 0;
 
   rtsc = (rasqal_raptor_triples_source_user_data*)user_data;
 
@@ -188,8 +220,8 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
   rts->free_triples_source = rasqal_raptor_free_triples_source;
   rts->support_feature = rasqal_raptor_support_feature;
 
-  if(rdf_query->data_graphs)
-    rtsc->sources_count = raptor_sequence_size(rdf_query->data_graphs);
+  if(data_graphs)
+    rtsc->sources_count = raptor_sequence_size(data_graphs);
   else
     /* No data graph - assume there is just a background graph */
     rtsc->sources_count = 0;
@@ -199,7 +231,7 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
   else
     rtsc->source_literals = NULL;
 
-  rtsc->query = rdf_query;
+  rtsc->world = world;
 
   for(i = 0; i < rtsc->sources_count; i++) {
     rasqal_data_graph *dg;
@@ -209,7 +241,7 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
     const char* parser_name;
     raptor_iostream* iostr = NULL;
     
-    dg = (rasqal_data_graph*)raptor_sequence_get_at(rdf_query->data_graphs, i);
+    dg = (rasqal_data_graph*)raptor_sequence_get_at(data_graphs, i);
     uri = dg->uri;
     name_uri = dg->name_uri;
     iostr = dg->iostr;
@@ -219,7 +251,7 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
       rtsc->source_uri = raptor_uri_copy(uri);
 
     if(name_uri)
-      rtsc->source_literals[i] = rasqal_new_uri_literal(rdf_query->world, 
+      rtsc->source_literals[i] = rasqal_new_uri_literal(world,
                                                         raptor_uri_copy(name_uri)
                                                         );
     else if(uri) {
@@ -227,39 +259,42 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
       free_name_uri = 1;
     }
 
-    rtsc->mapped_id_base = rasqal_query_get_genid(rdf_query,
-                                                  RASQAL_GOOD_CAST(const unsigned char*, "graphid"),
-                                                  i);
+    rtsc->mapped_id_base = rasqal_raptor_get_genid(world,
+                                                   RASQAL_GOOD_CAST(const unsigned char*, "graphid"),
+                                                   i);
     rtsc->mapped_id_base_len = strlen(RASQAL_GOOD_CAST(const char*, rtsc->mapped_id_base));
 
     parser_name = dg->format_name;
     if(parser_name) {
-      if(!raptor_world_is_parser_name(rdf_query->world->raptor_world_ptr,
-                                      parser_name)) {
-        handler(rdf_query, /* locator */ NULL,
-                "Invalid data graph parser name ignored");
+      if(!raptor_world_is_parser_name(world->raptor_world_ptr, parser_name)) {
+        if(rdf_query)
+          handler1(rdf_query, /* locator */ NULL,
+                   "Invalid data graph parser name ignored");
+        else
+          handler2(world, /* locator */ NULL,
+                   "Invalid data graph parser name ignored");
         parser_name = NULL;
       }
     }
     if(!parser_name)
       parser_name = "guess";
     
-    parser = raptor_new_parser(rdf_query->world->raptor_world_ptr, parser_name);
+    parser = raptor_new_parser(world->raptor_world_ptr, parser_name);
     raptor_parser_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
-    raptor_world_set_generate_bnodeid_handler(rdf_query->world->raptor_world_ptr,
+    raptor_world_set_generate_bnodeid_handler(world->raptor_world_ptr,
                                               rtsc,
                                               rasqal_raptor_generate_id_handler);
 
 #ifdef RAPTOR_FEATURE_NO_NET
-    if(rdf_query->features[RASQAL_FEATURE_NO_NET])
+    if(flags & 1)
       raptor_set_feature(parser, RAPTOR_FEATURE_NO_NET,
                          rdf_query->features[RASQAL_FEATURE_NO_NET]);
 #endif
 
     if(iostr) {
-      raptor_parser_parse_iostream(parser, iostr, dg->base_uri);
+      rc = raptor_parser_parse_iostream(parser, iostr, dg->base_uri);
     } else {
-      raptor_parser_parse_uri(parser, uri, name_uri);
+      rc = raptor_parser_parse_uri(parser, uri, name_uri);
     }
     
     raptor_free_parser(parser);
@@ -272,16 +307,56 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
     /* This is freed in rasqal_raptor_free_triples_source() */
     /* rasqal_free_literal(rtsc->source_literal); */
     RASQAL_FREE(char*, rtsc->mapped_id_base);
-    
-    if(rdf_query->failed) {
-      rasqal_raptor_free_triples_source(user_data);
+
+    if(rc)
       break;
-    }
   }
 
-  return rdf_query->failed;
+  return rc;
 }
 
+
+static int
+rasqal_raptor_init_triples_source2(rasqal_world* world,
+                                   raptor_sequence* data_graphs,
+                                   void *factory_user_data,
+                                   void *user_data,
+                                   rasqal_triples_source *rts,
+                                   rasqal_triples_error_handler2 handler,
+                                   unsigned int flags)
+{
+  return rasqal_raptor_init_triples_source_common(world,
+                                                  data_graphs,
+                                                  NULL /* rdf_query */,
+                                                  factory_user_data,
+                                                  user_data,
+                                                  rts,
+                                                  NULL /* handler 1 */,
+                                                  handler,
+                                                  flags);
+}
+
+
+static int
+rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
+                                  void *factory_user_data,
+                                  void *user_data,
+                                  rasqal_triples_source *rts,
+                                  rasqal_triples_error_handler handler)
+{
+  unsigned int flags = 0;
+
+  if(rdf_query->features[RASQAL_FEATURE_NO_NET])
+    flags |= 1;
+  return rasqal_raptor_init_triples_source_common(rdf_query->world,
+                                                  rdf_query->data_graphs,
+                                                  rdf_query,
+                                                  factory_user_data,
+                                                  user_data, rts,
+                                                  handler,
+                                                  NULL /* handler 2 */,
+                                                  flags);
+}
 
 static int
 rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
@@ -289,9 +364,14 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
                                  void *user_data,
                                  rasqal_triples_source *rts)
 {
-  return rasqal_raptor_init_triples_source(rdf_query, factory_user_data,
-                                           user_data, rts,
-                                           rasqal_triples_source_error_handler);
+  return rasqal_raptor_init_triples_source_common(rdf_query->world,
+                                                  rdf_query->data_graphs,
+                                                  NULL,
+                                                  factory_user_data,
+                                                  user_data, rts,
+                                                  NULL /* handler 1 */,
+                                                  rasqal_triples_source_error_handler2,
+                                                  0);
 }
 
 
@@ -392,7 +472,7 @@ rasqal_raptor_triple_present(rasqal_triples_source *rts, void *user_data,
     parts = (rasqal_triple_parts)(parts | RASQAL_TRIPLE_GRAPH);
 
   for(triple = rtsc->head; triple; triple = triple->next) {
-    if(rasqal_raptor_triple_match(rtsc->query->world, triple->triple, t, parts))
+    if(rasqal_raptor_triple_match(rtsc->world, triple->triple, t, parts))
       return 1;
   }
 
@@ -431,12 +511,14 @@ rasqal_raptor_free_triples_source(void *user_data)
 static int
 rasqal_raptor_register_triples_source_factory(rasqal_triples_source_factory *factory) 
 {
-  factory->version = 2;
+  factory->version = 3;
   factory->user_data_size = sizeof(rasqal_raptor_triples_source_user_data);
   /* V1 */
   factory->new_triples_source = rasqal_raptor_new_triples_source;
   /* V2 */
   factory->init_triples_source = rasqal_raptor_init_triples_source;
+  /* V3 */
+  factory->init_triples_source2 = rasqal_raptor_init_triples_source2;
 
   return 0;
 }

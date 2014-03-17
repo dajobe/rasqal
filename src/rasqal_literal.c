@@ -482,7 +482,6 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type,
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
       return rasqal_new_floating_literal(world, type, d);
-      break;
 
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_INTEGER_SUBTYPE: 
@@ -494,7 +493,6 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type,
     case RASQAL_LITERAL_DECIMAL:
       sprintf(buffer, "%g", d);
       return rasqal_new_decimal_literal(world, RASQAL_GOOD_CAST(unsigned char*, buffer));
-      break;
 
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
@@ -658,7 +656,6 @@ retype:
       /* Will not fit in an int so turn it into a decimal */
       type = RASQAL_LITERAL_DECIMAL;
       goto retype;
-      break;
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
@@ -1498,13 +1495,11 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_UDT:
       *error_p = 1;
       return 0;
-      break;
 
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
       return l->value.integer != 0;
-      break;
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT: 
@@ -1512,11 +1507,9 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error_p)
         return 0;
         
       return fabs(l->value.floating) > RASQAL_DOUBLE_EPSILON;
-      break;
 
     case RASQAL_LITERAL_VARIABLE:
       return rasqal_literal_as_boolean(l->value.variable->value, error_p);
-      break;
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
@@ -1553,16 +1546,13 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
       return l->value.integer;
-      break;
 
     case RASQAL_LITERAL_BOOLEAN:
       return l->value.integer != 0;
-      break;
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
       return RASQAL_FLOATING_AS_INT(l->value.floating);
-      break;
 
     case RASQAL_LITERAL_DECIMAL:
       {
@@ -1580,7 +1570,6 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
         
         return RASQAL_GOOD_CAST(int, lvalue);
       }
-      break;
 
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_XSD_STRING:
@@ -1606,11 +1595,9 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
       if(error_p)
         *error_p = 1;
       return 0;
-      break;
 
     case RASQAL_LITERAL_VARIABLE:
       return rasqal_literal_as_integer(l->value.variable->value, error_p);
-      break;
 
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_URI:
@@ -1680,11 +1667,9 @@ rasqal_literal_as_double(rasqal_literal* l, int *error_p)
       if(error_p)
         *error_p = 1;
       return 0.0;
-      break;
 
     case RASQAL_LITERAL_VARIABLE:
       return rasqal_literal_as_double(l->value.variable->value, error_p);
-      break;
 
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_URI:

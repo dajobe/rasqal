@@ -508,9 +508,6 @@ struct rasqal_query_s {
   /* flag: non-0 if EXPLAIN was given */
   int explain;
 
-  /* generated counter - increments at every generation */
-  int genid_counter;
-
   /* INTERNAL lexer internal data */
   void* lexer_user_data;
 
@@ -1307,7 +1304,6 @@ rasqal_query_results* rasqal_query_execute_with_engine(rasqal_query* query, cons
 int rasqal_query_remove_query_result(rasqal_query* query, rasqal_query_results* query_results);
 int rasqal_query_declare_prefix(rasqal_query* rq, rasqal_prefix* prefix);
 int rasqal_query_declare_prefixes(rasqal_query* rq);
-unsigned char* rasqal_query_get_genid(rasqal_query* query, const unsigned char* base, int counter);
 void rasqal_query_set_base_uri(rasqal_query* rq, raptor_uri* base_uri);
 rasqal_variable* rasqal_query_get_variable_by_offset(rasqal_query* query, int idx);
 const rasqal_query_execution_factory* rasqal_query_get_engine_by_name(const char* name);
@@ -1467,6 +1463,9 @@ struct rasqal_world_s {
   unsigned int now_set : 1;
 
   rasqal_warning_level warning_level;
+
+  /* generated counter - increments at every generation */
+  int genid_counter;
 };
 
 
@@ -1779,6 +1778,7 @@ rasqal_rowsource* rasqal_service_execute_as_rowsource(rasqal_service* svc, rasqa
 
 /* rasqal_triples_source.c */
 void rasqal_triples_source_error_handler(rasqal_query* rdf_query, raptor_locator* locator, const char* message);
+void rasqal_triples_source_error_handler2(rasqal_world* world, raptor_locator* locator,  const char* message);
 
 /* rasqal_update.c */
 const char* rasqal_update_type_label(rasqal_update_type type);
