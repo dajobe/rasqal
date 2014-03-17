@@ -778,6 +778,7 @@ main(int argc, char *argv[])
   /* Parse and prepare query */
   rq = check_query_init_query(world, query_language, query_string,
                               query_base_uri, data_graphs);
+  rasqal_free_memory(query_string);
   if(!rq) {
     fprintf(stderr, "%s: Parsing query in %s failed\n", program,
             query_filename);
