@@ -111,6 +111,24 @@ rasqal_triples_source_error_handler(rasqal_query* rdf_query,
 
 
 /**
+ * rasqal_triples_source_error_handler2:
+ * @world: world
+ * @locator: any locator information
+ * @message: error message
+ *
+ * INTERNAL - Return an error during creation of a triples source
+ */
+void
+rasqal_triples_source_error_handler2(rasqal_world* world,
+                                     raptor_locator* locator,
+                                     const char* message)
+{
+  rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
+                          "%s", message);
+}
+
+
+/**
  * rasqal_new_triples_source:
  * @query: query
  *
@@ -136,7 +154,22 @@ rasqal_new_triples_source(rasqal_query* query)
   }
   rts->query = query;
 
-  if(rtsf->version >= 2 && rtsf->init_triples_source) {
+  if(rtsf->version >= 3 && rtsf->init_triples_source2) {
+    /* rasqal_triples_source_factory API V3 */
+    unsigned int flags = 0;
+
+    if(query->features[RASQAL_FEATURE_NO_NET])
+      flags |= 1;
+    rc = rtsf->init_triples_source2(query->world, query->data_graphs,
+                                    rtsf->user_data, rts->user_data, rts,
+                                    rasqal_triples_source_error_handler2,
+                                    flags);
+    /* if there is an error, it will have been already reported more
+     * specifically via the error handler so no need to do it again
+     * below in a generic form.
+     */
+    goto error_tidy;
+  } else if(rtsf->version >= 2 && rtsf->init_triples_source) {
     /* rasqal_triples_source_factory API V2 */
     rc = rtsf->init_triples_source(query, rtsf->user_data, rts->user_data, rts,
                                    rasqal_triples_source_error_handler);
