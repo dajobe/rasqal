@@ -304,6 +304,11 @@ rasqal_raptor_init_triples_source_common(rasqal_world* world,
     if(free_name_uri)
       raptor_free_uri(name_uri);
 
+    /* Reset raptor genid handler to default */
+    /* FIXME: this should be per-parser not raptor-wide */
+    raptor_world_set_generate_bnodeid_handler(world->raptor_world_ptr,
+                                              NULL, NULL);
+
     /* This is freed in rasqal_raptor_free_triples_source() */
     /* rasqal_free_literal(rtsc->source_literal); */
     RASQAL_FREE(char*, rtsc->mapped_id_base);
