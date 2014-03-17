@@ -1102,9 +1102,8 @@ manifest_test_run(manifest_test* t, const char* path)
   tidy:
   if(result_iostr)
     raptor_free_iostream(result_iostr);
-  // FIXME: Add this when crash fixed
-  //if(actual_results)
-  //  rasqal_free_query_results(actual_results);
+  if(actual_results)
+    rasqal_free_query_results(actual_results);
   if(expected_results)
     rasqal_free_query_results(expected_results);
   if(result_filename)
