@@ -995,8 +995,7 @@ rasqal_query_write_graphref(sparql_writer_context* wc,
       raptor_iostream_counted_string_write(" ALL", 4, iostr);
       break;
       
-    default:
-      break;
+    /* default: case not necessary */
   }
 
   return 0;

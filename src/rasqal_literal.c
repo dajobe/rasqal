@@ -1645,16 +1645,13 @@ rasqal_literal_as_double(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
       return (double)l->value.integer;
-      break;
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
       return l->value.floating;
-      break;
 
     case RASQAL_LITERAL_DECIMAL:
       return rasqal_xsd_decimal_get_double(l->value.decimal);
-      break;
 
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_XSD_STRING:
