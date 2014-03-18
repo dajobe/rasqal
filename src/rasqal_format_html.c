@@ -49,67 +49,69 @@ rasqal_iostream_write_html_literal(rasqal_world* world,
   if(!l) {
     raptor_iostream_counted_string_write("<span class=\"unbound\">", 22, iostr);
     raptor_iostream_counted_string_write("unbound", 7, iostr);
-  } else switch(l->type) {
+  } else {
     const unsigned char* str;
     size_t len;
 
-    case RASQAL_LITERAL_URI:
-      str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->value.uri, &len));
-      raptor_iostream_counted_string_write("<span class=\"uri\">", 18, iostr);
-      raptor_iostream_counted_string_write("<a href=\"", 9, iostr);
-      raptor_xml_escape_string_write(str, len, '"', iostr);
-      raptor_iostream_counted_string_write("\">", 2, iostr);
-      raptor_xml_escape_string_write(str, len, 0, iostr);
-      raptor_iostream_counted_string_write("</a>", 4, iostr);
-      break;
-
-    case RASQAL_LITERAL_BLANK:
-      raptor_iostream_counted_string_write("<span class=\"blank\">", 20, iostr);
-      raptor_xml_escape_string_write(l->string, l->string_len, 0, iostr);
-      break;
-
-    case RASQAL_LITERAL_XSD_STRING:
-    case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_DOUBLE:
-    case RASQAL_LITERAL_STRING:
-    case RASQAL_LITERAL_PATTERN:
-    case RASQAL_LITERAL_QNAME:
-    case RASQAL_LITERAL_FLOAT:
-    case RASQAL_LITERAL_DECIMAL:
-    case RASQAL_LITERAL_DATE:
-    case RASQAL_LITERAL_DATETIME:
-    case RASQAL_LITERAL_UDT:
-    case RASQAL_LITERAL_INTEGER_SUBTYPE:
-      raptor_iostream_counted_string_write("<span class=\"literal\">", 22, iostr);
-      raptor_iostream_counted_string_write("<span class=\"value\"", 19, iostr);
-      if(l->language) {
-        str = RASQAL_GOOD_CAST(const unsigned char*, l->language);
-        raptor_iostream_counted_string_write(" xml:lang=\"", 11, iostr);
-        raptor_xml_escape_string_write(str, strlen(l->language), '"', iostr);
-        raptor_iostream_write_byte('"', iostr);
-      }
-      raptor_iostream_write_byte('>', iostr);
-      raptor_xml_escape_string_write(l->string, l->string_len, 0, iostr);
-      raptor_iostream_counted_string_write("</span>", 7, iostr);
-        
-      if(l->datatype) {
-        raptor_iostream_counted_string_write("^^&lt;<span class=\"datatype\">", 29, iostr);
-        str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->datatype, &len));
+    switch(l->type) {
+      case RASQAL_LITERAL_URI:
+        str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->value.uri, &len));
+        raptor_iostream_counted_string_write("<span class=\"uri\">", 18, iostr);
+        raptor_iostream_counted_string_write("<a href=\"", 9, iostr);
+        raptor_xml_escape_string_write(str, len, '"', iostr);
+        raptor_iostream_counted_string_write("\">", 2, iostr);
         raptor_xml_escape_string_write(str, len, 0, iostr);
-        raptor_iostream_counted_string_write("</span>&gt;", 11, iostr);
-      }
-      break;
+        raptor_iostream_counted_string_write("</a>", 4, iostr);
+        break;
 
-    case RASQAL_LITERAL_VARIABLE:
-      return rasqal_iostream_write_html_literal(world, iostr, l->value.variable->value);
+      case RASQAL_LITERAL_BLANK:
+        raptor_iostream_counted_string_write("<span class=\"blank\">", 20, iostr);
+        raptor_xml_escape_string_write(l->string, l->string_len, 0, iostr);
+        break;
 
-    case RASQAL_LITERAL_UNKNOWN:
-    default:
-      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                              "Cannot turn literal type %d into HTML", 
-                              l->type);
-      return 1;
+      case RASQAL_LITERAL_XSD_STRING:
+      case RASQAL_LITERAL_BOOLEAN:
+      case RASQAL_LITERAL_INTEGER:
+      case RASQAL_LITERAL_DOUBLE:
+      case RASQAL_LITERAL_STRING:
+      case RASQAL_LITERAL_PATTERN:
+      case RASQAL_LITERAL_QNAME:
+      case RASQAL_LITERAL_FLOAT:
+      case RASQAL_LITERAL_DECIMAL:
+      case RASQAL_LITERAL_DATE:
+      case RASQAL_LITERAL_DATETIME:
+      case RASQAL_LITERAL_UDT:
+      case RASQAL_LITERAL_INTEGER_SUBTYPE:
+        raptor_iostream_counted_string_write("<span class=\"literal\">", 22, iostr);
+        raptor_iostream_counted_string_write("<span class=\"value\"", 19, iostr);
+        if(l->language) {
+          str = RASQAL_GOOD_CAST(const unsigned char*, l->language);
+          raptor_iostream_counted_string_write(" xml:lang=\"", 11, iostr);
+          raptor_xml_escape_string_write(str, strlen(l->language), '"', iostr);
+          raptor_iostream_write_byte('"', iostr);
+        }
+        raptor_iostream_write_byte('>', iostr);
+        raptor_xml_escape_string_write(l->string, l->string_len, 0, iostr);
+        raptor_iostream_counted_string_write("</span>", 7, iostr);
+
+        if(l->datatype) {
+          raptor_iostream_counted_string_write("^^&lt;<span class=\"datatype\">", 29, iostr);
+          str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->datatype, &len));
+          raptor_xml_escape_string_write(str, len, 0, iostr);
+          raptor_iostream_counted_string_write("</span>&gt;", 11, iostr);
+        }
+        break;
+
+      case RASQAL_LITERAL_VARIABLE:
+        return rasqal_iostream_write_html_literal(world, iostr, l->value.variable->value);
+
+      case RASQAL_LITERAL_UNKNOWN:
+      default:
+        rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                                "Cannot turn literal type %d into HTML", 
+                                l->type);
+        return 1;
+    }
   }
 
   raptor_iostream_counted_string_write("</span>", 7, iostr);

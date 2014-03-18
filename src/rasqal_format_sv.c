@@ -117,8 +117,6 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
 {
   rasqal_query* query = rasqal_query_results_get_query(results);
   int i;
-#define empty_value_str_len 0
-  static const char empty_value_str[empty_value_str_len+1] = "";
   int vars_count;
   
   if(!rasqal_query_results_is_bindings(results)) {
@@ -157,87 +155,85 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
       if(i > 0)
         raptor_iostream_write_byte(sep, iostr);
 
-      if(!l) {
-        if(empty_value_str_len)
-          raptor_iostream_counted_string_write(empty_value_str,
-                                               empty_value_str_len, iostr);
-      } else switch(l->type) {
+      if(l) {
         const unsigned char* str;
         size_t len;
         
-        case RASQAL_LITERAL_URI:
-          str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->value.uri, &len));
-          if(csv_escape)
-            rasqal_iostream_write_csv_string(str, len, iostr);
-          else {
-            raptor_iostream_write_byte('<', iostr);
-            if(str && len > 0)
-              raptor_string_ntriples_write(str, len, '"', iostr);
-            raptor_iostream_write_byte('>', iostr);
-          }
-          break;
+        switch(l->type) {
+          case RASQAL_LITERAL_URI:
+            str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->value.uri, &len));
+            if(csv_escape)
+              rasqal_iostream_write_csv_string(str, len, iostr);
+            else {
+              raptor_iostream_write_byte('<', iostr);
+              if(str && len > 0)
+                raptor_string_ntriples_write(str, len, '"', iostr);
+              raptor_iostream_write_byte('>', iostr);
+            }
+            break;
 
-        case RASQAL_LITERAL_BLANK:
-          raptor_bnodeid_ntriples_write(l->string, l->string_len, iostr);
-          break;
+          case RASQAL_LITERAL_BLANK:
+            raptor_bnodeid_ntriples_write(l->string, l->string_len, iostr);
+            break;
 
-        case RASQAL_LITERAL_STRING:
-          if(csv_escape) {
-            rasqal_iostream_write_csv_string(l->string, l->string_len, iostr);
-          } else {
-            if(l->datatype && l->valid) {
-              rasqal_literal_type ltype;
-              ltype = rasqal_xsd_datatype_uri_to_type(l->world, l->datatype);
-              
-              if(ltype >= RASQAL_LITERAL_INTEGER &&
-                 ltype <= RASQAL_LITERAL_DECIMAL) {
-                /* write integer, float, double and decimal XSD typed
-                 * data without quotes, datatype or language 
-                 */
-                raptor_string_ntriples_write(l->string, l->string_len, '\0', iostr);
-                break;
+          case RASQAL_LITERAL_STRING:
+            if(csv_escape) {
+              rasqal_iostream_write_csv_string(l->string, l->string_len, iostr);
+            } else {
+              if(l->datatype && l->valid) {
+                rasqal_literal_type ltype;
+                ltype = rasqal_xsd_datatype_uri_to_type(l->world, l->datatype);
+
+                if(ltype >= RASQAL_LITERAL_INTEGER &&
+                   ltype <= RASQAL_LITERAL_DECIMAL) {
+                  /* write integer, float, double and decimal XSD typed
+                   * data without quotes, datatype or language 
+                   */
+                  raptor_string_ntriples_write(l->string, l->string_len, '\0', iostr);
+                  break;
+                }
+              }
+
+              raptor_iostream_write_byte('"', iostr);
+              raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
+              raptor_iostream_write_byte('"', iostr);
+
+              if(l->language) {
+                raptor_iostream_write_byte('@', iostr);
+                raptor_iostream_string_write(RASQAL_GOOD_CAST(const unsigned char*, l->language), iostr);
+              }
+
+              if(l->datatype) {
+                raptor_iostream_string_write("^^<", iostr);
+                str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->datatype, &len));
+                raptor_string_ntriples_write(str, len, '"', iostr);
+                raptor_iostream_write_byte('>', iostr);
               }
             }
 
-            raptor_iostream_write_byte('"', iostr);
-            raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
-            raptor_iostream_write_byte('"', iostr);
+            break;
 
-            if(l->language) {
-              raptor_iostream_write_byte('@', iostr);
-              raptor_iostream_string_write(RASQAL_GOOD_CAST(const unsigned char*, l->language), iostr);
-            }
-          
-            if(l->datatype) {
-              raptor_iostream_string_write("^^<", iostr);
-              str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->datatype, &len));
-              raptor_string_ntriples_write(str, len, '"', iostr);
-              raptor_iostream_write_byte('>', iostr);
-            }
-          }
-          
-          break;
+          case RASQAL_LITERAL_PATTERN:
+          case RASQAL_LITERAL_QNAME:
+          case RASQAL_LITERAL_INTEGER:
+          case RASQAL_LITERAL_XSD_STRING:
+          case RASQAL_LITERAL_BOOLEAN:
+          case RASQAL_LITERAL_DOUBLE:
+          case RASQAL_LITERAL_FLOAT:
+          case RASQAL_LITERAL_VARIABLE:
+          case RASQAL_LITERAL_DECIMAL:
+          case RASQAL_LITERAL_DATE:
+          case RASQAL_LITERAL_DATETIME:
+          case RASQAL_LITERAL_UDT:
+          case RASQAL_LITERAL_INTEGER_SUBTYPE:
 
-        case RASQAL_LITERAL_PATTERN:
-        case RASQAL_LITERAL_QNAME:
-        case RASQAL_LITERAL_INTEGER:
-        case RASQAL_LITERAL_XSD_STRING:
-        case RASQAL_LITERAL_BOOLEAN:
-        case RASQAL_LITERAL_DOUBLE:
-        case RASQAL_LITERAL_FLOAT:
-        case RASQAL_LITERAL_VARIABLE:
-        case RASQAL_LITERAL_DECIMAL:
-        case RASQAL_LITERAL_DATE:
-        case RASQAL_LITERAL_DATETIME:
-        case RASQAL_LITERAL_UDT:
-        case RASQAL_LITERAL_INTEGER_SUBTYPE:
-
-        case RASQAL_LITERAL_UNKNOWN:
-        default:
-          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
-                                  &query->locator,
-                                  "Cannot turn literal type %d into %s", 
-                                  l->type, label);
+          case RASQAL_LITERAL_UNKNOWN:
+          default:
+            rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
+                                    &query->locator,
+                                    "Cannot turn literal type %d into %s",
+                                    l->type, label);
+        }
       }
 
       /* End Binding */

@@ -172,62 +172,64 @@ rasqal_query_results_write_json1(rasqal_query_results_formatter* formatter,
 
       if(!l) {
         raptor_iostream_string_write("\"type\": \"unbound\", \"value\": null", iostr);
-      } else switch(l->type) {
+      } else {
         const unsigned char* str;
         size_t len;
-        
-        case RASQAL_LITERAL_URI:
-          raptor_iostream_string_write("\"type\": \"uri\", \"value\": \"", iostr);
-          str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->value.uri, &len));
-          raptor_string_ntriples_write(str, len, '"', iostr);
-          raptor_iostream_write_byte('"', iostr);
-          break;
 
-        case RASQAL_LITERAL_BLANK:
-          raptor_iostream_string_write("\"type\": \"bnode\", \"value\": \"", iostr);
-          raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
-          raptor_iostream_write_byte('"', iostr);
-          break;
-
-        case RASQAL_LITERAL_STRING:
-          raptor_iostream_string_write("\"type\": \"literal\", \"value\": \"", iostr);
-          raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
-          raptor_iostream_write_byte('"', iostr);
-
-          if(l->language) {
-            raptor_iostream_string_write(",\n      \"xml:lang\" : \"", iostr);
-            raptor_iostream_string_write(RASQAL_GOOD_CAST(const unsigned char*, l->language), iostr);
-            raptor_iostream_write_byte('"', iostr);
-          }
-          
-          if(l->datatype) {
-            raptor_iostream_string_write(",\n      \"datatype\" : \"", iostr);
-            str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->datatype, &len));
+        switch(l->type) {
+          case RASQAL_LITERAL_URI:
+            raptor_iostream_string_write("\"type\": \"uri\", \"value\": \"", iostr);
+            str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->value.uri, &len));
             raptor_string_ntriples_write(str, len, '"', iostr);
             raptor_iostream_write_byte('"', iostr);
-          }
-          
-          break;
+            break;
 
-        case RASQAL_LITERAL_PATTERN:
-        case RASQAL_LITERAL_QNAME:
-        case RASQAL_LITERAL_INTEGER:
-        case RASQAL_LITERAL_XSD_STRING:
-        case RASQAL_LITERAL_BOOLEAN:
-        case RASQAL_LITERAL_DOUBLE:
-        case RASQAL_LITERAL_FLOAT:
-        case RASQAL_LITERAL_VARIABLE:
-        case RASQAL_LITERAL_DECIMAL:
-        case RASQAL_LITERAL_DATE:
-        case RASQAL_LITERAL_DATETIME:
-        case RASQAL_LITERAL_UDT:
-        case RASQAL_LITERAL_INTEGER_SUBTYPE:
+          case RASQAL_LITERAL_BLANK:
+            raptor_iostream_string_write("\"type\": \"bnode\", \"value\": \"", iostr);
+            raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
+            raptor_iostream_write_byte('"', iostr);
+            break;
 
-        case RASQAL_LITERAL_UNKNOWN:
-        default:
-          rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                                  "Cannot turn literal type %d into XML", 
-                                  l->type);
+          case RASQAL_LITERAL_STRING:
+            raptor_iostream_string_write("\"type\": \"literal\", \"value\": \"", iostr);
+            raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
+            raptor_iostream_write_byte('"', iostr);
+
+            if(l->language) {
+              raptor_iostream_string_write(",\n      \"xml:lang\" : \"", iostr);
+              raptor_iostream_string_write(RASQAL_GOOD_CAST(const unsigned char*, l->language), iostr);
+              raptor_iostream_write_byte('"', iostr);
+            }
+
+            if(l->datatype) {
+              raptor_iostream_string_write(",\n      \"datatype\" : \"", iostr);
+              str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->datatype, &len));
+              raptor_string_ntriples_write(str, len, '"', iostr);
+              raptor_iostream_write_byte('"', iostr);
+            }
+
+            break;
+
+          case RASQAL_LITERAL_PATTERN:
+          case RASQAL_LITERAL_QNAME:
+          case RASQAL_LITERAL_INTEGER:
+          case RASQAL_LITERAL_XSD_STRING:
+          case RASQAL_LITERAL_BOOLEAN:
+          case RASQAL_LITERAL_DOUBLE:
+          case RASQAL_LITERAL_FLOAT:
+          case RASQAL_LITERAL_VARIABLE:
+          case RASQAL_LITERAL_DECIMAL:
+          case RASQAL_LITERAL_DATE:
+          case RASQAL_LITERAL_DATETIME:
+          case RASQAL_LITERAL_UDT:
+          case RASQAL_LITERAL_INTEGER_SUBTYPE:
+
+          case RASQAL_LITERAL_UNKNOWN:
+          default:
+            rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                                    "Cannot turn literal type %d into XML",
+                                    l->type);
+        }
       }
 
       /* End Binding */
