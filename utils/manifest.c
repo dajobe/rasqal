@@ -67,6 +67,46 @@ static const char* manifest_test_state_labels[STATE_LAST + 1] = {
 static void manifest_free_testsuite(manifest_testsuite* ts);
 
 
+static void
+manifest_indent(FILE* fh, unsigned int indent)
+{
+  while(indent--)
+    fputc(' ', fh);
+}
+
+
+static void
+manifest_indent_multiline(FILE* fh, const char* str, unsigned int indent,
+                          int max_lines)
+{
+  int lines_count = 0;
+  char c;
+
+  while((c = *str++)) {
+    fputc(c, fh);
+    if(c == '\n') {
+      lines_count++;
+      if(max_lines >=0 && lines_count > lines_count)
+        break;
+      manifest_indent(fh, indent);
+    }
+  }
+  if(lines_count > lines_count) {
+    manifest_indent(fh, indent);
+    fputs("...\n", fh);
+  }
+}
+
+
+static void
+manifest_banner(FILE* fh, unsigned int width, char banner)
+{
+  while(width--)
+    fputc(banner, fh);
+  fputc('\n', fh);
+}
+
+
 static char
 manifest_test_state_char(manifest_test_state state)
 {
@@ -279,6 +319,96 @@ manifest_free_test_result(manifest_test_result* result)
 
   free(result);
 }
+
+
+static int
+manifest_testsuite_result_format(FILE* fh,
+                                 manifest_test_result* result,
+                                 const char* ts_name,
+                                 unsigned indent,
+                                 int verbose)
+{
+  raptor_sequence* seq;
+  int i;
+
+  seq = result->states[STATE_FAIL];
+  if(seq && raptor_sequence_size(seq)) {
+    manifest_test* t;
+
+    manifest_indent(fh, indent);
+    fputs("Failed tests:\n", fh);
+    for(i = 0;
+        (t = RASQAL_GOOD_CAST(manifest_test*, raptor_sequence_get_at(seq, i)));
+        i++) {
+      manifest_indent(fh, indent + indent_step);
+
+      if(verbose) {
+        manifest_banner(fh, banner_width, '=');
+        manifest_indent(fh, indent + indent_step);
+        fprintf(fh, "%s in suite %s\n", t->name, ts_name);
+      } else {
+        fputs(t->name, fh);
+        fputc('\n', fh);
+      }
+
+      if(verbose && t->result->details) {
+        manifest_indent(fh, indent + indent_step);
+        fputs(t->result->details, fh);
+        fputc('\n', fh);
+      }
+
+      if(verbose && t->result->log) {
+        manifest_indent_multiline(fh, t->result->log,
+                                  indent + indent_step * 2,
+                                  15);
+      }
+
+      if(verbose) {
+        manifest_indent(fh, indent + indent_step);
+        manifest_banner(fh, banner_width, '=');
+      }
+    }
+  }
+
+  seq = result->states[STATE_UXPASS];
+  if(seq && raptor_sequence_size(seq)) {
+    manifest_test* t;
+
+    manifest_indent(fh, indent);
+    fputs("Unexpected passed tests:\n", fh);
+    for(i = 0;
+        (t = RASQAL_GOOD_CAST(manifest_test*, raptor_sequence_get_at(seq, i)));
+        i++) {
+      manifest_indent(fh, indent);
+      fputs(t->name, fh);
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+      fputc(' ', fh);
+      fputc('(', fh);
+      rasqal_literal_print(t->test_node, fh);
+      fputc(')', fh);
+#endif
+      fputc('\n', fh);
+    }
+
+  }
+
+  manifest_indent(fh, indent);
+
+  for(i = 0; i < STATE_LAST; i++) {
+    int count = 0;
+    seq = result->states[i];
+    if(seq)
+      count = raptor_sequence_size(seq);
+    fprintf(fh, "%s: %d ",
+            manifest_test_state_label(RASQAL_GOOD_CAST(manifest_test_state, i)),
+            count);
+  }
+  fputc('\n', fh);
+
+  return 0;
+}
+
+
 
 
 static unsigned int
@@ -807,14 +937,6 @@ manifest_free_testsuite(manifest_testsuite* ts)
 
 
 static void
-manifest_indent(FILE* fh, unsigned int indent)
-{
-  while(indent--)
-    fputc(' ', fh);
-}
-
-
-static void
 manifest_test_run_log_handler(void* user_data, raptor_log_message *message)
 {
   manifest_test* t = (manifest_test*)user_data;
@@ -1191,10 +1313,8 @@ manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
       fputc('\n', stdout);
       if(verbose > 1) {
 	if(state == STATE_FAIL && t->result && t->result->log) {
-#if 0
-	  my(@lines)=split(/\n/, $t->{log});
-	  print $i."  ".join("\n${i}  ", @lines)."\n";
-#endif
+          manifest_indent_multiline(stdout, t->result->log, indent,
+                                    -1);
 	}
       }
     }
@@ -1260,9 +1380,8 @@ manifest_manifests_run(manifest_world* mw,
     result = manifest_testsuite_run_suite(ts, indent, dryrun, verbose);
 
     if(result) {
-#if 0
-      manifest_testsuite_result_format(stdout, result, indent + indent_step);
-#endif
+      manifest_testsuite_result_format(stdout, result, ts->name,
+                                       indent + indent_step, verbose);
       for(j = 0; j < STATE_LAST; j++)
         raptor_sequence_join(total_result->states[j], result->states[j]);
 
@@ -1270,6 +1389,7 @@ manifest_manifests_run(manifest_world* mw,
         total_state = STATE_FAIL;
 
       manifest_free_test_result(result);
+      ts->tests = NULL;
     } else
       total_state = STATE_FAIL;
 
@@ -1285,9 +1405,9 @@ manifest_manifests_run(manifest_world* mw,
   manifest_indent(stdout, indent);
   fputs("Testsuites summary:\n", stdout);
 
-#if 0
-  manifest_testsuite_result_format(stdout, total_result, indent + indent_step);
-#endif
+  manifest_testsuite_result_format(stdout, total_result, "total",
+                                   indent + indent_step, verbose);
+
   if(verbose) {
     manifest_indent(stdout, indent);
     fprintf(stdout, "Result status: %d\n", total_state);
