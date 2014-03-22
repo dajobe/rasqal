@@ -288,7 +288,7 @@ main(int argc, char *argv[])
   }
 
   if(optind == argc-1) {
-    char* base_uri_string = argv[2];
+    char* base_uri_string = argv[optind+1];
     base_uri = raptor_new_uri(raptor_world_ptr, (unsigned char*)(base_uri_string));
   } else {
     base_uri = raptor_uri_copy(uri);
