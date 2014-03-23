@@ -189,12 +189,6 @@ main(int argc, char *argv[])
     program = p + 1;
   argv[0] = program;
 
-  if(argc < 2 || argc > 3) {
-    fprintf(stderr, "USAGE: %s MANIFEST-FILE [BASE-URI]\n", program);
-    rc = 1;
-    goto tidy;
-  }
-
   world = rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
     fprintf(stderr, "%s: rasqal_world init failed\n", program);
