@@ -1240,7 +1240,8 @@ manifest_test_run(manifest_test* t, const char* path)
 
 
 manifest_test_result*
-manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
+manifest_testsuite_run_suite(manifest_testsuite* ts,
+                             const char* test_string, unsigned int indent,
                              int dryrun, int verbose)
 {
   char* name = ts->name;
@@ -1263,6 +1264,17 @@ manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
 
   column = indent;
   for(i = 0; (t = (manifest_test*)raptor_sequence_get_at(ts->tests, i)); i++) {
+    if(test_string) {
+      int found = 0;
+      const char* s = RASQAL_GOOD_CAST(const char*, rasqal_literal_as_string(t->test_node));
+
+      found = (t->name && !strcmp(t->name, test_string)) ||
+              (s && !strcmp(s, test_string));
+
+      if(!found)
+        continue;
+    }
+
     if(t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
       RASQAL_DEBUG2("Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
                     rasqal_literal_as_string(t->test_node));
@@ -1338,7 +1350,10 @@ manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent,
  * @world: world
  * @manifest_uris: sequence of #raptor_uri manifest URIs
  * @base_uri: base URI for manifest
+ * @test_string: string for running just one test (by name or URI)
  * @indent: indent size
+ * @dryrun: dryrun
+ * @verbose: verbose
  *
  * Run the given manifest testsuites returning a test result
  *
@@ -1348,6 +1363,7 @@ manifest_test_result*
 manifest_manifests_run(manifest_world* mw,
                        raptor_sequence* manifest_uris,
                        raptor_uri* base_uri,
+                       const char* test_string,
                        unsigned int indent,
                        int dryrun, int verbose)
 {
@@ -1377,7 +1393,8 @@ manifest_manifests_run(manifest_world* mw,
       break;
     }
 
-    result = manifest_testsuite_run_suite(ts, indent, dryrun, verbose);
+    result = manifest_testsuite_run_suite(ts, test_string,
+                                          indent, dryrun, verbose);
 
     if(result) {
       manifest_testsuite_result_format(stdout, result, ts->name,

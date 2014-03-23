@@ -82,7 +82,7 @@ static char *program = NULL;
 #endif
 
 
-#define GETOPT_STRING "hnqv"
+#define GETOPT_STRING "hnqt:v"
 
 #ifdef HAVE_GETOPT_LONG
 
@@ -92,6 +92,7 @@ static struct option long_options[] =
   {"help", 0, 0, 'h'},
   {"dryrun", 0, 0, 'n'},
   {"quiet", 0, 0, 'q'},
+  {"test", 1, 0, 't'},
   {"version", 0, 0, 'v'},
   {NULL, 0, 0, 0}
 };
@@ -145,7 +146,7 @@ static void
 print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
 {
   printf(title_format_string, rasqal_version_string);
-  puts("Run an RDF test suite.");
+  puts("Run an RDF query test suite.");
   printf("Usage: %s [OPTIONS] <manifest URI> [base URI]\n", program);
   
   fputs(rasqal_copyright_string, stdout);
@@ -158,6 +159,7 @@ print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
   puts(HELP_TEXT("h", "help            ", "Print this help, then exit"));
   puts(HELP_TEXT("n", "dryrun          ", "Prepare but do not run the query"));
   puts(HELP_TEXT("q", "quiet           ", "No extra information messages"));
+  puts(HELP_TEXT("t TEST", "test TEST  ", "Run just one TEST"));
   puts(HELP_TEXT("v", "version         ", "Print the Rasqal version"));
   puts("\nReport bugs to http://bugs.librdf.org/");
 }
@@ -181,6 +183,7 @@ main(int argc, char *argv[])
   manifest_world* mw;
   raptor_sequence* seq;
   manifest_test_result* result;
+  char* test_string = NULL;
 
   program = argv[0];
   if((p = strrchr(program, '/')))
@@ -225,6 +228,11 @@ main(int argc, char *argv[])
 
       case 'n':
         dryrun = 1;
+        break;
+
+      case 't':
+        if(optarg)
+          test_string = optarg;
         break;
 
       case 'q':
@@ -300,6 +308,7 @@ main(int argc, char *argv[])
   raptor_sequence_push(seq, raptor_uri_copy(uri));
 
   result = manifest_manifests_run(mw, seq, base_uri,
+                                  test_string,
                                   /* indent */ 0,
                                   dryrun, !quiet);
   raptor_free_sequence(seq);
