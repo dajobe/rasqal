@@ -350,7 +350,10 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
   
 
 #ifdef RASQAL_UUID_INTERNAL
-typedef unsigned char uuid_t[16];
+typedef union {
+  unsigned char b[16];
+  int16_t w[8];
+} uuid_t;
 
 /*
  * rasqal_uuid_generate:
@@ -368,8 +371,8 @@ typedef unsigned char uuid_t[16];
 static void
 rasqal_uuid_generate(rasqal_evaluation_context *eval_context, uuid_t ptr)
 {
-  int16_t* out = (int16_t*)ptr;
-  unsigned char* outc = (unsigned char*)ptr;
+  int16_t* out = ptr.w;
+  unsigned char* outc = ptr.b;
   unsigned int i;
   for(i = 0; i < (RASQAL_UUID_LEN / sizeof(int16_t)); i++) {
     *out++ = rasqal_random_irand(eval_context->random);
@@ -446,7 +449,11 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
 #else
   for(i = 0; i < RASQAL_UUID_LEN; i++) {
     unsigned short hex;
+#ifdef RASQAL_UUID_INTERNAL
+    unsigned char c = data.b[i];
+#else
     unsigned char c = data[i];
+#endif
 
     hex = (c & 0xf0) >> 4;
     *p++ = (hex < 10) ? ('0' + hex) : ('a' + hex - 10);
