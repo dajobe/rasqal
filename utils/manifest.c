@@ -1239,9 +1239,53 @@ manifest_test_run(manifest_test* t, const char* path)
 }
 
 
+
+static int
+manifest_test_matches_string(manifest_test* t, const char* test_string)
+{
+  int found = 0;
+  const char* s = RASQAL_GOOD_CAST(const char*, rasqal_literal_as_string(t->test_node));
+
+  found = (t->name && !strcmp(t->name, test_string)) ||
+          (s && !strcmp(s, test_string));
+
+  return found;
+}
+
+
+static int
+manifest_testsuite_select_tests_by_string(manifest_testsuite* ts,
+                                          const char* string)
+{
+  raptor_sequence* seq;
+
+  seq = raptor_new_sequence((raptor_data_free_handler)manifest_free_test,
+                            NULL);
+  if(!seq)
+    return -1;
+
+  if(string) {
+    manifest_test* t;
+
+    while((t = (manifest_test*)raptor_sequence_pop(ts->tests))) {
+      if(manifest_test_matches_string(t, string)) {
+        raptor_sequence_push(seq, t);
+        break;
+      } else
+        manifest_free_test(t);
+    }
+  }
+
+  raptor_free_sequence(ts->tests);
+  ts->tests = seq;
+
+  return raptor_sequence_size(ts->tests);
+}
+
+
 manifest_test_result*
 manifest_testsuite_run_suite(manifest_testsuite* ts,
-                             const char* test_string, unsigned int indent,
+                             unsigned int indent,
                              int dryrun, int verbose)
 {
   char* name = ts->name;
@@ -1264,17 +1308,6 @@ manifest_testsuite_run_suite(manifest_testsuite* ts,
 
   column = indent;
   for(i = 0; (t = (manifest_test*)raptor_sequence_get_at(ts->tests, i)); i++) {
-    if(test_string) {
-      int found = 0;
-      const char* s = RASQAL_GOOD_CAST(const char*, rasqal_literal_as_string(t->test_node));
-
-      found = (t->name && !strcmp(t->name, test_string)) ||
-              (s && !strcmp(s, test_string));
-
-      if(!found)
-        continue;
-    }
-
     if(t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
       RASQAL_DEBUG2("Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
                     rasqal_literal_as_string(t->test_node));
@@ -1393,8 +1426,10 @@ manifest_manifests_run(manifest_world* mw,
       break;
     }
 
-    result = manifest_testsuite_run_suite(ts, test_string,
-                                          indent, dryrun, verbose);
+    if(test_string)
+      manifest_testsuite_select_tests_by_string(ts, test_string);
+
+    result = manifest_testsuite_run_suite(ts, indent, dryrun, verbose);
 
     if(result) {
       manifest_testsuite_result_format(stdout, result, ts->name,

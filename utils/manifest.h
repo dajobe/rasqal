@@ -160,7 +160,7 @@ const char* manifest_test_get_query_language(manifest_test* t);
 
 manifest_test_result* manifest_manifests_run(manifest_world* mw, raptor_sequence* manifest_uris, raptor_uri* base_uri, const char* test_string, unsigned int indent, int dryrun, int verbose);
 
-manifest_test_result* manifest_testsuite_run_suite(manifest_testsuite* ts, const char* test_string, unsigned int indent, int dryrun, int verbose);
+manifest_test_result* manifest_testsuite_run_suite(manifest_testsuite* ts, unsigned int indent, int dryrun, int verbose);
 
 /* test results */
 void manifest_free_test_result(manifest_test_result* result);
