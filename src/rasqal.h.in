@@ -2035,7 +2035,7 @@ typedef struct rasqal_triples_source_s rasqal_triples_source;
  *
  * Highest accepted @rasqal_triples_source_factory API version
  */
-#define RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION 2
+#define RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION 3
 
 
 /**
