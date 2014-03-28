@@ -31,7 +31,7 @@ extern "C" {
 
 #include <rasqal_config.h>
 
-#define sv_init rasqal_sv_init
+#define sv_new rasqal_sv_new
 #define sv_free rasqal_sv_free
 #define sv_set_option rasqal_sv_set_option
 #define sv_get_line rasqal_sv_get_line

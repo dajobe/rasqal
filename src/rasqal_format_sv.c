@@ -422,10 +422,10 @@ rasqal_rowsource_sv_init(rasqal_rowsource* rowsource, void *user_data)
 
   con->rowsource = rowsource;
 
-  con->t = sv_init(con,
-                   rasqal_rowsource_sv_header_callback,
-                   rasqal_rowsource_sv_data_callback,
-                   con->sep);
+  con->t = sv_new(con,
+                  rasqal_rowsource_sv_header_callback,
+                  rasqal_rowsource_sv_data_callback,
+                  con->sep);
   if(!con->t)
     return 1;
 
