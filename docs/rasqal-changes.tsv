@@ -100,6 +100,8 @@
 0.9.28	type	-	-	0.9.29	type	rasqal_xsd_date	-	-
 0.9.28	type	rasqal_literal	-	0.9.29	type	rasqal_literal	-	Added date to value union.
 0.9.28	type	rasqal_xsd_datetime	-	0.9.29	type	rasqal_xsd_datetime	-	Added time_on_timeline and have_tz fields.
+0.9.33	type	-	-	-	type	rasqal_triples_error_handler2	-	Added for rasqal_variables_table_add2()
+0.9.33	type	rasqal_triples_source_factory	-	0.9.32	type	rasqal_triples_source_factory	-	API v3: Added init_triples_source2 handler field using #rasqal_triples_error_handler2
 #
 # Enums
 #
