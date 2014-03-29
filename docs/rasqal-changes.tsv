@@ -54,6 +54,17 @@
 0.9.21	-	-	-	0.9.22	char*	rasqal_xsd_datetime_get_timezone_as_counted_string	(rasqal_xsd_datetime *dt, size_t *len_p)	-
 0.9.22	-	-	-	0.9.23	raptor_sequence*	rasqal_graph_pattern_get_flattened_triples	(rasqal_query* query, rasqal_graph_pattern* graph_pattern)	-
 0.9.23	-	-	-	0.9.24	raptor_sequence*	rasqal_graph_pattern_get_flattened_triples	(rasqal_query* query, rasqal_graph_pattern* graph_pattern)	-
+0.9.24	-	-	-	0.9.25	char*	rasqal_xsd_datetime_get_tz_as_counted_string	(rasqal_xsd_datetime* dt, size_t *len_p)	-
+0.9.24	-	-	-	0.9.25	int	rasqal_xsd_decimal_abs	(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)	-
+0.9.24	-	-	-	0.9.25	int	rasqal_xsd_decimal_round	(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)	-
+0.9.24	-	-	-	0.9.25	int	rasqal_xsd_decimal_ceil	(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)	-
+0.9.24	-	-	-	0.9.25	int	rasqal_xsd_decimal_floor	(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)	-
+0.9.24	-	-	-	0.9.25	rasqal_evaluation_context*	rasqal_new_evaluation_context	(rasqal_world* world, raptor_locator* locator, int flags)	-
+0.9.24	-	-	-	0.9.25	void	rasqal_free_evaluation_context	(rasqal_evaluation_context* eval_context)	-
+0.9.24	-	-	-	0.9.25	int	rasqal_evaluation_context_set_base_uri	(rasqal_evaluation_context* eval_context, raptor_uri *base_uri)	-
+0.9.24	-	-	-	0.9.25	int	rasqal_evaluation_context_set_rand_seed	(rasqal_evaluation_context* eval_context, unsigned int seed)	-
+0.9.24	-	-	-	0.9.25	rasqal_literal*	rasqal_expression_evaluate2	(rasqal_expression *e, rasqal_evaluation_context* eval_context, int *error_p)	-
+0.9.24	-	-	-	0.9.25	const raptor_syntax_description*	rasqal_world_get_query_language_description	(rasqal_world* world, unsigned int counter)	-
 0.9.25	-	-	-	0.9.26	int	rasqal_world_set_warning_level	(rasqal_world* world, unsigned int warning_level)	-
 0.9.26	-	-	-	0.9.27	rasqal_literal*	rasqal_new_numeric_literal_from_long	(rasqal_world* world, rasqal_literal_type type, long value)	-
 0.9.26	-	-	-	0.9.27	long	rasqal_xsd_decimal_get_long	(rasqal_xsd_decimal* dec, int* error_p)	-
@@ -85,6 +96,7 @@
 0.9.21	type	-	-	0.9.22	type	rasqal_xsd_datetime	-	-
 0.9.21	type	rasqal_literal	-	0.9.22	type	rasqal_literal	-	Added datetime to value union.
 0.9.23	type	-	-	0.9.24	type	rasqal_update_graph_applies	-	Specifies scope that a #rasqal_update applies to
+0.9.24	type	-	-	0.9.25	type	rasqal_evaluation_context	-	Evaluation context for rasqal_expression_evaluate2()
 0.9.28	type	-	-	0.9.29	type	rasqal_xsd_date	-	-
 0.9.28	type	rasqal_literal	-	0.9.29	type	rasqal_literal	-	Added date to value union.
 0.9.28	type	rasqal_xsd_datetime	-	0.9.29	type	rasqal_xsd_datetime	-	Added time_on_timeline and have_tz fields.
@@ -125,18 +137,6 @@
 0.9.24	enum	-	-	0.9.25	enum	RASQAL_EXPR_FLOOR	-	Expression for SPARQL 1.1 FLOOR(numeric)
 0.9.24	enum	-	-	0.9.25	enum	RASQAL_EXPR_RAND	-	Expression for SPARQL 1.1 RAND()
 0.9.24	enum	-	-	0.9.25	enum	RASQAL_EXPR_TZ	-	Expression for SPARQL 1.1 TZ(datetime) timezone accessor
-0.9.24	-	-	-	0.9.25	char*	rasqal_xsd_datetime_get_tz_as_counted_string	(rasqal_xsd_datetime* dt, size_t *len_p)	-
-0.9.24	-	-	-	0.9.25	int	rasqal_xsd_decimal_abs	(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)	-
-0.9.24	-	-	-	0.9.25	int	rasqal_xsd_decimal_round	(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)	-
-0.9.24	-	-	-	0.9.25	int	rasqal_xsd_decimal_ceil	(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)	-
-0.9.24	-	-	-	0.9.25	int	rasqal_xsd_decimal_floor	(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)	-
-0.9.24	-	-	-	0.9.25	rasqal_evaluation_context*	rasqal_new_evaluation_context	(rasqal_world* world, raptor_locator* locator, int flags)	-
-0.9.24	-	-	-	0.9.25	void	rasqal_free_evaluation_context	(rasqal_evaluation_context* eval_context)	-
-0.9.24	-	-	-	0.9.25	int	rasqal_evaluation_context_set_base_uri	(rasqal_evaluation_context* eval_context, raptor_uri *base_uri)	-
-0.9.24	-	-	-	0.9.25	int	rasqal_evaluation_context_set_rand_seed	(rasqal_evaluation_context* eval_context, unsigned int seed)	-
-0.9.24	-	-	-	0.9.25	rasqal_literal*	rasqal_expression_evaluate2	(rasqal_expression *e, rasqal_evaluation_context* eval_context, int *error_p)	-
-0.9.24	-	-	-	0.9.25	const raptor_syntax_description*	rasqal_world_get_query_language_description	(rasqal_world* world, unsigned int counter)	-
-0.9.24	type	-	-	0.9.25	type	rasqal_evaluation_context	-	Evaluation context for rasqal_expression_evaluate2()
 0.9.25	enum	-	-	0.9.26	enum	RASQAL_EXPR_SHA1	-	Expression for SPARQL 1.1 SHA1(literal) message digest
 0.9.25	enum	-	-	0.9.26	enum	RASQAL_EXPR_SHA224	-	Expression for SPARQL 1.1 SHA224(literal) message digest
 0.9.25	enum	-	-	0.9.26	enum	RASQAL_EXPR_SHA256	-	Expression for SPARQL 1.1 SHA256(literal) message digest
