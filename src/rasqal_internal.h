@@ -849,6 +849,31 @@ typedef struct {
 } rasqal_row_compatible;
 
 
+/**
+ * rasqal_results_compatible:
+ * @variables_table: variables table
+ * @vt: variables table
+ * @defined_in_map: of size @variables_count
+ * @first_count: number of variables in first query result
+ * @second_count: number of variables in second query result
+ * @variables_count: number of variables in @vt and @defined_in_map
+ * @variables_in_both_results_count: number of shared variables
+ *
+ * Lookup data constructed for two query results to enable quick
+ * mapping between values.
+ *
+ */
+typedef struct {
+  rasqal_variables_table* variables_table;
+  rasqal_variables_table* vt;
+  int* defined_in_map;
+  int first_count;
+  int second_count;
+  int variables_count;
+  int variables_in_both_results_count;
+} rasqal_results_compatible;
+
+
 /* 
  * Rowsource Internal flags
  *
