@@ -178,7 +178,7 @@ rasqal_finish_query_results(void)
  * @type: query results (expected) type
  * @vars_table: variables table
  * 
- * Create a new query results set
+ * Constructor - create a new query results set
  *
  * The @query may be NULL for result set objects that are standalone
  * and not attached to any particular query
@@ -221,6 +221,85 @@ rasqal_new_query_results(rasqal_world* world,
   query_results->vars_table = rasqal_new_variables_table_from_variables_table(vars_table);
 
   return query_results;
+}
+
+
+/**
+ * rasqal_new_query_results_from_string:
+ * @world: rasqal world object
+ * @formatter: query results formatter (or NULL)
+ * @type: query results (expected) type; typically #RASQAL_QUERY_RESULTS_BINDINGS
+ * @base_uri: base URI of query results format (or NULL)
+ * @string: query results string
+ * @string_len: length of @string
+ *
+ * Constructor - create a new query results set from a results format string
+ *
+ * Return value: a new query result object or NULL on failure
+ **/
+rasqal_query_results*
+rasqal_new_query_results_from_string(rasqal_world* world,
+                                     rasqal_query_results_formatter* formatter,
+                                     rasqal_query_results_type type,
+                                     raptor_uri* base_uri,
+                                     const char* string,
+                                     size_t string_len)
+{
+  int rc;
+  raptor_iostream* iostr = NULL;
+  rasqal_query_results* results = NULL;
+  int free_formatter = 0;
+  rasqal_variables_table* vars_table;
+  raptor_world *raptor_world_ptr;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
+  raptor_world_ptr = rasqal_world_get_raptor(world);
+
+  vars_table = rasqal_new_variables_table(world);
+  if(!vars_table)
+    goto failed;
+
+  results = rasqal_new_query_results(world, NULL, type, vars_table);
+  rasqal_free_variables_table(vars_table);
+  if(!results)
+    goto failed;
+
+  iostr = raptor_new_iostream_from_string(raptor_world_ptr,
+                                          RASQAL_GOOD_CAST(void*, string),
+                                          string_len);
+  if(!iostr)
+    goto failed;
+
+  if(!formatter) {
+    formatter = rasqal_new_query_results_formatter(world, NULL, NULL, NULL);
+    if(!formatter)
+      goto failed;
+    free_formatter = 1;
+  }
+
+  rc = rasqal_query_results_formatter_read(world, iostr, formatter,
+                                           results, base_uri);
+  if(rc)
+    goto failed;
+
+  /* success */
+  goto tidy;
+
+  failed:
+  if(results) {
+    rasqal_free_query_results(results);
+    results = NULL;
+  }
+
+  tidy:
+  if(formatter && free_formatter)
+    rasqal_free_query_results_formatter(formatter);
+
+  if(iostr)
+    raptor_free_iostream(iostr);
+
+  return results;
 }
 
 
