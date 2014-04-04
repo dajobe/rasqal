@@ -235,6 +235,9 @@ rasqal_new_query_results(rasqal_world* world,
  *
  * Constructor - create a new query results set from a results format string
  *
+ * If @formatter is NULL, the contents of the @string and @base_uri
+ * (if given) will be used to guess it.
+ *
  * Return value: a new query result object or NULL on failure
  **/
 rasqal_query_results*
@@ -272,7 +275,24 @@ rasqal_new_query_results_from_string(rasqal_world* world,
     goto failed;
 
   if(!formatter) {
-    formatter = rasqal_new_query_results_formatter(world, NULL, NULL, NULL);
+    const char* formatter_name;
+    const unsigned char* id = NULL;
+
+    if(base_uri)
+      id = raptor_uri_as_string(base_uri);
+
+    formatter_name =
+      rasqal_world_guess_query_results_format_name(world,
+                                                   base_uri,
+                                                   NULL /* mime_type */,
+                                                   RASQAL_GOOD_CAST(const unsigned char*, string),
+                                                   string_len,
+                                                   id);
+
+    formatter = rasqal_new_query_results_formatter(world,
+                                                   formatter_name,
+                                                   NULL /* mime type */,
+                                                   NULL /* uri */);
     if(!formatter)
       goto failed;
     free_formatter = 1;
