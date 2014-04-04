@@ -227,7 +227,6 @@ rasqal_new_query_results(rasqal_world* world,
 /**
  * rasqal_new_query_results_from_string:
  * @world: rasqal world object
- * @formatter: query results formatter (or NULL)
  * @type: query results (expected) type; typically #RASQAL_QUERY_RESULTS_BINDINGS
  * @base_uri: base URI of query results format (or NULL)
  * @string: query results string
@@ -235,14 +234,10 @@ rasqal_new_query_results(rasqal_world* world,
  *
  * Constructor - create a new query results set from a results format string
  *
- * If @formatter is NULL, the contents of the @string and @base_uri
- * (if given) will be used to guess it.
- *
  * Return value: a new query result object or NULL on failure
  **/
 rasqal_query_results*
 rasqal_new_query_results_from_string(rasqal_world* world,
-                                     rasqal_query_results_formatter* formatter,
                                      rasqal_query_results_type type,
                                      raptor_uri* base_uri,
                                      const char* string,
@@ -250,10 +245,12 @@ rasqal_new_query_results_from_string(rasqal_world* world,
 {
   int rc;
   raptor_iostream* iostr = NULL;
+  rasqal_query_results_formatter* formatter = NULL;
   rasqal_query_results* results = NULL;
-  int free_formatter = 0;
   rasqal_variables_table* vars_table;
   raptor_world *raptor_world_ptr;
+  const char* formatter_name;
+  const unsigned char* id = NULL;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
@@ -274,29 +271,23 @@ rasqal_new_query_results_from_string(rasqal_world* world,
   if(!iostr)
     goto failed;
 
-  if(!formatter) {
-    const char* formatter_name;
-    const unsigned char* id = NULL;
+  if(base_uri)
+    id = raptor_uri_as_string(base_uri);
 
-    if(base_uri)
-      id = raptor_uri_as_string(base_uri);
-
-    formatter_name =
-      rasqal_world_guess_query_results_format_name(world,
-                                                   base_uri,
-                                                   NULL /* mime_type */,
-                                                   RASQAL_GOOD_CAST(const unsigned char*, string),
-                                                   string_len,
-                                                   id);
-
-    formatter = rasqal_new_query_results_formatter(world,
-                                                   formatter_name,
-                                                   NULL /* mime type */,
-                                                   NULL /* uri */);
-    if(!formatter)
-      goto failed;
-    free_formatter = 1;
-  }
+  formatter_name =
+    rasqal_world_guess_query_results_format_name(world,
+                                                 base_uri,
+                                                 NULL /* mime_type */,
+                                                 RASQAL_GOOD_CAST(const unsigned char*, string),
+                                                 string_len,
+                                                 id);
+  
+  formatter = rasqal_new_query_results_formatter(world,
+                                                 formatter_name,
+                                                 NULL /* mime type */,
+                                                 NULL /* uri */);
+  if(!formatter)
+    goto failed;
 
   rc = rasqal_query_results_formatter_read(world, iostr, formatter,
                                            results, base_uri);
@@ -313,7 +304,7 @@ rasqal_new_query_results_from_string(rasqal_world* world,
   }
 
   tidy:
-  if(formatter && free_formatter)
+  if(formatter)
     rasqal_free_query_results_formatter(formatter);
 
   if(iostr)
