@@ -230,7 +230,7 @@ rasqal_new_query_results(rasqal_world* world,
  * @type: query results (expected) type; typically #RASQAL_QUERY_RESULTS_BINDINGS
  * @base_uri: base URI of query results format (or NULL)
  * @string: query results string
- * @string_len: length of @string
+ * @string_len: length of @string (or 0 to calculate it here)
  *
  * Constructor - create a new query results set from a results format string
  *
@@ -253,6 +253,10 @@ rasqal_new_query_results_from_string(rasqal_world* world,
   const unsigned char* id = NULL;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(string, const char*, NULL);
+
+  if(!string_len)
+    string_len = strlen(string);
 
   raptor_world_ptr = rasqal_world_get_raptor(world);
 
