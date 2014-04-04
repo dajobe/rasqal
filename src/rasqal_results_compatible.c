@@ -57,7 +57,8 @@ rasqal_new_results_compatible(rasqal_world* world,
   rasqal_results_compatible* rrc = NULL;
   rasqal_variables_table* first_vt;
   rasqal_variables_table* second_vt;
-  int i;
+  unsigned int i;
+  unsigned int size;
 
   first_vt = rasqal_query_results_get_variables_table(first_qr);
   second_vt = rasqal_query_results_get_variables_table(second_qr);
@@ -69,13 +70,15 @@ rasqal_new_results_compatible(rasqal_world* world,
   rrc->first_count = rasqal_variables_table_get_total_variables_count(first_vt);
   rrc->second_count = rasqal_variables_table_get_total_variables_count(second_vt);
   rrc->variables_count = 0;
-  rrc->defined_in_map = RASQAL_CALLOC(int*,
-                                      rrc->first_count + rrc->second_count,
-                                      sizeof(int));
+  size = rrc->first_count + rrc->second_count;
+  rrc->defined_in_map = RASQAL_CALLOC(int*, size, sizeof(int));
   if(!rrc->defined_in_map) {
     RASQAL_FREE(rasqal_results_compatible, rrc);
     return NULL;
   }
+  for(i = 0; i < size; i++)
+    rrc->defined_in_map[size] = -1;
+
   rrc->vt = rasqal_new_variables_table(world);
   if(!rrc->vt) {
     RASQAL_FREE(int*, rrc->defined_in_map);
@@ -122,8 +125,10 @@ rasqal_free_results_compatible(rasqal_results_compatible* rrc)
   if(!rrc)
     return;
 
-  RASQAL_FREE(int*, rrc->defined_in_map);
-  RASQAL_FREE(rasqal_variable**, rrc->defined_in_map);
+  if(rrc->defined_in_map)
+    RASQAL_FREE(rasqal_variable**, rrc->defined_in_map);
+  if(rrc->vt)
+    rasqal_free_variables_table(rrc->vt);
   RASQAL_FREE(rasqal_results_compatible, rrc);
 }
 
@@ -152,8 +157,8 @@ rasqal_results_compatible_equal(rasqal_results_compatible* rrc)
 
   for(i = 0; i < count; i++) {
     /* If any variable is not in both, not equal */
-    if(!rrc->defined_in_map[i<<1] ||
-       !rrc->defined_in_map[1 + (i<<1)])
+    if(rrc->defined_in_map[i<<1] < 0 ||
+       rrc->defined_in_map[1 + (i<<1)] < 0 )
       return 0;
   }
 
@@ -205,7 +210,7 @@ void
 rasqal_print_results_compatible(FILE *handle, rasqal_results_compatible* rrc)
 {
   int count = rrc->variables_count;
-  rasqal_variables_table* vt = rrc->variables_table;
+  rasqal_variables_table* vt = rrc->vt;
   int i;
   char first_qr[4];
   char second_qr[4];
@@ -246,33 +251,100 @@ int main(int argc, char *argv[]);
 
 #define NTESTS 2
 
-/* FIXME - results test data needed */
-
-const int expected_equal_results[NTESTS]=
-{
-  1,
-  0
+const struct {
+  const char* first_qr_string;
+  const char* second_qr_string;
+  int expected_vars_count;
+  int expected_rows_count;
+  int expected_equality;
+} expected_data[NTESTS] = {
+  {
+    "a\tb\tc\td\te\tf\n\"a\"\t\"b\"\t\"c\"\t\"d\"\t\"e\"\t\"f\"\n",
+    "a\tb\tc\td\te\tf\n\"a\"\t\"b\"\t\"c\"\t\"d\"\t\"e\"\t\"f\"\n",
+    6, 1, 1
+  },
+  {
+    "a\tb\tc\td\te\tf\n\"a\"\t\"b\"\t\"c\"\t\"d\"\t\"e\"\t\"f\"\n",
+    "d\tf\tc\ta\te\tb\n\"d\"\t\"f\"\t\"c\"\t\"a\"\t\"e\"\t\"b\"\n",
+    6, 1, 1
+  }
 };
 
+
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+static void
+print_bindings_results_simple(rasqal_query_results *results, FILE* output)
+{
+  while(!rasqal_query_results_finished(results)) {
+    int i;
+
+    fputs("row: [", output);
+    for(i = 0; i < rasqal_query_results_get_bindings_count(results); i++) {
+      const unsigned char *name;
+      rasqal_literal *value;
+
+      name = rasqal_query_results_get_binding_name(results, i);
+      value = rasqal_query_results_get_binding_value(results, i);
+
+      if(i > 0)
+        fputs(", ", output);
+
+      fprintf(output, "%s=", name);
+      rasqal_literal_print(value, output);
+    }
+    fputs("]\n", output);
+
+    rasqal_query_results_next(results);
+  }
+}
+#endif
 
 int
 main(int argc, char *argv[])
 {
   const char *program = rasqal_basename(argv[0]);
   rasqal_world* world = NULL;
+  raptor_world* raptor_world_ptr;
   int failures = 0;
   int i;
+  rasqal_query_results_type type = RASQAL_QUERY_RESULTS_BINDINGS;
 
   world = rasqal_new_world(); rasqal_world_open(world);
 
-  for(i = 1; i < NTESTS; i++) {
-    rasqal_query_results *first_qr = NULL;
+  raptor_world_ptr = rasqal_world_get_raptor(world);
+
+  for(i = 0; i < NTESTS; i++) {
+    raptor_uri* base_uri = raptor_new_uri(raptor_world_ptr,
+                                          (const unsigned char*)"http://example.org/");
+    rasqal_query_results *first_qr;
     rasqal_query_results *second_qr = NULL;
-    int expected = expected_equal_results[i];
+    int expected_equality = expected_data[i].expected_equality;
     rasqal_results_compatible* rrc;
     int equal;
 
-    /* FIXME - initialise first_qr and second_qr */
+    first_qr = rasqal_new_query_results_from_string(world,
+                                                    type,
+                                                    base_uri,
+                                                    expected_data[i].first_qr_string,
+                                                    0);
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+    RASQAL_DEBUG1("First query result from string");
+    print_bindings_results_simple(first_qr, stderr);
+    rasqal_query_results_rewind(first_qr);
+#endif
+
+    second_qr = rasqal_new_query_results_from_string(world,
+                                                     type,
+                                                     base_uri,
+                                                     expected_data[i].second_qr_string,
+                                                     0);
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+    RASQAL_DEBUG1("Second query result from string");
+    print_bindings_results_simple(second_qr, stderr);
+    rasqal_query_results_rewind(second_qr);
+#endif
+
+    raptor_free_uri(base_uri);
 
     rrc = rasqal_new_results_compatible(world, first_qr, second_qr);
     if(!rrc) {
@@ -282,11 +354,11 @@ main(int argc, char *argv[])
       rasqal_print_results_compatible(stderr, rrc);
 
       equal = rasqal_results_compatible_equal(rrc);
-      RASQAL_DEBUG4("%s: equal results %d returned %d\n", program, i, equal);
-      if(equal != expected) {
+      RASQAL_DEBUG4("%s: equal results test %d returned %d\n", program, i, equal);
+      if(equal != expected_equality) {
         fprintf(stderr,
-                "%s: FAILED equal results check %d returned %d  expected %d\n",
-                program, i, equal, expected);
+                "%s: FAILED equal results test %d returned %d  expected %d\n",
+                program, i, equal, expected_equality);
         failures++;
       }
     }
