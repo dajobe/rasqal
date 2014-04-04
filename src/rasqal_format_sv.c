@@ -666,6 +666,90 @@ rasqal_query_results_get_rowsource_tsv(rasqal_query_results_formatter* formatter
 
 
 
+/**
+ * Calculate score for buffer based on score of number of 'sep' chars
+ * in first line; minimum @min_count gives a based score, boosted if
+ * more than @boost_count
+ */
+static unsigned int
+rasqal_query_results_sv_score_first_line(const unsigned char* p, size_t len,
+                                         const char sep,
+                                         unsigned int min_count,
+                                         unsigned int boost_count)
+{
+  unsigned int count = 0;
+  unsigned int score = 0;
+
+  if(!p || !len)
+    return 0;
+
+  for(; (len && *p && *p !='\r' && *p != '\n'); p++, len--) {
+    if(*p == sep) {
+      count++;
+
+      if(count >= min_count) {
+        score = 6;
+
+        if(count >= boost_count) {
+          score += 2;
+          /* if the score is this high, we can end */
+          break;
+        }
+      }
+    }
+  }
+  return score;
+}
+
+
+static int
+rasqal_query_results_csv_recognise_syntax(rasqal_query_results_format_factory* factory,
+                                          const unsigned char *buffer,
+                                          size_t len,
+                                          const unsigned char *identifier,
+                                          const unsigned char *suffix,
+                                          const char *mime_type)
+{
+  unsigned int score = 0;
+
+  if(suffix && !strcmp(RASQAL_GOOD_CAST(const char*, suffix), "csv"))
+    return 7;
+
+  if(buffer && len) {
+    /* use number of tabs in first line - comma needs higher counts since it
+     * is more likely to appear in text.
+     */
+    score = rasqal_query_results_sv_score_first_line(buffer, len, ',', 5, 7);
+  }
+
+  return score;
+}
+
+
+static int
+rasqal_query_results_tsv_recognise_syntax(rasqal_query_results_format_factory* factory,
+                                          const unsigned char *buffer,
+                                          size_t len,
+                                          const unsigned char *identifier,
+                                          const unsigned char *suffix,
+                                          const char *mime_type)
+{
+  int score = 0;
+
+  if(suffix && !strcmp(RASQAL_GOOD_CAST(const char*, suffix), "tsv"))
+    return 7;
+
+  if(buffer && len) {
+    /* use number of tabs in first line - tab is more rare so guess
+     * with fewer than csv's comma. */
+    score = rasqal_query_results_sv_score_first_line(buffer, len, '\t', 3, 5);
+  }
+
+  return score;
+}
+
+
+
 
 
 static const char* const csv_names[] = { "csv", NULL};
@@ -698,6 +782,7 @@ rasqal_query_results_csv_register_factory(rasqal_query_results_format_factory *f
   
   factory->write         = rasqal_query_results_write_csv;
   factory->get_rowsource = rasqal_query_results_get_rowsource_csv;
+  factory->recognise_syntax = rasqal_query_results_csv_recognise_syntax;
 
   return rc;
 }
@@ -718,6 +803,7 @@ static const raptor_type_q tsv_types[] = {
   { NULL, 0, 0}
 };
 
+
 static int
 rasqal_query_results_tsv_register_factory(rasqal_query_results_format_factory *factory) 
 {
@@ -733,6 +819,7 @@ rasqal_query_results_tsv_register_factory(rasqal_query_results_format_factory *f
   
   factory->write         = rasqal_query_results_write_tsv;
   factory->get_rowsource = rasqal_query_results_get_rowsource_tsv;
+  factory->recognise_syntax = rasqal_query_results_tsv_recognise_syntax;
 
   return rc;
 }
