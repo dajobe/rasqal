@@ -40,6 +40,7 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+#ifndef STANDALONE
 
 /*
  *
@@ -1745,3 +1746,123 @@ rasqal_query_results_sort(rasqal_query_results* query_results,
   
   return 0;
 }
+
+#endif /* not STANDALONE */
+
+
+
+#ifdef STANDALONE
+
+/* one more prototype */
+int main(int argc, char *argv[]);
+
+#define NTESTS 2
+
+const struct {
+  const char* qr_string;
+  int expected_vars_count;
+  int expected_rows_count;
+  int expected_equality;
+} expected_data[NTESTS] = {
+  {
+    "a\tb\tc\td\n\"a\"\t\"b\"\t\"c\"\t\"d\"\n",
+    4, 1, 1
+  },
+  {
+    "a,b,c,d,e,f\n\"a\",\"b\",\"c\",\"d\",\"e\",\"f\"\n",
+    6, 1, 1
+  }
+};
+
+
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+static void
+print_bindings_results_simple(rasqal_query_results *results, FILE* output)
+{
+  while(!rasqal_query_results_finished(results)) {
+    int i;
+
+    fputs("row: [", output);
+    for(i = 0; i < rasqal_query_results_get_bindings_count(results); i++) {
+      const unsigned char *name;
+      rasqal_literal *value;
+
+      name = rasqal_query_results_get_binding_name(results, i);
+      value = rasqal_query_results_get_binding_value(results, i);
+
+      if(i > 0)
+        fputs(", ", output);
+
+      fprintf(output, "%s=", name);
+      rasqal_literal_print(value, output);
+    }
+    fputs("]\n", output);
+
+    rasqal_query_results_next(results);
+  }
+}
+#endif
+
+int
+main(int argc, char *argv[])
+{
+  const char *program = rasqal_basename(argv[0]);
+  rasqal_world* world = NULL;
+  raptor_world* raptor_world_ptr;
+  int failures = 0;
+  int i;
+  rasqal_query_results_type type = RASQAL_QUERY_RESULTS_BINDINGS;
+
+  world = rasqal_new_world(); rasqal_world_open(world);
+
+  raptor_world_ptr = rasqal_world_get_raptor(world);
+
+  for(i = 0; i < NTESTS; i++) {
+    raptor_uri* base_uri = raptor_new_uri(raptor_world_ptr,
+                                          (const unsigned char*)"http://example.org/");
+    rasqal_query_results *qr;
+    int expected_vars_count = expected_data[i].expected_vars_count;
+    int vars_count;
+
+    qr = rasqal_new_query_results_from_string(world,
+                                              type,
+                                              base_uri,
+                                              expected_data[i].qr_string,
+                                              0);
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+    RASQAL_DEBUG1("Query result from string:");
+    print_bindings_results_simple(first_qr, stderr);
+    rasqal_query_results_rewind(first_qr);
+#endif
+
+    raptor_free_uri(base_uri);
+
+    if(!qr) {
+      fprintf(stderr, "%s: failed to create query results\n", program);
+      failures++;
+    } else {
+      rasqal_variables_table* vt;
+      
+      vt = rasqal_query_results_get_variables_table(qr);
+      vars_count = rasqal_variables_table_get_named_variables_count(vt);
+      RASQAL_DEBUG4("%s: query results test %d returned %d vars\n", program, i,
+                    vars_count);
+      if(vars_count != expected_vars_count) {
+        fprintf(stderr,
+                "%s: FAILED query results test %d returned %d vars  expected %d vars\n",
+                program, i, vars_count, expected_vars_count);
+        failures++;
+      }
+    }
+
+    if(qr)
+      rasqal_free_query_results(qr);
+  }
+
+  if(world)
+    rasqal_free_world(world);
+
+  return failures;
+}
+
+#endif /* STANDALONE */
