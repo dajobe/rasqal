@@ -1160,7 +1160,7 @@ manifest_test_run(manifest_test* t, const char* path)
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
         if(1) {
-          compare_query_results* cqr;
+          rasqal_results_compare* rrc;
           int rc;
 
           RASQAL_DEBUG1("Expected bindings results:\n");
@@ -1178,14 +1178,14 @@ manifest_test_run(manifest_test* t, const char* path)
           rasqal_query_results_sort(expected_results, rasqal_row_compare);
           rasqal_query_results_sort(actual_results, rasqal_row_compare);
 
-          cqr = new_compare_query_results(world,
-                                          expected_results, "expected",
-                                          actual_results, "actual");
+          rrc = rasqal_new_results_compare(world,
+                                           expected_results, "expected",
+                                           actual_results, "actual");
           t->error_count = 0;
-          compare_query_results_set_log_handler(cqr, t,
-                                                manifest_test_run_log_handler);
-          rc = !compare_query_results_compare(cqr);
-          free_compare_query_results(cqr); cqr = NULL;
+          rasqal_results_compare_set_log_handler(rrc, t,
+                                                 manifest_test_run_log_handler);
+          rc = !rasqal_results_compare_compare(rrc);
+          rasqal_free_results_compare(rrc); rrc = NULL;
 
           if(!rc)
             state = STATE_PASS;

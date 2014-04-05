@@ -627,14 +627,14 @@ main(int argc, char *argv[])
         rasqal_query_results_sort(results, rasqal_row_compare);
 
         if(1) {
-          compare_query_results* cqr;
-          cqr = new_compare_query_results(world,
+          rasqal_results_compare* rrc;
+          rrc = rasqal_new_results_compare(world,
                                           expected_results, "expected",
                                           results, "actual");
-          compare_query_results_set_log_handler(cqr, world,
-                                                check_query_log_handler);
-          rc = !compare_query_results_compare(cqr);
-          free_compare_query_results(cqr); cqr = NULL;
+          rasqal_results_compare_set_log_handler(rrc, world,
+                                                 check_query_log_handler);
+          rc = !rasqal_results_compare_compare(rrc);
+          rasqal_free_results_compare(rrc); rrc = NULL;
         }
         
         break;
