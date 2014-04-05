@@ -313,7 +313,6 @@ int
 rasqal_results_compare_compare(rasqal_results_compare* rrc)
 {
   int differences = 0;
-  int i;
   int rowi;
   int size1;
   int size2;
@@ -332,36 +331,25 @@ rasqal_results_compare_compare(rasqal_results_compare* rrc)
     goto done;
   }
 
-
-  /* check variables in each results project the same variables */
-  for(i = 0; 1; i++) {
-    const unsigned char* v1;
-    const unsigned char* v2;
-
-    v1 = rasqal_query_results_get_binding_name(rrc->first_qr, i);
-    v2 = rasqal_query_results_get_binding_name(rrc->second_qr, i);
-    if(!v1 && !v2)
-      break;
-
-    if(v1 && v2) {
-      if(strcmp((const char*)v1, (const char*)v2)) {
-        /* different names */
-        differences++;
-      }
-    } else
-      /* one is NULL, the other is a name */
-      differences++;
-  }
-
-  if(differences) {
+  if(!rrc->variables_in_both_count) {
     rrc->message.level = RAPTOR_LOG_LEVEL_ERROR;
-    rrc->message.text = "Results have different binding names";
+    rrc->message.text = "Results have no common variables";
     if(rrc->log_handler)
       rrc->log_handler(rrc->log_user_data, &rrc->message);
 
+    differences++;
     goto done;
   }
 
+  if(!rasqal_results_compare_variables_equal(rrc)) {
+    rrc->message.level = RAPTOR_LOG_LEVEL_ERROR;
+    rrc->message.text = "Results have different sets of variables";
+    if(rrc->log_handler)
+      rrc->log_handler(rrc->log_user_data, &rrc->message);
+
+    differences++;
+    goto done;
+  }
 
   /* set results to be stored? */
 
@@ -372,7 +360,7 @@ rasqal_results_compare_compare(rasqal_results_compare* rrc)
 
   /* for each row */
   for(rowi = 0; 1; rowi++) {
-    int bindingi;
+    unsigned int bindingi;
     rasqal_row* row1 = rasqal_query_results_get_row_by_offset(rrc->first_qr, rowi);
     rasqal_row* row2 = rasqal_query_results_get_row_by_offset(rrc->second_qr, rowi);
     int this_row_different = 0;
@@ -380,18 +368,24 @@ rasqal_results_compare_compare(rasqal_results_compare* rrc)
     if(!row1 && !row2)
       break;
 
-    /* for each variable in row1 (== same variables in row2) */
-    for(bindingi = 0; bindingi < size1; bindingi++) {
-      /* we know the binding names are the same */
+    /* for each variable (already know they are the same set) */
+    for(bindingi = 0; bindingi < rrc->variables_count; bindingi++) {
+      rasqal_variable* v;
       const unsigned char* name;
+      int ix1;
+      int ix2;
       rasqal_literal *value1;
       rasqal_literal *value2;
       int error = 0;
 
-      name = rasqal_query_results_get_binding_name(rrc->first_qr, bindingi);
+      v = rasqal_results_compare_get_variable_by_offset(rrc, bindingi);
+      name = v->name;
 
-      value1 = rasqal_query_results_get_binding_value(rrc->first_qr, bindingi);
-      value2 = rasqal_query_results_get_binding_value(rrc->second_qr, bindingi);
+      ix1 = rasqal_results_compare_get_variable_offset_for_result(rrc, bindingi, 0);
+      ix2 = rasqal_results_compare_get_variable_offset_for_result(rrc, bindingi, 1);
+
+      value1 = rasqal_query_results_get_binding_value(rrc->first_qr, ix1);
+      value2 = rasqal_query_results_get_binding_value(rrc->second_qr, ix2);
 
       /* should have compare as native flag?
        * RASQAL_COMPARE_XQUERY doesn't compare all values
