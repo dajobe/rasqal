@@ -38,13 +38,6 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
-/* FIXME */
-rasqal_results_compare* rasqal_new_results_compare(rasqal_world* world, rasqal_query_results *first_qr, rasqal_query_results *second_qr);
-void rasqal_free_results_compare(rasqal_results_compare* rrc);
-rasqal_variable* rasqal_results_compare_get_variable_by_offset(rasqal_results_compare* rrc, int idx);
-int rasqal_results_compare_get_variable_offset_for_result(rasqal_results_compare* rrc, int var_idx, int qr_index);
-int rasqal_results_compare_equal(rasqal_results_compare* rrc);
-
 
 #ifndef STANDALONE
 

@@ -1828,9 +1828,15 @@ void rasqal_free_projection(rasqal_projection* projection);
 raptor_sequence* rasqal_projection_get_variables_sequence(rasqal_projection* projection);
 int rasqal_projection_add_variable(rasqal_projection* projection, rasqal_variable* var);
 
-
 /* rasqal_regex.c */
 int rasqal_regex_match(rasqal_world* world, raptor_locator* locator, const char* pattern, const char* regex_flags, const char* subject, size_t subject_len);
+
+/* rasqal_results_compare.c */
+rasqal_results_compare* rasqal_new_results_compare(rasqal_world* world, rasqal_query_results *first_qr, rasqal_query_results *second_qr);
+void rasqal_free_results_compare(rasqal_results_compare* rrc);
+rasqal_variable* rasqal_results_compare_get_variable_by_offset(rasqal_results_compare* rrc, int idx);
+int rasqal_results_compare_get_variable_offset_for_result(rasqal_results_compare* rrc, int var_idx, int qr_index);
+int rasqal_results_compare_equal(rasqal_results_compare* rrc);
 
 /* rasqal_service.c */
 rasqal_service* rasqal_new_service_from_service(rasqal_service* svc);
