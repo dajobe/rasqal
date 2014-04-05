@@ -1812,8 +1812,10 @@ int rasqal_projection_add_variable(rasqal_projection* projection, rasqal_variabl
 int rasqal_regex_match(rasqal_world* world, raptor_locator* locator, const char* pattern, const char* regex_flags, const char* subject, size_t subject_len);
 
 /* rasqal_results_compare.c */
-rasqal_results_compare* rasqal_new_results_compare(rasqal_world* world, rasqal_query_results *first_qr, rasqal_query_results *second_qr);
+rasqal_results_compare* rasqal_new_results_compare(rasqal_world* world, rasqal_query_results *first_qr, const char* first_qr_label, rasqal_query_results *second_qr, const char* second_qr_label);
 void rasqal_free_results_compare(rasqal_results_compare* rrc);
+void rasqal_results_compare_set_log_handler(rasqal_results_compare* rrc, void* log_user_data, raptor_log_handler log_handler);
+int rasqal_results_compare_compare(rasqal_results_compare* rrc);
 rasqal_variable* rasqal_results_compare_get_variable_by_offset(rasqal_results_compare* rrc, int idx);
 int rasqal_results_compare_get_variable_offset_for_result(rasqal_results_compare* rrc, int var_idx, int qr_index);
 int rasqal_results_compare_variables_equal(rasqal_results_compare* rrc);

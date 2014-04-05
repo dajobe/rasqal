@@ -55,6 +55,17 @@
  *
  */
 struct rasqal_results_compare_s {
+  rasqal_world* world;
+
+  rasqal_query_results* first_qr;
+  const char* first_qr_label;
+  rasqal_query_results* second_qr;
+  const char* second_qr_label;
+
+  void* log_user_data;
+  raptor_log_handler log_handler;
+  raptor_log_message message;
+
   rasqal_variables_table* vt;
   int* defined_in_map;
   unsigned int first_count;
@@ -67,8 +78,8 @@ struct rasqal_results_compare_s {
 
 rasqal_results_compare*
 rasqal_new_results_compare(rasqal_world* world,
-                           rasqal_query_results *first_qr,
-                           rasqal_query_results *second_qr)
+                           rasqal_query_results *first_qr, const char* first_qr_label,
+                           rasqal_query_results *second_qr, const char* second_qr_label)
 {
   rasqal_results_compare* rrc = NULL;
   rasqal_variables_table* first_vt;
@@ -83,9 +94,23 @@ rasqal_new_results_compare(rasqal_world* world,
   if(!rrc)
     return NULL;
 
+  rrc->world = world;
+
+  rrc->first_qr = first_qr;
+  rrc->first_qr_label = first_qr_label;
+  rrc->second_qr = second_qr;
+  rrc->second_qr_label = second_qr_label;
+
+  rrc->message.code = -1;
+  rrc->message.domain = RAPTOR_DOMAIN_NONE;
+  rrc->message.level = RAPTOR_LOG_LEVEL_NONE;
+  rrc->message.locator = NULL;
+  rrc->message.text = NULL;
+
   rrc->first_count = rasqal_variables_table_get_total_variables_count(first_vt);
   rrc->second_count = rasqal_variables_table_get_total_variables_count(second_vt);
   rrc->variables_count = 0;
+
   size = rrc->first_count + rrc->second_count;
   rrc->defined_in_map = RASQAL_CALLOC(int*, size, sizeof(int));
   if(!rrc->defined_in_map) {
@@ -150,10 +175,29 @@ rasqal_free_results_compare(rasqal_results_compare* rrc)
 
 
 /**
- * rasqal_results_compare_variables_equal:
- * @map: results compatible map object
+ * rasqal_results_compare_set_log_handler:
+ * @rrc: results compare object
+ * @log_user_data: log handler user data
+ * @log_handler: log handler
  *
- * Test if two results have equal sets of variables
+ * Set query results comparer log handler
+ *
+ */
+void
+rasqal_results_compare_set_log_handler(rasqal_results_compare* rrc,
+                                       void* log_user_data,
+                                       raptor_log_handler log_handler)
+{
+  rrc->log_user_data = log_user_data;
+  rrc->log_handler = log_handler;
+}
+
+
+/**
+ * rasqal_results_compare_variables_equal:
+ * @rrc: results compare object
+ *
+ * Test if two results have the same sets of variables
  *
  * Return value: non-0 if the results have the same sets of variables
  */
@@ -232,7 +276,7 @@ rasqal_print_results_compare(FILE *handle, rasqal_results_compare* rrc)
   char second_qr[4];
 
   fprintf(handle,
-          "Results compatible map: total variables: %d  shared variables: %d\n",
+          "Results variable compare map: total variables: %d  shared variables: %d\n",
           count, rrc->variables_in_both_count);
   for(i = 0; i < count; i++) {
     rasqal_variable *v = rasqal_variables_table_get(vt, i);
@@ -256,6 +300,179 @@ rasqal_print_results_compare(FILE *handle, rasqal_results_compare* rrc)
   }
 }
 
+
+/**
+ * rasqal_results_compare_compare:
+ * @cqr: query results object
+ *
+ * Run a query results comparison
+ *
+ * Return value: non-0 if equal
+ */
+int
+rasqal_results_compare_compare(rasqal_results_compare* rrc)
+{
+  int differences = 0;
+  int i;
+  int rowi;
+  int size1;
+  int size2;
+  int row_differences_count = 0;
+
+  size1 = rasqal_query_results_get_bindings_count(rrc->first_qr);
+  size2 = rasqal_query_results_get_bindings_count(rrc->second_qr);
+
+  if(size1 != size2) {
+    rrc->message.level = RAPTOR_LOG_LEVEL_ERROR;
+    rrc->message.text = "Results have different numbers of bindings";
+    if(rrc->log_handler)
+      rrc->log_handler(rrc->log_user_data, &rrc->message);
+
+    differences++;
+    goto done;
+  }
+
+
+  /* check variables in each results project the same variables */
+  for(i = 0; 1; i++) {
+    const unsigned char* v1;
+    const unsigned char* v2;
+
+    v1 = rasqal_query_results_get_binding_name(rrc->first_qr, i);
+    v2 = rasqal_query_results_get_binding_name(rrc->second_qr, i);
+    if(!v1 && !v2)
+      break;
+
+    if(v1 && v2) {
+      if(strcmp((const char*)v1, (const char*)v2)) {
+        /* different names */
+        differences++;
+      }
+    } else
+      /* one is NULL, the other is a name */
+      differences++;
+  }
+
+  if(differences) {
+    rrc->message.level = RAPTOR_LOG_LEVEL_ERROR;
+    rrc->message.text = "Results have different binding names";
+    if(rrc->log_handler)
+      rrc->log_handler(rrc->log_user_data, &rrc->message);
+
+    goto done;
+  }
+
+
+  /* set results to be stored? */
+
+  /* sort rows by something ?  As long as the sort is the same it
+   * probably does not matter what the method is. */
+
+  /* what to do about blank nodes? */
+
+  /* for each row */
+  for(rowi = 0; 1; rowi++) {
+    int bindingi;
+    rasqal_row* row1 = rasqal_query_results_get_row_by_offset(rrc->first_qr, rowi);
+    rasqal_row* row2 = rasqal_query_results_get_row_by_offset(rrc->second_qr, rowi);
+    int this_row_different = 0;
+
+    if(!row1 && !row2)
+      break;
+
+    /* for each variable in row1 (== same variables in row2) */
+    for(bindingi = 0; bindingi < size1; bindingi++) {
+      /* we know the binding names are the same */
+      const unsigned char* name;
+      rasqal_literal *value1;
+      rasqal_literal *value2;
+      int error = 0;
+
+      name = rasqal_query_results_get_binding_name(rrc->first_qr, bindingi);
+
+      value1 = rasqal_query_results_get_binding_value(rrc->first_qr, bindingi);
+      value2 = rasqal_query_results_get_binding_value(rrc->second_qr, bindingi);
+
+      /* should have compare as native flag?
+       * RASQAL_COMPARE_XQUERY doesn't compare all values
+       */
+      if(!rasqal_literal_equals_flags(value1, value2, RASQAL_COMPARE_XQUERY,
+                                      &error)) {
+        /* if different report it */
+        raptor_world* raptor_world_ptr;
+        void *string;
+        size_t length;
+        raptor_iostream* string_iostr;
+
+        raptor_world_ptr = rasqal_world_get_raptor(rrc->world);
+
+        string_iostr = raptor_new_iostream_to_string(raptor_world_ptr,
+                                                     &string, &length,
+                                                     (raptor_data_malloc_handler)malloc);
+
+        raptor_iostream_counted_string_write("Difference in row ", 18,
+                                             string_iostr);
+        raptor_iostream_decimal_write(rowi + 1,
+                                      string_iostr);
+        raptor_iostream_counted_string_write(" binding '", 10,
+                                             string_iostr);
+        raptor_iostream_string_write(name,
+                                     string_iostr);
+        raptor_iostream_counted_string_write("' ", 2,
+                                             string_iostr);
+        raptor_iostream_string_write(rrc->first_qr_label, string_iostr);
+        raptor_iostream_counted_string_write(" value ", 7,
+                                             string_iostr);
+        rasqal_literal_write(value1,
+                             string_iostr);
+        raptor_iostream_write_byte(' ',
+                                   string_iostr);
+        raptor_iostream_string_write(rrc->second_qr_label,
+                                     string_iostr);
+        raptor_iostream_counted_string_write(" value ", 7,
+                                             string_iostr);
+        rasqal_literal_write(value2,
+                             string_iostr);
+        raptor_iostream_write_byte(' ',
+                                   string_iostr);
+
+        /* this allocates and copies result into 'string' */
+        raptor_free_iostream(string_iostr);
+
+        rrc->message.level = RAPTOR_LOG_LEVEL_ERROR;
+        rrc->message.text = (const char*)string;
+        if(rrc->log_handler)
+          rrc->log_handler(rrc->log_user_data, &rrc->message);
+
+        free(string);
+
+        differences++;
+        this_row_different = 1;
+      }
+    } /* end for each var */
+
+    if(row1)
+      rasqal_free_row(row1);
+    if(row2)
+      rasqal_free_row(row2);
+
+    if(this_row_different)
+      row_differences_count++;
+
+    rasqal_query_results_next(rrc->first_qr);
+    rasqal_query_results_next(rrc->second_qr);
+  } /* end for each row */
+
+  if(row_differences_count) {
+    rrc->message.level = RAPTOR_LOG_LEVEL_ERROR;
+    rrc->message.text = "Results have different values";
+    if(rrc->log_handler)
+      rrc->log_handler(rrc->log_user_data, &rrc->message);
+  }
+
+  done:
+  return (differences == 0);
+}
 
 
 #endif /* not STANDALONE */
@@ -365,7 +582,7 @@ main(int argc, char *argv[])
 
     raptor_free_uri(base_uri);
 
-    rrc = rasqal_new_results_compare(world, first_qr, second_qr);
+    rrc = rasqal_new_results_compare(world, first_qr, "first", second_qr, "second");
     if(!rrc) {
       fprintf(stderr, "%s: failed to create results compatible\n", program);
       failures++;
