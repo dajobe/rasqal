@@ -849,27 +849,7 @@ typedef struct {
 } rasqal_row_compatible;
 
 
-/**
- * rasqal_results_compare:
- * @vt: variables table
- * @defined_in_map: of size @variables_count
- * @first_count: number of variables in first query result
- * @second_count: number of variables in second query result
- * @variables_count: number of variables in @vt and @defined_in_map
- * @variables_in_both_count: number of shared variables in both query results
- *
- * Lookup data constructed for comparing two query results to enable
- * quick mapping between values.
- *
- */
-typedef struct {
-  rasqal_variables_table* vt;
-  int* defined_in_map;
-  unsigned int first_count;
-  unsigned int second_count;
-  unsigned int variables_count;
-  unsigned int variables_in_both_count;
-} rasqal_results_compare;
+typedef struct rasqal_results_compare_s rasqal_results_compare;
 
 
 /* 
@@ -1837,6 +1817,7 @@ void rasqal_free_results_compare(rasqal_results_compare* rrc);
 rasqal_variable* rasqal_results_compare_get_variable_by_offset(rasqal_results_compare* rrc, int idx);
 int rasqal_results_compare_get_variable_offset_for_result(rasqal_results_compare* rrc, int var_idx, int qr_index);
 int rasqal_results_compare_variables_equal(rasqal_results_compare* rrc);
+void rasqal_print_results_compare(FILE *handle, rasqal_results_compare* rrc);
 
 /* rasqal_service.c */
 rasqal_service* rasqal_new_service_from_service(rasqal_service* svc);

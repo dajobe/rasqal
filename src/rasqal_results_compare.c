@@ -41,6 +41,30 @@
 
 #ifndef STANDALONE
 
+/**
+ * rasqal_results_compare:
+ * @vt: variables table
+ * @defined_in_map: of size @variables_count
+ * @first_count: number of variables in first query result
+ * @second_count: number of variables in second query result
+ * @variables_count: number of variables in @vt and @defined_in_map
+ * @variables_in_both_count: number of shared variables in both query results
+ *
+ * Lookup data constructed for comparing two query results to enable
+ * quick mapping between values.
+ *
+ */
+struct rasqal_results_compare_s {
+  rasqal_variables_table* vt;
+  int* defined_in_map;
+  unsigned int first_count;
+  unsigned int second_count;
+  unsigned int variables_count;
+  unsigned int variables_in_both_count;
+};
+
+
+
 rasqal_results_compare*
 rasqal_new_results_compare(rasqal_world* world,
                            rasqal_query_results *first_qr,
@@ -198,38 +222,7 @@ rasqal_results_compare_get_variable_offset_for_result(rasqal_results_compare* rr
 }
 
 
-#endif /* not STANDALONE */
-
-
-
-#ifdef STANDALONE
-
-/* some more prototypes */
-int main(int argc, char *argv[]);
-
-#define NTESTS 2
-
-const struct {
-  const char* first_qr_string;
-  const char* second_qr_string;
-  int expected_vars_count;
-  int expected_rows_count;
-  int expected_equality;
-} expected_data[NTESTS] = {
-  {
-    "a\tb\tc\td\te\tf\n\"a\"\t\"b\"\t\"c\"\t\"d\"\t\"e\"\t\"f\"\n",
-    "a\tb\tc\td\te\tf\n\"a\"\t\"b\"\t\"c\"\t\"d\"\t\"e\"\t\"f\"\n",
-    6, 1, 1
-  },
-  {
-    "a\tb\tc\td\te\tf\n\"a\"\t\"b\"\t\"c\"\t\"d\"\t\"e\"\t\"f\"\n",
-    "d\tf\tc\ta\te\tb\n\"d\"\t\"f\"\t\"c\"\t\"a\"\t\"e\"\t\"b\"\n",
-    6, 1, 1
-  }
-};
-
-
-static void
+void
 rasqal_print_results_compare(FILE *handle, rasqal_results_compare* rrc)
 {
   int count = rrc->variables_count;
@@ -262,6 +255,38 @@ rasqal_print_results_compare(FILE *handle, rasqal_results_compare* rrc)
             ((offset1 >= 0 && offset2 >= 0) ? "SHARED" : ""));
   }
 }
+
+
+
+#endif /* not STANDALONE */
+
+
+
+#ifdef STANDALONE
+
+/* some more prototypes */
+int main(int argc, char *argv[]);
+
+#define NTESTS 2
+
+const struct {
+  const char* first_qr_string;
+  const char* second_qr_string;
+  int expected_vars_count;
+  int expected_rows_count;
+  int expected_equality;
+} expected_data[NTESTS] = {
+  {
+    "a\tb\tc\td\te\tf\n\"a\"\t\"b\"\t\"c\"\t\"d\"\t\"e\"\t\"f\"\n",
+    "a\tb\tc\td\te\tf\n\"a\"\t\"b\"\t\"c\"\t\"d\"\t\"e\"\t\"f\"\n",
+    6, 1, 1
+  },
+  {
+    "a\tb\tc\td\te\tf\n\"a\"\t\"b\"\t\"c\"\t\"d\"\t\"e\"\t\"f\"\n",
+    "d\tf\tc\ta\te\tb\n\"d\"\t\"f\"\t\"c\"\t\"a\"\t\"e\"\t\"b\"\n",
+    6, 1, 1
+  }
+};
 
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
