@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_results_compatible.c - Rasqal Class for checking if two Query Results are compatible
+ * rasqal_results_compare.c - Rasqal Class for comparing Query Results
  *
  * Copyright (C) 2014, David Beckett http://www.dajobe.org/
  *
@@ -39,22 +39,21 @@
 #include "rasqal_internal.h"
 
 /* FIXME */
-rasqal_results_compatible* rasqal_new_results_compatible(rasqal_world* world, rasqal_query_results *first_qr, rasqal_query_results *second_qr);
-void rasqal_free_results_compatible(rasqal_results_compatible* rrc);
-rasqal_variable* rasqal_results_compatible_get_variable_by_offset(rasqal_results_compatible* rrc, int idx);
-int rasqal_results_compatible_get_variable_offset_for_result(rasqal_results_compatible* rrc, int idx, int qr_index);
-void rasqal_print_results_compatible(FILE *handle, rasqal_results_compatible* rrc);
-int rasqal_results_compatible_equal(rasqal_results_compatible* rrc);
+rasqal_results_compare* rasqal_new_results_compare(rasqal_world* world, rasqal_query_results *first_qr, rasqal_query_results *second_qr);
+void rasqal_free_results_compare(rasqal_results_compare* rrc);
+rasqal_variable* rasqal_results_compare_get_variable_by_offset(rasqal_results_compare* rrc, int idx);
+int rasqal_results_compare_get_variable_offset_for_result(rasqal_results_compare* rrc, int var_idx, int qr_index);
+int rasqal_results_compare_equal(rasqal_results_compare* rrc);
 
 
 #ifndef STANDALONE
 
-rasqal_results_compatible*
-rasqal_new_results_compatible(rasqal_world* world,
+rasqal_results_compare*
+rasqal_new_results_compare(rasqal_world* world,
                               rasqal_query_results *first_qr,
                               rasqal_query_results *second_qr)
 {
-  rasqal_results_compatible* rrc = NULL;
+  rasqal_results_compare* rrc = NULL;
   rasqal_variables_table* first_vt;
   rasqal_variables_table* second_vt;
   unsigned int i;
@@ -63,7 +62,7 @@ rasqal_new_results_compatible(rasqal_world* world,
   first_vt = rasqal_query_results_get_variables_table(first_qr);
   second_vt = rasqal_query_results_get_variables_table(second_qr);
 
-  rrc = RASQAL_CALLOC(rasqal_results_compatible*, 1, sizeof(*rrc));
+  rrc = RASQAL_CALLOC(rasqal_results_compare*, 1, sizeof(*rrc));
   if(!rrc)
     return NULL;
 
@@ -73,7 +72,7 @@ rasqal_new_results_compatible(rasqal_world* world,
   size = rrc->first_count + rrc->second_count;
   rrc->defined_in_map = RASQAL_CALLOC(int*, size, sizeof(int));
   if(!rrc->defined_in_map) {
-    RASQAL_FREE(rasqal_results_compatible, rrc);
+    RASQAL_FREE(rasqal_results_compare, rrc);
     return NULL;
   }
   for(i = 0; i < size; i++)
@@ -82,7 +81,7 @@ rasqal_new_results_compatible(rasqal_world* world,
   rrc->vt = rasqal_new_variables_table(world);
   if(!rrc->vt) {
     RASQAL_FREE(int*, rrc->defined_in_map);
-    RASQAL_FREE(rasqal_results_compatible, rrc);
+    RASQAL_FREE(rasqal_results_compare, rrc);
     return NULL;
   }
 
@@ -112,7 +111,7 @@ rasqal_new_results_compatible(rasqal_world* world,
 
   for(i = 0; i < rrc->variables_count; i++) {
     if(rrc->defined_in_map[(i<<1)] >= 0 && rrc->defined_in_map[1 + (i<<1)] >= 0)
-      rrc->variables_in_both_results_count++;
+      rrc->variables_in_both_count++;
   }
 
   return rrc;
@@ -120,7 +119,7 @@ rasqal_new_results_compatible(rasqal_world* world,
 
 
 void
-rasqal_free_results_compatible(rasqal_results_compatible* rrc)
+rasqal_free_results_compare(rasqal_results_compare* rrc)
 {
   if(!rrc)
     return;
@@ -129,12 +128,12 @@ rasqal_free_results_compatible(rasqal_results_compatible* rrc)
     RASQAL_FREE(rasqal_variable**, rrc->defined_in_map);
   if(rrc->vt)
     rasqal_free_variables_table(rrc->vt);
-  RASQAL_FREE(rasqal_results_compatible, rrc);
+  RASQAL_FREE(rasqal_results_compare, rrc);
 }
 
 
 /**
- * rasqal_results_compatible_equal:
+ * rasqal_results_compare_equal:
  * @map: results compatible map object
  *
  * Test if two results have equal sets of variables
@@ -142,13 +141,13 @@ rasqal_free_results_compatible(rasqal_results_compatible* rrc)
  * Return value: non-0 if the results have the same sets of variables
  */
 int
-rasqal_results_compatible_equal(rasqal_results_compatible* rrc)
+rasqal_results_compare_equal(rasqal_results_compare* rrc)
 {
   int i;
   int count = rrc->variables_count;
 
   /* If no variables in common, not equal */
-  if(!rrc->variables_in_both_results_count)
+  if(!rrc->variables_in_both_count)
     return 0;
 
   /* If variables count are different, not equal */
@@ -167,7 +166,7 @@ rasqal_results_compatible_equal(rasqal_results_compatible* rrc)
 
 
 /**
- * rasqal_results_compatible_get_variable_by_offset:
+ * rasqal_results_compare_get_variable_by_offset:
  * @map: results comparible
  * @idx: variable index
  *
@@ -176,69 +175,35 @@ rasqal_results_compatible_equal(rasqal_results_compatible* rrc)
  * Return value: pointer to shared #rasqal_variable or NULL if out of range
  */
 rasqal_variable*
-rasqal_results_compatible_get_variable_by_offset(rasqal_results_compatible* rrc, int idx)
+rasqal_results_compare_get_variable_by_offset(rasqal_results_compare* rrc, int idx)
 {
   return rasqal_variables_table_get(rrc->vt, idx);
 }
 
 
 /**
- * rasqal_results_compatible_get_variable_offset_for_result:
+ * rasqal_results_compare_get_variable_offset_for_result:
  * @map: results comparible
- * @idx: variable index
+ * @var_idx: variable index
  * @qr_index: results index 0 (first) or 1 (second)
  *
  * Get variable index in a query results by variable index
  *
- * Return value: index into query result list of variables or <0 if @idx or @qr_index is out of range
+ * Return value: index into query result list of variables or <0 if @var_idx or @qr_index is out of range
  */
 int
-rasqal_results_compatible_get_variable_offset_for_result(rasqal_results_compatible* rrc,
-                                                         int idx, int qr_index)
+rasqal_results_compare_get_variable_offset_for_result(rasqal_results_compare* rrc,
+                                                      int var_idx, int qr_index)
 {
   if(qr_index < 0 || qr_index > 1)
     return -1;
 
-  if(!rasqal_results_compatible_get_variable_by_offset(rrc, idx))
+  if(!rasqal_results_compare_get_variable_by_offset(rrc, var_idx))
     return -1;
 
-  return rrc->defined_in_map[qr_index + (idx<<1)];
+  return rrc->defined_in_map[qr_index + (var_idx << 1)];
 }
 
-
-void
-rasqal_print_results_compatible(FILE *handle, rasqal_results_compatible* rrc)
-{
-  int count = rrc->variables_count;
-  rasqal_variables_table* vt = rrc->vt;
-  int i;
-  char first_qr[4];
-  char second_qr[4];
-
-  fprintf(handle,
-          "Results compatible map: total variables: %d  shared variables: %d\n",
-          count, rrc->variables_in_both_results_count);
-  for(i = 0; i < count; i++) {
-    rasqal_variable *v = rasqal_variables_table_get(vt, i);
-    int offset1 = rrc->defined_in_map[i<<1];
-    int offset2 = rrc->defined_in_map[1 + (i<<1)];
-
-    if(offset1 < 0)
-      *first_qr = '\0';
-    else
-      sprintf(first_qr, "%2d", offset1);
-
-    if(offset2 < 0)
-      *second_qr = '\0';
-    else
-      sprintf(second_qr, "%2d", offset2);
-
-    fprintf(handle,
-            "  Variable %10s   offsets first: %-3s  second: %-3s  %s\n",
-            v->name, first_qr, second_qr,
-            ((offset1 >= 0 && offset2 >= 0) ? "SHARED" : ""));
-  }
-}
 
 #endif /* not STANDALONE */
 
@@ -246,7 +211,7 @@ rasqal_print_results_compatible(FILE *handle, rasqal_results_compatible* rrc)
 
 #ifdef STANDALONE
 
-/* one more prototype */
+/* some more prototypes */
 int main(int argc, char *argv[]);
 
 #define NTESTS 2
@@ -269,6 +234,41 @@ const struct {
     6, 1, 1
   }
 };
+
+
+static void
+rasqal_print_results_compare(FILE *handle, rasqal_results_compare* rrc)
+{
+  int count = rrc->variables_count;
+  rasqal_variables_table* vt = rrc->vt;
+  int i;
+  char first_qr[4];
+  char second_qr[4];
+
+  fprintf(handle,
+          "Results compatible map: total variables: %d  shared variables: %d\n",
+          count, rrc->variables_in_both_count);
+  for(i = 0; i < count; i++) {
+    rasqal_variable *v = rasqal_variables_table_get(vt, i);
+    int offset1 = rrc->defined_in_map[i<<1];
+    int offset2 = rrc->defined_in_map[1 + (i<<1)];
+
+    if(offset1 < 0)
+      *first_qr = '\0';
+    else
+      sprintf(first_qr, "%2d", offset1);
+
+    if(offset2 < 0)
+      *second_qr = '\0';
+    else
+      sprintf(second_qr, "%2d", offset2);
+
+    fprintf(handle,
+            "  Variable %10s   offsets first: %-3s  second: %-3s  %s\n",
+            v->name, first_qr, second_qr,
+            ((offset1 >= 0 && offset2 >= 0) ? "SHARED" : ""));
+  }
+}
 
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
@@ -299,6 +299,7 @@ print_bindings_results_simple(rasqal_query_results *results, FILE* output)
 }
 #endif
 
+
 int
 main(int argc, char *argv[])
 {
@@ -319,7 +320,7 @@ main(int argc, char *argv[])
     rasqal_query_results *first_qr;
     rasqal_query_results *second_qr = NULL;
     int expected_equality = expected_data[i].expected_equality;
-    rasqal_results_compatible* rrc;
+    rasqal_results_compare* rrc;
     int equal;
 
     first_qr = rasqal_new_query_results_from_string(world,
@@ -346,14 +347,14 @@ main(int argc, char *argv[])
 
     raptor_free_uri(base_uri);
 
-    rrc = rasqal_new_results_compatible(world, first_qr, second_qr);
+    rrc = rasqal_new_results_compare(world, first_qr, second_qr);
     if(!rrc) {
       fprintf(stderr, "%s: failed to create results compatible\n", program);
       failures++;
     } else {
-      rasqal_print_results_compatible(stderr, rrc);
+      rasqal_print_results_compare(stderr, rrc);
 
-      equal = rasqal_results_compatible_equal(rrc);
+      equal = rasqal_results_compare_equal(rrc);
       RASQAL_DEBUG4("%s: equal results test %d returned %d\n", program, i, equal);
       if(equal != expected_equality) {
         fprintf(stderr,
@@ -368,7 +369,7 @@ main(int argc, char *argv[])
     if(second_qr)
       rasqal_free_query_results(second_qr);
     if(rrc)
-      rasqal_free_results_compatible(rrc);
+      rasqal_free_results_compare(rrc);
   }
 
   if(world)

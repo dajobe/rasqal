@@ -850,16 +850,16 @@ typedef struct {
 
 
 /**
- * rasqal_results_compatible:
+ * rasqal_results_compare:
  * @vt: variables table
  * @defined_in_map: of size @variables_count
  * @first_count: number of variables in first query result
  * @second_count: number of variables in second query result
  * @variables_count: number of variables in @vt and @defined_in_map
- * @variables_in_both_results_count: number of shared variables
+ * @variables_in_both_count: number of shared variables in both query results
  *
- * Lookup data constructed for two query results to enable quick
- * mapping between values.
+ * Lookup data constructed for comparing two query results to enable
+ * quick mapping between values.
  *
  */
 typedef struct {
@@ -868,8 +868,8 @@ typedef struct {
   unsigned int first_count;
   unsigned int second_count;
   unsigned int variables_count;
-  unsigned int variables_in_both_results_count;
-} rasqal_results_compatible;
+  unsigned int variables_in_both_count;
+} rasqal_results_compare;
 
 
 /* 
