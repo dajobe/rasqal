@@ -1836,7 +1836,7 @@ rasqal_results_compare* rasqal_new_results_compare(rasqal_world* world, rasqal_q
 void rasqal_free_results_compare(rasqal_results_compare* rrc);
 rasqal_variable* rasqal_results_compare_get_variable_by_offset(rasqal_results_compare* rrc, int idx);
 int rasqal_results_compare_get_variable_offset_for_result(rasqal_results_compare* rrc, int var_idx, int qr_index);
-int rasqal_results_compare_equal(rasqal_results_compare* rrc);
+int rasqal_results_compare_variables_equal(rasqal_results_compare* rrc);
 
 /* rasqal_service.c */
 rasqal_service* rasqal_new_service_from_service(rasqal_service* svc);

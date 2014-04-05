@@ -126,7 +126,7 @@ rasqal_free_results_compare(rasqal_results_compare* rrc)
 
 
 /**
- * rasqal_results_compare_equal:
+ * rasqal_results_compare_variables_equal:
  * @map: results compatible map object
  *
  * Test if two results have equal sets of variables
@@ -134,7 +134,7 @@ rasqal_free_results_compare(rasqal_results_compare* rrc)
  * Return value: non-0 if the results have the same sets of variables
  */
 int
-rasqal_results_compare_equal(rasqal_results_compare* rrc)
+rasqal_results_compare_variables_equal(rasqal_results_compare* rrc)
 {
   int i;
   int count = rrc->variables_count;
@@ -347,7 +347,7 @@ main(int argc, char *argv[])
     } else {
       rasqal_print_results_compare(stderr, rrc);
 
-      equal = rasqal_results_compare_equal(rrc);
+      equal = rasqal_results_compare_variables_equal(rrc);
       RASQAL_DEBUG4("%s: equal results test %d returned %d\n", program, i, equal);
       if(equal != expected_equality) {
         fprintf(stderr,
