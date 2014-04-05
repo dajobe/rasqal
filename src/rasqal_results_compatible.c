@@ -77,7 +77,7 @@ rasqal_new_results_compatible(rasqal_world* world,
     return NULL;
   }
   for(i = 0; i < size; i++)
-    rrc->defined_in_map[size] = -1;
+    rrc->defined_in_map[i] = -1;
 
   rrc->vt = rasqal_new_variables_table(world);
   if(!rrc->vt) {
