@@ -43,8 +43,8 @@
 
 rasqal_results_compare*
 rasqal_new_results_compare(rasqal_world* world,
-                              rasqal_query_results *first_qr,
-                              rasqal_query_results *second_qr)
+                           rasqal_query_results *first_qr,
+                           rasqal_query_results *second_qr)
 {
   rasqal_results_compare* rrc = NULL;
   rasqal_variables_table* first_vt;
