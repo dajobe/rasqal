@@ -77,7 +77,7 @@ manifest_indent(FILE* fh, unsigned int indent)
 
 static void
 manifest_indent_multiline(FILE* fh, const char* str, unsigned int indent,
-                          int max_lines)
+                          int max_lines_count)
 {
   int lines_count = 0;
   char c;
@@ -86,12 +86,12 @@ manifest_indent_multiline(FILE* fh, const char* str, unsigned int indent,
     fputc(c, fh);
     if(c == '\n') {
       lines_count++;
-      if(max_lines >=0 && lines_count > lines_count)
+      if(max_lines_count >=0 && lines_count > max_lines_count)
         break;
       manifest_indent(fh, indent);
     }
   }
-  if(lines_count > lines_count) {
+  if(lines_count > max_lines_count) {
     manifest_indent(fh, indent);
     fputs("...\n", fh);
   }
