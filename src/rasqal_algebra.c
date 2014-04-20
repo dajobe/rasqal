@@ -1309,7 +1309,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
           true_expr = rasqal_algebra_new_boolean_constant_expr(query, 1);
           if(!true_expr) {
             rasqal_free_algebra_node(anode);
-            return NULL;
+            goto fail;
           }
           
           /* G := LeftJoin(G, A, true) */
