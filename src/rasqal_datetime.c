@@ -482,6 +482,11 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
 
   }
 
+  /* Initialise field even though this is not valid before
+   * rasqal_xsd_datetime_normalize() is called on this object.
+   */
+  result->time_on_timeline = 0;
+
   return 0;
 }
 
