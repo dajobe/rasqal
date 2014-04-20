@@ -1257,11 +1257,11 @@ rasqal_formula* rasqal_formula_join(rasqal_formula* first_formula, rasqal_formul
 typedef int (rasqal_compare_fn)(void* user_data, const void *a, const void *b);
 typedef void (rasqal_kv_free_fn)(const void *key, const void *value);
 
-
-#define RASQAL_XSD_BOOLEAN_TRUE (const unsigned char*)"true"
 #define RASQAL_XSD_BOOLEAN_TRUE_LEN 4
-#define RASQAL_XSD_BOOLEAN_FALSE (const unsigned char*)"false"
+static const unsigned char* rasqal_xsd_boolean_true;
+
 #define RASQAL_XSD_BOOLEAN_FALSE_LEN 5
+static const unsigned char* rasqal_xsd_boolean_false;
 
 rasqal_literal* rasqal_literal_cast(rasqal_literal* l, raptor_uri* datatype, int flags,  int* error_p);
 rasqal_literal* rasqal_new_numeric_literal(rasqal_world*, rasqal_literal_type type, double d);

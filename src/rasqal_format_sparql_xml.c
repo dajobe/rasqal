@@ -207,9 +207,9 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
     raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "  "), 2);
     raptor_xml_writer_start_element(xml_writer, result_element);
     if(rasqal_query_results_get_boolean(results))
-      raptor_xml_writer_raw(xml_writer, RASQAL_XSD_BOOLEAN_TRUE);
+      raptor_xml_writer_raw(xml_writer, rasqal_xsd_boolean_true);
     else
-      raptor_xml_writer_raw(xml_writer, RASQAL_XSD_BOOLEAN_FALSE);
+      raptor_xml_writer_raw(xml_writer, rasqal_xsd_boolean_false);
     raptor_xml_writer_end_element(xml_writer, result_element);
     raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
 

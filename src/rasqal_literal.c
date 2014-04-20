@@ -75,6 +75,10 @@ static rasqal_literal_type rasqal_literal_promote_numerics(rasqal_literal* l1, r
 static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type, const unsigned char* string, int canonicalize);
 
 
+static const unsigned char* rasqal_xsd_boolean_true = (const unsigned char*)"true";
+static const unsigned char* rasqal_xsd_boolean_false = (const unsigned char*)"false";
+
+
 /**
  * rasqal_new_integer_literal:
  * @world: rasqal world object
@@ -106,7 +110,7 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type,
     l->value.integer = integer;
     if(type == RASQAL_LITERAL_BOOLEAN) {
        /* static l->string for boolean, does not need freeing */
-       l->string = integer ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
+       l->string = integer ? rasqal_xsd_boolean_true : rasqal_xsd_boolean_false;
        l->string_len = integer ? RASQAL_XSD_BOOLEAN_TRUE_LEN : RASQAL_XSD_BOOLEAN_FALSE_LEN;
     } else  {
       size_t slen = 0;      
@@ -717,12 +721,12 @@ retype:
 
     case RASQAL_LITERAL_BOOLEAN:
       i = rasqal_xsd_boolean_value_from_string(l->string);
-      /* Free passed in string */
-      if(l->string != RASQAL_XSD_BOOLEAN_TRUE &&
-         l->string != RASQAL_XSD_BOOLEAN_FALSE)
+      /* Free passed in string if it is not our static objects */
+      if(l->string != rasqal_xsd_boolean_true &&
+         l->string != rasqal_xsd_boolean_false)
         RASQAL_FREE(char*, l->string);
       /* and replace with a static string */
-      l->string = i ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
+      l->string = i ? rasqal_xsd_boolean_true : rasqal_xsd_boolean_false;
       l->string_len = i ? RASQAL_XSD_BOOLEAN_TRUE_LEN : RASQAL_XSD_BOOLEAN_FALSE_LEN;
       
       l->value.integer = i;
@@ -1071,7 +1075,7 @@ rasqal_new_boolean_literal(rasqal_world* world, int value)
     l->world = world;
     l->type = RASQAL_LITERAL_BOOLEAN;
     l->value.integer = value;
-    l->string = value ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
+    l->string = value ? rasqal_xsd_boolean_true : rasqal_xsd_boolean_false;
     l->string_len = value ? RASQAL_XSD_BOOLEAN_TRUE_LEN : RASQAL_XSD_BOOLEAN_FALSE_LEN;
     dt_uri = rasqal_xsd_datatype_type_to_uri(world, l->type);
     if(!dt_uri) {
