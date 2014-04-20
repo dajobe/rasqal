@@ -544,6 +544,7 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
   /* if no such triple, expecting empty results */
   if(!resultSet_node) {
     rasqal_free_literal(value_predicate);
+    rasqal_free_literal(variable_predicate);
     return 0;
   }
   
