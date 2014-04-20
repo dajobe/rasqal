@@ -542,8 +542,10 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
   
 
   /* if no such triple, expecting empty results */
-  if(!resultSet_node)
+  if(!resultSet_node) {
+    rasqal_free_literal(value_predicate);
     return 0;
+  }
   
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
   RASQAL_DEBUG1("Got result set node ");
