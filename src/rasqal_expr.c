@@ -2335,6 +2335,10 @@ rasqal_expression_convert_aggregate_to_variable(rasqal_expression* e_in,
   return 0;
 
   tidy:
+  if(e_out) {
+    RASQAL_FREE(rasqal_expression*, *e_out);
+    *e_out = NULL;
+  }
 
   return 1;
 }
