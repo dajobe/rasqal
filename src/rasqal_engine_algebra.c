@@ -103,7 +103,11 @@ rasqal_algebra_filter_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
     rs = rasqal_new_empty_rowsource(query->world, query);
   }
 
-  if(!rs || *error_p)
+  if(*error_p && rs) {
+    rasqal_free_rowsource(rs);
+    rs = NULL;
+  }
+  if(!rs)
     return NULL;
 
   return rasqal_new_filter_rowsource(query->world, query, rs, node->expr);
