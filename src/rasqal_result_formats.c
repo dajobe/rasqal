@@ -603,8 +603,10 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
 
       p++;
       suffix = RASQAL_MALLOC(unsigned char*, strlen(RASQAL_GOOD_CAST(const char*, p)) + 1);
-      if(!suffix)
+      if(!suffix) {
+        RASQAL_FREE(syntax_scores, scores);
         return NULL;
+      }
 
       for(from = p, to = suffix; *from; ) {
         unsigned char c = *from++;
