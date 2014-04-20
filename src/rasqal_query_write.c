@@ -955,7 +955,7 @@ rasqal_query_write_data_format_comment(sparql_writer_context* wc,
       raptor_iostream_counted_string_write("type ", 5, iostr);
       raptor_iostream_string_write(dg->format_type, iostr);
     }
-    if(dg->format_type) {
+    if(dg->format_name) {
       raptor_iostream_counted_string_write("name ", 5, iostr);
       raptor_iostream_string_write(dg->format_name, iostr);
     }
