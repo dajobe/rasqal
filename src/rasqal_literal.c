@@ -75,8 +75,8 @@ static rasqal_literal_type rasqal_literal_promote_numerics(rasqal_literal* l1, r
 static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type, const unsigned char* string, int canonicalize);
 
 
-static const unsigned char* rasqal_xsd_boolean_true = (const unsigned char*)"true";
-static const unsigned char* rasqal_xsd_boolean_false = (const unsigned char*)"false";
+const unsigned char* rasqal_xsd_boolean_true = (const unsigned char*)"true";
+const unsigned char* rasqal_xsd_boolean_false = (const unsigned char*)"false";
 
 
 /**
