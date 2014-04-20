@@ -88,7 +88,7 @@ rasqal_project_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   if(!con->projection)
     return 1;
   
-  for(i = 0; i <= size; i++) {
+  for(i = 0; i < size; i++) {
     rasqal_variable* v;
     int offset;
     
