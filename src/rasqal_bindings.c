@@ -177,6 +177,8 @@ rasqal_new_bindings_from_var_values(rasqal_query* query,
   varlist = NULL; rowlist = NULL;
 
 tidy:
+  if(row)
+    rasqal_free_row(row);
   if(rowlist)
     raptor_free_sequence(rowlist);
   if(varlist)
