@@ -335,8 +335,11 @@ eval(D(G), Graph(IRI,P)) = the empty multiset
       rs = rasqal_new_empty_rowsource(query->world, query);
     }
 
-    if(!rs || *error_p)
+    if(*error_p && rs) {
+      rasqal_free_rowsource(rs);
       rs = NULL;
+    }
+
     return rs;
   }
 
