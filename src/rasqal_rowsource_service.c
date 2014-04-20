@@ -208,6 +208,8 @@ rasqal_new_service_rowsource(rasqal_world *world, rasqal_query* query,
                                            flags);
 
   fail:
+  if(svc)
+    rasqal_free_service(svc);
   if(con)
     RASQAL_FREE(rasqal_service_rowsource_context, con);
   if(query_string)
