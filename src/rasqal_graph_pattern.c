@@ -1260,7 +1260,8 @@ rasqal_new_values_graph_pattern(rasqal_query* query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
   gp = rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_VALUES);
-  gp->bindings = bindings;
+  if(gp)
+    gp->bindings = bindings;
 
   return gp;
 }
