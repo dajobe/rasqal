@@ -123,9 +123,11 @@ rasqal_assignment_rowsource_read_row(rasqal_rowsource* rowsource, void *user_dat
   if(!error) {
     rasqal_variable_set_value(con->var, result);
     row = rasqal_new_row_for_size(rowsource->world, rowsource->size);
-    row->rowsource = rowsource;
-    row->offset = con->offset++;
-    row->values[0] = rasqal_new_literal_from_literal(result);
+    if(row) {
+      row->rowsource = rowsource;
+      row->offset = con->offset++;
+      row->values[0] = rasqal_new_literal_from_literal(result);
+    }
   }
   
   return row;
