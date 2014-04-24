@@ -2368,7 +2368,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     
     if(type0 == RASQAL_LITERAL_UNKNOWN || type1 == RASQAL_LITERAL_UNKNOWN)
       return 1;
-    type_diff = type0 - type1;
+
+    type_diff = RASQAL_GOOD_CAST(int, type0) - RASQAL_GOOD_CAST(int, type1);
     if(type_diff != 0) {
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       RASQAL_DEBUG2("RDF term literal returning type difference %d\n",
