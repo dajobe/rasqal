@@ -669,8 +669,7 @@ retype:
         (void)sscanf(RASQAL_GOOD_CAST(char*, l->string), "%lf", &d);
         l->value.floating = d;
         if(canonicalize) {
-          if(l->string)
-            RASQAL_FREE(char*, l->string);
+          RASQAL_FREE(char*, l->string);
           l->string = rasqal_xsd_format_double(d, &slen);
           l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
         }
