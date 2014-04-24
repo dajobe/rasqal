@@ -220,18 +220,22 @@ rasqal_raptor_init_triples_source_common(rasqal_world* world,
   rts->free_triples_source = rasqal_raptor_free_triples_source;
   rts->support_feature = rasqal_raptor_support_feature;
 
+  rtsc->world = world;
+
   if(data_graphs)
     rtsc->sources_count = raptor_sequence_size(data_graphs);
   else
     /* No data graph - assume there is just a background graph */
     rtsc->sources_count = 0;
   
-  if(rtsc->sources_count)
+  if(rtsc->sources_count) {
     rtsc->source_literals = RASQAL_CALLOC(rasqal_literal**, rtsc->sources_count, sizeof(rasqal_literal*));
-  else
-    rtsc->source_literals = NULL;
-
-  rtsc->world = world;
+    if(rtsc->source_literals)
+      return 1;
+  } else {
+    /* No sources so the work is done */
+    return 0;
+  }
 
   for(i = 0; i < rtsc->sources_count; i++) {
     rasqal_data_graph *dg;
