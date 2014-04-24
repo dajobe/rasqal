@@ -103,7 +103,7 @@ rasqal_algebra_filter_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
     rs = rasqal_new_empty_rowsource(query->world, query);
   }
 
-  if(*error_p && rs) {
+  if((error_p && *error_p) || !rs) {
     rasqal_free_rowsource(rs);
     rs = NULL;
   }
@@ -123,7 +123,7 @@ rasqal_algebra_orderby_algebra_node_to_rowsource(rasqal_engine_algebra_data* exe
   rasqal_rowsource *rs;
 
   rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
-  if(!rs || *error_p)
+  if((error_p && *error_p) || !rs)
     return NULL;
 
   return rasqal_new_sort_rowsource(query->world, query, rs,
@@ -142,12 +142,12 @@ rasqal_algebra_union_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
 
   left_rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1,
                                              error_p);
-  if(!left_rs || *error_p)
+  if((error_p && *error_p) || !left_rs)
     return NULL;
 
   right_rs = rasqal_algebra_node_to_rowsource(execution_data, node->node2,
                                               error_p);
-  if(!right_rs || *error_p) {
+  if((error_p && *error_p) || !right_rs) {
     rasqal_free_rowsource(left_rs);
     return NULL;
   }
@@ -166,7 +166,7 @@ rasqal_algebra_project_algebra_node_to_rowsource(rasqal_engine_algebra_data* exe
 
   rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1,
                                         error_p);
-  if(!rs || *error_p)
+  if((error_p && *error_p) || !rs)
     return NULL;
 
   return rasqal_new_project_rowsource(query->world, query, rs, node->vars_seq);
@@ -184,12 +184,12 @@ rasqal_algebra_leftjoin_algebra_node_to_rowsource(rasqal_engine_algebra_data* ex
 
   left_rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1,
                                              error_p);
-  if(!left_rs || *error_p)
+  if((error_p && *error_p) || !left_rs)
     return NULL;
 
   right_rs = rasqal_algebra_node_to_rowsource(execution_data, node->node2,
                                               error_p);
-  if(!right_rs || *error_p) {
+  if((error_p && *error_p) || !right_rs) {
     rasqal_free_rowsource(left_rs);
     return NULL;
   }
@@ -209,12 +209,12 @@ rasqal_algebra_join_algebra_node_to_rowsource(rasqal_engine_algebra_data* execut
 
   left_rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1,
                                              error_p);
-  if(!left_rs || *error_p)
+  if((error_p && *error_p) || !left_rs)
     return NULL;
 
   right_rs = rasqal_algebra_node_to_rowsource(execution_data, node->node2,
                                               error_p);
-  if(!right_rs || *error_p) {
+  if((error_p && *error_p) || !right_rs) {
     rasqal_free_rowsource(left_rs);
     return NULL;
   }
@@ -339,7 +339,7 @@ eval(D(G), Graph(IRI,P)) = the empty multiset
       rs = rasqal_new_empty_rowsource(query->world, query);
     }
 
-    if(*error_p && rs) {
+    if((error_p && *error_p) || !rs) {
       rasqal_free_rowsource(rs);
       rs = NULL;
     }
@@ -350,7 +350,7 @@ eval(D(G), Graph(IRI,P)) = the empty multiset
 
   /* case #3 - a variable */
   rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
-  if(!rs || *error_p)
+  if((error_p && *error_p) || !rs)
     return NULL;
 
   return rasqal_new_graph_rowsource(query->world, query, rs, v);
@@ -366,7 +366,7 @@ rasqal_algebra_distinct_algebra_node_to_rowsource(rasqal_engine_algebra_data* ex
   rasqal_rowsource *rs;
 
   rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
-  if(!rs || *error_p)
+  if((error_p && *error_p) || !rs)
     return NULL;
 
   return rasqal_new_distinct_rowsource(query->world, query, rs);
@@ -382,7 +382,7 @@ rasqal_algebra_group_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
   rasqal_rowsource *rs;
 
   rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
-  if(!rs || *error_p)
+  if((error_p && *error_p) || !rs)
     return NULL;
 
   return rasqal_new_groupby_rowsource(query->world, query, rs, node->seq);
@@ -398,7 +398,7 @@ rasqal_algebra_aggregation_algebra_node_to_rowsource(rasqal_engine_algebra_data*
   rasqal_rowsource *rs;
 
   rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
-  if(!rs || *error_p)
+  if((error_p && *error_p) || !rs)
     return NULL;
 
   return rasqal_new_aggregation_rowsource(query->world, query, rs,
@@ -416,7 +416,7 @@ rasqal_algebra_having_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
   rasqal_rowsource *rs;
 
   rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
-  if(!rs || *error_p)
+  if((error_p && *error_p) || !rs)
     return NULL;
 
   return rasqal_new_having_rowsource(query->world, query, rs, node->seq);
@@ -432,7 +432,7 @@ rasqal_algebra_slice_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
   rasqal_rowsource *rs;
 
   rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
-  if(!rs || *error_p)
+  if((error_p && *error_p) || !rs)
     return NULL;
 
   return rasqal_new_slice_rowsource(query->world, query, rs, node->limit, node->offset);

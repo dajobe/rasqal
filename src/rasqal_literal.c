@@ -3266,7 +3266,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
       }
     }
 
-    if(*error_p)
+    if(error_p && *error_p)
       return NULL;
 
   }

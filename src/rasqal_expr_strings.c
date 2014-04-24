@@ -65,11 +65,11 @@ rasqal_expression_evaluate_strlen(rasqal_expression *e,
   int len = 0;
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   
   s = rasqal_literal_as_string_flags(l1, eval_context->flags, error_p);
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
 
   if(!s)
@@ -122,20 +122,20 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
   
   /* haystack string */
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   
   s = rasqal_literal_as_counted_string(l1, &len, eval_context->flags, error_p);
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
 
   /* integer startingLoc */
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-  if(*error_p || !l2)
+  if((error_p && *error_p) || !l2)
     goto failed;
   
   startingLoc = rasqal_literal_as_integer(l2, error_p);
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
 
   /* optional integer length */
@@ -145,7 +145,7 @@ rasqal_expression_evaluate_substr(rasqal_expression *e,
       goto failed;
 
     length = rasqal_literal_as_integer(l3, error_p);
-    if(*error_p)
+    if(error_p && *error_p)
       goto failed;
 
   }
@@ -222,11 +222,11 @@ rasqal_expression_evaluate_set_case(rasqal_expression *e,
   size_t len = 0;
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   
   s = rasqal_literal_as_counted_string(l1, &len, eval_context->flags, error_p);
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
 
   new_s =RASQAL_MALLOC(unsigned char*, len + 1);
@@ -377,22 +377,22 @@ rasqal_expression_evaluate_str_prefix_suffix(rasqal_expression *e,
   size_t len2 = 0;
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-  if(*error_p || !l2)
+  if((error_p && *error_p) || !l2)
     goto failed;
 
   if(!rasqal_literals_sparql11_compatible(l1, l2))
     goto failed;
   
   s1 = rasqal_literal_as_counted_string(l1, &len1, eval_context->flags, error_p);
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
   
   s2 = rasqal_literal_as_counted_string(l2, &len2, eval_context->flags, error_p);
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
 
   if(len1 < len2) {
@@ -456,7 +456,7 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_expression *e,
   unsigned char* p;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   
   xsd_string_uri = rasqal_xsd_datatype_type_to_uri(l1->world, 
@@ -468,7 +468,7 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_expression *e,
     goto failed;
 
   s = rasqal_literal_as_counted_string(l1, &len, eval_context->flags, error_p);
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
 
   /* pessimistically assume every UTF-8 byte is %XX 3 x len */
@@ -593,7 +593,7 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
     } else
       *error_p = 1;
 
-    if(!s || *error_p)
+    if((error_p && *error_p) || !s)
       goto failed;
     
     raptor_stringbuffer_append_string(sb, s, 1); 
@@ -653,19 +653,19 @@ rasqal_expression_evaluate_langmatches(rasqal_expression *e,
   int b;
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-  if(*error_p || !l2)
+  if((error_p && *error_p) || !l2)
     goto failed;
   
   tag = rasqal_literal_as_string_flags(l1, eval_context->flags, error_p);
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
   
   range = rasqal_literal_as_string_flags(l2, eval_context->flags, error_p);
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
   
   
@@ -715,13 +715,13 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
   size_t match_len;
     
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
 
   l1_str = rasqal_literal_as_counted_string(l1, &match_len,
                                             eval_context->flags, error_p);
   match_string = RASQAL_GOOD_CAST(const char*, l1_str);
-  if(*error_p || !match_string) {
+  if((error_p && *error_p) || !match_string) {
     rasqal_free_literal(l1);
     goto failed;
   }
@@ -730,14 +730,14 @@ rasqal_expression_evaluate_strmatch(rasqal_expression *e,
   regex_flags = NULL;
   if(e->op == RASQAL_EXPR_REGEX) {
     l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-    if(*error_p || !l2) {
+    if((error_p && *error_p) || !l2) {
       rasqal_free_literal(l1);
       goto failed;
     }
 
     if(e->arg3) {
       l3 = rasqal_expression_evaluate2(e->arg3, eval_context, error_p);
-      if(*error_p || !l3) {
+      if((error_p && *error_p) || !l3) {
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         goto failed;
@@ -813,23 +813,23 @@ rasqal_expression_evaluate_strbefore(rasqal_expression *e,
 
   /* haystack string */
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   
   /* needle string */
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-  if(*error_p || !l2)
+  if((error_p && *error_p) || !l2)
     goto failed;
 
 
   haystack = rasqal_literal_as_counted_string(l1, &haystack_len, 
                                               eval_context->flags, error_p);
-  if(*error_p || !haystack)
+  if((error_p && *error_p) || !haystack)
     goto failed;
     
   needle = rasqal_literal_as_counted_string(l2, &needle_len, 
                                             eval_context->flags, error_p);
-  if(*error_p || !needle)
+  if((error_p && *error_p) || !needle)
     goto failed;
 
   ptr = strstr(RASQAL_GOOD_CAST(const char*, haystack), 
@@ -898,23 +898,23 @@ rasqal_expression_evaluate_strafter(rasqal_expression *e,
 
   /* haystack string */
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   
   /* needle string */
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-  if(*error_p || !l2)
+  if((error_p && *error_p) || !l2)
     goto failed;
 
 
   haystack = rasqal_literal_as_counted_string(l1, &haystack_len, 
                                               eval_context->flags, error_p);
-  if(*error_p || !haystack)
+  if((error_p && *error_p) || !haystack)
     goto failed;
     
   needle = rasqal_literal_as_counted_string(l2, &needle_len, 
                                             eval_context->flags, error_p);
-  if(*error_p || !needle)
+  if((error_p && *error_p) || !needle)
     goto failed;
 
   ptr = strstr(RASQAL_GOOD_CAST(const char*, haystack),
@@ -988,33 +988,33 @@ rasqal_expression_evaluate_replace(rasqal_expression *e,
   rasqal_literal* result = NULL;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   tmp_str = rasqal_literal_as_counted_string(l1, &match_len, 
                                              eval_context->flags,
                                              error_p);
   match = RASQAL_GOOD_CAST(const char*, tmp_str);
-  if(*error_p || !match)
+  if((error_p && *error_p) || !match)
     goto failed;
 
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-  if(*error_p || !l2)
+  if((error_p && *error_p) || !l2)
     goto failed;
   pattern = RASQAL_GOOD_CAST(const char*, l2->string);
 
   l3 = rasqal_expression_evaluate2(e->arg3, eval_context, error_p);
-  if(*error_p || !l3)
+  if((error_p && *error_p) || !l3)
     goto failed;
   tmp_str = rasqal_literal_as_counted_string(l3, &replace_len, 
                                              eval_context->flags,
                                              error_p);
   replace = RASQAL_GOOD_CAST(const char*, tmp_str);
-  if(*error_p || !replace)
+  if((error_p && *error_p) || !replace)
     goto failed;
 
   if(e->arg4) {
     l4 = rasqal_expression_evaluate2(e->arg4, eval_context, error_p);
-    if(*error_p || !l4)
+    if((error_p && *error_p) || !l4)
       goto failed;
 
     regex_flags = RASQAL_GOOD_CAST(const char*, l4->string);

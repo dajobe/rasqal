@@ -71,7 +71,7 @@ rasqal_expression_evaluate_abs(rasqal_expression *e,
   rasqal_literal* result = NULL;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   
   if(!rasqal_literal_is_numeric(l1))
@@ -81,7 +81,7 @@ rasqal_expression_evaluate_abs(rasqal_expression *e,
   rasqal_free_literal(l1);
   l1 = NULL;
   
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
 
   return result;
@@ -115,7 +115,7 @@ rasqal_expression_evaluate_round(rasqal_expression *e,
   rasqal_literal* result = NULL;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   
   if(!rasqal_literal_is_numeric(l1))
@@ -125,7 +125,7 @@ rasqal_expression_evaluate_round(rasqal_expression *e,
   rasqal_free_literal(l1);
   l1 = NULL;
   
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
 
   return result;
@@ -159,7 +159,7 @@ rasqal_expression_evaluate_ceil(rasqal_expression *e,
   rasqal_literal* result = NULL;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   
   if(!rasqal_literal_is_numeric(l1))
@@ -169,7 +169,7 @@ rasqal_expression_evaluate_ceil(rasqal_expression *e,
   rasqal_free_literal(l1);
   l1 = NULL;
   
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
 
   return result;
@@ -203,7 +203,7 @@ rasqal_expression_evaluate_floor(rasqal_expression *e,
   rasqal_literal* result = NULL;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   
   if(!rasqal_literal_is_numeric(l1))
@@ -213,7 +213,7 @@ rasqal_expression_evaluate_floor(rasqal_expression *e,
   rasqal_free_literal(l1);
   l1 = NULL;
   
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
 
   return result;
@@ -287,11 +287,11 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
     goto failed;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if(*error_p || !l1)
+  if((error_p && *error_p) || !l1)
     goto failed;
   
   s = rasqal_literal_as_counted_string(l1, &len, eval_context->flags, error_p);
-  if(*error_p)
+  if(error_p && *error_p)
     goto failed;
 
   output_len = rasqal_digest_buffer(md_type, NULL, NULL, 0);
