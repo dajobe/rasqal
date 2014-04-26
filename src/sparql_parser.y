@@ -4139,9 +4139,9 @@ Collection: '(' GraphNodeListNotEmpty ')'
   rasqal_literal* rest_identifier = NULL;
   rasqal_literal* object = NULL;
   rasqal_literal* blank = NULL;
+  char const *errmsg = NULL;
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  char const *errmsg;
   #define YYERR_MSG_GOTO(label,msg) do { errmsg = msg; goto label; } while(0)
 #else
   #define YYERR_MSG_GOTO(label,ignore) goto label
@@ -4233,25 +4233,24 @@ Collection: '(' GraphNodeListNotEmpty ')'
   rasqal_free_literal(first_identifier);
   rasqal_free_literal(rest_identifier);
 
-  break; /* success */
-
   err_Collection:
-  
-  if(blank)
-    rasqal_free_literal(blank);
-  if(object)
-    rasqal_free_literal(object);
-  if(rest_identifier)
-    rasqal_free_literal(rest_identifier);
-  if(first_identifier)
-    rasqal_free_literal(first_identifier);
-  if($2)
-    raptor_free_sequence($2);
-  if($$) {
-    rasqal_free_formula($$);
-    $$ = NULL;
+  if(errmsg) {
+    if(blank)
+      rasqal_free_literal(blank);
+    if(object)
+      rasqal_free_literal(object);
+    if(rest_identifier)
+      rasqal_free_literal(rest_identifier);
+    if(first_identifier)
+      rasqal_free_literal(first_identifier);
+    if($2)
+      raptor_free_sequence($2);
+    if($$) {
+      rasqal_free_formula($$);
+      $$ = NULL;
+    }
+    YYERROR_MSG(errmsg);
   }
-  YYERROR_MSG(errmsg);
 }
 ;
 
@@ -4260,9 +4259,9 @@ Collection: '(' GraphNodeListNotEmpty ')'
 /* Sequence of formula */
 GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 {
+  char const *errmsg = NULL;
+  
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1  
-  char const *errmsg;
-
   fprintf(DEBUG_FH, "GraphNodeListNotEmpty 1\n");
   if($2) {
     fprintf(DEBUG_FH, "  GraphNode=");
@@ -4300,16 +4299,16 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 #endif
   }
 
-  break; /* success */
-
   err_GraphNodeListNotEmpty:
-  if($2)
-    rasqal_free_formula($2);
-  if($$) {
-    raptor_free_sequence($$);
-    $$ = NULL;
+  if(errmsg) {
+    if($2)
+      rasqal_free_formula($2);
+    if($$) {
+      raptor_free_sequence($$);
+      $$ = NULL;
+    }
+    YYERROR_MSG(errmsg);
   }
-  YYERROR_MSG(errmsg);
 }
 | GraphNode
 {
