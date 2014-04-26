@@ -305,12 +305,6 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   row->offset = con->offset++;
 
   done:
-  if(error != RASQAL_ENGINE_OK) {
-    if(row) {
-      rasqal_free_row(row);
-      row = NULL;
-    }
-  }
 
   return row;
 }
