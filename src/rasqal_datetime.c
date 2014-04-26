@@ -1667,7 +1667,7 @@ rasqal_xsd_date_compare(const rasqal_xsd_date *d1,
   /* Handle NULLs */
   if(!d1 || !d2) {
     /* NULLs sort earlier. equal only if both are NULL */
-    if(d1 && d2)
+    if(!d1 && !d2)
       return 0;
 
     return (!d1) ? -1 : 1;
