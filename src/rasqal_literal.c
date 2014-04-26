@@ -3180,7 +3180,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
   rasqal_literal_type from_native_type;
   rasqal_literal_type to_native_type;
   size_t len;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
   
   l = rasqal_literal_value(l);
@@ -3199,6 +3199,8 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
     return rasqal_new_literal_from_literal(l);
 
   } else {
+    int failed = 0;
+
     /* switch on FROM type to check YES/NO conversions and get the string */
     switch(from_native_type) {
       /* string */
@@ -3220,6 +3222,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
          * cast to dateTime or date */
         if(to_native_type == RASQAL_LITERAL_DATE ||
            to_native_type == RASQAL_LITERAL_DATETIME) {
+          failed = 1;
           if(error_p)
             *error_p = 1;
           break;
@@ -3245,12 +3248,18 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
       case RASQAL_LITERAL_URI:
         /* URI (IRI) May ONLY be cast to an xsd:string */
         if(to_native_type != RASQAL_LITERAL_XSD_STRING) {
+          failed = 1;
           if(error_p)
             *error_p = 1;
           break;
         }
 
         string = raptor_uri_as_counted_string(l->value.uri, &len);
+        if(!string) {
+          failed = 1;
+          if(error_p)
+            *error_p = 1;
+        }
         break;
 
       case RASQAL_LITERAL_VARIABLE:
@@ -3258,6 +3267,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
       case RASQAL_LITERAL_UNKNOWN:
       default:
         RASQAL_FATAL2("Literal type %d cannot be cast", l->type);
+        failed = 1;
         return NULL; /* keep some compilers happy */
     }
 
@@ -3267,14 +3277,14 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
        * from dateTime is checked above)
        */
       if(from_native_type != RASQAL_LITERAL_STRING) {
+        failed = 1;
         if(error_p)
           *error_p = 1;
       }
     }
 
-    if(error_p && *error_p)
+    if(failed)
       return NULL;
-
   }
   
 
