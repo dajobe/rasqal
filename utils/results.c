@@ -69,9 +69,11 @@ rasqal_cmdline_read_results(rasqal_world* world,
   raptor_free_memory(query_results_base_uri_string);
 
   vars_table = rasqal_new_variables_table(world);
+  if(!vars_table)
+    goto tidy_fail;
+
   results = rasqal_new_query_results(world, NULL, results_type, vars_table);
   rasqal_free_variables_table(vars_table); vars_table = NULL;
-
   if(!results)
     goto tidy_fail;
 
@@ -110,8 +112,6 @@ rasqal_cmdline_read_results(rasqal_world* world,
   return results;
 
   tidy_fail:
-  if(vars_table)
-    rasqal_free_variables_table(vars_table);
   if(results)
     rasqal_free_query_results(results);
   if(query_results_base_uri)
