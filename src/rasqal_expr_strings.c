@@ -542,7 +542,6 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
   int i;
   size_t len;
   unsigned char* result_str = NULL;
-  rasqal_literal* result = NULL;
   int same_dt = 1;
   raptor_uri* dt = NULL;
   
