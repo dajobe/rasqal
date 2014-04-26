@@ -187,7 +187,6 @@ rasqal_expression_evaluate_datetime_part(rasqal_expression *e,
 {
   rasqal_world* world = eval_context->world;
   rasqal_literal* l;
-  rasqal_literal* result = NULL;
   int i;
 
   l = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
@@ -200,7 +199,8 @@ rasqal_expression_evaluate_datetime_part(rasqal_expression *e,
   /* SECONDS accessor has decimal results and includes microseconds */
   if(e->op == RASQAL_EXPR_SECONDS) {
     rasqal_xsd_decimal* dec;
-    
+    rasqal_literal* result = NULL;
+
     dec = rasqal_xsd_datetime_get_seconds_as_decimal(world,
                                                      l->value.datetime);
     rasqal_free_literal(l);
@@ -241,11 +241,6 @@ rasqal_expression_evaluate_datetime_part(rasqal_expression *e,
   if(error_p)
     *error_p = 1;
   
-  if(result) {
-    rasqal_free_literal(result);
-    result = NULL;
-  }
-
   return NULL;
 }
 
