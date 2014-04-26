@@ -189,8 +189,6 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   return row;
 
   failed:
-  if(nrow)
-    rasqal_free_row(nrow);
   if(row)
     rasqal_free_row(row);
   
