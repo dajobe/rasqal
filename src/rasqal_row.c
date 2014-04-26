@@ -425,7 +425,7 @@ rasqal_new_row_sequence(rasqal_world* world,
     
     row = rasqal_new_row_for_size(world, vars_count);
     if(!row) {
-      raptor_free_sequence(seq); seq = NULL;
+      failed = 1;
       goto tidy;
     }
 
@@ -494,12 +494,8 @@ rasqal_new_row_sequence(rasqal_world* world,
       vars_seq = NULL;
     }
   } else {
-    if(vars_seq) {
-      if(vars_seq_p)
-        *vars_seq_p = vars_seq;
-      else
-        raptor_free_sequence(vars_seq);
-    }
+    if(vars_seq)
+      *vars_seq_p = vars_seq;
   }
   
   return seq;
