@@ -1362,7 +1362,6 @@ static rasqal_algebra_node*
 rasqal_algebra_graph_graph_pattern_to_algebra(rasqal_query* query,
                                               rasqal_graph_pattern* gp)
 {
-  rasqal_algebra_node* node = NULL;
   rasqal_literal *graph = NULL;
   rasqal_graph_pattern* sgp;
   rasqal_algebra_node* gnode;
@@ -1376,15 +1375,13 @@ rasqal_algebra_graph_graph_pattern_to_algebra(rasqal_query* query,
   
   gnode = rasqal_algebra_graph_pattern_to_algebra(query, sgp);
   if(!gnode) {
-    RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed\n");
+    RASQAL_DEBUG1("rasqal_algebra_graph_graph_pattern_to_algebra() failed\n");
     goto fail;
   }
     
   return rasqal_new_graph_algebra_node(query, gnode, graph);
   
   fail:
-  if(node)
-    rasqal_free_algebra_node(node);
   if(graph)
     rasqal_free_literal(graph);
 
