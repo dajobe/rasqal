@@ -1101,22 +1101,15 @@ rasqal_algebra_filter_graph_pattern_to_algebra(rasqal_query* query,
   e = rasqal_new_expression_from_expression(gp->filter_expression);
   if(!e) {
     RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed\n");
-    goto fail;
+    return NULL;
   }
 
   node = rasqal_new_filter_algebra_node(query, e, NULL);
   e = NULL; /* now owned by node */
   if(!node) {
     RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed\n");
-    goto fail;
   }
 
-  return node;
-  
-  fail:
-  if(node)
-    rasqal_free_algebra_node(node);
-  
   return node;
 }
 
