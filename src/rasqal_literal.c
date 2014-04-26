@@ -3641,8 +3641,6 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(error)
         break;
       d1 = d1 / d2;
-      if(error)
-        break;
 
       result = rasqal_new_numeric_literal(l1->world, type, d1);
       break;
