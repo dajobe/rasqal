@@ -626,8 +626,6 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
     RASQAL_FREE(char*, result_str);
   if(sb)
     raptor_free_stringbuffer(sb);
-  if(result)
-    rasqal_free_literal(result);
 
   return NULL;
 }
