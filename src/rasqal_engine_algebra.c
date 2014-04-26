@@ -103,7 +103,7 @@ rasqal_algebra_filter_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
     rs = rasqal_new_empty_rowsource(query->world, query);
   }
 
-  if((error_p && *error_p) || !rs) {
+  if((error_p && *error_p) && rs) {
     rasqal_free_rowsource(rs);
     rs = NULL;
   }
@@ -339,7 +339,7 @@ eval(D(G), Graph(IRI,P)) = the empty multiset
       rs = rasqal_new_empty_rowsource(query->world, query);
     }
 
-    if((error_p && *error_p) || !rs) {
+    if((error_p && *error_p) && rs) {
       rasqal_free_rowsource(rs);
       rs = NULL;
     }
