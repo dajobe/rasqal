@@ -1465,7 +1465,8 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error_p)
 {
   if(!l) {
     /* type error */
-    *error_p = 1;
+    if(error_p)
+      *error_p = 1;
     return 0;
   }
   
@@ -1478,7 +1479,8 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error_p)
           return l->string && *l->string;
         }
         /* typed literal with other datatype -> type error */
-        *error_p = 1;
+        if(error_p)
+          *error_p = 1;
         return 0;
       }
       /* plain literal -> true if non-empty */
@@ -1496,7 +1498,8 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_DATE:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
-      *error_p = 1;
+      if(error_p)
+        *error_p = 1;
       return 0;
 
     case RASQAL_LITERAL_INTEGER:
