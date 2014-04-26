@@ -1408,18 +1408,12 @@ static rasqal_algebra_node*
 rasqal_algebra_let_graph_pattern_to_algebra(rasqal_query* query,
                                             rasqal_graph_pattern* gp)
 {
-  rasqal_expression *expr = NULL;
+  rasqal_expression *expr;
     
   expr = rasqal_new_expression_from_expression(gp->filter_expression);
-  if(!expr)
-    goto fail;
-  
-  return rasqal_new_assignment_algebra_node(query, gp->var, expr);
-  
-  fail:
   if(expr)
-    rasqal_free_expression(expr);
-
+    return rasqal_new_assignment_algebra_node(query, gp->var, expr);
+  
   return NULL;
 }
 
