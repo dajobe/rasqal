@@ -232,7 +232,7 @@ rasqal_builtin_agg_expression_execute_reset(void* user_data)
   if(b->sb) {
     raptor_free_stringbuffer(b->sb);
     b->sb = raptor_new_stringbuffer();
-    if(!b)
+    if(!b->sb)
       return 1;
   }
   
