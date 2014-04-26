@@ -942,33 +942,27 @@ sparql_skip_c_comment(rasqal_query *rq)
   rasqal_sparql_query_language *rqe;
   yyscan_t yyscanner;
   int lines = 0;
-  int c;
   int lastc = -1;
   
   rqe = (rasqal_sparql_query_language*)rq->context;
   yyscanner = rqe->scanner;
 
   while(1) {
-    while ((c = INPUT_FN(yyscanner)) != '*' && c != EOF) {
-      if(c == '\r' || (c == '\n' && lastc != '\r'))
-        lines++;
-      lastc =  c;
-    }
-    if( c == '*') {
-      while ((c = INPUT_FN(yyscanner)) == '*') {
-        if(c == '\r' || (c == '\n' && lastc != '\r'))
-          lines++;
-        lastc =  c;
-      }
-
-      if(c == '/')
-        break;
-    }
+    int c = INPUT_FN(yyscanner);
+    
     if(c == EOF) {
+      /* EOF */
       sparql_syntax_error(rq, "SPARQL syntax error - EOF in comment");
       lines = -1;
       break;
     }
+
+    if(c == '\r' || (c == '\n' && lastc != '\r'))
+      lines++;
+
+    if(lastc == '*' && c == '/')
+      break;
+
     lastc =  c;
   }
   return lines;
