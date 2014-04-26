@@ -184,7 +184,7 @@ rasqal_builtin_agg_expression_execute_init(rasqal_world *world,
 
   if(expr->op == RASQAL_EXPR_GROUP_CONCAT) {
     b->sb = raptor_new_stringbuffer();
-    if(!b) {
+    if(!b->sb) {
       rasqal_builtin_agg_expression_execute_finish(b);
       return NULL;
     }
