@@ -1542,10 +1542,6 @@ rasqal_algebra_service_graph_pattern_to_algebra(rasqal_query* query,
   return node;
 
   fail:
-  if(node)
-    rasqal_free_algebra_node(node);
-  if(iostr)
-    raptor_free_iostream(iostr);
   if(string)
     RASQAL_FREE(char*, string);
 
