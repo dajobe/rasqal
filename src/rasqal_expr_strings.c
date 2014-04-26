@@ -590,8 +590,10 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
                                          (eval_context->flags & ~RASQAL_COMPARE_XQUERY), 
                                          error_p);
       rasqal_free_literal(arg_literal);
-    } else
-      *error_p = 1;
+    } else {
+      if(error_p)
+        *error_p = 1;
+    }
 
     if((error_p && *error_p) || !s)
       goto failed;
