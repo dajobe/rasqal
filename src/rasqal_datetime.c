@@ -721,9 +721,6 @@ rasqal_xsd_timezone_format(signed short timezone_minutes,
   if(have_tz == 'N') {
     tz_len = 0;
 
-    if(bufsize < (tz_len + 1))
-      return -1;
-
     buffer[0] = '\0';
   } else if(have_tz == 'Z') {
     tz_len = 1;
