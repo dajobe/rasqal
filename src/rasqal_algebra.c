@@ -1067,16 +1067,12 @@ rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
     goto fail;
 
   if(gp->filter_expression) {
-    rasqal_expression* e;
-    e = rasqal_new_expression_from_expression(gp->filter_expression);
-    if(!e) {
+    fs = rasqal_new_expression_from_expression(gp->filter_expression);
+    if(!fs) {
       RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed\n");
       goto fail;
     }
-    fs = fs ? rasqal_new_2op_expression(query->world, RASQAL_EXPR_AND, fs, e) : e;
-  }
 
-  if(fs) {
     node = rasqal_new_filter_algebra_node(query, fs, node);
     fs = NULL; /* now owned by node */
     if(!node) {
@@ -1084,7 +1080,6 @@ rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
       goto fail;
     }
   }
-
 
   return node;
   
