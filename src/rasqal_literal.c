@@ -3220,7 +3220,8 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
          * cast to dateTime or date */
         if(to_native_type == RASQAL_LITERAL_DATE ||
            to_native_type == RASQAL_LITERAL_DATETIME) {
-          *error_p = 1;
+          if(error_p)
+            *error_p = 1;
           break;
         }
         string = l->string;
@@ -3244,7 +3245,8 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
       case RASQAL_LITERAL_URI:
         /* URI (IRI) May ONLY be cast to an xsd:string */
         if(to_native_type != RASQAL_LITERAL_XSD_STRING) {
-          *error_p = 1;
+          if(error_p)
+            *error_p = 1;
           break;
         }
 
@@ -3265,7 +3267,8 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
        * from dateTime is checked above)
        */
       if(from_native_type != RASQAL_LITERAL_STRING) {
-        *error_p = 1;
+        if(error_p)
+          *error_p = 1;
       }
     }
 
@@ -3283,7 +3286,8 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
                 raptor_uri_as_string(to_datatype));
   
   if(!rasqal_xsd_datatype_check(to_native_type, string, flags)) {
-    *error_p = 1;
+    if(error_p)
+      *error_p = 1;
     RASQAL_DEBUG3("Illegal cast to type %s string '%s'",
                   rasqal_xsd_datatype_label(to_native_type), string);
     return NULL;
@@ -3291,7 +3295,8 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
 
   new_string = RASQAL_MALLOC(unsigned char*, len + 1);
   if(!new_string) {
-    *error_p = 1;
+    if(error_p)
+      *error_p = 1;
     return NULL;
   }
   memcpy(new_string, string, len + 1);
@@ -3299,8 +3304,10 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
   
   result = rasqal_new_string_literal(l->world, new_string, NULL,
                                      to_datatype, NULL);
-  if(!result)
-    *error_p = 1;
+  if(!result) {
+    if(error_p)
+      *error_p = 1;
+  }
   return result;
 }
 
