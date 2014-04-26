@@ -230,7 +230,7 @@ rasqal_raptor_init_triples_source_common(rasqal_world* world,
   
   if(rtsc->sources_count) {
     rtsc->source_literals = RASQAL_CALLOC(rasqal_literal**, rtsc->sources_count, sizeof(rasqal_literal*));
-    if(rtsc->source_literals)
+    if(!rtsc->source_literals)
       return 1;
   } else {
     /* No sources so the work is done */
