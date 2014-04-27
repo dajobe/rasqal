@@ -66,10 +66,11 @@
 #else
 #define YYERROR_MSG(ignore) YYERROR
 #endif
+#define YYERR_MSG_GOTO(label,msg) do { errmsg = msg; goto label; } while(0)
 
 /* Slow down the grammar operation and watch it work */
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
-#undef YYDEBUG 1
+#undef YYDEBUG
 #define YYDEBUG 1
 #endif
 
@@ -4140,12 +4141,6 @@ Collection: '(' GraphNodeListNotEmpty ')'
   rasqal_literal* object = NULL;
   rasqal_literal* blank = NULL;
   char const *errmsg = NULL;
-
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  #define YYERR_MSG_GOTO(label,msg) do { errmsg = msg; goto label; } while(0)
-#else
-  #define YYERR_MSG_GOTO(label,ignore) goto label
-#endif
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "Collection\n  GraphNodeListNotEmpty=");
