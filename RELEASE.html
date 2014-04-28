@@ -13,6 +13,34 @@
 <p>Not yet released.
 </p>
 
+<p>Many code quality fixes from clang and coverity primarily in error
+path cleanups (out of memory cases) and dead code.</p>
+
+<h3>API changes</h3>
+
+<p>Added <code>rasqal_new_query_results_from_string()</code> to make
+a query results from a string (with optional length).  The results
+format is guessed from the input data - base_uri and string content
+using <code>rasqal_world_guess_query_results_format_name()</code>.
+</p>
+
+<p>Added <code>rasqal_variables_table_add2()</code> deprecating
+<code>rasqal_variables_table_add()</code>.  This takes a more
+sensible argument style with copying the input parameters name and
+value, and allowing name length to be optionally given.  This results
+in smaller calling code and better ownership semantics.
+</p>
+
+<h3>Other changes</h3>
+
+<p>Updated the fix-flex and fix-bison scripts to remove dead
+code that clang and coverity complain about.</p>
+
+<p>Added new testrunner to run the tests instead of the (perl)
+improve and check-sparql scripts.
+</p>
+
+
 
 <h2 id="rel0_9_32"><a name="rel0_9_32">Rasqal 0.9.32 changes</a></h2>
 

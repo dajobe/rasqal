@@ -1,4 +1,744 @@
-2014-02-23  Dave Beckett  <dave@dajobe.org>
+2014-04-28  Dave Beckett <dave@dajobe.org>
+
+	* scripts/fix-bison: Remove dead code from bison output
+
+2014-04-26  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y:
+	YYYERR_MSG_GOTO always sets errmsg Also fix YYDEBUG undef
+
+	* src/sparql_parser.y:
+	(Collection, GrpahNodeListNotEmpty): Tidy error path
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_cast): Handle more failure conditions [coverity CID 48453]
+
+	* src/sparql_lexer.l:
+	(sparql_skip_c_comment): Simplify and remove dead code [coverity CID 43033]
+
+	* utils/results.c:
+	(rasqal_cmdline_read_results): Error path dead code [coverity CID 43032]
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_divide): Dead code [coverity CID 43031]
+
+	* src/rasqal_expr_datetimes.c:
+	(rasqal_expression_evaluate_datetime_part): dead code [coverity CID 43030]
+
+	* src/rasqal_rowsource_project.c:
+	(rasqal_project_rowsource_read_row): dead code [coverity CID 43029]
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_read_row): dead code [coverity CID 43028]
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_graph_graph_pattern_to_algebra): dead code
+	elimination [coverity CID 43025]
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_filter_graph_pattern_to_algebra): dead code
+	elimination [coverity CID 43016]
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_basic_graph_pattern_to_algebra): dead code
+	elimination [coverity CID 43015]
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_builtin_agg_expression_execute_init): cleanup on error path
+	[coverity CID 43027]
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_concat): unused var result
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_concat): dead code in cleanup [coverity CID 43026]
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_service_graph_pattern_to_algebra): Dead code in
+	cleanup [coverity CID 43024]
+
+	* src/rasqal_row.c:
+	(rasqal_new_row_sequence): Tidy error path - dead code [coverity CID 43022]
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_let_graph_pattern_to_algebra): Simplify and fix
+	error path [coverity CID 43021]
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_compare2): Fix NULL datetime compares [coverity CID 43020]
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_date_compare): Fix NULL date compares [coverity CID 43019]
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_timezone_format): Dead code [coverity CID 43018]
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_filter_graph_pattern_to_algebra): Dead code
+	[coverity CID 43016]
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_basic_graph_pattern_to_algebra): Dead code [coverity CID 43015]
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_cast): Handle NULL error_p [coverity CID 45071]
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_concat): Handle NULL error_p [coverity CID 45070]
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_as_boolean): Handle NULL error_p [coverity CID 45069]
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_builtin_agg_expression_execute_reset): Error path [coverity CID 43076]
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_init_triples_source_common): !
+
+	* src/rasqal_engine_algebra.c: fix error_p path
+
+2014-04-24  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine_algebra.c, src/rasqal_expr_datetimes.c,
+	src/rasqal_expr_evaluate.c, src/rasqal_expr_numerics.c,
+	src/rasqal_expr_strings.c, src/rasqal_literal.c: Fix multiple
+	checks where error_p may be NULL
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): double/float always free string
+	[coverity CID 43051]
+
+	* src/rasqal_rowsource_assignment.c:
+	(rasqal_assignment_rowsource_read_row): NULL row [coverity CID 43039]
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_init_triples_source_common): Error path [coverity CID 43038]
+
+	(rasqal_raptor_init_triples_source_common): Shortcut return path
+	when there are no source literals or error path
+	[coverity CID 43038]
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_new_values_graph_pattern): NULL pointer [coverity CID 43037]
+
+	* src/rasqal_literal.c:
+	Cast to int before type diff of enums [coverity CID 43036]
+
+	(rasqal_literal_compare): Cast to int before type diff of enums
+	[coverity CID 43036]
+
+2014-04-23  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: Cast to int before type diff of enums
+	[coverity CID 43036]
+
+	(rasqal_literal_compare): Cast to int before type diff of enums
+	[coverity CID 43036]
+
+2014-04-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_sort.c:
+	(rasqal_sort_rowsource_process): con->map is never NULL [coverity CID 43035]
+
+	* src/rasqal_literal.c: not static
+
+	* src/rasqal_internal.h: meh
+
+	* src/rasqal_internal.h:
+	extern static for boolean consts
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_algebra_filter_algebra_node_to_rowsource): error path
+	cleanup [coverity CID 43042]
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_convert_aggregate_to_variable): Free output expr
+	on error path [coverity CID 43041]
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_algebra_graph_algebra_node_to_rowsource): error path
+	[coverity CID 43044 43043]
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_group_graph_pattern_to_algebra): use goto fail for
+	cleanup [coverity CID 43044 43045]
+
+	* src/rasqal_format_rdf.c:
+	(rasqal_rowsource_rdf_process): error path leak [coverity CID 43046]
+
+	* src/rasqal_format_rdf.c:
+	(rasqal_rowsource_rdf_process): error path leak [coverity CID 43047]
+
+	* src/rasqal_result_formats.c:
+	(rasqal_world_guess_query_results_format_name): error path leak
+	[coverity CID 43048]
+
+	* src/rasqal_rowsource_project.c:
+	(rasqal_project_rowsource_ensure_variables): loop 0 to size-1
+	[coverity CID 43040] This would never overrun since
+	raptor_sequence_get_at() would cause the loop exit first.
+
+	* src/rasqal_bindings.c:
+	(rasqal_new_bindings_from_var_values) error path leak [coverity CID 43049]
+
+	* src/rasqal_rowsource_service.c:
+	(rasqal_new_service_rowsource): error path leak [coverity CID 43050]
+
+	* src/rasqal_datetime.c:
+	Initialize datetime time_on_timeline
+	[coverity CID 43082 43083]
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_data_format_comment): copy paste error
+	[coverity CID 43014]
+
+	* src/rasqal_format_sparql_xml.c, src/rasqal_internal.h,
+	src/rasqal_literal.c: Define statics for true/false so object
+	compare is ok [coverity CID 43012]
+
+	* scripts/fix-bison: Import from raptor
+
+	* scripts/fix-flex: Import from raptor
+
+	* configure.ac, src/sparql_lexer.l:
+	Define FLEX_VERSION_DECIMAL and
+	use to not duplicate column prototypes.
+
+2014-04-07  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c:
+	(manifest_indent_multiline): Use max_lines_count
+
+2014-04-04  Dave Beckett <dave@dajobe.org>
+
+	* utils/Makefile.am, utils/check_query.c, utils/compare_results.c,
+	utils/manifest.c, utils/rasqalcmdline.h: Switch to
+	rasqal_results_compare API
+
+	* src/rasqal_results_compare.c:
+	(rasqal_results_compare_compare): Use binding mapping.  Reports
+	slight better messages about different variable sets.
+
+	* src/rasqal_internal.h, src/rasqal_results_compare.c: Start
+	porting compare_results api to rsaqal_results_compare
+
+	(rasqal_new_results_compare): Add label args
+
+	(struct rasqal_results_compare_s): Store world, query results,
+	labels and log data.
+
+	(rasqal_results_compare_set_log_handler): Added
+
+	(rasqal_results_compare_compare): Added.  Name needs to change
+	Update test code
+
+	* src/rasqal_internal.h, src/rasqal_results_compare.c: Hide
+	rasqal_results_compare internals
+
+	* src/rasqal_internal.h, src/rasqal_results_compare.c:
+	(rasqal_results_compare_variables_equal): Renamed from
+	rasqal_results_compare_equal
+
+	* src/rasqal_results_compare.c: ws
+
+	* src/rasqal_internal.h, src/rasqal_results_compare.c: make
+	rasqal_results_compare internal
+
+	* src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_results_compare.c, src/rasqal_results_compatible.c:
+	Rename module / class name to rasqal_results_compare
+
+	* docs/rasqal-changes.tsv: tab
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt: Added
+	rasqal_new_query_results_from_string to docs and changes
+
+	* src/rasqal_results_compatible.c:
+	(rasqal_new_results_compatible): index is i not size
+
+	* src/Makefile.am, src/rasqal_query_results.c: Add query results
+	tests for from string module
+
+	* src/rasqal_internal.h, src/rasqal_results_compatible.c: Added
+	tests for rasqal_results_compatible module
+	- Removed duplicate variables_table field; use vt.
+	- Made counts into unsigned.
+	(rasqal_new_results_compatible): Init all offsets to -1 not 0.
+	(rasqal_free_results_compatible): Free map and variables table.
+	(rasqal_results_compatible_equal): look for non-negative offsets
+	for equality.
+	(main): Added tests
+
+	* src/rasqal_query_results.c:
+	(rasqal_new_query_results_from_string): Make string_len optional.
+
+	* src/rasqal.h.in, src/rasqal_query_results.c:
+	(rasqal_new_query_results_from_string): Always guess formatter from
+	data Remove formatter arg.
+
+	* src/rasqal_query_results.c:
+	(rasqal_new_query_results_from_string): Guess formatter from data If @formatter is NULL guess it using input data via
+	rasqal_world_guess_query_results_format_name()
+
+2014-03-30  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_results_compatible.c: Added rasqal_results_compatible
+	class and skeleton tests Needs a way to initialise
+	rasqal_query_results
+
+	* src/rasqal.h.in, src/rasqal_query_results.c:
+	(rasqal_new_query_results_from_string): Added
+
+2014-03-29  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c:
+	(main): Use rasqal_variables_table_add2
+
+	* docs/rasqal-changes.tsv: fix old/new vers
+
+	* docs/rasqal-sections.txt: Add rasqal_triples_error_handler2
+
+	* docs/rasqal-changes.tsv: Add 0.9.33 typedefs to docs
+
+	* docs/rasqal-changes.tsv: Sort blocks correctly
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt: Add
+	rasqal_variables_table_add2 to docs
+
+2014-03-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in: Set RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION 3
+	after earlier change
+
+	* libsv, src/rasqal_format_sv.c, src/sv_config.h: Update libsv and
+	rename sv_init to sv_new
+
+	* src/rasqal_expr_numerics.c: Handle byte/word alignment with
+	RASQAL_UUID_INTERNAL (clang)
+
+2014-03-26  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c, utils/manifest.h:
+	Pull test_string arg out of
+	manifest_testsuite_run_suite
+
+	(manifest_test_matches_string): Moved test matching here
+
+	(manifest_testsuite_select_tests_by_string): Use
+	manifest_test_matches_string to select a test.
+
+	(manifest_testsuite_run_suite): Remove matching
+
+	(manifest_manifests_run): Use
+	manifest_testsuite_select_tests_by_string() to match before
+	running.
+
+2014-03-24  Dave Beckett <dave@dajobe.org>
+
+	* ChangeLog, ChangeLog.11, Makefile.am: ChangeLog.11 for 2013
+
+2014-03-22  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c, utils/manifest.h, utils/testrunner.c:
+	Pass in
+	test_string arg to allow running one test out of suite
+
+	(manifest_testsuite_run_suite): Add test_string arg and use it to
+	check for test name or test literal match.
+
+	(manifest_manifests_run): Add test_string arg for above.
+
+	(main): Add -t / --test arg for setting a test to run.
+
+	* utils/testrunner.c:
+	Do not break out early if argc count is wrong
+
+	* utils/testrunner.c:
+	Get Base URI from right arg
+
+	* utils/manifest.c:
+	Add testsuite reporting and multi-line reporting
+
+	(manifest_indent_multiline): Add to indent multi-line strings.
+
+	(manifest_testsuite_result_format): Added to format a testsuite
+	result in the desired style.  Use manifest_indent_multiline.
+
+2014-03-17  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_html.c, src/rasqal_format_json.c,
+	src/rasqal_format_sv.c: Remove decl inside switch (clang
+	-Wunreachable-code)
+
+	The above is probably a clang mis-warning since the decls work
+	fine before first case.
+
+	* src/rasqal_literal.c, src/rasqal_query_write.c: Remove return
+	after break (clang -Wunreachable-code)
+
+2014-03-16  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c: Free acutal_results
+
+	* utils/compare_results.c:
+	(compare_query_results_compare): Do not leak row memory
+
+	* utils/check_query.c:
+	(compare_query_results_compare): Do not leak row memory
+
+2014-03-15  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c, utils/manifest.h:
+	(manifest_test_run): Enable comparing bindings results
+
+	ISSUE: leaks memory since freeing rasqal_query_result*
+	actual_results causes a crash due to raptor genid handler
+
+	* utils/results.c:
+	(rasqal_rowsource_rdf_process): Free base URI on success
+
+	* utils/manifest.c:
+	Comment in reading bindings results
+
+	* src/rasqal_format_rdf.c:
+	(rasqal_rowsource_rdf_process): Free literals used in reading
+
+	* utils/results.c:
+	(rasqal_cmdline_read_results): Handle
+	rasqal_query_results_formatter_read fail
+
+	* utils/manifest.c:
+	(manifest_test_run): Read expected result files.  - Add error logging to replace RASQAL_DEBUG* - Handle NULL result
+
+	* utils/results.c:
+	(rasqal_cmdline_read_results): Free base URI string
+
+	* utils/manifest.c:
+	(manifest_manifests_run): Fix joining results. Handle NULL result.
+
+2014-03-13  Dave Beckett <dave@dajobe.org>
+
+	* utils/read_files.c: docs
+
+	* src/sparql_parser.y:
+	(VarName): Free variable name after rasqal_variables_table_add2
+
+	* utils/manifest.c: free query_filename
+
+	* utils/srxwrite.c:
+	Use rasqal_variables_table_add2() in srxwrite
+
+	* src/rasqal.h.in, src/rasqal_algebra.c, src/rasqal_format_rdf.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_sv.c,
+	src/rasqal_query_transform.c, src/rasqal_row.c,
+	src/rasqal_variable.c, src/sparql_parser.y:
+	(rasqal_variables_table_add2): Added deprecating
+	rasqal_variables_table_add
+
+	Added rasqal_variables_table_add2 to take a more sensible argument
+	style with copying the input parameters name and value, and
+	allowing name length to be optionally given.  Results in smaller
+	calling code and better ownership semantics.
+
+2014-03-11  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c, utils/manifest.h: Store background and named
+	graphs in sequence
+
+	manifest_test gains a single raptor_sequence of rasqal_data_graph
+	and loses the 'data' and 'data_graph' fields.
+
+	* utils/check_query.c, utils/roqet.c: Make utils use
+	rasqal_cmdline_read_data_graph() shared code
+
+	* utils/read_files.c:
+	(rasqal_cmdline_read_data_graph): Now handles stdin "-" from roqet.
+
+	* utils/rasqalcmdline.h, utils/read_files.c:
+	(rasqal_cmdline_read_data_graph): Added from arg handling for graphs
+
+	* utils/manifest.c:
+	(manifest_test_run): Read and parse queries
+
+	* utils/manifest.c, utils/manifest.h:
+	(manifest_test_get_query_language): Added
+
+	* utils/Makefile.am: Add _DEPENDENCIES rules for programs so they
+	will rebuild libraries
+
+	* utils/testrunner.c: make seq own the URIs so it frees them
+	correctly
+
+	* utils/testrunner.c:
+	(testrunner_log_handler): data arg is rasqal_world (and unused) Do
+	not try to abort thing that is not a parser
+
+2014-03-08  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c:
+	(manifest_manifests_run): Total failure if cannot create test suite
+
+	* utils/manifest.c:
+	Read query string files
+
+	* utils/manifest.c, utils/manifest.h:
+	Save manifest_world* in
+	manifest_test
+
+	* utils/manifest.c:
+	(manifest_test_run): Handle test result being NULL
+
+	* utils/check_query.c, utils/rasqalcmdline.h, utils/read_files.c,
+	utils/roqet.c: Remove program args from rasqal_cmdline_read*
+	methods
+
+	Replace with use of rasqal_world and log handler
+
+	* utils/read_files.c:
+	Use rasqal_alloc_memory / rasqal_free_memory
+
+	* utils/manifest.c:
+	remove dummy code
+
+	* utils/manifest.c:
+	(manifest_test_run): Renamed from manifest_testsuite_run_test
+
+	Remove testsuite parameter and pass in PATH (for now)
+
+	* utils/manifest.c: ws
+
+	* utils/Makefile.am, utils/check_query.c, utils/compare_results.c,
+	utils/rasqalcmdline.h: Add compare_results.c module
+
+	Move code from check_query.c into librasqalcmdline.la
+
+2014-03-07  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c: Move UPDATE / PROTOCOL test checking to
+	running of tests
+
+	(manifest_new_testsuite): Remove check
+	(manifest_testsuite_run_test, manifest_testsuite_run_suite): Add
+	check
+
+2014-03-06  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c:
+	Conditionalize RASQAL_DEBUG
+
+2014-03-04  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c:
+	Move declarations to start of block (C90)
+
+	* utils/testrunner.c:
+	Move declarations to start of block (C90)
+
+	* utils/manifest.c: Fixes for C++ Add compare around return value
+	of strstr
+
+	(manifest_new_testsuite): Remove unused rc variable, and reset ts
+	on failure.
+
+	* utils/manifest.c:
+	Fixes for C++
+
+	* utils/manifest.c, utils/manifest.h, utils/testrunner.c:
+	(manifest_testsuite_run_suite): Takes a sequence of manifest URIs
+
+2014-03-03  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c, utils/testrunner.c: docs
+
+2014-03-02  Dave Beckett <dave@dajobe.org>
+
+	* utils/testrunner.c:
+	Add testrunner utility arg handling
+
+	* utils/.gitignore, utils/Makefile.am, utils/manifest.c,
+	utils/manifest.h, utils/testrunner.c: Split into testrunner main
+	and manifest.c / manifest.h headers
+
+	* utils/manifest.c: Naming convention of methods
+
+	* utils/manifest.c: ws
+
+	* utils/manifest.c: Move all test result details into
+	manifest_test_result.
+
+	(manfest_run_test): Add skeleton code
+
+	* utils/manifest.c: Add support for qt:query for test query URI
+	Also rename tq_ to qt_ to match turtle usage
+
+	* utils/manifest.c: Remove unused ent:entailmentRegime and
+	namespace ent:
+
+	* utils/manifest.c: Add checks for entailmentRegime
+
+	* utils/manifest.c: Decode test approval and withdrawn state
+
+	* utils/manifest.c: Added dawgt: namespace and dawgt:approval URI
+	and literal
+
+	* utils/manifest.c: Fix null test type test
+
+	* utils/manifest.c: Move all test graph reading to
+	manifest_new_test()
+
+	* utils/manifest.c: Added manifest_world object to hold shared
+	uris and literals
+
+	* utils/manifest.c: Add decoding of mf:resultCardinality into a
+	test flag
+
+	* utils/manifest.c:
+	(manifest_decode_test_type): Move error checking outside function
+
+	* utils/manifest.c: Store decoded type flags in test object
+
+	(manifest_new_test): Lose expect arg and add flags arg.  Set
+	expect field from flags.
+
+	* utils/manifest.c: Adjust debug levels
+
+	* utils/manifest.c: Fix error paths to not use uninitialized
+	testsuite data
+
+	* utils/manifest.c: Decode test type into flags and use it
+
+	(manifest_decode_test_type): Added for decoding a test URI
+
+	(manifest_new_testsuite): Handle failure, skipping update and
+	protocol tests.
+
+	* utils/manifest.c: Store test data URI and data graph URIs from
+	manifest Reads qt:data qt:dataGraph fields from action node.  Do
+	not store action node itself.
+
+	* utils/manifest.c: Debug messages
+
+	* utils/manifest.c: Store test query result URI (file) in
+	manifest_test
+
+	* utils/manifest.c:
+	Fix ownership for test parameters and fields
+
+2014-03-01  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c: ws
+
+	* utils/manifest.c:
+	Finished decoding of manifests
+
+	(manifest_new_test): Added; uses a rasqal_literal as ID, not a
+	uri-like string that might be a blank node either.
+
+	(manifest_free_test): Add rest of fields.
+
+	(manifest_new_testsuite): Added mf:name, mf:action, rdf:first,
+	rdf:rest and rdf:nil Decode RDF collection of tests into test
+	objects.
+
+	* utils/manifest.c: fix fputc wrong order
+
+	* utils/manifest.c: Add start of testsuite runner Added states for
+	xfail, uxpass, skip
+
+	(manifest_test_state_char, manifest_test_state_label): Added to
+	turn states into labels.
+
+	(manifest_new_test_result): Added to create test result with a
+	sequence of tests per state.
+
+	(manifest_free_test_result): Free sequence of tests/state
+
+	(manifest_free_test): Added to support above.
+
+	(manifest_indent): Added for indenting.
+
+	(manifest_run_testsuite): Added doing test counting but no actual
+	running yet.
+
+	(manifest_test_manifests): create a test result and
+	manipulate aggregating tests.
+
+	* utils/manifest.c: ws
+
+	* utils/manifest.c: Fix testsuite alloc/frees
+
+	* utils/manifest.c:
+	(manifest_free_testsuite): Free more fields
+
+	* utils/manifest.c: free URI and concept literals
+
+	* utils/manifest.c: Fix node cleanup
+
+	* utils/manifest.c:
+	Add tidying for test results (manifest_free_test_result): Added
+
+	* utils/manifest.c: docs
+
+	* utils/manifest.c: Added manifest_testsuite constructor and
+	destructor
+
+	(manifest_new_testsuite): Added, based on manifest_read_plan()
+	that builds it from a manifest file.
+
+	(manifest_free_testsuite): Added.
+
+	(manifest_test_manifests): Added to test a sequence of manifest
+	docs
+
+	(main): Use manifest_test_manifests()
+
+2014-02-28  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c:
+	Rename enum
+
+2014-02-25  Dave Beckett <dave@dajobe.org>
+
+	* utils/manifest.c:
+	Decode manifest, description, path, entries
+
+2014-02-24  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_literal.c, src/rasqal_query.c, src/rasqal_raptor.c,
+	utils/check_query.c: Fix unreachable code - break after return
+	mostly.
+
+	(rasqal_expression_visit): More substantial update to set result
+	var and return in one place.
+
+	* configure.ac:
+	Add -Wunreachable-code
+
+	* src/rasqal_dataset.c, src/rasqal_internal.h:
+	(rasqal_dataset_load_graph_uri): Added
+
+	* tests/improve:
+	Replace expect_fail with expect=value
+
+	* tests/sparql/check-sparql: Import check-sparql changes from
+	testing repo 7113a34565409463b9804f1381b5d1ea7ebc95f6 - Back out
+	of negative logic: replace expect_fail with expect=value
+	c25354ad2dcb4635906e5c9729bee1f588108b62 - fix yesno
+	9ca0b6cc1f74e3972039ba6d019e494902b957ec - Report all config vars
+	used.
+
+	* NEWS.html, RELEASE.html, configure.ac:
+	Bumped version to 0.9.33
+
+2014-02-23  Dave Beckett <dave@dajobe.org>
+
+	* tests/improve: Put indent, verbose, dryun as arguments not in
+	testsuite obj.
+
+	* utils/.gitignore, utils/Makefile.am, utils/manifest.c: Add
+	manifest utility
 
 	* Snapshotted rasqal_0_9_32 for 0.9.32 release (GIT cdb85abbfe2dc7c740970a92399b734be544cc1c)
 
