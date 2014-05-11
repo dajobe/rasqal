@@ -147,3 +147,7 @@
 0.9.25	enum	-	-	0.9.26	enum	RASQAL_EXPR_SHA256	-	Expression for SPARQL 1.1 SHA256(literal) message digest
 0.9.25	enum	-	-	0.9.26	enum	RASQAL_EXPR_SHA384	-	Expression for SPARQL 1.1 SHA384(literal) message digest
 0.9.25	enum	-	-	0.9.26	enum	RASQAL_EXPR_SHA512	-	Expression for SPARQL 1.1 SHA512(literal) message digest
+0.9.28	enum	-	-	0.9.29	enum	RASQAL_LITERAL_DATE	-	Date literal type
+0.9.28	enum	-	-	0.9.29	enum	RASQAL_EXPR_STRUUID	-	Expression for STRUUID() string UUID
+0.9.28	enum	-	-	0.9.29	enum	RASQAL_EXPR_UUID	-	Expression for UUID() UUID
+0.9.30	enum	-	-	0.9.30	enum	RASQAL_GRAPH_PATTERN_OPERATOR_VALUES	   -   Graph pattern for VALUES()
