@@ -74,6 +74,7 @@
 0.9.26	-	-	-	0.9.27	int	rasqal_variables_table_add_variable	(rasqal_variables_table* vt, rasqal_variable* variable)	-
 0.9.26	-	-	-	0.9.27	rasqal_variable*	rasqal_variables_table_get_by_name	(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name)	-
 0.9.26	-	-	-	0.9.27	int	rasqal_variables_table_contains	(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name)	-
+0.9.27	-	-	-	0.9.28	rasqal_expression*	rasqal_new_4op_expression	(rasqal_world* world, rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2, rasqal_expression* arg3, rasqal_expression* arg4)	-
 0.9.28	-	-	-	0.9.29	rasqal_xsd_date*	rasqal_new_xsd_date	(rasqal_world* world, const char *date_string)	-
 0.9.28	-	-	-	0.9.29	void	rasqal_free_xsd_date	(rasqal_xsd_date* d)	-
 0.9.28	-	-	-	0.9.29	char*	rasqal_xsd_date_to_counted_string	(const rasqal_xsd_date *d, size_t *len_p)	-
