@@ -140,6 +140,7 @@
 0.9.24	enum	-	-	0.9.25	enum	RASQAL_EXPR_FLOOR	-	Expression for SPARQL 1.1 FLOOR(numeric)
 0.9.24	enum	-	-	0.9.25	enum	RASQAL_EXPR_RAND	-	Expression for SPARQL 1.1 RAND()
 0.9.24	enum	-	-	0.9.25	enum	RASQAL_EXPR_TZ	-	Expression for SPARQL 1.1 TZ(datetime) timezone accessor
+0.9.25	enum	-	-	0.9.26	enum	RASQAL_EXPR_MD5	-	Expression for SPARQL 1.1 MD5(literal) message digest
 0.9.25	enum	-	-	0.9.26	enum	RASQAL_EXPR_SHA1	-	Expression for SPARQL 1.1 SHA1(literal) message digest
 0.9.25	enum	-	-	0.9.26	enum	RASQAL_EXPR_SHA224	-	Expression for SPARQL 1.1 SHA224(literal) message digest
 0.9.25	enum	-	-	0.9.26	enum	RASQAL_EXPR_SHA256	-	Expression for SPARQL 1.1 SHA256(literal) message digest
