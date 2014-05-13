@@ -1688,6 +1688,8 @@ rasqal_literal_type rasqal_literal_get_rdf_term_type(rasqal_literal* l);
 RASQAL_API
 rasqal_literal_type rasqal_literal_get_type(rasqal_literal* l);
 RASQAL_API
+char* rasqal_literal_get_language(rasqal_literal* l);
+RASQAL_API
 int rasqal_literal_is_rdf_literal(rasqal_literal* l);
 
 

@@ -1988,6 +1988,24 @@ rasqal_literal_get_type(rasqal_literal* l)
   return type;
 }
 
+/**
+ * rasqal_literal_get_language:
+ * @l: literal
+ *
+ * Get the language of a literal (if set)
+ *
+ * Return value: the literal language or NULL
+ */
+char*
+rasqal_literal_get_language(rasqal_literal* l)
+{
+  if(!l)
+    return NULL;
+  
+  return l->language;
+}
+
+
 
 
 /*
