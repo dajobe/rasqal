@@ -1403,6 +1403,45 @@ rasqal_graph_pattern_get_flattened_triples(rasqal_query* query,
 }
 
 
+/**
+ * rasqal_graph_pattern_get_triples:
+ * @query: query
+ * @graph_pattern: graph pattern
+ *
+ * Get the triples inside this graph pattern (if any).
+ *
+ * The returned sequence and all the #rasqal_triple in it are owned
+ * by the caller (hold references).
+ *
+ * Return value: new sequence of #raptor_triple or NULL on failure or no triples
+ */
+raptor_sequence*
+rasqal_graph_pattern_get_triples(rasqal_query* query,
+                                           rasqal_graph_pattern* graph_pattern)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern,
+                                            rasqal_graph_pattern, NULL);
+
+  raptor_sequence* triples = NULL;
+  int i = 0;
+
+  if (graph_pattern->triples) {
+    triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
+                                      (raptor_data_print_handler)rasqal_triple_print);
+  
+    for(i = graph_pattern->start_column; i <= graph_pattern->end_column; i++) {
+      rasqal_triple *t = (rasqal_triple*)raptor_sequence_get_at(graph_pattern->triples, i);
+      t = rasqal_new_triple_from_triple(t);
+      if(!t) {
+        raptor_free_sequence(triples);
+        return NULL;
+      }
+      raptor_sequence_push(triples, t);  
+    }
+  }
+
+  return triples;
+}
 
 struct find_parent_data {
   rasqal_graph_pattern* child_gp;

@@ -37,6 +37,31 @@ library for serializing to a syntax.
 </para>
 
 
+<!-- ##### FUNCTION rasqal_new_query_results ##### -->
+<para>
+
+</para>
+
+@world: 
+@query: 
+@type: 
+@vars_table: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_query_results_from_string ##### -->
+<para>
+
+</para>
+
+@world: 
+@type: 
+@base_uri: 
+@string: 
+@string_len: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_free_query_results ##### -->
 <para>
 

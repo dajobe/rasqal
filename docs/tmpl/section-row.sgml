@@ -57,15 +57,3 @@ a #rasqal_query_results query result set.
 @Returns: 
 
 
-<!-- ##### FUNCTION rasqal_new_query_results ##### -->
-<para>
-
-</para>
-
-@world: 
-@query: 
-@type: 
-@vars_table: 
-@Returns: 
-
-

@@ -1967,6 +1967,26 @@ rasqal_literal_get_rdf_term_type(rasqal_literal* l)
   return type;
 }
 
+/**
+ * rasqal_literal_get_type:
+ * @l: literal
+ *
+ * Get the type of a literal
+ *
+ * Return value: the rasqal literal type or RASQAL_LITERAL_UNKNOWN if l is NULL
+ */
+rasqal_literal_type
+rasqal_literal_get_type(rasqal_literal* l)
+{
+  rasqal_literal_type type;
+  
+  if(!l)
+    return RASQAL_LITERAL_UNKNOWN;
+  
+  type = l->type;
+  
+  return type;
+}
 
 
 
