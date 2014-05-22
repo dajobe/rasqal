@@ -111,7 +111,7 @@ rasqal_new_results_compare(rasqal_world* world,
   rrc->second_count = rasqal_variables_table_get_total_variables_count(second_vt);
   rrc->variables_count = 0;
 
-  size = rrc->first_count + rrc->second_count;
+  size = (rrc->first_count + rrc->second_count) << 1;
   rrc->defined_in_map = RASQAL_CALLOC(int*, size, sizeof(int));
   if(!rrc->defined_in_map) {
     RASQAL_FREE(rasqal_results_compare, rrc);
