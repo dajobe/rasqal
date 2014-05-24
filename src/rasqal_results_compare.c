@@ -134,6 +134,7 @@ rasqal_new_results_compare(rasqal_world* world,
 
     v = rasqal_variables_table_get(first_vt, i);
     v2 = rasqal_variables_table_add2(rrc->vt, v->type, v->name, 0, NULL);
+    rasqal_free_variable(v2);
     rrc->defined_in_map[(v2->offset)<<1] = i;
   }
 
@@ -146,6 +147,7 @@ rasqal_new_results_compare(rasqal_world* world,
     v2 = rasqal_variables_table_get_by_name(rrc->vt, v->type, v->name);
     if(!v2)
       v2 = rasqal_variables_table_add2(rrc->vt, v->type, v->name, 0, NULL);
+    rasqal_free_variable(v2);
     rrc->defined_in_map[1 + ((v2->offset)<<1)] = i;
   }
 
