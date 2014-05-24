@@ -1017,23 +1017,25 @@ rasqal_query_results_get_bindings(rasqal_query_results* query_results,
                                   const unsigned char ***names, 
                                   rasqal_literal ***values)
 {
+  rasqal_row* row;
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, 1);
 
   if(!rasqal_query_results_is_bindings(query_results))
     return 1;
   
-  if(names)
-    *names = rasqal_variables_table_get_names(query_results->vars_table);
-  
-  if(values) {
-    rasqal_row* row;
+  row = rasqal_query_results_get_current_row(query_results);
 
-    row = rasqal_query_results_get_current_row(query_results);
-    if(row)
-      *values = row->values;
-    else
+  if(!row) {
       query_results->finished = 1;
+      return 0;
   }
+
+  if(names)
+    *names = rasqal_row_get_names(row);
+  
+  if(values)
+    *values = row->values;
     
   return 0;
 }
