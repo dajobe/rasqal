@@ -94,7 +94,12 @@ rasqal_new_row(rasqal_rowsource* rowsource)
   int size;
   int order_size = -1;
   rasqal_row* row;
-  
+
+  if(!rowsource)
+    return NULL;
+
+  rowsource = rasqal_new_rowsource_from_rowsource(rowsource);
+
   size = rasqal_rowsource_get_size(rowsource);
 
   row = rasqal_new_row_common(rowsource->world, size, order_size);
@@ -173,6 +178,9 @@ rasqal_free_row(rasqal_row* row)
 
   if(row->variable_names)
     RASQAL_FREE(cstrings, row->variable_names);
+
+  if(row->rowsource)
+    rasqal_free_rowsource(row->rowsource);
 
   RASQAL_FREE(rasqal_row, row);
 }
