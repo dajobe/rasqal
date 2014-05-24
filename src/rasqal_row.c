@@ -623,7 +623,7 @@ rasqal_row_expand_size(rasqal_row *row, int size)
  * @row: Result row
  * @vars_table: Variables table
  *
- * INTERNAL - Bind the variable table vars withvalues in the row
+ * INTERNAL - Bind the variable table vars with values in the row
  *
  * Return value: non-0 on failure
  */
