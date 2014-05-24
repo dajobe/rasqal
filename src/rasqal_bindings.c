@@ -147,7 +147,8 @@ rasqal_new_bindings_from_var_values(rasqal_query* query,
   }
   var = NULL;
 
-  size = raptor_sequence_size(values);
+  if(values)
+    size = raptor_sequence_size(values);
 
   row = rasqal_new_row_for_size(query->world, size);
   if(!row) {
