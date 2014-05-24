@@ -1389,6 +1389,7 @@ int rasqal_row_compare(const void *a, const void *b);
 const unsigned char** rasqal_row_get_names(rasqal_row* row);
 void rasqal_row_set_rowsource(rasqal_row* row, rasqal_rowsource* rowsource);
 void rasqal_row_set_weak_rowsource(rasqal_row* row, rasqal_rowsource* rowsource);
+rasqal_variable* rasqal_row_get_variable_by_offset(rasqal_row* row, int offset);
 
 /* rasqal_row_compatible.c */
 rasqal_row_compatible* rasqal_new_row_compatible(rasqal_variables_table* vt, rasqal_rowsource *first_rowsource, rasqal_rowsource *second_rowsource);

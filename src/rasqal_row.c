@@ -777,3 +777,12 @@ rasqal_row_set_weak_rowsource(rasqal_row* row, rasqal_rowsource* rowsource)
 {
   row->rowsource = rowsource;
 }
+
+rasqal_variable*
+rasqal_row_get_variable_by_offset(rasqal_row* row, int offset)
+{
+  if(offset < 0)
+    return NULL;
+
+  return rasqal_rowsource_get_variable_by_offset(row->rowsource, offset);
+}

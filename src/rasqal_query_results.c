@@ -1086,6 +1086,7 @@ const unsigned char*
 rasqal_query_results_get_binding_name(rasqal_query_results* query_results, 
                                       int offset)
 {
+  rasqal_row* row;
   rasqal_variable* v;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, NULL);
@@ -1093,16 +1094,11 @@ rasqal_query_results_get_binding_name(rasqal_query_results* query_results,
   if(!rasqal_query_results_is_bindings(query_results)) 
     return NULL;
   
-  if(query_results->query) {
-    raptor_sequence* seq;
-    /* If there is a query, take variable names from the order in the
-     * projection not the order inserted into the variables table.
-     */
-    seq = rasqal_query_get_bound_variable_sequence(query_results->query);
-    v = (rasqal_variable*)raptor_sequence_get_at(seq, offset);
-  } else 
-    v = rasqal_variables_table_get(query_results->vars_table, offset);
+  row = rasqal_query_results_get_current_row(query_results);
+  if(!row)
+    return NULL;
   
+  v = rasqal_row_get_variable_by_offset(row, offset);
   if(!v)
     return NULL;
   
