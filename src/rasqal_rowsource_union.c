@@ -239,7 +239,7 @@ rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   }
 
   if(row) {
-    row->rowsource = rowsource;
+    rasqal_row_set_rowsource(row, rowsource);
     row->offset = con->offset++;
   }
   
@@ -292,7 +292,7 @@ rasqal_union_rowsource_read_all_rows(rasqal_rowsource* rowsource,
     rasqal_row *row = (rasqal_row*)raptor_sequence_get_at(seq1, i);
     /* rows from left are correct order but wrong size */
     rasqal_row_expand_size(row, rowsource->size);
-    row->rowsource = rowsource;
+    rasqal_row_set_rowsource(row, rowsource);
   }
   /* transform rows from right to match new projection */
   right_size = raptor_sequence_size(seq2);
@@ -302,7 +302,7 @@ rasqal_union_rowsource_read_all_rows(rasqal_rowsource* rowsource,
     rasqal_row_expand_size(row, rowsource->size);
     rasqal_union_rowsource_adjust_right_row(rowsource, con, row);
     row->offset += left_size;
-    row->rowsource = rowsource;
+    rasqal_row_set_rowsource(row, rowsource);
   }
 
   if(raptor_sequence_join(seq1, seq2)) {

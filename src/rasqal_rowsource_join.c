@@ -258,7 +258,7 @@ rasqal_join_rowsource_build_merged_row(rasqal_rowsource* rowsource,
     return NULL;
   }
 
-  row->rowsource = rowsource;
+  rasqal_row_set_rowsource(row, rowsource);
   row->offset = con->offset;
 
 #ifdef RASQAL_DEBUG
@@ -493,7 +493,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   } /* end while */
 
   if(row) {
-    row->rowsource = rowsource;
+    rasqal_row_set_rowsource(row, rowsource);
     row->offset = con->offset++;
 
     rasqal_row_bind_variables(row, rowsource->query->vars_table);

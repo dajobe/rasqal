@@ -126,6 +126,9 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
 rasqal_rowsource*
 rasqal_new_rowsource_from_rowsource(rasqal_rowsource* rowsource)
 {
+  if(!rowsource)
+    return NULL;
+
   rowsource->usage++;
   return rowsource;
 }

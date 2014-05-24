@@ -746,3 +746,26 @@ rasqal_row_get_names(rasqal_row* row)
 
   return row->variable_names;
 }
+
+
+void
+rasqal_row_set_rowsource(rasqal_row* row, rasqal_rowsource* rowsource)
+{
+  if(row->rowsource) {
+    rasqal_free_rowsource(row->rowsource);
+    row->rowsource = NULL;
+  }
+
+  row->rowsource = rasqal_new_rowsource_from_rowsource(rowsource);
+}
+
+/* Set/reset a row's rowsource to a weak reference; one that should
+ * NOT be freed.
+ *
+ *  *DANGEROUS* : should only be used by the rasqal_rowsequence_rowsource class
+ */
+void
+rasqal_row_set_weak_rowsource(rasqal_row* row, rasqal_rowsource* rowsource)
+{
+  row->rowsource = rowsource;
+}
