@@ -886,6 +886,7 @@ typedef struct rasqal_results_compare_s rasqal_results_compare;
  * @rows_sequence: stored sequence of rows for use by rasqal_rowsource_read_row() (or NULL)
  * @offset: size of @rows_sequence
  * @generate_group: non-0 to generate a group (ID 0) around all the returned rows, if there is no grouping returned.
+ * @usage: reference count
  *
  * Rasqal Row Source class providing a sequence of rows of values similar to a SQL table.
  *
@@ -947,11 +948,14 @@ struct rasqal_rowsource_s
   int offset;
 
   unsigned int generate_group : 1;
+
+  int usage;
 };
 
 
 /* rasqal_rowsource.c */
 rasqal_rowsource* rasqal_new_rowsource_from_handler(rasqal_world *world, rasqal_query* query, void* user_data, const rasqal_rowsource_handler *handler, rasqal_variables_table* vars_table, int flags);
+rasqal_rowsource* rasqal_new_rowsource_from_rowsource(rasqal_rowsource* rowsource);
 void rasqal_free_rowsource(rasqal_rowsource *rowsource);
 
 rasqal_row* rasqal_rowsource_read_row(rasqal_rowsource *rowsource);
