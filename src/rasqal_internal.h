@@ -613,6 +613,13 @@ struct rasqal_row_s {
 
   /* Group ID */
   int group_id;
+
+  /* array of variable names.  The array is allocated here but the
+   * pointers are into the #variables_sequence above.  It is only
+   * allocated if rasqal_variables_table_get_names() is called
+   * on demand, otherwise is NULL.
+   */
+  const unsigned char** variable_names;
 };
 
 
@@ -1375,6 +1382,7 @@ int rasqal_row_expand_size(rasqal_row *row, int size);
 int rasqal_row_bind_variables(rasqal_row* row, rasqal_variables_table* vars_table);
 raptor_sequence* rasqal_row_sequence_copy(raptor_sequence *seq);
 int rasqal_row_compare(const void *a, const void *b);
+const unsigned char** rasqal_row_get_names(rasqal_row* row);
 
 /* rasqal_row_compatible.c */
 rasqal_row_compatible* rasqal_new_row_compatible(rasqal_variables_table* vt, rasqal_rowsource *first_rowsource, rasqal_rowsource *second_rowsource);

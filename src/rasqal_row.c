@@ -74,6 +74,8 @@ rasqal_new_row_common(rasqal_world* world, int size, int order_size)
 
   row->group_id = -1;
   
+  row->variable_names = NULL;
+
   return row;
 }
 
@@ -168,6 +170,9 @@ rasqal_free_row(rasqal_row* row)
     }
     RASQAL_FREE(array, row->order_values);
   }
+
+  if(row->variable_names)
+    RASQAL_FREE(cstrings, row->variable_names);
 
   RASQAL_FREE(rasqal_row, row);
 }
@@ -716,4 +721,28 @@ rasqal_row_compare(const void *a, const void *b)
   }
   
   return result;
+}
+
+
+const unsigned char**
+rasqal_row_get_names(rasqal_row* row)
+{
+  int size = row->size;
+  
+  if(!row->variable_names && size) {
+    int i;
+    
+    row->variable_names = RASQAL_CALLOC(const unsigned char**, (size + 1), sizeof(unsigned char*));
+    if(!row->variable_names)
+      return NULL;
+
+    for(i = 0; i < size; i++) {
+      rasqal_variable* v;
+
+      v = rasqal_rowsource_get_variable_by_offset(row->rowsource, i);
+      row->variable_names[i] = v->name;
+    }
+  }
+
+  return row->variable_names;
 }
