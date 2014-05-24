@@ -1103,7 +1103,8 @@ main(int argc, char *argv[])
     int count;
     int size;
     int i;
-    char* output_var_name;
+    #define OUT_VAR_NAME_LEN 4
+    const char* output_var_name = "fake";
     rasqal_variable* output_var;
     rasqal_expression* expr;
     int output_row_size = (input_vars_count + output_vars_count);
@@ -1173,13 +1174,9 @@ main(int argc, char *argv[])
     } /* if vars */
 
 
-    #define OUT_VAR_NAME_LEN 4
-    output_var_name = RASQAL_MALLOC(char*, OUT_VAR_NAME_LEN + 1);
-    memcpy(output_var_name, "fake", OUT_VAR_NAME_LEN + 1);
     output_var = rasqal_variables_table_add2(vt, RASQAL_VARIABLE_TYPE_ANONYMOUS, 
                                              RASQAL_GOOD_CAST(const unsigned char*, output_var_name),
                                              OUT_VAR_NAME_LEN, NULL);
-
     expr = make_test_expr(world, expr_args_seq, op);
     /* expr_args_seq is now owned by expr */
     expr_args_seq = NULL;
