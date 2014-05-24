@@ -817,7 +817,7 @@ rasqal_query_get_all_variable_sequence(rasqal_query* query)
  *
  * Get a variable in the query
  *
- * Return value: a #rasqal_variable pointer or NULL if out of range
+ * Return value: pointer to shared #rasqal_variable or NULL if out of range
  **/
 rasqal_variable*
 rasqal_query_get_variable(rasqal_query* query, int idx)
