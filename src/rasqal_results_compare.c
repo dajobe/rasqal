@@ -142,13 +142,17 @@ rasqal_new_results_compare(rasqal_world* world,
   for(i = 0; i < rrc->second_count; i++) {
     rasqal_variable *v;
     rasqal_variable *v2;
+    int free_v2 = 0;
 
     v = rasqal_variables_table_get(second_vt, i);
     v2 = rasqal_variables_table_get_by_name(rrc->vt, v->type, v->name);
-    if(!v2)
+    if(!v2) {
+      free_v2 = 1;
       v2 = rasqal_variables_table_add2(rrc->vt, v->type, v->name, 0, NULL);
+    }
     rrc->defined_in_map[1 + ((v2->offset)<<1)] = i;
-    rasqal_free_variable(v2);
+    if(free_v2)
+      rasqal_free_variable(v2);
   }
 
   rrc->variables_count = rasqal_variables_table_get_total_variables_count(rrc->vt);
