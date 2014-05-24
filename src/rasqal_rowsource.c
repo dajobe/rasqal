@@ -81,6 +81,7 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
     return NULL;
   }
 
+  rowsource->usage = 1;
   rowsource->world = world;
   rowsource->query = query;
   rowsource->user_data = (void*)user_data;
@@ -109,8 +110,6 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
     rasqal_free_rowsource(rowsource);
     return NULL;
   }
-
-  rowsource->usage = 1;
 
   return rowsource;
 }
