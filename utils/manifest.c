@@ -1056,7 +1056,8 @@ manifest_test_run(manifest_test* t, const char* path)
 
   /* Read expected results */
   results_type = rasqal_query_get_result_type(rq);
-  RASQAL_DEBUG2("Expecting result type %d\n", results_type);
+  RASQAL_DEBUG2("Expecting result type %s\n",
+                rasqal_query_results_type_label(results_type));
 
   if(t->expected_result) {
     unsigned char* expected_result_uri_string;
@@ -1082,6 +1083,10 @@ manifest_test_run(manifest_test* t, const char* path)
       result = NULL;
       goto tidy;
     }
+
+    RASQAL_DEBUG3("Reading result type %s from file %s\n",
+                  rasqal_query_results_type_label(results_type),
+                  result_filename);
 
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
