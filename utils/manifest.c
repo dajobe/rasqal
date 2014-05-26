@@ -351,19 +351,21 @@ manifest_testsuite_result_format(FILE* fh,
         fputc('\n', fh);
       }
 
-      if(verbose && t->result->details) {
-        manifest_indent(fh, indent + indent_step);
-        fputs(t->result->details, fh);
-        fputc('\n', fh);
-      }
-
-      if(verbose && t->result->log) {
-        manifest_indent_multiline(fh, t->result->log,
-                                  indent + indent_step * 2,
-                                  15);
-      }
-
       if(verbose) {
+        if(t->result) {
+          if(t->result->details) {
+            manifest_indent(fh, indent + indent_step);
+            fputs(t->result->details, fh);
+            fputc('\n', fh);
+          }
+
+          if(t->result->log) {
+            manifest_indent_multiline(fh, t->result->log,
+                                      indent + indent_step * 2,
+                                      15);
+          }
+        }
+
         manifest_indent(fh, indent + indent_step);
         manifest_banner(fh, banner_width, '=');
       }
