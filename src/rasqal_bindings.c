@@ -119,7 +119,7 @@ rasqal_new_bindings_from_var_values(rasqal_query* query,
   raptor_sequence* varlist = NULL;
   rasqal_row* row = NULL;
   raptor_sequence* rowlist = NULL;
-  int size;
+  int size = 0;
   int i;
 
 
