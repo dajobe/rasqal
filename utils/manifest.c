@@ -1145,7 +1145,7 @@ manifest_test_run(manifest_test* t, const char* path)
       case RASQAL_QUERY_RESULTS_BOOLEAN:
       case RASQAL_QUERY_RESULTS_UNKNOWN:
         /* failure */
-        RASQAL_DEBUG2("Reading %s query results format is not supported",
+        RASQAL_DEBUG2("Reading %s query results format is not supported\n",
                       rasqal_query_results_type_label(results_type));
         manifest_free_test_result(result);
         result = NULL;
