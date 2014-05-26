@@ -115,8 +115,8 @@ main(int argc, char *argv[])
   rasqal_variables_table_add2(vars_table, RASQAL_VARIABLE_TYPE_NORMAL,
                               (const unsigned char*)"b", 1, NULL);
 
-  results = rasqal_new_query_results(world, NULL,
-                                     RASQAL_QUERY_RESULTS_BINDINGS, vars_table);
+  results = rasqal_new_query_results2(world, NULL,
+                                      RASQAL_QUERY_RESULTS_BINDINGS);
   if(!results) {
     fprintf(stderr, "%s: Failed to create query results\n", program);
     rc = 1;

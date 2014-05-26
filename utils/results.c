@@ -55,7 +55,6 @@ rasqal_cmdline_read_results(rasqal_world* world,
                             const char* result_filename,
                             const char* result_format_name)
 {
-  rasqal_variables_table* vars_table = NULL;
   rasqal_query_results_formatter* qrf = NULL;
   unsigned char *query_results_base_uri_string = NULL;
   raptor_uri* query_results_base_uri = NULL;
@@ -68,12 +67,7 @@ rasqal_cmdline_read_results(rasqal_world* world,
                                           query_results_base_uri_string);
   raptor_free_memory(query_results_base_uri_string);
 
-  vars_table = rasqal_new_variables_table(world);
-  if(!vars_table)
-    goto tidy_fail;
-
-  results = rasqal_new_query_results(world, NULL, results_type, vars_table);
-  rasqal_free_variables_table(vars_table); vars_table = NULL;
+  results = rasqal_new_query_results2(world, NULL, results_type);
   if(!results)
     goto tidy_fail;
 

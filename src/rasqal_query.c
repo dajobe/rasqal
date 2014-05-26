@@ -1358,8 +1358,7 @@ rasqal_query_execute_with_engine(rasqal_query* query,
   if(type == RASQAL_QUERY_RESULTS_UNKNOWN)
     return NULL;
   
-  query_results = rasqal_new_query_results(query->world, query, type,
-                                           query->vars_table);
+  query_results = rasqal_new_query_results2(query->world, query, type);
   if(!query_results)
     return NULL;
 

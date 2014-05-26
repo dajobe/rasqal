@@ -1387,6 +1387,8 @@ rasqal_query_results_type rasqal_query_get_result_type(rasqal_query* query);
 
 /* query results */
 RASQAL_API
+rasqal_query_results* rasqal_new_query_results2(rasqal_world* world, rasqal_query* query, rasqal_query_results_type type);
+RASQAL_API RASQAL_DEPRECATED
 rasqal_query_results* rasqal_new_query_results(rasqal_world* world, rasqal_query* query, rasqal_query_results_type type, rasqal_variables_table* vars_table);
 RASQAL_API
 rasqal_query_results* rasqal_new_query_results_from_string(rasqal_world* world, rasqal_query_results_type type, raptor_uri* base_uri, const char* string, size_t string_len);
