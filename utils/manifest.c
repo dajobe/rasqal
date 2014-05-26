@@ -980,8 +980,9 @@ manifest_test_run(manifest_test* t, const char* path)
   rasqal_query_results *actual_results = NULL;
 
   if(t && t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
-    RASQAL_DEBUG2("Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
-                  rasqal_literal_as_string(t->test_node));
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_WARN, NULL,
+                            "Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
+                            rasqal_literal_as_string(t->test_node));
     return NULL;
   }
 
@@ -1150,8 +1151,9 @@ manifest_test_run(manifest_test* t, const char* path)
       case RASQAL_QUERY_RESULTS_BOOLEAN:
       case RASQAL_QUERY_RESULTS_UNKNOWN:
         /* failure */
-        RASQAL_DEBUG2("Reading %s query results format is not supported\n",
-                      rasqal_query_results_type_label(results_type));
+        rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                                "Reading %s query results format is not supported",
+                                rasqal_query_results_type_label(results_type));
         manifest_free_test_result(result);
         result = NULL;
         goto tidy;
@@ -1295,6 +1297,7 @@ manifest_testsuite_run_suite(manifest_testsuite* ts,
                              unsigned int indent,
                              int dryrun, int verbose)
 {
+  rasqal_world* world = ts->mw->world;
   char* name = ts->name;
   char* desc = ts->desc ? ts->desc : name;
   int i;
@@ -1305,7 +1308,7 @@ manifest_testsuite_run_suite(manifest_testsuite* ts,
   manifest_test_state state;
   unsigned int xfailed_count;
   unsigned int failed_count;
-
+  
   /* Initialize */
   result = manifest_new_test_result(STATE_FAIL);
 
@@ -1316,8 +1319,9 @@ manifest_testsuite_run_suite(manifest_testsuite* ts,
   column = indent;
   for(i = 0; (t = (manifest_test*)raptor_sequence_get_at(ts->tests, i)); i++) {
     if(t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
-      RASQAL_DEBUG2("Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
-                    rasqal_literal_as_string(t->test_node));
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_WARN, NULL,
+                              "Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
+                              rasqal_literal_as_string(t->test_node));
       continue;
     }
 
