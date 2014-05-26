@@ -98,7 +98,7 @@
  */
 
 static int rasqal_query_results_execute_and_store_results(rasqal_query_results* query_results);
-static void rasqal_query_results_update_bindings(rasqal_query_results* query_results);
+static void rasqal_query_results_update_query_bindings(rasqal_query_results* query_results, rasqal_query *query);
 
 
 /*
@@ -706,7 +706,7 @@ rasqal_query_results_get_row_from_saved(rasqal_query_results* query_results)
       query_results->row = row;
       
       if(query && query->constructs)
-        rasqal_query_results_update_bindings(query_results);
+        rasqal_query_results_update_query_bindings(query_results, query);
     }
     break;
   }
@@ -987,7 +987,7 @@ rasqal_query_results_rewind(rasqal_query_results* query_results)
     query_results->result_count = 0;
   else {
     if(query && query->constructs)
-      rasqal_query_results_update_bindings(query_results);
+      rasqal_query_results_update_query_bindings(query_results, query);
   }
 
   return 0;
@@ -1609,31 +1609,44 @@ rasqal_query_results_execute_and_store_results(rasqal_query_results* query_resul
 }
 
 
+/*
+ * rasqal_query_results_update_query_bindings:
+ * @query_results: query results to read from
+ * @query: query to set bindings to
+ *
+ * INTERNAL - bind the query variables to the values from the current query results row
+ *
+ * Used to handle query CONSTRUCT
+ */
 static void
-rasqal_query_results_update_bindings(rasqal_query_results* query_results)
+rasqal_query_results_update_query_bindings(rasqal_query_results* query_results, rasqal_query* query)
 {
   int i;
   int size;
+  rasqal_row* row;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(query_results, rasqal_query_results);
 
-  /* bind the construct variables again if running through a sequence */
+  rasqal_query_results_ensure_have_row_internal(query_results);
+
+  row = query_results->row;
+  if(!row) {
+    query_results->finished = 1;
+    return;
+  }
+
   size = rasqal_variables_table_get_named_variables_count(query_results->vars_table);
-  for(i = 0; i< size; i++) {
+  for(i = 0; i < size; i++) {
+    rasqal_variable* srcv;
     rasqal_variable* v;
-    rasqal_row* row;
-    rasqal_literal* value = NULL;
+    /* source value is in row */
+    rasqal_literal* value = row->values[i];
 
-    v = rasqal_variables_table_get(query_results->vars_table, i);
+    /* source variable is in query results */
+    srcv = rasqal_variables_table_get(query_results->vars_table, i);
 
-    rasqal_query_results_ensure_have_row_internal(query_results);
-    row = query_results->row;
-    if(row) {
-      if (i >= row->size)
-        continue;
-      value = row->values[i];
-    } else
-      query_results->finished = 1;
+    /* destination variable is in query */
+    v = rasqal_variables_table_get_by_name(query->vars_table, srcv->type, srcv->name);
 
     rasqal_variable_set_value(v, rasqal_new_literal_from_literal(value));
   }
