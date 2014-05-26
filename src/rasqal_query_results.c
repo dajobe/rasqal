@@ -1032,7 +1032,7 @@ rasqal_query_results_get_bindings(rasqal_query_results* query_results,
   }
 
   if(names)
-    *names = rasqal_row_get_names(row);
+    *names = rasqal_variables_table_get_names(query_results->vars_table);
   
   if(values)
     *values = row->values;

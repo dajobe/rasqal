@@ -732,30 +732,6 @@ rasqal_row_compare(const void *a, const void *b)
 }
 
 
-const unsigned char**
-rasqal_row_get_names(rasqal_row* row)
-{
-  int size = row->size;
-  
-  if(!row->variable_names && size) {
-    int i;
-    
-    row->variable_names = RASQAL_CALLOC(const unsigned char**, (size + 1), sizeof(unsigned char*));
-    if(!row->variable_names)
-      return NULL;
-
-    for(i = 0; i < size; i++) {
-      rasqal_variable* v;
-
-      v = rasqal_rowsource_get_variable_by_offset(row->rowsource, i);
-      row->variable_names[i] = v->name;
-    }
-  }
-
-  return row->variable_names;
-}
-
-
 void
 rasqal_row_set_rowsource(rasqal_row* row, rasqal_rowsource* rowsource)
 {
