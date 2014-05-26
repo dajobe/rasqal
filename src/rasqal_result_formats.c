@@ -221,7 +221,7 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
 
 
 /**
- * rasqal_query_results_formats_check:
+ * rasqal_query_results_formats_check2:
  * @world: rasqal_world object
  * @name: the query results format name (or NULL)
  * @uri: #raptor_uri query results format uri (or NULL)
@@ -233,10 +233,10 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
  * Return value: non-0 if a formatter exists.
  **/
 int
-rasqal_query_results_formats_check(rasqal_world* world,
-                                   const char *name, raptor_uri* uri,
-                                   const char *mime_type,
-                                   int flags)
+rasqal_query_results_formats_check2(rasqal_world* world,
+                                    const char *name, raptor_uri* uri,
+                                    const char *mime_type,
+                                    int flags)
 {
   rasqal_query_results_format_factory* factory = NULL;
   
@@ -246,6 +246,31 @@ rasqal_query_results_formats_check(rasqal_world* world,
                                                        name, uri, mime_type,
                                                        flags);
   return (factory != NULL);
+}
+
+
+/**
+ * rasqal_query_results_formats_check:
+ * @world: rasqal_world object
+ * @name: the query results format name (or NULL)
+ * @uri: #raptor_uri query results format uri (or NULL)
+ * @mime_type: mime type name
+ * @flags: bitmask of flags to signify that format is needed for reading (#RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER ) or writing ( #RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER )
+ *
+ * Check if a query results formatter exists for the requested format.
+ *
+ * @Deprecated: use rasqal_query_results_formats_check2() since the
+ * implementation of this function returned an inverted boolean result.
+ *
+ * Return value: 0 if a formatter exists.
+ **/
+int
+rasqal_query_results_formats_check(rasqal_world* world,
+                                   const char *name, raptor_uri* uri,
+                                   const char *mime_type,
+                                   int flags)
+{
+  return !rasqal_query_results_formats_check2(world, name, uri, mime_type, flags);
 }
 
 
