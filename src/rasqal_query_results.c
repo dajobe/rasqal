@@ -1693,8 +1693,10 @@ rasqal_query_results_update_query_bindings(rasqal_query_results* query_results, 
 
     /* destination variable is in query */
     v = rasqal_variables_table_get_by_name(query->vars_table, srcv->type, srcv->name);
-
-    rasqal_variable_set_value(v, rasqal_new_literal_from_literal(value));
+    if(v)
+      rasqal_variable_set_value(v, rasqal_new_literal_from_literal(value));
+    else
+      RASQAL_DEBUG2("Cannot bind query results variable %s into query", srcv->name);
   }
 }
 
