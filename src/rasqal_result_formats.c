@@ -172,7 +172,7 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
       factory_flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER;
 
     /* Flags must match */
-    if(flags && factory_flags != flags)
+    if(flags && (factory_flags & flags) != flags)
       continue;
 
     if(!name && !uri)
