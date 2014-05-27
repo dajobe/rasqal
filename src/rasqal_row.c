@@ -724,8 +724,10 @@ rasqal_row_compare(const void *a, const void *b)
   /* still equal?  make sort stable by using the original order */
   if(!result) {
     result = row_a->offset - row_b->offset;
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG2("Got equality result so using offsets, returning %d\n",
                   result);
+#endif
   }
   
   return result;
