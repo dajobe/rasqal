@@ -593,6 +593,16 @@ rasqal_query_results_formatter_read(rasqal_world *world,
 
     if(rowsource)
       rasqal_free_rowsource(rowsource);
+  } else if(type == RASQAL_QUERY_RESULTS_BOOLEAN) {
+    int bvalue;
+
+    bvalue = rasqal_query_results_formatter_get_boolean(world,
+                                                        iostr,
+                                                        formatter,
+                                                        base_uri, 0);
+    if(bvalue < 0)
+      return 1;
+    rasqal_query_results_set_boolean(results, bvalue);
   } else {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
                             "Cannot read '%s' query results format\n",
