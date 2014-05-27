@@ -546,7 +546,7 @@ rasqal_query_results_formatter_get_boolean(rasqal_world *world,
  * @base_uri: #raptor_uri base URI of the input format
  *
  * Read the query results using the given formatter from an iostream
- * 
+ *
  * See rasqal_world_get_query_results_format_description() for
  * obtaining the supported format URIs at run time.
  *
@@ -561,7 +561,7 @@ rasqal_query_results_formatter_read(rasqal_world *world,
 {
   rasqal_query_results_type type;
   int rc = 0;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(formatter, rasqal_query_results_formatter, 1);
@@ -570,44 +570,55 @@ rasqal_query_results_formatter_read(rasqal_world *world,
 
   type = rasqal_query_results_get_type(results);
 
-  /* Read bindings results */
-  if(type == RASQAL_QUERY_RESULTS_BINDINGS) {
-    rasqal_rowsource* rowsource = NULL;
-    rasqal_variables_table* vars_table;
+  switch(type) {
+    case RASQAL_QUERY_RESULTS_BINDINGS:
+      if(1) {
+        rasqal_rowsource* rowsource = NULL;
+        rasqal_variables_table* vars_table;
 
-    vars_table = rasqal_query_results_get_variables_table(results);
-    rowsource = rasqal_query_results_formatter_get_read_rowsource(world,
-                                                                  iostr,
-                                                                  formatter,
-                                                                  vars_table,
-                                                                  base_uri, 0);
-    if(!rowsource)
-      return 1;
+        vars_table = rasqal_query_results_get_variables_table(results);
+        rowsource = rasqal_query_results_formatter_get_read_rowsource(world,
+                                                                      iostr,
+                                                                      formatter,
+                                                                      vars_table,
+                                                                      base_uri, 0);
+        if(!rowsource)
+          return 1;
 
-    while(1) {
-      rasqal_row* row = rasqal_rowsource_read_row(rowsource);
-      if(!row)
-        break;
-      rasqal_query_results_add_row(results, row);
-    }
+        while(1) {
+          rasqal_row* row = rasqal_rowsource_read_row(rowsource);
+          if(!row)
+            break;
+          rasqal_query_results_add_row(results, row);
+        }
 
-    if(rowsource)
-      rasqal_free_rowsource(rowsource);
-  } else if(type == RASQAL_QUERY_RESULTS_BOOLEAN) {
-    int bvalue;
+        if(rowsource)
+          rasqal_free_rowsource(rowsource);
+      }
+      break;
 
-    bvalue = rasqal_query_results_formatter_get_boolean(world,
-                                                        iostr,
-                                                        formatter,
-                                                        base_uri, 0);
-    if(bvalue < 0)
-      return 1;
-    rasqal_query_results_set_boolean(results, bvalue);
-  } else {
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Cannot read '%s' query results format\n",
-                            rasqal_query_results_type_label(type));
-    rc = 1;
+    case RASQAL_QUERY_RESULTS_BOOLEAN:
+      if(1) {
+        int bvalue;
+
+        bvalue = rasqal_query_results_formatter_get_boolean(world,
+                                                            iostr,
+                                                            formatter,
+                                                            base_uri, 0);
+        if(bvalue < 0)
+          return 1;
+        rasqal_query_results_set_boolean(results, bvalue);
+      }
+      break;
+
+    case RASQAL_QUERY_RESULTS_GRAPH:
+    case RASQAL_QUERY_RESULTS_SYNTAX:
+    case RASQAL_QUERY_RESULTS_UNKNOWN:
+      /* failure */
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                              "Cannot read '%s' query results format\n",
+                              rasqal_query_results_type_label(type));
+      rc = 1;
   }
 
   return rc;
