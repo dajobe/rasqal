@@ -985,9 +985,12 @@ typedef void (*rasqal_query_results_finish_func)(rasqal_query_results_formatter*
 
 typedef int (*rasqal_query_results_write_func)(rasqal_query_results_formatter* formatter, raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 
-typedef rasqal_rowsource* (*rasqal_query_results_get_rowsource_func)(rasqal_query_results_formatter* formatter, rasqal_world*, rasqal_variables_table* vars_table, raptor_iostream *iostr, raptor_uri *base_uri, unsigned int flags);
+typedef rasqal_rowsource* (*rasqal_query_results_get_rowsource_func)(rasqal_query_results_formatter* formatter, rasqal_world* world, rasqal_variables_table* vars_table, raptor_iostream *iostr, raptor_uri *base_uri, unsigned int flags);
 
 typedef int (*rasqal_query_results_recognise_syntax_func)(struct rasqal_query_results_format_factory_s* factory, const unsigned char *buffer, size_t len, const unsigned char *identifier, const unsigned char *suffix, const char *mime_type);
+
+typedef int (*rasqal_query_results_get_boolean_func)(rasqal_query_results_formatter *formatter, rasqal_world* world, raptor_iostream *iostr, raptor_uri *base_uri, unsigned int flags);
+
 
 typedef int (*rasqal_rowsource_visit_fn)(rasqal_rowsource* rowsource, void *user_data);
 
@@ -1019,6 +1022,9 @@ struct rasqal_query_results_format_factory_s {
 
   /* recognize a format (OPTIONAL) */
   rasqal_query_results_recognise_syntax_func recognise_syntax;
+
+  /* get a boolean result (OPTIONAL) */
+  rasqal_query_results_get_boolean_func get_boolean;
 };
 
 

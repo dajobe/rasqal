@@ -502,6 +502,42 @@ rasqal_query_results_formatter_get_read_rowsource(rasqal_world *world,
 
 
 /**
+ * rasqal_query_results_formatter_get_boolean:
+ * @world: rasqal world object
+ * @iostr: #raptor_iostream to read the query from
+ * @formatter: #rasqal_query_results_formatter object
+ * @base_uri: #raptor_uri base URI of the input format
+ * @flags: non-0 to take ownership of @iostr
+ *
+ * INTERNAL - read boolean result from a formatted input iostream
+ *
+ * See rasqal_world_get_query_results_format_description() for
+ * obtaining the supported format URIs at run time.
+ *
+ * Takes OWNERSHIP of the @iostr
+ *
+ * Return value: boolean value 0 (false), >0 (true) or <0 on failure
+ **/
+static int
+rasqal_query_results_formatter_get_boolean(rasqal_world *world,
+                                           raptor_iostream *iostr,
+                                           rasqal_query_results_formatter* formatter,
+                                           raptor_uri *base_uri,
+                                           unsigned int flags)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, -1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, -1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(formatter, rasqal_query_results_formatter, -1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(base_uri, raptor_uri, -1);
+
+  if(!formatter->factory->get_boolean)
+    return -1;
+
+  return formatter->factory->get_boolean(formatter, world, iostr, base_uri, flags);
+}
+
+
+/**
  * rasqal_query_results_formatter_read:
  * @world: rasqal world object
  * @iostr: #raptor_iostream to read the query from
