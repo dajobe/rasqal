@@ -860,7 +860,9 @@ rasqal_rowsource_sparql_xml_process(rasqal_rowsource_sparql_xml_context* con)
                                           FILE_READ_BUF_SIZE,
                                           con->iostr);
     if(read_len > 0) {
+#ifdef TRACE_XML
       RASQAL_DEBUG2("processing %d bytes\n", RASQAL_GOOD_CAST(int, read_len));
+#endif
       raptor_sax2_parse_chunk(con->sax2, con->buffer, read_len, 0);
     }
     
@@ -905,7 +907,9 @@ rasqal_rowsource_sparql_xml_read_row(rasqal_rowsource* rowsource,
   rasqal_rowsource_sparql_xml_process(con);
   
   if(!con->failed && raptor_sequence_size(con->results_sequence) > 0) {
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("getting row from stored sequence\n");
+#endif
     row=(rasqal_row*)raptor_sequence_unshift(con->results_sequence);
   }
 
@@ -1016,7 +1020,9 @@ rasqal_rowsource_sparql_xml_get_boolean(rasqal_query_results_formatter *formatte
                                           FILE_READ_BUF_SIZE,
                                           con->iostr);
     if(read_len > 0) {
+#ifdef TRACE_XML
       RASQAL_DEBUG2("processing %d bytes\n", RASQAL_GOOD_CAST(int, read_len));
+#endif
       raptor_sax2_parse_chunk(con->sax2, con->buffer, read_len, 0);
     }
 
