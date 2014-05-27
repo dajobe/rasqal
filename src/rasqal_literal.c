@@ -4299,7 +4299,7 @@ rasqal_literal_array_compare(rasqal_literal** values_a,
     if(exprs_seq)
       e = (rasqal_expression*)raptor_sequence_get_at(exprs_seq, i);
 
-#ifdef RASQAL_DEBUG
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("Comparing ");
     rasqal_literal_print(literal_a, DEBUG_FH);
     fputs(" to ", DEBUG_FH);
@@ -4313,7 +4313,7 @@ rasqal_literal_array_compare(rasqal_literal** values_a,
         result = 0;
       } else {
         result = (!literal_a) ? -1 : 1;
-#ifdef RASQAL_DEBUG
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
         RASQAL_DEBUG2("Got one NULL literal comparison, returning %d\n", result);
 #endif
       }
@@ -4324,7 +4324,7 @@ rasqal_literal_array_compare(rasqal_literal** values_a,
                                     compare_flags | RASQAL_COMPARE_URI,
                                     &error);
     if(error) {
-#ifdef RASQAL_DEBUG
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       RASQAL_DEBUG2("Got literal comparison error at expression %d, returning 0\n", i);
 #endif
       result = 0;
@@ -4338,7 +4338,7 @@ rasqal_literal_array_compare(rasqal_literal** values_a,
       result = -result;
     /* else Order condition is RASQAL_EXPR_ORDER_COND_ASC so nothing to do */
     
-#ifdef RASQAL_DEBUG
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG3("Returning comparison result %d at expression %d\n", result, i);
 #endif
     break;
@@ -4373,7 +4373,7 @@ rasqal_literal_array_equals(rasqal_literal** values_a,
     
     result = rasqal_literal_equals_flags(literal_a, literal_b,
                                          RASQAL_COMPARE_RDF, &error);
-#ifdef RASQAL_DEBUG
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("Comparing ");
     rasqal_literal_print(literal_a, DEBUG_FH);
     fputs(" to ", DEBUG_FH);
