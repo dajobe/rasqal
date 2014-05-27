@@ -797,9 +797,10 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
     case STATE_result:
       if(con->row) {
         RASQAL_DEBUG2("Saving row result %d\n", con->offset);
+        con->row->offset = con->offset - 1;
         raptor_sequence_push(con->results_sequence, con->row);
       }
-      con->row=NULL;
+      con->row = NULL;
       break;
 
     case STATE_unknown:
