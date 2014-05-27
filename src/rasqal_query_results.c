@@ -1486,6 +1486,32 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
 
 
 /**
+ * rasqal_query_results_set_boolean:
+ * @query_results: #rasqal_query_results query_results
+ * @value: boolean value
+ *
+ * INTERNAL - Set boolean query result value.
+ *
+ * Return value: boolean query result - >0 is true, 0 is false, <0 on error
+ */
+int
+rasqal_query_results_set_boolean(rasqal_query_results* query_results, int value)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, -1);
+
+  if(query_results->failed)
+    return -1;
+
+  if(!rasqal_query_results_is_boolean(query_results))
+    return -1;
+
+  query_results->finished = 1;
+  query_results->ask_result = value;
+  return 0;
+}
+
+
+/**
  * rasqal_query_results_write:
  * @iostr: #raptor_iostream to write the query to
  * @results: #rasqal_query_results query results format

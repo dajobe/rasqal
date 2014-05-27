@@ -1340,7 +1340,7 @@ rasqal_variables_table* rasqal_query_results_get_variables_table(rasqal_query_re
 rasqal_row* rasqal_query_results_get_current_row(rasqal_query_results* query_results);
 rasqal_world* rasqal_query_results_get_world(rasqal_query_results* query_results);
 int rasqal_query_results_sort(rasqal_query_results* query_result, raptor_data_compare_handler compare);
-
+int rasqal_query_results_set_boolean(rasqal_query_results* query_results, int value);
 
 /* rasqal_query_write.c */
 int rasqal_query_write_sparql_20060406_graph_pattern(rasqal_graph_pattern* gp, raptor_iostream *iostr,raptor_uri* base_uri);
