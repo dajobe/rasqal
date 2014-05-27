@@ -1091,6 +1091,7 @@ manifest_test_run(manifest_test* t, const char* path)
 
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
+      case RASQAL_QUERY_RESULTS_BOOLEAN:
         /* read results via rasqal query results format */
         expected_results = rasqal_cmdline_read_results(world,
                                                        raptor_world_ptr,
@@ -1148,7 +1149,6 @@ manifest_test_run(manifest_test* t, const char* path)
         break;
 
       case RASQAL_QUERY_RESULTS_SYNTAX:
-      case RASQAL_QUERY_RESULTS_BOOLEAN:
       case RASQAL_QUERY_RESULTS_UNKNOWN:
         /* failure */
         rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
@@ -1203,6 +1203,17 @@ manifest_test_run(manifest_test* t, const char* path)
         break;
 
       case RASQAL_QUERY_RESULTS_BOOLEAN:
+        if(1) {
+          int expected_boolean = rasqal_query_results_get_boolean(expected_results);
+          int actual_boolean = rasqal_query_results_get_boolean(actual_results);
+          RASQAL_DEBUG2("Expected boolean result: %d\n", expected_boolean);
+          RASQAL_DEBUG2("Actual boolean result: %d\n", actual_boolean);
+
+          if(expected_boolean == actual_boolean)
+            state = STATE_PASS;
+        }
+        break;
+
       case RASQAL_QUERY_RESULTS_GRAPH:
       case RASQAL_QUERY_RESULTS_SYNTAX:
       case RASQAL_QUERY_RESULTS_UNKNOWN:
