@@ -1006,6 +1006,7 @@ rasqal_rowsource_sparql_xml_get_boolean(rasqal_query_results_formatter *formatte
                                         raptor_uri *base_uri, unsigned int flags)
 {
   rasqal_rowsource_sparql_xml_context* con;
+  int bv;
 
   con = rasqal_sparql_xml_init_context(world, iostr, base_uri, flags);
   if(!con)
@@ -1038,9 +1039,11 @@ rasqal_rowsource_sparql_xml_get_boolean(rasqal_query_results_formatter *formatte
       break;
   }
 
+  bv = con->boolean_value;
+  
   rasqal_sparql_xml_free_context(con);
 
-  return con->boolean_value;
+  return bv;
 }
 
 
