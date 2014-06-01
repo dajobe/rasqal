@@ -84,8 +84,8 @@ rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
   if(datetime->have_tz == 'Y') {
     if(datetime->timezone_minutes) {
       /* Normalize to Zulu if there was a timezone offset */
-      datetime->hour   += (datetime->timezone_minutes / 60);
-      datetime->minute += (datetime->timezone_minutes % 60);
+      datetime->hour   -= (datetime->timezone_minutes / 60);
+      datetime->minute -= (datetime->timezone_minutes % 60);
 
       datetime->timezone_minutes = 0;
     }
@@ -452,8 +452,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
          */
         return -9;
     
-      /* negative tz offset adds to the result */
-      result->timezone_minutes += (is_neg ? t2 : -t2) * 60;
+      result->timezone_minutes = (is_neg ? -t2 : t2) * 60;
 
       /* timezone minutes */    
       for(q = ++p; ISNUM(*p); p++)
@@ -472,8 +471,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
         return -10;
       }
     
-      /* negative tz offset adds to the result */
-      result->timezone_minutes += is_neg ? t : -t;
+      result->timezone_minutes += is_neg ? -t : t;
     }
     
     /* failure if extra chars after the timezone part */
@@ -740,8 +738,7 @@ rasqal_xsd_timezone_format(signed short timezone_minutes,
       return -1;
 
     mins = abs(timezone_minutes);
-    /* negative tz offset is positive minutes */
-    buffer[0] = (!mins || mins != timezone_minutes ? '+' : '-');
+    buffer[0] = (!mins || mins != timezone_minutes ? '-' : '+');
 
     hours = (mins / 60);
     digit = (hours / 10);
@@ -1462,6 +1459,10 @@ rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt,
   
   if(!dt)
     return NULL;
+
+  minutes = dt->timezone_minutes;
+  if(minutes == RASQAL_XSD_DATETIME_NO_TZ)
+    return NULL;
   
   tz_str = RASQAL_MALLOC(char*, TZ_STR_SIZE + 1);
   if(!tz_str)
@@ -1469,7 +1470,6 @@ rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt,
   
   p = tz_str;
 
-  minutes = dt->timezone_minutes;
   if(minutes < 0) {
     *p++ = '-';
     minutes = -minutes;
