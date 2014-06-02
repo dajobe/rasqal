@@ -1176,7 +1176,7 @@ manifest_test_run(manifest_test* t, const char* path)
 
           RASQAL_DEBUG1("Expected bindings results:\n");
           if(!expected_results)
-            fprintf(stderr, "NO RESULTS");
+            fprintf(stderr, "NO RESULTS\n");
           else {
             rasqal_cmdline_print_bindings_results_simple("fake", expected_results,
                                                        stderr, 1, 0);
@@ -1185,7 +1185,7 @@ manifest_test_run(manifest_test* t, const char* path)
 
           RASQAL_DEBUG1("Actual bindings results:\n");
           if(!actual_results)
-            fprintf(stderr, "NO RESULTS");
+            fprintf(stderr, "NO RESULTS\n");
           else {
             rasqal_cmdline_print_bindings_results_simple("fake", actual_results,
                                                          stderr, 1, 0);
