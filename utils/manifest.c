@@ -401,7 +401,7 @@ manifest_testsuite_result_format(FILE* fh,
     seq = result->states[i];
     if(seq)
       count = raptor_sequence_size(seq);
-    fprintf(fh, "%s: %d ",
+    fprintf(fh, "%s: %3d ",
             manifest_test_state_label(RASQAL_GOOD_CAST(manifest_test_state, i)),
             count);
   }
