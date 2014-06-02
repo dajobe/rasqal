@@ -516,10 +516,13 @@ manifest_new_test(manifest_world* mw,
       rasqal_literal_print(action_node, stderr);
       fputc('\n', stderr);
 #endif
-
-    node = rasqal_dataset_get_target(ds,
-                                     action_node,
-                                     mw->qt_query_literal);
+    if(action_node->type == RASQAL_LITERAL_URI) {
+      node = action_node;
+    } else {
+      node = rasqal_dataset_get_target(ds,
+                                       action_node,
+                                       mw->qt_query_literal);
+    }
     if(node && node->type == RASQAL_LITERAL_URI) {
       uri = rasqal_literal_as_uri(node);
       if(uri) {
@@ -530,7 +533,7 @@ manifest_new_test(manifest_world* mw,
 #endif
       }
     }
-    
+
     test_data_graphs = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph, NULL);
 
     node = rasqal_dataset_get_target(ds,
@@ -1169,32 +1172,44 @@ manifest_test_run(manifest_test* t, const char* path)
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
         if(1) {
-          rasqal_results_compare* rrc;
           int rc;
 
           RASQAL_DEBUG1("Expected bindings results:\n");
-          rasqal_cmdline_print_bindings_results_simple("fake", expected_results,
+          if(!expected_results)
+            fprintf(stderr, "NO RESULTS");
+          else {
+            rasqal_cmdline_print_bindings_results_simple("fake", expected_results,
                                                        stderr, 1, 0);
+            rasqal_query_results_rewind(expected_results);
+          }
 
           RASQAL_DEBUG1("Actual bindings results:\n");
-          rasqal_cmdline_print_bindings_results_simple("fake", actual_results,
-                                                       stderr, 1, 0);
+          if(!actual_results)
+            fprintf(stderr, "NO RESULTS");
+          else {
+            rasqal_cmdline_print_bindings_results_simple("fake", actual_results,
+                                                         stderr, 1, 0);
+            rasqal_query_results_rewind(actual_results);
+          }
 
-          rasqal_query_results_rewind(expected_results);
-          rasqal_query_results_rewind(actual_results);
+          if(!expected_results || !actual_results) {
+            rc = (expected_results == actual_results);
+          } else {
+            rasqal_results_compare* rrc;
 
-          /* FIXME: should NOT do this if results are expected to be ordered */
-          rasqal_query_results_sort(expected_results, rasqal_row_compare);
-          rasqal_query_results_sort(actual_results, rasqal_row_compare);
-
-          rrc = rasqal_new_results_compare(world,
-                                           expected_results, "expected",
-                                           actual_results, "actual");
-          t->error_count = 0;
-          rasqal_results_compare_set_log_handler(rrc, t,
-                                                 manifest_test_run_log_handler);
-          rc = !rasqal_results_compare_compare(rrc);
-          rasqal_free_results_compare(rrc); rrc = NULL;
+            /* FIXME: should NOT do this if results are expected to be ordered */
+            rasqal_query_results_sort(expected_results, rasqal_row_compare);
+            rasqal_query_results_sort(actual_results, rasqal_row_compare);
+            
+            rrc = rasqal_new_results_compare(world,
+                                             expected_results, "expected",
+                                             actual_results, "actual");
+            t->error_count = 0;
+            rasqal_results_compare_set_log_handler(rrc, t,
+                                                   manifest_test_run_log_handler);
+            rc = !rasqal_results_compare_compare(rrc);
+            rasqal_free_results_compare(rrc); rrc = NULL;
+          }
 
           if(!rc)
             state = STATE_PASS;
