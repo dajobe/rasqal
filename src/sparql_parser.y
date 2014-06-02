@@ -5477,6 +5477,9 @@ rasqal_sparql_query_language_prepare(rasqal_query* rdf_query)
   if(rasqal_query_expand_wildcards(rdf_query,
                                    rasqal_query_get_projection(rdf_query)))
     return 1;
+
+  rasqal_evaluation_context_set_base_uri(rdf_query->eval_context,
+                                         rdf_query->base_uri);
   
   return 0;
 }
