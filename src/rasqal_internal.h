@@ -1305,7 +1305,8 @@ rasqal_map* rasqal_new_literal_sequence_sort_map(int is_distinct, int compare_fl
 int rasqal_literal_sequence_sort_map_add_literal_sequence(rasqal_map* map, raptor_sequence* literals_sequence);
 raptor_sequence* rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world, const char* const row_data[], int width);
 rasqal_literal* rasqal_new_literal_from_term(rasqal_world* world, raptor_term* term);
-
+int rasqal_literal_string_datatypes_compare(rasqal_literal* l1, rasqal_literal* l2);
+int rasqal_literal_string_languages_compare(rasqal_literal* l1, rasqal_literal* l2);
 
 /* rasqal_map.c */
 typedef void (*rasqal_map_visit_fn)(void *key, void *value, void *user_data);

@@ -2161,6 +2161,60 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
 
 
 /*
+ * rasqal_literal_string_languages_compare
+ * @l1: #rasqal_literal first literal
+ * @l2: #rasqal_literal second literal
+ *
+ * INTERNAL - Compare two string literals languages
+ *
+ * Return value: non-0 if equal
+ */
+int
+rasqal_literal_string_languages_compare(rasqal_literal* l1, rasqal_literal* l2)
+{
+  int rc = 0;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l1, rasqal_literal, 0);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l2, rasqal_literal, 0);
+
+  if(l1->language && l2->language)
+    /* both have a language */
+    rc = rasqal_strcasecmp(RASQAL_GOOD_CAST(const char*, l1->language),
+                           RASQAL_GOOD_CAST(const char*, l2->language));
+  else if(l1->language || l2->language)
+    /* only one has a language; the language-less one is earlier */
+    rc = (!l1->language ? -1 : 1);
+
+  return rc;
+}
+
+
+/*
+ * rasqal_literal_string_datatypes_compare:
+ * @l1: first string literal
+ * @l2: first string literal
+ *
+ * INTERNAL - Compare the datatypes of two string RDF literals
+ *
+ * Return value: <1, 0, >0
+ */
+int
+rasqal_literal_string_datatypes_compare(rasqal_literal* l1, rasqal_literal* l2)
+{
+  int rc = 0;
+
+  if(l1->datatype && l2->datatype) {
+    /* both have a datatype */
+    rc = raptor_uri_compare(l1->datatype, l2->datatype);
+  } else if(l1->datatype || l2->datatype)
+    /* only one has a datatype; the datatype-less one is earlier */
+    rc = (!l1->datatype ? -1 : 1);
+
+  return rc;
+}
+
+
+/*
  * rasqal_literal_string_compare:
  * @l1: first string literal
  * @l2: first string literal
@@ -2179,7 +2233,7 @@ static int
 rasqal_literal_string_compare(rasqal_literal* l1, rasqal_literal* l2,
                               int flags)
 {
-  int rc = 0;
+  int rc;
   
   if(flags & RASQAL_COMPARE_NOCASE)
     rc = rasqal_strcasecmp(RASQAL_GOOD_CAST(const char*, l1->string),
@@ -2187,29 +2241,14 @@ rasqal_literal_string_compare(rasqal_literal* l1, rasqal_literal* l2,
   else
     rc = strcmp(RASQAL_GOOD_CAST(const char*, l1->string),
                 RASQAL_GOOD_CAST(const char*, l2->string));
+  if(rc)
+    return rc;
 
+  rc = rasqal_literal_string_languages_compare(l1, l2);
   if(rc)
     return rc;
       
-  if(l1->language && l2->language)
-    /* both have a language */
-    rc = strcmp(RASQAL_GOOD_CAST(const char*, l1->language),
-                RASQAL_GOOD_CAST(const char*, l2->language));
-  else if(l1->language || l2->language)
-    /* only one has a language; the language-less one is earlier */
-    rc = (!l1->language ? -1 : 1);
-
-  if(rc)
-    return rc;
-      
-  if(l1->datatype && l2->datatype) {
-    /* both have a datatype */
-    rc = raptor_uri_compare(l1->datatype, l2->datatype);
-  } else if(l1->datatype || l2->datatype)
-    /* only one has a datatype; the datatype-less one is earlier */
-    rc = (!l1->datatype ? -1 : 1);
-
-  return rc;
+  return rasqal_literal_string_datatypes_compare(l1, l2);
 }
 
 
@@ -2565,13 +2604,8 @@ rasqal_literal_string_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
   xsd_string_uri = rasqal_xsd_datatype_type_to_uri(l1->world,
                                                    RASQAL_LITERAL_XSD_STRING);
 
-  if(l1->language || l2->language) {
-    /* if either is NULL, the comparison fails */
-    if(!l1->language || !l2->language)
-      return 0;
-    if(rasqal_strcasecmp(l1->language,l2->language))
-      return 0;
-  }
+  if(rasqal_literal_string_languages_compare(l1, l2))
+    return 0;
 
   /* For a value comparison (or RDQL), promote plain literal to typed
    * literal "xx"^^xsd:string if the other literal is typed
