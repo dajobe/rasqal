@@ -2567,6 +2567,23 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
 
 /*
+ * rasqal_literal_is_string:
+ * @l1: #rasqal_literal first literal
+ *
+ * INTERNAL - check literal is a string literal
+ *
+ * Return value: non-0 if literal is a string
+ */
+int
+rasqal_literal_is_string(rasqal_literal* l1)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l1, rasqal_literal, 1);
+
+  return (l1->type == RASQAL_LITERAL_STRING || l1->type == RASQAL_LITERAL_XSD_STRING);
+}
+
+
+/*
  * rasqal_literal_string_equals_flags:
  * @l1: #rasqal_literal first literal
  * @l2: #rasqal_literal second literal

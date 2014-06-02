@@ -1307,6 +1307,7 @@ raptor_sequence* rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world*
 rasqal_literal* rasqal_new_literal_from_term(rasqal_world* world, raptor_term* term);
 int rasqal_literal_string_datatypes_compare(rasqal_literal* l1, rasqal_literal* l2);
 int rasqal_literal_string_languages_compare(rasqal_literal* l1, rasqal_literal* l2);
+int rasqal_literal_is_string(rasqal_literal* l1);
 
 /* rasqal_map.c */
 typedef void (*rasqal_map_visit_fn)(void *key, void *value, void *user_data);
