@@ -954,6 +954,35 @@ manifest_test_run_log_handler(void* user_data, raptor_log_message *message)
   t->error_count++;
 }
 
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+static void
+manifest_test_print(manifest_test* t, FILE* fh)
+{
+  if(t->desc)
+    fprintf(fh, "Test %s : \"%s\"\n", t->name, t->desc);
+  else
+    fprintf(fh, "Test %s\n", t->name);
+  fprintf(fh, "  Flags: 0x%04X\n", t->flags);
+  fprintf(fh, "    Approved: %s\n",
+          (t->flags & FLAG_TEST_APPROVED) ? "yes" : "no");
+  fprintf(fh, "    Withdrawn: %s\n",
+          (t->flags & FLAG_TEST_WITHDRAWN) ? "yes" : "no");
+  fprintf(fh, "    Result cardinality: %s\n",
+          (t->flags & FLAG_RESULT_CARDINALITY_LAX) ? "lax" : "strict");
+  fprintf(fh, "    Entailment: %s\n",
+          (t->flags & FLAG_ENTAILMENT) ? "yes" : "no");
+
+  fprintf(fh, "  Query URI: '%s'\n", raptor_uri_as_string(t->query));
+  if(t->data_graphs && raptor_sequence_size(t->data_graphs) > 0) {
+    fputs("  Data URIs: ", fh);
+    raptor_sequence_print(t->data_graphs, fh);
+  }
+  if(t->expected_result)
+    fprintf(fh, "  Result URI: '%s'\n",
+            raptor_uri_as_string(t->expected_result));
+}
+#endif
+
 
 /**
  * manifest_test_run:
@@ -981,6 +1010,11 @@ manifest_test_run(manifest_test* t, const char* path)
   char* result_filename = NULL;
   raptor_iostream* result_iostr = NULL;
   rasqal_query_results *actual_results = NULL;
+
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+  RASQAL_DEBUG1("Running ");
+  manifest_test_print(t, stderr);
+#endif
 
   if(t && t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_WARN, NULL,
