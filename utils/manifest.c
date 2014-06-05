@@ -1144,6 +1144,7 @@ manifest_test_run(manifest_test* t, const char* path)
           goto tidy;
         }
         
+#if defined(RASQAL_DEBUG)
         if(results_type == RASQAL_QUERY_RESULTS_BINDINGS) {
           RASQAL_DEBUG1("Expected bindings results:\n");
           if(!expected_results)
@@ -1157,6 +1158,7 @@ manifest_test_run(manifest_test* t, const char* path)
           int expected_boolean = rasqal_query_results_get_boolean(expected_results);
           RASQAL_DEBUG2("Expected boolean result: %d\n", expected_boolean);
         }
+#endif
 
         break;
 
@@ -1217,7 +1219,8 @@ manifest_test_run(manifest_test* t, const char* path)
 
   actual_results = rasqal_query_execute(rq);
 
-  /* Print what we got */
+#if defined(RASQAL_DEBUG)
+  /* Debug print what we got */
   if(actual_results) {
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
@@ -1247,7 +1250,7 @@ manifest_test_run(manifest_test* t, const char* path)
         goto tidy;
     }
   }
-
+#endif
 
   /* Check actual vs expected */ 
   if(actual_results) {
@@ -1258,7 +1261,6 @@ manifest_test_run(manifest_test* t, const char* path)
         case RASQAL_QUERY_RESULTS_BINDINGS:
           if(1) {
             int rc;
-
             rasqal_results_compare* rrc;
 
             /* FIXME: should NOT do this if results are expected to be ordered */
