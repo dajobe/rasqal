@@ -976,6 +976,7 @@ manifest_test_print(manifest_test* t, FILE* fh)
   if(t->data_graphs && raptor_sequence_size(t->data_graphs) > 0) {
     fputs("  Data URIs: ", fh);
     raptor_sequence_print(t->data_graphs, fh);
+    fputc('\n', fh);
   }
   if(t->expected_result)
     fprintf(fh, "  Result URI: '%s'\n",
