@@ -393,6 +393,11 @@ rasqal_results_compare_compare(rasqal_results_compare* rrc)
       value1 = rasqal_query_results_get_binding_value(rrc->first_qr, ix1);
       value2 = rasqal_query_results_get_binding_value(rrc->second_qr, ix2);
 
+      /* Blank nodes always match each other */
+      if(value1 && value1->type ==  RASQAL_LITERAL_BLANK &&
+         value2 && value2->type ==  RASQAL_LITERAL_BLANK)
+        continue;
+
       /* should have compare as native flag?
        * RASQAL_COMPARE_XQUERY doesn't compare all values
        */
