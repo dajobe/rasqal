@@ -74,8 +74,6 @@ rasqal_new_row_common(rasqal_world* world, int size, int order_size)
 
   row->group_id = -1;
   
-  row->variable_names = NULL;
-
   return row;
 }
 
@@ -175,9 +173,6 @@ rasqal_free_row(rasqal_row* row)
     }
     RASQAL_FREE(array, row->order_values);
   }
-
-  if(row->variable_names)
-    RASQAL_FREE(cstrings, row->variable_names);
 
   if(row->rowsource)
     rasqal_free_rowsource(row->rowsource);
@@ -737,12 +732,11 @@ rasqal_row_compare(const void *a, const void *b)
 void
 rasqal_row_set_rowsource(rasqal_row* row, rasqal_rowsource* rowsource)
 {
-  if(row->rowsource) {
+  if(!(row->flags & RASQAL_ROW_FLAG_WEAK_ROWSOURCE) && row->rowsource)
     rasqal_free_rowsource(row->rowsource);
-    row->rowsource = NULL;
-  }
 
   row->rowsource = rasqal_new_rowsource_from_rowsource(rowsource);
+  row->flags &= ~ RASQAL_ROW_FLAG_WEAK_ROWSOURCE;
 }
 
 /* Set/reset a row's rowsource to a weak reference; one that should
@@ -754,6 +748,7 @@ void
 rasqal_row_set_weak_rowsource(rasqal_row* row, rasqal_rowsource* rowsource)
 {
   row->rowsource = rowsource;
+  row->flags |= RASQAL_ROW_FLAG_WEAK_ROWSOURCE;
 }
 
 rasqal_variable*
