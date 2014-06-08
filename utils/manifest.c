@@ -534,7 +534,8 @@ manifest_new_test(manifest_world* mw,
       }
     }
 
-    test_data_graphs = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph, NULL);
+    test_data_graphs = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph,
+                                           (raptor_data_print_handler)rasqal_data_graph_print);
 
     node = rasqal_dataset_get_target(ds,
                                      action_node,
