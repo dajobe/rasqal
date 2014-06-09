@@ -1423,9 +1423,9 @@ rasqal_graph_pattern_get_triples(rasqal_query* query,
                                             rasqal_graph_pattern, NULL);
 
   raptor_sequence* triples = NULL;
-  int i = 0;
-
+  
   if (graph_pattern->triples) {
+    int i;
     triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                                       (raptor_data_print_handler)rasqal_triple_print);
   
