@@ -1,8 +1,8 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_format_sparql_xml.c - Format results in SPARQL XML
+ * rasqal_format_sparql_xml.c - Read and write formats in SPARQL XML
  *
- * Copyright (C) 2007-2009, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2007-2014, David Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -46,7 +46,6 @@
 
 static int rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter, raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 static rasqal_rowsource* rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* formatter, rasqal_world *world, rasqal_variables_table* vars_table, raptor_iostream *iostr, raptor_uri *base_uri, unsigned int flags);
-
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
 #define TRACE_XML 1
@@ -432,6 +431,7 @@ const char* const sparql_xml_element_names[]=
   /* In rough order they appear */
   "sparql",
   "head",
+  "boolean",
   "binding",
   "variable",
   "results",
@@ -449,6 +449,7 @@ typedef enum
   /* In same order as above */
   STATE_sparql,
   STATE_head,
+  STATE_boolean,
   STATE_binding,
   STATE_variable,
   STATE_results,
@@ -485,8 +486,9 @@ typedef struct
   /* state-based fields for turning XML into rasqal literals, rows */
   const char* name;  /* variable name (from binding/@name) */
   size_t name_length;
-  char* value; /* URI string, literal string or blank node ID */
-  size_t value_len;
+
+  raptor_stringbuffer *sb; /* URI string, literal string or blank node ID */
+
   const char* datatype; /* literal datatype URI string from literal/@datatype */
   const char* language; /* literal language from literal/@xml:lang */
   rasqal_row* row; /* current result row */
@@ -502,8 +504,13 @@ typedef struct
   int variables_count;
 
   unsigned int flags;
+
+  int boolean_value;
 } rasqal_rowsource_sparql_xml_context;
   
+
+static void rasqal_sparql_xml_free_context(rasqal_rowsource_sparql_xml_context* con);
+
 
 #ifdef TRACE_XML
 static void
@@ -514,6 +521,22 @@ pad(FILE* fh, int depth)
     fputs("  ", fh);
 }
 #endif
+
+static int
+rasqal_sparql_xml_start(rasqal_rowsource_sparql_xml_context* con)
+{
+  con->state = STATE_unknown;
+
+#ifdef TRACE_XML
+  con->trace = 1;
+#endif
+  con->depth = 0;
+
+  raptor_sax2_parse_start(con->sax2, con->base_uri);
+
+  return 0;
+}
+
 
 static void
 rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
@@ -552,8 +575,7 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
   
   attr_count=raptor_xml_element_get_attributes_count(xml_element);
   con->name=NULL;
-  con->value = NULL;
-  con->value_len = 0;
+  con->sb = raptor_new_stringbuffer();
   con->datatype=NULL;
   con->language=NULL;
   
@@ -615,6 +637,7 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
       
     case STATE_sparql:
     case STATE_head:
+    case STATE_boolean:
     case STATE_results:
     case STATE_literal:
     case STATE_bnode:
@@ -647,11 +670,9 @@ rasqal_sparql_xml_sax2_characters_handler(void *user_data,
 
   if(con->state == STATE_literal ||
      con->state == STATE_uri ||
-     con->state == STATE_bnode) {
-    con->value_len = len;
-    con->value = RASQAL_MALLOC(char*, len + 1);
-    memcpy(con->value, s, len);
-    con->value[len]='\0';
+     con->state == STATE_bnode ||
+     con->state == STATE_boolean ) {
+    raptor_stringbuffer_append_counted_string(con->sb, s, len, 1);
   }
 }
 
@@ -664,10 +685,17 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
   raptor_qname* name;
   int i;
   rasqal_sparql_xml_read_state state=STATE_unknown;
-  
+  const char* value = NULL;
+  size_t value_len = 0;
+
   con=(rasqal_rowsource_sparql_xml_context*)user_data;
 
   name=raptor_xml_element_get_name(xml_element);
+
+  if(con->sb) {
+    value_len = raptor_stringbuffer_length(con->sb);
+    value = RASQAL_GOOD_CAST(const char*, raptor_stringbuffer_as_string(con->sb));
+  }
 
   for(i=STATE_first; i <= STATE_last; i++) {
     if(!strcmp(RASQAL_GOOD_CAST(const char*, raptor_qname_get_local_name(name)),
@@ -693,11 +721,24 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
 
   switch(con->state) {
     case STATE_head:
-      /* Only now is the full number of variables known */
-      con->variables_count = rasqal_variables_table_get_named_variables_count(con->vars_table);
-      con->rowsource->size = con->variables_count;
+      if(con->vars_table) {
+        /* Only now is the full number of variables known */
+        con->variables_count = rasqal_variables_table_get_named_variables_count(con->vars_table);
+        con->rowsource->size = con->variables_count;
+      }
       break;
       
+    case STATE_boolean:
+      if(1) {
+        con->boolean_value = -1;
+        if(value_len == 4 && !strncmp(value, "true", value_len))
+          con->boolean_value = 1;
+        else if(value_len == 5 && !strncmp(value, "false", value_len))
+          con->boolean_value = 0;
+        RASQAL_DEBUG3("boolean result string '%s' value %d\n", value, con->boolean_value);
+      }
+      break;
+
     case STATE_literal:
       if(1) {
         rasqal_literal* l;
@@ -705,11 +746,11 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
         raptor_uri* datatype_uri=NULL;
         char* language_str=NULL;
 
-        lvalue = RASQAL_MALLOC(unsigned char*, con->value_len + 1);
-        if(!con->value_len)
+        lvalue = RASQAL_MALLOC(unsigned char*, value_len + 1);
+        if(!value_len)
           *lvalue = '\0';
         else
-          memcpy(lvalue, con->value, con->value_len + 1);
+          memcpy(lvalue, value, value_len + 1);
         if(con->datatype)
           datatype_uri = raptor_new_uri(con->world->raptor_world_ptr, RASQAL_GOOD_CAST(const unsigned char*, con->datatype));
         if(con->language) {
@@ -730,8 +771,8 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
       if(1) {
         rasqal_literal* l;
         unsigned char* lvalue;
-        lvalue = RASQAL_MALLOC(unsigned char*, con->value_len + 1);
-        memcpy(lvalue, con->value, con->value_len + 1);
+        lvalue = RASQAL_MALLOC(unsigned char*, value_len + 1);
+        memcpy(lvalue, value, value_len + 1);
         l = rasqal_new_simple_literal(con->world, RASQAL_LITERAL_BLANK, lvalue);
         rasqal_row_set_value_at(con->row, con->result_offset, l);
         rasqal_free_literal(l);
@@ -744,7 +785,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
       if(1) {
         raptor_uri* uri;
         rasqal_literal* l;
-        uri = raptor_new_uri(con->world->raptor_world_ptr, RASQAL_GOOD_CAST(const unsigned char*, con->value));
+        uri = raptor_new_uri(con->world->raptor_world_ptr, RASQAL_GOOD_CAST(const unsigned char*, value));
         l = rasqal_new_uri_literal(con->world, uri);
         rasqal_row_set_value_at(con->row, con->result_offset, l);
         rasqal_free_literal(l);
@@ -756,9 +797,10 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
     case STATE_result:
       if(con->row) {
         RASQAL_DEBUG2("Saving row result %d\n", con->offset);
+        con->row->offset = con->offset - 1;
         raptor_sequence_push(con->results_sequence, con->row);
       }
-      con->row=NULL;
+      con->row = NULL;
       break;
 
     case STATE_unknown:
@@ -770,9 +812,9 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
       break;
   }
 
-  if(con->value) {
-    RASQAL_FREE(char*, con->value);
-    con->value=NULL;
+  if(con->sb) {
+    raptor_free_stringbuffer(con->sb);
+    con->sb = raptor_new_stringbuffer();
   }
 }
 
@@ -784,46 +826,22 @@ rasqal_rowsource_sparql_xml_init(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_rowsource_sparql_xml_context* con;
 
-  con=(rasqal_rowsource_sparql_xml_context*)user_data;
+  con = (rasqal_rowsource_sparql_xml_context*)user_data;
 
-  con->rowsource=rowsource;
-  con->state=STATE_unknown;
+  con->rowsource = rowsource;
 
-#ifdef TRACE_XML
-  con->trace=1;
-#endif
-  con->depth=0;
-
-  raptor_sax2_parse_start(con->sax2, con->base_uri);
-
-  return 0;
+  return rasqal_sparql_xml_start(con);
 }
+
 
 static int
 rasqal_rowsource_sparql_xml_finish(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_rowsource_sparql_xml_context* con;
 
-  con=(rasqal_rowsource_sparql_xml_context*)user_data;
+  con = (rasqal_rowsource_sparql_xml_context*)user_data;
 
-  if(con->base_uri)
-    raptor_free_uri(con->base_uri);
-
-  if(con->sax2)
-    raptor_free_sax2(con->sax2);
-
-  if(con->results_sequence)
-    raptor_free_sequence(con->results_sequence);
-
-  if(con->vars_table)
-    rasqal_free_variables_table(con->vars_table);
-
-  if(con->flags) {
-    if(con->iostr)
-      raptor_free_iostream(con->iostr);
-  }
-
-  RASQAL_FREE(rasqal_rowsource_sparql_xml_context, con);
+  rasqal_sparql_xml_free_context(con);
 
   return 0;
 }
@@ -843,7 +861,9 @@ rasqal_rowsource_sparql_xml_process(rasqal_rowsource_sparql_xml_context* con)
                                           FILE_READ_BUF_SIZE,
                                           con->iostr);
     if(read_len > 0) {
+#ifdef TRACE_XML
       RASQAL_DEBUG2("processing %d bytes\n", RASQAL_GOOD_CAST(int, read_len));
+#endif
       raptor_sax2_parse_chunk(con->sax2, con->buffer, read_len, 0);
     }
     
@@ -888,11 +908,142 @@ rasqal_rowsource_sparql_xml_read_row(rasqal_rowsource* rowsource,
   rasqal_rowsource_sparql_xml_process(con);
   
   if(!con->failed && raptor_sequence_size(con->results_sequence) > 0) {
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("getting row from stored sequence\n");
+#endif
     row=(rasqal_row*)raptor_sequence_unshift(con->results_sequence);
   }
 
   return row;
+}
+
+
+/*
+ * rasqal_sparql_xml_init_context:
+ * @world: rasqal world object
+ * @iostr: #raptor_iostream to read the query results from
+ * @base_uri: #raptor_uri base URI of the input format
+ * @flags: flags
+ *
+ * INTERNAL - Initialise the SPARQL XML context
+ *
+ * Return value: context or NULL on failure
+ **/
+static rasqal_rowsource_sparql_xml_context*
+rasqal_sparql_xml_init_context(rasqal_world *world,
+                               raptor_iostream *iostr,
+                               raptor_uri *base_uri,
+                               unsigned int flags)
+{
+  rasqal_rowsource_sparql_xml_context* con;
+
+  con = RASQAL_CALLOC(rasqal_rowsource_sparql_xml_context*, 1, sizeof(*con));
+  if(!con)
+    return NULL;
+
+  con->world = world;
+  con->base_uri = base_uri ? raptor_uri_copy(base_uri) : NULL;
+  con->iostr = iostr;
+
+  con->locator.uri = base_uri;
+
+  con->sax2 = raptor_new_sax2(world->raptor_world_ptr, &con->locator, con);
+  if(!con->sax2)
+    return NULL;
+
+  con->flags = flags;
+
+  raptor_sax2_set_start_element_handler(con->sax2,
+                                        rasqal_sparql_xml_sax2_start_element_handler);
+  raptor_sax2_set_characters_handler(con->sax2,
+                                     rasqal_sparql_xml_sax2_characters_handler);
+
+  raptor_sax2_set_end_element_handler(con->sax2,
+                                      rasqal_sparql_xml_sax2_end_element_handler);
+
+  return con;
+}
+
+
+
+/*
+ * rasqal_sparql_xml_free_context:
+ * @con: SPARQL xml context
+ *
+ * INTERNAL - Free the SPARQL XML context
+ **/
+static void
+rasqal_sparql_xml_free_context(rasqal_rowsource_sparql_xml_context* con)
+{
+
+  if(con->base_uri)
+    raptor_free_uri(con->base_uri);
+
+  if(con->sax2)
+    raptor_free_sax2(con->sax2);
+
+  if(con->results_sequence)
+    raptor_free_sequence(con->results_sequence);
+
+  if(con->vars_table)
+    rasqal_free_variables_table(con->vars_table);
+
+  if(con->flags) {
+    if(con->iostr)
+      raptor_free_iostream(con->iostr);
+  }
+
+  if(con->sb)
+    raptor_free_stringbuffer(con->sb);
+
+  RASQAL_FREE(rasqal_rowsource_sparql_xml_context, con);
+}
+
+
+static int
+rasqal_rowsource_sparql_xml_get_boolean(rasqal_query_results_formatter *formatter,
+                                        rasqal_world* world, raptor_iostream *iostr,
+                                        raptor_uri *base_uri, unsigned int flags)
+{
+  rasqal_rowsource_sparql_xml_context* con;
+  int bv;
+
+  con = rasqal_sparql_xml_init_context(world, iostr, base_uri, flags);
+  if(!con)
+    return -1;
+
+  rasqal_sparql_xml_start(con);
+
+  /* do some parsing - until we get the boolean value */
+  while(!raptor_iostream_read_eof(con->iostr)) {
+    size_t read_len;
+
+    read_len = raptor_iostream_read_bytes(RASQAL_GOOD_CAST(char*, con->buffer), 1,
+                                          FILE_READ_BUF_SIZE,
+                                          con->iostr);
+    if(read_len > 0) {
+#ifdef TRACE_XML
+      RASQAL_DEBUG2("processing %d bytes\n", RASQAL_GOOD_CAST(int, read_len));
+#endif
+      raptor_sax2_parse_chunk(con->sax2, con->buffer, read_len, 0);
+    }
+
+    if(read_len < FILE_READ_BUF_SIZE) {
+      /* finished */
+      raptor_sax2_parse_chunk(con->sax2, NULL, 0, 1);
+      break;
+    }
+
+    /* end with any boolean value */
+    if(con->boolean_value >= 0)
+      break;
+  }
+
+  bv = con->boolean_value;
+  
+  rasqal_sparql_xml_free_context(con);
+
+  return bv;
 }
 
 
@@ -933,29 +1084,9 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* fo
 {
   rasqal_rowsource_sparql_xml_context* con;
   
-  con = RASQAL_CALLOC(rasqal_rowsource_sparql_xml_context*, 1, sizeof(*con));
+  con = rasqal_sparql_xml_init_context(world, iostr, base_uri, flags);
   if(!con)
     return NULL;
-
-  con->world=world;
-  con->base_uri = base_uri ? raptor_uri_copy(base_uri) : NULL;
-  con->iostr=iostr;
-
-  con->locator.uri=base_uri;
-
-  con->sax2 = raptor_new_sax2(world->raptor_world_ptr, &con->locator, con);
-  if(!con->sax2)
-    return NULL;
-
-  con->flags = flags;
-  
-  raptor_sax2_set_start_element_handler(con->sax2,
-                                        rasqal_sparql_xml_sax2_start_element_handler);
-  raptor_sax2_set_characters_handler(con->sax2,
-                                     rasqal_sparql_xml_sax2_characters_handler);
-
-  raptor_sax2_set_end_element_handler(con->sax2,
-                                      rasqal_sparql_xml_sax2_end_element_handler);
 
   con->results_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, (raptor_data_print_handler)rasqal_row_print);
 
@@ -1017,6 +1148,7 @@ rasqal_query_results_sparql_xml_register_factory(rasqal_query_results_format_fac
   factory->write         = rasqal_query_results_write_sparql_xml;
   factory->get_rowsource = rasqal_query_results_get_rowsource_sparql_xml;
   factory->recognise_syntax = rasqal_query_results_xml_recognise_syntax;
+  factory->get_boolean      = rasqal_rowsource_sparql_xml_get_boolean;
 
   return rc;
 }

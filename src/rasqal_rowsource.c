@@ -81,6 +81,7 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
     return NULL;
   }
 
+  rowsource->usage = 1;
   rowsource->world = world;
   rowsource->query = query;
   rowsource->user_data = (void*)user_data;
@@ -109,6 +110,26 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
     rasqal_free_rowsource(rowsource);
     return NULL;
   }
+
+  return rowsource;
+}
+
+
+/**
+ * rasqal_new_rowsource_from_rowsource:
+ * @row: query result row
+ *
+ * INTERNAL - Copy a rowsource.
+ *
+ * Return value: a copy of the rowsource or NULL
+ */
+rasqal_rowsource*
+rasqal_new_rowsource_from_rowsource(rasqal_rowsource* rowsource)
+{
+  if(!rowsource)
+    return NULL;
+
+  rowsource->usage++;
   return rowsource;
 }
 
@@ -123,6 +144,9 @@ void
 rasqal_free_rowsource(rasqal_rowsource *rowsource)
 {
   if(!rowsource)
+    return;
+
+  if(--rowsource->usage)
     return;
 
   if(rowsource->handler->finish)

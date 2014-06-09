@@ -75,7 +75,7 @@ rasqal_rowsequence_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     rasqal_row* row;
     row = (rasqal_row*)raptor_sequence_get_at(con->seq, i);
     
-    row->rowsource = rowsource;
+    rasqal_row_set_weak_rowsource(row, rowsource);
     row->offset = i;
     
   }
@@ -91,8 +91,21 @@ rasqal_rowsequence_rowsource_finish(rasqal_rowsource* rowsource,
   rasqal_rowsequence_rowsource_context* con;
 
   con = (rasqal_rowsequence_rowsource_context*)user_data;
-  if(con->seq)
+
+  if(con->seq) {
+    int rows_count;
+    int i;
+
+    rows_count = raptor_sequence_size(con->seq);
+    for(i = 0; i < rows_count; i++) {
+      rasqal_row* row;
+      row = (rasqal_row*)raptor_sequence_get_at(con->seq, i);
+      rasqal_row_set_weak_rowsource(row, NULL);
+    }
+
     raptor_free_sequence(con->seq);
+  }
+
   if(con->vars_seq)
     raptor_free_sequence(con->vars_seq);
   

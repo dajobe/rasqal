@@ -515,7 +515,7 @@ fi
 
 AC_ARG_WITH(regex-library, [  --with-regex-library=NAME   Use regex library - posix, pcre (auto)], regex_library="$withval", regex_library="") 
 
-for regex_library_name in $regex_library posix pcre; do
+for regex_library_name in $regex_library pcre posix; do
   case $regex_library_name in
     pcre)
       if test $have_regex_pcre = 1; then

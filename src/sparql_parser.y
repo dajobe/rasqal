@@ -649,6 +649,7 @@ Prologue: BaseDeclOpt PrefixDeclListOpt
 BaseDeclOpt: BASE URI_LITERAL
 {
   rasqal_query_set_base_uri(rq, $2);
+  rasqal_evaluation_context_set_base_uri(rq->eval_context, $2);
 }
 | /* empty */
 {
@@ -5477,7 +5478,7 @@ rasqal_sparql_query_language_prepare(rasqal_query* rdf_query)
   if(rasqal_query_expand_wildcards(rdf_query,
                                    rasqal_query_get_projection(rdf_query)))
     return 1;
-  
+
   return 0;
 }
 

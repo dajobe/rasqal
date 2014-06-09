@@ -111,7 +111,7 @@ rasqal_new_results_compare(rasqal_world* world,
   rrc->second_count = rasqal_variables_table_get_total_variables_count(second_vt);
   rrc->variables_count = 0;
 
-  size = rrc->first_count + rrc->second_count;
+  size = (rrc->first_count + rrc->second_count) << 1;
   rrc->defined_in_map = RASQAL_CALLOC(int*, size, sizeof(int));
   if(!rrc->defined_in_map) {
     RASQAL_FREE(rasqal_results_compare, rrc);
@@ -135,18 +135,24 @@ rasqal_new_results_compare(rasqal_world* world,
     v = rasqal_variables_table_get(first_vt, i);
     v2 = rasqal_variables_table_add2(rrc->vt, v->type, v->name, 0, NULL);
     rrc->defined_in_map[(v2->offset)<<1] = i;
+    rasqal_free_variable(v2);
   }
 
   second_vt = rasqal_query_results_get_variables_table(second_qr);
   for(i = 0; i < rrc->second_count; i++) {
     rasqal_variable *v;
     rasqal_variable *v2;
+    int free_v2 = 0;
 
     v = rasqal_variables_table_get(second_vt, i);
     v2 = rasqal_variables_table_get_by_name(rrc->vt, v->type, v->name);
-    if(!v2)
+    if(!v2) {
+      free_v2 = 1;
       v2 = rasqal_variables_table_add2(rrc->vt, v->type, v->name, 0, NULL);
+    }
     rrc->defined_in_map[1 + ((v2->offset)<<1)] = i;
+    if(free_v2)
+      rasqal_free_variable(v2);
   }
 
   rrc->variables_count = rasqal_variables_table_get_total_variables_count(rrc->vt);
@@ -386,6 +392,11 @@ rasqal_results_compare_compare(rasqal_results_compare* rrc)
 
       value1 = rasqal_query_results_get_binding_value(rrc->first_qr, ix1);
       value2 = rasqal_query_results_get_binding_value(rrc->second_qr, ix2);
+
+      /* Blank nodes always match each other */
+      if(value1 && value1->type ==  RASQAL_LITERAL_BLANK &&
+         value2 && value2->type ==  RASQAL_LITERAL_BLANK)
+        continue;
 
       /* should have compare as native flag?
        * RASQAL_COMPARE_XQUERY doesn't compare all values

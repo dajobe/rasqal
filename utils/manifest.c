@@ -351,19 +351,21 @@ manifest_testsuite_result_format(FILE* fh,
         fputc('\n', fh);
       }
 
-      if(verbose && t->result->details) {
-        manifest_indent(fh, indent + indent_step);
-        fputs(t->result->details, fh);
-        fputc('\n', fh);
-      }
-
-      if(verbose && t->result->log) {
-        manifest_indent_multiline(fh, t->result->log,
-                                  indent + indent_step * 2,
-                                  15);
-      }
-
       if(verbose) {
+        if(t->result) {
+          if(t->result->details) {
+            manifest_indent(fh, indent + indent_step);
+            fputs(t->result->details, fh);
+            fputc('\n', fh);
+          }
+
+          if(t->result->log) {
+            manifest_indent_multiline(fh, t->result->log,
+                                      indent + indent_step * 2,
+                                      15);
+          }
+        }
+
         manifest_indent(fh, indent + indent_step);
         manifest_banner(fh, banner_width, '=');
       }
@@ -381,7 +383,7 @@ manifest_testsuite_result_format(FILE* fh,
         i++) {
       manifest_indent(fh, indent);
       fputs(t->name, fh);
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       fputc(' ', fh);
       fputc('(', fh);
       rasqal_literal_print(t->test_node, fh);
@@ -399,7 +401,7 @@ manifest_testsuite_result_format(FILE* fh,
     seq = result->states[i];
     if(seq)
       count = raptor_sequence_size(seq);
-    fprintf(fh, "%s: %d ",
+    fprintf(fh, "%s: %3d ",
             manifest_test_state_label(RASQAL_GOOD_CAST(manifest_test_state, i)),
             count);
   }
@@ -484,7 +486,7 @@ manifest_new_test(manifest_world* mw,
       test_name = (char*)malloc(size + 1);
       memcpy(test_name, str, size + 1);
       
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
         fprintf(stderr, "  Test name: '%s'\n", test_name);
 #endif
     }
@@ -499,7 +501,7 @@ manifest_new_test(manifest_world* mw,
       test_desc = (char*)malloc(size + 1);
       memcpy(test_desc, str, size + 1);
       
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
         fprintf(stderr, "  Test desc: '%s'\n", test_desc);
 #endif
     }
@@ -514,22 +516,26 @@ manifest_new_test(manifest_world* mw,
       rasqal_literal_print(action_node, stderr);
       fputc('\n', stderr);
 #endif
-
-    node = rasqal_dataset_get_target(ds,
-                                     action_node,
-                                     mw->qt_query_literal);
+    if(action_node->type == RASQAL_LITERAL_URI) {
+      node = action_node;
+    } else {
+      node = rasqal_dataset_get_target(ds,
+                                       action_node,
+                                       mw->qt_query_literal);
+    }
     if(node && node->type == RASQAL_LITERAL_URI) {
       uri = rasqal_literal_as_uri(node);
       if(uri) {
         test_query_uri = raptor_uri_copy(uri);
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
           fprintf(stderr, "  Test query URI: '%s'\n",
                   raptor_uri_as_string(test_query_uri));
 #endif
       }
     }
-    
-    test_data_graphs = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph, NULL);
+
+    test_data_graphs = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph,
+                                           (raptor_data_print_handler)rasqal_data_graph_print);
 
     node = rasqal_dataset_get_target(ds,
                                      action_node,
@@ -538,7 +544,7 @@ manifest_new_test(manifest_world* mw,
       uri = rasqal_literal_as_uri(node);
       if(uri) {
         rasqal_data_graph* dg;
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
         fprintf(stderr, "  Test data URI: '%s'\n",
                 raptor_uri_as_string(uri));
 #endif
@@ -567,7 +573,7 @@ manifest_new_test(manifest_world* mw,
           uri = rasqal_literal_as_uri(node);
           if(uri) {
             rasqal_data_graph* dg;
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
           fprintf(stderr, "  Test graph data URI: '%s'\n",
                   raptor_uri_as_string(uri));
 #endif
@@ -599,7 +605,7 @@ manifest_new_test(manifest_world* mw,
     if(uri) {
       test_result_uri = raptor_uri_copy(uri);
       
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
         fprintf(stderr, "  Test result URI: '%s'\n",
                 raptor_uri_as_string(test_result_uri));
 #endif
@@ -612,7 +618,7 @@ manifest_new_test(manifest_world* mw,
   if(node && node->type == RASQAL_LITERAL_URI) {
     test_type = rasqal_literal_as_uri(node);
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       fprintf(stderr, "  Test type: '%s'\n",
               raptor_uri_as_string(test_type));
 #endif
@@ -640,7 +646,7 @@ manifest_new_test(manifest_world* mw,
     }
   }
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     fprintf(stderr, "  Test result cardinality: %s\n",
             (test_flags & FLAG_RESULT_CARDINALITY_LAX) ? "lax" : "strict");
 #endif
@@ -665,7 +671,7 @@ manifest_new_test(manifest_world* mw,
     }
   }
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     fprintf(stderr, "  Test approved: %s\n",
             (test_flags & FLAG_TEST_APPROVED) ? "yes" : "no");
     fprintf(stderr, "  Test withdrawn: %s\n",
@@ -678,7 +684,7 @@ manifest_new_test(manifest_world* mw,
   if(node)
     test_flags |= FLAG_ENTAILMENT;
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     fprintf(stderr, "  Test entailment: %s\n",
             (test_flags & FLAG_ENTAILMENT) ? "yes" : "no");
 #endif
@@ -838,7 +844,7 @@ manifest_new_testsuite(manifest_world* mw,
       ts->desc = (char*)malloc(size + 1);
       memcpy(ts->desc, str, size + 1);
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       fprintf(stderr, "Testsuite Description is: '%s'\n", ts->desc);
 #endif
     }
@@ -853,7 +859,7 @@ manifest_new_testsuite(manifest_world* mw,
       ts->path = (char*)malloc(size + 1);
       memcpy(ts->path, str, size + 1);
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
         fprintf(stderr, "Testsuite PATH is: '%s'\n", ts->path);
 #endif
     }
@@ -875,7 +881,7 @@ manifest_new_testsuite(manifest_world* mw,
     entry_node = rasqal_dataset_get_target(ds,
                                            list_node,
                                            mw->rdf_first_literal);
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       fputs("Test resource is: ", stderr);
       rasqal_literal_print(entry_node, stderr);
       fputc('\n', stderr);
@@ -949,6 +955,36 @@ manifest_test_run_log_handler(void* user_data, raptor_log_message *message)
   t->error_count++;
 }
 
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+static void
+manifest_test_print(manifest_test* t, FILE* fh)
+{
+  if(t->desc)
+    fprintf(fh, "Test %s : \"%s\"\n", t->name, t->desc);
+  else
+    fprintf(fh, "Test %s\n", t->name);
+  fprintf(fh, "  Flags: 0x%04X\n", t->flags);
+  fprintf(fh, "    Approved: %s\n",
+          (t->flags & FLAG_TEST_APPROVED) ? "yes" : "no");
+  fprintf(fh, "    Withdrawn: %s\n",
+          (t->flags & FLAG_TEST_WITHDRAWN) ? "yes" : "no");
+  fprintf(fh, "    Result cardinality: %s\n",
+          (t->flags & FLAG_RESULT_CARDINALITY_LAX) ? "lax" : "strict");
+  fprintf(fh, "    Entailment: %s\n",
+          (t->flags & FLAG_ENTAILMENT) ? "yes" : "no");
+
+  fprintf(fh, "  Query URI: '%s'\n", raptor_uri_as_string(t->query));
+  if(t->data_graphs && raptor_sequence_size(t->data_graphs) > 0) {
+    fputs("  Data URIs: ", fh);
+    raptor_sequence_print(t->data_graphs, fh);
+    fputc('\n', fh);
+  }
+  if(t->expected_result)
+    fprintf(fh, "  Result URI: '%s'\n",
+            raptor_uri_as_string(t->expected_result));
+}
+#endif
+
 
 /**
  * manifest_test_run:
@@ -977,9 +1013,15 @@ manifest_test_run(manifest_test* t, const char* path)
   raptor_iostream* result_iostr = NULL;
   rasqal_query_results *actual_results = NULL;
 
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+  RASQAL_DEBUG1("Running ");
+  manifest_test_print(t, stderr);
+#endif
+
   if(t && t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
-    RASQAL_DEBUG2("Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
-                  rasqal_literal_as_string(t->test_node));
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_WARN, NULL,
+                            "Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
+                            rasqal_literal_as_string(t->test_node));
     return NULL;
   }
 
@@ -1054,7 +1096,8 @@ manifest_test_run(manifest_test* t, const char* path)
 
   /* Read expected results */
   results_type = rasqal_query_get_result_type(rq);
-  RASQAL_DEBUG2("Expecting result type %d\n", results_type);
+  RASQAL_DEBUG2("Expecting result type %s\n",
+                rasqal_query_results_type_label(results_type));
 
   if(t->expected_result) {
     unsigned char* expected_result_uri_string;
@@ -1081,8 +1124,13 @@ manifest_test_run(manifest_test* t, const char* path)
       goto tidy;
     }
 
+    RASQAL_DEBUG3("Reading result type %s from file %s\n",
+                  rasqal_query_results_type_label(results_type),
+                  result_filename);
+
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
+      case RASQAL_QUERY_RESULTS_BOOLEAN:
         /* read results via rasqal query results format */
         expected_results = rasqal_cmdline_read_results(world,
                                                        raptor_world_ptr,
@@ -1097,6 +1145,22 @@ manifest_test_run(manifest_test* t, const char* path)
           result = NULL;
           goto tidy;
         }
+        
+#if defined(RASQAL_DEBUG)
+        if(results_type == RASQAL_QUERY_RESULTS_BINDINGS) {
+          RASQAL_DEBUG1("Expected bindings results:\n");
+          if(!expected_results)
+            fprintf(stderr, "NO RESULTS\n");
+          else {
+            rasqal_cmdline_print_bindings_results_simple("fake", expected_results,
+                                                         stderr, 1, 0);
+            rasqal_query_results_rewind(expected_results);
+          }
+        } else {
+          int expected_boolean = rasqal_query_results_get_boolean(expected_results);
+          RASQAL_DEBUG2("Expected boolean result: %d\n", expected_boolean);
+        }
+#endif
 
         break;
 
@@ -1140,72 +1204,114 @@ manifest_test_run(manifest_test* t, const char* path)
         break;
 
       case RASQAL_QUERY_RESULTS_SYNTAX:
-      case RASQAL_QUERY_RESULTS_BOOLEAN:
       case RASQAL_QUERY_RESULTS_UNKNOWN:
         /* failure */
-        RASQAL_DEBUG2("Reading %s query results format is not supported",
-                      rasqal_query_results_type_label(results_type));
+        rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                                "Reading %s query results format is not supported",
+                                rasqal_query_results_type_label(results_type));
         manifest_free_test_result(result);
         result = NULL;
         goto tidy;
     }
   } /* end if results expected */
 
+
   /* save results for query execution so we can print and rewind */
   rasqal_query_set_store_results(rq, 1);
 
   actual_results = rasqal_query_execute(rq);
-  if(actual_results) {
 
+#if defined(RASQAL_DEBUG)
+  /* Debug print what we got */
+  if(actual_results) {
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
-        if(1) {
-          rasqal_results_compare* rrc;
-          int rc;
-
-          RASQAL_DEBUG1("Expected bindings results:\n");
-          rasqal_cmdline_print_bindings_results_simple("fake", expected_results,
-                                                       stderr, 1, 0);
-
-          RASQAL_DEBUG1("Actual bindings results:\n");
-          rasqal_cmdline_print_bindings_results_simple("fake", actual_results,
-                                                       stderr, 1, 0);
-
-          rasqal_query_results_rewind(expected_results);
-          rasqal_query_results_rewind(actual_results);
-
-          /* FIXME: should NOT do this if results are expected to be ordered */
-          rasqal_query_results_sort(expected_results, rasqal_row_compare);
-          rasqal_query_results_sort(actual_results, rasqal_row_compare);
-
-          rrc = rasqal_new_results_compare(world,
-                                           expected_results, "expected",
-                                           actual_results, "actual");
-          t->error_count = 0;
-          rasqal_results_compare_set_log_handler(rrc, t,
-                                                 manifest_test_run_log_handler);
-          rc = !rasqal_results_compare_compare(rrc);
-          rasqal_free_results_compare(rrc); rrc = NULL;
-
-          if(!rc)
-            state = STATE_PASS;
-        }
+        RASQAL_DEBUG1("Actual bindings results:\n");
+        rasqal_cmdline_print_bindings_results_simple("fake", actual_results,
+                                                     stderr, 1, 0);
+        rasqal_query_results_rewind(actual_results);
 
         break;
 
       case RASQAL_QUERY_RESULTS_BOOLEAN:
+        if(1) {
+          int actual_boolean = rasqal_query_results_get_boolean(actual_results);
+          RASQAL_DEBUG2("Actual boolean result: %d\n", actual_boolean);
+        }
+        break;
+
       case RASQAL_QUERY_RESULTS_GRAPH:
       case RASQAL_QUERY_RESULTS_SYNTAX:
       case RASQAL_QUERY_RESULTS_UNKNOWN:
         /* failure */
         rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                                "Query result format %d cannot be tested.",
+                                "Query result format %s (%d) cannot be printed.",
+                                rasqal_query_results_type_label(results_type),
                                 results_type);
         state = STATE_FAIL;
         goto tidy;
     }
-  } else
-    state = STATE_FAIL;
+  }
+#endif
+
+  /* Check actual vs expected */ 
+  if(actual_results) {
+    if(!expected_results)
+      state = STATE_PASS;
+    else
+      switch(results_type) {
+        case RASQAL_QUERY_RESULTS_BINDINGS:
+          if(1) {
+            int rc;
+            rasqal_results_compare* rrc;
+
+            /* FIXME: should NOT do this if results are expected to be ordered */
+            rasqal_query_results_sort(expected_results, rasqal_row_compare);
+            rasqal_query_results_sort(actual_results, rasqal_row_compare);
+            
+            rrc = rasqal_new_results_compare(world,
+                                             expected_results, "expected",
+                                             actual_results, "actual");
+            t->error_count = 0;
+            rasqal_results_compare_set_log_handler(rrc, t,
+                                                   manifest_test_run_log_handler);
+            rc = !rasqal_results_compare_compare(rrc);
+            rasqal_free_results_compare(rrc); rrc = NULL;
+
+            if(!rc)
+              state = STATE_PASS;
+          }
+
+          break;
+
+        case RASQAL_QUERY_RESULTS_BOOLEAN:
+          if(1) {
+            int rc;
+            int expected_boolean = rasqal_query_results_get_boolean(expected_results);
+            int actual_boolean = rasqal_query_results_get_boolean(actual_results);
+            rc = !(expected_boolean == actual_boolean);
+
+            if(!rc)
+              state = STATE_PASS;
+          }
+          break;
+
+        case RASQAL_QUERY_RESULTS_GRAPH:
+        case RASQAL_QUERY_RESULTS_SYNTAX:
+        case RASQAL_QUERY_RESULTS_UNKNOWN:
+          /* failure */
+          rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                                  "Query result format %s (%d) cannot be checked.",
+                                  rasqal_query_results_type_label(results_type),
+                                  results_type);
+          state = STATE_FAIL;
+          goto tidy;
+      }
+  } else { /* no actual results */
+    if(expected_results)
+      /* FAIL: expected results but got none */
+      state = STATE_FAIL;
+  }  
 
 
   if(t->expect == STATE_FAIL) {
@@ -1288,6 +1394,7 @@ manifest_testsuite_run_suite(manifest_testsuite* ts,
                              unsigned int indent,
                              int dryrun, int verbose)
 {
+  rasqal_world* world = ts->mw->world;
   char* name = ts->name;
   char* desc = ts->desc ? ts->desc : name;
   int i;
@@ -1298,7 +1405,7 @@ manifest_testsuite_run_suite(manifest_testsuite* ts,
   manifest_test_state state;
   unsigned int xfailed_count;
   unsigned int failed_count;
-
+  
   /* Initialize */
   result = manifest_new_test_result(STATE_FAIL);
 
@@ -1309,8 +1416,9 @@ manifest_testsuite_run_suite(manifest_testsuite* ts,
   column = indent;
   for(i = 0; (t = (manifest_test*)raptor_sequence_get_at(ts->tests, i)); i++) {
     if(t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
-      RASQAL_DEBUG2("Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
-                    rasqal_literal_as_string(t->test_node));
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_WARN, NULL,
+                              "Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
+                              rasqal_literal_as_string(t->test_node));
       continue;
     }
 

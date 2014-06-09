@@ -376,14 +376,20 @@ rasqal_builtin_agg_expression_execute_result(void* user_data)
   
     
   if(b->expr->op == RASQAL_EXPR_AVG) {
-    rasqal_literal* count_l;
-    rasqal_literal* result;
+    rasqal_literal* count_l = NULL;
+    rasqal_literal* result = NULL;
 
-    count_l = rasqal_new_integer_literal(b->world, RASQAL_LITERAL_INTEGER,
-                                         b->count);
+    if(b->count)
+      count_l = rasqal_new_integer_literal(b->world, RASQAL_LITERAL_INTEGER,
+                                           b->count);
 
-    result = rasqal_literal_divide(b->l, count_l, &b->error);
-    rasqal_free_literal(count_l);
+    if(b->l && count_l)
+      result = rasqal_literal_divide(b->l, count_l, &b->error);
+    else
+      /* No total to divide */
+      b->error = 1;
+    if(count_l)
+      rasqal_free_literal(count_l);
 
     if(b->error) {
       /* result will be NULL and error will be non-0 on division by 0
@@ -1103,7 +1109,8 @@ main(int argc, char *argv[])
     int count;
     int size;
     int i;
-    char* output_var_name;
+    #define OUT_VAR_NAME_LEN 4
+    const char* output_var_name = "fake";
     rasqal_variable* output_var;
     rasqal_expression* expr;
     int output_row_size = (input_vars_count + output_vars_count);
@@ -1173,13 +1180,9 @@ main(int argc, char *argv[])
     } /* if vars */
 
 
-    #define OUT_VAR_NAME_LEN 4
-    output_var_name = RASQAL_MALLOC(char*, OUT_VAR_NAME_LEN + 1);
-    memcpy(output_var_name, "fake", OUT_VAR_NAME_LEN + 1);
     output_var = rasqal_variables_table_add2(vt, RASQAL_VARIABLE_TYPE_ANONYMOUS, 
                                              RASQAL_GOOD_CAST(const unsigned char*, output_var_name),
                                              OUT_VAR_NAME_LEN, NULL);
-
     expr = make_test_expr(world, expr_args_seq, op);
     /* expr_args_seq is now owned by expr */
     expr_args_seq = NULL;

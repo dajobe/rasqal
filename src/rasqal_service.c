@@ -524,21 +524,11 @@ rasqal_query_results*
 rasqal_service_execute(rasqal_service* svc)
 {
   rasqal_query_results* results = NULL;
-  rasqal_variables_table* vars_table = NULL;
+  rasqal_variables_table* vars_table;
   rasqal_rowsource* rowsource = NULL;
 
-  vars_table = rasqal_new_variables_table(svc->world);
-  if(!vars_table) {
-    rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Failed to create variables table");
-    goto error;
-  }
-  
-  results = rasqal_new_query_results(svc->world, NULL, 
-                                     RASQAL_QUERY_RESULTS_BINDINGS, 
-                                     vars_table);
-  /* (results takes a reference/copy to vars_table) */
-  rasqal_free_variables_table(vars_table); vars_table = NULL;
+  results = rasqal_new_query_results2(svc->world, NULL, 
+                                      RASQAL_QUERY_RESULTS_BINDINGS);
 
   if(!results) {
     rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,

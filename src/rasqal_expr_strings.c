@@ -809,6 +809,7 @@ rasqal_expression_evaluate_strbefore(rasqal_expression *e,
   const char *ptr;
   unsigned char* result;
   size_t result_len;
+  char* new_lang = NULL;
 
   /* haystack string */
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
@@ -820,6 +821,28 @@ rasqal_expression_evaluate_strbefore(rasqal_expression *e,
   if((error_p && *error_p) || !l2)
     goto failed;
 
+  if(!rasqal_literal_is_string(l1) || !rasqal_literal_is_string(l2)) {
+    /* not strings */
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+    RASQAL_DEBUG1("Cannot strbefore haystack ");
+    rasqal_literal_print(l1, stderr);
+    fputs( " to needle ", stderr);
+    rasqal_literal_print(l2, stderr);
+    fputs(" - both not string", stderr);
+#endif
+    goto failed;
+  }
+
+  if(l2->language && rasqal_literal_string_languages_compare(l1, l2)) {
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+    RASQAL_DEBUG1("Cannot strbefore haystack ");
+    rasqal_literal_print(l1, stderr);
+    fputs( " to language needle ", stderr);
+    rasqal_literal_print(l2, stderr);
+    fputs(" - languages mismatch", stderr);
+#endif
+    goto failed;
+  }
 
   haystack = rasqal_literal_as_counted_string(l1, &haystack_len, 
                                               eval_context->flags, error_p);
@@ -835,6 +858,15 @@ rasqal_expression_evaluate_strbefore(rasqal_expression *e,
                RASQAL_GOOD_CAST(const char*, needle));
   if(ptr) {
     result_len = ptr - RASQAL_GOOD_CAST(const char*, haystack);
+
+    if(l1->language) {
+      size_t len = strlen(RASQAL_GOOD_CAST(const char*, l1->language));
+      new_lang = RASQAL_MALLOC(char*, len + 1);
+      if(!new_lang)
+        goto failed;
+
+      memcpy(new_lang, l1->language, len + 1);
+    }
   } else {
     result_len = 0;
     haystack = RASQAL_GOOD_CAST(const unsigned char *, "");
@@ -852,7 +884,7 @@ rasqal_expression_evaluate_strbefore(rasqal_expression *e,
   result[result_len] = '\0';
 
   return rasqal_new_string_literal(world, result, 
-                                   /* language */ NULL,
+                                   new_lang,
                                    /* datatype */ NULL,
                                    /* qname */ NULL);
 
@@ -894,6 +926,7 @@ rasqal_expression_evaluate_strafter(rasqal_expression *e,
   const char *ptr;
   unsigned char* result;
   size_t result_len;
+  char* new_lang = NULL;
 
   /* haystack string */
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
@@ -904,6 +937,29 @@ rasqal_expression_evaluate_strafter(rasqal_expression *e,
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
   if((error_p && *error_p) || !l2)
     goto failed;
+
+  if(!rasqal_literal_is_string(l1) || !rasqal_literal_is_string(l2)) {
+    /* not strings */
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+    RASQAL_DEBUG1("Cannot strafter haystack ");
+    rasqal_literal_print(l1, stderr);
+    fputs( " to needle ", stderr);
+    rasqal_literal_print(l2, stderr);
+    fputs(" - both not string", stderr);
+#endif
+    goto failed;
+  }
+
+  if(l2->language && rasqal_literal_string_languages_compare(l1, l2)) {
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+    RASQAL_DEBUG1("Cannot strafter haystack ");
+    rasqal_literal_print(l1, stderr);
+    fputs( " to language needle ", stderr);
+    rasqal_literal_print(l2, stderr);
+    fputs(" - languages mismatch", stderr);
+#endif
+    goto failed;
+  }
 
 
   haystack = rasqal_literal_as_counted_string(l1, &haystack_len, 
@@ -921,6 +977,15 @@ rasqal_expression_evaluate_strafter(rasqal_expression *e,
   if(ptr) {
     ptr += needle_len;
     result_len = haystack_len - (ptr - RASQAL_GOOD_CAST(const char*, haystack));
+
+    if(l1->language) {
+      size_t len = strlen(RASQAL_GOOD_CAST(const char*, l1->language));
+      new_lang = RASQAL_MALLOC(char*, len + 1);
+      if(!new_lang)
+        goto failed;
+
+      memcpy(new_lang, l1->language, len + 1);
+    }
   } else {
     ptr = (const char *)"";
     result_len = 0;
@@ -938,7 +1003,7 @@ rasqal_expression_evaluate_strafter(rasqal_expression *e,
   result[result_len] = '\0';
 
   return rasqal_new_string_literal(world, result, 
-                                   /* language */ NULL,
+                                   new_lang,
                                    /* datatype */ NULL,
                                    /* qname */ NULL);
 
@@ -1004,6 +1069,11 @@ rasqal_expression_evaluate_replace(rasqal_expression *e,
   l3 = rasqal_expression_evaluate2(e->arg3, eval_context, error_p);
   if((error_p && *error_p) || !l3)
     goto failed;
+
+  if(l1->type != RASQAL_LITERAL_STRING && l1->type != RASQAL_LITERAL_XSD_STRING)
+    /* Not a string so cannot do string operations */
+    goto failed;
+
   tmp_str = rasqal_literal_as_counted_string(l3, &replace_len, 
                                              eval_context->flags,
                                              error_p);

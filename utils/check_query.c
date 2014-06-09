@@ -525,6 +525,7 @@ main(int argc, char *argv[])
 
     switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
+      case RASQAL_QUERY_RESULTS_BOOLEAN:
         /* read results via rasqal query results format */
         expected_results = rasqal_cmdline_read_results(world,
                                                        raptor_world_ptr,
@@ -590,7 +591,6 @@ main(int argc, char *argv[])
         break;
         
       case RASQAL_QUERY_RESULTS_SYNTAX:
-      case RASQAL_QUERY_RESULTS_BOOLEAN:
       case RASQAL_QUERY_RESULTS_UNKNOWN:
         /* failure */
         fprintf(stderr,
@@ -640,6 +640,16 @@ main(int argc, char *argv[])
         break;
         
       case RASQAL_QUERY_RESULTS_BOOLEAN:
+        if(1) {
+          int expected_boolean = rasqal_query_results_get_boolean(expected_results);
+          int actual_boolean = rasqal_query_results_get_boolean(results);
+          RASQAL_DEBUG2("Expected boolean result: %d\n", expected_boolean);
+          RASQAL_DEBUG2("Actual boolean result: %d\n", actual_boolean);
+
+          rc = (expected_boolean != actual_boolean);
+        }
+        break;
+
       case RASQAL_QUERY_RESULTS_GRAPH:
       case RASQAL_QUERY_RESULTS_SYNTAX:
       case RASQAL_QUERY_RESULTS_UNKNOWN:

@@ -98,7 +98,7 @@
  */
 
 static int rasqal_query_results_execute_and_store_results(rasqal_query_results* query_results);
-static void rasqal_query_results_update_bindings(rasqal_query_results* query_results);
+static void rasqal_query_results_update_query_bindings(rasqal_query_results* query_results, rasqal_query *query);
 
 
 /*
@@ -156,6 +156,9 @@ struct rasqal_query_results_s {
 
   /* Variables table for variables in result rows */
   rasqal_variables_table* vars_table;
+
+  /* non-0 if @vars_table has been initialized from first row */
+  int vars_table_init;
 };
     
 
@@ -173,11 +176,10 @@ rasqal_finish_query_results(void)
 
 
 /**
- * rasqal_new_query_results:
+ * rasqal_new_query_results2:
  * @world: rasqal world object
  * @query: query object (or NULL)
  * @type: query results (expected) type
- * @vars_table: variables table
  * 
  * Constructor - create a new query results set
  *
@@ -187,20 +189,24 @@ rasqal_finish_query_results(void)
  * Return value: a new query result object or NULL on failure
  **/
 rasqal_query_results*  
-rasqal_new_query_results(rasqal_world* world,
-                         rasqal_query* query,
-                         rasqal_query_results_type type,
-                         rasqal_variables_table* vars_table)
+rasqal_new_query_results2(rasqal_world* world,
+                          rasqal_query* query,
+                          rasqal_query_results_type type)
 {
   rasqal_query_results* query_results;
     
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(vars_table, rasqal_variables_table, NULL);
 
   query_results = RASQAL_CALLOC(rasqal_query_results*, 1, sizeof(*query_results));
   if(!query_results)
     return NULL;
   
+  query_results->vars_table = rasqal_new_variables_table(world);
+  if(!query_results->vars_table) {
+    RASQAL_FREE(rasqal_query_results, query_results);
+    return NULL;
+  }
+
   query_results->world = world;
   query_results->type = type;
   query_results->finished = 0;
@@ -219,9 +225,34 @@ rasqal_new_query_results(rasqal_world* world,
 
   query_results->results_sequence = NULL;
   query_results->size = 0;
-  query_results->vars_table = rasqal_new_variables_table_from_variables_table(vars_table);
 
   return query_results;
+}
+
+
+/**
+ * rasqal_new_query_results:
+ * @world: rasqal world object
+ * @query: query object (or NULL)
+ * @type: query results (expected) type
+ * @vars_table: This parameter is *IGNORED*
+ *
+ * Constructor - create a new query results set
+ *
+ * @Deprecated for rasqal_new_query_results2() that loses the unused argument.
+ *
+ * The @query may be NULL for result set objects that are standalone
+ * and not attached to any particular query
+ *
+ * Return value: a new query result object or NULL on failure
+ **/
+rasqal_query_results*
+rasqal_new_query_results(rasqal_world* world,
+                         rasqal_query* query,
+                         rasqal_query_results_type type,
+                         rasqal_variables_table* vars_table)
+{
+  return rasqal_new_query_results2(world, query, type);
 }
 
 
@@ -248,7 +279,6 @@ rasqal_new_query_results_from_string(rasqal_world* world,
   raptor_iostream* iostr = NULL;
   rasqal_query_results_formatter* formatter = NULL;
   rasqal_query_results* results = NULL;
-  rasqal_variables_table* vars_table;
   raptor_world *raptor_world_ptr;
   const char* formatter_name;
   const unsigned char* id = NULL;
@@ -261,12 +291,7 @@ rasqal_new_query_results_from_string(rasqal_world* world,
 
   raptor_world_ptr = rasqal_world_get_raptor(world);
 
-  vars_table = rasqal_new_variables_table(world);
-  if(!vars_table)
-    goto failed;
-
-  results = rasqal_new_query_results(world, NULL, type, vars_table);
-  rasqal_free_variables_table(vars_table);
+  results = rasqal_new_query_results2(world, NULL, type);
   if(!results)
     goto failed;
 
@@ -706,7 +731,7 @@ rasqal_query_results_get_row_from_saved(rasqal_query_results* query_results)
       query_results->row = row;
       
       if(query && query->constructs)
-        rasqal_query_results_update_bindings(query_results);
+        rasqal_query_results_update_query_bindings(query_results, query);
     }
     break;
   }
@@ -787,6 +812,27 @@ rasqal_query_results_ensure_have_row_internal(rasqal_query_results* query_result
     query_results->size = query_results->row->size;
   } else
     query_results->finished = 1;
+
+  if(query_results->row && !query_results->vars_table_init) {
+    /* build variables table once from first row seen */
+    int i;
+
+    query_results->vars_table_init = 1;
+
+    for(i = 0; 1; i++) {
+      rasqal_variable* v;
+
+      v = rasqal_row_get_variable_by_offset(query_results->row, i);
+      if(!v)
+        break;
+
+      v = rasqal_variables_table_add2(query_results->vars_table,
+                                      v->type,
+                                      v->name, /* name len */ 0,
+                                      /* value */ NULL);
+      rasqal_free_variable(v);
+    }
+  }
 
   return (query_results->row == NULL);
 }
@@ -987,7 +1033,7 @@ rasqal_query_results_rewind(rasqal_query_results* query_results)
     query_results->result_count = 0;
   else {
     if(query && query->constructs)
-      rasqal_query_results_update_bindings(query_results);
+      rasqal_query_results_update_query_bindings(query_results, query);
   }
 
   return 0;
@@ -1017,23 +1063,25 @@ rasqal_query_results_get_bindings(rasqal_query_results* query_results,
                                   const unsigned char ***names, 
                                   rasqal_literal ***values)
 {
+  rasqal_row* row;
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, 1);
 
   if(!rasqal_query_results_is_bindings(query_results))
     return 1;
   
+  row = rasqal_query_results_get_current_row(query_results);
+
+  if(!row) {
+      query_results->finished = 1;
+      return 0;
+  }
+
   if(names)
     *names = rasqal_variables_table_get_names(query_results->vars_table);
   
-  if(values) {
-    rasqal_row* row;
-
-    row = rasqal_query_results_get_current_row(query_results);
-    if(row)
-      *values = row->values;
-    else
-      query_results->finished = 1;
-  }
+  if(values)
+    *values = row->values;
     
   return 0;
 }
@@ -1084,6 +1132,7 @@ const unsigned char*
 rasqal_query_results_get_binding_name(rasqal_query_results* query_results, 
                                       int offset)
 {
+  rasqal_row* row;
   rasqal_variable* v;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, NULL);
@@ -1091,16 +1140,11 @@ rasqal_query_results_get_binding_name(rasqal_query_results* query_results,
   if(!rasqal_query_results_is_bindings(query_results)) 
     return NULL;
   
-  if(query_results->query) {
-    raptor_sequence* seq;
-    /* If there is a query, take variable names from the order in the
-     * projection not the order inserted into the variables table.
-     */
-    seq = rasqal_query_get_bound_variable_sequence(query_results->query);
-    v = (rasqal_variable*)raptor_sequence_get_at(seq, offset);
-  } else 
-    v = rasqal_variables_table_get(query_results->vars_table, offset);
+  row = rasqal_query_results_get_current_row(query_results);
+  if(!row)
+    return NULL;
   
+  v = rasqal_variables_table_get(query_results->vars_table, offset);
   if(!v)
     return NULL;
   
@@ -1442,6 +1486,32 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
 
 
 /**
+ * rasqal_query_results_set_boolean:
+ * @query_results: #rasqal_query_results query_results
+ * @value: boolean value
+ *
+ * INTERNAL - Set boolean query result value.
+ *
+ * Return value: boolean query result - >0 is true, 0 is false, <0 on error
+ */
+int
+rasqal_query_results_set_boolean(rasqal_query_results* query_results, int value)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, -1);
+
+  if(query_results->failed)
+    return -1;
+
+  if(!rasqal_query_results_is_boolean(query_results))
+    return -1;
+
+  query_results->finished = 1;
+  query_results->ask_result = value;
+  return 0;
+}
+
+
+/**
  * rasqal_query_results_write:
  * @iostr: #raptor_iostream to write the query to
  * @results: #rasqal_query_results query results format
@@ -1611,33 +1681,49 @@ rasqal_query_results_execute_and_store_results(rasqal_query_results* query_resul
 }
 
 
+/*
+ * rasqal_query_results_update_query_bindings:
+ * @query_results: query results to read from
+ * @query: query to set bindings to
+ *
+ * INTERNAL - bind the query variables to the values from the current query results row
+ *
+ * Used to handle query CONSTRUCT
+ */
 static void
-rasqal_query_results_update_bindings(rasqal_query_results* query_results)
+rasqal_query_results_update_query_bindings(rasqal_query_results* query_results, rasqal_query* query)
 {
   int i;
   int size;
+  rasqal_row* row;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(query_results, rasqal_query_results);
 
-  /* bind the construct variables again if running through a sequence */
+  rasqal_query_results_ensure_have_row_internal(query_results);
+
+  row = query_results->row;
+  if(!row) {
+    query_results->finished = 1;
+    return;
+  }
+
   size = rasqal_variables_table_get_named_variables_count(query_results->vars_table);
-  for(i = 0; i< size; i++) {
+  for(i = 0; i < size; i++) {
+    rasqal_variable* srcv;
     rasqal_variable* v;
-    rasqal_row* row;
-    rasqal_literal* value = NULL;
+    /* source value is in row */
+    rasqal_literal* value = row->values[i];
 
-    v = rasqal_variables_table_get(query_results->vars_table, i);
+    /* source variable is in query results */
+    srcv = rasqal_variables_table_get(query_results->vars_table, i);
 
-    rasqal_query_results_ensure_have_row_internal(query_results);
-    row = query_results->row;
-    if(row) {
-      if (i >= row->size)
-        continue;
-      value = row->values[i];
-    } else
-      query_results->finished = 1;
-
-    rasqal_variable_set_value(v, rasqal_new_literal_from_literal(value));
+    /* destination variable is in query */
+    v = rasqal_variables_table_get_by_name(query->vars_table, srcv->type, srcv->name);
+    if(v)
+      rasqal_variable_set_value(v, rasqal_new_literal_from_literal(value));
+    else {
+      RASQAL_DEBUG2("Cannot bind query results variable %s into query", srcv->name);
+    }
   }
 }
 

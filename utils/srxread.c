@@ -75,7 +75,6 @@ main(int argc, char *argv[])
   rasqal_query_results_formatter* write_formatter = NULL;
   raptor_iostream *write_iostr = NULL;
   rasqal_world *world;
-  rasqal_variables_table* vars_table;
 #ifdef RAPTOR_V2_AVAILABLE
   raptor_world *raptor_world_ptr;
 #endif
@@ -169,10 +168,8 @@ main(int argc, char *argv[])
   base_uri = raptor_new_uri(raptor_world_ptr, uri_string);
   raptor_free_memory(uri_string);
 
-  vars_table = rasqal_new_variables_table(world);
-  results = rasqal_new_query_results(world, NULL,
-                                     RASQAL_QUERY_RESULTS_BINDINGS, vars_table);
-  rasqal_free_variables_table(vars_table);
+  results = rasqal_new_query_results2(world, NULL,
+                                      RASQAL_QUERY_RESULTS_BINDINGS);
   if(!results) {
     fprintf(stderr, "%s: Failed to create query results\n", program);
     rc = 1;

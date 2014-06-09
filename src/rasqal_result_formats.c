@@ -172,7 +172,7 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
       factory_flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER;
 
     /* Flags must match */
-    if(flags && factory_flags != flags)
+    if(flags && (factory_flags & flags) != flags)
       continue;
 
     if(!name && !uri)
@@ -221,7 +221,7 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
 
 
 /**
- * rasqal_query_results_formats_check:
+ * rasqal_query_results_formats_check2:
  * @world: rasqal_world object
  * @name: the query results format name (or NULL)
  * @uri: #raptor_uri query results format uri (or NULL)
@@ -233,10 +233,10 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
  * Return value: non-0 if a formatter exists.
  **/
 int
-rasqal_query_results_formats_check(rasqal_world* world,
-                                   const char *name, raptor_uri* uri,
-                                   const char *mime_type,
-                                   int flags)
+rasqal_query_results_formats_check2(rasqal_world* world,
+                                    const char *name, raptor_uri* uri,
+                                    const char *mime_type,
+                                    int flags)
 {
   rasqal_query_results_format_factory* factory = NULL;
   
@@ -246,6 +246,31 @@ rasqal_query_results_formats_check(rasqal_world* world,
                                                        name, uri, mime_type,
                                                        flags);
   return (factory != NULL);
+}
+
+
+/**
+ * rasqal_query_results_formats_check:
+ * @world: rasqal_world object
+ * @name: the query results format name (or NULL)
+ * @uri: #raptor_uri query results format uri (or NULL)
+ * @mime_type: mime type name
+ * @flags: bitmask of flags to signify that format is needed for reading (#RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER ) or writing ( #RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER )
+ *
+ * Check if a query results formatter exists for the requested format.
+ *
+ * @Deprecated: use rasqal_query_results_formats_check2() since the
+ * implementation of this function returned an inverted boolean result.
+ *
+ * Return value: 0 if a formatter exists.
+ **/
+int
+rasqal_query_results_formats_check(rasqal_world* world,
+                                   const char *name, raptor_uri* uri,
+                                   const char *mime_type,
+                                   int flags)
+{
+  return !rasqal_query_results_formats_check2(world, name, uri, mime_type, flags);
 }
 
 
@@ -477,6 +502,42 @@ rasqal_query_results_formatter_get_read_rowsource(rasqal_world *world,
 
 
 /**
+ * rasqal_query_results_formatter_get_boolean:
+ * @world: rasqal world object
+ * @iostr: #raptor_iostream to read the query from
+ * @formatter: #rasqal_query_results_formatter object
+ * @base_uri: #raptor_uri base URI of the input format
+ * @flags: non-0 to take ownership of @iostr
+ *
+ * INTERNAL - read boolean result from a formatted input iostream
+ *
+ * See rasqal_world_get_query_results_format_description() for
+ * obtaining the supported format URIs at run time.
+ *
+ * Takes OWNERSHIP of the @iostr
+ *
+ * Return value: boolean value 0 (false), >0 (true) or <0 on failure
+ **/
+static int
+rasqal_query_results_formatter_get_boolean(rasqal_world *world,
+                                           raptor_iostream *iostr,
+                                           rasqal_query_results_formatter* formatter,
+                                           raptor_uri *base_uri,
+                                           unsigned int flags)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, -1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, -1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(formatter, rasqal_query_results_formatter, -1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(base_uri, raptor_uri, -1);
+
+  if(!formatter->factory->get_boolean)
+    return -1;
+
+  return formatter->factory->get_boolean(formatter, world, iostr, base_uri, flags);
+}
+
+
+/**
  * rasqal_query_results_formatter_read:
  * @world: rasqal world object
  * @iostr: #raptor_iostream to read the query from
@@ -485,7 +546,7 @@ rasqal_query_results_formatter_get_read_rowsource(rasqal_world *world,
  * @base_uri: #raptor_uri base URI of the input format
  *
  * Read the query results using the given formatter from an iostream
- * 
+ *
  * See rasqal_world_get_query_results_format_description() for
  * obtaining the supported format URIs at run time.
  *
@@ -500,7 +561,7 @@ rasqal_query_results_formatter_read(rasqal_world *world,
 {
   rasqal_query_results_type type;
   int rc = 0;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(formatter, rasqal_query_results_formatter, 1);
@@ -509,34 +570,55 @@ rasqal_query_results_formatter_read(rasqal_world *world,
 
   type = rasqal_query_results_get_type(results);
 
-  /* Read bindings results */
-  if(type == RASQAL_QUERY_RESULTS_BINDINGS) {
-    rasqal_rowsource* rowsource = NULL;
-    rasqal_variables_table* vars_table;
+  switch(type) {
+    case RASQAL_QUERY_RESULTS_BINDINGS:
+      if(1) {
+        rasqal_rowsource* rowsource = NULL;
+        rasqal_variables_table* vars_table;
 
-    vars_table = rasqal_query_results_get_variables_table(results);
-    rowsource = rasqal_query_results_formatter_get_read_rowsource(world,
-                                                                  iostr,
-                                                                  formatter,
-                                                                  vars_table,
-                                                                  base_uri, 0);
-    if(!rowsource)
-      return 1;
+        vars_table = rasqal_query_results_get_variables_table(results);
+        rowsource = rasqal_query_results_formatter_get_read_rowsource(world,
+                                                                      iostr,
+                                                                      formatter,
+                                                                      vars_table,
+                                                                      base_uri, 0);
+        if(!rowsource)
+          return 1;
 
-    while(1) {
-      rasqal_row* row = rasqal_rowsource_read_row(rowsource);
-      if(!row)
-        break;
-      rasqal_query_results_add_row(results, row);
-    }
+        while(1) {
+          rasqal_row* row = rasqal_rowsource_read_row(rowsource);
+          if(!row)
+            break;
+          rasqal_query_results_add_row(results, row);
+        }
 
-    if(rowsource)
-      rasqal_free_rowsource(rowsource);
-  } else {
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Cannot read '%s' query results format\n",
-                            rasqal_query_results_type_label(type));
-    rc = 1;
+        if(rowsource)
+          rasqal_free_rowsource(rowsource);
+      }
+      break;
+
+    case RASQAL_QUERY_RESULTS_BOOLEAN:
+      if(1) {
+        int bvalue;
+
+        bvalue = rasqal_query_results_formatter_get_boolean(world,
+                                                            iostr,
+                                                            formatter,
+                                                            base_uri, 0);
+        if(bvalue < 0)
+          return 1;
+        rasqal_query_results_set_boolean(results, bvalue);
+      }
+      break;
+
+    case RASQAL_QUERY_RESULTS_GRAPH:
+    case RASQAL_QUERY_RESULTS_SYNTAX:
+    case RASQAL_QUERY_RESULTS_UNKNOWN:
+      /* failure */
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                              "Cannot read '%s' query results format\n",
+                              rasqal_query_results_type_label(type));
+      rc = 1;
   }
 
   return rc;

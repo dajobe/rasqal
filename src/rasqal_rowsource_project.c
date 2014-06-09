@@ -149,7 +149,7 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     if(!nrow)
       goto failed;
 
-    nrow->rowsource = rowsource;
+    rasqal_row_set_rowsource(nrow, rowsource);
     nrow->offset = row->offset;
       
     for(i = 0; i < rowsource->size; i++) {

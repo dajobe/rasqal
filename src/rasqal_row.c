@@ -92,7 +92,12 @@ rasqal_new_row(rasqal_rowsource* rowsource)
   int size;
   int order_size = -1;
   rasqal_row* row;
-  
+
+  if(!rowsource)
+    return NULL;
+
+  rowsource = rasqal_new_rowsource_from_rowsource(rowsource);
+
   size = rasqal_rowsource_get_size(rowsource);
 
   row = rasqal_new_row_common(rowsource->world, size, order_size);
@@ -168,6 +173,9 @@ rasqal_free_row(rasqal_row* row)
     }
     RASQAL_FREE(array, row->order_values);
   }
+
+  if(row->rowsource)
+    rasqal_free_rowsource(row->rowsource);
 
   RASQAL_FREE(rasqal_row, row);
 }
@@ -618,7 +626,7 @@ rasqal_row_expand_size(rasqal_row *row, int size)
  * @row: Result row
  * @vars_table: Variables table
  *
- * INTERNAL - Bind the variable table vars withvalues in the row
+ * INTERNAL - Bind the variable table vars with values in the row
  *
  * Return value: non-0 on failure
  */
@@ -711,9 +719,43 @@ rasqal_row_compare(const void *a, const void *b)
   /* still equal?  make sort stable by using the original order */
   if(!result) {
     result = row_a->offset - row_b->offset;
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG2("Got equality result so using offsets, returning %d\n",
                   result);
+#endif
   }
   
   return result;
+}
+
+
+void
+rasqal_row_set_rowsource(rasqal_row* row, rasqal_rowsource* rowsource)
+{
+  if(!(row->flags & RASQAL_ROW_FLAG_WEAK_ROWSOURCE) && row->rowsource)
+    rasqal_free_rowsource(row->rowsource);
+
+  row->rowsource = rasqal_new_rowsource_from_rowsource(rowsource);
+  row->flags &= ~ RASQAL_ROW_FLAG_WEAK_ROWSOURCE;
+}
+
+/* Set/reset a row's rowsource to a weak reference; one that should
+ * NOT be freed.
+ *
+ *  *DANGEROUS* : should only be used by the rasqal_rowsequence_rowsource class
+ */
+void
+rasqal_row_set_weak_rowsource(rasqal_row* row, rasqal_rowsource* rowsource)
+{
+  row->rowsource = rowsource;
+  row->flags |= RASQAL_ROW_FLAG_WEAK_ROWSOURCE;
+}
+
+rasqal_variable*
+rasqal_row_get_variable_by_offset(rasqal_row* row, int offset)
+{
+  if(offset < 0)
+    return NULL;
+
+  return rasqal_rowsource_get_variable_by_offset(row->rowsource, offset);
 }

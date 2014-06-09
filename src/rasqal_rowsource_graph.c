@@ -235,7 +235,7 @@ rasqal_graph_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       rasqal_free_row(row);
       row = NULL;
     } else {
-      nrow->rowsource = rowsource;
+      rasqal_row_set_rowsource(nrow, rowsource);
       nrow->offset = row->offset;
       
       /* Put GRAPH variable value (or NULL) first in result row */
