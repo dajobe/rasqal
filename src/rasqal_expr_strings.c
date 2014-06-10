@@ -530,6 +530,12 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_expression *e,
  *
  * INTERNAL - Evaluate RASQAL_EXPR_CONCAT(expr list) expression.
  *
+ * "If all input literals are typed literals of type xsd:string,
+ * then the returned literal is also of type xsd:string, if all input
+ * literals are plain literals with identical language tag, then the
+ * returned literal is a plain literal with the same language tag, in
+ * all other cases, the returned literal is a simple literal."
+ *
  * Return value: A #rasqal_literal string value or NULL on failure.
  */
 rasqal_literal*
@@ -542,9 +548,15 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
   int i;
   size_t len;
   unsigned char* result_str = NULL;
-  int same_dt = 1;
+  char* lang_tag = NULL;
+  int mode = -1; /* -1: undecided  0: xsd:string  1: simple+lang  2: simple */
   raptor_uri* dt = NULL;
+  raptor_uri* xsd_string_uri;
+  rasqal_literal *result_l;
   
+  xsd_string_uri = rasqal_xsd_datatype_type_to_uri(world,
+                                                   RASQAL_LITERAL_XSD_STRING);
+
   sb = raptor_new_stringbuffer();
   if(!sb)
     goto failed;
@@ -558,41 +570,94 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
     if(!arg_expr)
       break;
 
-    /* FIXME - check what to do with a NULL literal */
-    /* FIXME - check what to do with an empty string literal */
-
     arg_literal = rasqal_expression_evaluate2(arg_expr, eval_context, error_p);
-    if(arg_literal) {
-
-      if(!dt) {
-        /* First datatype URI seen is the result datatype */
-        if(arg_literal->datatype)
-          dt = raptor_uri_copy(arg_literal->datatype);
-      } else {
-        /* Otherwise if all same so far, check the datatype URI for
-         * this literal is also the same 
-         */
-        if(same_dt && !raptor_uri_equals(dt, arg_literal->datatype)) {
-          /* Seen a difference - tidy up */
-          if(dt) {
-            raptor_free_uri(dt);
-            dt = NULL;
-          }
-          same_dt = 0;
-        }
-      }
-      
-      /* FIXME - check that altering the flags this way to allow
-       * concat of URIs is OK 
-       */
-      s = rasqal_literal_as_string_flags(arg_literal, 
-                                         (eval_context->flags & ~RASQAL_COMPARE_XQUERY), 
-                                         error_p);
-      rasqal_free_literal(arg_literal);
-    } else {
+    if(!arg_literal) {
+      /* FIXME - check what to do with a NULL literal */
+#if 0
       if(error_p)
         *error_p = 1;
+      goto failed;
+#endif
+      continue;
     }
+
+    if(arg_literal->type != RASQAL_LITERAL_STRING &&
+       arg_literal->type != RASQAL_LITERAL_XSD_STRING) {
+      /* result is NULL literal; no error */
+      goto null_literal;
+    }
+
+
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+    RASQAL_DEBUG1("Concating literal ");
+    rasqal_literal_print(arg_literal, stderr);
+    fprintf(stderr, " with existing mode %d  lang=%s\n", mode, lang_tag);
+#endif
+
+    if(arg_literal->datatype) {
+      /* Datatype */ 
+      if(raptor_uri_equals(arg_literal->datatype, xsd_string_uri)) {
+        if(mode < 0)
+          /* mode -1: expect all xsd:string */
+          mode = 0;
+        else if(mode != 0) {
+          /* mode 1, 2: different datatypes, so result is simple literal */
+          if(lang_tag) {
+            RASQAL_FREE(char*, lang_tag); lang_tag = NULL;
+          }
+          mode = 2;
+        } else {
+          /* mode 0: not xsd:string so result is simple literal */
+          mode = 2;
+        }
+      }
+    } else {
+      /* No datatype; check language */
+      if(arg_literal->language) {
+        if(mode < 0) {
+          /* mode -1: First literal with language: save it and use it */
+          size_t lang_len = strlen(arg_literal->language);
+
+          lang_tag = RASQAL_MALLOC(char*, lang_len + 1);
+          if(!lang_tag)
+            goto failed;
+          memcpy(lang_tag, arg_literal->language, lang_len + 1);
+          mode = 1;
+        } else if (mode == 1) {
+          /* mode 1: Already got a lang tag so check it */
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+          RASQAL_DEBUG3("concat compare lang %s vs %s\n",
+                        arg_literal->language, lang_tag);
+#endif
+          if(strcmp(arg_literal->language, lang_tag)) {
+            /* different languages, so result is simple literal */
+            RASQAL_FREE(char*, lang_tag); lang_tag = NULL;
+            mode = 2;
+          }
+        } else if (mode == 0) {
+          /* mode 0: mixture of xsd:string and language literals,
+           * so result is simple literal
+           */
+          mode = 2;
+        } /* otherwise mode 2: No change */
+      } else {
+        if(lang_tag) {
+          /* mode 1: language but this literal has none, so result is
+           * simple literal */
+          RASQAL_FREE(char*, lang_tag); lang_tag = NULL;
+        }
+        mode = 2;
+      }
+    }
+    
+    /* FIXME - check that altering the flags this way to allow
+     * concat of URIs is OK 
+     */
+    s = rasqal_literal_as_string_flags(arg_literal, 
+                                         (eval_context->flags & ~RASQAL_COMPARE_XQUERY), 
+                                         error_p);
+    rasqal_free_literal(arg_literal);
+
 
     if((error_p && *error_p) || !s)
       goto failed;
@@ -610,17 +675,29 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
     goto failed;
   
   raptor_free_stringbuffer(sb);
-  
-  /* result_str and dt (if set) becomes owned by result */
-  return rasqal_new_string_literal(world, result_str, NULL, dt, NULL);
 
+  if(mode == 0)
+    dt = raptor_uri_copy(xsd_string_uri);
+
+  /* result_str and lang and dt (if set) becomes owned by result */
+  result_l = rasqal_new_string_literal(world, result_str, lang_tag, dt, NULL);
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+  RASQAL_DEBUG1("Concat result literal: ");
+  rasqal_literal_print(result_l, stderr);
+  fprintf(stderr, " with mode %d\n", mode);
+#endif
+
+  return result_l;
 
   failed:
   if(error_p)
     *error_p = 1;
-  
+
+  null_literal:
   if(dt)
     raptor_free_uri(dt);
+  if(lang_tag)
+    RASQAL_FREE(char*, lang_tag);
   if(result_str)
     RASQAL_FREE(char*, result_str);
   if(sb)
