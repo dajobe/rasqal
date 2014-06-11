@@ -1828,7 +1828,8 @@ rasqal_query_results_sort(rasqal_query_results* query_results,
       return rc;
   }
 
-  raptor_sequence_sort(query_results->results_sequence, compare);
+  if(query_results->results_sequence)
+    raptor_sequence_sort(query_results->results_sequence, compare);
   
   return 0;
 }
