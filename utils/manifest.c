@@ -1030,6 +1030,13 @@ manifest_test_run(manifest_test* t, const char* path)
   if(!result)
     goto tidy;
 
+  if(!t->query) {
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_WARN, NULL,
+                            "Ignoring test %s with no query - not supported\n",
+                            rasqal_literal_as_string(t->test_node));
+    return NULL;
+  }
+
   /* Read query from file into a string */
   query_uri_string = raptor_uri_as_string(t->query);
   if(raptor_uri_uri_string_is_file_uri(query_uri_string)) {
