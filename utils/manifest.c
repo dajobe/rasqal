@@ -1198,6 +1198,10 @@ manifest_test_run(manifest_test* t, const char* path)
 
           raptor_free_iostream(result_iostr); result_iostr = NULL;
 
+#ifdef RASQAL_DEBUG
+          rasqal_dataset_print(ds, stderr);
+#endif
+
           /* FIXME
            *
            * The code at this point should do something with triples
@@ -1250,6 +1254,9 @@ manifest_test_run(manifest_test* t, const char* path)
         break;
 
       case RASQAL_QUERY_RESULTS_GRAPH:
+        RASQAL_DEBUG1("Actual RDF graph result: (cannot be printed yet)\n");
+        break;
+
       case RASQAL_QUERY_RESULTS_SYNTAX:
       case RASQAL_QUERY_RESULTS_UNKNOWN:
         /* failure */
