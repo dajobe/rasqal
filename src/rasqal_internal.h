@@ -1055,6 +1055,7 @@ int rasqal_xsd_date_check(const char* string);
 /* rasqal_dataset.c */
 typedef struct rasqal_dataset_s rasqal_dataset;
 typedef struct rasqal_dataset_term_iterator_s rasqal_dataset_term_iterator;
+typedef struct rasqal_dataset_triples_iterator_s rasqal_dataset_triples_iterator;
 
 rasqal_dataset* rasqal_new_dataset(rasqal_world* world);
 void rasqal_free_dataset(rasqal_dataset* ds);
@@ -1067,7 +1068,12 @@ rasqal_dataset_term_iterator* rasqal_dataset_get_sources_iterator(rasqal_dataset
 rasqal_dataset_term_iterator* rasqal_dataset_get_targets_iterator(rasqal_dataset* ds, rasqal_literal* subject, rasqal_literal* predicate);
 rasqal_literal* rasqal_dataset_get_source(rasqal_dataset* ds, rasqal_literal* predicate, rasqal_literal* object);
 rasqal_literal* rasqal_dataset_get_target(rasqal_dataset* ds, rasqal_literal* subject, rasqal_literal* predicate);
-  
+rasqal_dataset_triples_iterator* rasqal_dataset_get_triples_iterator(rasqal_dataset* ds);
+void rasqal_free_dataset_triples_iterator(rasqal_dataset_triples_iterator* ti);
+rasqal_triple* rasqal_dataset_triples_iterator_get(rasqal_dataset_triples_iterator* ti);
+int rasqal_dataset_triples_iterator_next(rasqal_dataset_triples_iterator* ti);
+int rasqal_dataset_print(rasqal_dataset* ds, FILE *fh);
+
 
 /* rasqal_general.c */
 char* rasqal_vsnprintf(const char* message, va_list arguments);

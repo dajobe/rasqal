@@ -84,6 +84,12 @@ struct rasqal_dataset_term_iterator_s {
 };
 
 
+struct rasqal_dataset_triples_iterator_s {
+  /* current triple */
+  rasqal_dataset_triple *cursor;
+};
+
+
 
 /*
  * rasqal_new_dataset:
@@ -315,8 +321,10 @@ rasqal_dataset_init_match_internal(rasqal_dataset* ds,
     iter->want = RASQAL_TRIPLE_SUBJECT;
   else if(!object)
     iter->want = RASQAL_TRIPLE_OBJECT;
-  else
+  else if (!predicate)
     iter->want = RASQAL_TRIPLE_PREDICATE;
+  else
+    iter->want = RASQAL_GOOD_CAST(rasqal_triple_parts, 0);
 
   iter->parts = RASQAL_GOOD_CAST(unsigned int, RASQAL_TRIPLE_SPO) ^ iter->want;
 
@@ -333,8 +341,8 @@ rasqal_dataset_init_match_internal(rasqal_dataset* ds,
 
 
 /*
- * rasqal_free_dataset_term_Iterator:
- * @ds: dataset
+ * rasqal_free_dataset_term_iterator:
+ * @iter: iterator
  *
  * INTERNAL - Destructor - destroy a dataset term iterator
  */
@@ -413,6 +421,78 @@ rasqal_dataset_term_iterator_next(rasqal_dataset_term_iterator* iter)
 }
 
 
+
+
+/*
+ * rasqal_dataset_get_triples_iterator:
+ * @ds: dataset
+ * @predicate: literal predicate
+ * @object: literal object
+ *
+ * INTERNAL - Create an iterator to return all triples
+ *
+ * Return value: iterator or NULL on error or failure
+ */
+rasqal_dataset_triples_iterator*
+rasqal_dataset_get_triples_iterator(rasqal_dataset* ds)
+{
+  rasqal_dataset_triples_iterator* ti;
+
+  ti = RASQAL_CALLOC(rasqal_dataset_triples_iterator*, 1, sizeof(*ti));
+  if(!ti)
+    return NULL;
+
+  ti->cursor = ds->head;
+  
+  return ti;
+}
+
+
+/*
+ * rasqal_free_dataset_triples_iterator:
+ * @ti: triples iterator
+ *
+ * INTERNAL - Destructor - destroy a dataset triples iterator
+ */
+void
+rasqal_free_dataset_triples_iterator(rasqal_dataset_triples_iterator* ti)
+{
+  if(!ti)
+    return;
+  
+  RASQAL_FREE(rasqal_dataset_triples_iterator, ti);
+}
+
+
+/*
+ * rasqal_dataset_triples_iterator_get
+ * @ti: dataset
+ *
+ * INTERNAL - Get current triple
+ *
+ * Return value: triple or NULL on end of list
+ */
+rasqal_triple*
+rasqal_dataset_triples_iterator_get(rasqal_dataset_triples_iterator* ti)
+{
+  return ti->cursor ? ti->cursor->triple : NULL;
+}
+
+
+/*
+ * rasqal_dataset_triples_iterator_next
+ * @iter: dataset
+ *
+ * INTERNAL - Move to next current triple
+ *
+ * Return value: non-0 if done
+ */
+int
+rasqal_dataset_triples_iterator_next(rasqal_dataset_triples_iterator* ti)
+{
+  ti->cursor = ti->cursor->next;
+  return (ti->cursor == NULL);
+}
 
 
 /*
