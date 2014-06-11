@@ -60,7 +60,7 @@ static const char* manifest_test_state_labels[STATE_LAST + 1] = {
 };
 
 
-#define DEFAULT_RESULT_FORMAT_NAME "xml"
+#define DEFAULT_RESULT_FORMAT_NAME "guess"
 
 
 /* prototypes */
@@ -1188,7 +1188,8 @@ manifest_test_run(manifest_test* t, const char* path)
           }
 
           if(rasqal_dataset_load_graph_iostream(ds, format_name,
-                                                result_iostr, NULL)) {
+                                                result_iostr,
+                                                t->expected_result)) {
             RASQAL_DEBUG1("Failed to load graph into dataset\n");
             manifest_free_test_result(result);
             result = NULL;
