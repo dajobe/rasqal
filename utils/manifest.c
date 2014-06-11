@@ -973,7 +973,8 @@ manifest_test_print(manifest_test* t, FILE* fh)
   fprintf(fh, "    Entailment: %s\n",
           (t->flags & FLAG_ENTAILMENT) ? "yes" : "no");
 
-  fprintf(fh, "  Query URI: '%s'\n", raptor_uri_as_string(t->query));
+  if(t->query)
+    fprintf(fh, "  Query URI: '%s'\n", raptor_uri_as_string(t->query));
   if(t->data_graphs && raptor_sequence_size(t->data_graphs) > 0) {
     fputs("  Data URIs: ", fh);
     raptor_sequence_print(t->data_graphs, fh);
@@ -1313,6 +1314,7 @@ manifest_test_run(manifest_test* t, const char* path)
       state = STATE_FAIL;
   }  
 
+  RASQAL_DEBUG3("Test result state %d  expected %d\n", (int)state, (int)t->expect);
 
   if(t->expect == STATE_FAIL) {
     if(state == STATE_FAIL) {
