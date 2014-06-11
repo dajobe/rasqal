@@ -597,3 +597,40 @@ rasqal_dataset_get_target(rasqal_dataset* ds,
   rasqal_free_dataset_term_iterator(iter);
   return literal;
 }
+
+
+/*
+ * rasqal_dataset_print:
+ * @ds: #rasqal_dataset object.
+ * @fh: The FILE* handle to print to.
+ *
+ * INTERNAL - Print a Rasqal dataset in a debug format.
+ *
+ * The print debug format may change in any release.
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_dataset_print(rasqal_dataset* ds, FILE *fh)
+{
+  rasqal_dataset_triples_iterator* ti;
+
+  ti = rasqal_dataset_get_triples_iterator(ds);
+  while(1) {
+    rasqal_triple* triple;
+
+    triple = rasqal_dataset_triples_iterator_get(ti);
+    if(!triple)
+      break;
+
+    fputs("Triple ", fh);
+    rasqal_triple_print(triple, fh);
+    fputc('\n', fh);
+
+    if(rasqal_dataset_triples_iterator_next(ti))
+      break;
+  }
+  rasqal_free_dataset_triples_iterator(ti);
+
+  return 0;
+}
