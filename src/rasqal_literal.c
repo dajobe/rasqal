@@ -1712,9 +1712,6 @@ rasqal_literal_as_uri(rasqal_literal* l)
   if(l->type == RASQAL_LITERAL_VARIABLE && l->value.variable->value)
     return rasqal_literal_as_uri(l->value.variable->value);
 
-  RASQAL_FATAL3("Literal type %s (%d) has no URI value", 
-                rasqal_literal_type_label(l->type), l->type);
-
   return NULL;
 }
 
