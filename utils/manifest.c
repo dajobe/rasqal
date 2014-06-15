@@ -291,7 +291,7 @@ manifest_new_test_result(manifest_test_state state)
 
   result->state = state;
   /* total_result->details = NULL; */
-  for(i = 0; i < STATE_LAST; i++)
+  for(i = 0; i <= STATE_LAST; i++)
     /* Holding pointers; the tests are owned by the testsuites */
     result->states[i] = raptor_new_sequence(NULL, NULL);
   return result;
@@ -312,7 +312,7 @@ manifest_free_test_result(manifest_test_result* result)
   if(result->log)
     free(result->log);
 
-  for(i = 0; i < STATE_LAST; i++) {
+  for(i = 0; i <= STATE_LAST; i++) {
     if(result->states[i])
       raptor_free_sequence(result->states[i]);
   }
@@ -396,7 +396,7 @@ manifest_testsuite_result_format(FILE* fh,
 
   manifest_indent(fh, indent);
 
-  for(i = 0; i < STATE_LAST; i++) {
+  for(i = 0; i <= STATE_LAST; i++) {
     int count = 0;
     seq = result->states[i];
     if(seq)
@@ -1436,10 +1436,8 @@ manifest_testsuite_run_suite(manifest_testsuite* ts,
       rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_WARN, NULL,
                               "Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
                               rasqal_literal_as_string(t->test_node));
-      continue;
-    }
-
-    if(dryrun) {
+      t->result = manifest_new_test_result(STATE_SKIP);
+    } else if(dryrun) {
       t->result = manifest_new_test_result(STATE_SKIP);
     } else {
       t->result = manifest_test_run(t, ts->path);
@@ -1559,7 +1557,7 @@ manifest_manifests_run(manifest_world* mw,
     if(result) {
       manifest_testsuite_result_format(stdout, result, ts->name,
                                        indent + indent_step, verbose);
-      for(j = 0; j < STATE_LAST; j++)
+      for(j = 0; j <= STATE_LAST; j++)
         raptor_sequence_join(total_result->states[j], result->states[j]);
 
       if(result->state == STATE_FAIL)
