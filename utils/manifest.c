@@ -381,15 +381,16 @@ manifest_testsuite_result_format(FILE* fh,
     for(i = 0;
         (t = RASQAL_GOOD_CAST(manifest_test*, raptor_sequence_get_at(seq, i)));
         i++) {
-      manifest_indent(fh, indent);
-      fputs(t->name, fh);
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-      fputc(' ', fh);
-      fputc('(', fh);
-      rasqal_literal_print(t->test_node, fh);
-      fputc(')', fh);
-#endif
-      fputc('\n', fh);
+      manifest_indent(fh, indent + indent_step);
+
+      if(verbose) {
+        manifest_banner(fh, banner_width, '=');
+        manifest_indent(fh, indent + indent_step);
+        fprintf(fh, "%s in suite %s\n", t->name, ts_name);
+      } else {
+        fputs(t->name, fh);
+        fputc('\n', fh);
+      }
     }
 
   }
@@ -1333,7 +1334,7 @@ manifest_test_run(manifest_test* t, const char* path)
 
   if(t->expect == STATE_FAIL) {
     if(state == STATE_FAIL) {
-      state=STATE_XFAIL;
+      state = STATE_XFAIL;
       result->details = strdup("Test failed as expected");
     } else {
       state = STATE_UXPASS;
