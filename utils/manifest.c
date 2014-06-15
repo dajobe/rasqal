@@ -391,6 +391,17 @@ manifest_testsuite_result_format(FILE* fh,
         fputs(t->name, fh);
         fputc('\n', fh);
       }
+
+      if(verbose) {
+        if(t->result) {
+          if(t->result->details) {
+            manifest_indent(fh, indent + indent_step);
+            fputs(t->result->details, fh);
+            fputc('\n', fh);
+          }
+
+        }
+      }
     }
 
   }
