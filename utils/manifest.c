@@ -1091,12 +1091,19 @@ manifest_test_run(manifest_test* t, const char* path)
     goto tidy;
   }
 
-  if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
+  if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri))
+    state = STATE_FAIL;
+  else
+    state = STATE_PASS;
+
+  /* Query prepared / parsed OK so for a syntax test, we are done */
+  if(t->flags & FLAG_IS_SYNTAX)
+    goto returnresult;
+  else if(state == STATE_FAIL) {
+    /* Otherwise for non-syntax test, stop at a failure */
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
                             "Parsing %s query '%s' failed", ql_name, query_string);
-    manifest_free_test_result(result);
-    result = NULL;
-    goto tidy;
+    goto setreturnresult;
   }
 
   /* Add any data graphs */
@@ -1115,7 +1122,8 @@ manifest_test_run(manifest_test* t, const char* path)
     }
   }
 
-  /* Query prepared OK - we now know the query details such as result type */
+
+  /* we now know the query details such as result type */
 
   /* Read expected results */
   results_type = rasqal_query_get_result_type(rq);
@@ -1344,6 +1352,7 @@ manifest_test_run(manifest_test* t, const char* path)
       state = STATE_FAIL;
   }  
 
+  returnresult:
   RASQAL_DEBUG3("Test result state %d  expected %d\n", (int)state, (int)t->expect);
 
   if(t->expect == STATE_FAIL) {
@@ -1356,6 +1365,7 @@ manifest_test_run(manifest_test* t, const char* path)
     }
   }
 
+  setreturnresult:
   if(result)
     result->state = state;
 
