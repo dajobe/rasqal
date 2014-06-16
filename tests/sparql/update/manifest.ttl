@@ -1,0 +1,236 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+
+<> a mf:Manifest ;
+    rdfs:comment "SPARQL 1.1 Update syntax parsing" ;
+    mf:entries ([
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of insert-data-1.rq" ;
+            mf:action <insert-data-1.rq> ;
+            mf:name "insert-data-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of insert-data-2.rq" ;
+            mf:action <insert-data-2.rq> ;
+            mf:name "insert-data-2.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of insert-data-3.rq" ;
+            mf:action <insert-data-3.rq> ;
+            mf:name "insert-data-3.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of insert-data-4.rq" ;
+            mf:action <insert-data-4.rq> ;
+            mf:name "insert-data-4.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of delete-data-1.rq" ;
+            mf:action <delete-data-1.rq> ;
+            mf:name "delete-data-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of delete-data-2.rq" ;
+            mf:action <delete-data-2.rq> ;
+            mf:name "delete-data-2.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of delete-1.rq" ;
+            mf:action <delete-1.rq> ;
+            mf:name "delete-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of delete-2.rq" ;
+            mf:action <delete-2.rq> ;
+            mf:name "delete-2.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of insert-1.rq" ;
+            mf:action <insert-1.rq> ;
+            mf:name "insert-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of insert-2.rq" ;
+            mf:action <insert-2.rq> ;
+            mf:name "insert-2.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of insert-3.rq" ;
+            mf:action <insert-3.rq> ;
+            mf:name "insert-3.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of load-1.rq" ;
+            mf:action <load-1.rq> ;
+            mf:name "load-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of load-2.rq" ;
+            mf:action <load-2.rq> ;
+            mf:name "load-2.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of load-3.rq" ;
+            mf:action <load-3.rq> ;
+            mf:name "load-3.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of load-4.rq" ;
+            mf:action <load-4.rq> ;
+            mf:name "load-4.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of clear-1.rq" ;
+            mf:action <clear-1.rq> ;
+            mf:name "clear-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of clear-2.rq" ;
+            mf:action <clear-2.rq> ;
+            mf:name "clear-2.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of clear-3.rq" ;
+            mf:action <clear-3.rq> ;
+            mf:name "clear-3.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of clear-4.rq" ;
+            mf:action <clear-4.rq> ;
+            mf:name "clear-4.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of create-1.rq" ;
+            mf:action <create-1.rq> ;
+            mf:name "create-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of create-2.rq" ;
+            mf:action <create-2.rq> ;
+            mf:name "create-2.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of delete-1.rq" ;
+            mf:action <delete-1.rq> ;
+            mf:name "delete-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of drop-1.rq" ;
+            mf:action <drop-1.rq> ;
+            mf:name "drop-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of drop-2.rq" ;
+            mf:action <drop-2.rq> ;
+            mf:name "drop-2.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of delete-insert-1.rq" ;
+            mf:action <delete-insert-1.rq> ;
+            mf:name "delete-insert-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of copy-1.rq" ;
+            mf:action <copy-1.rq> ;
+            mf:name "copy-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of copy-2.rq" ;
+            mf:action <copy-2.rq> ;
+            mf:name "copy-2.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of copy-3.rq" ;
+            mf:action <copy-3.rq> ;
+            mf:name "copy-3.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of move-1.rq" ;
+            mf:action <move-1.rq> ;
+            mf:name "move-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of move-2.rq" ;
+            mf:action <move-2.rq> ;
+            mf:name "move-2.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of move-3.rq" ;
+            mf:action <move-3.rq> ;
+            mf:name "move-3.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of add-1.rq" ;
+            mf:action <add-1.rq> ;
+            mf:name "add-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of add-2.rq" ;
+            mf:action <add-2.rq> ;
+            mf:name "add-2.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of add-3.rq" ;
+            mf:action <add-3.rq> ;
+            mf:name "add-3.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of multiple-1.rq" ;
+            mf:action <multiple-1.rq> ;
+            mf:name "multiple-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of delete-where-1.rq" ;
+            mf:action <delete-where-1.rq> ;
+            mf:name "delete-where-1.rq"
+        ]
+        [
+            a mf:PositiveSyntaxTest11 ;
+            rdfs:comment "sparql parsing of delete-where-2.rq" ;
+            mf:action <delete-where-2.rq> ;
+            mf:name "delete-where-2.rq"
+        ]
+        [
+            a mf:NegativeSyntaxTest11;
+            rdfs:comment "sparql failing to parse of bad-1.rq" ;
+            mf:action <bad-1.rq> ;
+            mf:name "bad-1.rq"
+        ]
+    ) .
+
