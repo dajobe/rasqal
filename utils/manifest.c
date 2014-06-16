@@ -993,35 +993,32 @@ manifest_test_print(FILE* fh, manifest_test* t, int indent)
   fprintf(fh, "Expect: %s\n",
           (t->flags & FLAG_MUST_FAIL) ? "fail" : "pass");
   manifest_indent(fh, indent);
-  fprintf(fh, "Flags: 0x%04X\n", t->flags);
-  indent += indent_step;
+  fputs("Flags: ", fh);
+  if(t->flags & FLAG_IS_QUERY)
+    fputs("Query ", fh);
+    
+  if(t->flags & FLAG_IS_UPDATE)
+    fputs("Update ", fh);
+    
+  if(t->flags & FLAG_IS_PROTOCOL)
+    fputs("Protocol ", fh);
+    
+  if(t->flags & FLAG_IS_SYNTAX)
+    fputs("Syntax ", fh);
+    
+  if(t->flags & FLAG_TEST_APPROVED)
+    fputs("Approved ", fh);
+    
+  if(t->flags & FLAG_TEST_WITHDRAWN)
+    fputs("Withdrawn ", fh);
+    
+  if(t->flags & FLAG_RESULT_CARDINALITY_LAX)
+    fputs("LaxCardinality", fh);
 
-  manifest_indent(fh, indent);
-  fprintf(fh, "Query test: %s\n",
-          (t->flags & FLAG_IS_QUERY) ? "yes" : "no");
-  manifest_indent(fh, indent);
-  fprintf(fh, "Update test: %s\n",
-          (t->flags & FLAG_IS_UPDATE) ? "yes" : "no");
-  manifest_indent(fh, indent);
-  fprintf(fh, "Protocol test: %s\n",
-          (t->flags & FLAG_IS_PROTOCOL) ? "yes" : "no");
-  manifest_indent(fh, indent);
-  fprintf(fh, "Syntax test: %s\n",
-          (t->flags & FLAG_IS_SYNTAX) ? "yes" : "no");
-  manifest_indent(fh, indent);
-  fprintf(fh, "Approved: %s\n",
-          (t->flags & FLAG_TEST_APPROVED) ? "yes" : "no");
-  manifest_indent(fh, indent);
-  fprintf(fh, "Withdrawn: %s\n",
-          (t->flags & FLAG_TEST_WITHDRAWN) ? "yes" : "no");
-  manifest_indent(fh, indent);
-  fprintf(fh, "Result cardinality: %s\n",
-          (t->flags & FLAG_RESULT_CARDINALITY_LAX) ? "lax" : "strict");
-  manifest_indent(fh, indent);
-  fprintf(fh, "Entailment: %s\n",
-          (t->flags & FLAG_ENTAILMENT) ? "yes" : "no");
+  if(t->flags & FLAG_ENTAILMENT)
+    fputs("Entailment ", fh);
+  fprintf(fh, "(0x%04X)\n", t->flags);
 
-  indent -= indent_step;
   if(t->query) {
     manifest_indent(fh, indent);
     fprintf(fh, "Query URI: '%s'\n", raptor_uri_as_string(t->query));
