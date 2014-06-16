@@ -681,7 +681,8 @@ manifest_new_test(manifest_world* mw,
       int is_withdrawn;
       
       str = raptor_uri_as_string(uri);
-      is_approved = (strstr((const char*)str, "Approved") != NULL);
+      is_approved = (strstr((const char*)str, "Approved") != NULL && 
+                     strstr((const char*)str, "NotApproved") == NULL);
       is_withdrawn = (strstr((const char*)str, "Withdrawn") != NULL);
       
       if(is_approved)
