@@ -75,18 +75,18 @@
       [  mf:name    "syntax-bnodes-03.rq" ;
          mf:action  
              [ qt:query  <syntax-bnodes-03.rq> ; 
-               qt:data   <empty.nt> ] ;
+               qt:data   <empty.nt> ]
          # No result
-	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
-         dawgt:approval dawgt:Approved
+	 # dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
+         # dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-bnodes-04.rq" ;
          mf:action  
              [ qt:query  <syntax-bnodes-04.rq> ; 
-               qt:data   <empty.nt> ] ;
+               qt:data   <empty.nt> ]
          # No result
-	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
-         dawgt:approval dawgt:Approved
+	 # dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
+         # dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-bnodes-05.rq" ;
          mf:action  
