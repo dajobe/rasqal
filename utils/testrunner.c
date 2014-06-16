@@ -320,8 +320,11 @@ main(int argc, char *argv[])
                                   dryrun, !quiet, approved);
   raptor_free_sequence(seq);
 
-  if(result)
+  if(result) {
     manifest_free_test_result(result);
+    rc = result->state == STATE_PASS ? 0 : 1;
+  } else
+    rc = 1;
 
   raptor_free_uri(base_uri);
   raptor_free_uri(uri);
@@ -333,11 +336,6 @@ main(int argc, char *argv[])
   tidy:
   if(world)
     rasqal_free_world(world);
-
-  if(warning_count)
-    rc = 2;
-  else if(error_count)
-    rc = 1;
 
   return rc;
 }
