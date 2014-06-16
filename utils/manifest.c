@@ -1421,7 +1421,8 @@ manifest_testsuite_select_tests_by_string(manifest_testsuite* ts,
 manifest_test_result*
 manifest_testsuite_run_suite(manifest_testsuite* ts,
                              unsigned int indent,
-                             int dryrun, int verbose)
+                             int dryrun, int verbose,
+                             int approved)
 {
   rasqal_world* world = ts->mw->world;
   char* name = ts->name;
@@ -1447,6 +1448,11 @@ manifest_testsuite_run_suite(manifest_testsuite* ts,
     if(t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
       rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_WARN, NULL,
                               "Ignoring test %s type UPDATE / PROTOCOL - not supported\n",
+                              rasqal_literal_as_string(t->test_node));
+      t->result = manifest_new_test_result(STATE_SKIP);
+    } else if(approved && !(t->flags & (FLAG_TEST_APPROVED))) {
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_WARN, NULL,
+                              "Ignoring test %s - unapproved\n",
                               rasqal_literal_as_string(t->test_node));
       t->result = manifest_new_test_result(STATE_SKIP);
     } else if(dryrun) {
@@ -1522,6 +1528,7 @@ manifest_testsuite_run_suite(manifest_testsuite* ts,
  * @indent: indent size
  * @dryrun: dryrun
  * @verbose: verbose
+ * @approved: approved
  *
  * Run the given manifest testsuites returning a test result
  *
@@ -1533,7 +1540,7 @@ manifest_manifests_run(manifest_world* mw,
                        raptor_uri* base_uri,
                        const char* test_string,
                        unsigned int indent,
-                       int dryrun, int verbose)
+                       int dryrun, int verbose, int approved)
 {
   manifest_test_state total_state = STATE_PASS;
   manifest_test_result* total_result = NULL;
@@ -1564,7 +1571,8 @@ manifest_manifests_run(manifest_world* mw,
     if(test_string)
       manifest_testsuite_select_tests_by_string(ts, test_string);
 
-    result = manifest_testsuite_run_suite(ts, indent, dryrun, verbose);
+    result = manifest_testsuite_run_suite(ts, indent, dryrun, verbose,
+                                          approved);
 
     if(result) {
       manifest_testsuite_result_format(stdout, result, ts->name,

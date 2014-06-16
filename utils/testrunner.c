@@ -82,13 +82,14 @@ static char *program = NULL;
 #endif
 
 
-#define GETOPT_STRING "hnqt:v"
+#define GETOPT_STRING "ahnqt:v"
 
 #ifdef HAVE_GETOPT_LONG
 
 static struct option long_options[] =
 {
   /* name, has_arg, flag, val */
+  {"approved", 0, 0, 'a'},
   {"help", 0, 0, 'h'},
   {"dryrun", 0, 0, 'n'},
   {"quiet", 0, 0, 'q'},
@@ -156,6 +157,7 @@ print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
   puts(rasqal_home_url_string);
   
   puts("\nOptions:");
+  puts(HELP_TEXT("a", "approved        ", "Run only approved tests"));
   puts(HELP_TEXT("h", "help            ", "Print this help, then exit"));
   puts(HELP_TEXT("n", "dryrun          ", "Prepare but do not run the query"));
   puts(HELP_TEXT("q", "quiet           ", "No extra information messages"));
@@ -180,6 +182,7 @@ main(int argc, char *argv[])
   int help = 0;
   int quiet = 0;
   int dryrun = 0;
+  int approved = 0;
   manifest_world* mw;
   raptor_sequence* seq;
   manifest_test_result* result;
@@ -222,6 +225,10 @@ main(int argc, char *argv[])
         usage = 1;
         break;
         
+      case 'a':
+        approved = 1;
+        break;
+
       case 'h':
         help = 1;
         break;
@@ -310,7 +317,7 @@ main(int argc, char *argv[])
   result = manifest_manifests_run(mw, seq, base_uri,
                                   test_string,
                                   /* indent */ 0,
-                                  dryrun, !quiet);
+                                  dryrun, !quiet, approved);
   raptor_free_sequence(seq);
 
   if(result)
