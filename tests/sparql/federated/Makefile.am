@@ -19,6 +19,8 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
+SPARQL_MANIFEST_FILES= manifest.ttl
+
 SPARQL_MODEL_FILES= \
 data-1.ttl \
 data-2.ttl \
@@ -35,6 +37,7 @@ service-2.rq
 
 
 EXTRA_DIST= \
+$(SPARQL_MANIFEST_FILES) \
 $(SPARQL_MODEL_FILES) \
 $(EXPECTED_SPARQL_CORRECT)
 

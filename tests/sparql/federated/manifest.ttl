@@ -1,0 +1,38 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+
+<> a mf:Manifest ;
+    rdfs:comment "SPARQL 1.1 Federated queries parsing" ;
+    mf:entries ([
+            a mf:PositiveUpdateSyntaxTest11 ;
+            rdfs:comment "sparql parsing of bindings-1.rq" ;
+            mf:action <bindings-1.rq> ;
+            mf:name "bindings-1.rq"
+        ]
+        [
+            a mf:PositiveUpdateSyntaxTest11 ;
+            rdfs:comment "sparql parsing of bindings-2.rq" ;
+            mf:action <bindings-2.rq> ;
+            mf:name "bindings-2.rq"
+        ]
+        [
+            a mf:PositiveUpdateSyntaxTest11 ;
+            rdfs:comment "sparql parsing of bindings-3.rq" ;
+            mf:action <bindings-3.rq> ;
+            mf:name "bindings-3.rq"
+        ]
+        [
+            a mf:PositiveUpdateSyntaxTest11 ;
+            rdfs:comment "sparql parsing of service-1.rq" ;
+            mf:action <service-1.rq> ;
+            mf:name "service-1.rq"
+        ]
+        [
+            a mf:PositiveUpdateSyntaxTest11 ;
+            rdfs:comment "sparql parsing of service-2.rq" ;
+            mf:action <service-2.rq> ;
+            mf:name "service-2.rq"
+        ]
+    ) .
+
