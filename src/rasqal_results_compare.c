@@ -337,24 +337,27 @@ rasqal_results_compare_compare(rasqal_results_compare* rrc)
     goto done;
   }
 
-  if(!rrc->variables_in_both_count) {
-    rrc->message.level = RAPTOR_LOG_LEVEL_ERROR;
-    rrc->message.text = "Results have no common variables";
-    if(rrc->log_handler)
-      rrc->log_handler(rrc->log_user_data, &rrc->message);
+  if(size1 > 0) {
+    /* If there are variables; check they match */
+    if(!rrc->variables_in_both_count) {
+      rrc->message.level = RAPTOR_LOG_LEVEL_ERROR;
+      rrc->message.text = "Results have no common variables";
+      if(rrc->log_handler)
+        rrc->log_handler(rrc->log_user_data, &rrc->message);
 
-    differences++;
-    goto done;
-  }
+      differences++;
+      goto done;
+    }
 
-  if(!rasqal_results_compare_variables_equal(rrc)) {
-    rrc->message.level = RAPTOR_LOG_LEVEL_ERROR;
-    rrc->message.text = "Results have different sets of variables";
-    if(rrc->log_handler)
-      rrc->log_handler(rrc->log_user_data, &rrc->message);
+    if(!rasqal_results_compare_variables_equal(rrc)) {
+      rrc->message.level = RAPTOR_LOG_LEVEL_ERROR;
+      rrc->message.text = "Results have different sets of variables";
+      if(rrc->log_handler)
+        rrc->log_handler(rrc->log_user_data, &rrc->message);
 
-    differences++;
-    goto done;
+      differences++;
+      goto done;
+    }
   }
 
   /* set results to be stored? */
