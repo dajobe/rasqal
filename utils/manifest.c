@@ -410,6 +410,9 @@ manifest_testsuite_result_format(FILE* fh,
 
   for(i = 0; i <= STATE_LAST; i++) {
     int count = 0;
+    if(i == STATE_XFAIL || i == STATE_UXPASS)
+      continue;
+    
     seq = result->states[i];
     if(seq)
       count = raptor_sequence_size(seq);
@@ -1345,10 +1348,10 @@ manifest_test_run(manifest_test* t, const char* path)
 
   if(t->expect == STATE_FAIL) {
     if(state == STATE_FAIL) {
-      state = STATE_XFAIL;
+      state = STATE_PASS;
       result->details = strdup("Test failed as expected");
     } else {
-      state = STATE_UXPASS;
+      state = STATE_FAIL;
       result->details = strdup("Test passed but expected to fail");
     }
   }
