@@ -1593,13 +1593,17 @@ manifest_manifests_run(manifest_world* mw,
       for(j = 0; j <= STATE_LAST; j++)
         raptor_sequence_join(total_result->states[j], result->states[j]);
 
-      if(result->state == STATE_FAIL)
+      if(result->state == STATE_FAIL) {
+        RASQAL_DEBUG2("Testsuite %s returned fail\n", ts->name);
         total_state = STATE_FAIL;
+      }
 
       manifest_free_test_result(result);
       ts->tests = NULL;
-    } else
+    } else {
+      RASQAL_DEBUG2("Testsuite %s failed to return result object\n", ts->name);
       total_state = STATE_FAIL;
+    }
 
     if(i > 1)
       fputc('\n', stdout);
