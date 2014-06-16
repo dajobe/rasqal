@@ -701,6 +701,10 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
   rasqal_free_literal(binding_uri_literal); binding_uri_literal = NULL;
   
 
+  if(!raptor_sequence_size(con->results_sequence))
+    /* Empty result set with variables defined; so remove vars */
+    rasqal_rowsource_remove_all_variables(con->rowsource);
+
   /* sort sequence of rows by ?index or original order */
 
   con->parsed = 1;
