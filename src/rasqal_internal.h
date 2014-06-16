@@ -973,7 +973,7 @@ void rasqal_rowsource_print(rasqal_rowsource* rs, FILE* fh);
 int rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource);
 int rasqal_rowsource_set_origin(rasqal_rowsource* rowsource, rasqal_literal *literal);
 int rasqal_rowsource_request_grouping(rasqal_rowsource* rowsource);
-
+void rasqal_rowsource_remove_all_variables(rasqal_rowsource *rowsource);
 
 typedef struct rasqal_query_results_format_factory_s rasqal_query_results_format_factory;
 

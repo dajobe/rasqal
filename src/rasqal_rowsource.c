@@ -851,6 +851,25 @@ rasqal_rowsource_print(rasqal_rowsource *rowsource, FILE* fh)
 }
 
 
+/*
+ * rasqal_rowsource_remove_all_variables:
+ * @rowsource: rasqal rowsource
+ *
+ * INTERNAL - Remove all variables from a rowsource
+ */
+void
+rasqal_rowsource_remove_all_variables(rasqal_rowsource *rowsource)
+{
+  while(1) {
+    rasqal_variable* v;
+    v = (rasqal_variable*)raptor_sequence_pop(rowsource->variables_sequence);
+    if(!v)
+      break;
+    rasqal_free_variable(v);
+  }
+  rowsource->size = 0;
+}
+
 #endif /* not STANDALONE */
 
 
