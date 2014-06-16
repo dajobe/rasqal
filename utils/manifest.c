@@ -66,7 +66,7 @@ static const char* manifest_test_state_labels[STATE_LAST + 1] = {
 /* prototypes */
 static void manifest_free_testsuite(manifest_testsuite* ts);
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
-static void manifest_test_print(manifest_test* t, FILE* fh);
+static void manifest_test_print(FILE*fh, manifest_test* t, int indent);
 #endif
 
 static void
@@ -349,7 +349,7 @@ manifest_testsuite_result_format(FILE* fh,
         manifest_indent(fh, indent + indent_step);
         fprintf(fh, "%s in suite %s\n", t->name, ts_name);
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
-        manifest_test_print(t, fh);
+        manifest_test_print(fh, t, indent + indent_step);
 #endif
       } else {
         fputs(t->name, fh);
@@ -977,44 +977,66 @@ manifest_test_run_log_handler(void* user_data, raptor_log_message *message)
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
 static void
-manifest_test_print(manifest_test* t, FILE* fh)
+manifest_test_print(FILE* fh, manifest_test* t, int indent)
 {
+  manifest_indent(fh, indent);
   if(t->desc)
     fprintf(fh, "Test %s : \"%s\"\n", t->name, t->desc);
   else
     fprintf(fh, "Test %s\n", t->name);
-  fprintf(fh, "    SPARQL version: %s\n",
+  indent += indent_step;
+
+  manifest_indent(fh, indent);
+  fprintf(fh, "SPARQL version: %s\n",
           (t->flags & FLAG_LANG_SPARQL_11) ? "1.1" : "1.0");
-  fprintf(fh, "    Expect: %s\n",
+  manifest_indent(fh, indent);
+  fprintf(fh, "Expect: %s\n",
           (t->flags & FLAG_MUST_FAIL) ? "fail" : "pass");
-  fprintf(fh, "  Flags: 0x%04X\n", t->flags);
-  fprintf(fh, "    Query test: %s\n",
+  manifest_indent(fh, indent);
+  fprintf(fh, "Flags: 0x%04X\n", t->flags);
+  indent += indent_step;
+
+  manifest_indent(fh, indent);
+  fprintf(fh, "Query test: %s\n",
           (t->flags & FLAG_IS_QUERY) ? "yes" : "no");
-  fprintf(fh, "    Update test: %s\n",
+  manifest_indent(fh, indent);
+  fprintf(fh, "Update test: %s\n",
           (t->flags & FLAG_IS_UPDATE) ? "yes" : "no");
-  fprintf(fh, "    Protocol test: %s\n",
+  manifest_indent(fh, indent);
+  fprintf(fh, "Protocol test: %s\n",
           (t->flags & FLAG_IS_PROTOCOL) ? "yes" : "no");
-  fprintf(fh, "    Syntax test: %s\n",
+  manifest_indent(fh, indent);
+  fprintf(fh, "Syntax test: %s\n",
           (t->flags & FLAG_IS_SYNTAX) ? "yes" : "no");
-  fprintf(fh, "    Approved: %s\n",
+  manifest_indent(fh, indent);
+  fprintf(fh, "Approved: %s\n",
           (t->flags & FLAG_TEST_APPROVED) ? "yes" : "no");
-  fprintf(fh, "    Withdrawn: %s\n",
+  manifest_indent(fh, indent);
+  fprintf(fh, "Withdrawn: %s\n",
           (t->flags & FLAG_TEST_WITHDRAWN) ? "yes" : "no");
-  fprintf(fh, "    Result cardinality: %s\n",
+  manifest_indent(fh, indent);
+  fprintf(fh, "Result cardinality: %s\n",
           (t->flags & FLAG_RESULT_CARDINALITY_LAX) ? "lax" : "strict");
-  fprintf(fh, "    Entailment: %s\n",
+  manifest_indent(fh, indent);
+  fprintf(fh, "Entailment: %s\n",
           (t->flags & FLAG_ENTAILMENT) ? "yes" : "no");
 
-  if(t->query)
-    fprintf(fh, "  Query URI: '%s'\n", raptor_uri_as_string(t->query));
+  indent -= indent_step;
+  if(t->query) {
+    manifest_indent(fh, indent);
+    fprintf(fh, "Query URI: '%s'\n", raptor_uri_as_string(t->query));
+  }
   if(t->data_graphs && raptor_sequence_size(t->data_graphs) > 0) {
-    fputs("  Data URIs: ", fh);
+    manifest_indent(fh, indent);
+    fputs("Data URIs: ", fh);
     raptor_sequence_print(t->data_graphs, fh);
     fputc('\n', fh);
   }
-  if(t->expected_result)
-    fprintf(fh, "  Result URI: '%s'\n",
+  if(t->expected_result) {
+    manifest_indent(fh, indent);
+    fprintf(fh, "Result URI: '%s'\n",
             raptor_uri_as_string(t->expected_result));
+  }
 }
 #endif
 
@@ -1048,7 +1070,7 @@ manifest_test_run(manifest_test* t, const char* path)
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
   RASQAL_DEBUG1("Running ");
-  manifest_test_print(t, stderr);
+  manifest_test_print(stderr, t, 0);
 #endif
 
   if(t && t->flags & (FLAG_IS_UPDATE | FLAG_IS_PROTOCOL)) {
