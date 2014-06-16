@@ -1448,7 +1448,6 @@ manifest_testsuite_run_suite(manifest_testsuite* ts,
   unsigned int column;
   manifest_test_result* result;
   manifest_test_state state;
-  unsigned int xfailed_count;
   unsigned int failed_count;
   
   /* Initialize */
@@ -1525,10 +1524,9 @@ manifest_testsuite_run_suite(manifest_testsuite* ts,
   if(!verbose)
     fputc('\n', stderr);
 
-  xfailed_count = raptor_sequence_size(result->states[STATE_XFAIL]);
   failed_count = raptor_sequence_size(result->states[STATE_FAIL]);
 
-  result->state = ((xfailed_count == expected_failures_count) && !failed_count) ? STATE_PASS : STATE_FAIL;
+  result->state = !failed_count ? STATE_PASS : STATE_FAIL;
 
   return result;
 }
