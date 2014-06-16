@@ -65,7 +65,9 @@ static const char* manifest_test_state_labels[STATE_LAST + 1] = {
 
 /* prototypes */
 static void manifest_free_testsuite(manifest_testsuite* ts);
-
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+static void manifest_test_print(manifest_test* t, FILE* fh);
+#endif
 
 static void
 manifest_indent(FILE* fh, unsigned int indent)
@@ -346,6 +348,9 @@ manifest_testsuite_result_format(FILE* fh,
         manifest_banner(fh, banner_width, '=');
         manifest_indent(fh, indent + indent_step);
         fprintf(fh, "%s in suite %s\n", t->name, ts_name);
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
+        manifest_test_print(t, fh);
+#endif
       } else {
         fputs(t->name, fh);
         fputc('\n', fh);
@@ -978,7 +983,19 @@ manifest_test_print(manifest_test* t, FILE* fh)
     fprintf(fh, "Test %s : \"%s\"\n", t->name, t->desc);
   else
     fprintf(fh, "Test %s\n", t->name);
+  fprintf(fh, "    SPARQL version: %s\n",
+          (t->flags & FLAG_LANG_SPARQL_11) ? "1.1" : "1.0");
+  fprintf(fh, "    Expect: %s\n",
+          (t->flags & FLAG_MUST_FAIL) ? "fail" : "pass");
   fprintf(fh, "  Flags: 0x%04X\n", t->flags);
+  fprintf(fh, "    Query test: %s\n",
+          (t->flags & FLAG_IS_QUERY) ? "yes" : "no");
+  fprintf(fh, "    Update test: %s\n",
+          (t->flags & FLAG_IS_UPDATE) ? "yes" : "no");
+  fprintf(fh, "    Protocol test: %s\n",
+          (t->flags & FLAG_IS_PROTOCOL) ? "yes" : "no");
+  fprintf(fh, "    Syntax test: %s\n",
+          (t->flags & FLAG_IS_SYNTAX) ? "yes" : "no");
   fprintf(fh, "    Approved: %s\n",
           (t->flags & FLAG_TEST_APPROVED) ? "yes" : "no");
   fprintf(fh, "    Withdrawn: %s\n",
