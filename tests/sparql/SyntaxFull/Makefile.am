@@ -27,8 +27,8 @@ SPARQL_MODEL_FILES= empty.nt
 SPARQL_TEST_FILES_CORE= \
 syntax-basic-01.rq syntax-basic-02.rq syntax-basic-03.rq		\
 syntax-basic-04.rq syntax-basic-05.rq syntax-basic-06.rq		\
-syntax-bnodes-01.rq syntax-bnodes-02.rq syntax-bnodes-03.rq             \
-syntax-bnodes-04.rq syntax-bnodes-05.rq syntax-bnodes-06.rq		\
+syntax-bnodes-01.rq syntax-bnodes-02.rq \
+syntax-bnodes-05.rq syntax-bnodes-06.rq		\
 syntax-bnodes-07.rq							\
 syntax-expr-01.rq syntax-expr-02.rq syntax-expr-03.rq			\
 syntax-expr-04.rq syntax-expr-05.rq syntax-expr-06.rq			\
@@ -64,13 +64,9 @@ SPARQL_TEST_NAMES=$(SPARQL_TEST_FILES_CORE) \
   "keyword FILTER as a local name" \
   "keyword UNION as a namespace prefix"
 
-# 2 test failures
-# syntax-bnodes-03.rq syntax-bnodes-04.rq
-#   bnodes as predicates are no longer (was never?) allowed
-EXPECTED_SPARQL_PARSER_FAILURES= \
-syntax-bnodes-03.rq syntax-bnodes-04.rq
+EXPECTED_SPARQL_PARSER_FAILURES=
 
-EXPECTED_SPARQL_PARSER_FAILURES_COUNT= 2
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT= 0
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 $(EXPECTED_SPARQL_PARSER_FAILURES)
@@ -119,9 +115,6 @@ get-testsuite-sparql-lexer get-testsuite-sparql-parser:
 	for test in $$tests; do \
 	  comment="sparql $$type of $$test"; \
 	  expect="PositiveTest"; \
-	  if [ $$type = pars -a \( "$$test" = 'syntax-bnodes-03.rq' -o "$$test" = 'syntax-bnodes-04.rq' \) ]; then \
-	    expect="NegativeTest"; \
-	  fi; \
 	  $(RECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog $(srcdir)/$$test\" ]"; \
 	done; \
 	$(RECHO) ")."
@@ -135,9 +128,6 @@ get-testsuite-sparql-query:
 	for test in $(SPARQL_TEST_NAMES); do \
 	  comment="sparql query $$test"; \
 	  expect="PositiveTest"; \
-	  if [ "$$test" = 'syntax-bnodes-03.rq' -o "$$test" = 'syntax-bnodes-04.rq' ]; then \
-	    expect="NegativeTest"; \
-	  fi; \
 	  $(RECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) '$$test'\" ]"; \
 	done; \
 	$(RECHO) ")."
