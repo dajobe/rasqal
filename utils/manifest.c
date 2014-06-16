@@ -1106,6 +1106,9 @@ manifest_test_run(manifest_test* t, const char* path)
     goto setreturnresult;
   }
 
+  /* Default to failure so we just need to set passes */
+  state = STATE_FAIL;
+
   /* Add any data graphs */
   if(t->data_graphs) {
     rasqal_data_graph* dg;
@@ -1314,10 +1317,12 @@ manifest_test_run(manifest_test* t, const char* path)
             t->error_count = 0;
             rasqal_results_compare_set_log_handler(rrc, t,
                                                    manifest_test_run_log_handler);
-            rc = !rasqal_results_compare_compare(rrc);
+            rc = rasqal_results_compare_compare(rrc);
+            RASQAL_DEBUG3("rasqal_results_compare_compare returned %d - %s\n", 
+                          rc, (rc ? "equal" : "different"));
             rasqal_free_results_compare(rrc); rrc = NULL;
 
-            if(!rc)
+            if(rc && !t->error_count)
               state = STATE_PASS;
           }
 
@@ -1353,7 +1358,9 @@ manifest_test_run(manifest_test* t, const char* path)
   }  
 
   returnresult:
-  RASQAL_DEBUG3("Test result state %d  expected %d\n", (int)state, (int)t->expect);
+  RASQAL_DEBUG3("Test result state %s  expected %s\n", 
+                manifest_test_state_label(state),
+                manifest_test_state_label(t->expect));
 
   if(t->expect == STATE_FAIL) {
     if(state == STATE_FAIL) {
