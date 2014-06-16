@@ -1356,6 +1356,8 @@ manifest_test_run(manifest_test* t, const char* path)
   if(result)
     result->state = state;
 
+  RASQAL_DEBUG2("Test result: %s\n", manifest_test_state_label(state));
+
   tidy:
   if(result_iostr)
     raptor_free_iostream(result_iostr);
