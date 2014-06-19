@@ -1643,7 +1643,6 @@ manifest_manifests_run(manifest_world* mw,
       }
 
       manifest_free_test_result(result);
-      ts->tests = NULL;
     } else {
       RASQAL_DEBUG2("Testsuite %s failed to return result object\n", ts->name);
       total_state = STATE_FAIL;
