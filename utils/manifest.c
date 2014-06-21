@@ -1545,7 +1545,7 @@ manifest_testsuite_run_suite(manifest_testsuite* ts,
 
     if(!verbose)
       fputc(manifest_test_state_char(state), stdout);
-    raptor_sequence_push(result->states[(unsigned int)state], t);
+    raptor_sequence_push(result->states[(unsigned int)state], manifest_new_test_from_test(t));
 
     column++;
     if(!verbose && column > linewrap) {
