@@ -64,6 +64,7 @@ static const char* manifest_test_state_labels[STATE_LAST + 1] = {
 
 
 /* prototypes */
+static void manifest_free_test(manifest_test* t);
 static void manifest_free_testsuite(manifest_testsuite* ts);
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 0
 static void manifest_test_print(FILE*fh, manifest_test* t, int indent);
@@ -294,8 +295,8 @@ manifest_new_test_result(manifest_test_state state)
   result->state = state;
   /* total_result->details = NULL; */
   for(i = 0; i <= STATE_LAST; i++)
-    /* Holding pointers; the tests are owned by the testsuites */
-    result->states[i] = raptor_new_sequence(NULL, NULL);
+    result->states[i] = raptor_new_sequence((raptor_data_free_handler)manifest_free_test,
+                                            NULL);
   return result;
 }
 
@@ -726,6 +727,15 @@ manifest_new_test(manifest_world* mw,
   t->expected_result = test_result_uri;
   t->flags = test_flags;
 
+  t->usage = 1;
+
+  return t;
+}
+
+
+static manifest_test*
+manifest_new_test_from_test(manifest_test* t) {
+  t->usage++;
   return t;
 }
 
@@ -734,6 +744,9 @@ static void
 manifest_free_test(manifest_test* t)
 {
   if(!t)
+    return;
+
+  if(--t->usage)
     return;
 
   if(t->name)
