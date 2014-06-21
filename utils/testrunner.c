@@ -321,8 +321,8 @@ main(int argc, char *argv[])
   raptor_free_sequence(seq);
 
   if(result) {
-    manifest_free_test_result(result);
     rc = result->state == STATE_PASS ? 0 : 1;
+    manifest_free_test_result(result);
   } else
     rc = 1;
 
