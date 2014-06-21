@@ -1817,8 +1817,7 @@ rasqal_query_results_get_row_by_offset(rasqal_query_results* query_results,
 
 
 int
-rasqal_query_results_sort(rasqal_query_results* query_results,
-                          raptor_data_compare_handler compare)
+rasqal_query_results_sort(rasqal_query_results* query_results)
 {
   if(query_results->execution_factory && !query_results->results_sequence) {
     int rc;
@@ -1829,7 +1828,8 @@ rasqal_query_results_sort(rasqal_query_results* query_results,
   }
 
   if(query_results->results_sequence)
-    raptor_sequence_sort(query_results->results_sequence, compare);
+    raptor_sequence_sort(query_results->results_sequence,
+                         (raptor_data_compare_handler)rasqal_row_compare);
   
   return 0;
 }
