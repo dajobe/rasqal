@@ -1358,8 +1358,8 @@ manifest_test_run(manifest_test* t, const char* path)
             rasqal_results_compare* rrc;
 
             /* FIXME: should NOT do this if results are expected to be ordered */
-            rasqal_query_results_sort(expected_results);
-            rasqal_query_results_sort(actual_results);
+            rasqal_query_results_sort(expected_results, rasqal_row_compare);
+            rasqal_query_results_sort(actual_results, rasqal_row_compare);
             
             rrc = rasqal_new_results_compare(world,
                                              expected_results, "expected",
