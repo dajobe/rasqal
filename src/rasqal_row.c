@@ -688,18 +688,20 @@ rasqal_row_sequence_copy(raptor_sequence *seq)
 
 
 /**
- * rasqal_row_compare:
+ * rasqal_row_compare_arg:
  * @a: pointer to address of first #row
  * @b: pointer to address of second #row
+ * @arg: user data arg
  *
- * INTERNAL - compare two pointers to #row objects
+ * INTERNAL - compare two pointers to #row objects with user data arg
  *
- * Suitable for use as a compare function in qsort() or similar.
+ * Suitable for use as a compare function with raptor_sort_r() or
+ * compatible.
  *
  * Return value: <0, 0 or >1 comparison
  */
 int
-rasqal_row_compare(const void *a, const void *b)
+rasqal_row_compare_arg(const void *a, const void *b, void *arg)
 {
   rasqal_row* row_a;
   rasqal_row* row_b;

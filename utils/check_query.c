@@ -623,8 +623,10 @@ main(int argc, char *argv[])
         rasqal_query_results_rewind(results);
 
         /* FIXME: should NOT do this if results are expected to be ordered */
-        rasqal_query_results_sort(expected_results, rasqal_row_compare, NULL);
-        rasqal_query_results_sort(results, rasqal_row_compare, NULL);
+        rasqal_query_results_sort(expected_results, rasqal_row_compare_arg,
+                                  NULL);
+        rasqal_query_results_sort(results, rasqal_row_compare_arg,
+                                  NULL);
 
         if(1) {
           rasqal_results_compare* rrc;

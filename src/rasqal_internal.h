@@ -1400,7 +1400,7 @@ int rasqal_row_set_order_size(rasqal_row *row, int order_size);
 int rasqal_row_expand_size(rasqal_row *row, int size);
 int rasqal_row_bind_variables(rasqal_row* row, rasqal_variables_table* vars_table);
 raptor_sequence* rasqal_row_sequence_copy(raptor_sequence *seq);
-int rasqal_row_compare(const void *a, const void *b);
+int rasqal_row_compare_arg(const void *a, const void *b, void* arg);
 void rasqal_row_set_rowsource(rasqal_row* row, rasqal_rowsource* rowsource);
 void rasqal_row_set_weak_rowsource(rasqal_row* row, rasqal_rowsource* rowsource);
 rasqal_variable* rasqal_row_get_variable_by_offset(rasqal_row* row, int offset);
