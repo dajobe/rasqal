@@ -132,3 +132,5 @@ analyze: $(SOURCES)
 	done; \
 	set -e; exit $$result
 endif
+
+all-programs: $(PROGRAMS) $(EXTRA_PROGRAMS)
