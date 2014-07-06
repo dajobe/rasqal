@@ -138,6 +138,9 @@ endif
 if GETTIMEOFDAY
 librasqal_la_SOURCES += gettimeofday.c
 endif
+if RASQAL_SORT
+librasqal_la_SOURCES += rasqal_sort.c
+endif
 
 if RASQAL_DIGEST_INTERNAL
 librasqal_la_SOURCES += rasqal_digest_md5.c rasqal_digest_sha1.c

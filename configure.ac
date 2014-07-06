@@ -438,6 +438,8 @@ RAPTOR_VERSION_DEC=`echo $RAPTOR_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 
 AC_SUBST(RAPTOR_VERSION_DEC)
 AC_SUBST(RAPTOR_MIN_VERSION)
 
+AM_CONDITIONAL(RASQAL_SORT, test $RAPTOR_VERSION_DEC '<' 20015)
+
 dnl Checks for regex libraries
 have_regex_pcre=0
 have_regex_posix=0

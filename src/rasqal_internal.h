@@ -1351,7 +1351,10 @@ void rasqal_query_results_remove_query_reference(rasqal_query_results* query_res
 rasqal_variables_table* rasqal_query_results_get_variables_table(rasqal_query_results* query_results);
 rasqal_row* rasqal_query_results_get_current_row(rasqal_query_results* query_results);
 rasqal_world* rasqal_query_results_get_world(rasqal_query_results* query_results);
-int rasqal_query_results_sort(rasqal_query_results* query_result, raptor_data_compare_handler compare);
+#if RAPTOR_VERSION < 20015
+typedef int (*raptor_data_compare_arg_handler)(const void *data1, const void *data2, void *user_data);
+#endif
+int rasqal_query_results_sort(rasqal_query_results* query_result, raptor_data_compare_arg_handler compare, void* user_data);
 int rasqal_query_results_set_boolean(rasqal_query_results* query_results, int value);
 
 /* rasqal_query_write.c */
@@ -1893,6 +1896,11 @@ void rasqal_free_random(rasqal_random *random_object);
 int rasqal_random_seed(rasqal_random *random_object, unsigned int seed);
 int rasqal_random_irand(rasqal_random *random_object);
 double rasqal_random_drand(rasqal_random *random_object);
+
+/* rasqal_sort.c */
+#if RAPTOR_VERSION < 20015
+void** rasqal_sequence_as_sorted(raptor_sequence* seq,  raptor_data_compare_arg_handler compare, void* user_data);
+#endif
 
 /*
  * rasqal_digest_type:
