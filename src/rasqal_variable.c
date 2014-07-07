@@ -736,6 +736,98 @@ rasqal_variable_copy_variable_sequence(raptor_sequence* vars_seq)
 }
 
 
+
+#if RAPTOR_VERSION < 20015
+/* pointers are rasqal_variable** */
+static int
+rasqal_variable_compare_by_name_arg(const void *a, const void *b, void *arg)
+{
+  rasqal_variable *var_a;
+  rasqal_variable *var_b;
+
+  var_a = *(rasqal_variable**)a;
+  var_b = *(rasqal_variable**)b;
+
+  return strcmp(RASQAL_GOOD_CAST(const char*, var_a->name),
+                RASQAL_GOOD_CAST(const char*, var_b->name));
+}
+
+#else
+/* pointers are int* */
+static int
+rasqal_order_compare_by_name_arg(const void *a, const void *b, void *arg)
+{
+  int offset_a;
+  int offset_b;
+  rasqal_variables_table* vt;
+  const unsigned char* name_a;
+  const unsigned char* name_b;
+
+  offset_a = *(int*)a;
+  offset_b = *(int*)b;
+  vt = (rasqal_variables_table*)arg;
+
+  name_a = rasqal_variables_table_get(vt, offset_a)->name;
+  name_b = rasqal_variables_table_get(vt, offset_b)->name;
+
+  return strcmp(RASQAL_GOOD_CAST(const char*, name_a),
+                RASQAL_GOOD_CAST(const char*, name_b));
+}
+#endif
+
+
+/*
+ * rasqal_variables_table_get_order:
+ * @vt: variables table
+ *
+ * INTERNAL - Get the order of the variables in sort order
+ *
+ * Return value: array of integers of order variables (terminated by integer < 0) or NULL on failure
+*/
+int*
+rasqal_variables_table_get_order(rasqal_variables_table* vt)
+{
+  raptor_sequence* seq;
+  int size;
+  int* order;
+  int i;
+#if RAPTOR_VERSION < 20015
+  void** array;
+#endif
+
+  seq = rasqal_variables_table_get_named_variables_sequence(vt);
+  if(!seq)
+    return NULL;
+
+  size = raptor_sequence_size(seq);
+  if(!size)
+    return NULL;
+
+  order = RASQAL_CALLOC(int*, size + 1, sizeof(int));
+  if(!order)
+    return NULL;
+
+#if RAPTOR_VERSION < 20015
+  array = rasqal_sequence_as_sorted(seq, rasqal_variable_compare_by_name_arg,
+                                    vt);
+  if(!array)
+    return NULL;
+
+  for(i = 0; i < size; i++)
+    order[i] = (RASQAL_GOOD_CAST(rasqal_variable*, array[i]))->offset;
+  RASQAL_FREE(void*, array);
+#else
+  for(i = 0; i < size; i++)
+    order[i] = i;
+
+  raptor_sort_r(order, size, sizeof(int), rasqal_order_compare_by_name_arg, vt);
+#endif
+  order[size] = -1;
+
+  return order;
+}
+
+
 #endif /* not STANDALONE */
 
 

@@ -1902,6 +1902,7 @@ double rasqal_random_drand(rasqal_random *random_object);
 #if RAPTOR_VERSION < 20015
 void** rasqal_sequence_as_sorted(raptor_sequence* seq,  raptor_data_compare_arg_handler compare, void* user_data);
 #endif
+int* rasqal_variables_table_get_order(rasqal_variables_table* vt);
 
 /*
  * rasqal_digest_type:
