@@ -4317,7 +4317,7 @@ rasqal_literal_write_turtle(rasqal_literal* l, raptor_iostream* iostr)
 }
 
 
-/**
+/*
  * rasqal_literal_array_compare:
  * @values_a: first array of literals
  * @values_b: second array of literals
@@ -4327,7 +4327,7 @@ rasqal_literal_write_turtle(rasqal_literal* l, raptor_iostream* iostr)
  *
  * INTERNAL - compare two arrays of literals evaluated in an optional array of expressions
  *
- * Return value: <0, 0 or >1 comparison
+ * Return value: <0, 0 or >0 comparison
  */
 int
 rasqal_literal_array_compare(rasqal_literal** values_a,
