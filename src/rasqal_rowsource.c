@@ -88,7 +88,7 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
   rowsource->handler = handler;
   rowsource->flags = flags;
 
-  rowsource->size = -1;
+  rowsource->size = 0;
 
   rowsource->generate_group = 0;
   
@@ -190,9 +190,6 @@ rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v)
   v = rasqal_new_variable_from_variable(v);
   if(raptor_sequence_push(rowsource->variables_sequence, v))
     return -1;
-
-  if(rowsource->size < 0)
-    rowsource->size = 0;
 
   offset = rowsource->size;
   
