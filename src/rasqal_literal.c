@@ -4397,6 +4397,61 @@ rasqal_literal_array_compare(rasqal_literal** values_a,
 }
 
 
+/*
+ * rasqal_literal_array_compare_by_order:
+ * @values_a: first array of literals
+ * @values_b: second array of literals
+ * @order: array of order offsets
+ * @size: size of arrays
+ * @compare_flags: comparison flags for rasqal_literal_compare()
+ *
+ * INTERNAL - compare two arrays of literals evaluated in a given order
+ *
+ * Return value: <0, 0 or >0 comparison
+ */
+int
+rasqal_literal_array_compare_by_order(rasqal_literal** values_a,
+                                      rasqal_literal** values_b,
+                                      int* order,
+                                      int size,
+                                      int compare_flags)
+{
+  int result = 0;
+  int i;
+
+  for(i = 0; i < size; i++) {
+    int error = 0;
+    int order_i = order[i];
+    rasqal_literal* literal_a = values_a[order_i];
+    rasqal_literal* literal_b = values_b[order_i];
+
+    /* NULLs order first */
+    if(!literal_a || !literal_b) {
+      if(!literal_a && !literal_b) {
+        result = 0;
+      } else {
+        result = (!literal_a) ? -1 : 1;
+      }
+      break;
+    }
+
+    result = rasqal_literal_compare(literal_a, literal_b,
+                                    compare_flags | RASQAL_COMPARE_URI,
+                                    &error);
+    if(error) {
+      result = 0;
+      break;
+    }
+
+    if(!result)
+      continue;
+    break;
+  }
+
+  return result;
+}
+
+
 /**
  * rasqal_literal_array_equals:
  * @values_a: first array of literals
