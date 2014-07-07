@@ -687,50 +687,6 @@ rasqal_row_sequence_copy(raptor_sequence *seq)
 }
 
 
-/**
- * rasqal_row_compare_arg:
- * @a: pointer to address of first #row
- * @b: pointer to address of second #row
- * @arg: user data arg
- *
- * INTERNAL - compare two pointers to #row objects with user data arg
- *
- * Suitable for use as a compare function with raptor_sort_r() or
- * compatible.
- *
- * Return value: <0, 0 or >1 comparison
- */
-int
-rasqal_row_compare_arg(const void *a, const void *b, void *arg)
-{
-  rasqal_row* row_a;
-  rasqal_row* row_b;
-  int result = 0;
-
-  row_a = *(rasqal_row**)a;
-  row_b = *(rasqal_row**)b;
-
-  /* now order it */
-  result = rasqal_literal_array_compare(row_a->values,
-                                        row_b->values,
-                                        NULL,
-                                        row_a->size,
-                                        0);
-
-
-  /* still equal?  make sort stable by using the original order */
-  if(!result) {
-    result = row_a->offset - row_b->offset;
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG2("Got equality result so using offsets, returning %d\n",
-                  result);
-#endif
-  }
-  
-  return result;
-}
-
-
 void
 rasqal_row_set_rowsource(rasqal_row* row, rasqal_rowsource* rowsource)
 {

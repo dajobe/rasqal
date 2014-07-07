@@ -1816,11 +1816,64 @@ rasqal_query_results_get_row_by_offset(rasqal_query_results* query_results,
 }
 
 
-int
-rasqal_query_results_sort(rasqal_query_results* query_results,
-                          raptor_data_compare_arg_handler compare,
-                          void* user_data)
+struct rqr_context
 {
+  rasqal_query_results* results;
+
+  /* size of @order - number of values */
+  int size;
+
+  /* Sequence of offsets to variables in lexical order  */
+  int* order;
+};
+
+
+/**
+ * rasqal_query_results_sort_compare_row:
+ * @a: pointer to address of first #row
+ * @b: pointer to address of second #row
+ * @arg: query results pointer
+ *
+ * INTERNAL - compare two pointers to #row objects with user data arg
+ *
+ * Suitable for use as a compare function with raptor_sort_r() or
+ * compatible.  Used by rasqal_query_results_sort().
+ *
+ * Return value: <0, 0 or >0 comparison
+ */
+static int
+rasqal_query_results_sort_compare_row(const void *a, const void *b, void *arg)
+{
+  rasqal_row* row_a;
+  rasqal_row* row_b;
+  struct rqr_context* rqr;
+  int result = 0;
+
+  row_a = *(rasqal_row**)a;
+  row_b = *(rasqal_row**)b;
+  rqr = (struct rqr_context*)arg;
+
+  result = rasqal_literal_array_compare_by_order(row_a->values, row_b->values,
+                                                 rqr->order, row_a->size, 0);
+
+  /* still equal?  make sort stable by using the original order */
+  if(!result) {
+    result = row_a->offset - row_b->offset;
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+    RASQAL_DEBUG2("Got equality result so using offsets, returning %d\n",
+                  result);
+#endif
+  }
+
+  return result;
+}
+
+
+int
+rasqal_query_results_sort(rasqal_query_results* query_results)
+{
+  struct rqr_context rqr;
+
   if(query_results->execution_factory && !query_results->results_sequence) {
     int rc;
     
@@ -1828,6 +1881,12 @@ rasqal_query_results_sort(rasqal_query_results* query_results,
     if(rc)
       return rc;
   }
+
+  rqr.results = query_results;
+  rqr.size = query_results->size;
+  rqr.order = rasqal_variables_table_get_order(query_results->vars_table);
+  if(!rqr.order)
+    return 1;
 
   if(query_results->results_sequence) {
     size_t size = raptor_sequence_size(query_results->results_sequence);
@@ -1838,12 +1897,17 @@ rasqal_query_results_sort(rasqal_query_results* query_results,
       size_t i;
 
       seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, (raptor_data_print_handler)rasqal_row_print);
-      if(!seq)
+      if(!seq) {
+        RASQAL_FREE(int*, rqr.order);
         return 1;
+      }
 
-      array = rasqal_sequence_as_sorted(seq, compare, user_data);
+      array = rasqal_sequence_as_sorted(seq,
+                                        rasqal_query_results_sort_compare_row,
+                                        &rqr);
       if(!array) {
         raptor_free_sequence(seq);
+        RASQAL_FREE(int*, rqr.order);
         return 1;
       }
 
@@ -1855,11 +1919,14 @@ rasqal_query_results_sort(rasqal_query_results* query_results,
       query_results->results_sequence = seq;
       RASQAL_FREE(void*, array);
 #else
-      raptor_sequence_sort_r(query_results->results_sequence, compare, user_data);
+      raptor_sequence_sort_r(query_results->results_sequence,
+                             rasqal_query_results_sort_compare_row,
+                             &rqr);
 #endif
     }
   }
   
+  RASQAL_FREE(int*, rqr.order);
   return 0;
 }
 

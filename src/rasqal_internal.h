@@ -1355,7 +1355,7 @@ rasqal_world* rasqal_query_results_get_world(rasqal_query_results* query_results
 #if RAPTOR_VERSION < 20015
 typedef int (*raptor_data_compare_arg_handler)(const void *data1, const void *data2, void *user_data);
 #endif
-int rasqal_query_results_sort(rasqal_query_results* query_result, raptor_data_compare_arg_handler compare, void* user_data);
+int rasqal_query_results_sort(rasqal_query_results* query_result);
 int rasqal_query_results_set_boolean(rasqal_query_results* query_results, int value);
 
 /* rasqal_query_write.c */
@@ -1401,7 +1401,6 @@ int rasqal_row_set_order_size(rasqal_row *row, int order_size);
 int rasqal_row_expand_size(rasqal_row *row, int size);
 int rasqal_row_bind_variables(rasqal_row* row, rasqal_variables_table* vars_table);
 raptor_sequence* rasqal_row_sequence_copy(raptor_sequence *seq);
-int rasqal_row_compare_arg(const void *a, const void *b, void* arg);
 void rasqal_row_set_rowsource(rasqal_row* row, rasqal_rowsource* rowsource);
 void rasqal_row_set_weak_rowsource(rasqal_row* row, rasqal_rowsource* rowsource);
 rasqal_variable* rasqal_row_get_variable_by_offset(rasqal_row* row, int offset);
