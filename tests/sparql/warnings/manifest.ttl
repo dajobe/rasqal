@@ -11,7 +11,6 @@
 :test_1
 :test_2
 :test_3
-:test_4
 
 ) .
 
@@ -26,7 +25,3 @@
 :test_3 rdf:type   mf:PositiveSyntaxTest11 ;
   mf:name   "warning-3.rq" ;
   mf:action <warning-3.rq> ; .
-
-:test_4 rdf:type   mf:PositiveSyntaxTest11 ;
-  mf:name   "warning-4.rq" ;
-  mf:action <warning-4.rq> ; .
