@@ -1365,8 +1365,13 @@ rasqal_query_execute_with_engine(rasqal_query* query,
   if(!engine)
     engine = rasqal_query_get_engine_by_name(NULL);
 
-  if(rasqal_query_results_execute_with_engine(query_results, engine,
-                                              query->store_results)) {
+  /* ensure stored results are present if ordering or distincting are being done */
+  rasqal_query_results_set_store_results(query_results,
+                                         (query->store_results ||
+                                          rasqal_query_get_order_conditions_sequence(query) ||
+                                          rasqal_query_get_distinct(query)));
+
+  if(rasqal_query_results_execute_with_engine(query_results, engine)) {
     rasqal_free_query_results(query_results);
     query_results = NULL;      
   }

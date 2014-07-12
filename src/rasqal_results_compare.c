@@ -87,6 +87,10 @@ rasqal_new_results_compare(rasqal_world* world,
   unsigned int i;
   unsigned int size;
 
+  /* FIXME: should NOT do this if results are expected to be ordered */
+  rasqal_query_results_sort(first_qr);
+  rasqal_query_results_sort(second_qr);
+
   first_vt = rasqal_query_results_get_variables_table(first_qr);
   second_vt = rasqal_query_results_get_variables_table(second_qr);
 
@@ -360,7 +364,9 @@ rasqal_results_compare_compare(rasqal_results_compare* rrc)
     }
   }
 
-  /* set results to be stored? */
+  /* set results to be stored */
+  rasqal_query_results_set_store_results(rrc->first_qr, 1);
+  rasqal_query_results_set_store_results(rrc->second_qr, 1);
 
   /* sort rows by something ?  As long as the sort is the same it
    * probably does not matter what the method is. */
