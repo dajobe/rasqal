@@ -13,16 +13,61 @@
 <p>Not yet released.
 </p>
 
-<p>Many code quality fixes from clang and coverity primarily in error
-path cleanups (out of memory cases) and dead code.</p>
 
-<h3>API changes</h3>
+<h3>SPARQL changes</h3>
+
+<p>Fixed <code>BASE</code> to override any API base URI.</p>
+
+
+<h3>Datetime class changes</h3>
+
+<p>Fixed storing timezone minutes correctly.</p>
+
+
+<h3>Query engine changes</h3>
+
+<p>Fixed the aggregation total evaluation of <code>AVG</code>.</p>
+
+<p>Fixed <code>STRBEFORE</code> and <code>STRAFTER</code> evaluation
+to match languages if present and add the needle language to the
+result.</p>
+
+<p>Fixed <code>CONCAT()</code> evaluation to return the correct types
+and languages.</p>
+
+<p>Sorting now uses sort utility function
+<code>raptor_sort_r()</code> with context args provided by Raptor
+2.0.15+ or an internal simple (not so performant) replacement, if too
+old.</p>
+
+
+<h3>Query result class changes</h3>
+
+<p>Made internal changes to support reading and writing boolean
+result formats.  That means
+<code>rasqal_query_results_formatter_read()</code> may now return
+boolean results if the formatter supports it, such as SPARQL XML.
+</p>
 
 <p>Added <code>rasqal_new_query_results_from_string()</code> to make
 a query results from a string (with optional length).  The results
 format is guessed from the input data - base_uri and string content
 using <code>rasqal_world_guess_query_results_format_name()</code>.
 </p>
+
+<p>Added <code>rasqal_query_results_formats_check2()</code>
+deprecating <code>rasqal_query_results_formats_check()</code>.
+The API change is due to the return value; the result is now
+non-0 if the format exists.
+</p>
+
+<p>Added <code>rasqal_new_query_results2()</code> deprecating
+<code>rasqal_new_query_results()</code> removing the now
+ignored <code>vars_table</code> parameter.  A query result
+now manages it's own variables table.</p>
+
+
+<h3>Variables table class changes</h3>
 
 <p>Added <code>rasqal_variables_table_add2()</code> deprecating
 <code>rasqal_variables_table_add()</code>.  This takes a more
@@ -31,14 +76,20 @@ value, and allowing name length to be optionally given.  This results
 in smaller calling code and better ownership semantics.
 </p>
 
+
 <h3>Other changes</h3>
+
+<p>Many code quality fixes from clang and coverity primarily in error
+path cleanups (out of memory cases) and dead code.</p>
 
 <p>Updated the fix-flex and fix-bison scripts to remove dead
 code that clang and coverity complain about.</p>
 
-<p>Added new testrunner to run the tests instead of the (perl)
-improve and check-sparql scripts.
+<p>Added new C testrunner utility to run the tests to eventually
+replace the (perl) improve and check-sparql scripts.
 </p>
+
+<p>Fixed some API changelog mistakes.</p>
 
 
 
