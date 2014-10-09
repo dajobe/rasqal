@@ -989,8 +989,9 @@ main(int argc, char *argv[])
               if(!rasqal_features_enumerate(world, (rasqal_feature)i,
                                             &feature_name, NULL,
                                             &feature_label)) {
-                const char *feature_type;
-                feature_type = (rasqal_feature_value_type((rasqal_feature)i) == 0) ? "" : " (string)";
+                const char *const feature_type =
+                  (rasqal_feature_value_type((rasqal_feature)i) == 0)
+                  ? (const char*)"" : (const char*)" (string)";
                 fprintf(stderr, "  %-20s  %s%s\n", feature_name, feature_label, 
                        feature_type);
               }
