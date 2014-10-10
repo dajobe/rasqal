@@ -203,14 +203,14 @@ SUFFIXES = .html .txt
 
 if MAINTAINER_MODE
 # Actually it needs sparql_parser.h but nevermind
-sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/../scripts/fix-flex
+sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/../scripts/fix-flex.pl
 	$(LEX) -o$@ $(srcdir)/sparql_lexer.l
-	$(PERL) $(srcdir)/../scripts/fix-flex $@ > sparql_lexer.t
+	$(PERL) $(srcdir)/../scripts/fix-flex.pl $@ > sparql_lexer.t
 	mv sparql_lexer.t $@
 
-sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/../scripts/fix-bison
+sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/../scripts/fix-bison.pl
 	$(BISON) $(srcdir)/sparql_parser.y
-	$(PERL) $(srcdir)/../scripts/fix-bison sparql_parser.tab.c > $@
+	$(PERL) $(srcdir)/../scripts/fix-bison.pl sparql_parser.tab.c > $@
 	mv sparql_parser.tab.h sparql_parser.h
 	rm -f sparql_parser.tab.c
 

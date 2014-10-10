@@ -20,8 +20,8 @@
 # 
 
 EXTRA_DIST= \
-fix-bison \
-fix-flex \
-fix-groff-xhtml \
+fix-bison.pl \
+fix-flex.pl \
+fix-groff-xhtml.pl \
 fix-gtkdoc-header.pl \
 process-changes.pl
