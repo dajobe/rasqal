@@ -1,3 +1,39 @@
+2014-10-09  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am: Further fix flex/bison rules to silence them in
+	normal runs
+
+	* src/Makefile.am: Add use of AM_V_GEN to make make V=0 look good
+
+	After change to Raptor's turtle parser/lexer rules
+
+	* docs/Makefile.am, scripts/Makefile.am, scripts/fix-bison,
+	scripts/fix-bison.pl, scripts/fix-flex, scripts/fix-flex.pl,
+	scripts/fix-groff-xhtml, scripts/fix-groff-xhtml.pl,
+	src/Makefile.am: Rename scripts/fix-* to add .pl suffix
+
+	* configure.ac: Add some GCC5 warning flags
+
+	* configure.ac, src/rasqal_internal.h: Use __FUNCTION__ (c99)
+	replacing __func__ (c90)
+
+	* Merge pull request #3 from hroptatyr/compiler-support Intel C
+	compiler (icc) support
+
+2014-10-09  Sebastian Freundt <freundt@ga-group.nl>
+
+	* configure.ac: Always use AC_LANG_WERROR when checking for
+	compiler warning flags
+
+	Many gcc-compatible compilers (icc, clang, etc.) verbosely ignore
+	gcc command line flags issuing a warning of some sort.  Catch
+	these warnings and turn them into errors when checking for support
+	of specific warning flags.
+
+2014-10-06  Dave Beckett <dave@dajobe.org>
+
+	* ChangeLog, RELEASE.html: 0.9.33
+
 2014-08-02  Dave Beckett <dave@dajobe.org>
 
 	* INSTALL.html: Fix flex url
