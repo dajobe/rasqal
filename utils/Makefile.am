@@ -102,8 +102,8 @@ $(man_MANS) \
 roqet.html
 
 if MAINTAINER_MODE
-roqet.html: $(srcdir)/roqet.1 $(srcdir)/../scripts/fix-groff-xhtml
-	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | $(PERL) $(srcdir)/../scripts/fix-groff-xhtml $@
+roqet.html: $(srcdir)/roqet.1 $(srcdir)/../scripts/fix-groff-xhtml.pl
+	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | $(PERL) $(srcdir)/../scripts/fix-groff-xhtml.pl $@
 
 endif
 
