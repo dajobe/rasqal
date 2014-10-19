@@ -3,14 +3,18 @@
 
 set -x
 
+PACKAGE=raptor2
 MIN_VERSION=$1
 INSTALL_VERSION=$2
 
-if pkg-config --atleast-version $MIN_VERSION raptor2; then
+raptor_version=`pkg-config --modversion $PACKAGE`
+if pkg-config --atleast-version $MIN_VERSION $PACKAGE; then
+  echo "Raptor2 $raptor_version is new enough"
+else
   cd /tmp
-  wget http://download.librdf.org/source/raptor2-$INSTALL_VERSION.tar.gz
-  tar -x -z -f raptor-$INSTALL_VERSION.tar.gz
-  cd raptor-$INSTALL_VERSION && ./configure --prefix=/usr && make && sudo make install
+  wget http://download.librdf.org/source/$PACKAGE-$INSTALL_VERSION.tar.gz
+  tar -x -z -f $PACKAGE-$INSTALL_VERSION.tar.gz
+  cd $PACKAGE-$INSTALL_VERSION && ./configure --prefix=/usr && make && sudo make install
   cd ..
   rm -rf raptor-$INSTALL_VERSION
 fi
