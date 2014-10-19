@@ -103,6 +103,7 @@ rasqal_graph_pattern_get_origin
 rasqal_graph_pattern_get_sub_graph_pattern
 rasqal_graph_pattern_get_sub_graph_pattern_sequence
 rasqal_graph_pattern_get_triple
+rasqal_graph_pattern_get_triples
 rasqal_graph_pattern_get_service
 rasqal_graph_pattern_get_variable
 rasqal_graph_pattern_operator
@@ -142,7 +143,9 @@ rasqal_literal_as_variable
 rasqal_literal_compare
 rasqal_literal_datatype
 rasqal_literal_equals
+rasqal_literal_get_language
 rasqal_literal_get_rdf_term_type
+rasqal_literal_get_type
 rasqal_literal_is_rdf_literal
 rasqal_literal_print
 rasqal_literal_print_type
@@ -238,6 +241,7 @@ rasqal_query_get_update_operations_sequence
 <FILE>section-query_results</FILE>
 rasqal_query_results
 rasqal_new_query_results
+rasqal_new_query_results2
 rasqal_new_query_results_from_string
 rasqal_free_query_results
 rasqal_query_results_add_row

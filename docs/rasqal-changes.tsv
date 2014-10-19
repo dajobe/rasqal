@@ -91,6 +91,11 @@
 0.9.32	-	-	-	0.9.33	int	rasqal_variables_table_add2	(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name, size_t name_len, rasqal_literal *value)	-
 0.9.32	-	-	-	0.9.33	rasqal_query_results*	rasqal_new_query_results_from_string	(rasqal_world* world, rasqal_query_results_type type, raptor_uri* base_uri, const char* string, size_t string_len)	-
 0.9.32	int	rasqal_query_results_formats_check	(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags)	0.9.33	int	rasqal_query_results_formats_check2	(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags)	Correctly implements return value: non-0 if exists.
+0.9.32	-	-	-	0.9.33	raptor_sequence*	rasqal_graph_pattern_get_triples	(rasqal_query* query, rasqal_graph_pattern* graph_pattern)	-
+0.9.32	-	-	-	0.9.33	rasqal_query_results*	rasqal_new_query_results	(rasqal_world* world, rasqal_query* query, rasqal_query_results_type type, rasqal_variables_table* vars_table)	0.9.33	rasqal_query_results*	rasqal_new_query_results2	(rasqal_world* world, rasqal_query* query, rasqal_query_results_type type)	Deprecates rasqal_new_query_results()
+0.9.32	-	-	-	0.9.33	rasqal_literal_type	rasqal_literal_get_type	(rasqal_literal* l)	-
+0.9.32	-	-	-	0.9.33	char*	rasqal_literal_get_language	(rasqal_literal* l)	-
+0.9.32	-	-	-	0.9.33	int	rasqal_literal_is_rdf_literal	(rasqal_literal* l)	-
 #
 # Types
 #
