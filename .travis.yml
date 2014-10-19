@@ -23,10 +23,17 @@ branches:
   only:
     - master
 
+env:
+  matrix:
+    - RAPTOR_INSTALL_VERSION=2.0.14
+
+# Install raptor extra dependencies too (libyajl-dev) since we build
+# raptor from a tarball
 install:
   - env | sort
   - if [ "$TRAVIS_OS_NAME" = "" ]; then TRAVIS_OS_NAME=linux; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./scripts/install-bison3.sh; sudo apt-get install -qq -y gtk-doc-tools libraptor2-dev libgmp-dev libmhash-dev libpcre3-dev uuid-dev; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./scripts/install-bison3.sh; sudo apt-get install -qq -y gtk-doc-tools libraptor2-dev libgmp-dev libmhash-dev libpcre3-dev uuid-dev libyajl-dev; fi
+  - raptor_min_version=`awk -F= '/RAPTOR_MIN_VERSION=/{print $2}' configure.ac`; && ./scripts/install-raptor.sh $raptor_min_version $RAPTOR_INSTALL_VERSION
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update; brew install raptor bison gtk-doc yajl; fi
 
 script: ./autogen.sh && make && make test
