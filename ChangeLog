@@ -1,3 +1,37 @@
+2014-11-02  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_check_integer_format): Write check, no need for strtol()
+
+2014-10-19  Dave Beckett <dave@dajobe.org>
+
+	* docs/rasqal-changes.tsv: Fix fields count
+
+	* scripts/process-changes.pl: Make process-changes.pl report wrong
+	fields count
+
+	* docs/rasqal-changes.tsv, docs/rasqal-sections.txt: Add new
+	methods to changelog
+
+	* Merge pull request #1 from cosminbasca/master
+	new getter functions: rasqal_graph_pattern_get_triples,
+	rasqal_literal_get_type, rasqal_literal_get_language
+
+	* scripts/install-raptor.sh: fix install names
+
+	* .travis.yml: -;
+
+	* .travis.yml, scripts/install-raptor.sh: Try to install raptor if
+	it's not there
+
+	* .travis.yml, scripts/install-bison3.sh: Travis CI
+
+2014-10-10  Dave Beckett <dave@dajobe.org>
+
+	* scripts/fix-bison.pl, scripts/fix-gtkdoc-header.pl: perms
+
+	* utils/Makefile.am: fix-groff-xhtml.pl
+
 2014-10-09  Dave Beckett <dave@dajobe.org>
 
 	* src/Makefile.am: Further fix flex/bison rules to silence them in

@@ -24,6 +24,17 @@
 <p>Fixed storing timezone minutes correctly.</p>
 
 
+<h3>Graph pattern class changes</h3>
+
+<p>Added new getter functions
+<code>rasqal_graph_pattern_get_triples()</code>,
+<code>rasqal_literal_get_type()</code>
+and <code>rasqal_literal_get_language()</code>
+from <a href="https://github.com/dajobe/rasqal/pull/1">Pull Request #1</a>
+by Cosmin Basca.  Thanks.
+</p>
+
+
 <h3>Query engine changes</h3>
 
 <p>Fixed the aggregation total evaluation of <code>AVG</code>.</p>
@@ -78,6 +89,16 @@ in smaller calling code and better ownership semantics.
 
 
 <h3>Other changes</h3>
+
+<p>Fixes to make Rasqal build in Travis CI, testing against newest
+and oldest raptors.</p>
+
+<p>Use <code>__FUNCTION__</code> (c99) replacing
+<code>__func__</code> (c90) in debug macros.</p>
+
+<p>Fixes in
+<a href="https://github.com/dajobe/rasqal/pull/3">Pull Request #3</a>
+for building with icc from Sebastian Freundt. Thanks.</p>
 
 <p>Many code quality fixes from clang and coverity primarily in error
 path cleanups (out of memory cases) and dead code.</p>
