@@ -307,20 +307,27 @@ rasqal_xsd_check_float_format(const unsigned char* string, int flags)
 static int
 rasqal_xsd_check_integer_format(const unsigned char* string, int flags)
 {
-  char* eptr = NULL;
-
   /* This should be correct according to 
    * http://www.w3.org/TR/xmlschema-2/#integer
    */
 
-  errno = 0;
-  (void)strtol(RASQAL_GOOD_CAST(const char*, string), &eptr, 10);
+  /* Forbid empty string */
+  if(!*string)
+    return 0;
 
-  if(RASQAL_GOOD_CAST(unsigned char*, eptr) != string && *eptr == '\0' &&
-     errno != ERANGE)
-    return 1;
+  if(*string == '+' || *string == '-') {
+    string++;
+    /* Forbid "+" and "-" */
+    if(!*string)
+      return 0;
+  }
 
-  return 0;
+  /* Digits */
+  for(;*string; string++) {
+    if(*string < '0' || *string > '9')
+      return 0;
+  }
+  return 1;
 }
 
 
