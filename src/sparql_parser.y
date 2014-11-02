@@ -5505,7 +5505,7 @@ sparql_parse(rasqal_query* rq)
   rqe->scanner_set = 1;
 
  #if defined(YYDEBUG) && YYDEBUG > 0
-   sparql_lexer_set_debug(1 ,&sparql_parser->scanner);
+   sparql_lexer_set_debug(1 ,&rqe->scanner);
    sparql_parser_debug = 1;
  #endif
 
