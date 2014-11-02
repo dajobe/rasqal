@@ -1417,13 +1417,13 @@ rasqal_graph_pattern_get_flattened_triples(rasqal_query* query,
  */
 raptor_sequence*
 rasqal_graph_pattern_get_triples(rasqal_query* query,
-                                           rasqal_graph_pattern* graph_pattern)
+                                 rasqal_graph_pattern* graph_pattern)
 {
+  raptor_sequence* triples = NULL;
+  
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern,
                                             rasqal_graph_pattern, NULL);
 
-  raptor_sequence* triples = NULL;
-  
   if (graph_pattern->triples) {
     int i;
     triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
