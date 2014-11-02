@@ -1802,6 +1802,12 @@ rasqal_expression_is_constant(rasqal_expression* e)
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
   }
+
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("expression %p: ", e);
+  rasqal_expression_print(e, DEBUG_FH);
+  fprintf(DEBUG_FH, " %s constant\n", (result ? "is" : "is not"));
+#endif
   
   return result;
 }
