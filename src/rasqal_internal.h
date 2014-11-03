@@ -1140,6 +1140,12 @@ typedef struct
   rasqal_update_graph_applies applies;
 } sparql_uri_applies;
 
+typedef struct 
+{
+  rasqal_op op;
+  rasqal_expression *expr;
+} sparql_op_expr;
+
 int rasqal_init_query_language_sparql(rasqal_world*);
 int rasqal_init_query_language_sparql11(rasqal_world*);
 int rasqal_init_query_language_laqrs(rasqal_world*);
