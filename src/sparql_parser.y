@@ -2779,7 +2779,7 @@ DataBlockRow: '(' DataBlockValueList ')'
       }
     }
     raptor_free_sequence($2);
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1  
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("DataBlockRow returned: ");
     rasqal_row_print(row, stderr);
     fputc('\n', stderr);
@@ -4649,12 +4649,14 @@ AdditiveExpression: MultiplicativeExpression AE2List
     int i;
     int size = raptor_sequence_size($2);
 
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("AE2List sequence: ");
     if($2)
       raptor_sequence_print($2, DEBUG_FH);
     else
       fputs("NULL", DEBUG_FH);
     fputc('\n', DEBUG_FH);
+#endif
 
     /* Walk sequence forming tree of exprs in $$ */
     for(i = 0; i < size; i++) {
@@ -4778,12 +4780,14 @@ AE3ListOpt: AE3List
 {
   $$ = $1;
 
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG1("AEListOpt sequence: ");
   if($$)
     raptor_sequence_print($$, DEBUG_FH);
   else
     fputs("NULL", DEBUG_FH);
   fputc('\n', DEBUG_FH);
+#endif
 }
 | /* empty */
 {
@@ -4796,9 +4800,11 @@ AE3List: AE3List AE3
   $$ = $1;
 
   if($$ && $2) {
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("AE3List adding AE3: ");
     print_op_expr($2, DEBUG_FH);
     fputc('\n', DEBUG_FH);
+#endif
 
     if(raptor_sequence_push($$, $2)) {
       raptor_free_sequence($$);
@@ -4815,9 +4821,11 @@ AE3List: AE3List AE3
     YYERROR_MSG("AE3ListOpt 2: failed to create sequence");
 
   if($1) {
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("AE3List adding AE3: ");
     print_op_expr($1, DEBUG_FH);
     fputc('\n', DEBUG_FH);
+#endif
 
     if(raptor_sequence_push($$, $1)) {
       raptor_free_sequence($$);
@@ -4867,9 +4875,11 @@ MultiplicativeExpression: UnaryExpression ME2List
     int i;
     int size = raptor_sequence_size($2);
 
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("ME2List sequence: ");
     raptor_sequence_print($2, DEBUG_FH);
     fputc('\n', DEBUG_FH);
+#endif
 
     /* Walk sequence forming tree of exprs in $$ */
     for(i = 0; i < size; i++) {
