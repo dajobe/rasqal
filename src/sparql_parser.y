@@ -4650,7 +4650,10 @@ AdditiveExpression: MultiplicativeExpression AE2List
     int size = raptor_sequence_size($2);
 
     RASQAL_DEBUG1("AE2List sequence: ");
-    raptor_sequence_print($2, DEBUG_FH);
+    if($2)
+      raptor_sequence_print($2, DEBUG_FH);
+    else
+      fputs("NULL", DEBUG_FH);
     fputc('\n', DEBUG_FH);
 
     /* Walk sequence forming tree of exprs in $$ */
@@ -4672,26 +4675,20 @@ AdditiveExpression: MultiplicativeExpression AE2List
 AE2List: AE2List AE2
 {
   $$ = $1;
-  if($$ && $2) {
-    if(raptor_sequence_push($$, $2)) {
+
+  if($2) {
+    if(raptor_sequence_join($$, $2)) {
+      raptor_free_sequence($2);
       raptor_free_sequence($$);
       $$ = NULL;
-      YYERROR_MSG("AE2ListOpt 1: sequence push failed");
+      YYERROR_MSG("AE2List: sequence join failed");
     }
+    raptor_free_sequence($2);
   }
 }
 | AE2
 {
-  $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
-                           (raptor_data_print_handler)print_op_expr);
-  if(!$$)
-    YYERROR_MSG("AE2ListOpt 2: failed to create sequence");
-
-  if(raptor_sequence_push($$, $1)) {
-    raptor_free_sequence($$);
-    $$ = NULL;
-    YYERROR_MSG("AE2ListOpt 2: sequence push failed");
-  }
+  $$ = $1;
 }
 ;
 
@@ -4782,7 +4779,10 @@ AE3ListOpt: AE3List
   $$ = $1;
 
   RASQAL_DEBUG1("AEListOpt sequence: ");
-  raptor_sequence_print($$, DEBUG_FH);
+  if($$)
+    raptor_sequence_print($$, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
   fputc('\n', DEBUG_FH);
 }
 | /* empty */
@@ -4794,7 +4794,12 @@ AE3ListOpt: AE3List
 AE3List: AE3List AE3
 {
   $$ = $1;
+
   if($$ && $2) {
+    RASQAL_DEBUG1("AE3List adding AE3: ");
+    print_op_expr($2, DEBUG_FH);
+    fputc('\n', DEBUG_FH);
+
     if(raptor_sequence_push($$, $2)) {
       raptor_free_sequence($$);
       $$ = NULL;
@@ -4809,10 +4814,16 @@ AE3List: AE3List AE3
   if(!$$)
     YYERROR_MSG("AE3ListOpt 2: failed to create sequence");
 
-  if(raptor_sequence_push($$, $1)) {
-    raptor_free_sequence($$);
-    $$ = NULL;
-    YYERROR_MSG("AE3ListOpt 2: sequence push failed");
+  if($1) {
+    RASQAL_DEBUG1("AE3List adding AE3: ");
+    print_op_expr($1, DEBUG_FH);
+    fputc('\n', DEBUG_FH);
+
+    if(raptor_sequence_push($$, $1)) {
+      raptor_free_sequence($$);
+      $$ = NULL;
+      YYERROR_MSG("AE3ListOpt 2: sequence push failed");
+    }
   }
 }
 ;
