@@ -120,6 +120,45 @@ free_uri_applies(sparql_uri_applies* ua)
 
 
 
+static sparql_op_expr*
+new_op_expr(rasqal_op op, rasqal_expression *expr)
+{
+  sparql_op_expr* oe;
+
+  oe = RASQAL_MALLOC(sparql_op_expr*, sizeof(*oe));
+  if(!oe)
+    return NULL;
+  
+  oe->op = op;
+  oe->expr = expr;
+
+  return oe;
+}
+
+
+static void
+free_op_expr(sparql_op_expr* oe)
+{
+  if(oe->expr)
+    rasqal_free_expression(oe->expr);
+  RASQAL_FREE(sparql_op_expr*, oe);
+}
+
+static void
+print_op_expr(sparql_op_expr* oe, FILE* fh)
+{
+  fputs("<op ", fh);
+  fputs(rasqal_expression_op_label(oe->op), fh);
+  fputs(", ", fh);
+  if(oe->expr)
+    rasqal_expression_print(oe->expr, fh);
+  else
+    fputs("NULL", fh);
+  fputs(">", fh);
+}
+
+
+
 %}
 
 
@@ -175,6 +214,7 @@ free_uri_applies(sparql_uri_applies* ua)
   rasqal_projection* projection;
   rasqal_bindings* bindings;
   sparql_uri_applies* uri_applies;
+  sparql_op_expr* op_expr;
 }
 
 
@@ -297,6 +337,7 @@ free_uri_applies(sparql_uri_applies* ua)
 %type <seq> VarList VarListOpt
 %type <seq> GroupClauseOpt HavingClauseOpt OrderClauseOpt
 %type <seq> GraphTemplate ModifyTemplate
+%type <seq> AE2 AE2List AE3List AE3ListOpt ME2List
 
 %type <data_graph> DatasetClause DefaultGraphClause NamedGraphClause
 
@@ -361,6 +402,8 @@ free_uri_applies(sparql_uri_applies* ua)
 
 %type <bindings> InlineData InlineDataOneVar InlineDataFull DataBlock ValuesClauseOpt
 
+%type <op_expr> AE3 ME2
+
 
 %destructor {
   if($$)
@@ -405,6 +448,7 @@ DatasetClauseList DatasetClauseListOpt
 VarList VarListOpt
 GroupClauseOpt HavingClauseOpt OrderClauseOpt
 GraphTemplate ModifyTemplate
+AE2 AE2List AE3List AE3ListOpt ME2List
 
 %destructor {
   if($$)
@@ -500,6 +544,13 @@ SelectClause SelectExpressionList
     rasqal_free_bindings($$);
 }
 InlineData InlineDataOneVar InlineDataFull DataBlock ValuesClauseOpt
+
+%destructor {
+  if($$)
+    free_op_expr($$);
+}
+AE3 ME2
+
 
 
 %%
@@ -4565,46 +4616,51 @@ RelationalExpression: AdditiveExpression EQ AdditiveExpression
 
 /* SPARQL Grammar: NumericExpression - merged into AdditiveExpression */
 
-/* SPARQL Grammar: AdditiveExpression */
-AdditiveExpression: MultiplicativeExpression '+' AdditiveExpression
+/* SPARQL Grammar: AdditiveExpression
+
+AdditiveExpression := MultiplicativeExpression ( '+' MultiplicativeExpression | '-' MultiplicativeExpression | ( NumericLiteralPositive | NumericLiteralNegative ) ( ( '*' UnaryExpression ) | ( '/' UnaryExpression ) )* )*
+
+AdditiveExpression := MultiplicativeExpression AE2List
+| MultiplicativeExpression
+
+AE2List: AE2List AE2
+| AE2
+
+AE2: '+' MultiplicativeExpression
+| '-' MultiplicativeExpression
+| NumericLiteralPositive AE3ListOpt
+| NumericLiteralNegative AE3ListOpt
+
+AE3ListOpt: AE3List
+| empty
+
+AE3List: AE3List AE3
+| AE3
+
+AE3: '*' UnaryExpression | '/' UnaryExpression
+
+*/
+
+AdditiveExpression: MultiplicativeExpression AE2List
 {
-  $$ = rasqal_new_2op_expression(rq->world,
-                                 RASQAL_EXPR_PLUS, $1, $3);
-  if(!$$)
-    YYERROR_MSG("AdditiveExpression 1: cannot create expr");
-}
-| MultiplicativeExpression '-' AdditiveExpression
-{
-  $$ = rasqal_new_2op_expression(rq->world,
-                                 RASQAL_EXPR_MINUS, $1, $3);
-  if(!$$)
-    YYERROR_MSG("AdditiveExpression 2: cannot create expr");
-}
-| MultiplicativeExpression NumericLiteralPositive
-{
-  rasqal_expression *e;
-  e = rasqal_new_literal_expression(rq->world, $2);
-  if(!e) {
-    rasqal_free_expression($1);
-    YYERROR_MSG("AdditiveExpression 3: cannot create expr");
+  $$ = $1;
+
+  if($2) {
+    int i;
+    int size = raptor_sequence_size($2);
+
+    RASQAL_DEBUG1("AE2List sequence: ");
+    raptor_sequence_print($2, DEBUG_FH);
+    fputc('\n', DEBUG_FH);
+
+    /* Walk sequence forming tree of exprs in $$ */
+    for(i = 0; i < size; i++) {
+      sparql_op_expr* op_expr = (sparql_op_expr*)raptor_sequence_get_at($2, i);
+      $$ = rasqal_new_2op_expression(rq->world, op_expr->op, $$, op_expr->expr);
+      op_expr->expr = NULL;
+    }
+    raptor_free_sequence($2);
   }
-  $$ = rasqal_new_2op_expression(rq->world,
-                                 RASQAL_EXPR_PLUS, $1, e);
-  if(!$$)
-    YYERROR_MSG("AdditiveExpression 4: cannot create expr");
-}
-| MultiplicativeExpression NumericLiteralNegative
-{
-  rasqal_expression *e;
-  e = rasqal_new_literal_expression(rq->world, $2);
-  if(!e) {
-    rasqal_free_expression($1);
-    YYERROR_MSG("AdditiveExpression 5: cannot create expr");
-  }
-  $$ = rasqal_new_2op_expression(rq->world,
-                                 RASQAL_EXPR_PLUS, $1, e);
-  if(!$$)
-    YYERROR_MSG("AdditiveExpression 6: cannot create expr");
 }
 | MultiplicativeExpression
 {
@@ -4612,26 +4668,254 @@ AdditiveExpression: MultiplicativeExpression '+' AdditiveExpression
 }
 ;
 
-/* SPARQL Grammar: MultiplicativeExpression */
-MultiplicativeExpression: UnaryExpression '*' MultiplicativeExpression
+
+AE2List: AE2List AE2
 {
-  $$ = rasqal_new_2op_expression(rq->world,
-                                 RASQAL_EXPR_STAR, $1, $3);
-  if(!$$)
-    YYERROR_MSG("MultiplicativeExpression 1: cannot create expr");
+  $$ = $1;
+  if($$ && $2) {
+    if(raptor_sequence_push($$, $2)) {
+      raptor_free_sequence($$);
+      $$ = NULL;
+      YYERROR_MSG("AE2ListOpt 1: sequence push failed");
+    }
+  }
 }
-| UnaryExpression '/' MultiplicativeExpression
+| AE2
 {
-  $$ = rasqal_new_2op_expression(rq->world,
-                                 RASQAL_EXPR_SLASH, $1, $3);
+  $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
+                           (raptor_data_print_handler)print_op_expr);
   if(!$$)
-    YYERROR_MSG("MultiplicativeExpression 2: cannot create expr");
+    YYERROR_MSG("AE2ListOpt 2: failed to create sequence");
+
+  if(raptor_sequence_push($$, $1)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("AE2ListOpt 2: sequence push failed");
+  }
+}
+;
+
+AE2: '+' MultiplicativeExpression
+{
+  sparql_op_expr* oe;
+
+  $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
+                           (raptor_data_print_handler)print_op_expr);
+  if(!$$)
+    YYERROR_MSG("AE2 1: failed to create sequence");
+
+  oe = new_op_expr(RASQAL_EXPR_PLUS, $2);
+  if(!oe)
+    YYERROR_MSG("AE2 1: cannot create plus expr");
+
+  if(raptor_sequence_push($$, oe)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("AE2 1: sequence push failed");
+  }
+}
+| '-' MultiplicativeExpression
+{
+  sparql_op_expr* oe;
+
+  $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
+                           (raptor_data_print_handler)print_op_expr);
+  if(!$$)
+    YYERROR_MSG("AE2 2: failed to create sequence");
+
+  oe = new_op_expr(RASQAL_EXPR_MINUS, $2);
+  if(!oe)
+    YYERROR_MSG("AE2 2: cannot create minus expr");
+
+  if(raptor_sequence_push($$, oe)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("AE2 2: sequence push failed");
+  }
+}
+| NumericLiteralPositive AE3ListOpt
+{
+  rasqal_expression *e;
+  sparql_op_expr* oe;
+
+  $$ = $2;
+  if(!$$) {
+    $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
+                             (raptor_data_print_handler)print_op_expr);
+    if(!$$)
+      YYERROR_MSG("AE2 2: failed to create sequence");
+  }
+
+  e = rasqal_new_literal_expression(rq->world, $1);
+  if(!e)
+    YYERROR_MSG("AE2 2: cannot create NumericLiteralPositive literal expression");
+  oe = new_op_expr(RASQAL_EXPR_PLUS, e);
+  if(!oe)
+    YYERROR_MSG("AE2 2: cannot create plus expr");
+  raptor_sequence_shift($$, oe);
+}
+| NumericLiteralNegative AE3ListOpt
+{
+  rasqal_expression *e;
+  sparql_op_expr* oe;
+
+  $$ = $2;
+  if(!$$) {
+    $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
+                             (raptor_data_print_handler)print_op_expr);
+    if(!$$)
+      YYERROR_MSG("AE2 3: failed to create sequence");
+  }
+
+  e = rasqal_new_literal_expression(rq->world, $1);
+  if(!e)
+    YYERROR_MSG("AE2 3: cannot create NumericLiteralNegative literal expression");
+  oe = new_op_expr(RASQAL_EXPR_MINUS, e);
+  if(!oe)
+    YYERROR_MSG("AE2 3: cannot create minus expr");
+  raptor_sequence_shift($$, oe);
+}
+;
+
+AE3ListOpt: AE3List
+{
+  $$ = $1;
+
+  RASQAL_DEBUG1("AEListOpt sequence: ");
+  raptor_sequence_print($$, DEBUG_FH);
+  fputc('\n', DEBUG_FH);
+}
+| /* empty */
+{
+  $$ = NULL;
+}
+;
+
+AE3List: AE3List AE3
+{
+  $$ = $1;
+  if($$ && $2) {
+    if(raptor_sequence_push($$, $2)) {
+      raptor_free_sequence($$);
+      $$ = NULL;
+      YYERROR_MSG("AE3ListOpt 1: sequence push failed");
+    }
+  }
+}
+| AE3
+{
+  $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
+                           (raptor_data_print_handler)print_op_expr);
+  if(!$$)
+    YYERROR_MSG("AE3ListOpt 2: failed to create sequence");
+
+  if(raptor_sequence_push($$, $1)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("AE3ListOpt 2: sequence push failed");
+  }
+}
+;
+
+AE3: '*' UnaryExpression
+{
+  $$ = new_op_expr(RASQAL_EXPR_STAR, $2);
+  if(!$$)
+    YYERROR_MSG("AE3 1: cannot create star expr");
+} 
+| '/' UnaryExpression
+{
+  $$ = new_op_expr(RASQAL_EXPR_SLASH, $2);
+  if(!$$)
+    YYERROR_MSG("AE3 2: cannot create slash expr");
+}
+;
+
+
+/* SPARQL Grammar: MultiplicativeExpression
+
+MultiplicativeExpression ::= UnaryExpression ( '*' UnaryExpression | '/' UnaryExpression )*
+
+Expanded:
+
+MultiplicativeExpression := UnaryExpression ME2List
+| UnaryExpression
+
+ME2List: ME2List ME2
+| ME2
+
+ME2: '*' UnaryExpression | 
+'/' UnaryExpression
+
+*/
+MultiplicativeExpression: UnaryExpression ME2List
+{
+  $$ = $1;
+
+  if($2) {
+    int i;
+    int size = raptor_sequence_size($2);
+
+    RASQAL_DEBUG1("ME2List sequence: ");
+    raptor_sequence_print($2, DEBUG_FH);
+    fputc('\n', DEBUG_FH);
+
+    /* Walk sequence forming tree of exprs in $$ */
+    for(i = 0; i < size; i++) {
+      sparql_op_expr* op_expr = (sparql_op_expr*)raptor_sequence_get_at($2, i);
+      $$ = rasqal_new_2op_expression(rq->world, op_expr->op, $$, op_expr->expr);
+      op_expr->expr = NULL;
+    }
+    raptor_free_sequence($2);
+  }
 }
 | UnaryExpression
 {
   $$ = $1;
 }
 ;
+
+ME2List: ME2List ME2
+{
+  $$ = $1;
+  if($$ && $2) {
+    if(raptor_sequence_push($$, $2)) {
+      raptor_free_sequence($$);
+      $$ = NULL;
+      YYERROR_MSG("ME2ListOpt 1: sequence push failed");
+    }
+  }
+}
+| ME2
+{
+  $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
+                           (raptor_data_print_handler)print_op_expr);
+  if(!$$)
+    YYERROR_MSG("ME2ListOpt 2: failed to create sequence");
+
+  if(raptor_sequence_push($$, $1)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("ME2ListOpt 2: sequence push failed");
+  }
+}
+;
+
+
+ME2: '*' UnaryExpression
+{
+  $$ = new_op_expr(RASQAL_EXPR_STAR, $2);
+  if(!$$)
+    YYERROR_MSG("ME2 1: cannot create star expr");
+}
+| '/' UnaryExpression
+{
+  $$ = new_op_expr(RASQAL_EXPR_SLASH, $2);
+  if(!$$)
+    YYERROR_MSG("ME2 2: cannot create slash expr");
+}
+;
+ 
 
 
 /* SPARQL Grammar: UnaryExpression */
