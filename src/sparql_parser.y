@@ -337,7 +337,7 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
 %type <seq> VarList VarListOpt
 %type <seq> GroupClauseOpt HavingClauseOpt OrderClauseOpt
 %type <seq> GraphTemplate ModifyTemplate
-%type <seq> AE2 AE2List AE3List AE3ListOpt ME2List
+%type <seq> AE2 AE2List AE3List AE3ListOpt MuExOpUnaryExpressionList
 
 %type <data_graph> DatasetClause DefaultGraphClause NamedGraphClause
 
@@ -402,7 +402,7 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
 
 %type <bindings> InlineData InlineDataOneVar InlineDataFull DataBlock ValuesClauseOpt
 
-%type <op_expr> AE3 ME2
+%type <op_expr> AE3 MuExOpUnaryExpression
 
 
 %destructor {
@@ -448,7 +448,7 @@ DatasetClauseList DatasetClauseListOpt
 VarList VarListOpt
 GroupClauseOpt HavingClauseOpt OrderClauseOpt
 GraphTemplate ModifyTemplate
-AE2 AE2List AE3List AE3ListOpt ME2List
+AE2 AE2List AE3List AE3ListOpt MuExOpUnaryExpressionList
 
 %destructor {
   if($$)
@@ -549,7 +549,7 @@ InlineData InlineDataOneVar InlineDataFull DataBlock ValuesClauseOpt
   if($$)
     free_op_expr($$);
 }
-AE3 ME2
+AE3 MuExOpUnaryExpression
 
 
 
@@ -4620,6 +4620,8 @@ RelationalExpression: AdditiveExpression EQ AdditiveExpression
 
 AdditiveExpression := MultiplicativeExpression ( '+' MultiplicativeExpression | '-' MultiplicativeExpression | ( NumericLiteralPositive | NumericLiteralNegative ) ( ( '*' UnaryExpression ) | ( '/' UnaryExpression ) )* )*
 
+Expanded:
+
 AdditiveExpression := MultiplicativeExpression AE2List
 | MultiplicativeExpression
 
@@ -4857,17 +4859,17 @@ MultiplicativeExpression ::= UnaryExpression ( '*' UnaryExpression | '/' UnaryEx
 
 Expanded:
 
-MultiplicativeExpression := UnaryExpression ME2List
+MultiplicativeExpression := UnaryExpression MuExOpUnaryExpressionList
 | UnaryExpression
 
-ME2List: ME2List ME2
-| ME2
+MuExOpUnaryExpressionList: MuExOpUnaryExpressionList MuExOpUnaryExpression
+| MuExOpUnaryExpression
 
-ME2: '*' UnaryExpression | 
+MuExOpUnaryExpression: '*' UnaryExpression | 
 '/' UnaryExpression
 
 */
-MultiplicativeExpression: UnaryExpression ME2List
+MultiplicativeExpression: UnaryExpression MuExOpUnaryExpressionList
 {
   $$ = $1;
 
@@ -4876,7 +4878,7 @@ MultiplicativeExpression: UnaryExpression ME2List
     int size = raptor_sequence_size($2);
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("ME2List sequence: ");
+    RASQAL_DEBUG1("MuExOpUnaryExpressionList sequence: ");
     raptor_sequence_print($2, DEBUG_FH);
     fputc('\n', DEBUG_FH);
 #endif
@@ -4896,44 +4898,44 @@ MultiplicativeExpression: UnaryExpression ME2List
 }
 ;
 
-ME2List: ME2List ME2
+MuExOpUnaryExpressionList: MuExOpUnaryExpressionList MuExOpUnaryExpression
 {
   $$ = $1;
   if($$ && $2) {
     if(raptor_sequence_push($$, $2)) {
       raptor_free_sequence($$);
       $$ = NULL;
-      YYERROR_MSG("ME2ListOpt 1: sequence push failed");
+      YYERROR_MSG("MuExOpUnaryExpressionListOpt 1: sequence push failed");
     }
   }
 }
-| ME2
+| MuExOpUnaryExpression
 {
   $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
                            (raptor_data_print_handler)print_op_expr);
   if(!$$)
-    YYERROR_MSG("ME2ListOpt 2: failed to create sequence");
+    YYERROR_MSG("MuExOpUnaryExpressionListOpt 2: failed to create sequence");
 
   if(raptor_sequence_push($$, $1)) {
     raptor_free_sequence($$);
     $$ = NULL;
-    YYERROR_MSG("ME2ListOpt 2: sequence push failed");
+    YYERROR_MSG("MuExOpUnaryExpressionListOpt 2: sequence push failed");
   }
 }
 ;
 
 
-ME2: '*' UnaryExpression
+MuExOpUnaryExpression: '*' UnaryExpression
 {
   $$ = new_op_expr(RASQAL_EXPR_STAR, $2);
   if(!$$)
-    YYERROR_MSG("ME2 1: cannot create star expr");
+    YYERROR_MSG("MuExOpUnaryExpression 1: cannot create star expr");
 }
 | '/' UnaryExpression
 {
   $$ = new_op_expr(RASQAL_EXPR_SLASH, $2);
   if(!$$)
-    YYERROR_MSG("ME2 2: cannot create slash expr");
+    YYERROR_MSG("MuExOpUnaryExpression 2: cannot create slash expr");
 }
 ;
  
