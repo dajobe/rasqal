@@ -337,7 +337,7 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
 %type <seq> VarList VarListOpt
 %type <seq> GroupClauseOpt HavingClauseOpt OrderClauseOpt
 %type <seq> GraphTemplate ModifyTemplate
-%type <seq> AE2 AE2List AE3List AE3ListOpt MuExOpUnaryExpressionList
+%type <seq> AdExOpExpressionListInner AdExOpExpressionListOuter AdExOpUnaryExpressionList AdExOpUnaryExpressionListOpt MuExOpUnaryExpressionList
 
 %type <data_graph> DatasetClause DefaultGraphClause NamedGraphClause
 
@@ -402,7 +402,7 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
 
 %type <bindings> InlineData InlineDataOneVar InlineDataFull DataBlock ValuesClauseOpt
 
-%type <op_expr> AE3 MuExOpUnaryExpression
+%type <op_expr> AdExOpUnaryExpression MuExOpUnaryExpression
 
 
 %destructor {
@@ -448,7 +448,7 @@ DatasetClauseList DatasetClauseListOpt
 VarList VarListOpt
 GroupClauseOpt HavingClauseOpt OrderClauseOpt
 GraphTemplate ModifyTemplate
-AE2 AE2List AE3List AE3ListOpt MuExOpUnaryExpressionList
+AdExOpExpressionListInner AdExOpExpressionListOuter AdExOpUnaryExpressionList AdExOpUnaryExpressionListOpt MuExOpUnaryExpressionList
 
 %destructor {
   if($$)
@@ -549,7 +549,7 @@ InlineData InlineDataOneVar InlineDataFull DataBlock ValuesClauseOpt
   if($$)
     free_op_expr($$);
 }
-AE3 MuExOpUnaryExpression
+AdExOpUnaryExpression MuExOpUnaryExpression
 
 
 
@@ -4622,28 +4622,35 @@ AdditiveExpression := MultiplicativeExpression ( '+' MultiplicativeExpression | 
 
 Expanded:
 
-AdditiveExpression := MultiplicativeExpression AE2List
+AdditiveExpression:
+  MultiplicativeExpression AdExOpExpressionListOuter
 | MultiplicativeExpression
 
-AE2List: AE2List AE2
-| AE2
+AdExOpExpressionListOuter:
+  AdExOpExpressionListOuter AdExOpExpressionListInner
+| AdExOpExpressionListInner
 
-AE2: '+' MultiplicativeExpression
+AdExOpExpressionListInner:
+  '+' MultiplicativeExpression
 | '-' MultiplicativeExpression
-| NumericLiteralPositive AE3ListOpt
-| NumericLiteralNegative AE3ListOpt
+| NumericLiteralPositive AdExOpUnaryExpressionListOpt
+| NumericLiteralNegative AdExOpUnaryExpressionListOpt
 
-AE3ListOpt: AE3List
+AdExOpUnaryExpressionListOpt:
+  AdExOpUnaryExpressionList
 | empty
 
-AE3List: AE3List AE3
-| AE3
+AdExOpUnaryExpressionList:
+  AdExOpUnaryExpressionList AdExOpUnaryExpression
+| AdExOpUnaryExpression
 
-AE3: '*' UnaryExpression | '/' UnaryExpression
+AdExOpUnaryExpression:
+  '*' UnaryExpression
+| '/' UnaryExpression
 
 */
 
-AdditiveExpression: MultiplicativeExpression AE2List
+AdditiveExpression: MultiplicativeExpression AdExOpExpressionListOuter
 {
   $$ = $1;
 
@@ -4652,7 +4659,7 @@ AdditiveExpression: MultiplicativeExpression AE2List
     int size = raptor_sequence_size($2);
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("AE2List sequence: ");
+    RASQAL_DEBUG1("AdExOpExpressionListOuter sequence: ");
     if($2)
       raptor_sequence_print($2, DEBUG_FH);
     else
@@ -4676,7 +4683,7 @@ AdditiveExpression: MultiplicativeExpression AE2List
 ;
 
 
-AE2List: AE2List AE2
+AdExOpExpressionListOuter: AdExOpExpressionListOuter AdExOpExpressionListInner
 {
   $$ = $1;
 
@@ -4685,34 +4692,34 @@ AE2List: AE2List AE2
       raptor_free_sequence($2);
       raptor_free_sequence($$);
       $$ = NULL;
-      YYERROR_MSG("AE2List: sequence join failed");
+      YYERROR_MSG("AdExOpExpressionListOuter: sequence join failed");
     }
     raptor_free_sequence($2);
   }
 }
-| AE2
+| AdExOpExpressionListInner
 {
   $$ = $1;
 }
 ;
 
-AE2: '+' MultiplicativeExpression
+AdExOpExpressionListInner: '+' MultiplicativeExpression
 {
   sparql_op_expr* oe;
 
   $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
                            (raptor_data_print_handler)print_op_expr);
   if(!$$)
-    YYERROR_MSG("AE2 1: failed to create sequence");
+    YYERROR_MSG("AdExOpExpressionListInner 1: failed to create sequence");
 
   oe = new_op_expr(RASQAL_EXPR_PLUS, $2);
   if(!oe)
-    YYERROR_MSG("AE2 1: cannot create plus expr");
+    YYERROR_MSG("AdExOpExpressionListInner 1: cannot create plus expr");
 
   if(raptor_sequence_push($$, oe)) {
     raptor_free_sequence($$);
     $$ = NULL;
-    YYERROR_MSG("AE2 1: sequence push failed");
+    YYERROR_MSG("AdExOpExpressionListInner 1: sequence push failed");
   }
 }
 | '-' MultiplicativeExpression
@@ -4722,19 +4729,19 @@ AE2: '+' MultiplicativeExpression
   $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
                            (raptor_data_print_handler)print_op_expr);
   if(!$$)
-    YYERROR_MSG("AE2 2: failed to create sequence");
+    YYERROR_MSG("AdExOpExpressionListInner 2: failed to create sequence");
 
   oe = new_op_expr(RASQAL_EXPR_MINUS, $2);
   if(!oe)
-    YYERROR_MSG("AE2 2: cannot create minus expr");
+    YYERROR_MSG("AdExOpExpressionListInner 2: cannot create minus expr");
 
   if(raptor_sequence_push($$, oe)) {
     raptor_free_sequence($$);
     $$ = NULL;
-    YYERROR_MSG("AE2 2: sequence push failed");
+    YYERROR_MSG("AdExOpExpressionListInner 2: sequence push failed");
   }
 }
-| NumericLiteralPositive AE3ListOpt
+| NumericLiteralPositive AdExOpUnaryExpressionListOpt
 {
   rasqal_expression *e;
   sparql_op_expr* oe;
@@ -4744,18 +4751,18 @@ AE2: '+' MultiplicativeExpression
     $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
                              (raptor_data_print_handler)print_op_expr);
     if(!$$)
-      YYERROR_MSG("AE2 2: failed to create sequence");
+      YYERROR_MSG("AdExOpExpressionListInner 2: failed to create sequence");
   }
 
   e = rasqal_new_literal_expression(rq->world, $1);
   if(!e)
-    YYERROR_MSG("AE2 2: cannot create NumericLiteralPositive literal expression");
+    YYERROR_MSG("AdExOpExpressionListInner 2: cannot create NumericLiteralPositive literal expression");
   oe = new_op_expr(RASQAL_EXPR_PLUS, e);
   if(!oe)
-    YYERROR_MSG("AE2 2: cannot create plus expr");
+    YYERROR_MSG("AdExOpExpressionListInner 2: cannot create plus expr");
   raptor_sequence_shift($$, oe);
 }
-| NumericLiteralNegative AE3ListOpt
+| NumericLiteralNegative AdExOpUnaryExpressionListOpt
 {
   rasqal_expression *e;
   sparql_op_expr* oe;
@@ -4765,20 +4772,20 @@ AE2: '+' MultiplicativeExpression
     $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
                              (raptor_data_print_handler)print_op_expr);
     if(!$$)
-      YYERROR_MSG("AE2 3: failed to create sequence");
+      YYERROR_MSG("AdExOpExpressionListInner 3: failed to create sequence");
   }
 
   e = rasqal_new_literal_expression(rq->world, $1);
   if(!e)
-    YYERROR_MSG("AE2 3: cannot create NumericLiteralNegative literal expression");
+    YYERROR_MSG("AdExOpExpressionListInner 3: cannot create NumericLiteralNegative literal expression");
   oe = new_op_expr(RASQAL_EXPR_MINUS, e);
   if(!oe)
-    YYERROR_MSG("AE2 3: cannot create minus expr");
+    YYERROR_MSG("AdExOpExpressionListInner 3: cannot create minus expr");
   raptor_sequence_shift($$, oe);
 }
 ;
 
-AE3ListOpt: AE3List
+AdExOpUnaryExpressionListOpt: AdExOpUnaryExpressionList
 {
   $$ = $1;
 
@@ -4797,13 +4804,13 @@ AE3ListOpt: AE3List
 }
 ;
 
-AE3List: AE3List AE3
+AdExOpUnaryExpressionList: AdExOpUnaryExpressionList AdExOpUnaryExpression
 {
   $$ = $1;
 
   if($$ && $2) {
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("AE3List adding AE3: ");
+    RASQAL_DEBUG1("AdExOpUnaryExpressionList adding AdExOpUnaryExpression: ");
     print_op_expr($2, DEBUG_FH);
     fputc('\n', DEBUG_FH);
 #endif
@@ -4811,20 +4818,20 @@ AE3List: AE3List AE3
     if(raptor_sequence_push($$, $2)) {
       raptor_free_sequence($$);
       $$ = NULL;
-      YYERROR_MSG("AE3ListOpt 1: sequence push failed");
+      YYERROR_MSG("AdExOpUnaryExpressionListOpt 1: sequence push failed");
     }
   }
 }
-| AE3
+| AdExOpUnaryExpression
 {
   $$ = raptor_new_sequence((raptor_data_free_handler)free_op_expr,
                            (raptor_data_print_handler)print_op_expr);
   if(!$$)
-    YYERROR_MSG("AE3ListOpt 2: failed to create sequence");
+    YYERROR_MSG("AdExOpUnaryExpressionListOpt 2: failed to create sequence");
 
   if($1) {
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("AE3List adding AE3: ");
+    RASQAL_DEBUG1("AdExOpUnaryExpressionList adding AdExOpUnaryExpression: ");
     print_op_expr($1, DEBUG_FH);
     fputc('\n', DEBUG_FH);
 #endif
@@ -4832,23 +4839,23 @@ AE3List: AE3List AE3
     if(raptor_sequence_push($$, $1)) {
       raptor_free_sequence($$);
       $$ = NULL;
-      YYERROR_MSG("AE3ListOpt 2: sequence push failed");
+      YYERROR_MSG("AdExOpUnaryExpressionListOpt 2: sequence push failed");
     }
   }
 }
 ;
 
-AE3: '*' UnaryExpression
+AdExOpUnaryExpression: '*' UnaryExpression
 {
   $$ = new_op_expr(RASQAL_EXPR_STAR, $2);
   if(!$$)
-    YYERROR_MSG("AE3 1: cannot create star expr");
+    YYERROR_MSG("AdExOpUnaryExpression 1: cannot create star expr");
 } 
 | '/' UnaryExpression
 {
   $$ = new_op_expr(RASQAL_EXPR_SLASH, $2);
   if(!$$)
-    YYERROR_MSG("AE3 2: cannot create slash expr");
+    YYERROR_MSG("AdExOpUnaryExpression 2: cannot create slash expr");
 }
 ;
 
@@ -4859,14 +4866,17 @@ MultiplicativeExpression ::= UnaryExpression ( '*' UnaryExpression | '/' UnaryEx
 
 Expanded:
 
-MultiplicativeExpression := UnaryExpression MuExOpUnaryExpressionList
+MultiplicativeExpression:
+  UnaryExpression MuExOpUnaryExpressionList
 | UnaryExpression
 
-MuExOpUnaryExpressionList: MuExOpUnaryExpressionList MuExOpUnaryExpression
+MuExOpUnaryExpressionList: 
+  MuExOpUnaryExpressionList MuExOpUnaryExpression
 | MuExOpUnaryExpression
 
-MuExOpUnaryExpression: '*' UnaryExpression | 
-'/' UnaryExpression
+MuExOpUnaryExpression:
+  '*' UnaryExpression
+| '/' UnaryExpression
 
 */
 MultiplicativeExpression: UnaryExpression MuExOpUnaryExpressionList
