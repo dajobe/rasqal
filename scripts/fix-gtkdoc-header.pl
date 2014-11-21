@@ -1,11 +1,11 @@
 #!/usr/bin/perl -w
 #
-# Edit rasqal.h so that gtk-doc is happy about it
+# Edit main header so that gtk-doc is happy about it
 #
 # USAGE:
-#   perl fix-gtkc-header.pl < rasqal.h > rasqal.i
+#   perl fix-gtkc-header.pl < header.h > header.i
 #
-# Copyright (C) 2010, David Beckett http://www.dajobe.org/
+# Copyright (C) 2010-2014, David Beckett http://www.dajobe.org/
 #
 # This package is Free Software and part of Redland http://librdf.org/
 # 
