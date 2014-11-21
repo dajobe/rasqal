@@ -666,7 +666,7 @@ rasqal_query_results_get_rowsource_tsv(rasqal_query_results_formatter* formatter
 
 
 
-/**
+/*
  * Calculate score for buffer based on score of number of 'sep' chars
  * in first line; minimum @min_count gives a based score, boosted if
  * more than @boost_count
