@@ -49,6 +49,17 @@ library for serializing to a syntax.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_new_query_results2 ##### -->
+<para>
+
+</para>
+
+@world: 
+@query: 
+@type: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_new_query_results_from_string ##### -->
 <para>
 
