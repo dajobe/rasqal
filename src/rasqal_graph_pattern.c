@@ -1420,7 +1420,7 @@ rasqal_graph_pattern_get_triples(rasqal_query* query,
                                  rasqal_graph_pattern* graph_pattern)
 {
   raptor_sequence* triples = NULL;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern,
                                             rasqal_graph_pattern, NULL);
 
