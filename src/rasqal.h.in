@@ -856,6 +856,7 @@ typedef enum {
  * @args: args for extension function qname(args...), cast-to-uri and COALESCE
  * @params: args for extension function parameters (SPARQL 1.1) (Rasqal 0.9.20+)
  * @flags: bitflags from #rasqal_expression_flags for expressions (Rasqal 0.9.20+)
+ * @arg4: fourth argument (for #RASQAL_EXPR_REPLACE )
  *
  * Expression with arguments
  *
@@ -2147,6 +2148,7 @@ int rasqal_set_triples_source_factory(rasqal_world* world, rasqal_triples_source
 
 /**
  * rasqal_expression_s:
+ * @world: Internal
  * @usage: Internal
  * @op: Internal
  * @arg1: Internal
@@ -2158,6 +2160,7 @@ int rasqal_set_triples_source_factory(rasqal_world* world, rasqal_triples_source
  * @args: Internal
  * @params: Internal
  * @flags: Internal
+ * @arg4: Internal
  *
  * Internal - see #rasqal_expression.
  *
