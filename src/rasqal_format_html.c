@@ -223,7 +223,7 @@ rasqal_query_results_write_html(rasqal_query_results_formatter* formatter,
     return 1;
   }
 
-  // XML and HTML declarations
+  /* XML and HTML declarations */
   raptor_iostream_counted_string_write(
     "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n", 39, iostr);
   raptor_iostream_counted_string_write(
