@@ -49,7 +49,7 @@ typedef enum {
   JS_START,
   JS_INIT_RIGHT,
   JS_READ_RIGHT,
-  JS_FINISHED,
+  JS_FINISHED
 } rasqal_join_state;
 
 typedef struct 
