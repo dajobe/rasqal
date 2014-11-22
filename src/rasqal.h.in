@@ -363,7 +363,7 @@ typedef struct {
 typedef enum {
   RASQAL_DATA_GRAPH_NONE  = 0,
   RASQAL_DATA_GRAPH_NAMED = 1,
-  RASQAL_DATA_GRAPH_BACKGROUND = 2,
+  RASQAL_DATA_GRAPH_BACKGROUND = 2
 } rasqal_data_graph_flags;
 
 
