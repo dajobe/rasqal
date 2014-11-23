@@ -124,12 +124,13 @@ rasqal_union_rowsource_ensure_variables(rasqal_rowsource* rowsource,
     return 1;
 
   map_size = rasqal_rowsource_get_size(con->right);
-  con->right_map = RASQAL_MALLOC(int*, sizeof(int) * map_size);
+  con->right_map = RASQAL_MALLOC(int*, RASQAL_GOOD_CAST(size_t,
+                                                        sizeof(int) * RASQAL_GOOD_CAST(size_t, map_size)));
   if(!con->right_map)
     return 1;
 
   con->right_tmp_values = RASQAL_MALLOC(rasqal_literal**,
-                                        sizeof(rasqal_literal*) * map_size);
+                                        sizeof(rasqal_literal*) * RASQAL_GOOD_CAST(size_t, map_size));
   if(!con->right_tmp_values)
     return 1;
 

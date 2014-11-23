@@ -689,7 +689,8 @@ rasqal_variables_table_get_names(rasqal_variables_table* vt)
   if(!vt->variable_names && size) {
     int i;
     
-    vt->variable_names = RASQAL_CALLOC(const unsigned char**, (size + 1), sizeof(unsigned char*));
+    vt->variable_names = RASQAL_CALLOC(const unsigned char**, RASQAL_GOOD_CAST(size_t, (size + 1)),
+                                       sizeof(unsigned char*));
     if(!vt->variable_names)
       return NULL;
 
@@ -803,7 +804,7 @@ rasqal_variables_table_get_order(rasqal_variables_table* vt)
   if(!size)
     return NULL;
 
-  order = RASQAL_CALLOC(int*, size + 1, sizeof(int));
+  order = RASQAL_CALLOC(int*, RASQAL_GOOD_CAST(size_t, size + 1), sizeof(int));
   if(!order)
     return NULL;
 

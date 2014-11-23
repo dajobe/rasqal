@@ -57,7 +57,7 @@ rasqal_new_row_compatible(rasqal_variables_table* vt,
   map->first_rowsource = first_rowsource;
   map->second_rowsource = second_rowsource;
   map->variables_count = count;
-  map->defined_in_map = RASQAL_CALLOC(int*, 2 * count, sizeof(int));
+  map->defined_in_map = RASQAL_CALLOC(int*, RASQAL_GOOD_CAST(size_t, 2 * count), sizeof(int));
   if(!map->defined_in_map) {
     RASQAL_FREE(rasqal_row_compatible, map);
     return NULL;

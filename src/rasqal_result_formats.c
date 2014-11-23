@@ -320,7 +320,7 @@ rasqal_new_query_results_formatter(rasqal_world* world,
 
   formatter->context = NULL;
   if(factory->context_length) {
-    formatter->context = RASQAL_CALLOC(void*, 1, factory->context_length);
+    formatter->context = RASQAL_CALLOC(void*, 1, RASQAL_GOOD_CAST(size_t, factory->context_length));
     if(!formatter->context) {
       rasqal_free_query_results_formatter(formatter);
     return NULL;
@@ -675,7 +675,8 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
   size = raptor_sequence_size(world->query_results_formats);
-  scores = RASQAL_CALLOC(struct syntax_score*, size, sizeof(struct syntax_score));
+  scores = RASQAL_CALLOC(struct syntax_score*, RASQAL_GOOD_CAST(size_t, size),
+                         sizeof(struct syntax_score));
   if(!scores)
     return NULL;
   

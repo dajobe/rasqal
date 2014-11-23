@@ -84,7 +84,8 @@ rasqal_project_rowsource_ensure_variables(rasqal_rowsource* rowsource,
 
   size = raptor_sequence_size(con->projection_variables);
 
-  con->projection = RASQAL_MALLOC(int*, sizeof(int) * size);
+  con->projection = RASQAL_MALLOC(int*, RASQAL_GOOD_CAST(size_t,
+                                                         sizeof(int) * RASQAL_GOOD_CAST(size_t, size)));
   if(!con->projection)
     return 1;
   

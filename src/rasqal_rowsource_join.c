@@ -214,7 +214,8 @@ rasqal_join_rowsource_ensure_variables(rasqal_rowsource* rowsource,
     return 1;
 
   map_size = rasqal_rowsource_get_size(con->right);
-  con->right_map = RASQAL_MALLOC(int*, sizeof(int) * map_size);
+  con->right_map = RASQAL_MALLOC(int*, RASQAL_GOOD_CAST(size_t,
+                                                        sizeof(int) * RASQAL_GOOD_CAST(size_t, map_size)));
   if(!con->right_map)
     return 1;
 

@@ -422,7 +422,8 @@ rasqal_new_triples_rowsource(rasqal_world *world,
 
   con->triples_count = con->end_column - con->start_column + 1;
 
-  con->triple_meta = RASQAL_CALLOC(rasqal_triple_meta*, con->triples_count, sizeof(rasqal_triple_meta));
+  con->triple_meta = RASQAL_CALLOC(rasqal_triple_meta*, RASQAL_GOOD_CAST(size_t, con->triples_count),
+                                   sizeof(rasqal_triple_meta));
   if(!con->triple_meta) {
     rasqal_triples_rowsource_finish(NULL, con);
     return NULL;

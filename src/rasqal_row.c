@@ -57,7 +57,8 @@ rasqal_new_row_common(rasqal_world* world, int size, int order_size)
   row->order_size = order_size;
 
   if(row->size > 0) {
-    row->values = RASQAL_CALLOC(rasqal_literal**, row->size, sizeof(rasqal_literal*));
+    row->values = RASQAL_CALLOC(rasqal_literal**, RASQAL_GOOD_CAST(size_t, row->size),
+                                sizeof(rasqal_literal*));
     if(!row->values) {
       rasqal_free_row(row);
       return NULL;
@@ -65,7 +66,8 @@ rasqal_new_row_common(rasqal_world* world, int size, int order_size)
   }
 
   if(row->order_size > 0) {
-    row->order_values = RASQAL_CALLOC(rasqal_literal**, row->order_size, sizeof(rasqal_literal*));
+    row->order_values = RASQAL_CALLOC(rasqal_literal**, RASQAL_GOOD_CAST(size_t, row->order_size),
+                                      sizeof(rasqal_literal*));
     if(!row->order_values) {
       rasqal_free_row(row);
       return NULL;
@@ -579,7 +581,8 @@ rasqal_row_set_order_size(rasqal_row *row, int order_size)
 {
   row->order_size = order_size;
   if(row->order_size > 0) {
-    row->order_values = RASQAL_CALLOC(rasqal_literal**, row->order_size, sizeof(rasqal_literal*));
+    row->order_values = RASQAL_CALLOC(rasqal_literal**, RASQAL_GOOD_CAST(size_t, row->order_size),
+                                      sizeof(rasqal_literal*));
     if(!row->order_values) {
       row->order_size = -1;
       return 1;
@@ -608,10 +611,10 @@ rasqal_row_expand_size(rasqal_row *row, int size)
   if(row->size > size)
     return 1;
   
-  nvalues = RASQAL_CALLOC(rasqal_literal**, size, sizeof(rasqal_literal*));
+  nvalues = RASQAL_CALLOC(rasqal_literal**, RASQAL_GOOD_CAST(size_t, size), sizeof(rasqal_literal*));
   if(!nvalues)
     return 1;
-  memcpy(nvalues, row->values, sizeof(rasqal_literal*) * row->size);
+  memcpy(nvalues, row->values, RASQAL_GOOD_CAST(size_t, sizeof(rasqal_literal*) * RASQAL_GOOD_CAST(size_t, row->size)));
   RASQAL_FREE(array, row->values);
   row->values = nvalues;
   
