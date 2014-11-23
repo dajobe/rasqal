@@ -230,7 +230,9 @@ possible_warnings="\
 -Wredundant-decls \
 -Wshadow \
 -Wsign-compare \
+-Wswitch-bool \
 -Wstrict-prototypes \
+-Wswitch-default \
 -Wswitch-enum \
 -Wundef \
 -Wunreachable-code \
@@ -241,7 +243,6 @@ possible_warnings="\
 \
 -Wno-system-headers \
 -Wno-unused-parameter \
--Wswitch-bool \
 -Wlogical-not-parentheses \
 -Wsizeof-array-argument  \
 -Wbool-compare \
