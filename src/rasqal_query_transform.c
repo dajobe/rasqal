@@ -2737,7 +2737,8 @@ rasqal_query_union_build_variables_use_map_binds(rasqal_query* query,
     rasqal_graph_pattern *sgp;
     
     /* UNION starts with a copy of all scoped outer variables */
-    memcpy(inner_vars_scope, vars_scope, width * sizeof(unsigned short));
+    memcpy(inner_vars_scope, vars_scope, RASQAL_GOOD_CAST(size_t,
+                                                          RASQAL_GOOD_CAST(size_t, width) * sizeof(unsigned short)));
 
     sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(seq, i);
 
