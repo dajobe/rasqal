@@ -298,7 +298,7 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
   if(output_len < 0)
     goto failed;
 
-  output = RASQAL_MALLOC(unsigned char*, output_len);
+  output = RASQAL_MALLOC(unsigned char*, RASQAL_GOOD_CAST(size_t, output_len));
   if(!output)
     goto failed;
   
@@ -306,19 +306,19 @@ rasqal_expression_evaluate_digest(rasqal_expression *e,
   if(output_len < 0)
     goto failed;
 
-  new_s = RASQAL_MALLOC(unsigned char*, (output_len * 2) + 1);
+  new_s = RASQAL_MALLOC(unsigned char*, (RASQAL_GOOD_CAST(size_t, output_len) * 2) + 1);
   if(!new_s)
     goto failed;
   
   p = new_s;
   for(i = 0; i < RASQAL_GOOD_CAST(unsigned int, output_len); i++) {
     unsigned short hex;
-    char c = output[i];
+    unsigned char c = output[i];
 
     hex = (c & 0xf0) >> 4;
-    *p++ = (hex < 10) ? ('0' + hex) : ('a' + hex - 10);
+    *p++ = RASQAL_GOOD_CAST(unsigned char, (hex < 10) ? ('0' + hex) : ('a' + hex - 10));
     hex = (c & 0x0f);
-    *p++ = (hex < 10) ? ('0' + hex) : ('a' + hex - 10);
+    *p++ = RASQAL_GOOD_CAST(unsigned char, (hex < 10) ? ('0' + hex) : ('a' + hex - 10));
   }
   *p = '\0';
 
@@ -456,9 +456,9 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
 #endif
 
     hex = (c & 0xf0) >> 4;
-    *p++ = (hex < 10) ? ('0' + hex) : ('a' + hex - 10);
+    *p++ = RASQAL_GOOD_CAST(unsigned char, (hex < 10) ? ('0' + hex) : ('a' + hex - 10));
     hex = (c & 0x0f);
-    *p++ = (hex < 10) ? ('0' + hex) : ('a' + hex - 10);
+    *p++ = RASQAL_GOOD_CAST(unsigned char, (hex < 10) ? ('0' + hex) : ('a' + hex - 10));
     if(i == 3 || i == 5 || i == 7 || i == 9)
       *p++ = '-';
   }

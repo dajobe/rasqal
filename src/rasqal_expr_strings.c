@@ -237,18 +237,18 @@ rasqal_expression_evaluate_set_case(rasqal_expression *e,
     unsigned int i;
     
     for(i = 0; i < len; i++) {
-      char c = s[i];
+      unsigned char c = s[i];
       if(islower(RASQAL_GOOD_CAST(int, c)))
-        c = toupper(RASQAL_GOOD_CAST(int, c));
+        c = RASQAL_GOOD_CAST(unsigned char, toupper(RASQAL_GOOD_CAST(int, c)));
       new_s[i] = c;
     }
   } else { /* RASQAL_EXPR_LCASE */
     unsigned int i;
 
     for(i = 0; i < len; i++) {
-      char c = s[i];
+      unsigned char c = s[i];
       if(isupper(RASQAL_GOOD_CAST(int, c)))
-        c = tolower(RASQAL_GOOD_CAST(int, c));
+        c = RASQAL_GOOD_CAST(unsigned char, tolower(RASQAL_GOOD_CAST(int, c)));
       new_s[i] = c;
     }
   }
@@ -494,9 +494,9 @@ rasqal_expression_evaluate_encode_for_uri(rasqal_expression *e,
 
       *p++ = '%';
       hex = (c & 0xf0) >> 4;
-      *p++ = (hex < 10) ? ('0' + hex) : ('A' + hex - 10);
+      *p++ = RASQAL_GOOD_CAST(unsigned char, (hex < 10) ? ('0' + hex) : ('A' + hex - 10));
       hex = (c & 0x0f);
-      *p++ = (hex < 10) ? ('0' + hex) : ('A' + hex - 10);
+      *p++ = RASQAL_GOOD_CAST(unsigned char, (hex < 10) ? ('0' + hex) : ('A' + hex - 10));
     }
   }
 
@@ -934,7 +934,7 @@ rasqal_expression_evaluate_strbefore(rasqal_expression *e,
   ptr = strstr(RASQAL_GOOD_CAST(const char*, haystack), 
                RASQAL_GOOD_CAST(const char*, needle));
   if(ptr) {
-    result_len = ptr - RASQAL_GOOD_CAST(const char*, haystack);
+    result_len = RASQAL_GOOD_CAST(size_t, ptr - RASQAL_GOOD_CAST(const char*, haystack));
 
     if(l1->language) {
       size_t len = strlen(RASQAL_GOOD_CAST(const char*, l1->language));
@@ -1053,7 +1053,7 @@ rasqal_expression_evaluate_strafter(rasqal_expression *e,
                RASQAL_GOOD_CAST(const char*, needle));
   if(ptr) {
     ptr += needle_len;
-    result_len = haystack_len - (ptr - RASQAL_GOOD_CAST(const char*, haystack));
+    result_len = haystack_len - RASQAL_GOOD_CAST(size_t, (ptr - RASQAL_GOOD_CAST(const char*, haystack)));
 
     if(l1->language) {
       size_t len = strlen(RASQAL_GOOD_CAST(const char*, l1->language));

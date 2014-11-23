@@ -2007,7 +2007,7 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
     if(e1->op == RASQAL_EXPR_UNKNOWN || e2->op == RASQAL_EXPR_UNKNOWN)
       return 1;
 
-    return e2->op - e1->op;
+    return RASQAL_GOOD_CAST(int, e2->op) - RASQAL_GOOD_CAST(int, e1->op);
   }
     
   switch(e1->op) {
@@ -2178,7 +2178,7 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
       break;
 
     case RASQAL_EXPR_GROUP_CONCAT:
-      rc = (e2->flags - e1->flags);
+      rc = (RASQAL_GOOD_CAST(int, e2->flags) - RASQAL_GOOD_CAST(int, e1->flags));
       if(rc)
         break;
 

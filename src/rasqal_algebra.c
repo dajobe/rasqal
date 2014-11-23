@@ -829,10 +829,10 @@ rasqal_algebra_node_operator_as_counted_string(rasqal_algebra_node_operator op,
 static const char spaces[SPACES_LENGTH+1] = "                                                                                ";
 
 static void
-rasqal_algebra_write_indent(raptor_iostream *iostr, int indent) 
+rasqal_algebra_write_indent(raptor_iostream *iostr, unsigned int indent)
 {
-  while(indent > 0) {
-    int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
+  while(indent) {
+    unsigned int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
     raptor_iostream_write_bytes(spaces, sizeof(char), sp, iostr);
     indent -= sp;
   }

@@ -92,8 +92,8 @@ rasqal_language_matches(const unsigned char* lang_tag,
   }
   
   while (1) {
-    char tag_c   = tolower(*lang_tag++);
-    char range_c = tolower(*lang_range++);
+    char tag_c   = RASQAL_GOOD_CAST(char, tolower(*lang_tag++));
+    char range_c = RASQAL_GOOD_CAST(char, tolower(*lang_range++));
     if ((!tag_c && !range_c) || (!range_c && tag_c == '-')) {
       /* EITHER
        *   The end of both strings (thus everything previous matched
