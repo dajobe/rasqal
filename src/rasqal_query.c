@@ -1446,7 +1446,7 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
 {
   rasqal_variables_table* vars_table = query->vars_table;
   raptor_sequence* seq;
-  unsigned int distinct_mode;
+  int distinct_mode;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(fh, FILE*, 1);
@@ -1691,7 +1691,7 @@ rasqal_query_set_wildcard(rasqal_query* query, int wildcard)
     if(!query->projection)
       return;
   }
-  query->projection->wildcard = wildcard;
+  query->projection->wildcard = wildcard ? 1 : 0;
 }
 
 

@@ -217,9 +217,9 @@ typedef struct {
   
   raptor_sequence* variables;
 
-  int wildcard:1;
+  unsigned int wildcard:1;
 
-  unsigned int distinct;
+  int distinct;
 } rasqal_projection;  
 
 
@@ -244,9 +244,9 @@ typedef struct {
 
   raptor_sequence* having_conditions;
   
-  unsigned int limit;
+  int limit;
 
-  unsigned int offset;
+  int offset;
 } rasqal_solution_modifier;
 
 
@@ -1588,8 +1588,8 @@ struct rasqal_algebra_node_s {
   raptor_sequence* vars_seq;
 
   /* type SLICE: limit and offset rows */
-  unsigned int limit;
-  unsigned int offset;
+  int limit;
+  int offset;
 
   /* type GRAPH */
   rasqal_literal *graph;
@@ -1598,7 +1598,7 @@ struct rasqal_algebra_node_s {
   rasqal_variable *var;
 
   /* type ORDERBY */
-  unsigned int distinct;
+  int distinct;
 
   /* type VALUES */
   rasqal_bindings *bindings;
@@ -1672,8 +1672,8 @@ rasqal_algebra_node* rasqal_new_triples_algebra_node(rasqal_query* query, raptor
 rasqal_algebra_node* rasqal_new_2op_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op, rasqal_algebra_node* node1, rasqal_algebra_node* node2);
 rasqal_algebra_node* rasqal_new_leftjoin_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_algebra_node* node2, rasqal_expression* expr);
 rasqal_algebra_node* rasqal_new_join_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_algebra_node* node2, rasqal_expression* expr);
-rasqal_algebra_node* rasqal_new_orderby_algebra_node(rasqal_query* query, rasqal_algebra_node* node, raptor_sequence* seq, unsigned int distinct);
-rasqal_algebra_node* rasqal_new_slice_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, unsigned int limit, unsigned int offset);
+rasqal_algebra_node* rasqal_new_orderby_algebra_node(rasqal_query* query, rasqal_algebra_node* node, raptor_sequence* seq, int distinct);
+rasqal_algebra_node* rasqal_new_slice_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, int limit, int offset);
 rasqal_algebra_node* rasqal_new_project_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* vars_seq);
 rasqal_algebra_node* rasqal_new_graph_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_literal *graph);
 rasqal_algebra_node* rasqal_new_let_algebra_node(rasqal_query* query, rasqal_variable *var, rasqal_expression *expr);

@@ -66,7 +66,7 @@ rasqal_new_projection(rasqal_query* query,
 
   projection->query = query;
   projection->variables = variables;
-  projection->wildcard = wildcard;
+  projection->wildcard = wildcard ? 1 : 0;
   projection->distinct = distinct;
 
   return projection;

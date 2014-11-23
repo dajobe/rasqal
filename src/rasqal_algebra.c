@@ -279,7 +279,7 @@ rasqal_algebra_node*
 rasqal_new_orderby_algebra_node(rasqal_query* query,
                                 rasqal_algebra_node* node1,
                                 raptor_sequence* seq,
-                                unsigned int distinct)
+                                int distinct)
 {
   rasqal_algebra_node* node;
 
@@ -321,8 +321,8 @@ rasqal_new_orderby_algebra_node(rasqal_query* query,
 rasqal_algebra_node*
 rasqal_new_slice_algebra_node(rasqal_query* query,
                               rasqal_algebra_node* node1,
-                              unsigned int limit,
-                              unsigned int offset)
+                              int limit,
+                              int offset)
 {
   rasqal_algebra_node* node;
 
@@ -2204,7 +2204,7 @@ rasqal_algebra_query_add_orderby(rasqal_query* query,
                                  rasqal_solution_modifier* modifier)
 {
   raptor_sequence* modifier_seq;
-  unsigned int distinct = 0;
+  int distinct = 0;
 
   if(!modifier)
     return node;
