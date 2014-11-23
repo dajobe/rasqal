@@ -672,7 +672,7 @@ rasqal_sparql_xml_sax2_characters_handler(void *user_data,
      con->state == STATE_uri ||
      con->state == STATE_bnode ||
      con->state == STATE_boolean ) {
-    raptor_stringbuffer_append_counted_string(con->sb, s, len, 1);
+    raptor_stringbuffer_append_counted_string(con->sb, s, RASQAL_BAD_CAST(size_t, len), 1);
   }
 }
 
