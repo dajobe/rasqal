@@ -90,7 +90,7 @@ rasqal_digest_buffer(rasqal_digest_type type, unsigned char *output,
                      const unsigned char * const input, size_t len)
 {
   hashid hash_type;
-  unsigned int output_len;
+  size_t output_len;
   MHASH m;
   
   if(type > RASQAL_DIGEST_LAST)
@@ -100,9 +100,9 @@ rasqal_digest_buffer(rasqal_digest_type type, unsigned char *output,
   if(hash_type == (hashid)-1)
     return -1;
   
-  output_len = RASQAL_GOOD_CAST(unsigned int, mhash_get_block_size(hash_type));
+  output_len = mhash_get_block_size(hash_type);
   if(!input)
-    return output_len;
+    return RASQAL_GOOD_CAST(int, output_len);
   
   m = mhash_init(hash_type);
   if(m == MHASH_FAILED)
@@ -112,7 +112,7 @@ rasqal_digest_buffer(rasqal_digest_type type, unsigned char *output,
   
   mhash_deinit(m, (void*)output);
 
-  return output_len;
+  return RASQAL_GOOD_CAST(int, output_len);
 }
 
 #endif
