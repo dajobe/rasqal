@@ -205,11 +205,11 @@ rasqal_query_write_sparql_triple(sparql_writer_context *wc,
 static const char spaces[SPACES_LENGTH+1] = "                                                                                ";
 
 static void
-rasqal_query_write_indent(raptor_iostream* iostr, int indent) 
+rasqal_query_write_indent(raptor_iostream* iostr, unsigned int indent) 
 {
   while(indent > 0) {
-    int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
-    raptor_iostream_write_bytes(spaces, sizeof(char), sp, iostr);
+    unsigned int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
+    raptor_iostream_write_bytes(spaces, sizeof(char), RASQAL_GOOD_CAST(size_t, sp), iostr);
     indent -= sp;
   }
 }
@@ -558,7 +558,7 @@ static void
 rasqal_query_write_sparql_triple_data(sparql_writer_context *wc,
                                       raptor_iostream* iostr,
                                       raptor_sequence *triples,
-                                      int indent)
+                                      unsigned int indent)
 {
   int triple_index = 0;
   
@@ -673,13 +673,13 @@ rasqal_query_write_sparql_modifiers(sparql_writer_context *wc,
   if(limit >= 0 || offset >= 0) {
     if(limit >= 0) {
       raptor_iostream_counted_string_write("LIMIT ", 6, iostr);
-      raptor_iostream_decimal_write(limit, iostr);
+      raptor_iostream_decimal_write(RASQAL_GOOD_CAST(int, limit), iostr);
     }
     if(offset >= 0) {
       if(limit)
         raptor_iostream_write_byte(' ', iostr);
       raptor_iostream_counted_string_write("OFFSET ", 7, iostr);
-      raptor_iostream_decimal_write(offset, iostr);
+      raptor_iostream_decimal_write(RASQAL_GOOD_CAST(int, offset), iostr);
     }
     raptor_iostream_write_byte('\n', iostr);
   }
@@ -719,7 +719,7 @@ static int
 rasqal_query_write_sparql_values(sparql_writer_context* wc,
                                  raptor_iostream* iostr,
                                  rasqal_bindings* bindings,
-                                 int indent)
+                                 unsigned int indent)
 {
   int vars_size = -1;
   int rows_size = -1;
@@ -778,7 +778,7 @@ static void
 rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
                                         raptor_iostream* iostr,
                                         rasqal_graph_pattern *gp, 
-                                        int gp_index, int indent)
+                                        int gp_index, unsigned int indent)
 {
   int triple_index = 0;
   rasqal_graph_pattern_operator op;
@@ -1289,7 +1289,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_counted_string_write("}\n", 2, iostr);
   }
   if(query->query_graph_pattern) {
-    int indent = 2;
+    unsigned int indent = 2;
     raptor_iostream_counted_string_write("WHERE {\n", 8, iostr);
     rasqal_query_write_indent(iostr, indent);
     rasqal_query_write_sparql_graph_pattern(&wc, iostr,

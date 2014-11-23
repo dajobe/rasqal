@@ -766,11 +766,11 @@ rasqal_rowsource_request_grouping(rasqal_rowsource* rowsource)
 static const char spaces[SPACES_LENGTH+1] = "                                                                                ";
 
 static void
-rasqal_rowsource_write_indent(raptor_iostream *iostr, int indent) 
+rasqal_rowsource_write_indent(raptor_iostream *iostr, unsigned int indent) 
 {
   while(indent > 0) {
-    int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
-    raptor_iostream_write_bytes(spaces, sizeof(char), sp, iostr);
+    unsigned int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
+    raptor_iostream_write_bytes(spaces, sizeof(char), RASQAL_GOOD_CAST(size_t, sp), iostr);
     indent -= sp;
   }
 }
@@ -778,7 +778,7 @@ rasqal_rowsource_write_indent(raptor_iostream *iostr, int indent)
 
 static int
 rasqal_rowsource_write_internal(rasqal_rowsource *rowsource, 
-                                raptor_iostream* iostr, int indent)
+                                raptor_iostream* iostr, unsigned int indent)
 {
   const char* rs_name = rowsource->handler->name;
   int arg_count = 0;

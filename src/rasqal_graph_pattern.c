@@ -482,7 +482,7 @@ rasqal_graph_pattern_write_indent(raptor_iostream *iostr, int indent)
 {
   while(indent > 0) {
     int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
-    raptor_iostream_write_bytes(spaces, sizeof(char), sp, iostr);
+    raptor_iostream_write_bytes(spaces, sizeof(char), RASQAL_GOOD_CAST(size_t, sp), iostr);
     indent -= sp;
   }
 }
