@@ -510,6 +510,7 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type,
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_VARIABLE:
     case RASQAL_LITERAL_UDT:
+    default:
       RASQAL_FATAL2("Unexpected numeric type %d\n", type);
   }
 

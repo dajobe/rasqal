@@ -614,6 +614,7 @@ rasqal_query_results_formatter_read(rasqal_world *world,
     case RASQAL_QUERY_RESULTS_GRAPH:
     case RASQAL_QUERY_RESULTS_SYNTAX:
     case RASQAL_QUERY_RESULTS_UNKNOWN:
+    default:
       /* failure */
       rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
                               "Cannot read '%s' query results format\n",

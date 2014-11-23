@@ -89,7 +89,7 @@ to_ntriples_log_handler(void *data, raptor_log_message *message)
     case RAPTOR_LOG_LEVEL_TRACE:
     case RAPTOR_LOG_LEVEL_DEBUG:
     case RAPTOR_LOG_LEVEL_INFO:
-
+    default:
       fprintf(stderr, "%s: Unexpected %s message - ", program,
               raptor_log_level_get_label(message->level));
       raptor_locator_print(message->locator, stderr);
