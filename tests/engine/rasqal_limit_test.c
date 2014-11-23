@@ -173,10 +173,17 @@ main(int argc, char **argv) {
           sprintf(off, "OFFSET %d", test->offset);
         else
           *off = '\0';
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
         sprintf((char*)query_string, query_format, data_string, lim, off);
+#pragma GCC diagnostic pop
       }
-      else
+      else {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
         sprintf((char*)query_string, query_format, data_string);
+#pragma GCC diagnostic pop
+      }
       raptor_free_memory(data_string);
 
       query = rasqal_new_query(world, query_language_name, NULL);
