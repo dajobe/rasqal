@@ -196,6 +196,7 @@ AC_DEFUN([REDLAND_CC_TRY_FLAG], [
 # http://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 #
 # Too noisy:
+#  -Wno-switch-default : noisy cases in flex output
 #  -Wno-system-headers : not debugging system
 #  -Wunused-parameter  : variables can be marked  __attribute__('unused')
 #
@@ -232,7 +233,6 @@ possible_warnings="\
 -Wsign-compare \
 -Wswitch-bool \
 -Wstrict-prototypes \
--Wswitch-default \
 -Wswitch-enum \
 -Wundef \
 -Wunreachable-code \
@@ -241,6 +241,7 @@ possible_warnings="\
 \
 -Wshorten-64-to-32
 \
+-Wno-switch-default \
 -Wno-system-headers \
 -Wno-unused-parameter \
 -Wlogical-not-parentheses \
