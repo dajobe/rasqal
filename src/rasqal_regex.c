@@ -217,7 +217,7 @@ rasqal_regex_replace_pcre(rasqal_world* world, raptor_locator* locator,
   int capture_count;
   int *ovector = NULL;
   int ovecsize;
-  int startoffset;
+  size_t startoffset;
   int matched_empty_options;
   char *result = NULL;
   size_t result_size; /* allocated size of result (excluding NUL) */
@@ -228,7 +228,7 @@ rasqal_regex_replace_pcre(rasqal_world* world, raptor_locator* locator,
     goto failed;
 
   ovecsize = (capture_count + 1) * 3; /* +1 for whole pattern match pair */
-  ovector = RASQAL_CALLOC(int *, ovecsize, sizeof(int));
+  ovector = RASQAL_CALLOC(int *, RASQAL_GOOD_CAST(size_t, ovecsize), sizeof(int));
   if(!ovector)
     goto failed;
 
@@ -249,7 +249,7 @@ rasqal_regex_replace_pcre(rasqal_world* world, raptor_locator* locator,
                             NULL, /* no study */
                             subject,
                             RASQAL_BAD_CAST(int, subject_len), /* PCRE API is an int */
-                            startoffset,
+                            RASQAL_BAD_CAST(int, startoffset),
                             options | matched_empty_options,
                             ovector, ovecsize);
 
@@ -282,7 +282,7 @@ rasqal_regex_replace_pcre(rasqal_world* world, raptor_locator* locator,
       new_result_len = result_len;
 
       /* compute size of piece before the match */
-      piece_len = subject_match - subject_piece;
+      piece_len = RASQAL_GOOD_CAST(size_t, subject_match - subject_piece);
       new_result_len += piece_len;
 
       /* compute size of matched piece */
@@ -302,7 +302,7 @@ rasqal_regex_replace_pcre(rasqal_world* world, raptor_locator* locator,
           ref_number = rasqal_regex_get_ref_number(&replace_p);
           if(ref_number >= 0) {
             if(ref_number < stringcount)
-              new_result_len += ovector[(ref_number << 1) + 1] - ovector[ref_number << 1];
+              new_result_len = new_result_len + RASQAL_GOOD_CAST(size_t, ovector[(ref_number << 1) + 1] - ovector[ref_number << 1]);
             continue;
           }
         }
@@ -328,7 +328,7 @@ rasqal_regex_replace_pcre(rasqal_world* world, raptor_locator* locator,
       }
 
       /* copy the piece of the input before the match */
-      piece_len = subject_match - subject_piece;
+      piece_len = RASQAL_GOOD_CAST(size_t, subject_match - subject_piece);
       memcpy(&result[result_len], subject_piece, piece_len);
       result_len += piece_len;
 
@@ -353,7 +353,7 @@ rasqal_regex_replace_pcre(rasqal_world* world, raptor_locator* locator,
               size_t match_len;
               int match_start_offset = ovector[ref_number << 1];
               
-              match_len = ovector[(ref_number << 1) + 1] - match_start_offset;
+              match_len = RASQAL_BAD_CAST(size_t, ovector[(ref_number << 1) + 1] - match_start_offset);
               memcpy(result_p, subject + match_start_offset, match_len);
               result_p += match_len;
               result_len += match_len;
@@ -371,7 +371,7 @@ rasqal_regex_replace_pcre(rasqal_world* world, raptor_locator* locator,
       *result_p = '\0';
 
       /* continue at offset after all matches */
-      startoffset = ovector[1];
+      startoffset = RASQAL_BAD_CAST(size_t, ovector[1]);
       
       /*
        * "It is possible to emulate Perl's behaviour after matching a
