@@ -299,7 +299,7 @@ typedef struct
 
   /* Variables table allocated for variables in the result set */
   rasqal_variables_table* vars_table;
-  int variables_count;
+  size_t variables_count;
 
   unsigned int flags;
 
