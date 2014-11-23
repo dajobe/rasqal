@@ -100,13 +100,13 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
   char *sep = NULL;
 
   bindings_count = rasqal_query_results_get_bindings_count(results);
-  widths = RASQAL_CALLOC(size_t*, bindings_count + 1, sizeof(size_t));
+  widths = RASQAL_CALLOC(size_t*, RASQAL_GOOD_CAST(size_t, bindings_count + 1), sizeof(size_t));
   if(!widths) {
     rc = 1;
     goto tidy;
   }
   
-  widths[bindings_count] = -1;
+  widths[bindings_count] = 0;
   
   for(i = 0; i < bindings_count; i++) {
     const unsigned char *name;
@@ -129,7 +129,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
 
   while(!rasqal_query_results_finished(results)) {
     char **values;
-    values = RASQAL_CALLOC(char**, bindings_count + 1, sizeof(char*));
+    values = RASQAL_CALLOC(char**, RASQAL_GOOD_CAST(size_t, bindings_count + 1), sizeof(char*));
     if(!values) {
       rc = 1;
       goto tidy;
@@ -173,7 +173,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
 #define VSEP_LEN 1
 #define PAD " "
 #define PAD_LEN 1
-  sep_len = total_width + ((PAD_LEN+PAD_LEN) * bindings_count) + VSEP_LEN * (bindings_count + 1);
+  sep_len = total_width + RASQAL_GOOD_CAST(size_t, ((PAD_LEN+PAD_LEN) * bindings_count) + VSEP_LEN * (bindings_count + 1));
   sep = RASQAL_MALLOC(char*, sep_len + 1);
   if(!sep) {
     rc = 1;
