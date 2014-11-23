@@ -653,7 +653,7 @@ rasqal_xsd_datatype_check(rasqal_literal_type native_type,
 
   if(native_type >= RASQAL_GOOD_CAST(int, RASQAL_LITERAL_FIRST_XSD) &&
      native_type <= RASQAL_GOOD_CAST(int, RASQAL_LITERAL_LAST_XSD))
-    checkidx = native_type - RASQAL_LITERAL_FIRST_XSD;
+    checkidx = RASQAL_GOOD_CAST(int, native_type - RASQAL_LITERAL_FIRST_XSD);
   else if(native_type == RASQAL_LITERAL_DATE)
     checkidx = CHECKFN_DATE_OFFSET;
 
