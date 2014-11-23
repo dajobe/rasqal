@@ -434,7 +434,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
   snprintf(fmt, sizeof(fmt), DECIMAL_FMT, dec->precision_digits);
     
   /* decimal snprintf with no buffer to get buffer length */
-  len = DECIMAL_SNPRINTF(NULL, 0, fmt, dec->raw);
+  len = RASQAL_GOOD_CAST(size_t, DECIMAL_SNPRINTF(NULL, 0, fmt, dec->raw));
 
   s = RASQAL_MALLOC(char*, len + 1);
   if(!s)
