@@ -53,7 +53,7 @@
 #endif
 
 
-static const char *title_format_string = "Rasqal RDF query results utility %s\n";
+static const char *title_string = "Rasqal RDF query results utility";
 
 static char *program = NULL;
 
@@ -95,7 +95,7 @@ main(int argc, char *argv[])
   if(argc < 2 || argc > 4) {
     int i;
     
-    printf(title_format_string, rasqal_version_string);
+    puts(title_string); puts(rasqal_version_string); putchar('\n');
     puts("Read an RDF Query results file in one format and print in another\n");
     printf("Usage: %s <results filename> [read format [write format]]\n\n",
            program);

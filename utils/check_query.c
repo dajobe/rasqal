@@ -124,7 +124,7 @@ static int error_count = 0;
 
 static int verbose = 0;
 
-static const char *title_format_string = "Rasqal RDF query test utility %s\n";
+static const char *title_string = "Rasqal RDF query test utility";
 
 
 
@@ -361,7 +361,7 @@ main(int argc, char *argv[])
   
   if(usage) {
     if(usage > 1) {
-      fprintf(stderr, title_format_string, rasqal_version_string);
+      fputs(title_string, stderr); fputs(rasqal_version_string, stderr); putc('\n', stderr);
       fputs("Rasqal home page: ", stderr);
       fputs(rasqal_home_url_string, stderr);
       fputc('\n', stderr);
@@ -380,7 +380,7 @@ main(int argc, char *argv[])
   if(help) {
     int i;
 
-    printf(title_format_string, rasqal_version_string);
+    puts(title_string); puts(rasqal_version_string); putchar('\n');
     puts("Run an RDF query and check it against a known result.");
     printf("Usage: %s [OPTIONS] -g DATA -q QUERY-FILE -r RESULT-FILE\n\n", program);
 

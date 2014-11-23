@@ -134,7 +134,7 @@ static int warning_count = 0;
 static int warning_level = -1;
 static int ignore_errors = 0;
 
-static const char *title_format_string = "Rasqal RDF query utility %s\n";
+static const char *title_string = "Rasqal RDF query utility ";
 
 #define MAX_QUERY_ERROR_REPORT_LEN 512
 
@@ -740,7 +740,7 @@ print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
 {
   unsigned int i;
     
-  printf(title_format_string, rasqal_version_string);
+  puts(title_string); puts(rasqal_version_string); putchar('\n');
   puts("Run an RDF query against data into formatted results.");
   printf("Usage: %s [OPTIONS] <query URI> [base URI]\n", program);
   printf("       %s [OPTIONS] -e <query string> [base URI]\n", program);
@@ -1213,7 +1213,7 @@ main(int argc, char *argv[])
   
   if(usage) {
     if(usage > 1) {
-      fprintf(stderr, title_format_string, rasqal_version_string);
+      fputs(title_string, stderr); fputs(rasqal_version_string, stderr); putc('\n', stderr);
       fputs("Rasqal home page: ", stderr);
       fputs(rasqal_home_url_string, stderr);
       fputc('\n', stderr);
