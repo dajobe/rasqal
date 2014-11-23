@@ -66,7 +66,7 @@ rasqal_sequence_as_sorted(raptor_sequence* seq,
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(seq, raptor_sequence, NULL);
 
-  size = raptor_sequence_size(seq);
+  size = RASQAL_BAD_CAST(size_t, raptor_sequence_size(seq));
 
   array = RASQAL_CALLOC(void**, size + 1, sizeof(void*));
   if(!array)
@@ -76,7 +76,7 @@ rasqal_sequence_as_sorted(raptor_sequence* seq,
     size_t i;
 
     for(i = 0; i < size; i++)
-      array[i] = raptor_sequence_get_at(seq, i);
+      array[i] = raptor_sequence_get_at(seq, RASQAL_GOOD_CAST(int, i));
 
     rasqal_ssort_r(array, size, sizeof(void*), compare, user_data);
   }
