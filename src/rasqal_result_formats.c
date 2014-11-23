@@ -419,7 +419,7 @@ rasqal_world_get_query_results_format_description(rasqal_world* world,
   rasqal_world_open(world);
   
   factory = (rasqal_query_results_format_factory*)raptor_sequence_get_at(world->query_results_formats,
-                                                                         counter);
+                                                                         RASQAL_GOOD_CAST(int, counter));
 
   if(!factory)
     return NULL;
@@ -709,7 +709,7 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
   }
 
   for(i = 0;
-      (factory = (rasqal_query_results_format_factory*)raptor_sequence_get_at(world->query_results_formats, i));
+      (factory = (rasqal_query_results_format_factory*)raptor_sequence_get_at(world->query_results_formats, RASQAL_GOOD_CAST(int, i)));
       i++) {
     int score = -1;
     const raptor_type_q* type_q = NULL;
