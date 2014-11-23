@@ -597,7 +597,7 @@ rasqal_new_set_expression(rasqal_world* world, rasqal_op op,
  **/
 rasqal_expression*
 rasqal_new_group_concat_expression(rasqal_world* world, 
-                                   int flags,
+                                   unsigned int flags,
                                    raptor_sequence* args,
                                    rasqal_literal* separator)
 {
