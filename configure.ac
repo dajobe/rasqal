@@ -234,7 +234,6 @@ possible_warnings="\
 -Wredundant-decls \
 -Wshadow \
 -Wsign-compare \
--Wswitch-bool \
 -Wstrict-prototypes \
 -Wswitch-enum \
 -Wundef \
