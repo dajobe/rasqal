@@ -286,10 +286,10 @@ rasqal_random_irand(rasqal_random *random_object)
 #endif  
 
 #ifdef RANDOM_ALGO_MTWIST
-  /* cast from unsigned long to unsigned int but max size is RAND_MAX
+  /* cast from unsigned long to int but max size is RAND_MAX
    * so it will fit
    */
-  r = RASQAL_GOOD_CAST(unsigned int, mtwist_u32rand((mtwist*)random_object->data));
+  r = RASQAL_GOOD_CAST(int, mtwist_u32rand((mtwist*)random_object->data));
 #endif
 
   return r;
