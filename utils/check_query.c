@@ -398,7 +398,7 @@ main(int argc, char *argv[])
     for(i = 0; 1; i++) {
       const raptor_syntax_description* desc;
 
-      desc = rasqal_world_get_query_language_description(world, i);
+      desc = rasqal_world_get_query_language_description(world, RASQAL_GOOD_CAST(unsigned int, i));
       if(!desc)
          break;
 
@@ -424,7 +424,7 @@ main(int argc, char *argv[])
     for(i = 0; 1; i++) {
       const raptor_syntax_description* desc;
  
-      desc = rasqal_world_get_query_results_format_description(world, i);
+      desc = rasqal_world_get_query_results_format_description(world, RASQAL_GOOD_CAST(unsigned int, i));
       if(!desc)
          break;
  
@@ -441,7 +441,7 @@ main(int argc, char *argv[])
 
     for(i = 0; 1; i++) {
       const raptor_syntax_description *desc;
-      desc = raptor_world_get_parser_description(raptor_world_ptr, i);
+      desc = raptor_world_get_parser_description(raptor_world_ptr, RASQAL_GOOD_CAST(unsigned int, i));
       if(!desc)
         break;
 

@@ -183,13 +183,13 @@ roqet_log_handler(void *data, raptor_log_message *message)
 static const char spaces[SPACES_LENGTH + 1] = "                                                                                ";
 
 static void
-roqet_write_indent(FILE *fh, int indent) 
+roqet_write_indent(FILE *fh, unsigned int indent) 
 {
   while(indent > 0) {
-    size_t sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
+    unsigned int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
 
     (void)fwrite(spaces, sizeof(char), sp, fh);
-    indent -= RASQAL_GOOD_CAST(int, sp);
+    indent -= sp;
   }
 }
 
@@ -197,7 +197,8 @@ roqet_write_indent(FILE *fh, int indent)
 
 static void
 roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
-                         FILE *fh, int indent) {
+                         FILE *fh, unsigned int indent)
+{
   int triple_index = 0;
   rasqal_graph_pattern_operator op;
   int seen;
@@ -329,7 +330,8 @@ roqet_query_write_variable(FILE* fh, rasqal_variable* v)
 
 
 static void
-roqet_query_walk(rasqal_query *rq, FILE *fh, int indent) {
+roqet_query_walk(rasqal_query *rq, FILE *fh, unsigned int indent)
+{
   rasqal_query_verb verb;
   int i;
   rasqal_graph_pattern* gp;
@@ -1160,7 +1162,8 @@ main(int argc, char *argv[])
           warning_level = atoi(optarg);
         else
           warning_level = 0;
-        rasqal_world_set_warning_level(world, warning_level);
+        if(warning_level >= 0)
+          rasqal_world_set_warning_level(world, RASQAL_GOOD_CAST(unsigned int, warning_level));
         break;
 
       case 'E':
