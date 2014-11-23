@@ -78,7 +78,7 @@ rasqal_random_get_system_seed(rasqal_world *world)
   uint32_t c;
 #ifdef HAVE_UNISTD_H
   /* SOURCE 3: process ID (on unix) */
-  c = getpid();
+  c = RASQAL_GOOD_CAST(uint32_t, getpid());
 #else
   c = 0;
 #endif
