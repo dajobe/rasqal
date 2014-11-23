@@ -7,27 +7,37 @@
 
 language: c
 
+branches:
+  only:
+    - master
+
+# matrix of compilers
 compiler:
   - gcc
   - clang
   - c++
 
+# matrix of OSes (feature flagged; not enabled now)
 os:
   - linux
   - osx
 
+# matrix of raptor versions
+env:
+  - RAPTOR_INSTALL_VERSION=2.0.7
+  - RAPTOR_INSTALL_VERSION=2.0.15
+
+# overall matrix configuration
 matrix:
   allow_failures:
     - os: osx
 
-branches:
-  only:
-    - master
+  exclude:
+    - compiler: c++
+      env: RAPTOR_INSTALL_VERSION=2.0.7
+    - compiler: clang
+      env: RAPTOR_INSTALL_VERSION=2.0.7
 
-env:
-  matrix:
-    - RAPTOR_INSTALL_VERSION=2.0.7
-    - RAPTOR_INSTALL_VERSION=2.0.15
 
 # Install raptor extra dependencies too (libyajl-dev) since we build
 # raptor from a tarball
