@@ -64,7 +64,7 @@ rasqal_iostream_write_csv_string(const unsigned char *string, size_t len,
   size_t i;
 
   for(i = 0; i < len; i++) {
-    char c = string[i];
+    char c = RASQAL_GOOD_CAST(char, string[i]);
     /* Quoting needed for delim (double quote), comma, linefeed or return */
     if(c == delim   || c == ',' || c == '\r' || c == '\n') {
       quoting_needed++;
@@ -76,7 +76,7 @@ rasqal_iostream_write_csv_string(const unsigned char *string, size_t len,
 
   raptor_iostream_write_byte(delim, iostr);
   for(i = 0; i < len; i++) {
-    char c = string[i];
+    char c = RASQAL_GOOD_CAST(char, string[i]);
     if(c == delim)
       raptor_iostream_write_byte(delim, iostr);
     raptor_iostream_write_byte(c, iostr);

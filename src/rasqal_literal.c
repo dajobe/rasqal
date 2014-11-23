@@ -918,7 +918,7 @@ rasqal_new_string_literal_common(rasqal_world* world,
       for(i = 0; i < lang_len; i++) {
         char c = language[i];
         if(isupper(RASQAL_GOOD_CAST(int, c)))
-          c = tolower(RASQAL_GOOD_CAST(int, c));
+          c = RASQAL_GOOD_CAST(char, tolower(RASQAL_GOOD_CAST(int, c)));
         l->language[i] = c;
       }
       l->language[i] = '\0';

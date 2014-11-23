@@ -763,7 +763,7 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
 
       if(c >= 0)
         /* FIXME - casts a read only const buffer to writeable */
-        (RASQAL_BAD_CAST(char*, buffer))[FIRSTN] = c;
+        (RASQAL_BAD_CAST(char*, buffer))[FIRSTN] = RASQAL_GOOD_CAST(char, c);
     }
 
     scores[i].score = score < 10 ? score : 10; 
