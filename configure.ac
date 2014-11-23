@@ -196,7 +196,6 @@ AC_DEFUN([REDLAND_CC_TRY_FLAG], [
 # http://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 #
 # Too noisy:
-#  -Wconversion
 #  -Wno-system-headers : not debugging system
 #  -Wunused-parameter  : variables can be marked  __attribute__('unused')
 #
@@ -240,7 +239,6 @@ possible_warnings="\
 \
 -Wshorten-64-to-32
 \
--Wno-conversion \
 -Wno-system-headers \
 -Wno-unused-parameter \
 -Wswitch-bool \
