@@ -671,14 +671,14 @@ rasqal_query_results_get_rowsource_tsv(rasqal_query_results_formatter* formatter
  * in first line; minimum @min_count gives a based score, boosted if
  * more than @boost_count
  */
-static unsigned int
+static int
 rasqal_query_results_sv_score_first_line(const unsigned char* p, size_t len,
                                          const char sep,
                                          unsigned int min_count,
                                          unsigned int boost_count)
 {
   unsigned int count = 0;
-  unsigned int score = 0;
+  int score = 0;
 
   if(!p || !len)
     return 0;
@@ -710,7 +710,7 @@ rasqal_query_results_csv_recognise_syntax(rasqal_query_results_format_factory* f
                                           const unsigned char *suffix,
                                           const char *mime_type)
 {
-  unsigned int score = 0;
+  int score = 0;
 
   if(suffix && !strcmp(RASQAL_GOOD_CAST(const char*, suffix), "csv"))
     return 7;
