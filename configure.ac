@@ -197,7 +197,6 @@ AC_DEFUN([REDLAND_CC_TRY_FLAG], [
 #
 # Too noisy:
 #  -Wconversion
-#  -Wformat-nonliteral : variables used for format strings in a several places
 #  -Wno-system-headers : not debugging system
 #  -Wunused-parameter  : variables can be marked  __attribute__('unused')
 #
@@ -217,7 +216,7 @@ possible_warnings="\
 -Wendif-labels \
 -Werror-implicit-function-declaration \
 -Wfloat-equal \
--Wformat-security \
+-Wformat=2 \
 -Wframe-larger-than=4096 \
 -Winit-self \
 -Winline \
@@ -242,7 +241,6 @@ possible_warnings="\
 -Wshorten-64-to-32
 \
 -Wno-conversion \
--Wno-format-nonliteral \
 -Wno-system-headers \
 -Wno-unused-parameter \
 -Wswitch-bool \
