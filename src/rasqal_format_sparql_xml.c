@@ -857,9 +857,10 @@ rasqal_rowsource_sparql_xml_process(rasqal_rowsource_sparql_xml_context* con)
   while(!raptor_iostream_read_eof(con->iostr)) {
     size_t read_len;
     
-    read_len = raptor_iostream_read_bytes(RASQAL_GOOD_CAST(char*, con->buffer), 1,
-                                          FILE_READ_BUF_SIZE,
-                                          con->iostr);
+    read_len = RASQAL_BAD_CAST(size_t,
+                               raptor_iostream_read_bytes(RASQAL_GOOD_CAST(char*, con->buffer), 1,
+                                                          FILE_READ_BUF_SIZE,
+                                                          con->iostr));
     if(read_len > 0) {
 #ifdef TRACE_XML
       RASQAL_DEBUG2("processing %d bytes\n", RASQAL_GOOD_CAST(int, read_len));
@@ -1018,9 +1019,10 @@ rasqal_rowsource_sparql_xml_get_boolean(rasqal_query_results_formatter *formatte
   while(!raptor_iostream_read_eof(con->iostr)) {
     size_t read_len;
 
-    read_len = raptor_iostream_read_bytes(RASQAL_GOOD_CAST(char*, con->buffer), 1,
-                                          FILE_READ_BUF_SIZE,
-                                          con->iostr);
+    read_len = RASQAL_BAD_CAST(size_t,
+                               raptor_iostream_read_bytes(RASQAL_GOOD_CAST(char*, con->buffer), 1,
+                                                          FILE_READ_BUF_SIZE,
+                                                          con->iostr));
     if(read_len > 0) {
 #ifdef TRACE_XML
       RASQAL_DEBUG2("processing %d bytes\n", RASQAL_GOOD_CAST(int, read_len));
