@@ -279,7 +279,7 @@ rasqal_algebra_node*
 rasqal_new_orderby_algebra_node(rasqal_query* query,
                                 rasqal_algebra_node* node1,
                                 raptor_sequence* seq,
-                                int distinct)
+                                unsigned int distinct)
 {
   rasqal_algebra_node* node;
 
@@ -321,8 +321,8 @@ rasqal_new_orderby_algebra_node(rasqal_query* query,
 rasqal_algebra_node*
 rasqal_new_slice_algebra_node(rasqal_query* query,
                               rasqal_algebra_node* node1,
-                              int limit,
-                              int offset)
+                              unsigned int limit,
+                              unsigned int offset)
 {
   rasqal_algebra_node* node;
 
@@ -954,9 +954,9 @@ rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node,
       rasqal_algebra_write_indent(iostr, indent);
     }
     raptor_iostream_string_write("slice limit ", iostr);
-    raptor_iostream_decimal_write(node->limit, iostr);
+    raptor_iostream_decimal_write(RASQAL_GOOD_CAST(int, node->limit), iostr);
     raptor_iostream_string_write(" offset ", iostr);
-    raptor_iostream_decimal_write(node->offset, iostr);
+    raptor_iostream_decimal_write(RASQAL_GOOD_CAST(int, node->offset), iostr);
     raptor_iostream_write_byte('\n', iostr);
     arg_count++;
   }
@@ -2199,12 +2199,12 @@ rasqal_algebra_query_add_group_by(rasqal_query* query,
  */
 rasqal_algebra_node*
 rasqal_algebra_query_add_orderby(rasqal_query* query,
-                                   rasqal_algebra_node* node,
-                                   rasqal_projection* projection,
-                                   rasqal_solution_modifier* modifier)
+                                 rasqal_algebra_node* node,
+                                 rasqal_projection* projection,
+                                 rasqal_solution_modifier* modifier)
 {
   raptor_sequence* modifier_seq;
-  int distinct = 0;
+  unsigned int distinct = 0;
 
   if(!modifier)
     return node;
@@ -2261,7 +2261,7 @@ rasqal_algebra_query_add_slice(rasqal_query* query,
     return node;
   
   /* LIMIT and OFFSET */
-  if(modifier->limit >= 0 || modifier->offset > 0) {
+  if(modifier->limit > 0 || modifier->offset > 0) {
     node = rasqal_new_slice_algebra_node(query, node, modifier->limit, modifier->offset);
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1

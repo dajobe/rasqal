@@ -1461,9 +1461,9 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
     fputs("query results explain: yes\n", fh);
 
   if(query->modifier) {
-    if(query->modifier->limit >= 0)
+    if(query->modifier->limit > 0)
       fprintf(fh, "query results limit: %d\n", query->modifier->limit);
-    if(query->modifier->offset >= 0)
+    if(query->modifier->offset > 0)
       fprintf(fh, "query results offset: %d\n", query->modifier->offset);
   }
   
