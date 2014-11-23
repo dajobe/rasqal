@@ -811,7 +811,7 @@ rasqal_query_results_format_rdf_copy_syntax_description_from_parser(rasqal_query
 {
   raptor_world* raptor_world_ptr = factory->world->raptor_world_ptr;
   const raptor_syntax_description* desc;
-  int i;
+  unsigned int i;
 
   for(i = 0;
       (desc = raptor_world_get_parser_description(raptor_world_ptr, i)); 

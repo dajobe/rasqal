@@ -459,7 +459,8 @@ rasqal_world_get_query_language_description(rasqal_world* world,
 
   rasqal_world_open(world);
 
-  factory = (rasqal_query_language_factory *)raptor_sequence_get_at(world->query_languages, counter);
+  factory = (rasqal_query_language_factory *)raptor_sequence_get_at(world->query_languages,
+                                                                    RASQAL_GOOD_CAST(int, counter));
   if(!factory)
     return NULL;
 
@@ -497,7 +498,8 @@ rasqal_languages_enumerate(rasqal_world *world,
   /* for compatibility with old API that does not call this - FIXME Remove V2 */
   rasqal_world_open(world);
   
-  factory = (rasqal_query_language_factory*)raptor_sequence_get_at(world->query_languages, counter);
+  factory = (rasqal_query_language_factory*)raptor_sequence_get_at(world->query_languages,
+                                                                   RASQAL_GOOD_CAST(int, counter));
   if(!factory)
     return 1;
 

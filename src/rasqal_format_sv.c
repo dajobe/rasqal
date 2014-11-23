@@ -393,7 +393,7 @@ rasqal_rowsource_sv_data_callback(sv *t, void *user_data,
         goto fail;
     }
 
-    rasqal_row_set_value_at(row, i, l);
+    rasqal_row_set_value_at(row, RASQAL_GOOD_CAST(int, i), l);
     if(l) {
       RASQAL_DEBUG4("Saving row result %d %s value at offset %d\n",
                     con->offset, rasqal_literal_type_label(l->type), i);

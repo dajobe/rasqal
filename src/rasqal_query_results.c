@@ -1889,7 +1889,7 @@ rasqal_query_results_sort(rasqal_query_results* query_results)
     return 1;
 
   if(query_results->results_sequence) {
-    size_t size = raptor_sequence_size(query_results->results_sequence);
+    int size = raptor_sequence_size(query_results->results_sequence);
     if(size > 1) {
 #if RAPTOR_VERSION < 20015
       raptor_sequence *seq;
@@ -1911,7 +1911,7 @@ rasqal_query_results_sort(rasqal_query_results* query_results)
         return 1;
       }
 
-      for(i = 0; i < size; i++) {
+      for(i = 0; i < RASQAL_GOOD_CAST(size_t, size); i++) {
         rasqal_row* row = rasqal_new_row_from_row(RASQAL_GOOD_CAST(rasqal_row*, array[i]));
         raptor_sequence_push(seq, row);
       }
