@@ -197,6 +197,7 @@ AC_DEFUN([REDLAND_CC_TRY_FLAG], [
 #
 # Too noisy:
 #
+#  -Wconversion        : cases that need RASQAL_GOOD/BAD_CAST etc.
 #  -Wcast-qual         : cases that need RASQAL_GOOD/BAD_CAST etc.
 #  -Wswitch-default    : noisy cases in flex output
 #  -Wsystem-headers    : not debugging system
@@ -243,6 +244,7 @@ possible_warnings="\
 \
 -Wshorten-64-to-32
 \
+-Wno-conversion \
 -Wno-cast-qual \
 -Wno-switch-default \
 -Wno-system-headers \
