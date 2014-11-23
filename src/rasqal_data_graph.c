@@ -45,7 +45,8 @@ static rasqal_data_graph*
 rasqal_new_data_graph_common(rasqal_world* world,
                              raptor_uri* uri,
                              raptor_iostream* iostr, raptor_uri* base_uri,
-                             raptor_uri* name_uri, int flags,
+                             raptor_uri* name_uri,
+                             unsigned int flags,
                              const char* format_type,
                              const char* format_name,
                              raptor_uri* format_uri)
@@ -119,7 +120,7 @@ rasqal_new_data_graph_common(rasqal_world* world,
  **/
 rasqal_data_graph*
 rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri,
-                               raptor_uri* name_uri, int flags,
+                               raptor_uri* name_uri, unsigned int flags,
                                const char* format_type,
                                const char* format_name,
                                raptor_uri* format_uri)

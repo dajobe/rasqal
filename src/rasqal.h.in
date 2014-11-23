@@ -393,7 +393,7 @@ typedef struct {
   rasqal_world* world;
   raptor_uri* uri;
   raptor_uri* name_uri;
-  int flags;
+  unsigned int flags;
   char* format_type;
   char* format_name;
   raptor_uri* format_uri;
@@ -1494,7 +1494,7 @@ unsigned char* rasqal_query_escape_counted_string(rasqal_query* query, const uns
 
 /* Data graph class */
 RASQAL_API
-rasqal_data_graph* rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri, raptor_uri* name_uri, int flags, const char* format_type, const char* format_name, raptor_uri* format_uri);
+rasqal_data_graph* rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri, raptor_uri* name_uri, unsigned int flags, const char* format_type, const char* format_name, raptor_uri* format_uri);
 RASQAL_API
 rasqal_data_graph* rasqal_new_data_graph_from_iostream(rasqal_world* world, raptor_iostream* iostr, raptor_uri* base_uri, raptor_uri* name_uri, unsigned int flags, const char* format_type, const char* format_name, raptor_uri* format_uri);
 RASQAL_API
