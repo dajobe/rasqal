@@ -83,7 +83,7 @@ rasqal_format_integer(char* buffer, size_t bufsize, int integer,
   }
 
   if(!buffer || bufsize < (len + 1)) /* +1 for NUL */
-    return RASQAL_BAD_CAST(int, len);
+    return len;
 
   if(!padding)
     padding = ' ';
