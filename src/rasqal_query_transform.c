@@ -1853,7 +1853,7 @@ rasqal_query_triples_build_variables_use_map_binds(rasqal_query* query,
     if(mentioned)
       gp_use_map_row[var_index] |= RASQAL_VAR_USE_MENTIONED_HERE;
     else
-      gp_use_map_row[var_index] &= ~RASQAL_VAR_USE_MENTIONED_HERE;
+      gp_use_map_row[var_index] = RASQAL_GOOD_CAST(unsigned short, gp_use_map_row[var_index] & ~RASQAL_VAR_USE_MENTIONED_HERE);
     
   }
 
@@ -2239,7 +2239,7 @@ rasqal_query_build_variables_sequence_use_map_row(unsigned short* use_map_row,
       }
     }
 
-    use_map_row[v->offset] |= flags;
+    use_map_row[v->offset] = RASQAL_GOOD_CAST(unsigned short, use_map_row[v->offset] | flags);
   }
 
   return rc;

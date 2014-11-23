@@ -697,7 +697,7 @@ rasqal_row_set_rowsource(rasqal_row* row, rasqal_rowsource* rowsource)
     rasqal_free_rowsource(row->rowsource);
 
   row->rowsource = rasqal_new_rowsource_from_rowsource(rowsource);
-  row->flags &= ~ RASQAL_ROW_FLAG_WEAK_ROWSOURCE;
+  row->flags = RASQAL_GOOD_CAST(unsigned int, RASQAL_GOOD_CAST(int, row->flags) & ~RASQAL_ROW_FLAG_WEAK_ROWSOURCE);
 }
 
 /* Set/reset a row's rowsource to a weak reference; one that should
