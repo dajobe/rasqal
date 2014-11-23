@@ -196,8 +196,10 @@ AC_DEFUN([REDLAND_CC_TRY_FLAG], [
 # http://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 #
 # Too noisy:
-#  -Wno-switch-default : noisy cases in flex output
-#  -Wno-system-headers : not debugging system
+#
+#  -Wcast-qual         : cases that need RASQAL_GOOD/BAD_CAST etc.
+#  -Wswitch-default    : noisy cases in flex output
+#  -Wsystem-headers    : not debugging system
 #  -Wunused-parameter  : variables can be marked  __attribute__('unused')
 #
 # Apple gcc specific (probably): -Wshorten-64-to-32
@@ -241,6 +243,7 @@ possible_warnings="\
 \
 -Wshorten-64-to-32
 \
+-Wno-cast-qual \
 -Wno-switch-default \
 -Wno-system-headers \
 -Wno-unused-parameter \
