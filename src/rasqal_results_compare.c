@@ -107,8 +107,8 @@ rasqal_new_results_compare(rasqal_world* world,
   rrc->message.locator = NULL;
   rrc->message.text = NULL;
 
-  rrc->first_count = rasqal_variables_table_get_total_variables_count(first_vt);
-  rrc->second_count = rasqal_variables_table_get_total_variables_count(second_vt);
+  rrc->first_count = RASQAL_GOOD_CAST(unsigned int, rasqal_variables_table_get_total_variables_count(first_vt));
+  rrc->second_count = RASQAL_GOOD_CAST(unsigned int, rasqal_variables_table_get_total_variables_count(second_vt));
   rrc->variables_count = 0;
 
   size = (rrc->first_count + rrc->second_count) << 1;
@@ -132,9 +132,9 @@ rasqal_new_results_compare(rasqal_world* world,
     rasqal_variable *v;
     rasqal_variable *v2;
 
-    v = rasqal_variables_table_get(first_vt, i);
+    v = rasqal_variables_table_get(first_vt, RASQAL_GOOD_CAST(int, i));
     v2 = rasqal_variables_table_add2(rrc->vt, v->type, v->name, 0, NULL);
-    rrc->defined_in_map[(v2->offset)<<1] = i;
+    rrc->defined_in_map[(v2->offset)<<1] = RASQAL_GOOD_CAST(int, i);
     rasqal_free_variable(v2);
   }
 
@@ -144,18 +144,18 @@ rasqal_new_results_compare(rasqal_world* world,
     rasqal_variable *v2;
     int free_v2 = 0;
 
-    v = rasqal_variables_table_get(second_vt, i);
+    v = rasqal_variables_table_get(second_vt, RASQAL_GOOD_CAST(int, i));
     v2 = rasqal_variables_table_get_by_name(rrc->vt, v->type, v->name);
     if(!v2) {
       free_v2 = 1;
       v2 = rasqal_variables_table_add2(rrc->vt, v->type, v->name, 0, NULL);
     }
-    rrc->defined_in_map[1 + ((v2->offset)<<1)] = i;
+    rrc->defined_in_map[1 + ((v2->offset)<<1)] = RASQAL_GOOD_CAST(int, i);
     if(free_v2)
       rasqal_free_variable(v2);
   }
 
-  rrc->variables_count = rasqal_variables_table_get_total_variables_count(rrc->vt);
+  rrc->variables_count = RASQAL_GOOD_CAST(unsigned int, rasqal_variables_table_get_total_variables_count(rrc->vt));
 
   for(i = 0; i < rrc->variables_count; i++) {
     if(rrc->defined_in_map[(i<<1)] >= 0 && rrc->defined_in_map[1 + (i<<1)] >= 0)
@@ -210,8 +210,8 @@ rasqal_results_compare_set_log_handler(rasqal_results_compare* rrc,
 int
 rasqal_results_compare_variables_equal(rasqal_results_compare* rrc)
 {
-  int i;
-  int count = rrc->variables_count;
+  unsigned int i;
+  unsigned int count = rrc->variables_count;
 
   /* If no variables in common, not equal */
   if(!rrc->variables_in_both_count)
@@ -275,9 +275,9 @@ rasqal_results_compare_get_variable_offset_for_result(rasqal_results_compare* rr
 void
 rasqal_print_results_compare(FILE *handle, rasqal_results_compare* rrc)
 {
-  int count = rrc->variables_count;
+  unsigned int count = rrc->variables_count;
   rasqal_variables_table* vt = rrc->vt;
-  int i;
+  unsigned int i;
   char first_qr[4];
   char second_qr[4];
 
@@ -285,7 +285,7 @@ rasqal_print_results_compare(FILE *handle, rasqal_results_compare* rrc)
           "Results variable compare map: total variables: %d  shared variables: %d\n",
           count, rrc->variables_in_both_count);
   for(i = 0; i < count; i++) {
-    rasqal_variable *v = rasqal_variables_table_get(vt, i);
+    rasqal_variable *v = rasqal_variables_table_get(vt, RASQAL_GOOD_CAST(int, i));
     int offset1 = rrc->defined_in_map[i<<1];
     int offset2 = rrc->defined_in_map[1 + (i<<1)];
 
@@ -387,11 +387,11 @@ rasqal_results_compare_compare(rasqal_results_compare* rrc)
       rasqal_literal *value2;
       int error = 0;
 
-      v = rasqal_results_compare_get_variable_by_offset(rrc, bindingi);
+      v = rasqal_results_compare_get_variable_by_offset(rrc, RASQAL_GOOD_CAST(int, bindingi));
       name = v->name;
 
-      ix1 = rasqal_results_compare_get_variable_offset_for_result(rrc, bindingi, 0);
-      ix2 = rasqal_results_compare_get_variable_offset_for_result(rrc, bindingi, 1);
+      ix1 = rasqal_results_compare_get_variable_offset_for_result(rrc, RASQAL_GOOD_CAST(int, bindingi), 0);
+      ix2 = rasqal_results_compare_get_variable_offset_for_result(rrc, RASQAL_GOOD_CAST(int, bindingi), 1);
 
       value1 = rasqal_query_results_get_binding_value(rrc->first_qr, ix1);
       value2 = rasqal_query_results_get_binding_value(rrc->second_qr, ix2);
