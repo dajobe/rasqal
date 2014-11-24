@@ -282,7 +282,7 @@ rasqal_print_results_compare(FILE *handle, rasqal_results_compare* rrc)
   char second_qr[4];
 
   fprintf(handle,
-          "Results variable compare map: total variables: %d  shared variables: %d\n",
+          "Results variable compare map: total variables: %u  shared variables: %u\n",
           count, rrc->variables_in_both_count);
   for(i = 0; i < count; i++) {
     rasqal_variable *v = rasqal_variables_table_get(vt, RASQAL_GOOD_CAST(int, i));

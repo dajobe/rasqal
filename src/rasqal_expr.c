@@ -784,7 +784,7 @@ rasqal_expression_clear(rasqal_expression* e)
 
     case RASQAL_EXPR_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown operation %d", e->op);
+      RASQAL_FATAL2("Unknown operation %u", e->op);
   }
 }
 
@@ -1003,7 +1003,7 @@ rasqal_expression_visit(rasqal_expression* e,
 
     case RASQAL_EXPR_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown operation %d", e->op);
+      RASQAL_FATAL2("Unknown operation %u", e->op);
       result= -1; /* keep some compilers happy */
       break;
   }
@@ -1393,7 +1393,7 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
 
     case RASQAL_EXPR_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown operation %d", e->op);
+      RASQAL_FATAL2("Unknown operation %u", e->op);
   }
   raptor_iostream_write_byte(')', iostr);
 }
@@ -1599,7 +1599,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
 
     case RASQAL_EXPR_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown operation %d", e->op);
+      RASQAL_FATAL2("Unknown operation %u", e->op);
   }
   fputc(')', fh);
 
@@ -1800,7 +1800,7 @@ rasqal_expression_is_constant(rasqal_expression* e)
       
     case RASQAL_EXPR_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown operation %d", e->op);
+      RASQAL_FATAL2("Unknown operation %u", e->op);
   }
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
@@ -2228,7 +2228,7 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
 
     case RASQAL_EXPR_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown operation %d", e1->op);
+      RASQAL_FATAL2("Unknown operation %u", e1->op);
   }
 
   return rc;

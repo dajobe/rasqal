@@ -313,7 +313,7 @@ rasqal_builtin_agg_expression_execute_step(void* user_data,
         else
           result = rasqal_new_literal_from_literal(l);
       } else {
-        RASQAL_FATAL2("Builtin aggregation operation %d is not implemented", 
+        RASQAL_FATAL2("Builtin aggregation operation %u is not implemented",
                       b->expr->op);
       }
 

@@ -108,7 +108,7 @@ rasqal_iostream_write_html_literal(rasqal_world* world,
       case RASQAL_LITERAL_UNKNOWN:
       default:
         rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                                "Cannot turn literal type %d into HTML", 
+                                "Cannot turn literal type %u into HTML",
                                 l->type);
         return 1;
     }

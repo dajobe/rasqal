@@ -179,7 +179,7 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
     case RASQAL_LITERAL_UNKNOWN:
     case RASQAL_LITERAL_PATTERN:
     default:
-      RASQAL_FATAL2("Literal type %d cannot be written as a SPARQL literal", l->type);
+      RASQAL_FATAL2("Literal type %u cannot be written as a SPARQL literal", l->type);
   }
 }
 
@@ -549,7 +549,7 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
     default:
-      RASQAL_FATAL2("Expression op %d cannot be written as a SPARQL expresson", e->op);
+      RASQAL_FATAL2("Expression op %u cannot be written as a SPARQL expresson", e->op);
   }
 }
 

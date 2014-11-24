@@ -1583,7 +1583,7 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
     default:
-      RASQAL_DEBUG3("Unsupported graph pattern operator %s (%d)\n",
+      RASQAL_DEBUG3("Unsupported graph pattern operator %s (%u)\n",
                     rasqal_graph_pattern_operator_as_string(gp->op),
                     gp->op);
       break;

@@ -406,7 +406,7 @@ rasqal_variables_table_add_variable(rasqal_variables_table* vt,
       
     case RASQAL_VARIABLE_TYPE_UNKNOWN:
     default:
-      RASQAL_DEBUG2("Unknown variable type %d", variable->type);
+      RASQAL_DEBUG2("Unknown variable type %u", variable->type);
       return 1;
   }
   

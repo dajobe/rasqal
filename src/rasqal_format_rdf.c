@@ -393,7 +393,7 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
         default:
           rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
                                   NULL,
-                                  "Cannot turn literal type %d into RDF", 
+                                  "Cannot turn literal type %u into RDF",
                                   l->type);
           goto tidy;
         }

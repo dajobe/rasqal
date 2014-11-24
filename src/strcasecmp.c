@@ -94,7 +94,7 @@ assert_strncasecmp (const char *s1, const char *s2, size_t size, int expected)
 
   if (result != expected)
     {
-      fprintf(stderr, "FAIL strncasecmp (%s, %s, %d) gave %d != %d\n",
+      fprintf(stderr, "FAIL strncasecmp (%s, %s, %u) gave %d != %d\n",
               s1, s2, RASQAL_GOOD_CAST(unsigned int, size), result, expected);
       return 1;
     }

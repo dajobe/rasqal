@@ -134,7 +134,7 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
        rasqal_query_variable_bound_in_triple(query, v, column) & RASQAL_TRIPLE_OBJECT)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_OBJECT);
 
-    RASQAL_DEBUG4("triple pattern column %d has parts %s (%d)\n", column,
+    RASQAL_DEBUG4("triple pattern column %d has parts %s (%u)\n", column,
                   rasqal_engine_get_parts_string(m->parts), m->parts);
 
   }
@@ -233,7 +233,7 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
       rasqal_triple_parts parts;
       parts = rasqal_triples_match_bind_match(m->triples_match, m->bindings,
                                               m->parts);
-      RASQAL_DEBUG4("bind_match for column %d returned parts %s (%d)\n",
+      RASQAL_DEBUG4("bind_match for column %d returned parts %s (%u)\n",
                     con->column, rasqal_engine_get_parts_string(parts), parts);
       if(!parts) {
         rasqal_triples_match_next_match(m->triples_match);

@@ -227,7 +227,7 @@ rasqal_query_results_write_json1(rasqal_query_results_formatter* formatter,
           case RASQAL_LITERAL_UNKNOWN:
           default:
             rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                                    "Cannot turn literal type %d into XML",
+                                    "Cannot turn literal type %u into XML",
                                     l->type);
         }
       }

@@ -231,7 +231,7 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
           default:
             rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                                     &query->locator,
-                                    "Cannot turn literal type %d into %s",
+                                    "Cannot turn literal type %u into %s",
                                     l->type, label);
         }
       }
@@ -395,11 +395,11 @@ rasqal_rowsource_sv_data_callback(sv *t, void *user_data,
 
     rasqal_row_set_value_at(row, RASQAL_GOOD_CAST(int, i), l);
     if(l) {
-      RASQAL_DEBUG4("Saving row result %d %s value at offset %d\n",
+      RASQAL_DEBUG4("Saving row result %d %s value at offset %u\n",
                     con->offset, rasqal_literal_type_label(l->type), i);
       rasqal_free_literal(l);
     } else {
-      RASQAL_DEBUG3("Saving row result %d NULL value at offset %d\n",
+      RASQAL_DEBUG3("Saving row result %d NULL value at offset %u\n",
                     con->offset, i);
     }
   }

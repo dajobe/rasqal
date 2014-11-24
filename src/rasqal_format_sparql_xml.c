@@ -365,7 +365,7 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
         default:
           rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
                                   NULL,
-                                  "Cannot turn literal type %d into XML", 
+                                  "Cannot turn literal type %u into XML",
                                   l->type);
           goto tidy;
         }

@@ -246,19 +246,19 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
 
   if(dg->iostr) {
     if(dg->name_uri)
-      fprintf(fh, "data graph(from iostream, named as %s, flags %d", 
+      fprintf(fh, "data graph(from iostream, named as %s, flags %u",
               raptor_uri_as_string(dg->name_uri), dg->flags);
     else
-      fprintf(fh, "data graph(from iostream, %d", dg->flags);
+      fprintf(fh, "data graph(from iostream, %u", dg->flags);
   } else {
     /* dg->uri must exist */
     if(dg->name_uri)
-      fprintf(fh, "data graph(from uri %s, named as %s, flags %d", 
+      fprintf(fh, "data graph(from uri %s, named as %s, flags %u",
               raptor_uri_as_string(dg->uri),
               raptor_uri_as_string(dg->name_uri),
               dg->flags);
     else
-      fprintf(fh, "data graph(from uri %s, flags %d", 
+      fprintf(fh, "data graph(from uri %s, flags %u",
               raptor_uri_as_string(dg->uri), dg->flags);
   }
   

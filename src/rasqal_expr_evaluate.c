@@ -1570,7 +1570,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
     case RASQAL_EXPR_UNKNOWN:
     default:
-      RASQAL_FATAL3("Unknown operation %s (%d)",
+      RASQAL_FATAL3("Unknown operation %s (%u)",
                     rasqal_expression_op_label(e->op), e->op);
   }
 

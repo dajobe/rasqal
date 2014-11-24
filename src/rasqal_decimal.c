@@ -382,15 +382,15 @@ rasqal_xsd_decimal_get_long(rasqal_xsd_decimal* dec, int* error_p)
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
 #define DECIMAL_SNPRINTF mpfr_snprintf
-#define DECIMAL_FMT "%%.%dRf"
+#define DECIMAL_FMT "%%.%uRf"
 #endif
 #ifdef RASQAL_DECIMAL_GMP
 #define DECIMAL_SNPRINTF gmp_snprintf
-#define DECIMAL_FMT "%%.%dFf"
+#define DECIMAL_FMT "%%.%uFf"
 #endif
 #ifdef RASQAL_DECIMAL_NONE
 #define DECIMAL_SNPRINTF snprintf
-#define DECIMAL_FMT "%%.%df"
+#define DECIMAL_FMT "%%.%uf"
 #endif
 
 

@@ -511,7 +511,7 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type,
     case RASQAL_LITERAL_VARIABLE:
     case RASQAL_LITERAL_UDT:
     default:
-      RASQAL_FATAL2("Unexpected numeric type %d\n", type);
+      RASQAL_FATAL2("Unexpected numeric type %u", type);
   }
 
   return NULL;
@@ -783,11 +783,11 @@ retype:
   case RASQAL_LITERAL_PATTERN:
   case RASQAL_LITERAL_QNAME:
   case RASQAL_LITERAL_VARIABLE:
-    RASQAL_FATAL2("Unexpected native type %d\n", type);
+    RASQAL_FATAL2("Unexpected native type %u", type);
     break;
     
   default:
-    RASQAL_FATAL2("Unknown native type %d\n", type);
+    RASQAL_FATAL2("Unknown native type %u", type);
   }
 
   return 0;
@@ -1223,7 +1223,7 @@ rasqal_free_literal(rasqal_literal* l)
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown literal type %d", l->type);
+      RASQAL_FATAL2("Unknown literal type %u", l->type);
   }
   RASQAL_FREE(rasqal_literal, l);
 }
@@ -1405,7 +1405,7 @@ rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown literal type %d", l->type);
+      RASQAL_FATAL2("Unknown literal type %u", l->type);
   }
 }
 
@@ -1520,7 +1520,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error_p)
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown literal type %d", l->type);
+      RASQAL_FATAL2("Unknown literal type %u", l->type);
       return 0; /* keep some compilers happy */
   }
 }
@@ -1619,7 +1619,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error_p)
       
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown literal type %d", l->type);
+      RASQAL_FATAL2("Unknown literal type %u", l->type);
       return 0; /* keep some compilers happy */
   }
 }
@@ -1688,7 +1688,7 @@ rasqal_literal_as_double(rasqal_literal* l, int *error_p)
       
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown literal type %d", l->type);
+      RASQAL_FATAL2("Unknown literal type %u", l->type);
       return 0.0; /* keep some compilers happy */
   }
 }
@@ -1778,7 +1778,7 @@ rasqal_literal_as_counted_string(rasqal_literal* l, size_t *len_p,
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown literal type %d", l->type);
+      RASQAL_FATAL2("Unknown literal type %u", l->type);
   }
 
   return NULL;
@@ -2348,7 +2348,7 @@ rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
       
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown literal type %d", lits[i]->type);
+      RASQAL_FATAL2("Unknown literal type %u", lits[i]->type);
     }
   }
 
@@ -2587,7 +2587,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_UNKNOWN:
     case RASQAL_LITERAL_VARIABLE:
     default:
-      RASQAL_FATAL2("Literal type %d cannot be compared", type);
+      RASQAL_FATAL2("Literal type %u cannot be compared", type);
       result = 0; /* keep some compilers happy */
   }
 
@@ -3129,7 +3129,7 @@ rasqal_literal_as_node(rasqal_literal* l)
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      RASQAL_FATAL2("Literal type %d has no node value", l->type);
+      RASQAL_FATAL2("Literal type %u has no node value", l->type);
   }
   
   return new_l;
@@ -3230,7 +3230,7 @@ rasqal_literal_is_constant(rasqal_literal* l)
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      RASQAL_FATAL2("Literal type %d cannot be checked for constant", l->type);
+      RASQAL_FATAL2("Literal type %u cannot be checked for constant", l->type);
       return 0; /* keep some compilers happy */
   }
 }
@@ -3354,7 +3354,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
         /* fallthrough since rasqal_literal_value() handled this above */
       case RASQAL_LITERAL_UNKNOWN:
       default:
-        RASQAL_FATAL2("Literal type %d cannot be cast", l->type);
+        RASQAL_FATAL2("Literal type %u cannot be cast", l->type);
         failed = 1;
         return NULL; /* keep some compilers happy */
     }
@@ -4347,7 +4347,7 @@ rasqal_literal_write_turtle(rasqal_literal* l, raptor_iostream* iostr)
     case RASQAL_LITERAL_UNKNOWN:
     default:
       rasqal_log_error_simple(l->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                              "Cannot turn literal type %d into Turtle", 
+                              "Cannot turn literal type %u into Turtle",
                               l->type);
       rc = 1;
   }
