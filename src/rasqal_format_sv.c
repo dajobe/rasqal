@@ -153,6 +153,8 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
       raptor_iostream_write_byte(variable_prefix, iostr);
     raptor_iostream_string_write(name, iostr);
   }
+  if(emit_mkr)
+    raptor_iostream_counted_string_write(";", 1, iostr);
   raptor_iostream_counted_string_write(eol_str, eol_str_len, iostr);
 
 
