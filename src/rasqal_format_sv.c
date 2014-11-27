@@ -118,6 +118,12 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
   rasqal_query* query = rasqal_query_results_get_query(results);
   int i;
   int vars_count;
+  int emit_mkr;
+
+  if(!strcmp(label, (const char*)"mkr"))
+    emit_mkr = 1;
+  else
+    emit_mkr = 0;
   
   if(!rasqal_query_results_is_bindings(results)) {
     rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
@@ -125,6 +131,11 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
                             "Can only write %s format for variable binding results",
                             label);
     return 1;
+  }
+
+  if(emit_mkr) {
+    raptor_iostream_counted_string_write("result is relation with format = csv;\n", 38, iostr);
+    raptor_iostream_counted_string_write("begin relation result;\n", 23, iostr);
   }
   
   /* Header */
@@ -142,6 +153,8 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
       raptor_iostream_write_byte(variable_prefix, iostr);
     raptor_iostream_string_write(name, iostr);
   }
+  if(emit_mkr)
+    raptor_iostream_counted_string_write(";", 1, iostr);
   raptor_iostream_counted_string_write(eol_str, eol_str_len, iostr);
 
 
@@ -240,10 +253,14 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
     }
 
     /* End Result Row */
+    if(emit_mkr)
+      raptor_iostream_counted_string_write(";", 1, iostr);
     raptor_iostream_counted_string_write(eol_str, eol_str_len, iostr);
     
     rasqal_query_results_next(results);
   }
+  if(emit_mkr)
+    raptor_iostream_counted_string_write("end relation result;\n", 21, iostr);
 
   /* end sparql */
   return 0;
@@ -259,6 +276,18 @@ rasqal_query_results_write_csv(rasqal_query_results_formatter* formatter,
   return rasqal_query_results_write_sv(iostr, results, base_uri,
                                        "CSV", ',', 1, '\0',
                                        "\r\n", 2);
+}
+
+
+static int
+rasqal_query_results_write_mkr(rasqal_query_results_formatter* formatter,
+                               raptor_iostream *iostr,
+                               rasqal_query_results* results,
+                               raptor_uri *base_uri)
+{
+  return rasqal_query_results_write_sv(iostr, results, base_uri,
+                                       "mkr", ',', 1, '\0',
+                                       "\n", 1);
 }
 
 
@@ -289,6 +318,7 @@ typedef struct
   raptor_locator locator;
 
   /* SV processing */
+  int emit_mkr;  /* Non 0 for mKR relation */
   char sep;
   sv* t;
   char buffer[FILE_READ_BUF_SIZE]; /* iostream read buffer */
@@ -556,6 +586,20 @@ static const rasqal_rowsource_handler rasqal_rowsource_csv_handler={
   /* .set_origin = */ NULL,
 };
 
+static const rasqal_rowsource_handler rasqal_rowsource_mkr_handler={
+  /* .version = */ 1,
+  "mkr",
+  /* .init = */ rasqal_rowsource_sv_init,
+  /* .finish = */ rasqal_rowsource_sv_finish,
+  /* .ensure_variables = */ rasqal_rowsource_sv_ensure_variables,
+  /* .read_row = */ rasqal_rowsource_sv_read_row,
+  /* .read_all_rows = */ NULL,
+  /* .reset = */ NULL,
+  /* .set_requirements = */ NULL,
+  /* .get_inner_rowsource = */ NULL,
+  /* .set_origin = */ NULL,
+};
+
 static const rasqal_rowsource_handler rasqal_rowsource_tsv_handler={
   /* .version = */ 1,
   "TSV",
@@ -605,6 +649,8 @@ rasqal_query_results_get_rowsource_csv(rasqal_query_results_formatter* formatter
 
   con->flags = flags;
 
+  con->emit_mkr = 0;
+
   con->results_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, (raptor_data_print_handler)rasqal_row_print);
 
   con->vars_table = rasqal_new_variables_table_from_variables_table(vars_table);
@@ -614,6 +660,54 @@ rasqal_query_results_get_rowsource_csv(rasqal_query_results_formatter* formatter
   return rasqal_new_rowsource_from_handler(world, NULL,
                                            con,
                                            &rasqal_rowsource_csv_handler,
+                                           con->vars_table,
+                                           0);
+}
+
+/*
+ * rasqal_query_results_getrowsource_mkr:
+ * @world: rasqal world object
+ * @iostr: #raptor_iostream to read the query results from
+ * @base_uri: #raptor_uri base URI of the input format
+ *
+ * INTERNAL - Read SPARQL mKR query results format from an iostream
+ * in a format returning a rowsource.
+ *
+ * Return value: a new rasqal_rowsource or NULL on failure
+ **/
+static rasqal_rowsource*
+rasqal_query_results_get_rowsource_mkr(rasqal_query_results_formatter* formatter,
+                                       rasqal_world *world,
+                                       rasqal_variables_table* vars_table,
+                                       raptor_iostream *iostr,
+                                       raptor_uri *base_uri,
+                                       unsigned int flags)
+{
+  rasqal_rowsource_sv_context* con;
+
+  con = RASQAL_CALLOC(rasqal_rowsource_sv_context*, 1, sizeof(*con));
+  if(!con)
+    return NULL;
+
+  con->world = world;
+  con->base_uri = base_uri ? raptor_uri_copy(base_uri) : NULL;
+  con->iostr = iostr;
+
+  con->locator.uri = base_uri;
+
+  con->flags = flags;
+
+  con->emit_mkr = 1;
+
+  con->results_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, (raptor_data_print_handler)rasqal_row_print);
+
+  con->vars_table = rasqal_new_variables_table_from_variables_table(vars_table);
+
+  con->sep = ',';
+
+  return rasqal_new_rowsource_from_handler(world, NULL,
+                                           con,
+                                           &rasqal_rowsource_mkr_handler,
                                            con->vars_table,
                                            0);
 }
@@ -650,6 +744,8 @@ rasqal_query_results_get_rowsource_tsv(rasqal_query_results_formatter* formatter
   con->locator.uri = base_uri;
 
   con->flags = flags;
+
+  con->emit_mkr = 0;
 
   con->results_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, (raptor_data_print_handler)rasqal_row_print);
 
@@ -726,6 +822,29 @@ rasqal_query_results_csv_recognise_syntax(rasqal_query_results_format_factory* f
   return score;
 }
 
+static int
+rasqal_query_results_mkr_recognise_syntax(rasqal_query_results_format_factory* factory,
+                                          const unsigned char *buffer,
+                                          size_t len,
+                                          const unsigned char *identifier,
+                                          const unsigned char *suffix,
+                                          const char *mime_type)
+{
+  unsigned int score = 0;
+
+  if(suffix && !strcmp(RASQAL_GOOD_CAST(const char*, suffix), "mkr"))
+    return 7;
+
+  if(buffer && len) {
+    /* use number of tabs in first line - comma needs higher counts since it
+     * is more likely to appear in text.
+     */
+    score = rasqal_query_results_sv_score_first_line(buffer, len, ',', 5, 7);
+  }
+
+  return score;
+}
+
 
 static int
 rasqal_query_results_tsv_recognise_syntax(rasqal_query_results_format_factory* factory,
@@ -788,6 +907,38 @@ rasqal_query_results_csv_register_factory(rasqal_query_results_format_factory *f
   return rc;
 }
 
+static const char* const mkr_names[] = { "mkr", NULL};
+
+static const char* const mkr_uri_strings[] = {
+  NULL
+};
+
+static const raptor_type_q mkr_types[] = {
+  { "text/mkr", 8, 10}, 
+  { "text/mkr; header=present", 24, 10}, 
+  { NULL, 0, 0}
+};
+
+static int
+rasqal_query_results_mkr_register_factory(rasqal_query_results_format_factory *factory) 
+{
+  int rc = 0;
+
+  factory->desc.names = mkr_names;
+  factory->desc.mime_types = mkr_types;
+
+  factory->desc.label = "mKR relation (mkr)";
+  factory->desc.uri_strings = mkr_uri_strings;
+
+  factory->desc.flags = 0;
+  
+  factory->write         = rasqal_query_results_write_mkr;
+  factory->get_rowsource = rasqal_query_results_get_rowsource_mkr;
+  factory->recognise_syntax = rasqal_query_results_mkr_recognise_syntax;
+
+  return rc;
+}
+
 
 static const char* const tsv_names[] = { "tsv", NULL};
 
@@ -833,6 +984,9 @@ rasqal_init_result_format_sv(rasqal_world* world)
                                                          &rasqal_query_results_csv_register_factory))
     return 1;
 
+  if(!rasqal_world_register_query_results_format_factory(world,
+                                                         &rasqal_query_results_mkr_register_factory))
+    return 1;
 
   if(!rasqal_world_register_query_results_format_factory(world,
                                                          &rasqal_query_results_tsv_register_factory))
