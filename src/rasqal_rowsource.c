@@ -549,6 +549,12 @@ rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource,
   for(i = 0; i < src_rowsource->size; i++) {
     rasqal_variable* v;
     v = rasqal_rowsource_get_variable_by_offset(src_rowsource, i);
+    if(!v) {
+      RASQAL_DEBUG5("%s src rowsource %p failed to return variable at offset %d, size %d\n",
+                    src_rowsource->handler->name, src_rowsource,
+                    i, src_rowsource->size);
+      return 1;
+    }
     if(rasqal_rowsource_add_variable(dest_rowsource, v) < 0)
       return 1;
   }
