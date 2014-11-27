@@ -511,7 +511,7 @@ main(int argc, char *argv[])
   /* Read expected results */
   if(1) {
     results_type = rasqal_query_get_result_type(rq);
-    fprintf(stderr, "%s: Expecting result type %d\n", program, results_type);
+    fprintf(stderr, "%s: Expecting result type %u\n", program, results_type);
 
     /* Read result file */
     result_iostr = raptor_new_iostream_from_filename(raptor_world_ptr,
@@ -657,7 +657,7 @@ main(int argc, char *argv[])
       case RASQAL_QUERY_RESULTS_UNKNOWN:
       default:
         /* failure */
-        fprintf(stderr, "%s: Query result format %d cannot be tested.", 
+        fprintf(stderr, "%s: Query result format %u cannot be tested.", 
                 program, results_type);
         rc = 1;
         goto tidy_setup;

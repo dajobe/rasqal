@@ -723,7 +723,7 @@ void roqet_print_query(rasqal_query* rq,
       
     case QUERY_OUTPUT_UNKNOWN:
     default:
-      fprintf(stderr, "%s: Unknown query output format %d\n", program,
+      fprintf(stderr, "%s: Unknown query output format %u\n", program,
               output_format);
       abort();
   }
