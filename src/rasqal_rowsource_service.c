@@ -108,7 +108,10 @@ rasqal_service_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   con = (rasqal_service_rowsource_context*)user_data;
 
   rc = rasqal_rowsource_ensure_variables(con->rowsource);
-  rowsource->size = rasqal_rowsource_get_size(con->rowsource);
+  if(rc)
+    return rc;
+  /* copy in variables from format rowsource */
+  rc = rasqal_rowsource_copy_variables(rowsource, con->rowsource);
 
   return rc;
 }

@@ -722,9 +722,9 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
   switch(con->state) {
     case STATE_head:
       if(con->vars_table) {
-        /* Only now is the full number of variables known */
-        con->variables_count = rasqal_variables_table_get_named_variables_count(con->vars_table);
-        con->rowsource->size = con->variables_count;
+        /* Only now is the full number of variables correct in
+         * con->rowsource->size */
+        con->variables_count = con->rowsource->size;
       }
       break;
       
