@@ -1456,7 +1456,8 @@ int rasqal_query_results_read(raptor_iostream *iostr, rasqal_query_results *resu
 /* One more time */
 RASQAL_API
 int rasqal_query_results_rewind(rasqal_query_results* query_results);
-
+RASQAL_API
+int rasqal_query_results_set_store_results(rasqal_query_results* query_results, int value);
 
 /**
  * rasqal_query_results_format_flags:

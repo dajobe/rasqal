@@ -360,7 +360,9 @@ rasqal_results_compare_compare(rasqal_results_compare* rrc)
     }
   }
 
-  /* set results to be stored? */
+  /* set results to be stored */
+  rasqal_query_results_set_store_results(rrc->first_qr, 1);
+  rasqal_query_results_set_store_results(rrc->second_qr, 1);
 
   /* sort rows by something ?  As long as the sort is the same it
    * probably does not matter what the method is. */
