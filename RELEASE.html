@@ -77,6 +77,13 @@ non-0 if the format exists.
 ignored <code>vars_table</code> parameter.  A query result
 now manages it's own variables table.</p>
 
+<h3>Results class changes</h3>
+
+<p>Fixed returning the correct variables count for reading SPARQL XML
+results sets.  This caused some queries to fail if the projected
+variables count did not match the count in the result set.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=588">Issue #0000588</a>
+</p>
 
 <h3>Variables table class changes</h3>
 
@@ -112,6 +119,13 @@ replace the (perl) improve and check-sparql scripts.
 
 <p>Fixed some API changelog mistakes.</p>
 
+<p>Updated gcc / clang warning args used (-Wxxxx) and made multiple
+minor code fixes such as replacing %d with %u in debug messages or
+adding missing default: to switches even when all cases were
+covered.</p>
+
+<p>Added many more internal casts to make -Wconversion happier when
+enabled.</p>
 
 
 <h2 id="rel0_9_32"><a name="rel0_9_32">Rasqal 0.9.32 changes</a></h2>

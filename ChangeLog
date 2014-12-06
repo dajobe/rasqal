@@ -1,4 +1,235 @@
+2014-11-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_sparql_xml.c, src/rasqal_rowsource_service.c:
+	Fix variables count for SPARQL XML results
+
+	(rasqal_service_rowsource_ensure_variables): Copy variables in
+	(rasqal_sparql_xml_sax2_end_element_handler): Take variables count
+	from rowsource size, not vars_table size.
+
+	Fixes Issue #0000588
+	http://bugs.librdf.org/mantis/view.php?id=588
+
+	* src/rasqal_rowsource.c: rasqal_rowsource_copy_variables add
+	debug error report
+
+	* Merge pull request #5 from rhmccullough/mkr-table mKR relation
+	CSV output for bindings results
+
+2014-11-24  Richard H. McCullough <rhmccullough@gmail.com>
+
+	* src/rasqal_format_sv.c:
+	append ";" to end of variable list
+
+	* src/rasqal_algebra.c, src/rasqal_data_graph.c,
+	src/rasqal_decimal.c, src/rasqal_expr.c,
+	src/rasqal_expr_evaluate.c, src/rasqal_format_html.c,
+	src/rasqal_format_json.c, src/rasqal_format_rdf.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_sv.c,
+	src/rasqal_literal.c, src/rasqal_query_write.c,
+	src/rasqal_results_compare.c, src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_variable.c,
+	src/strcasecmp.c: Replace type %d (for enums) with %u in error
+	messages (-Wformat)
+
+2014-11-23  Richard H. McCullough <rhmccullough@gmail.com>
+
+	* src/rasqal_format_sv.c:
+	mKR relation output for select commands
+
+2014-11-23  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_regex.c: pcre regex offset casts (-Wconversion)
+
+	* src/snprintf.c: Remove not needed cast for snprintf
+	(-Wconversion)
+
+	* src/rasqal_result_formats.c: sequnce index casts (-Wconversion)
+
+	* src/rasqal_random.c: mtwist_u32rand cast (-Wconversion)
+
+	* src/rasqal_query_transform.c: memcpy cast (-Wconversion)
+
+	* src/rasqal_random.c: getpid cast (-Wconversion)
+
+	* src/rasqal_query_transform.c, src/rasqal_row.c: unsigned flag
+	casts (-Wconversion)
+
+	* src/rasqal_query_transform.c, src/rasqal_raptor.c,
+	src/rasqal_result_formats.c, src/rasqal_row.c,
+	src/rasqal_row_compatible.c, src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_join.c, src/rasqal_rowsource_project.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_rowsource_union.c,
+	src/rasqal_variable.c: calloc casts (-Wconversion)
+
+	* src/rasqal_general.c: Unicode character width casts
+	(-Wconversion)
+
+	* src/rasqal_format_table.c: Table widths casts (-Wconversion)
+
+	* src/rasqal_format_sparql_xml.c:
+	raptor_stringbuffer_append_counted_string cast -bad (-Wconversion)
+
+	* src/rasqal_digest.c: rasqal_digest_buffeer casts for mash
+	(-Wconversion)
+
+	* src/rasqal_decimal.c: snprintf cast (-Wconversion)
+
+	* src/rasqal_format_sparql_xml.c, src/rasqal_format_sv.c:
+	raptor_iostream_read_bytes casts - bad (-Wconversion)
+
+	* src/rasqal_format_sv.c, src/rasqal_literal.c,
+	src/rasqal_result_formats.c: char casts (-Wconversion)
+
+	* src/rasqal_graph_pattern.c, src/rasqal_map.c,
+	src/rasqal_query_write.c, src/rasqal_rowsource.c: Indent casts
+	(-Wconversion)
+
+	* src/rasqal_format_rdf.c, src/rasqal_format_sv.c,
+	src/rasqal_general.c, src/rasqal_query_results.c: Loop var casts
+	(-Wconversion)
+
+	* src/rasqal_format_sv.c: Signed SV results score (-Wconversion)
+
+	* utils/check_query.c, utils/roqet.c: Unsigned indent
+	(-Wconversion)
+
+	* src/rasqal_algebra.c, src/rasqal_internal.h,
+	src/rasqal_projection.c, src/rasqal_query.c: distinct, limit,
+	offset are ints. wildcard is 0 or 1 (-Wconversion)
+
+	* src/rasqal_results_compare.c: Casts for results compare
+	(-Wconversion)
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c: Data graph takes
+	unsigned flags (-Wconversion)
+
+	* src/rasqal_sort.c: Casts for sorting (-Wconversion)
+
+	* src/rasqal_xsd_datatypes.c: Casts for xsd (-Wconversion)
+
+	* src/rasqal_datetime.c: Casts for datetime formatting
+	(-Wconversion)
+
+	* configure.ac: Remove -Wswitch-bool enabled by default in gcc
+
+	* tests/engine/rasqal_construct_test.c,
+	tests/engine/rasqal_limit_test.c, tests/engine/rasqal_order_test.c:
+	Disable "-Wformat-nonliteral" with GCC pragma for test codes
+
+2014-11-22  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_test.c, src/rasqal_rowsource_triples.c: Disable
+	"-Wformat-nonliteral" with GCC pragma for test code
+
+	* configure.ac: Document -Wconversion disabled
+
+	* src/rasqal_algebra.c, src/rasqal_expr.c,
+	src/rasqal_expr_evaluate.c, src/rasqal_expr_numerics.c,
+	src/rasqal_expr_strings.c: Cast macros for -Wconversion (work in
+	progress; many to go)
+
+	* src/rasqal_algebra.c, src/rasqal_internal.h, src/rasqal_query.c:
+	Make internal limit, offset and distinct vars be unsigned (-Wconversion)
+
+	(rasqal_new_orderby_algebra_node, rasqal_new_slice_algebra_node):
+	Take unsigned vars.
+
+	(rasqal_algebra_query_add_slice, rasqal_query_print): Fix checks for
+	<= 0 that now can be just = 0
+
+	* src/rasqal.h.in, src/rasqal_expr.c:
+	(rasqal_new_group_concat_expression): Unsigned bit flags
+
+	* configure.ac: Document -Wcast-qual is noisy
+
+	* configure.ac: Remove gcc warnings included in -Wall
+	-Wlogical-not-parentheses -Wsizeof-array-argument -Wbool-compare
+
+	* configure.ac:
+	Disable -Wswitch-default again
+
+	* src/rasqal_literal.c, src/rasqal_query.c,
+	src/rasqal_query_transform.c, src/rasqal_query_write.c,
+	src/rasqal_result_formats.c, src/rasqal_update.c,
+	utils/check_query.c, utils/roqet.c, utils/to-ntriples.c: Add some
+	default: cases (-Wswitch-default)
+
+	* configure.ac: Add -Wswitch-default
+
+	* configure.ac: Enable -Wconversion
+
+	* src/rasqal_format_sv.c: Use size_t for sv size (-Wconversion)
+	rasqal_rowsource_sv_context field variables_count changes to
+	size_t to capture full sv size
+
+	* .travis.yml:
+	Travis CI: Try to exclude some matrix combinations
+
+	* configure.ac: Enable -Wformat=2 for gcc
+
+	* utils/check_query.c, utils/roqet.c, utils/srxread.c,
+	utils/testrunner.c: Remove static string printfs in utilities
+	(-Wformat)
+
+	* .travis.yml, scripts/install-bison3.sh: Travis-CI fixes -
+	apt-get update
+
+	* src/rasqal_rowsource_join.c: Trailing ,
+
+	* src/rasqal_format_html.c: C style comment
+
+	* src/rasqal.h.in, src/rasqal_internal.h: Remove trailing ,s (C90)
+
+2014-11-21  Dave Beckett <dave@dajobe.org>
+
+	* scripts/install-raptor.sh: Tidy code
+
+	* docs/tmpl/rasqal-unused.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-literal.sgml,
+	docs/tmpl/section-query_results.sgml,
+	docs/tmpl/section-unused.sgml:
+	Update tmpls
+
+	* src/rasqal.h.in: Document arg4 for rasqal_expression
+
+	* src/rasqal_format_sv.c: De-comment
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_get_triples): Put decl first (C90)
+
+	* scripts/fix-bison.pl, scripts/fix-flex.pl,
+	scripts/fix-groff-xhtml.pl, scripts/fix-gtkdoc-header.pl: Update
+	scripts
+
+2014-11-03  Dave Beckett <dave@dajobe.org>
+
+	* Merge pull request #4 from dajobe/multi-expr-unroll Evaluate
+	expressions in document order left-to-right
+
 2014-11-02  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: ME2 to MuExOpUnaryExpression
+
+	* src/sparql_parser.y:
+	Make debug expr conditionalized
+
+	* src/sparql_parser.y: More debug prints.  Join AE2List and AE2
+	sequences
+
+	* src/rasqal_internal.h, src/sparql_parser.y: Refactoring seems ok
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_get_triples): Declare vars first (C90)
+
+	* src/sparql_parser.y:
+	(sparql_parse): Fix debug set variable
+
+	* src/rasqal_expr.c:
+	debug message for expr is constant
+
+	* .travis.yml: raptor 2.0.15 is latest
 
 	* src/rasqal_xsd_datatypes.c:
 	(rasqal_xsd_check_integer_format): Write check, no need for strtol()
