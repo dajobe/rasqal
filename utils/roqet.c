@@ -747,6 +747,7 @@ print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
   puts("Run an RDF query against data into formatted results.");
   printf("Usage: %s [OPTIONS] <query URI> [base URI]\n", program);
   printf("       %s [OPTIONS] -e <query string> [base URI]\n", program);
+  printf("       %s [OPTIONS] -p <SPARQL protocol URI> <query URI> [base URI]\n", program);
   printf("       %s [OPTIONS] -p <SPARQL protocol URI> -e <query string> [base URI]\n", program);
   printf("       %s [OPTIONS] -t <query results file> [base URI]\n\n", program);
   
@@ -853,6 +854,7 @@ typedef enum {
   MODE_EXEC_QUERY_STRING,
   MODE_EXEC_QUERY_URI,
   MODE_CALL_PROTOCOL_URI,
+  MODE_CALL_PROTOCOL_QUERY_STRING,
   MODE_READ_RESULTS
 } roqet_mode;
 
@@ -1240,7 +1242,7 @@ main(int argc, char *argv[])
     exit(0);
   }
 
-  if(service_uri_string) {
+  if(service_uri_string && query_string) {
     mode = MODE_CALL_PROTOCOL_URI;
     service_uri = raptor_new_uri(raptor_world_ptr, service_uri_string);
     if(optind == argc-1)
@@ -1255,7 +1257,12 @@ main(int argc, char *argv[])
       base_uri_string = (unsigned char*)argv[optind];
   } else {
     /* read a query from stdin, file or URI */
-    mode = MODE_EXEC_QUERY_URI;
+    if(service_uri_string) {
+      mode = MODE_CALL_PROTOCOL_QUERY_STRING;
+      service_uri = raptor_new_uri(raptor_world_ptr, service_uri_string);
+    } else
+      mode = MODE_EXEC_QUERY_URI;
+
     if(optind == argc-1)
       uri_string = (unsigned char*)argv[optind];
     else {
@@ -1314,15 +1321,21 @@ main(int argc, char *argv[])
 
 
   switch(mode) {
+    case MODE_CALL_PROTOCOL_QUERY_STRING:
     case MODE_CALL_PROTOCOL_URI:
       if(!quiet) {
         fputs(program, stderr);
         fputs(": Calling SPARQL service at URI ", stderr);
         fputs(RASQAL_GOOD_CAST(const char*, service_uri_string), stderr);
-        if(filename)
-          fprintf(stderr, " with query from file %s", filename);
-        else if(uri_string)
-          fprintf(stderr, " querying URI %s", uri_string);
+        if(mode == MODE_CALL_PROTOCOL_QUERY_STRING) {
+          if(query_string)
+            fprintf(stderr, " with query '%s'", query_string);
+        } else {
+          if(filename)
+            fprintf(stderr, " with query from file %s", filename);
+          else if(uri_string)
+            fprintf(stderr, " querying URI %s", uri_string);
+        }
         if(base_uri_string)
           fprintf(stderr, " with base URI %s", base_uri_string);
         fputc('\n', stderr);
