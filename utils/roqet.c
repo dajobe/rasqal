@@ -168,7 +168,6 @@ roqet_log_handler(void *data, raptor_log_message *message)
     case RAPTOR_LOG_LEVEL_TRACE:
     case RAPTOR_LOG_LEVEL_DEBUG:
     case RAPTOR_LOG_LEVEL_INFO:
-    default:
 
       fprintf(stderr, "%s: Unexpected %s message - ", program,
               raptor_log_level_get_label(message->level));
@@ -940,6 +939,11 @@ main(int argc, char *argv[])
       break;
 
     switch (c) {
+      case 0:
+      case '?': /* getopt() - unknown option */
+        usage = 1;
+        break;
+        
       case 'c':
         count = 1;
         break;
@@ -1191,11 +1195,6 @@ main(int argc, char *argv[])
         break;
 #endif
 
-      case 0:
-      case '?': /* getopt() - unknown option */
-      default:
-        usage = 1;
-        break;
     }
     
   }
@@ -1434,7 +1433,6 @@ main(int argc, char *argv[])
       
       
     case MODE_EXEC_UNKNOWN:
-    default:
       break;
   }
 

@@ -256,6 +256,11 @@ main(int argc, char *argv[])
       break;
 
     switch (c) {
+      case 0:
+      case '?': /* getopt() - unknown option */
+        usage = 1;
+        break;
+        
       case 'd':
         verbose++;
         break;
@@ -337,12 +342,6 @@ main(int argc, char *argv[])
         }
         break;
 
-      case 0:
-      case '?': /* getopt() - unknown option */
-      default:
-        usage = 1;
-        break;
-        
     }
     
   } /* end while option */
@@ -593,7 +592,6 @@ main(int argc, char *argv[])
         
       case RASQAL_QUERY_RESULTS_SYNTAX:
       case RASQAL_QUERY_RESULTS_UNKNOWN:
-      default:
         /* failure */
         fprintf(stderr,
                 "%s: Reading %s query results format is not supported",
@@ -655,7 +653,6 @@ main(int argc, char *argv[])
       case RASQAL_QUERY_RESULTS_GRAPH:
       case RASQAL_QUERY_RESULTS_SYNTAX:
       case RASQAL_QUERY_RESULTS_UNKNOWN:
-      default:
         /* failure */
         fprintf(stderr, "%s: Query result format %u cannot be tested.", 
                 program, results_type);

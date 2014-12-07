@@ -311,8 +311,6 @@ rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value)
       
       query->features[RASQAL_GOOD_CAST(int, feature)] = value;
       break;
-    default:
-      return -1;
   }
 
   return 0;
@@ -374,8 +372,6 @@ rasqal_query_get_feature(rasqal_query *query, rasqal_feature feature)
     case RASQAL_FEATURE_RAND_SEED:
       result = (query->features[RASQAL_GOOD_CAST(int, feature)] != 0);
       break;
-    default:
-      return -1;
   }
   
   return result;

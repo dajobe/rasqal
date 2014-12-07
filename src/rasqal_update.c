@@ -199,9 +199,6 @@ rasqal_update_operation_print(rasqal_update_operation *update, FILE* stream)
     case RASQAL_UPDATE_GRAPH_ALL:
       fputs(", applies: all", stream);
       break;
-
-    default:
-      break;
   }
   
   if(update->insert_templates) {

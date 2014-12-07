@@ -1637,7 +1637,6 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
     case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
     case RASQAL_GRAPH_PATTERN_OPERATOR_VALUES:
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
-    default:
       break;
   }
   
@@ -1950,7 +1949,6 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
     case RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE:
     case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
-    default:
       break;
   }
   
