@@ -1243,9 +1243,8 @@ main(int argc, char *argv[])
   if(service_uri_string) {
     mode = MODE_CALL_PROTOCOL_URI;
     service_uri = raptor_new_uri(raptor_world_ptr, service_uri_string);
-    if(optind == argc-1) {
+    if(optind == argc-1)
       base_uri_string = (unsigned char*)argv[optind];
-    }
   } else if(query_string) {
     mode = MODE_EXEC_QUERY_STRING;
     if(optind == argc-1)
@@ -1317,14 +1316,15 @@ main(int argc, char *argv[])
   switch(mode) {
     case MODE_CALL_PROTOCOL_URI:
       if(!quiet) {
-        fprintf(stderr, "%s: Calling SPARQL service at URI %s", program,
-                service_uri_string);
-        if(query_string)
-          fprintf(stderr, " with query '%s'", query_string);
-        
+        fputs(program, stderr);
+        fputs(": Calling SPARQL service at URI ", stderr);
+        fputs(RASQAL_GOOD_CAST(const char*, service_uri_string), stderr);
+        if(filename)
+          fprintf(stderr, " with query from file %s", filename);
+        else if(uri_string)
+          fprintf(stderr, " querying URI %s", uri_string);
         if(base_uri_string)
-          fprintf(stderr, " with base URI %s\n", base_uri_string);
-
+          fprintf(stderr, " with base URI %s", base_uri_string);
         fputc('\n', stderr);
       }
       
@@ -1338,28 +1338,24 @@ main(int argc, char *argv[])
     case MODE_EXEC_QUERY_STRING:
     case MODE_EXEC_QUERY_URI:
       if(!quiet) {
+        fputs(program, stderr);
+        fputs(": Running query", stderr);
         if(mode == MODE_EXEC_QUERY_STRING) {
-          if(base_uri_string)
-            fprintf(stderr, "%s: Running query '%s' with base URI %s\n",
-                    program, query_string, base_uri_string);
-          else
-            fprintf(stderr, "%s: Running query '%s'\n", program,
-                    query_string);
+          fprintf(stderr, " '%s'", query_string);
         } else {
           if(filename) {
-            if(base_uri_string)
-              fprintf(stderr, "%s: Querying from file %s with base URI %s\n",
-                      program, filename, base_uri_string);
-            else
-              fprintf(stderr, "%s: Querying from file %s\n", program, filename);
+            fputs(" from file ", stderr);
+            fputs(filename, stderr);
           } else if(uri_string) {
-            if(base_uri_string)
-              fprintf(stderr, "%s: Querying URI %s with base URI %s\n", program,
-                      uri_string, base_uri_string);
-            else
-              fprintf(stderr, "%s: Querying URI %s\n", program, uri_string);
+            fputs(" from URI ", stderr);
+            fputs(RASQAL_GOOD_CAST(const char*, uri_string), stderr);
           }
         }
+        if(base_uri_string) {
+          fputs(" with base URI ", stderr);
+          fputs(RASQAL_GOOD_CAST(const char*, base_uri_string), stderr);
+        }
+        fputc('\n', stderr);
       }
       
       /* Execute query in this query engine (from URI or from -e QUERY) */
