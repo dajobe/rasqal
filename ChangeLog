@@ -1,3 +1,20 @@
+2014-12-07  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.1, utils/roqet.c: Add support for protocol queries
+	against a local file
+
+	Added format -p <SPARQL protocol URI> <query URI> [base URI]
+
+	Fixes Issue #0000546
+	http://bugs.librdf.org/mantis/view.php?id=546
+
+	* utils/roqet.c: Replace a bunch of help printf with puts and
+	simply
+
+2014-12-05  Dave Beckett <dave@dajobe.org>
+
+	* ChangeLog, RELEASE.html: 0.9.33
+
 2014-11-27  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_format_sparql_xml.c, src/rasqal_rowsource_service.c:

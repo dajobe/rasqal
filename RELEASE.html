@@ -13,6 +13,12 @@
 <p>Not yet released.
 </p>
 
+<p>Issues Fixed:</p>
+<ul>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=546">0000546</a>: Can't take query from URI when using -p</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=568">0000568</a>: Filter expression with division does not work</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=588">0000588</a>: roqet: select from SERVICE returns all NULLs</li>
+</ul>
 
 <h3>SPARQL changes</h3>
 
@@ -94,6 +100,12 @@ value, and allowing name length to be optionally given.  This results
 in smaller calling code and better ownership semantics.
 </p>
 
+<h3>Utility changes</h3>
+
+<p><code>roqet(1)</code> now supports using a URI or local file to
+send to a SPARQL protocol service URI.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=546">Issue #0000546</a>
+</p>
 
 <h3>Other changes</h3>
 
