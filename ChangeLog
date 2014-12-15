@@ -1,4 +1,30 @@
+2014-12-14  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, RELEASE.html: 0.9.33
+
+	* src/rasqal_query_results.c: Skip only one triple in CONSTRUCT
+	with unbound vars
+
+	(rasqal_query_results_get_triple): Alter skipping to use
+	rasqal_query_results_next_triple rather than reset to next result
+	when a triple has an unbound or non-RDF part.
+
+	Fixes Issue #0000583
+	http://bugs.librdf.org/mantis/view.php?id=583
+
 2014-12-07  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/rasqal-unused.sgml, docs/tmpl/section-unused.sgml:
+	Update tmpls
+
+	* src/rasqal_literal.c, src/rasqal_query.c,
+	src/rasqal_query_transform.c, src/rasqal_query_write.c,
+	src/rasqal_result_formats.c, src/rasqal_update.c,
+	utils/check_query.c, utils/roqet.c, utils/to-ntriples.c: Revert
+	8e53443f3333ce907d3c78647036d5bb36a96aaf - adding default cases
+	Too noisy for unreachable code.
+
+	* ChangeLog, NEWS.html, RELEASE.html: 0.9.33
 
 	* utils/roqet.1, utils/roqet.c: Add support for protocol queries
 	against a local file
