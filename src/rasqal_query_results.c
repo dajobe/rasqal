@@ -1329,7 +1329,6 @@ raptor_statement*
 rasqal_query_results_get_triple(rasqal_query_results* query_results)
 {
   rasqal_query* query;
-  int rc;
   rasqal_triple *t;
   raptor_statement *rs = NULL;
   
@@ -1398,13 +1397,11 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
       break;
 
     /* Have to move to next triple internally */
-    rc = rasqal_query_results_next_internal(query_results);
-    if(rc) {
+    if(rasqal_query_results_next_triple(query_results)) {
       /* end of results or failed */
       rs = NULL;
       break;
     }
-    query_results->current_triple_result = -1;
   }
   
   return rs;
