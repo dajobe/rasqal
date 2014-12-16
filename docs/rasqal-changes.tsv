@@ -158,4 +158,4 @@
 0.9.28	enum	-	-	0.9.29	enum	RASQAL_LITERAL_DATE	-	Date literal type
 0.9.28	enum	-	-	0.9.29	enum	RASQAL_EXPR_STRUUID	-	Expression for STRUUID() string UUID
 0.9.28	enum	-	-	0.9.29	enum	RASQAL_EXPR_UUID	-	Expression for UUID() UUID
-0.9.30	enum	-	-	0.9.30	enum	RASQAL_GRAPH_PATTERN_OPERATOR_VALUES	-	Graph pattern for VALUES()
+0.9.30	enum	-	-	0.9.31	enum	RASQAL_GRAPH_PATTERN_OPERATOR_VALUES	-	Graph pattern for VALUES()
