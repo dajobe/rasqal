@@ -964,6 +964,9 @@ rasqal_expression_evaluate_strbefore(rasqal_expression *e,
                                    /* qname */ NULL);
 
   failed:
+  if(new_lang)
+    RASQAL_FREE(char*, new_lang);
+
   if(l1)
     rasqal_free_literal(l1);
 
