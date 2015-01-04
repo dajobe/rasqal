@@ -811,8 +811,10 @@ rasqal_variables_table_get_order(rasqal_variables_table* vt)
 #if RAPTOR_VERSION < 20015
   array = rasqal_sequence_as_sorted(seq, rasqal_variable_compare_by_name_arg,
                                     vt);
-  if(!array)
+  if(!array) {
+    RASQAL_FREE(int*, order);
     return NULL;
+  }
 
   for(i = 0; i < size; i++)
     order[i] = (RASQAL_GOOD_CAST(rasqal_variable*, array[i]))->offset;
