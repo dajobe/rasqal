@@ -694,8 +694,6 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
     *error_p = 1;
 
   null_literal:
-  if(dt)
-    raptor_free_uri(dt);
   if(lang_tag)
     RASQAL_FREE(char*, lang_tag);
   if(result_str)
