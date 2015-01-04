@@ -291,10 +291,7 @@ rasqal_join_rowsource_build_merged_row(rasqal_rowsource* rowsource,
   
 #ifdef RASQAL_DEBUG
   fputs("  result row : ", stderr);
-  if(row)
-    rasqal_row_print(row, stderr);
-  else
-    fputs("NONE", stderr);
+  rasqal_row_print(row, stderr);
   fputs("\n", stderr);
 #endif
 
