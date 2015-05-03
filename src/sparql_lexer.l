@@ -1349,7 +1349,8 @@ void sparql_lexer_free(void *ptr, yyscan_t yyscanner)
 const char *
 sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 {
-  static char buffer[2048];
+  #define ST_BUFFER_LEN 2048
+  static char buffer[ST_BUFFER_LEN];
 
   if(!token)
     return "<<EOF>>";
@@ -1769,58 +1770,58 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
     case INTEGER_NEGATIVE_LITERAL:
-      sprintf(buffer, "INTEGER_LITERAL(%d)", lval->literal->value.integer);
+      snprintf(buffer, ST_BUFFER_LEN, "INTEGER_LITERAL(%d)", lval->literal->value.integer);
       return buffer;
 
     case DOUBLE_LITERAL:
     case DOUBLE_POSITIVE_LITERAL:
     case DOUBLE_NEGATIVE_LITERAL:
-      sprintf(buffer, "DOUBLE_LITERAL(%g)", lval->floating);
+      snprintf(buffer, ST_BUFFER_LEN, "DOUBLE_LITERAL(%g)", lval->floating);
       return buffer;
 
     case STRING:
-      sprintf(buffer, "STRING(\"%s\")", lval->name);
+      snprintf(buffer, ST_BUFFER_LEN, "STRING(\"%s\")", lval->name);
       return buffer;
 
     case BOOLEAN_LITERAL:
       return (lval->literal->value.integer ? "BOOLEAN_LITERAL(true)" : "BOOLEAN_LITERAL(false)");
 
     case URI_LITERAL:
-      sprintf(buffer, "URI_LITERAL(%s)",
-              raptor_uri_as_string(lval->uri)
+      snprintf(buffer, ST_BUFFER_LEN, "URI_LITERAL(%s)",
+               raptor_uri_as_string(lval->uri)
               );
       return buffer;
 
     case QNAME_LITERAL:
-      sprintf(buffer, "QNAME_LITERAL(%s)", lval->name);
+      snprintf(buffer, ST_BUFFER_LEN, "QNAME_LITERAL(%s)", lval->name);
       return buffer;
 
     case URI_LITERAL_BRACE:
-      sprintf(buffer, "URI_LITERAL_BRACE(%s)",
-              raptor_uri_as_string(lval->uri)
+      snprintf(buffer, ST_BUFFER_LEN, "URI_LITERAL_BRACE(%s)",
+               raptor_uri_as_string(lval->uri)
               );
       return buffer;
 
     case QNAME_LITERAL_BRACE:
-      sprintf(buffer, "QNAME_LITERAL_BRACE(%s)", lval->name);
+      snprintf(buffer, ST_BUFFER_LEN, "QNAME_LITERAL_BRACE(%s)", lval->name);
       return buffer;
 
     case IDENTIFIER:
-      sprintf(buffer, "IDENTIFIER(%s)", lval->name);
+      snprintf(buffer, ST_BUFFER_LEN, "IDENTIFIER(%s)", lval->name);
       return buffer;
 
     case BLANK_LITERAL:
-      sprintf(buffer, "BLANK_LITERAL(%s)", lval->name);
+      snprintf(buffer, ST_BUFFER_LEN, "BLANK_LITERAL(%s)", lval->name);
       return buffer;
 
     case DECIMAL_LITERAL:
     case DECIMAL_POSITIVE_LITERAL:
     case DECIMAL_NEGATIVE_LITERAL:
-      sprintf(buffer, "DECIMAL_LITERAL(%s)", lval->literal->string);
+      snprintf(buffer, ST_BUFFER_LEN, "DECIMAL_LITERAL(%s)", lval->literal->string);
       return buffer;
 
     case LANGTAG:
-      sprintf(buffer, "LANGTAG(%s)", lval->name);
+      snprintf(buffer, ST_BUFFER_LEN, "LANGTAG(%s)", lval->name);
       return buffer;
 
     case HATHAT:

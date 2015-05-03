@@ -78,7 +78,8 @@ main(int argc, char **argv) {
   int count;
   rasqal_world *world;
   const char *data_file;
-  
+  size_t qs_len;
+
   world=rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
     fprintf(stderr, "%s: rasqal_world init failed\n", program);
@@ -96,11 +97,11 @@ main(int argc, char **argv) {
   }
     
   data_string = raptor_uri_filename_to_uri_string(data_file);
-  query_string = RASQAL_MALLOC(unsigned char*, strlen(RASQAL_GOOD_CAST(const char*, data_string)) + strlen(query_format) + 1);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-  sprintf(RASQAL_GOOD_CAST(char*, query_string), query_format, data_string);
-#pragma GCC diagnostic pop
+  qs_len = strlen(RASQAL_GOOD_CAST(const char*, data_string)) + strlen(query_format);
+  query_string = RASQAL_MALLOC(unsigned char*, qs_len + 1);
+  IGNORE_FORMAT_NONLITERAL_START
+  snprintf(RASQAL_GOOD_CAST(char*, query_string), qs_len, query_format, data_string);
+  IGNORE_FORMAT_NONLITERAL_END
   raptor_free_memory(data_string);
   
   uri_string=raptor_uri_filename_to_uri_string("");

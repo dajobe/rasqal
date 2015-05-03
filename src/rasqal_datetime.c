@@ -1090,9 +1090,10 @@ rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world,
     rasqal_xsd_decimal_set_long(dec, (long)dt->second);
   } else {
     /* Max len 9 "SS.UUUUUU\0" */
-    char str[10];
+    #define GSAD_BUF_LEN 10
+    char str[GSAD_BUF_LEN];
 
-    sprintf(str, "%d.%06d", dt->second, dt->microseconds);
+    snprintf(str, GSAD_BUF_LEN, "%d.%06d", dt->second, dt->microseconds);
 
     rasqal_xsd_decimal_set_string(dec, str);
   }

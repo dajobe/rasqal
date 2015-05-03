@@ -182,6 +182,22 @@ void rasqal_system_free(void *ptr);
 #endif
 
 
+/* _Pragma() is C99 and is the only way to include pragmas since you
+ * cannot use #pragma in a macro
+ *
+ * #if defined __STDC_VERSION__ && (__STDC_VERSION__ >= 199901L)
+ */
+#if defined __GNUC__ && 460 <= __GNUC__ * 100 + __GNUC_MINOR__
+#define IGNORE_FORMAT_NONLITERAL_START \
+  _Pragma ("GCC diagnostic push") \
+  _Pragma ("GCC diagnostic ignored \"-Wformat-nonliteral\"")
+#define IGNORE_FORMAT_NONLITERAL_END \
+  _Pragma ("GCC diagnostic pop")
+#else
+#define IGNORE_FORMAT_NONLITERAL_START
+#define IGNORE_FORMAT_NONLITERAL_END
+#endif
+
 /* Fatal errors - always happen */
 #define RASQAL_FATAL1(msg) do {fprintf(stderr, "%s:%d:%s: fatal error: " msg, __FILE__, __LINE__ , __FUNCTION__); abort();} while(0)
 #define RASQAL_FATAL2(msg,arg) do {fprintf(stderr, "%s:%d:%s: fatal error: " msg, __FILE__, __LINE__ , __FUNCTION__, arg); abort();} while(0)

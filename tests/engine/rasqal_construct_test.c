@@ -90,6 +90,7 @@ main(int argc, char **argv) {
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   raptor_serializer* serializer=NULL;
 #endif
+  size_t qs_len;
 
   world = rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
@@ -110,11 +111,11 @@ main(int argc, char **argv) {
 
   data_dir_string = raptor_uri_filename_to_uri_string(argv[1]);
 
-  query_string = RASQAL_MALLOC(unsigned char*, strlen((const char*)data_dir_string) + strlen(data_file) + strlen(query_format) + 1);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-  sprintf((char*)query_string, query_format, data_dir_string, data_file);
-#pragma GCC diagnostic pop
+  qs_len = strlen((const char*)data_dir_string) + strlen(data_file) + strlen(query_format);
+  query_string = RASQAL_MALLOC(unsigned char*, qs_len + 1);
+  IGNORE_FORMAT_NONLITERAL_START
+  snprintf((char*)query_string, qs_len, query_format, data_dir_string, data_file);
+  IGNORE_FORMAT_NONLITERAL_END
   raptor_free_memory(data_dir_string);
 
   query = rasqal_new_query(world, query_language_name, NULL);

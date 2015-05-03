@@ -106,23 +106,24 @@ main(int argc, char **argv) {
     int count;
     int limit=9-3*i;
     int offset=0+3*i;
+    size_t qs_len;
 
-    if(i==4) {
-      limit=8;
-      offset=1;
-    } else if (i==5) {
-      limit=1;
-      offset=8;
+    if(i == 4) {
+      limit = 8;
+      offset = 1;
+    } else if (i == 5) {
+      limit = 1;
+      offset = 8;
     }
     
 
     data_dir_string=raptor_uri_filename_to_uri_string(argv[1]);
-    query_string = RASQAL_MALLOC(unsigned char*, strlen((const char*)data_dir_string) + strlen(animals) + strlen(query_format) + 1);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-    sprintf((char*)query_string, query_format, data_dir_string, animals,
-            limit, offset);
-#pragma GCC diagnostic pop
+    qs_len = strlen((const char*)data_dir_string) + strlen(animals) + strlen(query_format);
+    query_string = RASQAL_MALLOC(unsigned char*, qs_len + 1);
+    IGNORE_FORMAT_NONLITERAL_START
+    snprintf((char*)query_string, qs_len, query_format, data_dir_string, animals,
+             limit, offset);
+    IGNORE_FORMAT_NONLITERAL_END
     raptor_free_memory(data_dir_string);
 
     query=rasqal_new_query(world, query_language_name, NULL);

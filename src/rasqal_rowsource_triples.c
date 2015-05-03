@@ -479,6 +479,7 @@ main(int argc, char *argv[])
   raptor_uri* s_uri = NULL;
   raptor_uri* p_uri = NULL;
   const char *data_file;
+  size_t qs_len;
   
   if((data_file = getenv("NT_DATA_FILE"))) {
     /* got data from environment */
@@ -499,11 +500,11 @@ main(int argc, char *argv[])
   query = rasqal_new_query(world, "sparql", NULL);
   
   data_string = raptor_uri_filename_to_uri_string(data_file);
-  query_string = RASQAL_MALLOC(unsigned char*, strlen(RASQAL_GOOD_CAST(const char*, data_string)) + strlen(query_format) + 1);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-  sprintf(RASQAL_GOOD_CAST(char*, query_string), query_format, data_string);
-#pragma GCC diagnostic pop
+  qs_len = strlen(RASQAL_GOOD_CAST(const char*, data_string)) + strlen(query_format);
+  query_string = RASQAL_MALLOC(unsigned char*, qs_len + 1);
+  IGNORE_FORMAT_NONLITERAL_START
+  snprintf(RASQAL_GOOD_CAST(char*, query_string), qs_len, query_format, data_string);
+  IGNORE_FORMAT_NONLITERAL_END
   raptor_free_memory(data_string);
   
   uri_string = raptor_uri_filename_to_uri_string("");

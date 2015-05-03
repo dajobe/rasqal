@@ -157,32 +157,32 @@ main(int argc, char **argv) {
       int test_ok=1;
       unsigned char *data_string;
       unsigned char *query_string;
+      size_t qs_len;
 
 #define LIM_OFF_BUF_SIZE 20
       data_string=raptor_uri_filename_to_uri_string(argv[1]);
-      query_string = RASQAL_MALLOC(unsigned char*, strlen((const char*)data_string) + strlen(query_format) + (2 * LIM_OFF_BUF_SIZE) + 1);
+      qs_len = strlen((const char*)data_string) + strlen(query_format) + (2 * LIM_OFF_BUF_SIZE);
+      query_string = RASQAL_MALLOC(unsigned char*, qs_len + 1);
 
       if(dynamic_limits) {
         char lim[LIM_OFF_BUF_SIZE];
         char off[LIM_OFF_BUF_SIZE];
         if(test->limit >= 0)
-          sprintf(lim, "LIMIT %d", test->limit);
+          snprintf(lim, LIM_OFF_BUF_SIZE, "LIMIT %d", test->limit);
         else
           *lim = '\0';
         if(test->offset >= 0)
-          sprintf(off, "OFFSET %d", test->offset);
+          snprintf(off, LIM_OFF_BUF_SIZE, "OFFSET %d", test->offset);
         else
           *off = '\0';
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-        sprintf((char*)query_string, query_format, data_string, lim, off);
-#pragma GCC diagnostic pop
+        IGNORE_FORMAT_NONLITERAL_START
+        snprintf((char*)query_string, qs_len, query_format, data_string, lim, off);
+        IGNORE_FORMAT_NONLITERAL_END
       }
       else {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-        sprintf((char*)query_string, query_format, data_string);
-#pragma GCC diagnostic pop
+        IGNORE_FORMAT_NONLITERAL_START
+        snprintf((char*)query_string, qs_len, query_format, data_string);
+        IGNORE_FORMAT_NONLITERAL_END
       }
       raptor_free_memory(data_string);
 
