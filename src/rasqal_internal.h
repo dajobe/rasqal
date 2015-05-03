@@ -108,7 +108,7 @@ void rasqal_system_free(void *ptr);
 #endif
 
 #ifndef RASQAL_ASSERT_DIE
-#define RASQAL_ASSERT_DIE abort();
+#define RASQAL_ASSERT_DIE(x) abort();
 #endif
 
 #else
@@ -126,7 +126,7 @@ void rasqal_system_free(void *ptr);
 #define SYSTEM_FREE(ptr)   free(ptr)
 
 #ifndef RASQAL_ASSERT_DIE
-#define RASQAL_ASSERT_DIE
+#define RASQAL_ASSERT_DIE(x) x;
 #endif
 
 #endif
@@ -154,31 +154,28 @@ void rasqal_system_free(void *ptr);
 #define RASQAL_ASSERT(condition, msg) do { \
   if(condition) { \
     RASQAL_ASSERT_REPORT(msg) \
-    RASQAL_ASSERT_DIE \
+      RASQAL_ASSERT_DIE()     \
   } \
 } while(0)
 
 #define RASQAL_ASSERT_RETURN(condition, msg, ret) do { \
   if(condition) { \
     RASQAL_ASSERT_REPORT(msg) \
-    RASQAL_ASSERT_DIE \
-    return ret; \
+    RASQAL_ASSERT_DIE(return ret) \
   } \
 } while(0)
 
 #define RASQAL_ASSERT_OBJECT_POINTER_RETURN(pointer, type) do { \
   if(!pointer) { \
     RASQAL_ASSERT_REPORT("object pointer of type " #type " is NULL.") \
-    RASQAL_ASSERT_DIE \
-    return; \
+    RASQAL_ASSERT_DIE(return) \
   } \
 } while(0)
 
 #define RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(pointer, type, ret) do { \
   if(!pointer) { \
     RASQAL_ASSERT_REPORT("object pointer of type " #type " is NULL.") \
-    RASQAL_ASSERT_DIE \
-    return ret; \
+    RASQAL_ASSERT_DIE(return ret) \
   } \
 } while(0)
 
