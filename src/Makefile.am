@@ -216,6 +216,7 @@ sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/../scripts/fix-bison.pl
 	mv sparql_parser.tab.h sparql_parser.h; \
 	rm -f sparql_parser.tab.c
 
+sparql_lexer.h: sparql_lexer.c ; @exit 0
 sparql_parser.h: sparql_parser.c ; @exit 0
 
 endif
