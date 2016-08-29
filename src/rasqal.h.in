@@ -99,7 +99,7 @@ extern "C" {
 /* Use gcc 3.1+ feature to allow marking of deprecated API calls.
  * This gives a warning during compiling.
  */
-#if ( __GNUC__ == 3 && __GNUC_MINOR__ > 0 ) || __GNUC__ > 3
+#if (defined __GNUC__ && (( __GNUC__ == 3 && __GNUC_MINOR__ > 0 ) || __GNUC__ > 3)) || defined __clang__
 #define RASQAL_DEPRECATED __attribute__((deprecated))
 #else
 #define RASQAL_DEPRECATED
