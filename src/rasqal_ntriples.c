@@ -25,6 +25,10 @@
 #include <rasqal_config.h>
 #endif
 
+#ifdef WIN32
+#include <win32_rasqal_config.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
