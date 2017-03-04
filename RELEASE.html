@@ -2501,7 +2501,7 @@ query structure, rather than a query (SELECT, ASK, DESCRIBE).
 <p>Added a <code>rasqal_update_operation</code> class for holding
 an updates that adds and/or removes triples from a graph (with
 possible conditional where) or does a graph administration
-operation on a grpah.
+operation on a graph.
 </p>
 
 <p>Added an <code>rasqal_update_type</code> enum for the types of
@@ -3602,7 +3602,7 @@ the type can be promoted.</p>
 
 <p>Added <code>RASQAL_COMPARE_RDF</code> and
 <code>RASQAL_COMPARE_URI</code> comparison types for RDF Term
-comparsion rules and allowing URI comparison (without
+comparison rules and allowing URI comparison (without
 <code>STR()</code>) respectively.</p>
 
 <p>Added <code>rasqal_new_typed_literal()</code> to make an RDF typed
@@ -3626,7 +3626,7 @@ FIXME should this not involve query results?
 <p>Added addition <code>rasqal_triple_parts</code> enums:
 <code>RASQAL_TRIPLE_GRAPH</code> for just the named graph part
 <code>RASQAL_TRIPLE_SPO</code> for subject, predicate and objects and
-<code>RASQAL_TRIPLE_SPOG</code> for all parts including named grpah.
+<code>RASQAL_TRIPLE_SPOG</code> for all parts including named graph.
 </p>
 
 
@@ -3681,7 +3681,7 @@ int rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d);
 <h3>Query Results Formatter Class Changes</h3>
 
 <p>Updated to the 4th version of the SPARQL XML Results format by
-removing the <code>ordered</code> and <code>distict</code>
+removing the <code>ordered</code> and <code>distinct</code>
 attributes.  Removed support for all the earlier versions 1 to 3.</p>
 
 
@@ -4262,7 +4262,7 @@ and <code>xsd:double</code> (C double); <code>xsd:decimal</code>
 </p>
 
 <p>Do not promote literals early on in comparisons to strings "perl
-style" but do the best type-based comparsion as late as possible.
+style" but do the best type-based comparison as late as possible.
 </p>
 
 
@@ -4611,7 +4611,7 @@ results format.
 W3C Working Draft, 17 February 2005.
 </p>
 
-<p>Added support for casting in constraint expresions for datatyped literals
+<p>Added support for casting in constraint expressions for datatyped literals
 with the syntax <em>qname</em><code>(</code><em>literal</em><code>)</code>
 such as <code>xsd:decimal("10")</code>.
 </p>

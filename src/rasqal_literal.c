@@ -2382,7 +2382,7 @@ rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
  *
  * The comparison returned is as for strcmp, first before second
  * returns <0.  equal returns 0, and first after second returns >0.
- * For URIs, the string value is used for the comparsion.
+ * For URIs, the string value is used for the comparison.
  *
  * flag bits affects comparisons:
  *   RASQAL_COMPARE_NOCASE: use case independent string comparisons

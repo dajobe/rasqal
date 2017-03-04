@@ -451,7 +451,7 @@ struct rasqal_query_s {
   rasqal_variables_table* vars_table;
 
   /* WAS: The number of selected variables: these are always the first
-   * in the variables table and are the ones returend to the user.
+   * in the variables table and are the ones returned to the user.
    */
   int unused11;
 
@@ -553,7 +553,7 @@ struct rasqal_query_s {
   /* INTERNAL SELECT bindings */
   rasqal_bindings* bindings;
 
-  /* INTERNAL static structure for expresion evaluation*/
+  /* INTERNAL static structure for expression evaluation*/
   rasqal_evaluation_context *eval_context;
 
   /* INTERNAL flag: non-0 if user set a random seed via RASQAL_FEATURE_RAND_SEED */

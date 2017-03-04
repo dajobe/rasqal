@@ -1973,7 +1973,7 @@ rasqal_expression_sequence_evaluate(rasqal_query* query,
  * The two literals are compared.  The comparison returned is as for
  * strcmp, first before second returns <0.  equal returns 0, and
  * first after second returns >0.  For URIs, the string value is used
- * for the comparsion.
+ * for the comparison.
  *
  * See rasqal_literal_compare() for comparison flags.
  * 
@@ -2241,7 +2241,7 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
  *
  * INTERNAL - determine if expression is an aggregate expression (at the top; not recursively)
  *
- * Return value: non-0 if is aggreate
+ * Return value: non-0 if is aggregate
  */
 int
 rasqal_expression_is_aggregate(rasqal_expression* e)
