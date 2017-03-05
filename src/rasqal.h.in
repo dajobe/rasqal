@@ -433,7 +433,7 @@ typedef struct {
  *
  *   Blank Nodes << IRIs << RDF literals << typed literals
  *
- * which coresponds to in enum values
+ * which corresponds to in enum values
  *
  *   BLANK << URI << STRING << 
  *     (BOOLEAN | INTEGER | DOUBLE | FLOAT | DECIMAL | DATETIME | XSD_STRING)
@@ -635,7 +635,7 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_EQ: Expression for A equals B
  * @RASQAL_EXPR_NEQ: Expression for A not equals B.
  * @RASQAL_EXPR_LT: Expression for A less than B.
- * @RASQAL_EXPR_GT: Expression for A greather than B.
+ * @RASQAL_EXPR_GT: Expression for A greater than B.
  * @RASQAL_EXPR_LE: Expression for A less than or equal to B.
  * @RASQAL_EXPR_GE: Expression for A greater than or equal to B.
  * @RASQAL_EXPR_UMINUS: Expression for -A.
@@ -994,7 +994,7 @@ typedef enum {
  * @RASQAL_UPDATE_TYPE_LOAD: Load graph.
  * @RASQAL_UPDATE_TYPE_UPDATE: Insert or Delete graph or triples.
  * @RASQAL_UPDATE_TYPE_ADD: Add graph to another graph.
- * @RASQAL_UPDATE_TYPE_MOVE: Move graph to another grpah.
+ * @RASQAL_UPDATE_TYPE_MOVE: Move graph to another graph.
  * @RASQAL_UPDATE_TYPE_COPY: Copy graph to another graph.
  * @RASQAL_UPDATE_TYPE_UNKNOWN: Internal
  * @RASQAL_UPDATE_TYPE_LAST: Internal
@@ -1508,8 +1508,8 @@ int rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh);
 /**
  * rasqal_compare_flags:
  * @RASQAL_COMPARE_NOCASE: String comparisons are case independent.
- * @RASQAL_COMPARE_XQUERY: XQuery comparsion rules apply.
- * @RASQAL_COMPARE_RDF:    RDF Term comparsion rules apply.
+ * @RASQAL_COMPARE_XQUERY: XQuery comparison rules apply.
+ * @RASQAL_COMPARE_RDF:    RDF Term comparison rules apply.
  * @RASQAL_COMPARE_URI:    Allow comparison of URIs and allow strings to have a boolean value (unused; was for RDQL)
  * @RASQAL_COMPARE_SAMETERM: SPARQL sameTerm() builtin rules apply.
  *
@@ -1539,7 +1539,7 @@ typedef struct rasqal_random_s rasqal_random;
  * @base_uri: base URI of expression context (or NULL)
  * @locator: locator or NULL
  * @flags: expression comparison flags
- * @seed: random seeed
+ * @seed: random seed
  * @random: random number generator object
  *
  * A context for evaluating an expression such as with
