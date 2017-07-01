@@ -2115,7 +2115,7 @@ rasqal_query_generate_bnodeid(rasqal_query* rdf_query,
   /* prefer world generate handler/data */
   if(rdf_query->world->generate_bnodeid_handler)
     return rasqal_world_generate_bnodeid(rdf_query->world, user_bnodeid);
-
+  else
     return rasqal_world_default_generate_bnodeid_handler(rdf_query->world,
                                                          user_bnodeid);
 }
