@@ -29,7 +29,11 @@
 extern "C" {
 #endif
 
+#ifdef WIN32
+#include <win32_rasqal_config.h>
+#else
 #include <rasqal_config.h>
+#endif
 
 #define sv_new rasqal_sv_new
 #define sv_free rasqal_sv_free

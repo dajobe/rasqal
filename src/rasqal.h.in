@@ -99,7 +99,7 @@ extern "C" {
 /* Use gcc 3.1+ feature to allow marking of deprecated API calls.
  * This gives a warning during compiling.
  */
-#if ( __GNUC__ == 3 && __GNUC_MINOR__ > 0 ) || __GNUC__ > 3
+#if (defined __GNUC__ && (( __GNUC__ == 3 && __GNUC_MINOR__ > 0 ) || __GNUC__ > 3)) || defined __clang__
 #define RASQAL_DEPRECATED __attribute__((deprecated))
 #else
 #define RASQAL_DEPRECATED
@@ -1473,7 +1473,7 @@ typedef enum {
 
 RASQAL_API
 int rasqal_query_results_formats_check2(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags);
-RASQAL_API RASQAL_API RASQAL_DEPRECATED
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_results_formats_check(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags);
 RASQAL_API
 rasqal_query_results_formatter* rasqal_new_query_results_formatter(rasqal_world* world, const char *name, const char *mime_type, raptor_uri* format_uri);
