@@ -4,21 +4,21 @@
  *
  * Copyright (C) 2003-2010, David Beckett http://www.dajobe.org/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
- * 
+ *
  * This package is Free Software and part of Redland http://librdf.org/
- * 
+ *
  * It is licensed under the following three licenses as alternatives:
  *   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
  *   2. GNU General Public License (GPL) V2 or any newer version
  *   3. Apache License, V2.0 or any newer version
- * 
+ *
  * You may not use this file except in compliance with at least one of
  * the above three licenses.
- * 
+ *
  * See LICENSE.html or LICENSE.txt at the top of this package for the
  * complete terms and further detail along with the license texts for
  * the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
- * 
+ *
  */
 
 
@@ -50,7 +50,7 @@ extern "C" {
 #endif
 
 #ifdef __GNUC__
-#define RASQAL_NORETURN __attribute__((noreturn)) 
+#define RASQAL_NORETURN __attribute__((noreturn))
 #else
 #define RASQAL_NORETURN
 #endif
@@ -70,7 +70,7 @@ void* rasqal_sign_malloc(size_t size);
 void* rasqal_sign_calloc(size_t nmemb, size_t size);
 void* rasqal_sign_realloc(void *ptr, size_t size);
 void rasqal_sign_free(void *ptr);
-  
+
 #define RASQAL_MALLOC(type, size)   (type)rasqal_sign_malloc(size)
 #define RASQAL_CALLOC(type, nmemb, size) (type)rasqal_sign_calloc(nmemb, size)
 #define RASQAL_REALLOC(type, ptr, size) (type0rasqal_sign_realloc(ptr, size)
@@ -141,8 +141,8 @@ void rasqal_system_free(void *ptr);
 
 #ifdef RASQAL_DISABLE_ASSERT
 
-#define RASQAL_ASSERT(condition, msg) 
-#define RASQAL_ASSERT_RETURN(condition, msg, ret) 
+#define RASQAL_ASSERT(condition, msg)
+#define RASQAL_ASSERT_RETURN(condition, msg, ret)
 #define RASQAL_ASSERT_OBJECT_POINTER_RETURN(pointer, type) do { \
   if(!pointer) \
     return; \
@@ -227,13 +227,13 @@ typedef struct rasqal_query_language_factory_s rasqal_query_language_factory;
  */
 typedef struct {
   rasqal_query* query;
-  
+
   raptor_sequence* variables;
 
   unsigned int wildcard:1;
 
   int distinct;
-} rasqal_projection;  
+} rasqal_projection;
 
 
 /**
@@ -250,13 +250,13 @@ typedef struct {
  */
 typedef struct {
   rasqal_query* query;
-  
+
   raptor_sequence* order_conditions;
 
   raptor_sequence* group_conditions;
 
   raptor_sequence* having_conditions;
-  
+
   int limit;
 
   int offset;
@@ -275,13 +275,13 @@ typedef struct {
 typedef struct {
   /* usage/reference count */
   int usage;
-  
+
   rasqal_query* query;
-  
+
   raptor_sequence* variables;
 
   raptor_sequence* rows;
-} rasqal_bindings;  
+} rasqal_bindings;
 
 
 /*
@@ -292,7 +292,7 @@ struct rasqal_graph_pattern_s {
 
   /* operator for this graph pattern's contents */
   rasqal_graph_pattern_operator op;
-  
+
   raptor_sequence* triples;          /* ... rasqal_triple*         */
   raptor_sequence* graph_patterns;   /* ... rasqal_graph_pattern*  */
 
@@ -330,7 +330,7 @@ struct rasqal_graph_pattern_s {
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, rasqal_graph_pattern_operator op);
 rasqal_graph_pattern* rasqal_new_filter_graph_pattern(rasqal_query* query, rasqal_expression* expr);
-rasqal_graph_pattern* rasqal_new_let_graph_pattern(rasqal_query *query, rasqal_variable *var, rasqal_expression *expr);  
+rasqal_graph_pattern* rasqal_new_let_graph_pattern(rasqal_query *query, rasqal_variable *var, rasqal_expression *expr);
 rasqal_graph_pattern* rasqal_new_select_graph_pattern(rasqal_query *query, rasqal_projection* projection, raptor_sequence* data_graphs, rasqal_graph_pattern* where, rasqal_solution_modifier* modifier, rasqal_bindings* bindings);
 rasqal_graph_pattern* rasqal_new_single_graph_pattern(rasqal_query* query, rasqal_graph_pattern_operator op, rasqal_graph_pattern* single);
 rasqal_graph_pattern* rasqal_new_values_graph_pattern(rasqal_query* query, rasqal_bindings* bindings);
@@ -407,7 +407,7 @@ struct rasqal_query_s {
   rasqal_world* world; /* world object */
 
   int usage; /* reference count - 1 for itself, plus for query_results */
-  
+
   unsigned char* query_string;
   size_t query_string_length; /* length including NULs */
 
@@ -415,7 +415,7 @@ struct rasqal_query_s {
 
   /* query graph pattern, containing the sequence of graph_patterns below */
   rasqal_graph_pattern* query_graph_pattern;
-  
+
   /* the query verb - in SPARQL terms: SELECT, CONSTRUCT, DESCRIBE or ASK */
   rasqal_query_verb verb;
 
@@ -424,8 +424,8 @@ struct rasqal_query_s {
 
   /* sequences of ... */
   raptor_sequence* data_graphs; /* ... rasqal_data_graph*          */
-  /* NOTE: Cannot assume that triples are in any of 
-   * graph pattern use / query execution / document order 
+  /* NOTE: Cannot assume that triples are in any of
+   * graph pattern use / query execution / document order
    */
   raptor_sequence* triples;     /* ... rasqal_triple*              */
   raptor_sequence* prefixes;    /* ... rasqal_prefix*              */
@@ -505,7 +505,7 @@ struct rasqal_query_s {
 
   /* Number of graph patterns in this query */
   int graph_pattern_count;
-  
+
   /* Graph pattern shared pointers by gp index (after prepare) */
   raptor_sequence* graph_patterns_sequence;
 
@@ -546,7 +546,7 @@ struct rasqal_query_s {
 
   /* WAS: sequence of (group by ...) having condition expressions */
   raptor_sequence* unused8;
-  
+
   /* INTERNAL solution modifier */
   rasqal_solution_modifier* modifier;
 
@@ -573,25 +573,25 @@ struct rasqal_query_s {
  */
 struct rasqal_query_language_factory_s {
   rasqal_world* world;
-  
+
   struct rasqal_query_language_factory_s* next;
 
   /* static description that the query language registration initialises */
   raptor_syntax_description desc;
-  
+
   /* the rest of this structure is populated by the
      query-language-specific register function */
   size_t context_length;
-  
+
   /* create a new query */
   int (*init)(rasqal_query* rq, const char *name);
-  
+
   /* destroy a query */
   void (*terminate)(rasqal_query* rq);
-  
+
   /* prepare a query */
   int (*prepare)(rasqal_query* rq);
-  
+
   /* finish the query language factory */
   void (*finish_factory)(rasqal_query_language_factory* factory);
 
@@ -696,7 +696,7 @@ rasqal_rowsource* rasqal_new_slice_rowsource(rasqal_world *world, rasqal_query *
 
 /* rasqal_rowsource_service.c */
 rasqal_rowsource* rasqal_new_service_rowsource(rasqal_world *world, rasqal_query* query, raptor_uri* service_uri, const unsigned char* query_string, raptor_sequence* data_graphs, unsigned int rs_flags);
-  
+
 /* rasqal_rowsource_sort.c */
 rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource *rowsource, raptor_sequence* order_seq, int distinct);
 
@@ -825,7 +825,7 @@ typedef int (*rasqal_rowsource_set_origin_func) (rasqal_rowsource* rowsource, vo
  * @set_origin: set origin (GRAPH) handler - optional (V1)
  *
  * Row Source implementation factory handler structure.
- * 
+ *
  */
 typedef struct {
   int version;
@@ -870,7 +870,7 @@ typedef struct {
 typedef struct rasqal_results_compare_s rasqal_results_compare;
 
 
-/* 
+/*
  * Rowsource Internal flags
  *
  * RASQAL_ROWSOURCE_FLAGS_SAVE_ROWS: need to save all rows in
@@ -906,7 +906,7 @@ typedef struct rasqal_results_compare_s rasqal_results_compare;
  * @variables_sequence contains the ordered projection of the
  * variables for the columns for this row sequence, from the full set
  * of variables in @vars_table.
- * 
+ *
  * Each row has @size #rasqal_literal values for the variables or
  * NULL if unset.
  *
@@ -919,7 +919,7 @@ typedef struct rasqal_results_compare_s rasqal_results_compare;
  * rasqal_rowsource_get_rows_count() returns the current number of
  * rows that have been read which is only useful in the read one row
  * case.
- * 
+ *
  * The variables associated with a rowsource can be read by
  * rasqal_rowsource_get_variable_by_offset() and
  * rasqal_rowsource_get_variable_offset_by_name() which all are
@@ -935,9 +935,9 @@ struct rasqal_rowsource_s
   rasqal_world* world;
 
   rasqal_query* query;
-  
+
   int flags;
-  
+
   void *user_data;
 
   const rasqal_rowsource_handler* handler;
@@ -951,7 +951,7 @@ struct rasqal_rowsource_s
   rasqal_variables_table* vars_table;
 
   raptor_sequence* variables_sequence;
-  
+
   int size;
 
   raptor_sequence* rows_sequence;
@@ -1018,7 +1018,7 @@ struct rasqal_query_results_format_factory_s {
 
   /* Memory to allocate for per-formatter data */
   int context_length;
-  
+
   /* format initialisation (OPTIONAL) */
   rasqal_query_results_init_func init;
 
@@ -1147,13 +1147,13 @@ rasqal_graph_pattern* rasqal_graph_pattern_get_parent(rasqal_query *query, rasqa
 
 
 /* sparql_parser.y */
-typedef struct 
+typedef struct
 {
   raptor_uri* uri;
   rasqal_update_graph_applies applies;
 } sparql_uri_applies;
 
-typedef struct 
+typedef struct
 {
   rasqal_op op;
   rasqal_expression *expr;
@@ -1346,7 +1346,7 @@ void* rasqal_map_search(rasqal_map* map, const void* key);
 
 
 /* rasqal_query.c */
-rasqal_query_results* rasqal_query_execute_with_engine(rasqal_query* query, const rasqal_query_execution_factory* engine);
+rasqal_query_results* rasqal_query_execute_with_engine(rasqal_query* query, raptor_sequence* data_graphs, const rasqal_query_execution_factory* engine);
 int rasqal_query_remove_query_result(rasqal_query* query, rasqal_query_results* query_results);
 int rasqal_query_declare_prefix(rasqal_query* rq, rasqal_prefix* prefix);
 int rasqal_query_declare_prefixes(rasqal_query* rq);
@@ -1364,7 +1364,7 @@ int rasqal_query_set_modifier(rasqal_query* query, rasqal_solution_modifier* mod
 /* rasqal_query_results.c */
 int rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
-int rasqal_query_results_execute_with_engine(rasqal_query_results* query_results, const rasqal_query_execution_factory* factory, int store_results);
+int rasqal_query_results_execute_with_engine(rasqal_query_results* query_results, const rasqal_query_execution_factory* factory, raptor_sequence* data_graphs, int store_results);
 int rasqal_query_check_limit_offset_core(int result_offset, int limit, int offset);
 int rasqal_query_check_limit_offset(rasqal_query* query, int result_offset);
 void rasqal_query_results_remove_query_reference(rasqal_query_results* query_results);
@@ -1431,7 +1431,7 @@ int rasqal_row_compatible_check(rasqal_row_compatible* map, rasqal_row *first_ro
 void rasqal_print_row_compatible(FILE *handle, rasqal_row_compatible* map);
 
 /* rasqal_triples_source.c */
-rasqal_triples_source* rasqal_new_triples_source(rasqal_query* query);
+rasqal_triples_source* rasqal_new_triples_source(rasqal_query* query, raptor_sequence* data_graphs);
 int rasqal_reset_triple_meta(rasqal_triple_meta* m);
 void rasqal_free_triples_source(rasqal_triples_source *rts);
 int rasqal_triples_source_triple_present(rasqal_triples_source *rts, rasqal_triple *t);
@@ -1467,7 +1467,7 @@ typedef struct rasqal_graph_factory_s rasqal_graph_factory;
 struct rasqal_world_s {
   /* opened flag */
   int opened;
-  
+
   /* raptor_world object */
   raptor_world *raptor_world_ptr;
 
@@ -1574,7 +1574,7 @@ struct rasqal_algebra_node_s {
   raptor_sequence* triples;
   int start_column;
   int end_column;
-  
+
   /* types JOIN, DIFF, LEFTJOIN, UNION, ORDERBY: node1 and node2 ALWAYS present
    * types FILTER, TOLIST: node1 ALWAYS present, node2 ALWAYS NULL
    * type PROJECT, GRAPH, GROUPBY, AGGREGATION, HAVING: node1 always present
@@ -1584,7 +1584,7 @@ struct rasqal_algebra_node_s {
   struct rasqal_algebra_node_s *node2;
 
   /* types FILTER, LEFTJOIN
-   * (otherwise NULL) 
+   * (otherwise NULL)
    */
   rasqal_expression* expr;
 
@@ -1643,7 +1643,7 @@ typedef int (*rasqal_algebra_node_visit_fn)(rasqal_query* query, rasqal_algebra_
 typedef struct
 {
   rasqal_query* query;
-  
+
   /* aggregate expression variables map
    * key: rasqal_expression* tree with an aggregate function at top
    * value: rasqal_variable*
@@ -1759,7 +1759,7 @@ struct rasqal_query_execution_factory_s {
 
   /* size of execution engine private data */
   size_t execution_data_size;
-  
+
   /*
    * @ex_data: execution data
    * @query: query to execute
@@ -1771,7 +1771,7 @@ struct rasqal_query_execution_factory_s {
    *
    * Return value: non-0 on failure
    */
-  int (*execute_init)(void* ex_data, rasqal_query* query, rasqal_query_results* query_results, int flags, rasqal_engine_error *error_p);
+  int (*execute_init)(void* ex_data, rasqal_query* query, rasqal_query_results* query_results, raptor_sequence* data_graphs, int flags, rasqal_engine_error *error_p);
 
   /**
    * @ex_data: execution data
@@ -1787,7 +1787,7 @@ struct rasqal_query_execution_factory_s {
    * @ex_data: execution object
    * @error_p: execution error (OUT variable)
    *
-   * Get current bindings result row (returning a new object) 
+   * Get current bindings result row (returning a new object)
    *
    * Will not be called if query results is NULL, finished or failed.
    */
@@ -1795,7 +1795,7 @@ struct rasqal_query_execution_factory_s {
 
   /* finish (free) execution */
   int (*execute_finish)(void* ex_data, rasqal_engine_error *error_p);
-  
+
   /* finish the query execution factory */
   void (*finish_factory)(rasqal_query_execution_factory* factory);
 
@@ -1884,7 +1884,7 @@ int rasqal_triples_sequence_set_origin(raptor_sequence* dest_seq, raptor_sequenc
  * RASQAL_RANDOM_STATE_SIZE:
  *
  * Size of BSD random state
- * 
+ *
  * "With 256 bytes of state information, the period of the random
  * number generator is greater than 2**69 , which should be
  * sufficient for most purposes." - BSD random(3) man page
