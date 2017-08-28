@@ -1373,8 +1373,7 @@ int rasqal_query_prepare(rasqal_query* query, const unsigned char *query_string,
 RASQAL_API
 rasqal_query_results* rasqal_query_execute(rasqal_query* query);
 RASQAL_API
-rasqal_query_results*
-rasqal_query_execute2(rasqal_query* query, raptor_sequence* data_graphs);
+rasqal_query_results* rasqal_query_execute2(rasqal_query* query, raptor_sequence* data_graphs);
 
 RASQAL_API
 void* rasqal_query_get_user_data(rasqal_query* query);
