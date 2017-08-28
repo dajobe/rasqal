@@ -594,7 +594,6 @@ rasqal_query_set_offset(rasqal_query* query, int offset)
 int
 rasqal_query_add_data_graph(rasqal_query* query, rasqal_data_graph* data_graph)
 {
-  RASQAL_DEPRECATED_MESSAGE("rasqal_query_add_data_graph");
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(data_graph, rasqal_data_graph, 1);
 
@@ -624,8 +623,6 @@ rasqal_query_add_data_graphs(rasqal_query* query,
 {
   int rc;
 
-  RASQAL_DEPRECATED_MESSAGE("rasqal_query_add_data_graphs");
-
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(data_graphs, raptor_sequence, 1);
 
@@ -649,7 +646,6 @@ rasqal_query_add_data_graphs(rasqal_query* query,
 raptor_sequence*
 rasqal_query_get_data_graph_sequence(rasqal_query* query)
 {
-  RASQAL_DEPRECATED_MESSAGE("rasqal_query_get_data_graph_sequence");
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
   return query->data_graphs;
@@ -1409,7 +1405,6 @@ rasqal_query_execute_with_engine(rasqal_query* query,
 rasqal_query_results*
 rasqal_query_execute(rasqal_query* query)
 {
-  RASQAL_DEPRECATED_MESSAGE("rasqal_query_execute");
   return rasqal_query_execute_with_engine(query, NULL, NULL);
 }
 

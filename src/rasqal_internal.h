@@ -216,6 +216,11 @@ typedef struct rasqal_query_execution_factory_s rasqal_query_execution_factory;
 typedef struct rasqal_query_language_factory_s rasqal_query_language_factory;
 
 
+struct rasqal_data_graphs_set_s {
+  raptor_sequence* seq;
+};
+
+
 /**
  * rasqal_projection:
  * @query: rasqal query
