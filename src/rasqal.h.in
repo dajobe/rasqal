@@ -1416,6 +1416,8 @@ int rasqal_data_graphs_set_add_data_graphs(rasqal_data_graphs_set* set, raptor_s
 RASQAL_API
 raptor_sequence* rasqal_data_graphs_set_get_data_graph_sequence(rasqal_data_graphs_set* set);
 RASQAL_API
+int rasqal_data_graphs_get_graphs_count(rasqal_data_graphs_set* set);
+RASQAL_API
 rasqal_data_graph* rasqal_data_graphs_set_get_data_graph(rasqal_data_graphs_set* set, int idx);
 RASQAL_API
 int rasqal_data_graphs_set_dataset_contains_named_graph(rasqal_data_graphs_set* set, raptor_uri *graph_uri);

@@ -151,6 +151,26 @@ rasqal_data_graphs_set_get_data_graph_sequence(rasqal_data_graphs_set* set)
 }
 
 /**
+ * rasqal_data_graphs_get_graphs_count:
+ * @set: #rasqal_data_graphs_set object
+ *
+ * Gets the count of all graphs in the set.
+ *
+ * WARNING: In a future version we may prevent adding the same graph more
+ * than once, what may lead to the count of graphs being less than the number
+ * of times a graph was added.
+ *
+ * Return value: the count of the graphs
+ **/
+int
+rasqal_data_graphs_get_graphs_count(rasqal_data_graphs_set* set)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(set, rasqal_data_graphs_set, -1);
+
+  return raptor_sequence_size(set->seq);
+}
+
+/**
  * rasqal_data_graphs_set_get_data_graph:
  * @set: #rasqal_data_graphs_set object
  * @idx: #int index
