@@ -1351,7 +1351,7 @@ void* rasqal_map_search(rasqal_map* map, const void* key);
 
 
 /* rasqal_query.c */
-rasqal_query_results* rasqal_query_execute_with_engine(rasqal_query* query, raptor_sequence* data_graphs, const rasqal_query_execution_factory* engine);
+rasqal_query_results* rasqal_query_execute_with_engine(rasqal_query* query, rasqal_data_graphs_set* data_graphs, const rasqal_query_execution_factory* engine);
 int rasqal_query_remove_query_result(rasqal_query* query, rasqal_query_results* query_results);
 int rasqal_query_declare_prefix(rasqal_query* rq, rasqal_prefix* prefix);
 int rasqal_query_declare_prefixes(rasqal_query* rq);
@@ -1369,7 +1369,7 @@ int rasqal_query_set_modifier(rasqal_query* query, rasqal_solution_modifier* mod
 /* rasqal_query_results.c */
 int rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
-int rasqal_query_results_execute_with_engine(rasqal_query_results* query_results, const rasqal_query_execution_factory* factory, raptor_sequence* data_graphs, int store_results);
+int rasqal_query_results_execute_with_engine(rasqal_query_results* query_results, const rasqal_query_execution_factory* factory, rasqal_data_graphs_set* data_graphs, int store_results);
 int rasqal_query_check_limit_offset_core(int result_offset, int limit, int offset);
 int rasqal_query_check_limit_offset(rasqal_query* query, int result_offset);
 void rasqal_query_results_remove_query_reference(rasqal_query_results* query_results);

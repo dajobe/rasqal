@@ -583,7 +583,7 @@ rasqal_query_set_offset(rasqal_query* query, int offset)
 /**
  * rasqal_query_add_data_graph:
  * @query: #rasqal_query query object
- * @data_graph: data graph
+ * @data_graph: #rasqal_data_graph data graph
  *
  * Add a data graph to the query.
  *
@@ -1354,7 +1354,7 @@ rasqal_query_get_engine_by_name(const char* name)
  **/
 rasqal_query_results*
 rasqal_query_execute_with_engine(rasqal_query* query,
-                                 raptor_sequence* data_graphs,
+                                 rasqal_data_graphs_set* data_graphs,
                                  const rasqal_query_execution_factory* engine)
 {
   rasqal_query_results *query_results = NULL;
@@ -1412,20 +1412,16 @@ rasqal_query_execute(rasqal_query* query)
 /**
  * rasqal_query_execute2:
  * @query: the #rasqal_query object
- * @data_graphs: a datagraphs set
+ * @data_graphs: #rasqal_data_graphs_set a datagraphs set
  *
  * Execute a query over a dataset - run and return results.
  *
  * return value: a #rasqal_query_results structure or NULL on failure.
- *
- * This API is experimental:
- * In the current API version @data_graphs is a sequence of graphs.
- * It may be something other in a future version.
  **/
 rasqal_query_results*
-rasqal_query_execute2(rasqal_query* query, raptor_sequence* data_graphs)
+rasqal_query_execute2(rasqal_query* query, rasqal_data_graphs_set* data_graphs)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(data_graphs, raptor_sequence, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(data_graphs, rasqal_data_graphs_set, NULL);
 
   return rasqal_query_execute_with_engine(query, data_graphs, NULL);
 }

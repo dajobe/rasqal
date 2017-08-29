@@ -358,7 +358,7 @@ rasqal_new_query_results_from_string(rasqal_world* world,
 int
 rasqal_query_results_execute_with_engine(rasqal_query_results* query_results,
                                          const rasqal_query_execution_factory* engine,
-                                         raptor_sequence* data_graphs,
+                                         rasqal_data_graphs_set* data_graphs,
                                          int store_results)
 {
   int rc = 0;
@@ -402,7 +402,7 @@ rasqal_query_results_execute_with_engine(rasqal_query_results* query_results,
     if(query_results->store_results)
       execution_flags |= 1;
 
-    rc = query_results->execution_factory->execute_init(query_results->execution_data, query, query_results, data_graphs, execution_flags, &execution_error);
+    rc = query_results->execution_factory->execute_init(query_results->execution_data, query, query_results, data_graphs->seq, execution_flags, &execution_error);
 
     if(rc || execution_error != RASQAL_ENGINE_OK) {
       query_results->failed = 1;
