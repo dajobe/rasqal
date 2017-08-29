@@ -46,6 +46,13 @@
 #include "rasqal_internal.h"
 
 
+/**
+ * rasqal_data_graphs_set_new:
+ *
+ * Constructor - create a new graphs set.
+ *
+ * Return value: a new graphs set object or NULL on failure
+ **/
 rasqal_data_graphs_set*
 rasqal_data_graphs_set_new(void)
 {
@@ -65,6 +72,13 @@ rasqal_data_graphs_set_new(void)
   return set;
 }
 
+/**
+ * rasqal_data_graphs_set_free:
+ * @set: #rasqal_data_graphs_set object
+ *
+ * Destructor - destroy a rasqal_data_graphs_set.
+ *
+ **/
 void
 rasqal_data_graphs_set_free(rasqal_data_graphs_set* set)
 {
@@ -75,6 +89,20 @@ rasqal_data_graphs_set_free(rasqal_data_graphs_set* set)
   RASQAL_FREE(rasqal_data_graphs_set, set);
 }
 
+/**
+ * rasqal_data_graphs_set_add_data_graph:
+ * @set: #rasqal_data_graphs_set object
+ * @data_graph: #rasqal_data_graph object
+ *
+ * Adds a data graph to the set.
+ *
+ * In the current implementation no check is made that the graph
+ * is added only once. So duplicate graphs may be added to the same set.
+ * It is however possibly that the future implementation would not
+ * add a graph which is already in the set.
+ *
+ * Return value: non-0 on failure
+ **/
 int
 rasqal_data_graphs_set_add_data_graph(rasqal_data_graphs_set* set, rasqal_data_graph* data_graph)
 {
@@ -83,6 +111,20 @@ rasqal_data_graphs_set_add_data_graph(rasqal_data_graphs_set* set, rasqal_data_g
   return raptor_sequence_push(set->seq, data_graph);
 }
 
+/**
+ * rasqal_data_graphs_set_add_data_graphs:
+ * @set: #rasqal_data_graphs_set object
+ * @raptor_sequence: #raptor_sequence object
+ *
+ * Adds zero or more data graphs to the set.
+ *
+ * In the current implementation no check is made that the graph
+ * is added only once. So duplicate graphs may be added to the same set.
+ * It is however possibly that the future implementation would not
+ * add a graph which is already in the set.
+ *
+ * Return value: non-0 on failure
+ **/
 int
 rasqal_data_graphs_set_add_data_graphs(rasqal_data_graphs_set* set, raptor_sequence* data_graphs)
 {
@@ -92,6 +134,14 @@ rasqal_data_graphs_set_add_data_graphs(rasqal_data_graphs_set* set, raptor_seque
   return raptor_sequence_join(set->seq, data_graphs);
 }
 
+/**
+ * rasqal_data_graphs_set_get_data_graph_sequence:
+ * @set: #rasqal_data_graphs_set object
+ *
+ * Gets the sequence of all graphs in the set.
+ *
+ * Return value: the sequence
+ **/
 raptor_sequence*
 rasqal_data_graphs_set_get_data_graph_sequence(rasqal_data_graphs_set* set)
 {
@@ -100,6 +150,20 @@ rasqal_data_graphs_set_get_data_graph_sequence(rasqal_data_graphs_set* set)
   return set->seq;
 }
 
+/**
+ * rasqal_data_graphs_set_get_data_graph:
+ * @set: #rasqal_data_graphs_set object
+ * @idx: #int index
+ *
+ * Gets the N-th graph in the set.
+ *
+ * WARNING: In the current version the order of the graphs is the same as the
+ * order they were added in. But in a future version the order of the graphs
+ * may change, and adding the same graph more than once may be equivalent to
+ * adding it just once.
+ *
+ * Return value: the graph.
+ **/
 rasqal_data_graph*
 rasqal_data_graphs_set_get_data_graph(rasqal_data_graphs_set* set, int idx)
 {
@@ -108,6 +172,15 @@ rasqal_data_graphs_set_get_data_graph(rasqal_data_graphs_set* set, int idx)
   return (rasqal_data_graph*)raptor_sequence_get_at(set->seq, idx);
 }
 
+/**
+ * rasqal_data_graphs_set_get_data_graph:
+ * @set: #rasqal_data_graphs_set object
+ * @graph_uri: #raptor_uri URI
+ *
+ * Checks if the graphs set contains a named graph.
+ *
+ * Return value: non-0 if true
+ **/
 int
 rasqal_data_graphs_set_dataset_contains_named_graph(rasqal_data_graphs_set* set, raptor_uri *graph_uri)
 {

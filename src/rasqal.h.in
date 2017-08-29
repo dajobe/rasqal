@@ -405,6 +405,11 @@ typedef struct {
 
 /**
  * rasqal_data_graphs_set:
+ *
+ * A set of data graphs.
+ *
+ * In the current implementation the set is ordered, but this may change
+ * in a future version.
  */
 typedef struct rasqal_data_graphs_set_s rasqal_data_graphs_set;
 
