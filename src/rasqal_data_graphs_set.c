@@ -73,14 +73,14 @@ rasqal_data_graphs_set_new(void)
 }
 
 /**
- * rasqal_data_graphs_set_free:
+ * rasqal_free_data_graphs_set:
  * @set: #rasqal_data_graphs_set object
  *
  * Destructor - destroy a rasqal_data_graphs_set.
  *
  **/
 void
-rasqal_data_graphs_set_free(rasqal_data_graphs_set* set)
+rasqal_free_data_graphs_set(rasqal_data_graphs_set* set)
 {
   if(!set)
     return;

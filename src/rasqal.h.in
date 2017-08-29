@@ -1407,7 +1407,7 @@ rasqal_query_results_type rasqal_query_get_result_type(rasqal_query* query);
 RASQAL_API
 rasqal_data_graphs_set *rasqal_data_graphs_set_new(void);
 RASQAL_API
-void rasqal_data_graphs_set_free(rasqal_data_graphs_set* set);
+void rasqal_free_data_graphs_set(rasqal_data_graphs_set* set);
 RASQAL_API
 int rasqal_data_graphs_set_add_data_graph(rasqal_data_graphs_set* set, rasqal_data_graph* data_graph);
 RASQAL_API
