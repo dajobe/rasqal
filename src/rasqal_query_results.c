@@ -364,6 +364,7 @@ rasqal_query_results_execute_with_engine(rasqal_query_results* query_results,
   int rc = 0;
   size_t ex_data_size;
   rasqal_query* query;
+  raptor_sequence* dg_seq;
 
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, 1);
@@ -372,6 +373,8 @@ rasqal_query_results_execute_with_engine(rasqal_query_results* query_results,
 
   if(query->failed)
     return 1;
+
+  dg_seq = data_graphs ? data_graphs->seq : query->data_graphs;
 
   query_results->execution_factory = engine;
 
@@ -402,7 +405,7 @@ rasqal_query_results_execute_with_engine(rasqal_query_results* query_results,
     if(query_results->store_results)
       execution_flags |= 1;
 
-    rc = query_results->execution_factory->execute_init(query_results->execution_data, query, query_results, data_graphs->seq, execution_flags, &execution_error);
+    rc = query_results->execution_factory->execute_init(query_results->execution_data, query, query_results, dg_seq, execution_flags, &execution_error);
 
     if(rc || execution_error != RASQAL_ENGINE_OK) {
       query_results->failed = 1;
