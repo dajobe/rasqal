@@ -98,7 +98,7 @@ rasqal_free_data_graphs_set(rasqal_data_graphs_set* set)
  *
  * In the current implementation no check is made that the graph
  * is added only once. So duplicate graphs may be added to the same set.
- * It is however possibly that the future implementation would not
+ * It is however possible that the future implementation would not
  * add a graph which is already in the set.
  *
  * Return value: non-0 on failure
@@ -120,7 +120,7 @@ rasqal_data_graphs_set_add_data_graph(rasqal_data_graphs_set* set, rasqal_data_g
  *
  * In the current implementation no check is made that the graph
  * is added only once. So duplicate graphs may be added to the same set.
- * It is however possibly that the future implementation would not
+ * It is however possible that the future implementation would not
  * add a graph which is already in the set.
  *
  * Return value: non-0 on failure

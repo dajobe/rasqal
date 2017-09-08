@@ -54,6 +54,18 @@ rasqal_data_graph_print
 </SECTION>
 
 <SECTION>
+<FILE>section-data-sets</FILE>
+rasqal_data_graphs_set_new
+rasqal_free_data_graphs_set
+rasqal_data_graphs_set_add_data_graph
+rasqal_data_graphs_set_add_data_graphs
+rasqal_data_graphs_set_get_data_graph_sequence
+rasqal_data_graphs_get_graphs_count
+rasqal_data_graphs_set_get_data_graph
+rasqal_data_graphs_set_dataset_contains_named_graph
+</SECTION>
+
+<SECTION>
 <FILE>section-expression</FILE>
 rasqal_expression
 rasqal_expression_flags
