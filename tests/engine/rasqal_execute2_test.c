@@ -197,6 +197,7 @@ main(int argc, char **argv) {
         rasqal_literal_print(value, stdout);
         printf(" expected value '%s'\n", value_answer);
         query_failed=1;
+        count++;
         break;
       }
 
@@ -208,9 +209,9 @@ main(int argc, char **argv) {
 
     printf("%s: query with dataset %d results count returned %d results\n", program, j,
            count);
-    if(count != tests[i].expected_count) {
+    if(count != tests[j].expected_count) {
       printf("%s: query execution with dataset %d FAILED returning %d results, expected %d\n",
-             program, j, count, tests[i].expected_count);
+             program, j, count, tests[j].expected_count);
       query_failed=1;
     }
 
