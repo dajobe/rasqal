@@ -42,44 +42,42 @@
 #ifdef RASQAL_QUERY_SPARQL
 
 
-#define DATA_GRAPH_COUNT 3
+#define DATA_GRAPH_COUNT 4
 static const char* graph_files[DATA_GRAPH_COUNT] = {
   "graph-a.ttl",
   "graph-b.ttl",
-  "graph-c.ttl"
+  "graph-c.ttl",
+  "one.nt"
 };
 
+static const char* query_language_name = "sparql";
 
 #define QUERY_VARIABLES_MAX_COUNT 1
 
 struct test
 {
-  const char *query_language;
-  const char *query_string;
   /* expected result count */
   int expected_count;
   /* data graph offsets (<0 for not used) */
   int data_graphs[DATA_GRAPH_COUNT];
   /* expected value answers */
   const char* value_answers[QUERY_VARIABLES_MAX_COUNT];
-  const char* value_var;
 };
 
-
-
-#define QUERY_COUNT 1
-
-
-static const struct test tests[QUERY_COUNT] = {
-  { /* query_language */ "sparql",
-    /* query_string */ "\
+static const unsigned char* query_string = (unsigned char*)"\
 SELECT (count(*) as ?count) WHERE {\
    ?s ?p ?o .\
-}",
-    /* expected_count */  1,
-    /* data_graphs */ { 0, 1, 2 },
-    /* value_answers */ { "9" },
-    /* value_var */ "count"
+}";
+
+#define DATASETS_COUNT 2
+static const struct test tests[DATASETS_COUNT] = {
+  { /* expected_count */  1,
+    /* data_graphs */ { 0, 1, 2, -1 },
+    /* value_answers */ { "9" }
+  },
+  { /* expected_count */  1,
+    /* data_graphs */ { 0, 3, -1, -1 },
+    /* value_answers */ { "4" }
   }
 };
 
@@ -106,10 +104,12 @@ main(int argc, char **argv) {
   unsigned char *data_dir_string;
   raptor_uri* data_dir_uri;
   unsigned char *uri_string;
-  int i, j;
+  int i, j, k;
   raptor_uri* graph_uris[DATA_GRAPH_COUNT];
   rasqal_world *world;
-  rasqal_data_graphs_set *graphs_set;
+  rasqal_query *query = NULL;
+  rasqal_data_graphs_set *graphs_set = NULL;
+  int query_failed=0;
 
   if(argc != 2) {
     fprintf(stderr, "USAGE: %s <path to data directory>\n", program);
@@ -130,6 +130,22 @@ main(int argc, char **argv) {
   data_dir_string=raptor_uri_filename_to_uri_string(argv[1]);
   data_dir_uri = raptor_new_uri(world->raptor_world_ptr, data_dir_string);
 
+  query=rasqal_new_query(world, query_language_name, NULL);
+  if(!query) {
+    fprintf(stderr, "%s: creating query in language %s FAILED\n",
+            program, query_language_name);
+    query_failed=1;
+    goto tidy_query;
+  }
+
+  printf("%s: preparing %s query\n", program, query_language_name);
+  if(rasqal_query_prepare(query, query_string, base_uri)) {
+    fprintf(stderr, "%s: %s query prepare FAILED\n", program,
+            query_language_name);
+    query_failed=1;
+    goto tidy_query;
+  }
+
   for(i=0; i < DATA_GRAPH_COUNT; i++)
 #ifdef RAPTOR_V2_AVAILABLE
     graph_uris[i] = raptor_new_uri_relative_to_base(world->raptor_world_ptr,
@@ -140,59 +156,39 @@ main(int argc, char **argv) {
                                                     (const unsigned char*)graph_files[i]);
 #endif
 
-  graphs_set = rasqal_data_graphs_set_new();
-  for(j=0; j < DATA_GRAPH_COUNT; j++) {
-    int offset=tests[0].data_graphs[j]; /* TODO */
-    if(offset >= 0) {
-      rasqal_data_graph* dg;
-      dg = rasqal_new_data_graph_from_uri(world,
-                                          /* source URI */ graph_uris[offset],
-                                          /* name URI */ NULL,
-                                          RASQAL_DATA_GRAPH_BACKGROUND,
-                                          NULL, NULL, NULL);
-      rasqal_data_graphs_set_add_data_graph(graphs_set, dg);
-    }
-  }
-
-  for(i=0; i < QUERY_COUNT; i++) {
-    rasqal_query *query = NULL;
-    rasqal_query_results *results = NULL;
-    const char *query_language_name=tests[i].query_language;
-    const unsigned char *query_string=(const unsigned char *)tests[i].query_string;
+  for(j=0; j < DATASETS_COUNT; ++j) {
     int count;
-    int query_failed=0;
+    rasqal_query_results *results = NULL;
 
-    query=rasqal_new_query(world, query_language_name, NULL);
-    if(!query) {
-      fprintf(stderr, "%s: creating query %d in language %s FAILED\n",
-              program, i, query_language_name);
-      query_failed=1;
-      goto tidy_query;
+    graphs_set = rasqal_data_graphs_set_new();
+    for(k=0; k < DATA_GRAPH_COUNT; k++) {
+      int offset=tests[j].data_graphs[k];
+      if(offset >= 0) {
+        rasqal_data_graph* dg;
+        dg = rasqal_new_data_graph_from_uri(world,
+                                            /* source URI */ graph_uris[offset],
+                                            /* name URI */ NULL,
+                                            RASQAL_DATA_GRAPH_BACKGROUND,
+                                            NULL, NULL, NULL);
+        rasqal_data_graphs_set_add_data_graph(graphs_set, dg);
+      }
     }
 
-    printf("%s: preparing %s query %d\n", program, query_language_name, i);
-    if(rasqal_query_prepare(query, query_string, base_uri)) {
-      fprintf(stderr, "%s: %s query prepare %d FAILED\n", program,
-              query_language_name, i);
-      query_failed=1;
-      goto tidy_query;
-    }
-
-    printf("%s: executing query %d\n", program, i);
+    printf("%s: executing query with dataset %d\n", program, j);
     results=rasqal_query_execute2(query, graphs_set);
     if(!results) {
-      fprintf(stderr, "%s: query execution %d FAILED\n", program, i);
+      fprintf(stderr, "%s: query execution with dataset %d FAILED\n", program, j);
       query_failed=1;
       goto tidy_query;
     }
 
-    printf("%s: checking query %d results\n", program, i);
+    printf("%s: checking query with dataset %d results\n", program, j);
     count=0;
     query_failed=0;
     while(results && !rasqal_query_results_finished(results)) {
       rasqal_literal *value;
-      const char *value_answer=tests[i].value_answers[count];
-      const unsigned char* value_var=(const unsigned char*)tests[i].value_var;
+      const char *value_answer=tests[j].value_answers[count];
+      const unsigned char* value_var=(const unsigned char*)"count";
 
       value=rasqal_query_results_get_binding_value_by_name(results,
                                                            value_var);
@@ -210,26 +206,29 @@ main(int argc, char **argv) {
     if(results)
       rasqal_free_query_results(results);
 
-    printf("%s: query %d results count returned %d results\n", program, i,
+    printf("%s: query with dataset %d results count returned %d results\n", program, j,
            count);
     if(count != tests[i].expected_count) {
-      printf("%s: query execution %d FAILED returning %d results, expected %d\n",
-             program, i, count, tests[i].expected_count);
+      printf("%s: query execution with dataset %d FAILED returning %d results, expected %d\n",
+             program, j, count, tests[i].expected_count);
       query_failed=1;
     }
 
-  tidy_query:
-
-    rasqal_free_query(query);
-    rasqal_free_data_graphs_set(graphs_set);
-
     if(!query_failed)
-      printf("%s: query %d OK\n", program, i);
+      printf("%s: query with dataset %d OK\n", program, j);
     else {
-      printf("%s: query %d FAILED\n", program, i);
+      printf("%s: query with dataset %d FAILED\n", program, j);
       failures++;
     }
+
+    rasqal_free_data_graphs_set(graphs_set);
+    graphs_set = NULL;
   }
+
+tidy_query:
+
+  rasqal_free_query(query);
+  if(graphs_set) rasqal_free_data_graphs_set(graphs_set);
 
   for(i=0; i < DATA_GRAPH_COUNT; i++) {
     if(graph_uris[i])
