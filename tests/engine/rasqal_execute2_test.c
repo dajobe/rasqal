@@ -63,7 +63,6 @@ struct test
   /* expected value answers */
   const char* value_answers[QUERY_VARIABLES_MAX_COUNT];
   const char* value_var;
-//   const char* graph_var;
 };
 
 
@@ -192,11 +191,7 @@ main(int argc, char **argv) {
     query_failed=0;
     while(results && !rasqal_query_results_finished(results)) {
       rasqal_literal *value;
-      rasqal_literal *graph_value;
-      raptor_uri* graph_uri;
       const char *value_answer=tests[i].value_answers[count];
-//       raptor_uri* graph_answer=graph_uris[tests[i].graph_answers[count]];
-//       const unsigned char* graph_var=(const unsigned char*)tests[i].graph_var;
       const unsigned char* value_var=(const unsigned char*)tests[i].value_var;
 
       value=rasqal_query_results_get_binding_value_by_name(results,
