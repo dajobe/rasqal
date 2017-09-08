@@ -148,8 +148,8 @@ main(int argc, char **argv) {
       rasqal_data_graph* dg;
       dg = rasqal_new_data_graph_from_uri(world,
                                           /* source URI */ graph_uris[offset],
-                                          /* name URI */ graph_uris[offset],
-                                          RASQAL_DATA_GRAPH_NAMED,
+                                          /* name URI */ NULL,
+                                          RASQAL_DATA_GRAPH_BACKGROUND,
                                           NULL, NULL, NULL);
       rasqal_data_graphs_set_add_data_graph(graphs_set, dg);
     }
