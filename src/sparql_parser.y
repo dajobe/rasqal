@@ -137,6 +137,7 @@ new_op_expr(rasqal_op op, rasqal_expression *expr)
 }
 
 
+/* Must match raptor_data_free_handler signature */
 static void
 free_op_expr(sparql_op_expr* oe)
 {
@@ -145,7 +146,8 @@ free_op_expr(sparql_op_expr* oe)
   RASQAL_FREE(sparql_op_expr*, oe);
 }
 
-static void
+/* Must match raptor_data_print_handler signature */
+static int
 print_op_expr(sparql_op_expr* oe, FILE* fh)
 {
   fputs("<op ", fh);
@@ -156,6 +158,8 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
   else
     fputs("NULL", fh);
   fputs(">", fh);
+
+  return 0;
 }
 
 
