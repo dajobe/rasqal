@@ -114,6 +114,8 @@
 #include <sparql_common.h>
 
 
+#define YYSTYPE SPARQL_PARSER_STYPE
+
 /* Set RASQAL_DEBUG to 2 for verbose lexing (when building this as
  * sparql_lexer_test) and 3 for super verbose
  */
@@ -177,6 +179,7 @@ void sparql_lexer_set_column(int column_no, yyscan_t yyscanner);
 int sparql_lexer_get_column(yyscan_t yyscanner);
 #endif
 
+#define yycleanup sparql_lexer_cleanup
 static void sparql_lexer_cleanup(yyscan_t yyscanner);
 
 /* Remove the re-fill function since it should never be called */

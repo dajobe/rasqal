@@ -43,6 +43,7 @@
 #include <sparql_parser.h>
 
 #define YY_NO_UNISTD_H 1
+#undef yylex
 #include <sparql_lexer.h>
 
 #include <sparql_common.h>
@@ -169,8 +170,10 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
 /* File prefix (bison -b) */
 %file-prefix "sparql_parser"
 
-/* Symbol prefix (bison -d : deprecated) */
-%name-prefix "sparql_parser_"
+/* Bison 2.6+ : Symbol prefix */
+%define api.prefix {sparql_parser_}
+/* Bison 3.4+ :  Generated header file */
+%define api.header.include {<sparql_parser.h>}
 
 /* Write parser header file with macros (bison -d) */
 %defines
