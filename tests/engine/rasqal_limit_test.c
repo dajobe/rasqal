@@ -175,14 +175,14 @@ main(int argc, char **argv) {
           snprintf(off, LIM_OFF_BUF_SIZE, "OFFSET %d", test->offset);
         else
           *off = '\0';
-        IGNORE_FORMAT_NONLITERAL_START
+        PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START
         snprintf((char*)query_string, qs_len, query_format, data_string, lim, off);
-        IGNORE_FORMAT_NONLITERAL_END
+        PRAGMA_IGNORE_WARNING_END
       }
       else {
-        IGNORE_FORMAT_NONLITERAL_START
+        PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START
         snprintf((char*)query_string, qs_len, query_format, data_string);
-        IGNORE_FORMAT_NONLITERAL_END
+        PRAGMA_IGNORE_WARNING_END
       }
       raptor_free_memory(data_string);
 
