@@ -194,7 +194,8 @@ void rasqal_system_free(void *ptr);
 #define PRAGMA_IGNORE_WARNING_END \
   _Pragma ("GCC diagnostic pop")
 #define FALLTHROUGH_IS_OK
-   __attribute__((fallthrough))
+   __attribute__((fallthrough));
+/* C++17 should be: [[fallthrough]] */
 #else
 #define PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START
 #define PRAGMA_IGNORE_WARNING_END
