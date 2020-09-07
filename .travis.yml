@@ -3,7 +3,12 @@
 #   http://docs.travis-ci.com/user/languages/c/
 #   http://docs.travis-ci.com/user/build-configuration/
 #   http://docs.travis-ci.com/user/multi-os/
+#   https://docs.travis-ci.com/user/build-matrix/
 #
+
+# focal: Ubuntu 20.04 LTS
+# bionic: Ubuntu 18.04 LTS
+dist: focal
 
 language: c
 
@@ -11,41 +16,66 @@ branches:
   only:
     - master
 
-# matrix of compilers
-compiler:
-  - gcc
-  - clang
-  - c++
-
-# matrix of OSes (feature flagged; not enabled now)
-os:
-  - linux
-  - osx
-
 # matrix of raptor versions
 env:
-  - RAPTOR_INSTALL_VERSION=2.0.7
   - RAPTOR_INSTALL_VERSION=2.0.15
 
-# overall matrix configuration
 matrix:
+  include:
+    - name "gcc on Linux"
+      os: linux
+      compiler: gcc
+    - name "clang on Linux"
+      os: linux
+      compiler: clang
+    - name "c++ on Linux"
+      os: linux
+      compiler: c++
+    - name "clang on OSX"
+      os: osx
+      compiler: clang
+    - name "cmake on Linux"
+      os: linux
+      compiler: gcc
+      env: BUILD_CMAKE=yes EXPERIMENTAL=yes
+    - name "gcc on Linux ppc"
+      os: linux
+      compiler: gcc
+      arch: ppc64le
+      dist: bionic
+      env: EXPERIMENTAL=yes
+    - name "gcc on Linux arm"
+      os: linux
+      compiler: gcc
+      arch: arm64
+      dist: bionic
+      env: EXPERIMENTAL=yes
+# windows env has no automake, autoconf via chocolately
+#    - name "windows"
+#      os: windows
+#      env: EXPERIMENTAL=yes
   allow_failures:
-    - os: osx
+    - env: EXPERIMENTAL=yes
 
-  exclude:
-    - compiler: c++
-      env: RAPTOR_INSTALL_VERSION=2.0.7
-    - compiler: clang
-      env: RAPTOR_INSTALL_VERSION=2.0.7
 
+before_install:
+  - if [ "$TRAVIS_OS_NAME" = "" ]; then TRAVIS_OS_NAME=linux; fi
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then BUILD_CMAKE="yes"; fi
+  - env | sort
 
 # Install raptor extra dependencies too (libyajl-dev) since we build
 # raptor from a tarball
 install:
-  - env | sort
-  - if [ "$TRAVIS_OS_NAME" = "" ]; then TRAVIS_OS_NAME=linux; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./scripts/install-bison3.sh; sudo apt-get update -qq -y; sudo apt-get install -qq -y gtk-doc-tools libraptor2-dev libgmp-dev libmhash-dev libpcre3-dev uuid-dev libyajl-dev; fi
-  - raptor_min_version=`awk -F= '/RAPTOR_MIN_VERSION=/{print $2}' configure.ac` && ./scripts/install-raptor.sh $raptor_min_version $RAPTOR_INSTALL_VERSION
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update; brew install raptor bison gtk-doc yajl; fi
+  - raptor_min_version=$(awk -F= '/RAPTOR_MIN_VERSION=/{print $2}' configure.ac) && ./scripts/install-raptor.sh $raptor_min_version $RAPTOR_INSTALL_VERSION
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update; brew install raptor bison gtk-doc yajl; ln -sf /usr/local/Cellar/bison/*/bin/bison /usr/local/bin/bison; fi
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install WinFlexBison; fi
 
-script: ./autogen.sh && make && make test
+script:
+  - |
+    ./autogen.sh --disable-gtk-doc
+    if [ "$BUILD_CMAKE" = yes ]; then
+      mkdir -p work && cd work && cmake .. && make && ctest
+    else
+      make && make test
+    fi
