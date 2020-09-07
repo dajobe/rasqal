@@ -99,7 +99,7 @@ main(int argc, char **argv) {
   data_string = raptor_uri_filename_to_uri_string(data_file);
   qs_len = strlen(RASQAL_GOOD_CAST(const char*, data_string)) + strlen(query_format);
   query_string = RASQAL_MALLOC(unsigned char*, qs_len + 1);
-  oPRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START
+  PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START
   snprintf(RASQAL_GOOD_CAST(char*, query_string), qs_len, query_format, data_string);
   PRAGMA_IGNORE_WARNING_END
   raptor_free_memory(data_string);
