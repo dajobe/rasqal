@@ -492,8 +492,12 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type,
       if(d >= (double)INT_MIN && d <= (double)INT_MAX)
         return rasqal_new_integer_literal(world, type, RASQAL_GOOD_CAST(int, d));
 
-      /* otherwise FALLTHROUGH and make it a decimal */
+      /* otherwise FALLTHROUGH and make it a decimal. */
 
+      /* The next comment is for GCC and other compilers to ignore this.
+       * See -Wimplicit-fallthrough documentation */
+    FALLTHROUGH_IS_OK
+      /* FALLTHRU */
     case RASQAL_LITERAL_DECIMAL:
       sprintf(buffer, "%g", d);
       return rasqal_new_decimal_literal(world, RASQAL_GOOD_CAST(unsigned char*, buffer));

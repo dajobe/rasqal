@@ -188,14 +188,17 @@ void rasqal_system_free(void *ptr);
  * #if defined __STDC_VERSION__ && (__STDC_VERSION__ >= 199901L)
  */
 #if defined __GNUC__ && 460 <= __GNUC__ * 100 + __GNUC_MINOR__
-#define IGNORE_FORMAT_NONLITERAL_START \
+#define PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START \
   _Pragma ("GCC diagnostic push") \
   _Pragma ("GCC diagnostic ignored \"-Wformat-nonliteral\"")
-#define IGNORE_FORMAT_NONLITERAL_END \
+#define PRAGMA_IGNORE_WARNING_END \
   _Pragma ("GCC diagnostic pop")
+#define FALLTHROUGH_IS_OK
+   __attribute__((fallthrough)
 #else
-#define IGNORE_FORMAT_NONLITERAL_START
-#define IGNORE_FORMAT_NONLITERAL_END
+#define PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START
+#define PRAGMA_IGNORE_WARNING_END
+#define FALLTHROUGH_IS_OK
 #endif
 
 /* Fatal errors - always happen */
