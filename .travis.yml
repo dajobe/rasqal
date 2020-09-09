@@ -67,7 +67,6 @@ install:
 
     case "$TRAVIS_OS_NAME" in
       osx)
-        brew update
         brew install bison gtk-doc yajl raptor
         ln -sf /usr/local/Cellar/bison/*/bin/bison /usr/local/bin/bison
         ./scripts/install-bison3.sh
