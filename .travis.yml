@@ -30,10 +30,6 @@ matrix:
     - name: "clang on OSX"
       os: osx
       compiler: clang
-    - name: "cmake on Linux"
-      os: linux
-      compiler: gcc
-      env: BUILD_CMAKE=yes EXPERIMENTAL=yes
     - name: "gcc on Linux ppc"
       os: linux
       compiler: gcc
