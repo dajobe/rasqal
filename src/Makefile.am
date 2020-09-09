@@ -206,8 +206,10 @@ if MAINTAINER_MODE
 sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/../scripts/fix-flex.pl
 	$(AM_V_GEN) \
 	$(LEX) -o$@ $(srcdir)/sparql_lexer.l; \
-	$(PERL) $(srcdir)/../scripts/fix-flex.pl $@ > sparql_lexer.t; \
-	mv sparql_lexer.t $@
+	for file in sparql_lexer.c sparql_lexer.h; do \
+	  $(PERL) $(top_srcdir)/scripts/fix-flex.pl $$file > sparql_lexer.t || rm -f $$file; \
+	  mv -f sparql_lexer.t $$file; \
+	done
 
 sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/../scripts/fix-bison.pl
 	$(AM_V_GEN) \

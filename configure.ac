@@ -421,6 +421,7 @@ fi
 
 # raptor V2 is REQUIRED; --enable-raptor2 option was removed
 RAPTOR_MIN_VERSION=2.0.7
+RAPTOR_REC_VERSION=2.0.15
 
 
 PKG_PROG_PKG_CONFIG
