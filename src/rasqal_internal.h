@@ -193,7 +193,7 @@ void rasqal_system_free(void *ptr);
   _Pragma ("GCC diagnostic ignored \"-Wformat-nonliteral\"")
 #define PRAGMA_IGNORE_WARNING_END \
   _Pragma ("GCC diagnostic pop")
-#define FALLTHROUGH_IS_OK
+#define FALLTHROUGH_IS_OK \
    __attribute__((fallthrough));
 /* C++17 should be: [[fallthrough]] */
 #else
