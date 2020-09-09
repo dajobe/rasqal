@@ -420,8 +420,11 @@ fi
 
 
 # raptor V2 is REQUIRED; --enable-raptor2 option was removed
-RAPTOR_MIN_VERSION=2.0.7
-RAPTOR_REC_VERSION=2.0.15
+RAPTOR2_MIN_VERSION=2.0.7
+RAPTOR2_REC_VERSION=2.0.15
+
+# used in this file to substitute a variable
+RAPTOR_MIN_VERSION="$RAPTOR2_MIN_VERSION"
 
 
 PKG_PROG_PKG_CONFIG
