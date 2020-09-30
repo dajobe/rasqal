@@ -213,10 +213,8 @@ sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/../scripts/fi
 
 sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/../scripts/fix-bison.pl
 	$(AM_V_GEN) \
-	$(BISON) $(srcdir)/sparql_parser.y; \
-	$(PERL) $(srcdir)/../scripts/fix-bison.pl sparql_parser.tab.c > $@; \
-	mv sparql_parser.tab.h sparql_parser.h; \
-	rm -f sparql_parser.tab.c
+	$(BISON) -o $@ $(srcdir)/sparql_parser.y
+	$(PERL) $(top_srcdir)/scripts/fix-bison.pl $@
 
 sparql_lexer.h: sparql_lexer.c ; @exit 0
 sparql_parser.h: sparql_parser.c ; @exit 0

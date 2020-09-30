@@ -305,221 +305,207 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
 %token ASSIGN ":="
 
 /* string */
-%token <name> STRING "string"
-%token <name> LANGTAG "langtag"
+%token
+  <name>
+    STRING "string"
+    LANGTAG "langtag"
 
 /* literals */
-%token <literal> DOUBLE_LITERAL "double literal"
-%token <literal> DOUBLE_POSITIVE_LITERAL "double positive literal"
-%token <literal> DOUBLE_NEGATIVE_LITERAL "double negative literal"
-%token <literal> INTEGER_LITERAL "integer literal"
-%token <literal> INTEGER_POSITIVE_LITERAL "integer positive literal"
-%token <literal> INTEGER_NEGATIVE_LITERAL "integer negative literal"
-%token <literal> DECIMAL_LITERAL "decimal literal"
-%token <literal> DECIMAL_POSITIVE_LITERAL "decimal positive literal"
-%token <literal> DECIMAL_NEGATIVE_LITERAL "decimal negative literal"
-%token <literal> BOOLEAN_LITERAL "boolean literal"
+%token
+  <literal>
+    DOUBLE_LITERAL "double literal"
+    DOUBLE_POSITIVE_LITERAL "double positive literal"
+    DOUBLE_NEGATIVE_LITERAL "double negative literal"
+    INTEGER_LITERAL "integer literal"
+    INTEGER_POSITIVE_LITERAL "integer positive literal"
+    INTEGER_NEGATIVE_LITERAL "integer negative literal"
+    DECIMAL_LITERAL "decimal literal"
+    DECIMAL_POSITIVE_LITERAL "decimal positive literal"
+    DECIMAL_NEGATIVE_LITERAL "decimal negative literal"
+    BOOLEAN_LITERAL "boolean literal"
 
-%token <uri> URI_LITERAL "URI literal"
-%token <uri> URI_LITERAL_BRACE "URI literal ("
+%token
+  <uri>
+    URI_LITERAL "URI literal"
+    URI_LITERAL_BRACE "URI literal ("
 
-%token <name> QNAME_LITERAL "QName literal"
-%token <name> QNAME_LITERAL_BRACE "QName literal ("
-%token <name> BLANK_LITERAL "blank node literal"
-%token <name> IDENTIFIER "identifier"
+%token
+  <name>
+    QNAME_LITERAL "QName literal"
+    QNAME_LITERAL_BRACE "QName literal ("
+    BLANK_LITERAL "blank node literal"
+    IDENTIFIER "identifier"
 
+%type
+  <seq>
+    ConstructQuery DescribeQuery
+    VarOrIRIrefList ArgListNoBraces ArgList
+    ConstructTriples ConstructTriplesOpt
+    ConstructTemplate OrderConditionList GroupConditionList
+    HavingConditionList
+    GraphNodeListNotEmpty SelectExpressionListTail
+    ModifyTemplateList
+    IriRefList
+    ParamsOpt
+    ExpressionList
+    DataBlockValueList DataBlockValueListOpt
+    DataBlockRowList DataBlockRowListOpt
+    DatasetClauseList DatasetClauseListOpt
+    VarList VarListOpt
+    GroupClauseOpt HavingClauseOpt OrderClauseOpt
+    GraphTemplate ModifyTemplate
+    AdExOpExpressionListInner AdExOpExpressionListOuter
+    AdExOpUnaryExpressionList AdExOpUnaryExpressionListOpt
+    MuExOpUnaryExpressionList
 
-%type <seq> ConstructQuery DescribeQuery
-%type <seq> VarOrIRIrefList ArgListNoBraces ArgList
-%type <seq> ConstructTriples ConstructTriplesOpt
-%type <seq> ConstructTemplate OrderConditionList GroupConditionList
-%type <seq> HavingConditionList
-%type <seq> GraphNodeListNotEmpty SelectExpressionListTail
-%type <seq> ModifyTemplateList
-%type <seq> IriRefList
-%type <seq> ParamsOpt
-%type <seq> ExpressionList
-%type <seq> DataBlockValueList DataBlockValueListOpt DataBlockRowList DataBlockRowListOpt
-%type <seq> DatasetClauseList DatasetClauseListOpt
-%type <seq> VarList VarListOpt
-%type <seq> GroupClauseOpt HavingClauseOpt OrderClauseOpt
-%type <seq> GraphTemplate ModifyTemplate
-%type <seq> AdExOpExpressionListInner AdExOpExpressionListOuter AdExOpUnaryExpressionList AdExOpUnaryExpressionListOpt MuExOpUnaryExpressionList
+%type
+  <data_graph>
+    DatasetClause DefaultGraphClause NamedGraphClause
 
-%type <data_graph> DatasetClause DefaultGraphClause NamedGraphClause
+%type
+  <update>
+    GraphTriples
 
-%type <update> GraphTriples
+%type
+  <formula>
+    TriplesSameSubject
+    PropertyList PropertyListTailOpt PropertyListNotEmpty
+    ObjectList ObjectTail Collection
+    VarOrTerm Verb Object GraphNode TriplesNode
+    BlankNodePropertyList
+    TriplesBlock TriplesBlockOpt
 
-%type <formula> TriplesSameSubject
-%type <formula> PropertyList PropertyListTailOpt PropertyListNotEmpty
-%type <formula> ObjectList ObjectTail Collection
-%type <formula> VarOrTerm Verb Object GraphNode TriplesNode
-%type <formula> BlankNodePropertyList
-%type <formula> TriplesBlock TriplesBlockOpt
+%type
+  <graph_pattern>
+    SelectQuery
+    GroupGraphPattern SubSelect GroupGraphPatternSub
+    GraphGraphPattern OptionalGraphPattern MinusGraphPattern
+    GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
+    GraphPatternNotTriples
+    GraphPatternListOpt GraphPatternList GraphPatternListFilter
+    LetGraphPattern Bind ServiceGraphPattern
+    WhereClause WhereClauseOpt
+    InlineDataGraphPattern
 
-%type <graph_pattern> SelectQuery
-%type <graph_pattern> GroupGraphPattern SubSelect GroupGraphPatternSub
-%type <graph_pattern> GraphGraphPattern OptionalGraphPattern MinusGraphPattern
-%type <graph_pattern> GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
-%type <graph_pattern> GraphPatternNotTriples
-%type <graph_pattern> GraphPatternListOpt GraphPatternList GraphPatternListFilter
-%type <graph_pattern> LetGraphPattern Bind ServiceGraphPattern
-%type <graph_pattern> WhereClause WhereClauseOpt
-%type <graph_pattern> InlineDataGraphPattern
+%type
+  <expr>
+    Expression ConditionalOrExpression ConditionalAndExpression
+    RelationalExpression AdditiveExpression
+    MultiplicativeExpression UnaryExpression
+    BuiltInCall RegexExpression FunctionCall StringExpression
+    DatetimeBuiltinAccessors DatetimeExtensions
+    BrackettedExpression PrimaryExpression
+    OrderCondition GroupCondition
+    Filter Constraint HavingCondition
+    AggregateExpression CountAggregateExpression SumAggregateExpression
+    AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
+    CoalesceExpression GroupConcatAggregateExpression
+    SampleAggregateExpression ExpressionOrStar
 
-%type <expr> Expression ConditionalOrExpression ConditionalAndExpression
-%type <expr> RelationalExpression AdditiveExpression
-%type <expr> MultiplicativeExpression UnaryExpression
-%type <expr> BuiltInCall RegexExpression FunctionCall StringExpression
-%type <expr> DatetimeBuiltinAccessors DatetimeExtensions
-%type <expr> BrackettedExpression PrimaryExpression
-%type <expr> OrderCondition GroupCondition
-%type <expr> Filter Constraint HavingCondition
-%type <expr> AggregateExpression CountAggregateExpression SumAggregateExpression
-%type <expr> AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
-%type <expr> CoalesceExpression GroupConcatAggregateExpression
-%type <expr> SampleAggregateExpression ExpressionOrStar
+%type
+  <literal>
+    GraphTerm IRIref RDFLiteral BlankNode
+    VarOrIRIref
+    IRIrefBrace SourceSelector
+    NumericLiteral NumericLiteralUnsigned
+    NumericLiteralPositive NumericLiteralNegative
+    SeparatorOpt
+    DataBlockValue
 
-%type <literal> GraphTerm IRIref RDFLiteral BlankNode
-%type <literal> VarOrIRIref
-%type <literal> IRIrefBrace SourceSelector
-%type <literal> NumericLiteral NumericLiteralUnsigned
-%type <literal> NumericLiteralPositive NumericLiteralNegative
-%type <literal> SeparatorOpt
-%type <literal> DataBlockValue
+%type
+  <variable>
+    Var VarName VarOrBadVarName SelectTerm AsVarOpt
 
-%type <variable> Var VarName VarOrBadVarName SelectTerm AsVarOpt
+%type
+  <uri>
+    GraphRef GraphOrDefault OldGraphRef
 
-%type <uri> GraphRef GraphOrDefault OldGraphRef
+%type
+  <uinteger>
+    DistinctOpt
 
-%type <uinteger> DistinctOpt
+%type
+  <row>
+    DataBlockRow
 
-%type <row> DataBlockRow
+%type
+  <modifier>
+    SolutionModifier
 
-%type <modifier> SolutionModifier
+%type
+  <limit_offset>
+    LimitOffsetClausesOpt
 
-%type <limit_offset> LimitOffsetClausesOpt
+%type
+  <integer>
+    LimitClause OffsetClause SilentOpt 
 
-%type <integer> LimitClause OffsetClause
-%type <integer> SilentOpt 
+%type
+  <uri_applies>
+    GraphRefAll
 
-%type <uri_applies> GraphRefAll
+%type
+  <projection>
+    SelectClause SelectExpressionList
 
-%type <projection> SelectClause SelectExpressionList
+%type
+  <bindings>
+    InlineData InlineDataOneVar InlineDataFull DataBlock ValuesClauseOpt
 
-%type <bindings> InlineData InlineDataOneVar InlineDataFull DataBlock ValuesClauseOpt
-
-%type <op_expr> AdExOpUnaryExpression MuExOpUnaryExpression
+%type
+  <op_expr>
+    AdExOpUnaryExpression MuExOpUnaryExpression
 
 
 %destructor {
   if($$)
     rasqal_free_literal($$);
-}
-DOUBLE_LITERAL INTEGER_LITERAL DECIMAL_LITERAL
-DOUBLE_POSITIVE_LITERAL DOUBLE_NEGATIVE_LITERAL
-INTEGER_POSITIVE_LITERAL INTEGER_NEGATIVE_LITERAL
-DECIMAL_POSITIVE_LITERAL DECIMAL_NEGATIVE_LITERAL
-BOOLEAN_LITERAL
+} <literal>
 
 %destructor {
   if($$)
     raptor_free_uri($$);
-}
-URI_LITERAL URI_LITERAL_BRACE
+} <uri>
 
 %destructor {
   if($$)
     free_uri_applies($$);
-} GraphRefAll
+} <uri_applies>
 
 %destructor {
   if($$)
     RASQAL_FREE(char*, $$);
-}
-STRING LANGTAG QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
+} <name>
 
 %destructor {
   if($$)
     raptor_free_sequence($$);
-}
-ConstructQuery DescribeQuery
-VarOrIRIrefList ArgListNoBraces ArgList
-ConstructTriples ConstructTriplesOpt
-ConstructTemplate OrderConditionList GroupConditionList
-HavingConditionList
-GraphNodeListNotEmpty SelectExpressionListTail
-ModifyTemplateList IriRefList ParamsOpt
-DataBlockValueList DataBlockValueListOpt DataBlockRowList DataBlockRowListOpt
-DatasetClauseList DatasetClauseListOpt
-VarList VarListOpt
-GroupClauseOpt HavingClauseOpt OrderClauseOpt
-GraphTemplate ModifyTemplate
-AdExOpExpressionListInner AdExOpExpressionListOuter AdExOpUnaryExpressionList AdExOpUnaryExpressionListOpt MuExOpUnaryExpressionList
+} <seq>
 
 %destructor {
   if($$)
     rasqal_free_update_operation($$);
-}
-GraphTriples 
+} <update>
 
 %destructor {
   if($$)
     rasqal_free_formula($$);
-}
-TriplesSameSubject
-PropertyList PropertyListTailOpt PropertyListNotEmpty
-ObjectList ObjectTail Collection
-VarOrTerm Verb Object GraphNode TriplesNode
-BlankNodePropertyList
-TriplesBlock TriplesBlockOpt
+} <formula>
 
 %destructor {
   if($$)
     rasqal_free_graph_pattern($$);
-}
-SelectQuery
-GroupGraphPattern SubSelect GroupGraphPatternSub
-GraphGraphPattern OptionalGraphPattern MinusGraphPattern
-GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
-GraphPatternNotTriples
-GraphPatternListOpt GraphPatternList GraphPatternListFilter
-LetGraphPattern Bind ServiceGraphPattern
-InlineDataGraphPattern
+} <graph_pattern>
 
 %destructor {
   if($$)
     rasqal_free_expression($$);
-}
-Expression ConditionalOrExpression ConditionalAndExpression
-RelationalExpression AdditiveExpression
-MultiplicativeExpression UnaryExpression
-BuiltInCall RegexExpression FunctionCall
-DatetimeBuiltinAccessors DatetimeExtensions
-BrackettedExpression PrimaryExpression
-OrderCondition GroupCondition
-Filter Constraint HavingCondition
-AggregateExpression CountAggregateExpression SumAggregateExpression
-AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
-CoalesceExpression GroupConcatAggregateExpression
-SampleAggregateExpression ExpressionOrStar
-
-%destructor {
-  if($$)
-    rasqal_free_literal($$);
-}
-GraphTerm IRIref RDFLiteral BlankNode DataBlockValue
-VarOrIRIref
-IRIrefBrace SourceSelector
-NumericLiteral NumericLiteralUnsigned
-NumericLiteralPositive NumericLiteralNegative
-SeparatorOpt
+} <expr>
 
 %destructor {
   if($$)
     rasqal_free_variable($$);
-}
-Var VarName SelectTerm AsVarOpt
+} <variable>
 
 %destructor {
   if($$)
