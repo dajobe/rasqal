@@ -108,7 +108,7 @@ main(int argc, char **argv) {
   base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
   raptor_free_memory(uri_string);
 
-  query=rasqal_new_query(world, query_language_name, NULL);
+  query = rasqal_new_query(world, query_language_name, NULL);
   if(!query) {
     fprintf(stderr, "%s: creating query in language %s FAILED\n", program,
             query_language_name);
@@ -117,6 +117,7 @@ main(int argc, char **argv) {
 
   printf("%s: preparing %s query\n", program, query_language_name);
   if(rasqal_query_prepare(query, query_string, base_uri)) {
+    RASQAL_FREE(char*, query_string);
     fprintf(stderr, "%s: %s query prepare FAILED\n", program, 
             query_language_name);
     return(1);
@@ -125,7 +126,7 @@ main(int argc, char **argv) {
   RASQAL_FREE(char*, query_string);
 
   printf("%s: executing query #1\n", program);
-  results=rasqal_query_execute(query);
+  results = rasqal_query_execute(query);
   if(!results) {
     fprintf(stderr, "%s: query execution 1 FAILED\n", program);
     return(1);
