@@ -289,10 +289,8 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 #endif
 
   row = rasqal_new_row(rowsource);
-  if(!row) {
-    error = RASQAL_ENGINE_FAILED;
+  if(!row)
     goto done;
-  }
 
   for(i = 0; i < row->size; i++) {
     rasqal_variable* v;
