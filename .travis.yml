@@ -42,6 +42,10 @@ matrix:
       arch: arm64
       dist: bionic
       env: EXPERIMENTAL=yes
+    - name: "clang ASAN on Linux"
+      os: linux
+      compiler: clang
+      env: CFLAGS="-fsanitize=address -O1 -fno-omit-frame-pointer -g3" EXPERIMENTAL=yes
     # windows env has no automake, autoconf via chocolately
     # - name: "windows"
     #   os: windows
