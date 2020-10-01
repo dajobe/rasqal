@@ -508,6 +508,7 @@ main(int argc, char *argv[])
   uri_string = raptor_uri_filename_to_uri_string("");
   base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
   raptor_free_memory(uri_string);
+  rasqal_free_query(query);
 
   query = rasqal_new_query(world, query_language_name, NULL);
   if(!query) {
