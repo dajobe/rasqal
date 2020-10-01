@@ -35,23 +35,20 @@ matrix:
       compiler: gcc
       arch: ppc64le
       dist: bionic
-      env: EXPERIMENTAL=yes
     - name: "gcc on Linux arm"
       os: linux
       compiler: gcc
       arch: arm64
       dist: bionic
-      env: EXPERIMENTAL=yes
     - name: "clang ASAN on Linux"
       os: linux
       compiler: clang
-      env: CFLAGS="-fsanitize=address -O1 -fno-omit-frame-pointer -g3" EXPERIMENTAL=yes
+      env: CFLAGS="-fsanitize=address -O1 -fno-omit-frame-pointer -g3"
     # windows env has no automake, autoconf via chocolately
     # - name: "windows"
     #   os: windows
-    #   env: EXPERIMENTAL=yes
   allow_failures:
-    - env: EXPERIMENTAL=yes
+    - env: CFLAGS="-fsanitize=address -O1 -fno-omit-frame-pointer -g3"
 
 install:
   - |
