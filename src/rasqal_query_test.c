@@ -110,6 +110,7 @@ main(int argc, char **argv) {
 
   query = rasqal_new_query(world, query_language_name, NULL);
   if(!query) {
+    RASQAL_FREE(char*, query_string);
     fprintf(stderr, "%s: creating query in language %s FAILED\n", program,
             query_language_name);
     return(1);
