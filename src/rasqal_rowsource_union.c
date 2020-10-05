@@ -54,7 +54,8 @@ typedef struct
   /* array of size (number of variables in @right) with this row offset value */
   int* right_map;
 
-  /* array of size (number of variables in @right) holding right row temporarily */
+  /* array of size (number of variables in @right) holding right row
+   * temporarily - no extra reference count is added */
   rasqal_literal** right_tmp_values;
 
   /* 0 = reading from left rs, 1 = reading from right rs, 2 = finished */
@@ -167,7 +168,7 @@ rasqal_union_rowsource_adjust_right_row(rasqal_rowsource *rowsource,
   rasqal_rowsource *right_rowsource = con->right;
   int i;
 
-  /* save right row values */
+  /* save right row values - without adding a reference count */
   for(i = 0; i < right_rowsource->size; i++)
     con->right_tmp_values[i] = row->values[i];
 
