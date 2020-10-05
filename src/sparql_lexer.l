@@ -493,15 +493,18 @@ EXPONENT [eE][+-]?[0-9]+
 
 ":="         { return ASSIGN; }
 
-{LANGTAG} {
-			yylval->name = RASQAL_MALLOC(unsigned char*, yyleng);
-                        if(!yylval->name)
-                          YY_REPORT_ERROR_EOF("Out of memory");
+{LANGTAG} {  /* this if is for clang, it thinks yyleng can be 0 */
+             if(yyleng) {
+               yylval->name = RASQAL_MALLOC(unsigned char*, yyleng);
+               if(!yylval->name)
+                 YY_REPORT_ERROR_EOF("Out of memory");
 
-                        memcpy(yylval->name, yytext + 1, yyleng - 1);
-                        yylval->name[yyleng - 1] = '\0';
-                  return LANGTAG;
-		}
+               memcpy(yylval->name, yytext + 1, yyleng - 1);
+               yylval->name[yyleng - 1] = '\0';
+             }
+
+             return LANGTAG;
+          }
 
 "^^"         { return HATHAT; }
 
