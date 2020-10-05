@@ -1074,6 +1074,10 @@ sparql_stringbuffer_append_sparql_string(rasqal_query* rq,
   /* calculate output string size */
   len = d-string;
   
+#ifdef __clang_analyzer__
+  /* clang --analyze does not know about ownership of next call */
+  free(string); string = NULL;
+#endif
   /* string gets owned by the stringbuffer after this */
   return raptor_stringbuffer_append_counted_string(stringbuffer, 
                                                    string, len, 0);
