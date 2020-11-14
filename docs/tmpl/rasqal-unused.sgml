@@ -1,0 +1,74 @@
+<!-- ##### USER_FUNCTION bind_match ##### -->
+<para>
+
+</para>
+
+@rtm: 
+@user_data: 
+@bindings: 
+@parts: 
+@Returns: 
+
+<!-- ##### USER_FUNCTION finish ##### -->
+<para>
+
+</para>
+
+@rtm: 
+@user_data: 
+
+<!-- ##### USER_FUNCTION free_triples_source ##### -->
+<para>
+
+</para>
+
+@user_data: 
+
+<!-- ##### USER_FUNCTION init_triples_match ##### -->
+<para>
+
+</para>
+
+@rtm: 
+@rts: 
+@user_data: 
+@m: 
+@t: 
+@Returns: 
+
+<!-- ##### USER_FUNCTION is_end ##### -->
+<para>
+
+</para>
+
+@rtm: 
+@user_data: 
+@Returns: 
+
+<!-- ##### USER_FUNCTION next_match ##### -->
+<para>
+
+</para>
+
+@rtm: 
+@user_data: 
+
+<!-- ##### USER_FUNCTION support_feature ##### -->
+<para>
+
+</para>
+
+@user_data: 
+@feature: 
+@Returns: 
+
+<!-- ##### USER_FUNCTION triple_present ##### -->
+<para>
+
+</para>
+
+@rts: 
+@user_data: 
+@t: 
+@Returns: 
+

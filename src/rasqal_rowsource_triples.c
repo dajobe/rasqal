@@ -3,21 +3,21 @@
  * rasqal_rowsource_triples.c - Rasqal triple pattern rowsource class
  *
  * Copyright (C) 2008-2009, David Beckett http://www.dajobe.org/
- * 
+ *
  * This package is Free Software and part of Redland http://librdf.org/
- * 
+ *
  * It is licensed under the following three licenses as alternatives:
  *   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
  *   2. GNU General Public License (GPL) V2 or any newer version
  *   3. Apache License, V2.0 or any newer version
- * 
+ *
  * You may not use this file except in compliance with at least one of
  * the above three licenses.
- * 
+ *
  * See LICENSE.html or LICENSE.txt at the top of this package for the
  * complete terms and further detail along with the license texts for
  * the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
- * 
+ *
  */
 
 
@@ -43,7 +43,7 @@
 
 #ifndef STANDALONE
 
-typedef struct 
+typedef struct
 {
   /* source of triple pattern matches */
   rasqal_triples_source* triples_source;
@@ -63,16 +63,16 @@ typedef struct
   /* number of triple patterns in the sequence
      ( = end_column - start_column + 1) */
   int triples_count;
-  
+
   /* An array of items, one per triple pattern in the sequence */
   rasqal_triple_meta* triple_meta;
 
   /* offset into results for current row */
   int offset;
-  
+
   /* number of variables used in variables table  */
   int size;
-  
+
   /* GRAPH origin to use */
   rasqal_literal *origin;
 } rasqal_triples_rowsource_context;
@@ -87,17 +87,17 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   int rc = 0;
   int size;
   int i;
-  
+
   con = (rasqal_triples_rowsource_context*)user_data;
 
   size = rasqal_variables_table_get_total_variables_count(query->vars_table);
-  
+
   /* Construct the ordered projection of the variables set by these triples */
   con->size = 0;
   for(i = 0; i < size; i++) {
     rasqal_variable *v;
     v = rasqal_variables_table_get(rowsource->vars_table, i);
-    
+
     for(column = con->start_column; column <= con->end_column; column++) {
       if(rasqal_query_variable_bound_in_triple(query, v, column)) {
           v = rasqal_new_variable_from_variable(v);
@@ -121,15 +121,15 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     m->parts = (rasqal_triple_parts)0;
 
     t = (rasqal_triple*)raptor_sequence_get_at(con->triples, column);
-    
+
     if((v = rasqal_literal_as_variable(t->subject)) &&
        rasqal_query_variable_bound_in_triple(query, v, column) & RASQAL_TRIPLE_SUBJECT)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_SUBJECT);
-    
+
     if((v = rasqal_literal_as_variable(t->predicate)) &&
        rasqal_query_variable_bound_in_triple(query, v, column) & RASQAL_TRIPLE_PREDICATE)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_PREDICATE);
-    
+
     if((v = rasqal_literal_as_variable(t->object)) &&
        rasqal_query_variable_bound_in_triple(query, v, column) & RASQAL_TRIPLE_OBJECT)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_OBJECT);
@@ -138,7 +138,7 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
                   rasqal_engine_get_parts_string(m->parts), m->parts);
 
   }
-  
+
   return rc;
 }
 
@@ -148,10 +148,10 @@ rasqal_triples_rowsource_ensure_variables(rasqal_rowsource* rowsource,
                                           void *user_data)
 {
   rasqal_triples_rowsource_context* con;
-  con = (rasqal_triples_rowsource_context*)user_data; 
+  con = (rasqal_triples_rowsource_context*)user_data;
 
   rowsource->size = con->size;
-  
+
   return 0;
 }
 
@@ -161,7 +161,7 @@ rasqal_triples_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_triples_rowsource_context *con;
   int i;
-  
+
   con = (rasqal_triples_rowsource_context*)user_data;
 
   if(con->triple_meta) {
@@ -184,12 +184,12 @@ rasqal_triples_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 
 
 static rasqal_engine_error
-rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource, 
+rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
                                       rasqal_triples_rowsource_context *con)
 {
   rasqal_query *query = rowsource->query;
   rasqal_engine_error error = RASQAL_ENGINE_OK;
-  
+
   while(con->column >= con->start_column) {
     rasqal_triple_meta *m;
     rasqal_triple *t;
@@ -244,7 +244,7 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
     }
 
     rasqal_triples_match_next_match(m->triples_match);
-    
+
     if(con->column == con->end_column)
       /* finished matching all columns - return result */
       break;
@@ -264,7 +264,7 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   int i;
   rasqal_row* row = NULL;
   rasqal_engine_error error = RASQAL_ENGINE_OK;
-  
+
   con = (rasqal_triples_rowsource_context*)user_data;
 
   error = rasqal_triples_rowsource_get_next_row(rowsource, con);
@@ -313,7 +313,7 @@ rasqal_triples_rowsource_read_all_rows(rasqal_rowsource* rowsource,
                                        void *user_data)
 {
   raptor_sequence *seq = NULL;
-  
+
   return seq;
 }
 
@@ -323,13 +323,13 @@ rasqal_triples_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_triples_rowsource_context *con;
   int column;
-  
+
   con = (rasqal_triples_rowsource_context*)user_data;
 
   con->column = con->start_column;
   for(column = con->start_column; column <= con->end_column; column++) {
     rasqal_triple_meta *m;
-    
+
     m = &con->triple_meta[column - con->start_column];
     rasqal_reset_triple_meta(m);
   }
@@ -358,7 +358,7 @@ rasqal_triples_rowsource_set_origin(rasqal_rowsource *rowsource,
       rasqal_free_literal(t->origin);
     t->origin = rasqal_new_literal_from_literal(con->origin);
   }
-  
+
   return 0;
 }
 
@@ -407,7 +407,7 @@ rasqal_new_triples_rowsource(rasqal_world *world,
 
   if(!triples)
     return rasqal_new_empty_rowsource(world, query);
-  
+
   con = RASQAL_CALLOC(rasqal_triples_rowsource_context*, 1, sizeof(*con));
   if(!con)
     return NULL;
@@ -452,7 +452,7 @@ WHERE { ?s ?p ?o }\
 "
 
 int
-main(int argc, char *argv[]) 
+main(int argc, char *argv[])
 {
   const char *program = rasqal_basename(argv[0]);
   rasqal_rowsource *rowsource = NULL;
@@ -478,7 +478,7 @@ main(int argc, char *argv[])
   raptor_uri* p_uri = NULL;
   const char *data_file;
   size_t qs_len;
-  
+
   if((data_file = getenv("NT_DATA_FILE"))) {
     /* got data from environment */
   } else {
@@ -488,15 +488,15 @@ main(int argc, char *argv[])
     }
     data_file = argv[1];
   }
-    
+
   world = rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
     fprintf(stderr, "%s: rasqal_world init failed\n", program);
     return(1);
   }
-  
+
   query = rasqal_new_query(world, "sparql", NULL);
-  
+
   data_string = raptor_uri_filename_to_uri_string(data_file);
   qs_len = strlen(RASQAL_GOOD_CAST(const char*, data_string)) + strlen(query_format);
   query_string = RASQAL_MALLOC(unsigned char*, qs_len + 1);
@@ -504,7 +504,7 @@ main(int argc, char *argv[])
   snprintf(RASQAL_GOOD_CAST(char*, query_string), qs_len, query_format, data_string);
   PRAGMA_IGNORE_WARNING_END
   raptor_free_memory(data_string);
-  
+
   uri_string = raptor_uri_filename_to_uri_string("");
   base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
   raptor_free_memory(uri_string);
@@ -526,7 +526,7 @@ main(int argc, char *argv[])
     failures++;
     goto tidy;
   }
-  
+
   RASQAL_FREE(char*, query_string);
   query_string = NULL;
 
@@ -534,8 +534,8 @@ main(int argc, char *argv[])
   start_column = 0;
   end_column = 0;
 
-  triples_source = rasqal_new_triples_source(query);
-  
+  triples_source = rasqal_new_triples_source(query, query->data_graphs);
+
   rowsource = rasqal_new_triples_rowsource(world, query, triples_source,
                                            triples, start_column, end_column);
   if(!rowsource) {
@@ -553,8 +553,8 @@ main(int argc, char *argv[])
     row = rasqal_rowsource_read_row(rowsource);
     if(!row)
       break;
-    
-  #ifdef RASQAL_DEBUG  
+
+  #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("Result Row:\n  ");
     rasqal_row_print(row, stderr);
     fputc('\n', stderr);
@@ -562,7 +562,7 @@ main(int argc, char *argv[])
 
     s_uri = raptor_new_uri(world->raptor_world_ptr, SUBJECT_URI_STRING);
     p_uri = raptor_new_uri(world->raptor_world_ptr, PREDICATE_URI_STRING);
-    
+
     s = row->values[0];
     if(!s ||
        (s && s->type != RASQAL_LITERAL_URI) ||

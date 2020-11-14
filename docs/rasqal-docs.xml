@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" 
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
                "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
 <!ENTITY version SYSTEM "version.xml">
 ]>
@@ -80,9 +80,10 @@ execution plans and execute the queries into query result sets.
       which comprehensively describes every class and function of the API.
       </para>
     </partintro>
-      
+
     <xi:include href="xml/section-general.xml"/>
     <xi:include href="xml/section-data.xml"/>
+    <xi:include href="xml/section-data-sets.xml"/>
     <xi:include href="xml/section-expression.xml"/>
     <xi:include href="xml/section-graph_pattern.xml"/>
     <xi:include href="xml/section-literal.xml"/>
