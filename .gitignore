@@ -1,10 +1,15 @@
-.DS_Store
-*~
+*.exe
 *.gz
 *.log
+*.stackdump
 *.trs
+*~
+.DS_Store
+.covsubmit
+.covtoken
 .gdb_history
 .gdbinit
+.libs
 INSTALL
 LICENSE.txt
 Makefile
@@ -21,8 +26,10 @@ config.cache
 config.log
 config.status
 configure
+cov-int
 dmalloc*
 example?
+git-version.h
 gtk-doc.make
 install-sh
 libtool
@@ -36,7 +43,3 @@ rasqal.spec
 releases
 run*
 setup.sh
-.libs
-*.exe
-*.stackdump
-git-version.h
