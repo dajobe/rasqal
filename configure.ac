@@ -64,7 +64,7 @@ FLEX_MIN_VERSION=2.5.19
 FLEX_REC_VERSION=2.5.36
 
 # Do not want AM_PROG_LEX which adds 'missing' to LEX if it's not around
-AC_PROG_LEX
+AC_PROG_LEX(noyywrap)
 AC_MSG_CHECKING(flex)
 if test "$USE_MAINTAINER_MODE" = yes; then
   # maintainer mode - flex is required
@@ -290,9 +290,7 @@ PKGCONFIG_LIBS=
 PKGCONFIG_CFLAGS=
 
 dnl Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS(errno.h stddef.h stdlib.h stdint.h unistd.h string.h strings.h getopt.h regex.h sys/time.h time.h math.h limits.h errno.h float.h)
-AC_HEADER_TIME
+AC_CHECK_HEADERS(errno.h float.h getopt.h limits.h math.h regex.h stddef.h stdint.h stdio.h stdlib.h string.h strings.h sys/stath.h sys/time.h sys/types.h time.h unistd.h)
 
 if test "$ac_cv_header_sys_time_h" = "yes"; then
   HAVE_SYS_TIME_H=1
