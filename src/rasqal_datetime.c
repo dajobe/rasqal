@@ -1093,7 +1093,9 @@ rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world,
     #define GSAD_BUF_LEN 10
     char str[GSAD_BUF_LEN];
 
+PRAGMA_IGNORE_WARNING_FORMAT_TRUNCATION_START
     snprintf(str, GSAD_BUF_LEN, "%d.%06d", dt->second, dt->microseconds);
+PRAGMA_IGNORE_WARNING_END
 
     rasqal_xsd_decimal_set_string(dec, str);
   }
