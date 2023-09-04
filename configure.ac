@@ -448,8 +448,10 @@ AC_SUBST(RAPTOR_MIN_VERSION)
 AM_CONDITIONAL(RASQAL_SORT, test $RAPTOR_VERSION_DEC -lt '20015')
 
 dnl Checks for regex libraries
+have_regex_pcre2=0
 have_regex_pcre=0
 have_regex_posix=0
+need_regex_pcre2=0
 need_regex_pcre=0
 need_regex_posix=0
 
@@ -501,6 +503,45 @@ if test "x$enable_pcre" != "xno" ; then
 fi
 
 
+AC_ARG_WITH(pcre2-config, [  --with-pcre2-config=PATH     Location of PCRE2 pcre2-config (auto)], pcre2_config="$withval", pcre2_config="")
+
+if test "X$pcre2_config" != "Xno" ; then
+  if test "X$pcre2_config" != "X" ; then
+    AC_MSG_CHECKING(for $pcre2_config)
+
+    if test -x $pcre2_config ; then
+	PCRE2_CONFIG=$pcre2_config
+	AC_MSG_RESULT(yes)
+    else
+	AC_MSG_ERROR([pcre2-config not found at specified path $pcre2_config])
+    fi
+  fi
+  if test "X$PCRE2_CONFIG" = "X" ; then
+    AC_CHECK_PROGS(PCRE2_CONFIG, pcre2-config)
+  fi
+fi
+
+AC_MSG_CHECKING(for pcre2)
+PCRE2_VERSION=`$PCRE2_CONFIG --version 2>/dev/null`
+PCRE2_MIN_VERSION=10.37
+
+PCRE2_VERSION_DEC=`echo $PCRE2_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
+PCRE2_MIN_VERSION_DEC=`echo $PCRE2_MIN_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
+if test "X$PCRE2_VERSION" = X; then
+  AC_MSG_RESULT(not present)
+elif test "X$PCRE2_VERSION" -a $PCRE2_VERSION_DEC -ge $PCRE2_MIN_VERSION_DEC; then
+  have_regex_pcre2=1
+  AC_MSG_RESULT($PCRE2_VERSION)
+else
+  AC_MSG_WARN($PCRE2_VERSION - too old - need $PCRE2_MIN_VERSION)
+fi
+
+if test $have_regex_pcre2 = 1; then
+  AC_DEFINE(HAVE_REGEX_PCRE2, 1, [have PCRE2 regex - Perl Compatible Regular Expressions V2])
+fi
+
+
+
 AC_MSG_CHECKING(for posix regex library)
 oLIBS="$LIBS"
 if test $ac_cv_header_regex_h = yes; then
@@ -522,10 +563,18 @@ fi
 
 
 
-AC_ARG_WITH(regex-library, [  --with-regex-library=NAME   Use regex library - posix, pcre (auto)], regex_library="$withval", regex_library="") 
+AC_ARG_WITH(regex-library, [  --with-regex-library=NAME   Use regex library - posix, pcre2, pcre (auto)], regex_library="$withval", regex_library="") 
 
-for regex_library_name in $regex_library pcre posix; do
+for regex_library_name in $regex_library pcre2 pcre posix; do
   case $regex_library_name in
+    pcre2)
+      if test $have_regex_pcre2 = 1; then
+        need_regex_pcre2=1
+        AC_DEFINE(RASQAL_REGEX_PCRE2, 1, [Use PCRE2 regex library])
+        break
+      fi
+      ;;
+
     pcre)
       if test $have_regex_pcre = 1; then
         need_regex_pcre=1
@@ -552,7 +601,9 @@ done
 
 AC_MSG_CHECKING(regex library to use)
 regex_library=
-if test $need_regex_pcre = 1; then
+if test $need_regex_pcre2 = 1; then
+  regex_library=pcre2
+elif test $need_regex_pcre = 1; then
   regex_library=pcre
 elif test $need_regex_posix = 1; then
   regex_library=posix
@@ -919,6 +970,19 @@ RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $RAPTOR2_LIBS"
 if test $need_regex_pcre = 1; then
   C=`$PCRE_CONFIG --cflags`
   L=`$PCRE_CONFIG --libs`
+  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $C"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
+
+  PKGCONFIG_CFLAGS="$PKGCONFIG_CFLAGS $C"
+  PKGCONFIG_LIBS="$PKGCONFIG_LIBS $L"
+  unset C
+  unset L
+fi
+
+
+if test $need_regex_pcre2 = 1; then
+  C=`$PCRE2_CONFIG --cflags`
+  L=`$PCRE2_CONFIG --libs8`
   RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $C"
   RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
 

@@ -37,6 +37,11 @@
 #endif
 #include <stdarg.h>
 
+#ifdef RASQAL_REGEX_PCRE2
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
+#endif
+
 #ifdef RASQAL_REGEX_PCRE
 #include <pcre.h>
 #endif
@@ -81,6 +86,12 @@ rasqal_regex_match(rasqal_world* world, raptor_locator* locator,
 {
   int flag_i = 0; /* regex_flags contains i */
   const char *p;
+#ifdef RASQAL_REGEX_PCRE2
+  pcre2_code* re_code;
+  uint32_t compile_options = 0;
+  int errornumber = 0;
+  PCRE2_SIZE erroroffset = 0;
+#endif
 #ifdef RASQAL_REGEX_PCRE
   pcre* re;
   int compile_options = PCRE_UTF8;
@@ -99,6 +110,48 @@ rasqal_regex_match(rasqal_world* world, raptor_locator* locator,
     if(*p == 'i')
       flag_i++;
       
+#ifdef RASQAL_REGEX_PCRE2
+  if(flag_i)
+    compile_options |= PCRE2_CASELESS;
+
+  re_code = pcre2_compile(RASQAL_GOOD_CAST(PCRE2_SPTR, pattern),
+                          PCRE2_ZERO_TERMINATED,
+                          compile_options,
+                          &errornumber,
+                          &erroroffset,
+                          /* ccontext */ NULL);
+  if(!re_code) {
+    PCRE2_UCHAR buffer[256];
+    pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
+                            "Regex compile of '%s' failed at offset %d: %s",
+                            pattern, (int)erroroffset, buffer);
+    rc = -1;
+  } else {
+    pcre2_match_data *md = pcre2_match_data_create(4, NULL);
+
+    rc = pcre2_match(re_code,
+                     RASQAL_GOOD_CAST(PCRE2_SPTR, subject),
+                     RASQAL_GOOD_CAST(PCRE2_SIZE, subject_len),
+                     /* startoffset */ 0,
+                     /* options */ 0,
+                     md,
+                     /* mcontext */ NULL  /* no match detail wanted */
+                     );
+    if(rc >= 0)
+      rc = 1;
+    else if(rc != PCRE2_ERROR_NOMATCH && rc != PCRE2_ERROR_NULL) {
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
+                              "Regex match failed - returned code %d", rc);
+      rc= -1;
+    } else
+      rc = 0;
+    pcre2_match_data_free(md);
+  }
+  pcre2_code_free(re_code);
+
+#endif
+
 #ifdef RASQAL_REGEX_PCRE
   if(flag_i)
     compile_options |= PCRE_CASELESS;
@@ -169,7 +222,7 @@ rasqal_regex_match(rasqal_world* world, raptor_locator* locator,
 }
 
 
-
+#if defined(RASQAL_REGEX_PCRE) || defined(RASQAL_REGEX_POSIX)
 /*
  * rasqal_regex_get_ref_number:
  * @str: pointer to pointer to buffer at '$' symbol
@@ -204,6 +257,7 @@ rasqal_regex_get_ref_number(const char **str)
   *str = p;
   return ref_number;	
 }
+#endif
 
 
 #ifdef RASQAL_REGEX_PCRE
@@ -698,6 +752,12 @@ rasqal_regex_replace(rasqal_world* world, raptor_locator* locator,
                      size_t* result_len_p) 
 {
   const char *p;
+#ifdef RASQAL_REGEX_PCRE2
+  pcre2_code* re_code;
+  uint32_t compile_options = 0;
+  int errornumber = 0;
+  PCRE2_SIZE erroroffset = 0;
+#endif
 #ifdef RASQAL_REGEX_PCRE
   pcre* re;
   int compile_options = PCRE_UTF8;
@@ -714,6 +774,73 @@ rasqal_regex_replace(rasqal_world* world, raptor_locator* locator,
   char* pattern2;
 #endif
   char *result_s = NULL;
+
+#ifdef RASQAL_REGEX_PCRE2
+  for(p = regex_flags; p && *p; p++) {
+    if(*p == 'i')
+      compile_options |= PCRE2_CASELESS;
+  }
+
+  re_code = pcre2_compile(RASQAL_GOOD_CAST(PCRE2_SPTR, pattern),
+                          PCRE2_ZERO_TERMINATED,
+                          compile_options,
+                          &errornumber,
+                          &erroroffset,
+                          /* ccontext */ NULL);
+  if(!re_code) {
+    PCRE2_UCHAR buffer[256];
+    pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
+                            "Regex compile of '%s' failed at offset %d: %s",
+                            pattern, (int)erroroffset, buffer);
+  } else {
+    uint32_t substitute_options = PCRE2_SUBSTITUTE_LITERAL | PCRE2_SUBSTITUTE_GLOBAL;
+    size_t output_len = 0;
+    char* output_buffer = NULL;
+    int rc;
+
+    /* Calculate size of output buffer */
+    rc = pcre2_substitute(re_code,
+                          RASQAL_GOOD_CAST(PCRE2_SPTR, subject),
+                          PCRE2_ZERO_TERMINATED,
+                          /* startoffset */ 0,
+                          substitute_options | PCRE2_SUBSTITUTE_OVERFLOW_LENGTH,
+                          /* match_data */ NULL,
+                          /* mcontext */ NULL,   /* no match detail wanted */
+                          RASQAL_GOOD_CAST(PCRE2_SPTR, replace),
+                          replace_len,
+                          /* outputbuffer */ NULL, /* forcing size calc */
+                          RASQAL_GOOD_CAST(PCRE2_SIZE*, &output_len));
+    if(rc == PCRE2_ERROR_NOMEMORY) {
+      output_buffer = RASQAL_MALLOC(char*, output_len + 1);
+
+      rc = pcre2_substitute(re_code,
+                            RASQAL_GOOD_CAST(PCRE2_SPTR, subject),
+                            PCRE2_ZERO_TERMINATED,
+                            /* startoffset */ 0,
+                            substitute_options,
+                            /* match_data */ NULL,
+                            /* mcontext */ NULL,   /* no match detail wanted */
+                            RASQAL_GOOD_CAST(PCRE2_SPTR, replace),
+                            replace_len,
+                            RASQAL_GOOD_CAST(PCRE2_UCHAR*, output_buffer),
+                            RASQAL_GOOD_CAST(PCRE2_SIZE*, &output_len));
+    }
+    if(rc < 0) {
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, locator,
+                              "Regex replace of '%s' failed with code %d",
+                              pattern, rc);
+      result_s = NULL;
+      if(output_buffer)
+        RASQAL_FREE(char*, output_buffer);
+    } else {
+      result_s = output_buffer;
+      if(result_len_p)
+        *result_len_p = output_len;
+    }
+  }
+  pcre2_code_free(re_code);
+#endif
 
 #ifdef RASQAL_REGEX_PCRE
   for(p = regex_flags; p && *p; p++) {
@@ -794,7 +921,7 @@ main(int argc, char *argv[])
 {
   rasqal_world* world;
   const char *program = rasqal_basename(argv[0]);
-#ifdef RASQAL_REGEX_PCRE
+#if defined(RASQAL_REGEX_PCRE) || defined(RASQAL_REGEX_PCRE2)
   raptor_locator* locator = NULL;
   int test = 0;
 #endif
@@ -813,7 +940,7 @@ main(int argc, char *argv[])
             program);
 #endif
 
-#ifdef RASQAL_REGEX_PCRE
+#if defined(RASQAL_REGEX_PCRE) || defined(RASQAL_REGEX_PCRE2)
   for(test = 0; test < NTESTS; test++) {
     const char* regex_flags = "";
     const char* subject = "abcd1234-^";
