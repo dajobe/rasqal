@@ -354,7 +354,7 @@ sub run_testsuite($$$) {
     $column++;
     if(!$verbose && $column > $linewrap) {
       print "\n$indent";
-      $column=$indent;
+      $column=length($indent);
     }
 
     if($verbose) {
