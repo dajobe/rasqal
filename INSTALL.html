@@ -84,7 +84,7 @@ URIs and other utility classes.
 <p><b>Recommended</b> (Optional):
 </p>
 <ul>
-<li><a href="http://www.pcre.org/">PCRE</a> regex library
+<li><a href="http://www.pcre.org/">PCRE V2</a> regex library
 or another implementing the POSIX regex API.</li>
 <li><a href="http://www.mpfr.org/">GNU multiple-precision floating-point library (MPFR)</a> or
 <a href="http://gmplib.org/">GNU Multiple Precision Arithmetic Library (GMP)</a>
@@ -222,14 +222,19 @@ initstate_r and random_r), <tt>rand_r</tt> (POSIX rand_r),
 srand and rand).  </p></dd>
 
 <dt><code>--with-regex-library=</code>NAME<br /></dt>
-<dd><p>Pick a regex library to use - either <tt>pcre</tt> (default)
-for the <a href="http://www.pcre.org/">PCRE</a>
+<dd><p>Pick a regex library to use - either <tt>pcre2</tt> (default
+and RECOMMENDED)
+for the <a href="http://www.pcre.org/">PCRE V2</a>,
+or <tt>pcre</tt>tt> for the legacy PCRE V1 (NOT recommended)
 or <tt>posix</tt> a POSIX regex implementation in the C library
 </p>
 </dd>
 
 <dt><code>--with-pcre-config=</code><em>NAME</em><br /></dt>
 <dd><p>Set the path to the <a href="http://www.pcre.org/">PCRE</a> pcre-config program</p></dd>
+
+<dt><code>--with-pcre2-config=</code><em>NAME</em><br /></dt>
+<dd><p>Set the path to the <a href="http://www.pcre.org/">PCRE V2</a> pcre2-config program</p></dd>
 
 </dl>
 
