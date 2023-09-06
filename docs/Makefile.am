@@ -104,8 +104,11 @@ rasqal-changes.tsv
 DISTCLEANFILES += \
 rasqal-fake.h
 
-$(builddir)/rasqal-fake.h: $(top_srcdir)/src/rasqal.h $(srcdir)/../scripts/fix-gtkdoc-header.pl
+$(builddir)/rasqal-fake.h: $(builddir)/../src/rasqal.h $(srcdir)/../scripts/fix-gtkdoc-header.pl
 	$(PERL) $(srcdir)/../scripts/fix-gtkdoc-header.pl < $< > $@
+
+$(builddir)/../src/rasqal.h:
+	cd $(builddir)/../src && $(MAKE) rasqal.h
 
 # Create some text files from HTML sources
 LYNX=lynx
@@ -121,9 +124,6 @@ librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/../scripts/fix-groff-xhtml.pl
 #
 # rasqal-overrides.txt: rasqal-overrides.txt.in $(srcdir)/src/rasqal.h
 #	$(PERL) $(srcdir)/update-overrides $< $(srcdir)/src/rasqal.h $@
-
-$(top_builddir)/src/rasqal.h:
-	cd $(top_builddir)/src && $(MAKE) rasqal.h
 
 README: README.html
 	$(LYNX) $(LYNXARGS) $< > $@
