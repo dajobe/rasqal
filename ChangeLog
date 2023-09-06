@@ -1,3 +1,203 @@
+2023-09-03  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Remove and fix obsolete autoconf
+	- Give AC_PROG_LEX an argument
+	- Remove AC_HEADER_TIME
+	- Remove AC_HEADER_STDC and uses
+	- Update explicit header checks adding getopt.h unistd.h
+
+2023-09-03  Dave Beckett <dave@dajobe.org>
+
+	* libsv: Update libsv
+
+	* src/rasqal_datetime.c, src/rasqal_internal.h:
+	* src/rasqal_results_compare.c, src/rasqal_row_compatible.c: Work
+	around GCC warnings for format truncation and overflow Added
+	PRAGMA_IGNORE_WARNING_FORMAT_TRUNCATION_START and
+	PRAGMA_IGNORE_WARNING_FORMAT_OVERFLOW_START to work around
+	formatting numbers known to fit the buffer width.
+
+	* tests/improve: Reset $column to length of indent, not the value
+
+2022-07-04  Dave Beckett <dave@dajobe.org>
+
+	* .gitignore: Ignore more. sort
+
+2021-08-26  Dave Beckett <dave@dajobe.org>
+
+	* libsv: Update libsv
+
+2020-10-04  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_union.c: note about lack of reference count
+	for right_tmp_values
+
+	* src/sparql_lexer.l: Work around clang --analyze warning not
+	understanding ownership model
+
+	* src/rasqal_query_test.c:
+	(main): Free rasqal_query_string* on error path (asan)
+
+	* src/sparql_lexer.l:
+	(LANGTAG): Fix for clang --analyze warning
+
+2020-10-04  Dave Beckett <dave@dajobe.org>
+
+	* libsv:
+	Update to libsv 5b4c776c6e3a9fc19897c857d073dd145697b3d2
+
+2020-09-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_triples.c:
+	(main): Free first rasqal_query* in test code
+
+	* .travis.yml: allow clang ASAN to fail
+
+	* .travis.yml: Add experimental clang with ASAN
+
+2020-09-29  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_test.c: Fix query_string leak on prepare
+	failure
+	(in test main)
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_read_row): Remove never used assignment
+
+	* scripts/fix-bison.pl, src/Makefile.am, src/sparql_parser.y:
+	Import raptor changes for fix-bison
+
+	* src/.gitignore: ignore .c.bak
+
+2020-09-08  Dave Beckett <dave@dajobe.org>
+
+	* .travis.yml: Remove slow (un-necessary) brew update for Travis
+	OSX build
+
+	* .travis.yml: No Cmake for rasqal
+
+	* configure.ac:
+	Fix RAPTOR2 envariables as used by
+	scripts/install-raptor.sh
+
+	* .travis.yml: Attempt to fix Travis config
+
+	* configure.ac, scripts/fix-flex.pl, scripts/install-bison3.sh:
+	* scripts/install-raptor.sh, src/Makefile.am: Update bison support
+	after raptor changes
+
+2020-09-07  Dave Beckett <dave@dajobe.org>
+
+	* tests/engine/rasqal_construct_test.c:
+	* tests/engine/rasqal_limit_test.c:
+	* tests/engine/rasqal_order_test.c:
+	Upgrade pragma
+
+	* src/sparql_parser.y:
+	Fix print_op_expr return for signature match
+
+	* src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_query_test.c, src/rasqal_rowsource_triples.c:
+	C compiler
+	Pragmas and ignore legitmate switch fallthrough
+
+	* .travis.yml: Add experimental builds for Travis for cmake, ppc,
+	arm64
+
+	* configure.ac, scripts/fix-bison.pl, scripts/fix-flex.pl:
+	* scripts/install-bison3.sh, src/sparql_lexer.l:
+	* src/sparql_parser.y: Update to use Bison 3.4+ and helper scripts
+	Similar to recent raptor changes
+
+2017-07-01  Dave Beckett <dave@dajobe.org>
+
+	* libsv:
+	Update to libsv 9fadf5379274833893b8f11e9b4a7abc3b754c9f
+
+	* libsv: Update to latest libsv
+
+	* src/rasqal_query.c:
+	(rasqal_query_generate_bnodeid): Add missing else.
+
+	* Merge pull request #6 from mistmist/master upstreaming LibreOffice patches
+
+2017-03-04  Bruce Mitchener <bruce.mitchener@gmail.com>
+
+	* INSTALL.html, RELEASE.html, src/rasqal.h.in, src/rasqal_expr.c,
+	src/rasqal_internal.h, src/rasqal_literal.c:
+	Fix typos.
+
+2016-08-29  Michael Stahl <mstahl@redhat.com>
+
+	* src/rasqal_ntriples.c, src/sv_config.h: some missing #include
+	win32_rasqal_config.h
+
+	* src/rasqal.h.in: rasqal.h: Visual Studio 2013 chokes on
+	duplicate RASQAL_API
+
+2016-08-29  David Ostrovsky <david@ostrovsky.org>
+
+	* src/win32_rasqal_config.h.in: Visual Studio 2015 has snprintf
+
+	* src/rasqal.h.in: -Werror,-Wundef (__GNUC__ vs. clang-cl)
+
+2015-07-05  Dave Beckett <dave@dajobe.org>
+
+	* libsv:
+	Update to latest libsv
+
+2015-05-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_datetime.c, src/rasqal_internal.h:
+	* src/rasqal_query_test.c, src/rasqal_rowsource_triples.c:
+	* src/sparql_lexer.l, tests/engine/rasqal_construct_test.c:
+	* tests/engine/rasqal_limit_test.c:
+	* tests/engine/rasqal_order_test.c:
+	Replace sprintf() with snprintf() and fix gcc pragma format wrappers
+
+	* src/rasqal_internal.h: Give RASQAL_ASSERT_DIE an argument to
+	prevent code after abort()
+
+	* src/Makefile.am: Add dependency for sparql_lexer.h for non-GNU
+	make
+
+	* configure.ac: Fix BASHisn in test for raptor version: use -lt
+	for string less than
+
+2015-02-01  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh:
+	Handle updated glibtoolize (OSX) name in --version
+
+2015-01-08  Dave Beckett <dave@dajobe.org>
+
+	* scripts/install-raptor.sh: Exit on error immediately
+
+2015-01-07  Dave Beckett <dave@dajobe.org>
+
+	* docs/rasqal-docs.xml: 2015
+
+2015-01-04  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_strbefore): free lang on error [coverity
+	CID 96197]
+
+	* src/rasqal_variable.c:
+	(rasqal_variables_table_get_order): Free order on error [coverity
+	CID 96196]
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_strafter): free lang on error [coverity
+	CID 96195]
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_build_merged_row): row never null [coverity
+	CID 96194]
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_concat): Dead code [coverity CID 96193]
+
 2015-01-05  Dave Beckett <dave@dajobe.org>
 
 	* 2015
