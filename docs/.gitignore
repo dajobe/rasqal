@@ -11,6 +11,7 @@ rasqal-fake.h
 rasqal-undeclared.txt
 rasqal-undocumented.txt
 rasqal-unused.txt
+rasqal.actions
 rasqal.args
 rasqal.hierarchy
 rasqal.interfaces
