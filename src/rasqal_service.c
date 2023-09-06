@@ -42,8 +42,8 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
-
 #define DEFAULT_FORMAT "application/sparql-results+xml"
+#define DEFAULT_FORMAT_LEN 30
 
 
 struct rasqal_service_s
@@ -56,6 +56,7 @@ struct rasqal_service_s
   size_t query_string_len;
   raptor_sequence* data_graphs; /* background graph and named graphs */
   char* format; /* MIME Type to use as request HTTP Accept: */
+  size_t format_len; /* length of above */
 
   /* URL retrieval fields */
   raptor_www* www;
@@ -228,8 +229,6 @@ rasqal_service_set_www(rasqal_service* svc, raptor_www* www)
 int
 rasqal_service_set_format(rasqal_service* svc, const char *format)
 {
-  size_t len;
-  
   if(svc->format) {
     RASQAL_FREE(char*, svc->format);
     svc->format = NULL;
@@ -238,12 +237,14 @@ rasqal_service_set_format(rasqal_service* svc, const char *format)
   if(!format)
     return 0;
   
-  len = strlen(format);
-  svc->format = RASQAL_MALLOC(char*, len + 1);
-  if(!svc->format)
+  svc->format_len = strlen(format);
+  svc->format = RASQAL_MALLOC(char*, svc->format_len + 1);
+  if(!svc->format) {
+    svc->format_len = 0;
     return 1;
+  }
 
-  memcpy(svc->format, format, len + 1);
+  memcpy(svc->format, format, svc->format_len + 1);
 
   return 0;
 }
@@ -333,11 +334,18 @@ rasqal_service_execute_as_rowsource(rasqal_service* svc,
   svc->final_uri = NULL;
   svc->sb = raptor_new_stringbuffer();
   svc->content_type = NULL;
-  
+
+#if RASQAL_RAPTOR_VERSION < 20016
   if(svc->format)
     raptor_www_set_http_accept(svc->www, svc->format);
   else
     raptor_www_set_http_accept(svc->www, DEFAULT_FORMAT);
+#else
+  if(svc->format)
+    raptor_www_set_http_accept2(svc->www, svc->format, svc->format_len);
+  else
+    raptor_www_set_http_accept2(svc->www, DEFAULT_FORMAT, DEFAULT_FORMAT_LEN);
+#endif
 
   raptor_www_set_write_bytes_handler(svc->www,
                                      rasqal_service_write_bytes, svc);
