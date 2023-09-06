@@ -23,6 +23,7 @@
 #
 
 PACKAGE=@PACKAGE@
+VERSION=@PACKAGE_VERSION@
 PKGCONFIG=pkg-config
 
 usage()
@@ -51,13 +52,6 @@ if test $# -eq 0; then
 fi
 
 
-if $PKGCONFIG $PACKAGE --exists; then
-  : # exists
-else
-  echo "$0: $PKGCONFIG does not know about package $PACKAGE"
-  exit 1
-fi
-
 args=""
 while test $# -gt 0; do
   case "$1" in
@@ -79,14 +73,15 @@ while test $# -gt 0; do
       args="$args --variable=prefix";
       ;;
     --version)
-      args="$args --modversion";
+      echo "$VERSION"
+      exit 0
       ;;
     --private-libs)
       args="$args --static --libs";
       ;;
 # Computed here
     --version-decimal)
-      version=`$PKGCONFIG $PACKAGE --modversion`
+      version="$VERSION"
       version_dec=0
       for multiplier in 10000 100 1; do
         version_part=`echo $version | sed -e 's/\..*$//'`
@@ -108,5 +103,12 @@ while test $# -gt 0; do
 
   shift
 done
+
+if $PKGCONFIG $PACKAGE --exists; then
+  : # exists
+else
+  echo "$0: $PKGCONFIG does not know about package $PACKAGE"
+  exit 1
+fi
 
 $PKGCONFIG $PACKAGE $args
