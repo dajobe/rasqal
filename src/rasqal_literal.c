@@ -5010,7 +5010,9 @@ main(int argc, char *argv[])
     int expected_rows = test_data[test_id].expected_rows;
     int width = test_data[test_id].width;
     raptor_sequence* seq;
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     int duplicates;
+#endif
     int count;
     int i;
     raptor_sequence* seq2;
@@ -5040,7 +5042,9 @@ main(int argc, char *argv[])
       continue;
     }
     
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     duplicates = 0;
+#endif
     count = 0;
     for(i = 0;
         (seq2 = (raptor_sequence*)raptor_sequence_delete_at(seq, i)); 
@@ -5051,7 +5055,9 @@ main(int argc, char *argv[])
       if(rc) {
         fprintf(DEBUG_FH, "%s: Test %d literal seq %d is a duplicate\n", 
                 program, test_id, i);
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
         duplicates++;
+#endif
       } else
         count++;
     }
