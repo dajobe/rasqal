@@ -51,6 +51,13 @@ AM_PROG_AR
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_MSG_CHECKING(whether $CC is clang)
+CC_IS_CLANG=no
+if $CC 2>&1 | grep clang >/dev/null 2>&1; then
+  CC_IS_CLANG=yes
+else
+  :
+fi
+AC_MSG_RESULT($CC_IS_CLANG)
 
 dnl Initialize libtool
 LT_INIT
@@ -206,9 +213,11 @@ AC_DEFUN([REDLAND_CC_TRY_FLAG], [
 #
 # Apple gcc specific (probably): -Wshorten-64-to-32
 possible_warnings="\
+-std=c11 \
 -Wall \
 -Wc++-compat \
 -Wextra \
+-Wpedantic \
 -Wunused \
 \
 -Waggregate-return \
@@ -235,23 +244,52 @@ possible_warnings="\
 -Wredundant-decls \
 -Wshadow \
 -Wsign-compare \
+-Wstrict-overflow \
 -Wstrict-prototypes \
 -Wswitch-enum \
--Wundef \
 -Wunreachable-code \
 -Wunsafe-loop-optimizations \
 -Wwrite-strings \
 \
--Wshorten-64-to-32
-\
--Wno-conversion \
--Wno-cast-qual \
--Wno-switch-default \
+-Wno-missing-field-initializers \
 -Wno-system-headers \
 -Wno-unused-parameter \
+-Wswitch-bool \
+-Wlogical-not-parentheses \
+-Wsizeof-array-argument  \
+-Wbool-compare \
 -Wc90-c99-compat \
 -Wc99-c11-compat \
 "
+
+extra_compiler_cflags=""
+
+# compiler specific warnings
+if test $CC_IS_CLANG = yes; then
+    # Always enable this for Clang
+    #  -Wno-nullability-completeness : too noisy on OSX reporting
+    #     warnings in stdio.h
+    extra_compiler_cflags="$extra_compiler_cflags \
+-Wno-nullability-completeness \
+"
+fi
+
+# OS specific warnings
+case "${host_os}" in
+    darwin*)
+	# Apple gcc/clang specific:
+	#  -Wshorten-64-to-32
+	possible_warnings="$possible_warnings \
+-Wshorten-64-to-32 \
+"
+        ;;
+    *)
+	#  -Wundef : too noisy on OSX 10.12+ e.g. stdio.h fails
+	possible_warnings="$possible_warnings \
+-Wundef \
+"
+	;;
+esac
 
 warning_cflags=
 if test "$USE_MAINTAINER_MODE" = yes; then
@@ -264,8 +302,12 @@ if test "$USE_MAINTAINER_MODE" = yes; then
   AC_MSG_RESULT($warning_cflags)
 fi
 
-STANDARD_CFLAGS=
-MAINTAINER_CPPFLAGS="$warning_cflags"
+if test "$USE_MAINTAINER_MODE" = yes; then
+  AC_DEFINE([MAINTAINER_MODE], [1], [Define to 1 if maintainer mode is enabled.])
+  CPPFLAGS="$warning_cflags $CPPFLAGS"
+fi
+# Extra compiler flags to always add
+CPPFLAGS="$extra_compiler_cflags $CPPFLAGS"
 
 # Externally linked libraries - appear in rasqal-config
 # -Dfoo -Idir
@@ -292,6 +334,7 @@ PKGCONFIG_CFLAGS=
 dnl Checks for header files.
 AC_CHECK_HEADERS(errno.h float.h getopt.h limits.h math.h regex.h stddef.h stdint.h stdio.h stdlib.h string.h strings.h sys/stath.h sys/time.h sys/types.h time.h unistd.h)
 
+# for src/rasqal.h.in to include correct header(s)
 if test "$ac_cv_header_sys_time_h" = "yes"; then
   HAVE_SYS_TIME_H=1
 else
@@ -311,7 +354,8 @@ AC_C_CONST
 AC_C_BIGENDIAN
 
 AC_MSG_CHECKING(whether __FUNCTION__ is available)
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() { printf(__FUNCTION__); }])],
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([#include <stdio.h>
+int main(void) { printf(__FUNCTION__); }])],
     [AC_DEFINE([HAVE___FUNCTION__], [1], [Is __FUNCTION__ available])
      AC_MSG_RESULT(yes)],
     [AC_MSG_RESULT(no)])
@@ -1372,11 +1416,6 @@ AC_MSG_RESULT($use_memory_signing);
 if test $use_memory_signing = yes; then
   MEM=-DRASQAL_MEMORY_SIGN=1
   MEM_LIBS=
-fi
-
-STANDARD_CFLAGS="$STANDARD_CFLAGS $CFLAGS"
-if test "$USE_MAINTAINER_MODE" = yes; then
-  CPPFLAGS="-DMAINTAINER_MODE $MAINTAINER_CPPFLAGS $CPPFLAGS"
 fi
 
 AC_SUBST(RASQAL_EXTERNAL_LIBS)
