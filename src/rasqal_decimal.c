@@ -434,14 +434,18 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
   snprintf(fmt, sizeof(fmt), DECIMAL_FMT, dec->precision_digits);
     
   /* decimal snprintf with no buffer to get buffer length */
+PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START
   len = RASQAL_GOOD_CAST(size_t, DECIMAL_SNPRINTF(NULL, 0, fmt, dec->raw));
+PRAGMA_IGNORE_WARNING_END
 
   s = RASQAL_MALLOC(char*, len + 1);
   if(!s)
     return NULL;
   
   /* format into allocated buffer */
+PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START
   DECIMAL_SNPRINTF(s, len, fmt, dec->raw);
+PRAGMA_IGNORE_WARNING_END
 
   len = strlen(s);
 
