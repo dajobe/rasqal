@@ -101,8 +101,6 @@ A million repetitions of "a"
 #define u32 uint32_t
 
 
-/* #define SHA1HANDSOFF * Copies data before messing with it. */
-
 /* Using return() instead of exit() - SWR */
 
 #define SHA1_DIGEST_LENGTH 20
@@ -154,13 +152,7 @@ SHA1Transform(u32 state[5], const unsigned char buffer[64])
     u32 l[16];
   } CHAR64LONG16;
   CHAR64LONG16* block;
-#ifdef SHA1HANDSOFF
-  static unsigned char workspace[64];
-  block = (CHAR64LONG16*)workspace;
-  memcpy(block, buffer, 64);
-#else
   block = (CHAR64LONG16*)buffer;
-#endif
 
   /* Copy context->state[] to working vars */
   a = state[0];
@@ -272,9 +264,6 @@ SHA1Final(SHA1Context* context)
   memset(context->state, 0, SHA1_DIGEST_LENGTH);
   memset(context->count, 0, 8);
   memset(finalcount, 0, 8);	/* SWR */
-#ifdef SHA1HANDSOFF  /* make SHA1Transform overwrite it's own static vars */
-  SHA1Transform(context->state, context->buffer);
-#endif
 }
 
 
