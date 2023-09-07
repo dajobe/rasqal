@@ -70,7 +70,7 @@ if test "$USE_MAINTAINER_MODE" = yes; then
   # maintainer mode - flex is required
   if test "X$LEX" = "X:" ; then
     AC_MSG_RESULT(not present)
-    AC_MSG_WARN(Please get flex from http://flex.sourceforge.net/)
+    AC_MSG_WARN(Please get flex from https://github.com/westes/flex)
     AC_MSG_WARN(version $FLEX_MIN_VERSION ($FLEX_REC_VERSION recommended))
     AC_MSG_FAILURE(flex not present)
   fi
@@ -87,13 +87,13 @@ if test "$USE_MAINTAINER_MODE" = yes; then
       AC_MSG_RESULT($FLEX_VERSION - OK)
     else
       AC_MSG_RESULT(version $FLEX_VERSION - too old)
-      AC_MSG_WARN(Please get flex from http://flex.sourceforge.net/)
+      AC_MSG_WARN(Please get flex from https://github.com/westes/flex)
       AC_MSG_WARN(version $FLEX_MIN_VERSION ($FLEX_REC_VERSION recommended))
       AC_MSG_FAILURE(flex is too old)
     fi
   else
     AC_MSG_RESULT(present - but is not flex)
-    AC_MSG_WARN(Please get flex from http://flex.sourceforge.net/)
+    AC_MSG_WARN(Please get flex from https://github.com/westes/flex)
     AC_MSG_WARN(version $FLEX_MIN_VERSION ($FLEX_REC_VERSION recommended))
     AC_MSG_FAILURE($LEX is not not flex)
   fi
@@ -129,7 +129,7 @@ changequote([, ])dnl
       AC_MSG_RESULT($BISON_VERSION - OK)
     else
       AC_MSG_RESULT(version $BISON_VERSION is too old)
-      AC_MSG_WARN(Please get GNU Bison from http://www.gnu.org/software/bison/)
+      AC_MSG_WARN(Please get GNU Bison from https://www.gnu.org/software/bison/)
       AC_MSG_WARN(version $BISON_MIN_VERSION or newer)
       AC_MSG_FAILURE(GNU Bison too old)
     fi
@@ -194,7 +194,7 @@ AC_DEFUN([REDLAND_CC_TRY_FLAG], [
 ])
 
 # GCC warning options
-# http://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
+# https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 #
 # Too noisy:
 #
