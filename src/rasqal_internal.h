@@ -186,15 +186,17 @@ void rasqal_system_free(void *ptr);
  * cannot use #pragma in a macro
  *
  * #if defined __STDC_VERSION__ && (__STDC_VERSION__ >= 199901L)
+ *
+ * Valid for clang or GCC >= 4.9.0
  */
-#if defined __GNUC__ && 460 <= __GNUC__ * 100 + __GNUC_MINOR__
+#if (defined(__GNUC__) && ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((4) << 16) + (9)))
 #define PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START \
   _Pragma ("GCC diagnostic push") \
   _Pragma ("GCC diagnostic ignored \"-Wformat-nonliteral\"")
 #define PRAGMA_IGNORE_WARNING_FORMAT_TRUNCATION_START \
   _Pragma ("GCC diagnostic push") \
   _Pragma ("GCC diagnostic ignored \"-Wformat-truncation\"")
-#define PRAGMA_IGNORE_WARNING_FORMAT_OVERFLOW_START \
+#define PRAGMA_IGNORE_WARNING_FORMAT_OVERFLOW_START     \
   _Pragma ("GCC diagnostic push") \
   _Pragma ("GCC diagnostic ignored \"-Wformat-overflow\"")
 #define PRAGMA_IGNORE_WARNING_END \
@@ -202,6 +204,18 @@ void rasqal_system_free(void *ptr);
 #define FALLTHROUGH_IS_OK \
    __attribute__((fallthrough));
 /* C++17 should be: [[fallthrough]] */
+#elif defined(__clang__)
+#define PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START \
+  _Pragma ("GCC diagnostic push") \
+  _Pragma ("GCC diagnostic ignored \"-Wformat-nonliteral\"")
+#define PRAGMA_IGNORE_WARNING_FORMAT_TRUNCATION_START \
+  _Pragma ("GCC diagnostic push")
+#define PRAGMA_IGNORE_WARNING_FORMAT_OVERFLOW_START     \
+  _Pragma ("GCC diagnostic push")
+#define PRAGMA_IGNORE_WARNING_END \
+  _Pragma ("GCC diagnostic pop")
+#define FALLTHROUGH_IS_OK \
+   __attribute__((fallthrough));
 #else
 #define PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START
 #define PRAGMA_IGNORE_WARNING_FORMAT_OVERFLOW_START
