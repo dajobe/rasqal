@@ -1925,7 +1925,13 @@ main(int argc, char *argv[])
   query_string = RASQAL_CALLOC(char*, FILE_READ_BUF_SIZE, 1);
   fh = fopen(filename, "r");
   if(fh) {
-    fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
+    size_t read_len;
+    read_len = fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
+    if(read_len < FILE_READ_BUF_SIZE && ferror(fh)) {
+      fprintf(stderr, "%s: Reading file %s failed - %s\n", program, filename,
+              strerror(errno));
+      exit(1);
+    }
     fclose(fh);
   } else {
     fprintf(stderr, "%s: Cannot open file %s - %s\n", program, filename,
