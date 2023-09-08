@@ -154,5 +154,8 @@ EOT
     s%^(\s*if \(\s*)YY_CURRENT_BUFFER(\s*\)\s*\{.*)$%${1}YY_CURRENT_BUFFER_LVALUE${2}%;
   }
 
+  # Fix yy_buffer_state field 'yy_buf_size' type to be unsigned
+  s%int (yy_buf_size;)%yy_size_t $1%;
+
   print;
 }
