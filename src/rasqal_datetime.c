@@ -34,16 +34,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#ifdef TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
-#else
-# ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -1398,6 +1388,12 @@ rasqal_xsd_datetime_get_as_unixtime(rasqal_xsd_datetime* dt)
     time_buf.tm_gmtoff = 0;
   else
     time_buf.tm_gmtoff = dt->timezone_minutes * 60;
+#endif
+#ifdef HAVE_TM___GMTOFF
+  if(dt->timezone_minutes == RASQAL_XSD_DATETIME_NO_TZ)
+    time_buf.__tm_gmtoff = 0;
+  else
+    time_buf.__tm_gmtoff = dt->timezone_minutes * 60;
 #endif
 
   return rasqal_timegm(&time_buf);

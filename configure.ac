@@ -427,11 +427,40 @@ AC_SUBST(RASQAL_VERSION_DECIMAL)
 
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf initstate_r initstate random_r random gmtime_r rand_r rand srand timegm gettimeofday)
+AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf initstate_r initstate random_r random rand_r rand srand gettimeofday)
+
+AC_MSG_CHECKING(whether gmtime_r is available)
+have_gmtime_r=no
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#ifdef HAVE_TIME_H
+#include <time.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+]], [[gmtime_r();]])],
+  [AC_MSG_RESULT(yes)
+   have_gmtime_r=yes
+   AC_DEFINE([HAVE_GMTIME_R], [1], [Have the gmtime_r function])],
+  [AC_MSG_RESULT(no)])
+
+AC_MSG_CHECKING(whether timegm is available)
+have_timegm=no
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#ifdef HAVE_TIME_H
+#include <time.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+]], [[timegm();]])],
+  [AC_MSG_RESULT(yes)]
+   have_timegm=yes
+   AC_DEFINE([HAVE_GMTIME_R], [1], [Have the timegm function])],
+  [AC_MSG_RESULT(no)])
+
 
 AM_CONDITIONAL(STRCASECMP, test $ac_cv_func_stricmp = no -a $ac_cv_func_strcasecmp = no)
 AM_CONDITIONAL(GETOPT, test $ac_cv_func_getopt = no -a $ac_cv_func_getopt_long = no)
-AM_CONDITIONAL(TIMEGM, test $ac_cv_func_timegm = no)
+AM_CONDITIONAL(TIMEGM, test $have_timegm = no)
 dnl Windows only version
 AM_CONDITIONAL(GETTIMEOFDAY, test $ac_cv_func_gettimeofday = no)
 
@@ -458,6 +487,18 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#ifdef HAVE_TIME_H
 AC_MSG_RESULT($have_tm_gmtoff)
 if test $have_tm_gmtoff = "yes" ; then
   AC_DEFINE(HAVE_TM_GMTOFF, 1, [struct tm has tm_gmtoff field])
+fi
+AC_MSG_CHECKING(whether struct tm has __tm_gmtoff field)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#ifdef HAVE_TIME_H
+#include <time.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+]], [[struct tm my_time; my_time.__tm_gmtoff = 0;]])],[have_tm_gmtoff="yes"],[have_tm_gmtoff="no"])
+AC_MSG_RESULT($have_tm_gmtoff)
+if test $have_tm_gmtoff = "yes" ; then
+  AC_DEFINE(HAVE_TM___GMTOFF, 1, [struct tm has __tm_gmtoff field])
 fi
 
 

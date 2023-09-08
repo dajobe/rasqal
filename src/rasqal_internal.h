@@ -1288,6 +1288,14 @@ int rasqal_strncasecmp(const char* s1, const char* s2, size_t n);
 #  endif
 #endif
 
+/* for time_t */
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+#ifdef HAVE_TIME_H
+#include <time.h>
+#endif
+
 /* timegm.c */
 #ifdef HAVE_TIMEGM
 #define rasqal_timegm timegm

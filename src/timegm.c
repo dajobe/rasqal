@@ -19,9 +19,6 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
-#ifdef HAVE_TIME_H
-#include <time.h>
-#endif
 
 
 #include "rasqal.h"
@@ -42,6 +39,14 @@ rasqal_timegm(struct tm *tm)
 }
 
 #else
+
+/* function prototype may be in stdlib.h or stdio.h or nowhere?  */
+extern int setenv (const char *name, const char *value, int replace);
+extern int unsetenv (const char *name);
+
+/* time.h or nowhere */
+extern void tzset(void);
+
 
 time_t
 rasqal_timegm(struct tm *tm)

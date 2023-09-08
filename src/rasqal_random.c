@@ -38,12 +38,6 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-#ifdef HAVE_TIME_H
-#include <time.h>
-#endif
 #ifdef RANDOM_ALGO_GMP_RAND
 #ifdef HAVE_GMP_H
 #include <gmp.h>
