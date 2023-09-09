@@ -193,17 +193,19 @@ rasqal_print_row_compatible(FILE *handle, rasqal_row_compatible* map)
     
     if(offset1 < 0)
       *left_rs='\0';
-    else
+    else {
 PRAGMA_IGNORE_WARNING_FORMAT_OVERFLOW_START
       sprintf(left_rs, "%2d", offset1);
 PRAGMA_IGNORE_WARNING_END
-    
+    }
+
     if(offset2 < 0)
       *right_rs='\0';
-    else
+    else {
 PRAGMA_IGNORE_WARNING_FORMAT_OVERFLOW_START
       sprintf(right_rs, "%2d", offset2);
 PRAGMA_IGNORE_WARNING_END
+    }
     
     fprintf(handle, 
             "  Variable %10s   offsets left RS: %-3s  right RS: %-3s  %s\n",
