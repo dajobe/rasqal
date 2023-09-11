@@ -154,8 +154,12 @@ EOT
     s%^(\s*if \(\s*)YY_CURRENT_BUFFER(\s*\)\s*\{.*)$%${1}YY_CURRENT_BUFFER_LVALUE${2}%;
   }
 
-  # Fix yy_buffer_state field 'yy_buf_size' type to be unsigned
+  # Promote yy_buffer_state field 'yy_buf_size' type to yy_size_t
   s%int (yy_buf_size;)%yy_size_t $1%;
 
+  # Promote number_to_move and i variables to yy_size_t
+  s%int number_to_move, i;%yy_size_t number_to_move, i;%;
+  s%number_to_move = (int)%number_to_move = (yy_size_t)%;
+  
   print;
 }
