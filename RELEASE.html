@@ -13,6 +13,52 @@
 <p>Not yet released.
 </p>
 
+<p>Portability Changes</p>
+
+<p>Update to use Bison 3.4+ and helper scripts similar to
+Raptor changes.</p>
+
+<p>Replace <code>sprintf()</code> with <code>snprintf()</code> and
+fix gcc pragma format wrappers.</p>
+
+<p>Windows / Visual Studio 2015 fixes with respect to snprintf,
+duplicate RASQAL_API and missing includes.
+</p>
+
+<p>Compilation warning pragmas extended to cover other false format
+string issues.  Generally we know the integer will fit the size.</p>
+
+<p>clang workarounds for false warning pragmas.
+</p>
+
+<p>Add support in time code for <code>__tm__gmtoff</code> field in
+struct tm as well as the previous <code>tm_gmtoff</code> field test.
+Restructure configure tests and inclusion of time headers to support
+this.
+</p>
+
+
+<p>Internal Changes</p>
+
+<p>Updated libsv to latest version.</p>
+
+
+<p>General Changes</p>
+
+<p>Several dead code and use after free fixes found by Coverity.</p>
+
+<p>Merge pull request https://github.com/dajobe/rasqal/pull/6 from
+Michael Stahl (mistmist) upstreaming LibreOffice patches.  Thanks for
+the pull request and patches.
+</p>
+
+<p>Update autoconf to remove obsolete macros such as AC_HEADER_STDC.
+</p>
+
+<p>Use raptor_www_set_http_accept2 for raptor2 2.0.16 or newer
+as the older one has been deprecated, to avoid a compile warning.
+</p>
+
 
 <h2 id="rel0_9_33"><a name="rel0_9_33">Rasqal 0.9.33 changes</a></h2>
 
