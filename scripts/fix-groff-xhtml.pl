@@ -55,7 +55,7 @@ while(<IN>) {
   my $year=1900+(localtime)[5];
   print OUT <<"EOT" if m%^</body>%;
 
-<p>Copyright 2002-$year <a href="http://www.dajobe.org/">Dave Beckett</a><br />2002-2005 <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
+<p>Copyright 2002-$year <a href="https://www.dajobe.org/">Dave Beckett</a><br />2002-2005 <a href="https://www.bristol.ac.uk/">University of Bristol</a></p>
 
 EOT
   print OUT;

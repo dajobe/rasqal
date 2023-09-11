@@ -3,10 +3,10 @@ dnl
 dnl configure.ac - autoconf file for rasqal
 dnl (Process this file with autoconf to produce a configure script.)
 dnl
-dnl Copyright (C) 2003-2011, David Beckett http://www.dajobe.org/
-dnl Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
+dnl Copyright (C) 2003-2011, David Beckett https://www.dajobe.org/
+dnl Copyright (C) 2003-2005, University of Bristol, UK https://www.bristol.ac.uk/
 dnl 
-dnl This package is Free Software and part of Redland http://librdf.org/
+dnl This package is Free Software and part of Redland https://librdf.org/
 dnl 
 dnl It is licensed under the following three licenses as alternatives:
 dnl   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
@@ -23,7 +23,7 @@ dnl
 
 
 AC_PREREQ([2.62])
-AC_INIT([Rasqal RDF Query Library],[0.9.34],[http://bugs.librdf.org/],[rasqal])
+AC_INIT([Rasqal RDF Query Library],[0.9.34],[https://bugs.librdf.org/],[rasqal])
 AC_CONFIG_SRCDIR([src/rasqal_general.c])
 AC_CONFIG_HEADERS([src/rasqal_config.h])
 AC_CONFIG_AUX_DIR(build)
@@ -517,10 +517,10 @@ PKG_CHECK_MODULES([RAPTOR2],[raptor2],[
   raptor_too_old=0
   AS_VERSION_COMPARE([$RAPTOR_VERSION], $RAPTOR_MIN_VERSION, raptor_too_old="1")
   if test $raptor_too_old = 1; then
-    AC_MSG_ERROR(Raptor $RAPTOR_VERSION is too old - see http://librdf.org/raptor/ to get a $RAPTOR_MIN_VERSION or newer)
+    AC_MSG_ERROR(Raptor $RAPTOR_VERSION is too old - see https://librdf.org/raptor/ to get a $RAPTOR_MIN_VERSION or newer)
   fi
 ],[
-  AC_MSG_ERROR(Raptor is not installed - see http://librdf.org/raptor/ to get $RAPTOR_MIN_VERSION or newer)
+  AC_MSG_ERROR(Raptor is not installed - see https://librdf.org/raptor/ to get $RAPTOR_MIN_VERSION or newer)
 ])
 AC_SUBST(RAPTOR2_CFLAGS)
 AC_SUBST(RAPTOR2_LIBS)
@@ -1166,9 +1166,9 @@ if test "$ac_cv_header_mpfr_h" = yes; then
   AC_CHECK_FUNC(mpfr_init, have_mpfr_init=yes, have_mpfr_init=no)
   # Several functions are used that are not in GMP version of MPFR:
   #   mpfr_get_default_rounding_mode mpfr_equal_p mpfr_free_str
-  #     MPFR 2.1.0 released 3 Nov 2004 http://www.mpfr.org/mpfr-2.1.0/
+  #     MPFR 2.1.0 released 3 Nov 2004 https://www.mpfr.org/mpfr-2.1.0/
   #   mpfr_snprintf
-  #     MPFR 2.4.0 released 26 January 2009 http://www.mpfr.org/mpfr-2.4.0/
+  #     MPFR 2.4.0 released 26 January 2009 https://www.mpfr.org/mpfr-2.4.0/
   # so just test for the latter.
   AC_CHECK_FUNC(mpfr_snprintf, have_mpfr_snprintf=yes, have_mpfr_snprintf=no)
   LIBS="$oLIBS"

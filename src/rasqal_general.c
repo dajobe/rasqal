@@ -51,13 +51,13 @@ static void rasqal_free_query_language_factory(rasqal_query_language_factory *fa
 
 /* statics */
 
-const char * const rasqal_short_copyright_string = "Copyright 2003-2014 David Beckett.  Copyright 2003-2005 University of Bristol";
+const char * const rasqal_short_copyright_string = "Copyright 2003-2023 David Beckett.  Copyright 2003-2005 University of Bristol";
 
-const char * const rasqal_copyright_string = "Copyright (C) 2003-2014 David Beckett - http://www.dajobe.org/\nCopyright (C) 2003-2005 University of Bristol - http://www.bristol.ac.uk/";
+const char * const rasqal_copyright_string = "Copyright (C) 2003-2023 David Beckett - https://www.dajobe.org/\nCopyright (C) 2003-2005 University of Bristol - https://www.bristol.ac.uk/";
 
-const char * const rasqal_license_string = "LGPL 2.1 or newer, GPL 2 or newer, Apache 2.0 or newer.\nSee http://librdf.org/rasqal/LICENSE.html for full terms.";
+const char * const rasqal_license_string = "LGPL 2.1 or newer, GPL 2 or newer, Apache 2.0 or newer.\nSee https://librdf.org/rasqal/LICENSE.html for full terms.";
 
-const char * const rasqal_home_url_string = "http://librdf.org/rasqal/";
+const char * const rasqal_home_url_string = "https://librdf.org/rasqal/";
 
 /**
  * rasqal_version_string:
