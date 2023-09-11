@@ -1,12 +1,87 @@
+2023-09-10  Dave Beckett <dave@dajobe.org>
+
+	* INSTALL.html, LICENSE.html, NEWS.html, README.html,
+	RELEASE.html, TODO.html: 2023
+
+2023-09-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_row_compatible.c:
+	(rasqal_print_row_compatible): Add {} guards for else
+
+2023-09-08  Dave Beckett <dave@dajobe.org>
+
+	* libsv: Update libsv
+
+	* scripts/fix-flex.pl: Fix yy_buffer_state field 'yy_buf_size'
+	type to be unsigned
+
+	* src/strcasecmp.c: Include strings.h for strcasecmp strncasecmp
+
+	* src/sparql_lexer.l:
+	(main): Check for fread() failure in test code
+
+	* configure.ac, src/rasqal_datetime.c, src/rasqal_internal.h,
+	src/rasqal_random.c, src/timegm.c: Add support for __tm__gmtoff in
+	struct tm.  Restructure configure tests and inclusion of time
+	headers.
+
+2023-09-07  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: clang and warnings update
+
+	* configure.ac: Update links
+
+2023-09-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(main): Hide ununsed duplicates var when debug level is low
+
+	* scripts/fix-bison.pl: Remove all mention of unused var yynerrs
+
+	* src/rasqal_decimal.c:
+	(rasqal_xsd_decimal_as_string): Ignore format literal warnings
+
+	* src/rasqal_internal.h: Support disabling warning pragmas for
+	clang
+
+	* src/rasqal_digest_sha1.c: remove unused SHA1HANDSOFF code
+
+2023-09-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_service.c: Use raptor_www_set_http_accept2 for
+	raptor2 2.0.16 or newer
+
+	(rasqal_service_execute_as_rowsource): Use
+	raptor_www_set_http_accept2 for raptor2 2.0.16 or newer
+
+	* INSTALL.html: pcre2 doc
+
+	* docs/Makefile.am: make rasqal.h in build dir not src dir
+
+	* docs/.gitignore: ignore rasqal.actions
+
+	* src/rasqal-config.in: Make --help and --verbose work without
+	installed rasqal pkgconfig
+
+2023-09-04  Dave Beckett <dave@dajobe.org>
+
+	* .gitmodules: Switch submodules from git protocol to git over
+	https GitHub turned these off at 2021-09
+
+	https://github.blog/2021-09-01-improving-git-protocol-security-github/
+
 2023-09-03  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, src/rasqal_regex.c:
+	Add support for PCRE V2 (and
+	prefer it) Intended to address GitHub Issue 12
+	https://github.com/dajobe/rasqal/issues/12
 
 	* configure.ac: Remove and fix obsolete autoconf
 	- Give AC_PROG_LEX an argument
 	- Remove AC_HEADER_TIME
 	- Remove AC_HEADER_STDC and uses
 	- Update explicit header checks adding getopt.h unistd.h
-
-2023-09-03  Dave Beckett <dave@dajobe.org>
 
 	* libsv: Update libsv
 
