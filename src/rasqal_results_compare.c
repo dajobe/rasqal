@@ -291,17 +291,19 @@ rasqal_print_results_compare(FILE *handle, rasqal_results_compare* rrc)
 
     if(offset1 < 0)
       *first_qr = '\0';
-    else
+    else {
 PRAGMA_IGNORE_WARNING_FORMAT_OVERFLOW_START
       sprintf(first_qr, "%d", offset1);
 PRAGMA_IGNORE_WARNING_END
+    }
 
     if(offset2 < 0)
       *second_qr = '\0';
-    else
+    else {
 PRAGMA_IGNORE_WARNING_FORMAT_OVERFLOW_START
       sprintf(second_qr, "%d", offset2);
 PRAGMA_IGNORE_WARNING_END
+    }
 
     fprintf(handle,
             "  Variable %10s   offsets first: %-3s  second: %-3s  %s\n",
