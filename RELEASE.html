@@ -64,10 +64,10 @@ as the older one has been deprecated, to avoid a compile warning.
 
 <p>Issues Fixed:</p>
 <ul>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=546">0000546</a>: Can't take query from URI when using -p</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=568">0000568</a>: Filter expression with division does not work</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=583">0000583</a>: CONSTRUCT halts at a template triple with unbound variable</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=588">0000588</a>: roqet: select from SERVICE returns all NULLs</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=546">0000546</a>: Can't take query from URI when using -p</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=568">0000568</a>: Filter expression with division does not work</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=583">0000583</a>: CONSTRUCT halts at a template triple with unbound variable</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=588">0000588</a>: roqet: select from SERVICE returns all NULLs</li>
 </ul>
 
 <h3>SPARQL changes</h3>
@@ -142,7 +142,7 @@ now manages it's own variables table.</p>
 <p>Fixed returning the correct variables count for reading SPARQL XML
 results sets.  This caused some queries to fail if the projected
 variables count did not match the count in the result set.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=588">Issue #0000588</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=588">Issue #0000588</a>
 </p>
 
 <h3>Variables table class changes</h3>
@@ -158,7 +158,7 @@ in smaller calling code and better ownership semantics.
 
 <p><code>roqet(1)</code> now supports using a URI or local file to
 send to a SPARQL protocol service URI.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=546">Issue #0000546</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=546">Issue #0000546</a>
 </p>
 
 <h3>Other changes</h3>
@@ -198,11 +198,11 @@ enabled.</p>
 
 <p>Issues Fixed:</p>
 <ul>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=558">0000558</a>: sparql11-update causes fallback to sparql10</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=560">0000560</a>: &quot;--with-pcre-config&quot; documented but not supported</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=561">0000561</a>: 'make check' fails; possibly because raptor2 built in separate directory</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=564">0000564</a>: Rasqal fails with linker error for armv7 cross-compilation: duplicate symbol _main</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=567">0000567</a>: Segfault based on documentation recommendation</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=558">0000558</a>: sparql11-update causes fallback to sparql10</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=560">0000560</a>: &quot;--with-pcre-config&quot; documented but not supported</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=561">0000561</a>: 'make check' fails; possibly because raptor2 built in separate directory</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=564">0000564</a>: Rasqal fails with linker error for armv7 cross-compilation: duplicate symbol _main</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=567">0000567</a>: Segfault based on documentation recommendation</li>
 </ul>
 
 <h3>SPARQL changes</h3>
@@ -210,7 +210,7 @@ enabled.</p>
 <p>Fixed the SPARQL 1.0 and SPARQL 1.1 syntax feature checking so
 that language <code>sparql11-update</code> allows all SPARQL 1.1
 syntax features to be used.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=558">Issue #0000558</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=558">Issue #0000558</a>
 </p>
 
 <p>Updated the SPARQL parser to use and require Bison 3.0 (for
@@ -225,7 +225,7 @@ maintainer, building from GIT sources).
 
 <p>Made <code>rasqal_new_query()</code> match the documentation in
 accepting a <code>NULL</code> name.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=567">Issue #0000567</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=567">Issue #0000567</a>
 </p>
 
 
@@ -244,14 +244,14 @@ envariables form (<code>PCRE_CONFIG</code> and
 <p>Added a new internal <code>to-ntriples</code> utility to remove all
 use of <code>rapper(1)</code> so that the raptor utilities do not
 need to be available for running tests with 'make check'.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=561">Issue #0000561</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=561">Issue #0000561</a>
 </p>
 
 <p>Make <code>--with-libgcrypt-config</code> work.
 </p>
 
 <p>Make <code>--with-pcre-config</code> work.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=560">Issue# 0000560</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=560">Issue# 0000560</a>
 </p>
 
 <p>Fix noisy mhash_dir addition error; it was always added the cflags
@@ -262,7 +262,7 @@ and includes even when mhash_dir was blank.</p>
 <h3>Other changes</h3>
 
 <p>Mention libmtwist near <code>--with-random-approach.</code>
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=561">Issue #0000561</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=561">Issue #0000561</a>
 </p>
 
 <h3>Internal changes</h3>
@@ -272,7 +272,7 @@ code or functions used in tests.</p>
 
 <p>Make <code>rasqal_xsd_check_double_format()</code> an internal
 non-static symbol.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=564">Issue #0000564</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=564">Issue #0000564</a>
 </p>
 
 
@@ -280,11 +280,11 @@ Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=564">Issue #0000564</a>
 
 <p>Issues Fixed:</p>
 <ul>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=527">0000527</a>: segmentation fault in roqet when making a SPARQL SERVICE query that returns an HTTP error</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=536">0000536</a>: configure accepts bogus values for --with-xml2-config</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=537">0000537</a>: configure pkg-config checks not overridable</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=538">0000538</a>: work around MSVC 2008's inexcusable lack of stdint.h header</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=539">0000539</a>: win32_rasqal_config.h doesn't work on MSVC2008</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=527">0000527</a>: segmentation fault in roqet when making a SPARQL SERVICE query that returns an HTTP error</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=536">0000536</a>: configure accepts bogus values for --with-xml2-config</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=537">0000537</a>: configure pkg-config checks not overridable</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=538">0000538</a>: work around MSVC 2008's inexcusable lack of stdint.h header</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=539">0000539</a>: win32_rasqal_config.h doesn't work on MSVC2008</li>
 </ul>
 
 
@@ -337,7 +337,7 @@ pattern.</p>
 old <code>BINDINGS</code> syntax.</p>
 
 <p>Fixed crash when a SERVICE returns no rowsource.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=527">Issue #0000527</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=527">Issue #0000527</a>
 </p>
 
 <p>Added proper validation of xsd:double and xsd:float literal format.</p>
@@ -371,9 +371,9 @@ sequence of rows.</p>
 
 <p>Win32 build fix patches from Michael Stahl:
 Fixes Issues
-<a href="http://bugs.librdf.org/mantis/view.php?id=539">#0000539</a>
+<a href="https://bugs.librdf.org/mantis/view.php?id=539">#0000539</a>
 and
-<a href="http://bugs.librdf.org/mantis/view.php?id=538">#0000538</a>
+<a href="https://bugs.librdf.org/mantis/view.php?id=538">#0000538</a>
 </p>
 
 
@@ -403,12 +403,12 @@ like on OSX where just the headers are present.</p>
 
 <p><code>configure</code> now uses PKG_CHECK_MODULES() to enable
 overriding discovery of pkg-config if needed.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=537">Issue #0000537</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=537">Issue #0000537</a>
 </p>
 
 <p>Fix crash if <code>xml2-config(1)</code> when pointed at a non
 executable file. Patch from Michael Stahl
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=536">Issue #0000536</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=536">Issue #0000536</a>
 </p>
 
 <p><code>configure</code> ensures CPPFLAGS can be passed through
@@ -447,10 +447,10 @@ queries.  Use SPARQL instead.
 
 <p>Issues Fixed:</p>
 <ul>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=506">0000506</a>: configure.ac has bash -specific (non-POSIX) == syntax</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=511">0000511</a>: Add support for OSSP UUID library</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=517">0000517</a>: Autoconf errors when checking for several headers and cross-compiling</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=523">0000523</a>: mpfr dependency</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=506">0000506</a>: configure.ac has bash -specific (non-POSIX) == syntax</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=511">0000511</a>: Add support for OSSP UUID library</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=517">0000517</a>: Autoconf errors when checking for several headers and cross-compiling</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=523">0000523</a>: mpfr dependency</li>
 </ul>
 
 
@@ -473,7 +473,7 @@ equality as decribed below.
 <p>Return rdf term type string from
 <code>rasqal_literal_get_rdf_term_type()</code> for integer subtypes
 (<code>RASQAL_LITERAL_INTEGER_SUBTYPE</code>).
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=519">Issue #0000519</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=519">Issue #0000519</a>
  (Redland librdf)</p>
 
 <p><code>rasqal_literal_to_result_term()</code> now returns NULL on
@@ -507,7 +507,7 @@ and other internal methods.
 <h3>Query language changes</h3>
 
 <p>Updated the SPARQL syntax to support <code>integer^^uri-ref</code>.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=519">Issue #0000519</a> (Redland librdf)
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=519">Issue #0000519</a> (Redland librdf)
 </p>
 
 <p>Removed RDQL support as promised.  So long and thanks for all the queries.
@@ -519,7 +519,7 @@ Use SPARQL instead.
 
 <p>Test for <code>mpfr_snprintf()</code> specifically which appeared
 in MPFR 2.4.0.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=523">Issue #0000523</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=523">Issue #0000523</a>
 </p>
 
 <p>The Bison minimum version is now 2.0 (from 2004-12-25) until we
@@ -548,7 +548,7 @@ libc for OSX.
 
 <p>Fix some <code>configure</code> portability with non-POSIX bash
 syntax and adding some -W flags to autotool calls.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=506">Issue #0000506</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=506">Issue #0000506</a>
 </p>
 
 <p>Updated <code>autogen.sh</code> to abort run if a configuring
@@ -573,9 +573,9 @@ supported.</p>
 
 <p>Issues Fixed:</p>
 <ul>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=493">0000493</a>: Offset in sub-select results in no rows at all.</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=494">0000494</a>: Temp buffer to small.</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=504">0000504</a>: rasqal_regex_replace() is not public</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=493">0000493</a>: Offset in sub-select results in no rows at all.</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=494">0000494</a>: Temp buffer to small.</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=504">0000504</a>: rasqal_regex_replace() is not public</li>
 </ul>
 
 
@@ -616,7 +616,7 @@ datetime constructor to build a datetime from a date.</p>
 
 <p>Correct the buffer size in
 <code>rasqal_xsd_datetime_get_seconds_as_decimal()</code>
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=494">Issue #0000494</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=494">Issue #0000494</a>
 </p>
 
 
@@ -670,7 +670,7 @@ match SPARQL standard.
 
 <p>Make limit and offset check work properly in a subquery.
 Fixes
-<a href="http://bugs.librdf.org/mantis/view.php?id=493">Issue #0000493</a>
+<a href="https://bugs.librdf.org/mantis/view.php?id=493">Issue #0000493</a>
 </p>
 
 <p>Added support for executing SPARQL 1.1 draft <code>UUID()</code>
@@ -709,7 +709,7 @@ option <code>--uuid-library=NAME</code></p>
 <p>Made <code>rasqal_regex_replace()</code> public with same
 signature as the internal API.
 Fixes
-<a href="http://bugs.librdf.org/mantis/view.php?id=504">Issue #0000504</a>
+<a href="https://bugs.librdf.org/mantis/view.php?id=504">Issue #0000504</a>
 </p>
 
 <p>The <code>tests/sparql/check-sparql</code> test runner was updated
@@ -729,11 +729,11 @@ it is possible disable debug output on the command line (default).
 
 <p>Issues Fixed:</p>
 <ul>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=466">0000466</a>: zero size calloc does not return object (src/rasqal_row.c)</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=467">0000467</a>: Tests fail because diff doesn't accept -u flag</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=470">0000470</a>: snprintf portability issues</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=471">0000471</a>: Compile error when RASQAL_DEBUG set to &gt; 1</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=474">0000474</a>: roqet flags listed in help, but not recognised</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=466">0000466</a>: zero size calloc does not return object (src/rasqal_row.c)</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=467">0000467</a>: Tests fail because diff doesn't accept -u flag</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=470">0000470</a>: snprintf portability issues</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=471">0000471</a>: Compile error when RASQAL_DEBUG set to &gt; 1</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=474">0000474</a>: roqet flags listed in help, but not recognised</li>
 </ul>
 
 
@@ -809,7 +809,7 @@ the wrong answer when checking whether to link with -lm
 
 <p>Removed the obsolete -w option from the <code>roqet --help</code>
 message which was removed from code some time ago.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=474">Issue 0000474</a>.
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=474">Issue 0000474</a>.
 </p>
 
 <p>Prevent a gcc 4K stack size warning in a few tests.
@@ -822,7 +822,7 @@ replace (all) backing SPARQL 1.1 <code>REPLACE()</code></p>
 <p>Several internal fixes for compiling with RASQAL_DEBUG &gt; 1
 (Lauri Aalto)
 Fixes
-<a href="http://bugs.librdf.org/mantis/view.php?id=471">Issue #0000471</a>
+<a href="https://bugs.librdf.org/mantis/view.php?id=471">Issue #0000471</a>
 </p>
 
 
@@ -832,14 +832,14 @@ integer formatting.
 
 <p>The check-sparql utility used during 'make check' now sets the
 DIFF envariable for check tests to allow use off GNU Diff.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=467">Issue #0000467</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=467">Issue #0000467</a>
 (Peter O'Gorman / pogma)
 </p>
 
 <p>Code style changes for calling <code>calloc()</code>.</p>
 
 <p>Do not <code>calloc()</code> with 0 count for a result row - not portable.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=466">Issue #0000466</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=466">Issue #0000466</a>
 (Peter O'Gorman / pogma)
 </p>
 
@@ -853,11 +853,11 @@ can now handle comparing query results when sorting is involved.
 
 <p>Issues Fixed:</p>
 <ul>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=127">0000127</a>: <code>UNION</code> graph pattern support in query engine</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=423">0000423</a>: SPARQL <code>UNION</code> with shared variables fails</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=434">0000434</a>: <code>OPTIONAL</code> and named graphs don't mix</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=454">0000454</a>: xsd:nonNegativeInteger is parsed as <code>RASQAL_LITERAL_QNAME</code> instead of <code>RASQAL_LITERAL_[INTEGER|UDT|INTEGER_SUBTYPE]</code></li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=459">0000459</a>: Making a query that binds to a variable with the same name as a bnode fails</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=127">0000127</a>: <code>UNION</code> graph pattern support in query engine</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=423">0000423</a>: SPARQL <code>UNION</code> with shared variables fails</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=434">0000434</a>: <code>OPTIONAL</code> and named graphs don't mix</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=454">0000454</a>: xsd:nonNegativeInteger is parsed as <code>RASQAL_LITERAL_QNAME</code> instead of <code>RASQAL_LITERAL_[INTEGER|UDT|INTEGER_SUBTYPE]</code></li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=459">0000459</a>: Making a query that binds to a variable with the same name as a bnode fails</li>
 </ul>
 
 
@@ -920,7 +920,7 @@ arbitrary precision decimal to a C long with an overflow error flag.
 </p>
 
 <p>xsd:integer subtypes are stored and printed correctly.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=454">Issue #0000454</a>.
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=454">Issue #0000454</a>.
 </p>
 
 
@@ -1070,12 +1070,12 @@ if it is not in the standard lib/include prefix.
 
 <p>Issues Fixed:</p>
 <ul>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=430">Issue #0000430</a>: Incorrect HTML generated with unknown literal types</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=431">Issue #0000431</a>: Only a limited number of literal datatypes are displayable in a HTML format.</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=436">Issue #0000436</a>: queries involving calculations with large numbers return incorrect results unless scientific notation is used</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=438">Issue #0000438</a>: timegm not available on solaris</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=439">Issue #0000439</a>: warning when variable is not selected makes 4store tests to fail</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=446">Issue #0000446</a>: rasqal may require -lm for floor, ceil, round on some systems and architectures</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=430">Issue #0000430</a>: Incorrect HTML generated with unknown literal types</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=431">Issue #0000431</a>: Only a limited number of literal datatypes are displayable in a HTML format.</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=436">Issue #0000436</a>: queries involving calculations with large numbers return incorrect results unless scientific notation is used</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=438">Issue #0000438</a>: timegm not available on solaris</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=439">Issue #0000439</a>: warning when variable is not selected makes 4store tests to fail</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=446">Issue #0000446</a>: rasqal may require -lm for floor, ceil, round on some systems and architectures</li>
 </ul>
 
 <h3>SPARQL 1.1 Query draft language changes</h3>
@@ -1123,7 +1123,7 @@ against <a href="http://gmplib.org/">GNU MP</a>.
 
 <p>Check for overflow when converting a string to int and if
 resulting long won't fit in an int, turn it into a decimal.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=436">Issue #0000436</a>.
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=436">Issue #0000436</a>.
 </p>
 
 <p>Removed Query Engine V1 that was long disabled.
@@ -1135,11 +1135,11 @@ the <code>--with-query-engine-version</code> option.
 <h3>Query results formatter class changes</h3>
 
 <p>Fixed HTML query results generating invalid HTML.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=430">Issue #0000430</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=430">Issue #0000430</a>
 </p>
 
 <p>Support writing additional literal types in HTML query results.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=431">Issue #0000431</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=431">Issue #0000431</a>
 </p>
 
 <p>The JSON query result format now accepts the
@@ -1172,13 +1172,13 @@ and <code>--with-redland-config</code> options from <code>configure</code>.
 
 <p>Add a portable version of <code>timegm()</code> when it is not
 present in the system (such as Solaris).
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=438">Issue #0000438</a>.
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=438">Issue #0000438</a>.
 </p>
 
 <p>Added <code>configure</code> tests
 for <code>ceil()</code>, <code>floor()</code>
 and <code>round()</code> that look for them in libc or libm.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=446">Issue #0000446</a>.
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=446">Issue #0000446</a>.
 </p>
 
 <p>Fixed up several code paths with problems found
@@ -1191,9 +1191,9 @@ variables, unnecessary calculations but a couple of bad accesses.
 
 <p>Issues Fixed:</p>
 <ul>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=421">Issue #0000421</a>: Use raptor_syntax_description_validate() to validate Query Results formats</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=427">Issue #0000427</a>: INSERT/DELETE with &quot;&quot;&quot; quoting doesn't quite work</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=428">Issue #0000428</a>: @lang doesn't work with &quot;&quot;&quot;:</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=421">Issue #0000421</a>: Use raptor_syntax_description_validate() to validate Query Results formats</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=427">Issue #0000427</a>: INSERT/DELETE with &quot;&quot;&quot; quoting doesn't quite work</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=428">Issue #0000428</a>: @lang doesn't work with &quot;&quot;&quot;:</li>
 </ul>
 
 
@@ -1231,9 +1231,9 @@ argument given.
 <p>Fixed support for """-quoted and '''-quoted strings not over-quoting
 and adding support for optional language.
 Fixes
-<a href="http://bugs.librdf.org/mantis/view.php?id=427">Issue #0000427</a>
+<a href="https://bugs.librdf.org/mantis/view.php?id=427">Issue #0000427</a>
 and
-<a href="http://bugs.librdf.org/mantis/view.php?id=428">Issue #0000428</a>.
+<a href="https://bugs.librdf.org/mantis/view.php?id=428">Issue #0000428</a>.
 </p>
 
 
@@ -1443,10 +1443,10 @@ pointer.  This was already done but with different code styles.
 
 <p>Fixed Issues:</p>
 <ul>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=407">0000407</a>: ORDER BY does not appear to handle undefined values correctly</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=414">0000414</a>: Type of operation->insert_templates depends on Update syntax</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=415">0000415</a>: Graph pattern operator not correctly filled out in SPARQL 1.1 Updates</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=417">0000417</a>: SELECT DISTINCT sometimes returns duplicates</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=407">0000407</a>: ORDER BY does not appear to handle undefined values correctly</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=414">0000414</a>: Type of operation->insert_templates depends on Update syntax</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=415">0000415</a>: Graph pattern operator not correctly filled out in SPARQL 1.1 Updates</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=417">0000417</a>: SELECT DISTINCT sometimes returns duplicates</li>
 </ul>
 
 
@@ -1899,7 +1899,7 @@ W3C working draft of 14 October 2010:
 
 <p>Fixed Issues:</p>
 <ul>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=388">0000388</a>: Can only write JSON format for variable binding and boolean results</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=388">0000388</a>: Can only write JSON format for variable binding and boolean results</li>
 </ul>
 
 
@@ -2245,13 +2245,13 @@ execution semantics for new built-in expressions.</li>
 
 <p>Fixed Issues:</p>
 <ul>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=352">0000352</a>: CONSTRUCT with a LIMIT doesn't limit query results</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=353">0000353</a>: CONSTRUCT with an ORDER always(?) returns an empty graph</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=354">0000354</a>: Comparing xsd:int and xsd:integer fails in SPARQL</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=360">0000360</a>: [PATCH] HTML Table results format</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=374">0000374</a>: Solaris 10 'make check' failures</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=377">0000377</a>: Cannot format results in roqet</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=378">0000378</a>: Crash when cleaning up after a failed query containing unsupported syntax</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=352">0000352</a>: CONSTRUCT with a LIMIT doesn't limit query results</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=353">0000353</a>: CONSTRUCT with an ORDER always(?) returns an empty graph</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=354">0000354</a>: Comparing xsd:int and xsd:integer fails in SPARQL</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=360">0000360</a>: [PATCH] HTML Table results format</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=374">0000374</a>: Solaris 10 'make check' failures</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=377">0000377</a>: Cannot format results in roqet</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=378">0000378</a>: Crash when cleaning up after a failed query containing unsupported syntax</li>
 </ul>
 
 
@@ -2446,7 +2446,7 @@ Query <code>SELECT ... AS ?varname</code> with $ or ? symbol.
 BY</code> is part of the query (yes - this is a well-defined count of
 under-defined actual results) with the original query engine.
 Related to
-<a href="http://bugs.librdf.org/mantis/view.php?id=352">Issue#0000352</a>.
+<a href="https://bugs.librdf.org/mantis/view.php?id=352">Issue#0000352</a>.
 </p>
 
 <p>Add datatype support for <code>xsd:date</code> for value
@@ -2464,7 +2464,7 @@ results into memory.  Anyway, it works now.
 
 <p>Added an HTML Table results format (name 'table') by Nicholas J Humfrey
 using patch from 
-<a href="http://bugs.librdf.org/mantis/view.php?id=360">Issue#0000360</a>.
+<a href="https://bugs.librdf.org/mantis/view.php?id=360">Issue#0000360</a>.
 </p>
 
 <p>A NULL base_uri is valid in
@@ -2524,11 +2524,11 @@ after midnight local time.
 
 <p>Fixed Issues:</p>
 <ul>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=320">0000320</a>: Add a void* user_data field to rasqal_variable</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=323">0000323</a>: Official MIME Type for JSON isn't text/json</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=343">0000343</a>: Mime type for 'table' results format is text/plan</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=345">0000345</a>: MIME Type and URI for TSV and CSV</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=347">0000347</a>: rasqal linking fix</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=320">0000320</a>: Add a void* user_data field to rasqal_variable</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=323">0000323</a>: Official MIME Type for JSON isn't text/json</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=343">0000343</a>: Mime type for 'table' results format is text/plan</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=345">0000345</a>: MIME Type and URI for TSV and CSV</li>
+  <li><a href="https://bugs.librdf.org/mantis/view.php?id=347">0000347</a>: rasqal linking fix</li>
 </ul>
 
 
@@ -2606,9 +2606,9 @@ for use with <code>rasqal_new_query_results()</code>.
 
 <p>Registered URIs for the CSV and TSV query result formats and fixed
 the mime types for those as well as the JSON format as reported in issues
-<a href="http://bugs.librdf.org/mantis/view.php?id=345">Issue #0000345</a>
+<a href="https://bugs.librdf.org/mantis/view.php?id=345">Issue #0000345</a>
 and
-<a href="http://bugs.librdf.org/mantis/view.php?id=323">Issue #0000323</a>.
+<a href="https://bugs.librdf.org/mantis/view.php?id=323">Issue #0000323</a>.
 </p>
 
 <p>Added <code>rasqal_new_query_results_formatter2()</code> with
@@ -2727,7 +2727,7 @@ it to do division and not add!
 <p>Link <code>roqet</code> directly with <code>-lraptor</code> to get
 raptor symbols used linked directly, to enable alternate library
 linking approaches to work.  Based on the request in
-<a href="http://bugs.librdf.org/mantis/view.php?id=347">Fixes Issue#0000347</a>
+<a href="https://bugs.librdf.org/mantis/view.php?id=347">Fixes Issue#0000347</a>
 and
 <a href="https://bugzilla.redhat.com/show_bug.cgi?id=564885">Fedora bug 564885</a>.
 </p>
@@ -2779,14 +2779,14 @@ were many other changes and fixes.
 
 <p>Fixed Issues: (most of them in query engine 2)</p>
 <ul>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=077">Issue#0000077</a>: OPTIONAL messes up query results </li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=128">Issue#0000128</a>: GROUP graph pattern support in the query engine</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=168">Issue#0000168</a>: Wrong processing of the function "bound" with "OPTIONAL"</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=258">Issue#0000258</a>: Using FILTER with OPTIONAL in SPARQL queries</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=261">Issue#0000261</a>: Some SPARQL queries with multiple OPTIONAL patterns fail to return results</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=271">Issue#0000271</a>: rasqal library does not compile cleanly when using g++ compiler</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=279">Issue#0000279</a>: JSON query binding serializer is returning illegal JSON - extra double quotes before "ordered" and "distinct"</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=305">Issue#0000305</a>: bound gives incoherent results</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=077">Issue#0000077</a>: OPTIONAL messes up query results </li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=128">Issue#0000128</a>: GROUP graph pattern support in the query engine</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=168">Issue#0000168</a>: Wrong processing of the function "bound" with "OPTIONAL"</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=258">Issue#0000258</a>: Using FILTER with OPTIONAL in SPARQL queries</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=261">Issue#0000261</a>: Some SPARQL queries with multiple OPTIONAL patterns fail to return results</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=271">Issue#0000271</a>: rasqal library does not compile cleanly when using g++ compiler</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=279">Issue#0000279</a>: JSON query binding serializer is returning illegal JSON - extra double quotes before "ordered" and "distinct"</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=305">Issue#0000305</a>: bound gives incoherent results</li>
 </ul>
 
 
@@ -3048,7 +3048,7 @@ to check if a graph pattern in a query defines a variable</p>
 <h3>Query Results Formatter Changes</h3>
 
 <p>SPARQL/JSON: Do not emit double " for distinct/ordered flags.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=279">Issue #0000279</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=279">Issue #0000279</a>
 </p>
 
 <p>Added comma-separated values (CSV), tab-separated values (TSV) and
@@ -3549,24 +3549,24 @@ made internal.</p>
 
 <p>Fixed issues:</p>
 <ul>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=190">Issue#0000190</a>: Memory leaks in rasqal_literal.c</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=191">Issue#0000191</a>: RAPTOR_API in rasqal.h</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=193">Issue#0000193</a>: SPARQL "ASK" always returns true</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=196">Issue#0000196</a>: Memory leak with RASQAL_REGEX_PCRE</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=197">Issue#0000197</a>: Problem with float comparison in rasqal</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=198">Issue#0000198</a>: rasqal_redland.c compilation errors</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=199">Issue#0000199</a>: SPARQL effective boolean value: empty string literal not false</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=200">Issue#0000200</a>: SPARQL filter scope</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=201">Issue#0000201</a>: SPARQL langMatches patch</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=203">Issue#0000203</a>: API declarations for Symbian portability</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=204">Issue#0000204</a>: SPARQL WHERE is optional</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=219">Issue#0000219</a>: SPARQL BASE makes rasqal query->locator.uri a dangling pointer</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=220">Issue#0000220</a>: Query offset off by one</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=221">Issue#0000221</a>: rasqal_literal_as_integer() with RASQAL_LITERAL_INTEGER literals</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=225">Issue#0000225</a>: SPARQL parser leaks memory on syntax error</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=234">Issue#0000234</a>: autogen.sh $dir quoting</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=235">Issue#0000235</a>: $(EXEEXT) in tests</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=236">Issue#0000236</a>: EOL issues when building svn version on cygwin</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=190">Issue#0000190</a>: Memory leaks in rasqal_literal.c</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=191">Issue#0000191</a>: RAPTOR_API in rasqal.h</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=193">Issue#0000193</a>: SPARQL "ASK" always returns true</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=196">Issue#0000196</a>: Memory leak with RASQAL_REGEX_PCRE</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=197">Issue#0000197</a>: Problem with float comparison in rasqal</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=198">Issue#0000198</a>: rasqal_redland.c compilation errors</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=199">Issue#0000199</a>: SPARQL effective boolean value: empty string literal not false</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=200">Issue#0000200</a>: SPARQL filter scope</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=201">Issue#0000201</a>: SPARQL langMatches patch</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=203">Issue#0000203</a>: API declarations for Symbian portability</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=204">Issue#0000204</a>: SPARQL WHERE is optional</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=219">Issue#0000219</a>: SPARQL BASE makes rasqal query->locator.uri a dangling pointer</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=220">Issue#0000220</a>: Query offset off by one</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=221">Issue#0000221</a>: rasqal_literal_as_integer() with RASQAL_LITERAL_INTEGER literals</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=225">Issue#0000225</a>: SPARQL parser leaks memory on syntax error</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=234">Issue#0000234</a>: autogen.sh $dir quoting</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=235">Issue#0000235</a>: $(EXEEXT) in tests</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=236">Issue#0000236</a>: EOL issues when building svn version on cygwin</li>
 </ul>
 
 
@@ -3773,11 +3773,11 @@ of supported formats.</p>
 
 <p>Fixed issues:</p>
 <ul>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=152">Issue#0000152</a>: Allow <code>&lt;_:NAME&gt;</code> to work as <code>_:NAME</code> in SPARQL.</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=156">Issue#0000156</a>: Add LAQRS extensions to SPARQL grammar</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=160">Issue#0000160</a>: rasqal_strcasecmp without prototype</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=167">Issue#0000167</a>: Make CONSTRUCT work with LIMIT</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=182">Issue#0000182</a>: Allow '-' in SPARQL language tags (and RDQL)</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=152">Issue#0000152</a>: Allow <code>&lt;_:NAME&gt;</code> to work as <code>_:NAME</code> in SPARQL.</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=156">Issue#0000156</a>: Add LAQRS extensions to SPARQL grammar</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=160">Issue#0000160</a>: rasqal_strcasecmp without prototype</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=167">Issue#0000167</a>: Make CONSTRUCT work with LIMIT</li>
+<li><a href="https://bugs.librdf.org/mantis/view.php?id=182">Issue#0000182</a>: Allow '-' in SPARQL language tags (and RDQL)</li>
 </ul>
 
 
@@ -3984,13 +3984,13 @@ after 9 years.</p>
 
 <p><code>PKGCONFIG</code> vars not substituted
 correctly in configure.ac.  Remove @LDFLAGS from rasqal.pc.in.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=98">Issue#0000098</a>.
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=98">Issue#0000098</a>.
 </p>
 
 <p>Win32 build fixes.Correct win32 static linking of rasqal.
-(Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=100">Issue#0000100</a>)
+(Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=100">Issue#0000100</a>)
 and include float.h and <code>#define isnan</code> on win32.
-(Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=111">Issue#0000111</a>).
+(Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=111">Issue#0000111</a>).
 </p>
 
 <p>In maintainer mode, add all the supported compiler <code>-W</code>
@@ -4001,7 +4001,7 @@ warning flags to the CFLAGS.
 attributes when using a new enough GCC.</p>
 
 <p>Remove broken debug messages.
-<a href="http://bugs.librdf.org/mantis/view.php?id=131">#0000131</a>.
+<a href="https://bugs.librdf.org/mantis/view.php?id=131">#0000131</a>.
 </p>
 
 <h3>SPARQL Query Language Changes</h3>
@@ -4030,33 +4030,33 @@ on some systems.</p>
 
 <p>Merge only all adjacent sequences of basic graph pattern triples, not
 anything with triples such as optional BGP triples.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=80">Issue#0000080</a>.
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=80">Issue#0000080</a>.
 </p>
 
 <p>When an exact triple match is present, do not execute a query forever.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=94">Issue#0000094</a>.
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=94">Issue#0000094</a>.
 </p>
 
 <p> Fail if a variable argument to <code>LANG()</code> has an
 undefined value rather than try to execute a NULL pointer.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=113">Issue#0000113</a>.
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=113">Issue#0000113</a>.
 </p>
 
 <p>Add query / query_results link early so reference counting is done right.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=95">Issue#0000095</a>.
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=95">Issue#0000095</a>.
 </p>
 
 <p>Report failure as well as query finished when an error occurs
 during making results.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=118">Issue#0000118</a>.
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=118">Issue#0000118</a>.
 </p>
 
 <p>Added a hack to check an outer constraint expression.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=129">Issue#0000129</a>.
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=129">Issue#0000129</a>.
 </p>
 
 <p>Free origins (<code>GRAPH</code> nodes) in triples to prevent memory leak.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=133">Issue#0000133</a>.
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=133">Issue#0000133</a>.
 </p>
 
 
@@ -4151,7 +4151,7 @@ except where the flex/bison approach diverged.</p>
 <h3>RDQL Query Language Changes</h3>
 
 <p>Handle empty regex <code>//</code>
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=71">Issue#0000071</a>
+Fixes <a href="https://bugs.librdf.org/mantis/view.php?id=71">Issue#0000071</a>
 </p>
 
 
@@ -4191,7 +4191,7 @@ Implemented document with version
 
 <p><code>rasqal_query_get_all_variable_sequence</code> was corrected to match the
 definition - return all variables, not just the bound (<code>SELECT</code>ed) ones.
-Fixes  <a href="http://bugs.librdf.org/mantis/view.php?id=79">Issue#00000079</a>.
+Fixes  <a href="https://bugs.librdf.org/mantis/view.php?id=79">Issue#00000079</a>.
 </p>
 
 <p>Added <code>rasqal_query_get_anonymous_variable_sequence</code> to return
