@@ -40,7 +40,7 @@ rasqal_timegm(struct tm *tm)
 
 #else
 
-PRAGMA_IGNORE_WARNING_REDUNDANT_DECLS_OVERFLOW_START
+PRAGMA_IGNORE_WARNING_REDUNDANT_DECLS_START
 /* function prototype may be in stdlib.h or stdio.h or nowhere */
 extern char *getenv(const char *);
 extern int setenv(const char *name, const char *value, int replace);
