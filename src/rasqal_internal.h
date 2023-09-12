@@ -193,12 +193,15 @@ void rasqal_system_free(void *ptr);
 #define PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START \
   _Pragma ("GCC diagnostic push") \
   _Pragma ("GCC diagnostic ignored \"-Wformat-nonliteral\"")
-#define PRAGMA_IGNORE_WARNING_FORMAT_TRUNCATION_START \
-  _Pragma ("GCC diagnostic push") \
-  _Pragma ("GCC diagnostic ignored \"-Wformat-truncation\"")
 #define PRAGMA_IGNORE_WARNING_FORMAT_OVERFLOW_START     \
   _Pragma ("GCC diagnostic push") \
   _Pragma ("GCC diagnostic ignored \"-Wformat-overflow\"")
+#define PRAGMA_IGNORE_WARNING_FORMAT_TRUNCATION_START \
+  _Pragma ("GCC diagnostic push") \
+  _Pragma ("GCC diagnostic ignored \"-Wformat-truncation\"")
+#define PRAGMA_IGNORE_WARNING_REDUNDANT_DECLS_OVERFLOW_START \
+  _Pragma ("GCC diagnostic push") \
+  _Pragma ("GCC diagnostic ignored \"-Wredundant-decls\"")
 #define PRAGMA_IGNORE_WARNING_END \
   _Pragma ("GCC diagnostic pop")
 #define FALLTHROUGH_IS_OK \
@@ -208,10 +211,12 @@ void rasqal_system_free(void *ptr);
 #define PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START \
   _Pragma ("GCC diagnostic push") \
   _Pragma ("GCC diagnostic ignored \"-Wformat-nonliteral\"")
-#define PRAGMA_IGNORE_WARNING_FORMAT_TRUNCATION_START \
-  _Pragma ("GCC diagnostic push")
 #define PRAGMA_IGNORE_WARNING_FORMAT_OVERFLOW_START     \
   _Pragma ("GCC diagnostic push")
+#define PRAGMA_IGNORE_WARNING_FORMAT_TRUNCATION_START \
+  _Pragma ("GCC diagnostic push")
+#define PRAGMA_IGNORE_WARNING_REDUNDANT_DECLS_OVERFLOW_START \
+  _Pragma ("GCC diagnostic push"
 #define PRAGMA_IGNORE_WARNING_END \
   _Pragma ("GCC diagnostic pop")
 #define FALLTHROUGH_IS_OK \
@@ -220,6 +225,7 @@ void rasqal_system_free(void *ptr);
 #define PRAGMA_IGNORE_WARNING_FORMAT_NONLITERAL_START
 #define PRAGMA_IGNORE_WARNING_FORMAT_OVERFLOW_START
 #define PRAGMA_IGNORE_WARNING_FORMAT_TRUNCATION_START
+#define PRAGMA_IGNORE_WARNING_REDUNDANT_DECLS_OVERFLOW_START
 #define PRAGMA_IGNORE_WARNING_END
 #define FALLTHROUGH_IS_OK
 #endif
