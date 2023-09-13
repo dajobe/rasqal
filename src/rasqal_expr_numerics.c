@@ -423,6 +423,7 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
   uuid_make(data, UUID_MAKE_V1);
 #endif
 #ifdef RASQAL_UUID_INTERNAL
+  memset(&data, '\0', sizeof(data));
   rasqal_uuid_generate(eval_context, data);
 #endif
 
