@@ -123,7 +123,7 @@ main(int argc, char **argv) {
   base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
   raptor_free_memory(uri_string);
 
-  data_dir_string  =raptor_uri_filename_to_uri_string(argv[1]);
+  data_dir_string = raptor_uri_filename_to_uri_string(argv[1]);
   data_dir_uri = raptor_new_uri(world->raptor_world_ptr, data_dir_string);
 
   query = rasqal_new_query(world, query_language_name, NULL);
@@ -188,6 +188,9 @@ main(int argc, char **argv) {
   }
 
   rasqal_free_query(query);
+
+  raptor_free_uri(data_dir_uri);
+  raptor_free_memory(data_dir_string);
 
   raptor_free_uri(base_uri);
 
