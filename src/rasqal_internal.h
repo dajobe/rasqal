@@ -1451,6 +1451,7 @@ int rasqal_init_result_format_rdf(rasqal_world*);
 /* rasqal_row.c */
 rasqal_row* rasqal_new_row(rasqal_rowsource* rowsource);
 rasqal_row* rasqal_new_row_from_row(rasqal_row* row);
+rasqal_row* rasqal_new_row_from_row_deep(rasqal_row* row);
 int rasqal_row_print(rasqal_row* row, FILE* fh);
 int rasqal_row_write(rasqal_row* row, raptor_iostream* iostr);
 raptor_sequence* rasqal_new_row_sequence(rasqal_world* world, rasqal_variables_table* vt, const char* const row_data[], int vars_count, raptor_sequence** vars_seq_p);

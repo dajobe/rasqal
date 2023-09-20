@@ -145,6 +145,34 @@ rasqal_new_row_from_row(rasqal_row* row)
 
 
 /**
+ * rasqal_new_row_from_row_deep:
+ * @row: query result row
+ *
+ * INTERNAL - Deep copy a query result row.
+ *
+ * Return value: a newly allocated query result row or NULL
+ */
+rasqal_row*
+rasqal_new_row_from_row_deep(rasqal_row* row)
+{
+  rasqal_row* new_row;
+
+  new_row = rasqal_new_row_common(row->rowsource->world, row->size, row->order_size);
+  if(row->values) {
+    int i;
+    for(i = 0; i < row->size; i++)
+      new_row->values[i] = rasqal_new_literal_from_literal(row->values[i]);
+  }
+  if(row->order_values) {
+    int i;
+    for(i = 0; i < row->order_size; i++)
+      new_row->order_values[i] = rasqal_new_literal_from_literal(row->order_values[i]);
+  }
+  return new_row;
+}
+
+
+/**
  * rasqal_free_row:
  * @row: query result row
  * 
