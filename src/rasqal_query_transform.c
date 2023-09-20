@@ -188,12 +188,15 @@ rasqal_query_convert_blank_node_to_anonymous_variable(rasqal_query *rq,
                                   RASQAL_GOOD_CAST(unsigned char*, l->string),
                                   l->string_len,
                                   NULL);
-  /* rasqal_new_variable_typed took ownership of the l->string name.
-   * Set to NULL to prevent double delete. */
-  l->string = NULL;
-  
   if(!v)
     return 1; /* error */
+
+  /* rasqal_new_variable_typed copied the l->string blank node name
+   * so we need to free it */
+  if(l->string) {
+    RASQAL_FREE(char*, l->string);
+    l->string = NULL;
+  }
 
   /* Convert the blank node literal into a variable literal */
   l->type = RASQAL_LITERAL_VARIABLE;
