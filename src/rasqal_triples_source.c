@@ -211,8 +211,7 @@ rasqal_new_triples_source(rasqal_query* query)
 
   error_tidy:
   if(rc) {
-    RASQAL_FREE(user_data, rts->user_data);
-    RASQAL_FREE(rasqal_triples_source, rts);
+    rasqal_free_triples_source(rts);
     return NULL;
   }
   
