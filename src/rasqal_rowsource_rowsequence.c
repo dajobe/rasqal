@@ -180,7 +180,7 @@ rasqal_rowsequence_rowsource_read_all_rows(rasqal_rowsource* rowsource,
     int size = raptor_sequence_size(con->seq);
     for(i = 0; i < size; i++) {
       rasqal_row *row = (rasqal_row*)raptor_sequence_get_at(con->seq, i);
-      raptor_sequence_push(seq, rasqal_new_row_from_row(row));
+      raptor_sequence_push(seq, rasqal_new_row_from_row_deep(row));
     }
   }
   
