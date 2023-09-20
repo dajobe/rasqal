@@ -114,6 +114,11 @@ main(int argc, char **argv) {
   rasqal_data_graph* dg = NULL;
   int rc = 0;
 
+  if(argc < 2) {
+    fprintf(stderr, "USAGE: %s: [DATA-DIRECTORY]\n", program);
+    return(1);
+  }
+
   world = rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
     fprintf(stderr, "%s: rasqal_world init failed\n", program);
@@ -126,6 +131,12 @@ main(int argc, char **argv) {
 
   data_dir_string = raptor_uri_filename_to_uri_string(argv[1]);
   data_dir_uri = raptor_new_uri(world->raptor_world_ptr, data_dir_string);
+  if(!data_dir_uri) {
+    fprintf(stderr, "%s: creating data dir uri from '%s' FAILED\n", program,
+            data_dir_string);
+    rc = 1;
+    goto tidy;
+  }
 
   query = rasqal_new_query(world, query_language_name, NULL);
   if(!query) {
