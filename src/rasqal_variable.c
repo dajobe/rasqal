@@ -493,6 +493,9 @@ rasqal_variables_table_add2(rasqal_variables_table* vt,
   v->vars_table = vt;
   v->type = type;
   v->name = RASQAL_MALLOC(unsigned char*, name_len + 1);
+  if(!v->name)
+    goto failed;
+
   memcpy(RASQAL_GOOD_CAST(char*, v->name), name, name_len + 1);
   v->value = rasqal_new_literal_from_literal(value);
   
