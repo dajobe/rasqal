@@ -148,7 +148,7 @@ rasqal_distinct_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   }
 
   if(row) {
-    row = rasqal_new_row_from_row(row);
+    row = rasqal_new_row_from_row_deep(row);
     rasqal_row_set_rowsource(row, rowsource);
     row->offset = con->offset++;
   }
