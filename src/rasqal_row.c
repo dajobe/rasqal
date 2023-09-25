@@ -247,6 +247,7 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
 
     rasqal_literal_print(value, fh);
   }
+  fputs("]", fh);
 
   if(row->order_size > 0) {
     fputs(" with ordering values [", fh);
@@ -265,7 +266,11 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
   if(row->group_id >= 0)
     fprintf(fh, " group %d", row->group_id);
 
-  fprintf(fh, " offset %d]", row->offset);
+  if(row->offset)
+    fprintf(fh, " offset %d", row->offset);
+#ifdef RASQAL_DEBUG
+    fprintf(fh, " usage %d", row->usage);
+#endif
 
   return 0;
 }
