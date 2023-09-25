@@ -1874,6 +1874,7 @@ sparql_token_free(rasqal_world* world, int token, YYSTYPE *lval)
     case IDENTIFIER:
     case BLANK_LITERAL:
     case PREFIX:
+    case LANGTAG:
       RASQAL_FREE(char*, lval->name);
       break;
     case QNAME_LITERAL:
