@@ -143,6 +143,10 @@ rasqal_new_rowsource_from_rowsource(rasqal_rowsource* rowsource)
 void
 rasqal_free_rowsource(rasqal_rowsource *rowsource)
 {
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG4("free %s rowsource %p usage %d\n", rowsource->handler->name,
+                rowsource, rowsource->usage);
+#endif
   if(!rowsource)
     return;
 
@@ -222,8 +226,8 @@ rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource)
 
 #ifdef RASQAL_DEBUG
   if(!rc) {
-    RASQAL_DEBUG3("%s rowsource %p header: ", rowsource->handler->name,
-                  rowsource);
+    RASQAL_DEBUG4("%s rowsource %p usage %d header: ", rowsource->handler->name,
+                  rowsource, rowsource->usage);
     rasqal_rowsource_print_header(rowsource, stderr);
   }
 #endif
@@ -321,8 +325,8 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
   }
 
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG3("%s rowsource %p returned row:  ", rowsource->handler->name, 
-                rowsource);
+  RASQAL_DEBUG4("%s rowsource %p usage %d returned row:  ", rowsource->handler->name, 
+                rowsource, rowsource->usage);
   if(row)
     rasqal_row_print(row, stderr);
   else
@@ -377,8 +381,8 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
     /* Return a complete copy of all previously saved rows */
     seq = rowsource->rows_sequence;
     new_seq = rasqal_row_sequence_copy(seq);
-    RASQAL_DEBUG4("%s rowsource %p returning a sequence of %d saved rows\n",
-                  rowsource->handler->name, rowsource,
+    RASQAL_DEBUG5("%s rowsource %p usage %d returning a sequence of %d saved rows\n",
+                  rowsource->handler->name, rowsource, rowsource->usage,
                   raptor_sequence_size(new_seq));
     return new_seq;
   }
@@ -795,7 +799,12 @@ rasqal_rowsource_write_internal(rasqal_rowsource *rowsource,
   indent_delta = RASQAL_GOOD_CAST(unsigned int, strlen(rs_name));
 
   raptor_iostream_counted_string_write(rs_name, indent_delta, iostr);
-  raptor_iostream_counted_string_write("(\n", 2, iostr);
+  raptor_iostream_write_byte('(', iostr);
+#ifdef RASQAL_DEBUG
+  raptor_iostream_counted_string_write("usage=", 6, iostr);
+  raptor_iostream_decimal_write(rowsource->usage, iostr);
+#endif
+  raptor_iostream_write_byte('\n', iostr);
   indent_delta++;
   
   indent += indent_delta;
