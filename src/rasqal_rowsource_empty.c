@@ -53,6 +53,7 @@ static int
 rasqal_empty_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_empty_rowsource_context* con;
+
   con = (rasqal_empty_rowsource_context*)user_data;
   RASQAL_FREE(rasqal_empty_rowsource_context, con);
 
@@ -85,16 +86,26 @@ static raptor_sequence*
 rasqal_empty_rowsource_read_all_rows(rasqal_rowsource* rowsource,
                                      void *user_data)
 {
-  /* rasqal_empty_rowsource_context* con;
-  con = (rasqal_empty_rowsource_context*)user_data; */
-  raptor_sequence *seq;
+  rasqal_empty_rowsource_context* con;
+  raptor_sequence *seq = NULL;
 
-  seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
-                            (raptor_data_print_handler)rasqal_row_print);
-  if(seq) {
-    rasqal_row* row = rasqal_new_row(rowsource);
+  con = (rasqal_empty_rowsource_context*)user_data;
 
-    raptor_sequence_push(seq, row);
+  if(!con->count++) {
+    seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
+                              (raptor_data_print_handler)rasqal_row_print);
+    if(seq) {
+      rasqal_row* row = rasqal_new_row(rowsource);
+
+      if(row)
+        raptor_sequence_push(seq, row);
+      else {
+        raptor_free_sequence(seq);
+        seq = NULL;
+      }
+
+    }
+
   }
   
   return seq;
