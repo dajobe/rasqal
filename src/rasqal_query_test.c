@@ -66,20 +66,21 @@ main(int argc, char **argv) {
 
 int
 main(int argc, char **argv) {
-  const char *program=rasqal_basename(argv[0]);
+  const char *program = rasqal_basename(argv[0]);
   rasqal_query *query = NULL;
   rasqal_query_results *results = NULL;
-  raptor_uri *base_uri;
+  raptor_uri *base_uri = NULL;
   unsigned char *data_string;
   unsigned char *uri_string;
-  const char *query_language_name=QUERY_LANGUAGE;
-  const char *query_format=QUERY_FORMAT;
+  const char *query_language_name = QUERY_LANGUAGE;
+  const char *query_format = QUERY_FORMAT;
   unsigned char *query_string;
   int count;
   rasqal_world *world;
   const char *data_file;
   size_t qs_len;
-
+  int rc = 0;
+  
   world=rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
     fprintf(stderr, "%s: rasqal_world init failed\n", program);
@@ -91,7 +92,8 @@ main(int argc, char **argv) {
   } else {
     if(argc != 2) {
       fprintf(stderr, "USAGE: %s data-filename\n", program);
-      return(1);
+      rc = 1;
+      goto tidy;
     }
     data_file = argv[1];
   }
@@ -113,7 +115,8 @@ main(int argc, char **argv) {
     RASQAL_FREE(char*, query_string);
     fprintf(stderr, "%s: creating query in language %s FAILED\n", program,
             query_language_name);
-    return(1);
+    rc = 1;
+    goto tidy;
   }
 
   printf("%s: preparing %s query\n", program, query_language_name);
@@ -121,7 +124,8 @@ main(int argc, char **argv) {
     RASQAL_FREE(char*, query_string);
     fprintf(stderr, "%s: %s query prepare FAILED\n", program, 
             query_language_name);
-    return(1);
+    rc = 1;
+    goto tidy;
   }
 
   RASQAL_FREE(char*, query_string);
@@ -130,7 +134,8 @@ main(int argc, char **argv) {
   results = rasqal_query_execute(query);
   if(!results) {
     fprintf(stderr, "%s: query execution 1 FAILED\n", program);
-    return(1);
+    rc = 1;
+    goto tidy;
   }
 
   count=0;
@@ -147,19 +152,23 @@ main(int argc, char **argv) {
     rasqal_query_results_next(results);
     count++;
   }
-  if(results)
+  if(results) {
     rasqal_free_query_results(results);
+    results = NULL;
+  }
   if(count != EXPECTED_RESULTS_COUNT) {
     fprintf(stderr, "%s: query execution 1 returned %d results, expected %d\n",
             program, count, EXPECTED_RESULTS_COUNT);
-    return(1);
+    rc = 1;
+    goto tidy;
   }
 
   printf("%s: executing query #2\n", program);
   results = rasqal_query_execute(query);
   if(!results) {
     fprintf(stderr, "%s: query execution 2 FAILED\n", program);
-    return(1);
+    rc = 1;
+    goto tidy;
   }
 
   count=0;
@@ -176,39 +185,50 @@ main(int argc, char **argv) {
     rasqal_query_results_next(results);
     count++;
   }
-  if(results)
+  if(results) {
     rasqal_free_query_results(results);
+    results = NULL;
+  }
   if(count != EXPECTED_RESULTS_COUNT) {
     fprintf(stderr, "%s: query execution 2 returned %d results, expected %d\n", 
             program, count, EXPECTED_RESULTS_COUNT);
-    return(1);
+    rc = 1;
+    goto tidy;
   }
 
   printf("%s: executing query #3\n", program);
   results = rasqal_query_execute(query);
   if(!results) {
     fprintf(stderr, "%s: query execution 3 FAILED\n", program);
-    return(1);
+    rc = 1;
+    goto tidy;
   }
 
   rasqal_free_query_results(results);
+  results = NULL;
 
   printf("%s: executing query #4\n", program);
   results = rasqal_query_execute(query);
   if(!results) {
     fprintf(stderr, "%s: query execution 4 FAILED\n", program);
-    return(1);
+    rc = 1;
+    goto tidy;
   }
 
-  rasqal_free_query_results(results);
+  tidy:
+  if(results)
+    rasqal_free_query_results(results);
 
-  rasqal_free_query(query);
+  if(query)
+    rasqal_free_query(query);
 
-  raptor_free_uri(base_uri);
+  if(base_uri)
+    raptor_free_uri(base_uri);
 
-  rasqal_free_world(world);
+  if(world)
+    rasqal_free_world(world);
 
-  return 0;
+  return rc;
 }
 
 #endif
