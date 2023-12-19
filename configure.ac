@@ -771,7 +771,7 @@ elif test "$ac_cv_header_gcrypt_h" = "yes"; then
   LIBS="$LIBS `$LIBGCRYPT_CONFIG --libs`"
 
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-  #include <gcrypt.h>]], [[ gcry_md_hd_t hash; gcry_md_open(hash, GCRY_MD_MD5, 0); ]])],[have_digest_gcrypt=yes],[have_digest_gcrypt=no])
+  #include <gcrypt.h>]], [[ gcry_md_hd_t hash; gcry_md_open(&hash, GCRY_MD_MD5, 0); ]])],[have_digest_gcrypt=yes],[have_digest_gcrypt=no])
 
   CPPFLAGS="$oCPPFLAGS"
   LIBS="$oLIBS"
