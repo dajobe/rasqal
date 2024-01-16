@@ -4,21 +4,21 @@
 #
 # Copyright (C) 2003-2010, David Beckett http://www.dajobe.org/
 # Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
-# 
+#
 # This package is Free Software and part of Redland http://librdf.org/
-# 
+#
 # It is licensed under the following three licenses as alternatives:
 #   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
 #   2. GNU General Public License (GPL) V2 or any newer version
 #   3. Apache License, V2.0 or any newer version
-# 
+#
 # You may not use this file except in compliance with at least one of
 # the above three licenses.
-# 
+#
 # See LICENSE.html or LICENSE.txt at the top of this package for the
 # complete terms and further detail along with the license texts for
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
-# 
+#
 
 bin_SCRIPTS = rasqal-config
 lib_LTLIBRARIES = librasqal.la
@@ -110,7 +110,7 @@ rasqal_row_compatible.c rasqal_format_table.c rasqal_query_write.c \
 rasqal_format_json.c rasqal_format_sv.c rasqal_format_html.c \
 rasqal_format_rdf.c \
 rasqal_rowsource_assignment.c rasqal_update.c \
-rasqal_triple.c rasqal_data_graph.c rasqal_prefix.c \
+rasqal_triple.c rasqal_data_graph.c rasqal_data_graphs_set.c rasqal_prefix.c \
 rasqal_solution_modifier.c rasqal_projection.c rasqal_bindings.c \
 rasqal_service.c \
 rasqal_dataset.c \

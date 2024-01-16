@@ -4,22 +4,22 @@
  *
  * Copyright (C) 2003-2009, David Beckett http://www.dajobe.org/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
- * 
+ *
  * This package is Free Software and part of Redland http://librdf.org/
- * 
+ *
  * It is licensed under the following three licenses as alternatives:
  *   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
  *   2. GNU General Public License (GPL) V2 or any newer version
  *   3. Apache License, V2.0 or any newer version
- * 
+ *
  * You may not use this file except in compliance with at least one of
  * the above three licenses.
- * 
+ *
  * See LICENSE.html or LICENSE.txt at the top of this package for the
  * complete terms and further detail along with the license texts for
  * the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
- * 
- * 
+ *
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -110,18 +110,18 @@ rasqal_new_query(rasqal_world *world, const char *name,
   query = RASQAL_CALLOC(rasqal_query*, 1, sizeof(*query));
   if(!query)
     return NULL;
-  
+
   /* set usage first to 1 so we can clean up with rasqal_free_query() on error */
   query->usage = 1;
 
   query->world = world;
-  
+
   query->factory = factory;
 
   query->context = RASQAL_CALLOC(void*, 1, factory->context_length);
   if(!query->context)
     goto tidy;
-  
+
   query->namespaces = raptor_new_namespaces(world->raptor_world_ptr, 0);
   if(!query->namespaces)
     goto tidy;
@@ -154,7 +154,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
 
   if(factory->init(query, name))
     goto tidy;
-  
+
   return query;
 
   tidy:
@@ -167,18 +167,18 @@ rasqal_new_query(rasqal_world *world, const char *name,
 /**
  * rasqal_free_query:
  * @query: #rasqal_query object
- * 
+ *
  * Destructor - destroy a #rasqal_query object.
  **/
 void
-rasqal_free_query(rasqal_query* query) 
+rasqal_free_query(rasqal_query* query)
 {
   if(!query)
     return;
-  
+
   if(--query->usage)
     return;
-  
+
   if(query->factory)
     query->factory->terminate(query);
 
@@ -238,13 +238,13 @@ rasqal_free_query(rasqal_query* query)
 
   if(query->modifier)
     rasqal_free_solution_modifier(query->modifier);
-  
+
   if(query->bindings)
     rasqal_free_bindings(query->bindings);
-  
+
   if(query->projection)
     rasqal_free_projection(query->projection);
-  
+
   RASQAL_FREE(rasqal_query, query);
 }
 
@@ -292,7 +292,7 @@ rasqal_query_get_label(rasqal_query* query)
  * @value: integer feature value
  *
  * Set various query features.
- * 
+ *
  * The allowed features are available via rasqal_features_enumerate().
  *
  * Return value: non 0 on failure or if the feature is unknown
@@ -308,7 +308,7 @@ rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value)
 
       if(feature == RASQAL_FEATURE_RAND_SEED)
         query->user_set_rand = 1;
-      
+
       query->features[RASQAL_GOOD_CAST(int, feature)] = value;
       break;
   }
@@ -324,15 +324,15 @@ rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value)
  * @value: feature value
  *
  * Set query features with string values.
- * 
+ *
  * The allowed features are available via rasqal_features_enumerate().
  * If the feature type is integer, the value is interpreted as an integer.
  *
  * Return value: non 0 on failure or if the feature is unknown
  **/
 int
-rasqal_query_set_feature_string(rasqal_query *query, 
-                                rasqal_feature feature, 
+rasqal_query_set_feature_string(rasqal_query *query,
+                                rasqal_feature feature,
                                 const unsigned char *value)
 {
   int value_is_string = (rasqal_feature_value_type(feature) == 1);
@@ -353,7 +353,7 @@ rasqal_query_set_feature_string(rasqal_query *query,
  * @feature: feature to get value
  *
  * Get various query features.
- * 
+ *
  * The allowed features are available via rasqal_features_enumerate().
  *
  * Note: no feature value is negative
@@ -364,7 +364,7 @@ int
 rasqal_query_get_feature(rasqal_query *query, rasqal_feature feature)
 {
   int result= -1;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
 
   switch(feature) {
@@ -373,7 +373,7 @@ rasqal_query_get_feature(rasqal_query *query, rasqal_feature feature)
       result = (query->features[RASQAL_GOOD_CAST(int, feature)] != 0);
       break;
   }
-  
+
   return result;
 }
 
@@ -384,14 +384,14 @@ rasqal_query_get_feature(rasqal_query *query, rasqal_feature feature)
  * @feature: feature to get value
  *
  * Get query features with string values.
- * 
+ *
  * The allowed features are available via rasqal_features_enumerate().
  * If a string is returned, it must be freed by the caller.
  *
  * Return value: feature value or NULL for an illegal feature or no value
  **/
 const unsigned char *
-rasqal_query_get_feature_string(rasqal_query *query, 
+rasqal_query_get_feature_string(rasqal_query *query,
                                 rasqal_feature feature)
 {
   int value_is_string = (rasqal_feature_value_type(feature) == 1);
@@ -400,7 +400,7 @@ rasqal_query_get_feature_string(rasqal_query *query,
 
   if(!value_is_string)
     return NULL;
-  
+
   return NULL;
 }
 
@@ -422,7 +422,7 @@ rasqal_query_get_distinct(rasqal_query* query)
 
   if(!query->projection)
     return 0;
-  
+
   return query->projection->distinct;
 }
 
@@ -437,7 +437,7 @@ rasqal_query_get_distinct(rasqal_query* query)
  * The allowed @distinct_mode values are:
  * 0 if not given
  * 1 if DISTINCT: ensure solutions are unique
- * 2 if SPARQL REDUCED: permit elimination of some non-unique solutions 
+ * 2 if SPARQL REDUCED: permit elimination of some non-unique solutions
  *
  **/
 void
@@ -583,11 +583,13 @@ rasqal_query_set_offset(rasqal_query* query, int offset)
 /**
  * rasqal_query_add_data_graph:
  * @query: #rasqal_query query object
- * @data_graph: data graph
+ * @data_graph: #rasqal_data_graph data graph
  *
  * Add a data graph to the query.
  *
  * Return value: non-0 on failure
+ *
+ * @Deprecated: Use rasqal_query_execute2() instead.
  **/
 int
 rasqal_query_add_data_graph(rasqal_query* query, rasqal_data_graph* data_graph)
@@ -612,13 +614,15 @@ rasqal_query_add_data_graph(rasqal_query* query, rasqal_data_graph* data_graph)
  * The @data_graphs sequence itself is freed and must not be used after this call.
  *
  * Return value: non-0 on failure
+ *
+ * @Deprecated: Use rasqal_query_execute2() instead.
  **/
 int
 rasqal_query_add_data_graphs(rasqal_query* query,
                              raptor_sequence* data_graphs)
 {
   int rc;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(data_graphs, raptor_sequence, 1);
 
@@ -636,6 +640,8 @@ rasqal_query_add_data_graphs(rasqal_query* query,
  * Get the sequence of data_graph URIs.
  *
  * Return value: a #raptor_sequence of #raptor_uri pointers.
+ *
+ * @Deprecated: Use rasqal_query_execute2() instead.
  **/
 raptor_sequence*
 rasqal_query_get_data_graph_sequence(rasqal_query* query)
@@ -654,6 +660,8 @@ rasqal_query_get_data_graph_sequence(rasqal_query* query)
  * Get a rasqal_data_graph* in the sequence of data_graphs.
  *
  * Return value: a #rasqal_data_graph pointer or NULL if out of the sequence range
+ *
+ * @Deprecated: Use rasqal_query_execute2() instead.
  **/
 rasqal_data_graph*
 rasqal_query_get_data_graph(rasqal_query* query, int idx)
@@ -662,7 +670,7 @@ rasqal_query_get_data_graph(rasqal_query* query, int idx)
 
   if(!query->data_graphs)
     return NULL;
-  
+
   return (rasqal_data_graph*)raptor_sequence_get_at(query->data_graphs, idx);
 }
 
@@ -675,6 +683,8 @@ rasqal_query_get_data_graph(rasqal_query* query, int idx)
  * Test if the query dataset contains a named graph
  *
  * Return value: non-0 if the dataset contains a named graph
+ *
+ * TODO: Reimplement with data graphs argument.
  */
 int
 rasqal_query_dataset_contains_named_graph(rasqal_query* query,
@@ -683,7 +693,7 @@ rasqal_query_dataset_contains_named_graph(rasqal_query* query,
   rasqal_data_graph *dg;
   int idx;
   int found = 0;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_uri, raptor_uri, 1);
 
@@ -751,7 +761,7 @@ rasqal_query_get_bound_variable_sequence(rasqal_query* query)
 
   if(!query->projection)
     return NULL;
-  
+
   return rasqal_projection_get_variables_sequence(query->projection);
 }
 
@@ -966,7 +976,7 @@ rasqal_query_get_triple(rasqal_query* query, int idx)
 
   if(!query->triples)
     return NULL;
-  
+
   return (rasqal_triple*)raptor_sequence_get_at(query->triples, idx);
 }
 
@@ -980,8 +990,8 @@ rasqal_query_declare_prefix(rasqal_query *rq, rasqal_prefix *p)
   if(p->declared)
     return 0;
 
-  if(raptor_namespaces_start_namespace_full(rq->namespaces, 
-                                            p->prefix, 
+  if(raptor_namespaces_start_namespace_full(rq->namespaces,
+                                            p->prefix,
                                             raptor_uri_as_string(p->uri),
                                             rq->prefix_depth))
     return 1;
@@ -1001,22 +1011,22 @@ rasqal_query_undeclare_prefix(rasqal_query *rq, rasqal_prefix *prefix)
     prefix->declared = 1;
     return 0;
   }
-  
+
   raptor_namespaces_end_for_depth(rq->namespaces, prefix->depth);
   return 0;
 }
 
 
 int
-rasqal_query_declare_prefixes(rasqal_query *rq) 
+rasqal_query_declare_prefixes(rasqal_query *rq)
 {
   int i;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(rq, rasqal_query, 1);
 
   if(!rq->prefixes)
     return 0;
-  
+
   for(i = 0; i< raptor_sequence_size(rq->prefixes); i++) {
     rasqal_prefix* p = (rasqal_prefix*)raptor_sequence_get_at(rq->prefixes, i);
     if(rasqal_query_declare_prefix(rq, p))
@@ -1205,7 +1215,7 @@ rasqal_query_get_construct_triple(rasqal_query* query, int idx)
  * @base_uri: base URI of query string (optional)
  *
  * Prepare a query - typically parse it.
- * 
+ *
  * Some query languages may require a base URI to resolve any
  * relative URIs in the query string.  If this is not given,
  * the current directory in the filesystem is used as the base URI.
@@ -1222,7 +1232,7 @@ rasqal_query_prepare(rasqal_query* query,
                      raptor_uri *base_uri)
 {
   int rc = 0;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
 
   if(query->failed)
@@ -1237,7 +1247,7 @@ rasqal_query_prepare(rasqal_query* query,
   if(query_string) {
     /* flex lexers require two NULs at the end of the lexed buffer.
      * Add them here instead of parser to allow resource cleanup on error.
-     *  
+     *
      * flex manual:
      *
      * Function: YY_BUFFER_STATE yy_scan_buffer (char *base, yy_size_t size)
@@ -1286,10 +1296,10 @@ rasqal_query_prepare(rasqal_query* query,
       seed = RASQAL_GOOD_CAST(unsigned int, query->features[RASQAL_GOOD_CAST(int, RASQAL_FEATURE_RAND_SEED)]);
     else
       seed = rasqal_random_get_system_seed(query->world);
-    
+
     rasqal_evaluation_context_set_rand_seed(query->eval_context, seed);
   }
-  
+
 
   rc = query->factory->prepare(query);
   if(rc) {
@@ -1314,7 +1324,7 @@ rasqal_query_prepare(rasqal_query* query,
  *
  * return value: pointer to factory
  **/
-const rasqal_query_execution_factory* 
+const rasqal_query_execution_factory*
 rasqal_query_get_engine_by_name(const char* name)
 {
   const rasqal_query_execution_factory* engine;
@@ -1344,11 +1354,12 @@ rasqal_query_get_engine_by_name(const char* name)
  **/
 rasqal_query_results*
 rasqal_query_execute_with_engine(rasqal_query* query,
+                                 rasqal_data_graphs_set* data_graphs,
                                  const rasqal_query_execution_factory* engine)
 {
   rasqal_query_results *query_results = NULL;
   rasqal_query_results_type type;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
   if(query->failed)
@@ -1357,7 +1368,7 @@ rasqal_query_execute_with_engine(rasqal_query* query,
   type = rasqal_query_get_result_type(query);
   if(type == RASQAL_QUERY_RESULTS_UNKNOWN)
     return NULL;
-  
+
   query_results = rasqal_new_query_results2(query->world, query, type);
   if(!query_results)
     return NULL;
@@ -1365,16 +1376,16 @@ rasqal_query_execute_with_engine(rasqal_query* query,
   if(!engine)
     engine = rasqal_query_get_engine_by_name(NULL);
 
-  if(rasqal_query_results_execute_with_engine(query_results, engine,
+  if(rasqal_query_results_execute_with_engine(query_results, engine, data_graphs,
                                               query->store_results)) {
     rasqal_free_query_results(query_results);
-    query_results = NULL;      
+    query_results = NULL;
   }
-    
-      
+
+
   if(query_results && rasqal_query_add_query_result(query, query_results)) {
     rasqal_free_query_results(query_results);
-    query_results = NULL;      
+    query_results = NULL;
   }
 
   return query_results;
@@ -1385,14 +1396,34 @@ rasqal_query_execute_with_engine(rasqal_query* query,
  * rasqal_query_execute:
  * @query: the #rasqal_query object
  *
- * Excute a query - run and return results.
+ * Execute a query - run and return results.
  *
  * return value: a #rasqal_query_results structure or NULL on failure.
+ *
+ * This is deprecated in favor of rasqal_query_execute2().
  **/
 rasqal_query_results*
 rasqal_query_execute(rasqal_query* query)
 {
-  return rasqal_query_execute_with_engine(query, NULL);
+  return rasqal_query_execute_with_engine(query, NULL, NULL);
+}
+
+
+/**
+ * rasqal_query_execute2:
+ * @query: the #rasqal_query object
+ * @data_graphs: #rasqal_data_graphs_set a datagraphs set
+ *
+ * Execute a query over a dataset - run and return results.
+ *
+ * return value: a #rasqal_query_results structure or NULL on failure.
+ **/
+rasqal_query_results*
+rasqal_query_execute2(rasqal_query* query, rasqal_data_graphs_set* data_graphs)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(data_graphs, rasqal_data_graphs_set, NULL);
+
+  return rasqal_query_execute_with_engine(query, data_graphs, NULL);
 }
 
 
@@ -1414,19 +1445,19 @@ static const char* const rasqal_query_verb_labels[RASQAL_QUERY_VERB_LAST+1] = {
  * @verb: the #rasqal_query_verb verb of the query
  *
  * Get a string for the query verb.
- * 
+ *
  * Return value: pointer to a shared string label for the query verb
  **/
 const char*
 rasqal_query_verb_as_string(rasqal_query_verb verb)
 {
-  if(verb <= RASQAL_QUERY_VERB_UNKNOWN || 
+  if(verb <= RASQAL_QUERY_VERB_UNKNOWN ||
      verb > RASQAL_QUERY_VERB_LAST)
     verb = RASQAL_QUERY_VERB_UNKNOWN;
 
   return rasqal_query_verb_labels[RASQAL_GOOD_CAST(int, verb)];
 }
-  
+
 
 /**
  * rasqal_query_print:
@@ -1434,7 +1465,7 @@ rasqal_query_verb_as_string(rasqal_query_verb verb)
  * @fh: the FILE* handle to print to.
  *
  * Print a query in a debug format.
- * 
+ *
  * Return value: non-0 on failure
  **/
 int
@@ -1448,7 +1479,7 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(fh, FILE*, 1);
 
   fprintf(fh, "query verb: %s\n", rasqal_query_verb_as_string(query->verb));
-  
+
   distinct_mode = rasqal_query_get_distinct(query);
   if(distinct_mode)
     fprintf(fh, "query results distinct mode: %s\n",
@@ -1462,24 +1493,24 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
     if(query->modifier->offset > 0)
       fprintf(fh, "query results offset: %d\n", query->modifier->offset);
   }
-  
+
   fputs("data graphs: ", fh);
   if(query->data_graphs)
     raptor_sequence_print(query->data_graphs, fh);
   seq = rasqal_variables_table_get_named_variables_sequence(vars_table);
   if(seq) {
-    fputs("\nnamed variables: ", fh); 
+    fputs("\nnamed variables: ", fh);
     raptor_sequence_print(seq, fh);
   }
   seq = rasqal_variables_table_get_anonymous_variables_sequence(vars_table);
   if(seq) {
-    fputs("\nanonymous variables: ", fh); 
+    fputs("\nanonymous variables: ", fh);
     raptor_sequence_print(seq, fh);
   }
   seq = rasqal_query_get_bound_variable_sequence(query);
   if(seq) {
     int i;
-    
+
     fputs("\nprojected variable names: ", fh);
     for(i = 0; 1; i++) {
       rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
@@ -1491,8 +1522,8 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
       fputs((const char*)v->name, fh);
     }
     fputc('\n', fh);
-      
-    fputs("\nbound variables: ", fh); 
+
+    fputs("\nbound variables: ", fh);
     raptor_sequence_print(seq, fh);
   }
   if(query->describes) {
@@ -1534,7 +1565,7 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
       raptor_sequence_print(query->modifier->having_conditions, fh);
     }
   }
-  
+
   if(query->updates) {
     fputs("\nupdate operations: ", fh);
     raptor_sequence_print(query->updates, fh);
@@ -1551,7 +1582,7 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
 
 static int
 rasqal_query_add_query_result(rasqal_query* query,
-                              rasqal_query_results* query_results) 
+                              rasqal_query_results* query_results)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, 1);
@@ -1561,7 +1592,7 @@ rasqal_query_add_query_result(rasqal_query* query,
   /* query->results sequence has rasqal_query_results_remove_query_reference()
      as the free handler which calls rasqal_free_query() decrementing
      query->usage */
-  
+
   query->usage++;
 
   return raptor_sequence_push(query->results, query_results);
@@ -1571,11 +1602,11 @@ rasqal_query_add_query_result(rasqal_query* query,
 
 int
 rasqal_query_remove_query_result(rasqal_query* query,
-                                 rasqal_query_results* query_results) 
+                                 rasqal_query_results* query_results)
 {
   int i;
   int size;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, 1);
 
@@ -1600,7 +1631,7 @@ rasqal_query_remove_query_result(rasqal_query* query,
  * @query: #rasqal_query
  *
  * Get query user data.
- * 
+ *
  * Return value: user data as set by rasqal_query_set_user_data()
  **/
 void*
@@ -1661,7 +1692,7 @@ rasqal_query_get_wildcard(rasqal_query* query)
 
   if(!query->projection)
     return 0;
-  
+
   return query->projection->wildcard;
 }
 
@@ -1727,7 +1758,7 @@ rasqal_query_get_order_condition(rasqal_query* query, int idx)
 
   if(!query->modifier || !query->modifier->order_conditions)
     return NULL;
-  
+
   return (rasqal_expression*)raptor_sequence_get_at(query->modifier->order_conditions, idx);
 }
 
@@ -1768,7 +1799,7 @@ rasqal_query_get_group_condition(rasqal_query* query, int idx)
 
    if(!query->modifier || !query->modifier->group_conditions)
     return NULL;
-  
+
   return (rasqal_expression*)raptor_sequence_get_at(query->modifier->group_conditions, idx);
 }
 
@@ -1809,7 +1840,7 @@ rasqal_query_get_having_condition(rasqal_query* query, int idx)
 
    if(!query->modifier || !query->modifier->having_conditions)
     return NULL;
-  
+
   return (rasqal_expression*)raptor_sequence_get_at(query->modifier->having_conditions, idx);
 }
 
@@ -1819,7 +1850,7 @@ rasqal_query_get_having_condition(rasqal_query* query, int idx)
  * @query: query
  * @visit_fn: user function to operate on
  * @data: user data to pass to function
- * 
+ *
  * Visit all graph patterns in a query with a user function @visit_fn.
  *
  * See also rasqal_graph_pattern_visit().
@@ -1827,8 +1858,8 @@ rasqal_query_get_having_condition(rasqal_query* query, int idx)
  * Return value: result from visit function @visit_fn if it returns non-0
  **/
 int
-rasqal_query_graph_pattern_visit2(rasqal_query* query, 
-                                  rasqal_graph_pattern_visit_fn visit_fn, 
+rasqal_query_graph_pattern_visit2(rasqal_query* query,
+                                  rasqal_graph_pattern_visit_fn visit_fn,
                                   void* data)
 {
   rasqal_graph_pattern* gp;
@@ -1849,7 +1880,7 @@ rasqal_query_graph_pattern_visit2(rasqal_query* query,
  * @query: query
  * @visit_fn: user function to operate on
  * @data: user data to pass to function
- * 
+ *
  * Visit all graph patterns in a query with a user function @visit_fn.
  *
  * @Deprecated: use rasqal_query_graph_pattern_visit2() that returns the @visit_fn status code.
@@ -1857,8 +1888,8 @@ rasqal_query_graph_pattern_visit2(rasqal_query* query,
  * See also rasqal_graph_pattern_visit().
  **/
 void
-rasqal_query_graph_pattern_visit(rasqal_query* query, 
-                                 rasqal_graph_pattern_visit_fn visit_fn, 
+rasqal_query_graph_pattern_visit(rasqal_query* query,
+                                 rasqal_graph_pattern_visit_fn visit_fn,
                                  void* data)
 {
   (void)rasqal_query_graph_pattern_visit2(query, visit_fn, data);
@@ -1874,7 +1905,7 @@ rasqal_query_graph_pattern_visit(rasqal_query* query,
  * @base_uri: #raptor_uri base URI of the output format
  *
  * Write a query to an iostream in a specified format.
- * 
+ *
  * The supported URIs for the format_uri are:
  *
  * Default: SPARQL Query Language 2006-04-06
@@ -1913,9 +1944,9 @@ rasqal_query_write(raptor_iostream* iostr, rasqal_query* query,
  * @iostr: #raptor_iostream to write the escaped string to
  * @string: string to escape
  * @len: Length of string to escape
- * 
+ *
  * Write a string to an iostream in escaped form suitable for the query string.
- * 
+ *
  * Return value: non-0 on failure
  **/
 int
@@ -1929,7 +1960,7 @@ rasqal_query_iostream_write_escaped_counted_string(rasqal_query* query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(string, char*, 1);
 
   if(query->factory->iostream_write_escaped_counted_string)
-    return query->factory->iostream_write_escaped_counted_string(query, iostr, 
+    return query->factory->iostream_write_escaped_counted_string(query, iostr,
                                                                  string, len);
   else
     return 1;
@@ -1942,9 +1973,9 @@ rasqal_query_iostream_write_escaped_counted_string(rasqal_query* query,
  * @string: string to escape
  * @len: Length of string to escape
  * @output_len_p: Pointer to store length of output string (or NULL)
- * 
+ *
  * Convert a string into an escaped form suitable for the query string.
- * 
+ *
  * The returned string must be freed by the caller with
  * rasqal_free_memory()
  *
@@ -1952,14 +1983,14 @@ rasqal_query_iostream_write_escaped_counted_string(rasqal_query* query,
  **/
 unsigned char*
 rasqal_query_escape_counted_string(rasqal_query* query,
-                                   const unsigned char* string, 
+                                   const unsigned char* string,
                                    size_t len,
                                    size_t* output_len_p)
 {
   raptor_iostream* iostr;
   void* output_string = NULL;
   int rc;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(string, char*, NULL);
 
@@ -1975,7 +2006,7 @@ rasqal_query_escape_counted_string(rasqal_query* query,
     rasqal_free_memory(output_string);
     output_string = NULL;
   }
-  
+
   return (unsigned char *)output_string;
 }
 
@@ -1999,7 +2030,7 @@ rasqal_query_set_base_uri(rasqal_query* query, raptor_uri* base_uri)
  * @store_results: store results flag
  *
  * Request that query results are stored during execution
- * 
+ *
  * When called after a rasqal_query_prepare(), this tells
  * rasqal_query_execute() to execute the entire query immediately
  * rather than generate them lazily, and store all the results in
@@ -2024,7 +2055,7 @@ rasqal_query_set_store_results(rasqal_query* query, int store_results)
 }
 
 
-rasqal_variable* 
+rasqal_variable*
 rasqal_query_get_variable_by_offset(rasqal_query* query, int idx)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
@@ -2045,7 +2076,7 @@ rasqal_query_get_variable_by_offset(rasqal_query* query, int idx)
  * Return value: non-0 on failure
  **/
 int
-rasqal_query_add_update_operation(rasqal_query* query, 
+rasqal_query_add_update_operation(rasqal_query* query,
                                   rasqal_update_operation *update)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
@@ -2100,7 +2131,7 @@ rasqal_query_get_update_operation(rasqal_query* query, int idx)
 
   if(!query->updates)
     return NULL;
-  
+
   return (rasqal_update_operation*)raptor_sequence_get_at(query->updates, idx);
 }
 
@@ -2138,7 +2169,7 @@ rasqal_query_get_bindings_variables_sequence(rasqal_query* query)
     return query->bindings->variables;
   else
     return NULL;
-  
+
 }
 
 
@@ -2158,7 +2189,7 @@ rasqal_query_get_bindings_variable(rasqal_query* query, int idx)
 
   if(!query->bindings || !query->bindings->variables)
     return NULL;
-  
+
   return (rasqal_variable*)raptor_sequence_get_at(query->bindings->variables, idx);
 }
 
@@ -2180,7 +2211,7 @@ rasqal_query_get_bindings_rows_sequence(rasqal_query* query)
     return query->bindings->rows;
   else
     return NULL;
-  
+
 }
 
 
@@ -2200,7 +2231,7 @@ rasqal_query_get_bindings_row(rasqal_query* query, int idx)
 
   if(!query->bindings || !query->bindings->rows)
     return NULL;
-  
+
   return (rasqal_row*)raptor_sequence_get_at(query->bindings->rows, idx);
 }
 
@@ -2210,7 +2241,7 @@ rasqal_query_get_bindings_row(rasqal_query* query, int idx)
  * @query: #rasqal_query query object
  * @variable: variable
  * @column: triple column
- * 
+ *
  * INTERNAL - Test if variable is bound in given triple
  *
  * Return value: part of triple the variable is bound in
@@ -2222,9 +2253,9 @@ rasqal_query_variable_bound_in_triple(rasqal_query* query,
 {
   int width;
   unsigned short *triple_row;
-  
+
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, (rasqal_triple_parts)0);
-  
+
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   triple_row = &query->triples_use_map[column * width];
 
@@ -2270,7 +2301,7 @@ rasqal_query_get_result_type(rasqal_query* query)
       case RASQAL_QUERY_VERB_DESCRIBE:
         type = RASQAL_QUERY_RESULTS_GRAPH;
         break;
-        
+
       case RASQAL_QUERY_VERB_UNKNOWN:
       case RASQAL_QUERY_VERB_DELETE:
       case RASQAL_QUERY_VERB_INSERT:
@@ -2310,7 +2341,7 @@ rasqal_query_store_select_query(rasqal_query* query,
   rasqal_query_set_projection(query, projection);
 
   query->query_graph_pattern = where_gp;
-  
+
   if(data_graphs)
     rasqal_query_add_data_graphs(query, data_graphs);
 
@@ -2378,7 +2409,7 @@ rasqal_query_set_projection(rasqal_query* query, rasqal_projection* projection)
     rasqal_free_projection(query->projection);
 
   query->projection = projection;
-  
+
   return 0;
 }
 
@@ -2402,6 +2433,6 @@ rasqal_query_set_modifier(rasqal_query* query,
     rasqal_free_solution_modifier(query->modifier);
 
   query->modifier = modifier;
-  
+
   return 0;
 }

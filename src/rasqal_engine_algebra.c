@@ -3,22 +3,22 @@
  * rasqal_engine_algebra.c - Rasqal query engine over query algebra
  *
  * Copyright (C) 2008-2009, David Beckett http://www.dajobe.org/
- * 
+ *
  * This package is Free Software and part of Redland http://librdf.org/
- * 
+ *
  * It is licensed under the following three licenses as alternatives:
  *   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
  *   2. GNU General Public License (GPL) V2 or any newer version
  *   3. Apache License, V2.0 or any newer version
- * 
+ *
  * You may not use this file except in compliance with at least one of
  * the above three licenses.
- * 
+ *
  * See LICENSE.html or LICENSE.txt at the top of this package for the
  * complete terms and further detail along with the license texts for
  * the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
- * 
- * 
+ *
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -70,7 +70,7 @@ rasqal_engine_algebra_count_nodes(rasqal_query* query,
 {
   int *count_p = (int*)data;
   (*count_p)++;
-  
+
   return 0;
 }
 
@@ -81,7 +81,7 @@ rasqal_algebra_basic_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
                                                rasqal_engine_error *error_p)
 {
   rasqal_query *query = execution_data->query;
-  
+
   return rasqal_new_triples_rowsource(query->world, query,
                                       execution_data->triples_source,
                                       node->triples,
@@ -230,7 +230,7 @@ rasqal_algebra_assignment_algebra_node_to_rowsource(rasqal_engine_algebra_data* 
 {
   rasqal_query *query = execution_data->query;
 
-  return rasqal_new_assignment_rowsource(query->world, query, node->var, 
+  return rasqal_new_assignment_rowsource(query->world, query, node->var,
                                          node->expr);
 }
 
@@ -242,18 +242,18 @@ rasqal_algebra_visitor_set_origin(rasqal_query* query,
 {
   rasqal_literal *origin = (rasqal_literal*)user_data;
   int i;
-  
+
   if(node->op != RASQAL_ALGEBRA_OPERATOR_BGP)
     return 0;
 
   for(i = node->start_column; i <= node->end_column; i++) {
     rasqal_triple *t;
     rasqal_literal *o = NULL;
-    
+
     t = (rasqal_triple*)raptor_sequence_get_at(node->triples, i);
     if(origin)
       o = rasqal_new_literal_from_literal(origin);
-    
+
     rasqal_triple_set_origin(t, o);
   }
   return 0;
@@ -263,9 +263,9 @@ rasqal_algebra_visitor_set_origin(rasqal_query* query,
 static void
 rasqal_algebra_node_set_origin(rasqal_query *query,
                                rasqal_algebra_node* node,
-                               rasqal_literal *origin) 
+                               rasqal_literal *origin)
 {
-  rasqal_algebra_node_visit(query, node, 
+  rasqal_algebra_node_visit(query, node,
                             rasqal_algebra_visitor_set_origin,
                             origin);
 }
@@ -286,7 +286,7 @@ rasqal_algebra_graph_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
     return NULL;
   }
 
-/* 
+/*
 This code checks that #1-#3 below are present and
 then executes parts #1 and #2 here.
 
@@ -316,7 +316,7 @@ eval(D(G), Graph(IRI,P)) = the empty multiset
     RASQAL_DEBUG1("graph algebra node is neither variable or URI\n");
     return NULL;
   }
-  
+
   if(!v && graph->type == RASQAL_LITERAL_URI) {
     if(rasqal_query_dataset_contains_named_graph(query, graph->value.uri)) {
       /* case #1 - IRI is a graph name in D */
@@ -335,7 +335,7 @@ eval(D(G), Graph(IRI,P)) = the empty multiset
       /* case #2 - IRI is not a graph name in D - return empty rowsource */
       rasqal_free_algebra_node(node->node1);
       node->node1 = NULL;
-      
+
       rs = rasqal_new_empty_rowsource(query->world, query);
     }
 
@@ -472,7 +472,7 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
                                  rasqal_engine_error *error_p)
 {
   rasqal_rowsource* rs = NULL;
-  
+
   switch(node->op) {
     case RASQAL_ALGEBRA_OPERATOR_BGP:
       rs = rasqal_algebra_basic_algebra_node_to_rowsource(execution_data,
@@ -567,7 +567,7 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
 
   if(!rs)
     *error_p = RASQAL_ENGINE_FAILED;
-  
+
   return rs;
 }
 
@@ -577,6 +577,7 @@ static int
 rasqal_query_engine_algebra_execute_init(void* ex_data,
                                          rasqal_query* query,
                                          rasqal_query_results* query_results,
+                                         raptor_sequence* data_graphs,
                                          int flags,
                                          rasqal_engine_error *error_p)
 {
@@ -587,7 +588,7 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   rasqal_solution_modifier* modifier;
   rasqal_algebra_node* node;
   rasqal_algebra_aggregate* ae;
-  
+
   execution_data = (rasqal_engine_algebra_data*)ex_data;
 
   /* initialise the execution_data fields */
@@ -595,7 +596,7 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   execution_data->query_results = query_results;
 
   if(!execution_data->triples_source) {
-    execution_data->triples_source = rasqal_new_triples_source(execution_data->query);
+    execution_data->triples_source = rasqal_new_triples_source(execution_data->query, data_graphs);
     if(!execution_data->triples_source) {
       *error_p = RASQAL_ENGINE_FAILED;
       return 1;
@@ -651,13 +652,13 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   execution_data->algebra_node = node;
 
   /* count final number of nodes */
-  execution_data->nodes_count = 0; 
+  execution_data->nodes_count = 0;
   rasqal_algebra_node_visit(query,
                             execution_data->algebra_node,
                             rasqal_engine_algebra_count_nodes,
                             &execution_data->nodes_count);
-  
-  
+
+
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("algebra result: \n");
   rasqal_algebra_node_print(node, DEBUG_FH);
@@ -679,7 +680,7 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
 #endif
   if(error != RASQAL_ENGINE_OK)
     rc = 1;
-  
+
   return rc;
 }
 
@@ -690,7 +691,7 @@ rasqal_query_engine_algebra_get_all_rows(void* ex_data,
 {
   rasqal_engine_algebra_data* execution_data;
   raptor_sequence *seq = NULL;
-  
+
   execution_data = (rasqal_engine_algebra_data*)ex_data;
 
   if(execution_data->rowsource) {
@@ -710,7 +711,7 @@ rasqal_query_engine_algebra_get_row(void* ex_data,
 {
   rasqal_engine_algebra_data* execution_data;
   rasqal_row *row = NULL;
-  
+
   execution_data = (rasqal_engine_algebra_data*)ex_data;
 
   if(execution_data->rowsource) {
