@@ -55,24 +55,22 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
-#define u32 uint32_t
-
 #define MD5_DIGEST_LEN 16
 
 
 /* original code from header - function names have changed */
 
-/* make compiler align u32* and unsigned char buffers */
+/* use unions to make compiler align uint32_t* and unsigned char buffers */
 struct MD5Context {
   union 
   {
     unsigned char c[128];
-    u32 w[32];
+    uint32_t w[32];
   } buf;
-  u32 bits[2];
+  uint32_t bits[2];
   union {
     unsigned char c[64];
-    u32 w[16];
+    uint32_t w[16];
   } in;
   unsigned char digest[MD5_DIGEST_LEN];
 };
@@ -82,7 +80,7 @@ static void MD5Update(struct MD5Context *context,
                       const unsigned char *buf,
                       size_t len);
 static void MD5Final(struct MD5Context *context);
-static void MD5Transform (u32 buf[4], u32 const in[MD5_DIGEST_LEN]);
+static void MD5Transform(uint32_t buf[4], uint32_t const in[MD5_DIGEST_LEN]);
 
 
 /* original code from C file - GNU configurised */
@@ -99,11 +97,11 @@ static void byteReverse(unsigned char *buf, unsigned longs);
  */
 static void byteReverse(unsigned char *buf, unsigned longs)
 {
-  u32 t;
+  uint32_t t;
   do {
-    t = (u32) ((unsigned) buf[3] << 8 | buf[2]) << 16 |
+    t = (uint32_t) ((unsigned) buf[3] << 8 | buf[2]) << 16 |
       ((unsigned) buf[1] << 8 | buf[0]);
-    *(u32 *) buf = t;
+    *(uint32_t *) buf = t;
     buf += 4;
   } while (--longs);
 }
@@ -133,8 +131,8 @@ static void MD5Update(struct MD5Context *ctx,
                       const unsigned char* buf,
                       size_t len)
 {
-  u32 t;
-  u32 ulen = RASQAL_BAD_CAST(u32, len);
+  uint32_t t;
+  uint32_t ulen = RASQAL_BAD_CAST(uint32_t, len);
 
   /* Update bitcount */
   
@@ -241,9 +239,9 @@ static void MD5Final(struct MD5Context *ctx)
  * reflect the addition of 16 longwords of new data.  MD5Update blocks
  * the data and converts bytes into longwords for this routine.
  */
-static void MD5Transform(u32 buf[4], u32 const in[MD5_DIGEST_LEN])
+static void MD5Transform(uint32_t buf[4], uint32_t const in[MD5_DIGEST_LEN])
 {
-  register u32 a, b, c, d;
+  register uint32_t a, b, c, d;
   
   a = buf[0];
   b = buf[1];
