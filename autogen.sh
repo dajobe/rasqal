@@ -169,7 +169,11 @@ update_prog_version() {
     if test -z "$prog_vers"; then
       prog_vers=0
     fi
-    prog_dir="environment"
+    prog_dir="environment variable $ucprog"
+    # Set global variables
+    eval "${prog}_name='${prog_name}'"
+    eval "${prog}_vers='${prog_vers}'"
+    eval "${prog}_dir='${prog_dir}'"
     return
   fi
 
@@ -184,7 +188,10 @@ update_prog_version() {
     fi
   fi
   tmp=$(mktemp)
-  find "$dir" -name "$nameglob" -print -prune 2>/dev/null > "$tmp"
+  # "portable" way to find only executable files/symlinks
+  # OSX find does not have -executable or -perm /
+  find "$dir" -name "$nameglob" -ls -prune 2>/dev/null | \
+      awk '{if($3 ~/x/) { print $11}}' > "$tmp"
   while read -r name; do
     vers=$(perl "$autogen_get_version" "$name" "$prog")
     if expr "$vers" '>' "$prog_vers" >/dev/null; then
@@ -196,9 +203,9 @@ update_prog_version() {
   rm -f "$tmp"
 
   if test -n "$prog_name"; then
-      eval "${prog}_name=${prog_name}"
-      eval "${prog}_vers=${prog_vers}"
-      eval "${prog}_dir=${prog_dir}"
+      eval "${prog}_name='${prog_name}'"
+      eval "${prog}_vers='${prog_vers}'"
+      eval "${prog}_dir='${prog_dir}'"
   fi
 }
 
