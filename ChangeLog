@@ -1,4 +1,101 @@
+2024-06-13  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh: Search for only executable files with name prefix
+
+2024-06-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_digest_md5.c: Use uint32_t type instead of macro u32
+
+2023-12-21  Dave Beckett <dave@dajobe.org>
+
+	* Merge pull request #13 from fweimer-rh/c99 configure: Fix
+	incorrect argument type in gcry_md_open
+
+2023-10-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_test.c:
+	(main): Tidy up test code on various failures
+
+2023-09-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_empty.c:
+	(rasqal_empty_rowsource_read_all_rows): Error on seq failure
+
+2023-09-25  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_row.c: Summary: usage debugging
+
+	* src/rasqal_rowsource.c: usage debugging
+
+	* src/sparql_lexer.l:
+	(sparql_token_free): Free langtag name
+
+2023-09-21  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_distinct.c:
+	(rasqal_distinct_rowsource_read_row): Deep copy row
+
+2023-09-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c: Use correct rasqal_literal
+	construction string ownership
+	(rasqal_query_convert_blank_node_to_anonymous_variable): Free the
+	literal string after the successful variable conversion.
+
+	* src/rasqal_variable.c:
+	(rasqal_variables_table_add2): Abort on name malloc failure
+
+	* tests/engine/rasqal_triples_test.c:
+	(main): Argument checking
+
+	* src/rasqal_triples_source.c:
+	(rasqal_new_triples_source): Clean up on fail in constructor
+
+	* tests/engine/rasqal_triples_test.c:
+	(main): cleanup up better on data URI failues
+
+	* src/rasqal_rowsource_rowsequence.c:
+	(rasqal_rowsequence_rowsource_read_all_rows): Deep copy rows
+
+	* src/rasqal_internal.h, src/rasqal_row.c:
+	(rasqal_new_row_from_row_deep): Add to deep copy row
+	Does not deep copy the literals; just regular reference counting.
+
+	* tests/engine/rasqal_triples_test.c:
+	(main): Free data_dir_uri and data_dir_string in unit test code
+
+2023-09-15  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_common.h:
+	(struct rasqal_sparql_query_language_s): Unsigned 1-bitfields
+
+	* autogen.sh: Update autogen.sh code and portability
+
+2023-09-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_numerics.c: Zero out uuid buffer before call
+	(rasqal_expression_evaluate_uuid): Zero out uuid buffer before
+	call
+
+2023-09-11  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/timegm.c:
+	fix name
+
+	* src/rasqal_internal.h, src/timegm.c: Add
+	PRAGMA_IGNORE_WARNING_REDUNDANT_DECLS_OVERFLOW_START for timegm
+
 2023-09-10  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_rdf.c:
+	(rasqal_query_results_rdf_write): Remove useless assigments Remove
+	setting predicate, object and row_node to NULL which will never be
+	used.  [Coverity CID 416504]
+
+	* libmtwist: update libmtwist
+
+	* scripts/fix-flex.pl: Promote number_to_move and i variables to
+	yy_size_t
 
 	* INSTALL.html, LICENSE.html, NEWS.html, README.html,
 	RELEASE.html, TODO.html: 2023
