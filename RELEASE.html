@@ -37,6 +37,8 @@ Restructure configure tests and inclusion of time headers to support
 this.
 </p>
 
+<p>Multiple miscellaneous portability fixes.</p>
+
 
 <h3>Internal Changes</h3>
 
@@ -57,6 +59,27 @@ the pull request and patches.
 
 <p>Use raptor_www_set_http_accept2 for raptor2 2.0.16 or newer
 as the older one has been deprecated, to avoid a compile warning.
+</p>
+
+<h3>Query Engine Fixes</h3>
+
+<p>Fix rasqal_query_convert_blank_node_to_anonymous_variable()
+ownership issue after conversion.
+</p>
+
+<p>Clean up if rasqal_new_triples_source() constructor fails.
+</p>
+
+<p>Free langtag name in lexer token destructor sparql_token_free().
+</p>
+
+<p>Pass back error if seq fails in
+rasqal_empty_rowsource_read_all_rows()
+</p>
+
+<p>Merge pull request https://github.com/dajobe/rasqal/pull/13 from
+fweimer-rh configure: "Fix incorrect argument type in
+gcry_md_open". Thanks for the pull request and patch.
 </p>
 
 
@@ -5237,7 +5260,7 @@ It is all new.
 
 <hr />
 
-<p>Copyright (C) 2004-2023 <a href="https://www.dajobe.org/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="https://www.bristol.ac.uk/">University of Bristol</a></p>
+<p>Copyright (C) 2004-2024 <a href="https://www.dajobe.org/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="https://www.bristol.ac.uk/">University of Bristol</a></p>
 
 </body>
 </html>
