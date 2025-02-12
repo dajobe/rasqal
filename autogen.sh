@@ -38,8 +38,6 @@
 #
 # This script is in the public domain
 #
-# disabling these because the variables are defined in an eval.
-# shellcheck disable=SC2034,SC2154
 
 # Directory for the sources
 SRCDIR=${SRCDIR-.}
@@ -50,39 +48,29 @@ CONFIG_DIR=${CONFIG_DIR-../config}
 # GIT sub modules file
 GITMODULES='.gitmodules'
 
-autogen_get_version="$PWD/autogen-get-version.pl"
-tmp1=$(mktemp)
-trap 'rm -f $autogen_get_version $tmp1' 0 1
-
-
 # The programs required for configuring which will be searched for
 # in the current PATH.
 # Set an envariable of the same name in uppercase, to override scan
 #
 programs="automake aclocal autoconf autoheader libtoolize"
-gtkdoc_args=
-ltdl_args=
-silent_args=
+confs=$(find . -name configure.ac -print | grep -v /releases/)
 
-# Using a temporary file for find output not find | while so we can
-# change variables outside subshell
-find "." -name "configure.ac" -print | \
-  grep -v /releases/ > "$tmp1"
-while IFS= read -r conf; do
-  if grep "^GTK_DOC_CHECK" "$conf" >/dev/null; then
-    programs="$programs gtkdocize"
-    gtkdoc_args="--enable-gtk-doc"
-  fi
-  if grep "^AC_CHECK_PROGS.SWIG" "$conf" >/dev/null; then
-    programs="$programs swig"
-  fi
-  if grep "^AC_LIBLTDL_" "$conf" >/dev/null; then
-    ltdl_args="--ltdl"
-  fi
-  if grep "^AM_SILENT_RULES" "$conf" >/dev/null; then
-    silent_args="--enable-silent-rules"
-  fi
-done < "$tmp1"
+gtkdoc_args=
+if grep "^GTK_DOC_CHECK" "$confs" >/dev/null; then
+  programs="$programs gtkdocize"
+  gtkdoc_args="--enable-gtk-doc"
+fi
+if grep "^AC_CHECK_PROGS.SWIG" "$confs" >/dev/null; then
+  programs="$programs swig"
+fi
+ltdl_args=
+if grep "^AC_LIBLTDL_" "$confs" >/dev/null; then
+  ltdl_args="--ltdl"
+fi
+silent_args=
+if grep "^AM_SILENT_RULES" "$confs" >/dev/null; then
+  silent_args="--enable-silent-rules"
+fi
 
 # Some dependencies for autotools:
 # automake 1.13 requires autoconf 2.65
@@ -142,10 +130,11 @@ for my \$varg (qw(--version -version)) {
   while(<PIPE>) {
     chomp;
     next if @vnums; # drain pipe if we got a vnums
-    # Add optional leading g
-    next unless /^g?\$mname/i;
-    my(\$v)=/(\S+)\$/i; \$v =~ s/-.*\$//;
-    @vnums=grep { defined \$_ && !/^\s*\$/} map { s/\D//g; \$_; } split(/\./, \$v);
+    # Allow optional leading g and expect "PROGRAM-NAME (DESCRIPTION) VERSION-STRING"
+    if(/^g?\$mname \(.*?\)\s+(\S+)/i) {
+      my \$v = \$1; \$v =~ s/-.*\$//;
+      @vnums=grep { defined \$_ && !/^\s*\$/} map { s/\D//g; \$_; } split(/\./, \$v);
+    }
   }
   close(PIPE);
   last if @vnums;
@@ -157,6 +146,9 @@ print "\$vn\n";
 exit 0;
 EOF
 
+autogen_get_version="$PWD/autogen-get-version.pl"
+
+trap 'rm -f $autogen_get_version' 0 1
 
 
 update_prog_version() {
@@ -307,9 +299,10 @@ fi
 
 here="$PWD"
 
+tmp=$(mktemp)
 find "$SRCDIR" -name configure.ac -print | \
-  grep -v /releases/ > "$tmp1"
-while IFS= read -r coin; do
+    grep -v /releases/ > "$tmp"
+while read -r coin; do
   status=0
   dir=$(dirname "$coin")
   if test -f "$dir/NO-AUTO-GEN"; then
@@ -408,7 +401,8 @@ while IFS= read -r coin; do
     exit "$status"
   fi
 
-done < "$tmp1"
+done < "$tmp"
+rm -f "$tmp"
 
 
 
