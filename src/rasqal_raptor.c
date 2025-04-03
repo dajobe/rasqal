@@ -72,6 +72,8 @@ typedef struct {
   unsigned char* mapped_id_base;
   /* length of above string */
   size_t mapped_id_base_len;
+  /* non-0 if malloc failed in parsing */
+  int oom_error;
 } rasqal_raptor_triples_source_user_data;
 
 
@@ -91,6 +93,16 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
   p = rasqal_new_literal_from_term(world, statement->predicate);
   o = rasqal_new_literal_from_term(world, statement->object);
 
+  if(!s || !p || !o) {
+    if(s)
+      rasqal_free_literal(s);
+    if(p)
+      rasqal_free_literal(p);
+    if(o)
+      rasqal_free_literal(o);
+    return NULL;
+  }
+
   return rasqal_new_triple(s, p, o);
 }
 
@@ -105,9 +117,19 @@ rasqal_raptor_statement_handler(void *user_data,
   rtsc = (rasqal_raptor_triples_source_user_data*)user_data;
 
   triple = RASQAL_MALLOC(rasqal_raptor_triple*, sizeof(rasqal_raptor_triple));
+  if(!triple) {
+    rtsc->oom_error = 1;
+    return;
+  }
+
   triple->next = NULL;
   triple->triple = raptor_statement_as_rasqal_triple(rtsc->world,
                                                      statement);
+  if(!triple->triple) {
+    RASQAL_FREE(rasqal_raptor_triple*, triple);
+    rtsc->oom_error = 1;
+    return;
+  }
 
   /* this origin URI literal is shared amongst the triples and
    * freed only in rasqal_raptor_free_triples_source
@@ -304,7 +326,8 @@ rasqal_raptor_init_triples_source_common(rasqal_world* world,
     }
     
     raptor_free_parser(parser);
-
+    if(rtsc->oom_error)
+      rc = 1;
     raptor_free_uri(rtsc->source_uri);
 
     if(free_name_uri)
