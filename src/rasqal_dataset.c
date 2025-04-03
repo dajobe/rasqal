@@ -64,6 +64,9 @@ struct rasqal_dataset_s
 
   rasqal_dataset_triple *head;
   rasqal_dataset_triple *tail;
+
+  /* non-0 if malloc failed in parsing */
+  int oom_error;
 };
 
 
@@ -160,9 +163,19 @@ rasqal_dataset_statement_handler(void *user_data,
   ds = (rasqal_dataset*)user_data;
 
   triple = RASQAL_MALLOC(rasqal_dataset_triple*, sizeof(*triple));
+  if(!triple) {
+    ds->oom_error = 1;
+    return;
+  }
+
   triple->next = NULL;
   triple->triple = raptor_statement_as_rasqal_triple(ds->world,
                                                      statement);
+  if(!triple->triple) {
+    RASQAL_FREE(rasqal_dataset_triple*, triple);
+    ds->oom_error = 1;
+    return;
+  }
 
   /* this origin URI literal is shared amongst the triples and
    * freed only in rasqal_free_dataset()
@@ -232,7 +245,7 @@ rasqal_dataset_load_graph_iostream(rasqal_dataset* ds,
 
   raptor_free_parser(parser);
 
-  return 0;
+  return ds->oom_error;
 }
 
 
