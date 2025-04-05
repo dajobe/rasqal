@@ -1,0 +1,97 @@
+<!-- ##### SECTION Title ##### -->
+Data Graph Sets
+
+<!-- ##### SECTION Short_Description ##### -->
+Sets of RDF data graphs.
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+These objects are containers of zero or more data graphs.
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### FUNCTION rasqal_data_graphs_set_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_data_graphs_set ##### -->
+<para>
+
+</para>
+
+@set: 
+
+
+<!-- ##### FUNCTION rasqal_data_graphs_set_add_data_graph ##### -->
+<para>
+
+</para>
+
+@set: 
+@data_graph: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_data_graphs_set_add_data_graphs ##### -->
+<para>
+
+</para>
+
+@set: 
+@data_graphs: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_data_graphs_set_get_data_graph_sequence ##### -->
+<para>
+
+</para>
+
+@set: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_data_graphs_get_graphs_count ##### -->
+<para>
+
+</para>
+
+@set: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_data_graphs_set_get_data_graph ##### -->
+<para>
+
+</para>
+
+@set: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_data_graphs_set_dataset_contains_named_graph ##### -->
+<para>
+
+</para>
+
+@set: 
+@graph_uri: 
+@Returns: 
+
+

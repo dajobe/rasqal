@@ -4,21 +4,21 @@
  *
  * Copyright (C) 2003-2010, David Beckett http://www.dajobe.org/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
- * 
+ *
  * This package is Free Software and part of Redland http://librdf.org/
- * 
+ *
  * It is licensed under the following three licenses as alternatives:
  *   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
  *   2. GNU General Public License (GPL) V2 or any newer version
  *   3. Apache License, V2.0 or any newer version
- * 
+ *
  * You may not use this file except in compliance with at least one of
  * the above three licenses.
- * 
+ *
  * See LICENSE.html or LICENSE.txt at the top of this package for the
  * complete terms and further detail along with the license texts for
  * the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
- * 
+ *
  */
 
 
@@ -328,7 +328,7 @@ struct rasqal_expression_s;
  * @value: Variable value or NULL if unbound.
  * @offset: Internal.
  * @type: Variable type.
- * @expression: Expression when the variable is a computed SELECT expression 
+ * @expression: Expression when the variable is a computed SELECT expression
  * @user_data: Pointer to user data associated with a variable.  This is not used by rasqal.
  * @usage: reference count
  *
@@ -380,7 +380,7 @@ typedef enum {
  * @base_uri: base URI for reading from iostream
  * @usage: usage count of this object
  *
- * A source of RDF data for querying. 
+ * A source of RDF data for querying.
  *
  * If @iostr is present, the graph can be constructed by parsing the
  * iostream and using @base_uri as a base uri. Otherwise the graph
@@ -401,6 +401,17 @@ typedef struct {
   raptor_uri* base_uri;
   int usage;
 } rasqal_data_graph;
+
+
+/**
+ * rasqal_data_graphs_set:
+ *
+ * A set of data graphs.
+ *
+ * In the current implementation the set is ordered, but this may change
+ * in a future version.
+ */
+typedef struct rasqal_data_graphs_set_s rasqal_data_graphs_set;
 
 
 /**
@@ -435,7 +446,7 @@ typedef struct {
  *
  * which corresponds to in enum values
  *
- *   BLANK << URI << STRING << 
+ *   BLANK << URI << STRING <<
  *     (BOOLEAN | INTEGER | DOUBLE | FLOAT | DECIMAL | DATETIME | XSD_STRING)
  *
  *     (RASQAL_LITERAL_FIRST_XSD ... RASQAL_LITERAL_LAST_XSD)
@@ -593,7 +604,7 @@ struct rasqal_literal_s {
   /* UTF-8 string, pattern, qname, blank, double, float, decimal, datetime */
   const unsigned char *string;
   unsigned int string_len;
-  
+
   union {
     /* integer and boolean types */
     int integer;
@@ -683,7 +694,7 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_GROUP_CONCAT: Expression for LAQRS GROUP_CONCAT(arglist) aggregate function
  * @RASQAL_EXPR_SAMPLE: Expression for LAQRS SAMPLE(expr) aggregate function
  * @RASQAL_EXPR_IN: Expression for LAQRS expr IN ( list of expr )
- * @RASQAL_EXPR_NOT_IN: Expression for LAQRS expr NOT IN ( list of expr ) 
+ * @RASQAL_EXPR_NOT_IN: Expression for LAQRS expr NOT IN ( list of expr )
  * @RASQAL_EXPR_ISNUMERIC: Expression for SPARQL 1.1 isNUMERIC(expr)
  * @RASQAL_EXPR_YEAR: Expression for SPARQL 1.1 YEAR(datetime)
  * @RASQAL_EXPR_MONTH: Expression for SPARQL 1.1 MONTH(datetime)
@@ -865,7 +876,7 @@ struct rasqal_expression_s {
   rasqal_world* world;
 
   int usage;
-  
+
   rasqal_op op;
 
   struct rasqal_expression_s* arg1;
@@ -923,7 +934,7 @@ typedef enum {
 /**
  * rasqal_generate_bnodeid_handler:
  * @world: world arg
- * @user_data: user data given to 
+ * @user_data: user data given to
  * @user_bnodeid: user blank node ID string passed in
  *
  * User handler used with rasqal_world_set_generate_bnodeid_handler() to set method for generating a blank node ID.
@@ -935,7 +946,7 @@ typedef unsigned char* (*rasqal_generate_bnodeid_handler)(rasqal_world* world, v
 
 /**
  * rasqal_query_verb:
- * @RASQAL_QUERY_VERB_SELECT: SPARQL query select verb. 
+ * @RASQAL_QUERY_VERB_SELECT: SPARQL query select verb.
  * @RASQAL_QUERY_VERB_CONSTRUCT: SPARQL query construct verb.
  * @RASQAL_QUERY_VERB_DESCRIBE: SPARQL query describe verb.
  * @RASQAL_QUERY_VERB_ASK: SPARQL query ask verb.
@@ -1244,16 +1255,16 @@ int rasqal_query_get_offset(rasqal_query* query);
 RASQAL_API
 void rasqal_query_set_offset(rasqal_query* query, int offset);
 
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_add_data_graph(rasqal_query* query, rasqal_data_graph* data_graph);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_add_data_graphs(rasqal_query* query, raptor_sequence* data_graphs);
 
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 raptor_sequence* rasqal_query_get_data_graph_sequence(rasqal_query* query);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 rasqal_data_graph* rasqal_query_get_data_graph(rasqal_query* query, int idx);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_dataset_contains_named_graph(rasqal_query* query, raptor_uri *graph_uri);
 
 RASQAL_API
@@ -1370,8 +1381,10 @@ int rasqal_query_print(rasqal_query* query, FILE* fh);
 /* Query */
 RASQAL_API
 int rasqal_query_prepare(rasqal_query* query, const unsigned char *query_string, raptor_uri *base_uri);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 rasqal_query_results* rasqal_query_execute(rasqal_query* query);
+RASQAL_API
+rasqal_query_results* rasqal_query_execute2(rasqal_query* query, rasqal_data_graphs_set* data_graphs);
 
 RASQAL_API
 void* rasqal_query_get_user_data(rasqal_query* query);
@@ -1388,6 +1401,26 @@ RASQAL_API
 rasqal_row* rasqal_query_get_bindings_row(rasqal_query* query, int idx);
 RASQAL_API
 rasqal_query_results_type rasqal_query_get_result_type(rasqal_query* query);
+
+/* data graphs sets */
+
+RASQAL_API
+rasqal_data_graphs_set *rasqal_data_graphs_set_new(void);
+RASQAL_API
+void rasqal_free_data_graphs_set(rasqal_data_graphs_set* set);
+RASQAL_API
+int rasqal_data_graphs_set_add_data_graph(rasqal_data_graphs_set* set, rasqal_data_graph* data_graph);
+RASQAL_API
+int rasqal_data_graphs_set_add_data_graphs(rasqal_data_graphs_set* set, raptor_sequence* data_graphs);
+
+RASQAL_API
+raptor_sequence* rasqal_data_graphs_set_get_data_graph_sequence(rasqal_data_graphs_set* set);
+RASQAL_API
+int rasqal_data_graphs_get_graphs_count(rasqal_data_graphs_set* set);
+RASQAL_API
+rasqal_data_graph* rasqal_data_graphs_set_get_data_graph(rasqal_data_graphs_set* set, int idx);
+RASQAL_API
+int rasqal_data_graphs_set_dataset_contains_named_graph(rasqal_data_graphs_set* set, raptor_uri *graph_uri);
 
 /* query results */
 RASQAL_API
@@ -1876,7 +1909,7 @@ char* rasqal_regex_replace(rasqal_world* world, raptor_locator* locator, const c
  * Rasqal SPARQL Protocol Service
  */
 typedef struct rasqal_service_s rasqal_service;
-  
+
 RASQAL_API
 rasqal_service* rasqal_new_service(rasqal_world* world, raptor_uri* service_uri, const unsigned char* query_string, raptor_sequence* data_graphs);
 RASQAL_API
@@ -1926,7 +1959,7 @@ typedef enum {
  * @finish: Finish triples match and destroy any allocated memory.
  * @is_exact: non-0 if triple to match is all literal constants
  * @finished: >0 if the match has finished
- * 
+ *
  * Triples match structure as initialised by #rasqal_triples_source
  * method init_triples_match.
  */
@@ -2003,7 +2036,7 @@ typedef enum {
   RASQAL_TRIPLES_SOURCE_FEATURE_NONE,
   RASQAL_TRIPLES_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH
 } rasqal_triples_source_feature;
-  
+
 
 /**
  * rasqal_triples_source:
@@ -2019,7 +2052,7 @@ typedef enum {
  */
 struct rasqal_triples_source_s {
   int version;
-  
+
   rasqal_query* query;
 
   void *user_data;
@@ -2089,7 +2122,7 @@ typedef void (*rasqal_triples_error_handler2)(rasqal_world* world, raptor_locato
  */
 typedef struct {
   int version;
-  
+
   void *user_data;
   size_t user_data_size;
 
@@ -2100,14 +2133,14 @@ typedef struct {
   /* API v3 onwards */
   int (*init_triples_source2)(rasqal_world* world, raptor_sequence* data_graphs, void *factory_user_data, void *user_data, rasqal_triples_source *rts, rasqal_triples_error_handler2 handler, unsigned int flags);
 } rasqal_triples_source_factory;
-  
+
 
 /**
  * rasqal_triples_source_factory_register_fn:
  * @factory: factory to register
  *
  * Register a factory for generating triples sources #rasqal_triples_source
- * 
+ *
  * Return value: non-0 on failure
  */
 typedef int (*rasqal_triples_source_factory_register_fn)(rasqal_triples_source_factory *factory);
@@ -2182,7 +2215,7 @@ int rasqal_set_triples_source_factory(rasqal_world* world, rasqal_triples_source
  * next_match:
  * @rtm: triples match context
  * @user_data: user data
- * 
+ *
  * Internal - see #rasqal_triples_match
  */
 
