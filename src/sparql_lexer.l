@@ -582,14 +582,6 @@ EXPONENT [eE][+-]?[0-9]+
 <LITERAL>\"|(\\.|[^\"\\]|\n)*	{
 		  char *p;
 
-		  if(*yytext == EOF) {
-                    BEGIN(INITIAL);
-                    sparql_syntax_error(rq, "End of file in middle of literal");
-                    raptor_free_stringbuffer(rqe->sb);
-                    rqe->sb = NULL;
-                    return EOF;
-                  }
-
 		  for(p = yytext; *p; p++) {
                     if(*p == '\n')
                       rqe->lineno++;
@@ -636,7 +628,7 @@ EXPONENT [eE][+-]?[0-9]+
 <LITERAL2>\'|(\\.|[^\'\\]|\n)*	{
 		  char *p;
 
-		  if(*yytext == EOF) {
+		  if(*yytext == YY_END_OF_BUFFER_CHAR) {
                     BEGIN(INITIAL);
                     sparql_syntax_error(rq, "End of file in middle of \"\"\" literal");
                     raptor_free_stringbuffer(rqe->sb);
@@ -956,7 +948,7 @@ sparql_skip_c_comment(rasqal_query *rq)
   while(1) {
     int c = INPUT_FN(yyscanner);
     
-    if(c == EOF) {
+    if(c == YY_END_OF_BUFFER_CHAR) {
       /* EOF */
       sparql_syntax_error(rq, "SPARQL syntax error - EOF in comment");
       lines = -1;
@@ -1977,7 +1969,7 @@ main(int argc, char *argv[])
     printf("token %d\n", token);
 #endif
     sparql_token_free(world, token, &lval);
-    if(!token || token == EOF)
+    if(!token || token == YY_END_OF_BUFFER_CHAR)
       break;
   }
 
