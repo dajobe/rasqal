@@ -128,6 +128,6 @@ get-testsuite-sparql-query:
 	for test in $(SPARQL_TEST_NAMES); do \
 	  comment="sparql query $$test"; \
 	  expect="PositiveTest"; \
-	  $(RECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) '$$test'\" ]"; \
+	  $(RECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(srcdir)/../check-sparql.py -s $(srcdir) '$$test'\" ]"; \
 	done; \
 	$(RECHO) ")."

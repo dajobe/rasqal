@@ -97,6 +97,6 @@ get-testsuite-sparql-query:
 	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Query Execution\"; mf:entries ("; \
 	for test in $(EXPECTED_SPARQL_CORRECT); do \
 	  comment="sparql query $$test"; \
-	  $(RECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"\"\"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) \"$$test\" \"\"\" ]"; \
+	  $(RECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"\"\"$(srcdir)/../check-sparql.py -s $(srcdir) \"$$test\" \"\"\" ]"; \
 	done; \
 	$(RECHO) ")."

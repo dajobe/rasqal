@@ -76,6 +76,6 @@ get-testsuite-sparql-query:
 	  comment="sparql query $$test"; \
 	  expect="PositiveTest"; \
 	  t=`echo $$test`; \
-	  $(RECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) $$t\" ]"; \
+	  $(RECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(srcdir)/../check-sparql.py -s $(srcdir) $$t\" ]"; \
 	done; \
 	$(RECHO) ")."

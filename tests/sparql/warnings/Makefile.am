@@ -67,6 +67,6 @@ get-testsuite-sparql-query:
 	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Query Preparation Warnings\"; mf:entries ("; \
 	for test in $(EXPECTED_SPARQL_WARNINGS); do \
 	  comment="sparql warning $$test"; \
-	  $(RECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) -W 100 '$$test'\" ]"; \
+	  $(RECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(srcdir)/../check-sparql.py -s $(srcdir) -W 100 '$$test'\" ]"; \
 	done; \
 	$(RECHO) ")."
