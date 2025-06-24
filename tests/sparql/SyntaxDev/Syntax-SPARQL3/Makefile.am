@@ -79,7 +79,7 @@ build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
 
 check-local: build-roqet build-sparql-lexer-test build-sparql-parser-test
-	@$(PERL) $(srcdir)/../../../improve .
+	@$(srcdir)/../../../improve.py .
 
 get-testsuites-list:
 	@echo "sparql-lexer sparql-parser sparql-query"

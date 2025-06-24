@@ -45,7 +45,7 @@ build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
 
 check-local: build-sparql-parser-test
-	@$(PERL) $(srcdir)/../../improve .
+	@$(srcdir)/../../improve.py .
 
 get-testsuites-list:
 	@echo "sparql-parse-good"

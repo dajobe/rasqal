@@ -60,7 +60,7 @@ build-roqet: build-core
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
 check-local: build-roqet
-	@$(PERL) $(srcdir)/../../improve .
+	@$(srcdir)/../../improve.py .
 
 get-testsuites-list:
 	@echo "sparql-query"

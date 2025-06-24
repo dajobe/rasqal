@@ -97,7 +97,7 @@ build-sparql-test-utils: build-core
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_lexer_test sparql_parser_test)
 
 check-local: build-roqet build-sparql-test-utils
-	@$(PERL) $(srcdir)/../../improve .
+	@$(srcdir)/../../improve.py .
 
 get-testsuites-list:
 	@echo "sparql-lexer sparql-parser sparql-query"
