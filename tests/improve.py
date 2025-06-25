@@ -611,21 +611,26 @@ def read_plan_py(testsuite_info, plan_file_path, args):
 
     nt_lines = []
     try:
+        # Corrected subprocess call: removed capture_output=True, added stdout=subprocess.PIPE
         with open(to_ntriples_error_file, "w") as f_err:
-            process = subprocess.run(cmd_to_nt, capture_output=True, text=True, stderr=f_err)
+            process = subprocess.run(cmd_to_nt, stdout=subprocess.PIPE, stderr=f_err, text=True, check=False)
 
-        # Check for errors written to the error file, even if exit code is 0
         err_content = ""
         if to_ntriples_error_file.exists():
             err_content = to_ntriples_error_file.read_text().strip()
-            if err_content: # if there's any error output
-                 logger.warning(f"Errors from {TO_NTRIPLES_CMD} for {plan_file_path}:\n{err_content}")
-                 # Original script checks if file is non-zero size
-                 # process.returncode might also be non-zero
-            to_ntriples_error_file.unlink(missing_ok=True) # Clean up
+            if err_content:
+                 logger.warning(f"Content from {to_ntriples_error_file} for {plan_file_path}:\n{err_content}")
+            to_ntriples_error_file.unlink(missing_ok=True)
 
-        if process.returncode != 0 or (err_content and "Error" in err_content) : # Treat any error content as failure for safety
-            return {'status': 'fail', 'details': f"{TO_NTRIPLES_CMD} failed or reported errors. Stderr: {err_content or process.stderr}"}
+        # Check returncode and error content AFTER reading and unlinking the error file
+        if process.returncode != 0 or ("Error" in err_content and "parse error" in err_content.lower()): # More specific error check
+            # Construct detail message, preferring err_content if it looks like a real error
+            error_detail_source = err_content if (err_content and "Error" in err_content) else process.stderr # process.stderr will be None here
+            if error_detail_source is None and process.returncode !=0 : # if stderr was redirected and empty, but still error
+                error_detail_source = f"Process exited with code {process.returncode}."
+
+            logger.warning(f"{TO_NTRIPLES_CMD} for {plan_file_path} failed or reported errors. Exit code: {process.returncode}. Details: {error_detail_source}")
+            return {'status': 'fail', 'details': f"{TO_NTRIPLES_CMD} failed. Detail: {error_detail_source}"}
 
         nt_lines = process.stdout.splitlines()
 
