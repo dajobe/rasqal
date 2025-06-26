@@ -394,6 +394,8 @@ def run_test(config, global_debug_level):
         actual_result_type = parsed_actual_output_info['result_type']
         actual_vars_order = parsed_actual_output_info['vars_order']
         actual_results_count = parsed_actual_output_info['roqet_results_count']
+        is_sorted_by_query_from_actual = parsed_actual_output_info['is_sorted_by_query'] # Get sort status
+
         result_file_base_uri = f"file://{result_file.resolve()}"
         expected_results_count = 0
 
@@ -401,13 +403,17 @@ def run_test(config, global_debug_level):
             if global_debug_level > 0: logger.debug(f"Reading expected RDF graph result file {result_file}")
             expected_results_data = read_rdf_graph_file(result_file, result_file_base_uri)
             if expected_results_data and expected_results_data.get('graph_ntriples'):
+                # Graph results are always canonicalized by sorting unique lines
                 sorted_expected_triples = sorted(list(set(expected_results_data['graph_ntriples'].splitlines())))
                 with open(RESULT_OUT, "w") as f_res_out:
                     for triple_line in sorted_expected_triples: f_res_out.write(triple_line + "\n")
-            elif not expected_results_data:
-                logger.warning(f"Test '{name}': FAILED (could not read/parse expected graph result file {result_file})")
-                finalize_test_result(test_result_summary, expect_status)
-                return test_result_summary
+            elif not expected_results_data: # Could be an empty graph result
+                if result_file.exists() and result_file.stat().st_size == 0: # Explicitly empty result file
+                     with open(RESULT_OUT, "w") as f_res_out: f_res_out.write("") # Create empty result.out
+                else:
+                    logger.warning(f"Test '{name}': FAILED (could not read/parse expected graph result file {result_file} or it's not explicitly empty)")
+                    finalize_test_result(test_result_summary, expect_status)
+                    return test_result_summary
         elif actual_result_type in ["bindings", "boolean"]:
             result_file_ext = result_file.suffix.lower()
             expected_result_format = "turtle"
@@ -421,12 +427,19 @@ def run_test(config, global_debug_level):
             elif result_file_ext == ".rdf": expected_result_format = "rdfxml"
 
             if global_debug_level > 0: logger.debug(f"Reading expected '{actual_result_type}' result file {result_file} (format: {expected_result_format})")
-            expected_results_info = read_query_results_file(result_file, expected_result_format, actual_vars_order)
+
+            should_sort_expected = not is_sorted_by_query_from_actual
+
+            expected_results_info = read_query_results_file(result_file, expected_result_format, actual_vars_order, sort_output=should_sort_expected)
             if expected_results_info: expected_results_count = expected_results_info.get('count',0)
             elif not expected_results_info:
-                logger.warning(f"Test '{name}': FAILED (could not read/parse expected results file {result_file})")
-                finalize_test_result(test_result_summary, expect_status)
-                return test_result_summary
+                if result_file.exists() and result_file.stat().st_size == 0:
+                    with open(RESULT_OUT, "w") as f_res_out: f_res_out.write("")
+                    expected_results_count = 0
+                else:
+                    logger.warning(f"Test '{name}': FAILED (could not read/parse expected results file {result_file} or it's not explicitly empty)")
+                    finalize_test_result(test_result_summary, expect_status)
+                    return test_result_summary
         else:
             logger.error(f"Test '{name}': Unknown actual_result_type '{actual_result_type}'")
             finalize_test_result(test_result_summary, expect_status)
@@ -443,14 +456,14 @@ def run_test(config, global_debug_level):
             comparison_rc = diff_proc.returncode
 
         if comparison_rc != 0:
-            if actual_result_type == "bindings" and cardinality_mode == "lax" and actual_results_count <= expected_results_count:
-                if global_debug_level >0: logger.debug(f"Cardinality 'lax': allowing {actual_results_count} vs {expected_results_count}")
+            if actual_result_type == "bindings" and cardinality_mode == "lax" and actual_results_count <= expected_results_count :
+                if global_debug_level >0: logger.debug(f"Cardinality 'lax': allowing {actual_results_count} actual results to match {expected_results_count} expected.")
                 comparison_rc = 0
 
         if comparison_rc != 0:
             msg = f"Test '{name}': FAILED (Results differ)."
             if actual_result_type == "bindings" and expected_results_count != actual_results_count and cardinality_mode != "lax":
-                 msg = f"Test '{name}': FAILED (Expected {expected_results_count}, got {actual_results_count}). Results may also differ."
+                 msg = f"Test '{name}': FAILED (Expected {expected_results_count} result(s), got {actual_results_count}). Results may also differ."
             logger.warning(msg)
             with open(DIFF_OUT, "r") as f_diff_read:
                 diff_content = f_diff_read.read().strip()
@@ -484,9 +497,7 @@ def finalize_test_result(test_result_summary, expect_status):
     else:
         test_result_summary['is_success'] = False
 
-import re
-
-_projected_vars_order = []
+_projected_vars_order = [] # Global, reset per test in parse_roqet_debug_output
 
 def parse_roqet_debug_output(roqet_stdout_str: str, result_file_path_for_sorting_ref: Path):
     global _projected_vars_order
@@ -494,7 +505,7 @@ def parse_roqet_debug_output(roqet_stdout_str: str, result_file_path_for_sorting
     lines = roqet_stdout_str.splitlines()
     result_type = "bindings"
     vars_seen_in_this_roqet_output = {}
-    is_sorted_by_query = False
+    is_sorted_by_query = False # Default: roqet output is not sorted by query
     processed_output_lines = []
     roqet_results_count = 0
 
@@ -507,12 +518,16 @@ def parse_roqet_debug_output(roqet_stdout_str: str, result_file_path_for_sorting
                         _projected_vars_order.append(vname)
                         vars_seen_in_this_roqet_output[vname] = 1
                 if logger.level == logging.DEBUG: logger.debug(f"Set roqet projected vars order to: {_projected_vars_order}")
+
         match_verb = re.match(r"query verb:\s+(\S+)", line)
         if match_verb:
             verb = match_verb.group(1).upper()
             if verb == "CONSTRUCT" or verb == "DESCRIBE": result_type = "graph"
             elif verb == "ASK": result_type = "boolean"
-        if "query order conditions:" in line: is_sorted_by_query = True
+
+        if "query order conditions:" in line:
+            is_sorted_by_query = True # Actual output from roqet is sorted by query
+
         line = normalize_blank_nodes(line)
         row_match = re.match(r"^(?:row|result): \[(.*)\]$", line)
         if row_match:
@@ -526,28 +541,35 @@ def parse_roqet_debug_output(roqet_stdout_str: str, result_file_path_for_sorting
             processed_output_lines.append(line)
 
     final_output_lines = processed_output_lines
-    if result_type == "bindings" and not is_sorted_by_query: final_output_lines.sort()
-    elif result_type == "graph": final_output_lines = sorted(list(set(processed_output_lines)))
+    if result_type == "bindings" and not is_sorted_by_query:
+        final_output_lines.sort()
+    elif result_type == "graph":
+        final_output_lines = sorted(list(set(processed_output_lines)))
+
     with open(ROQET_OUT, "w") as f_roqet_out:
         for out_line in final_output_lines: f_roqet_out.write(out_line + "\n")
-    return {'result_type': result_type, 'roqet_results_count': roqet_results_count, 'vars_order': _projected_vars_order[:]}
 
-def read_query_results_file(result_file_path: Path, result_format_hint: str, expected_vars_order: list):
+    return {
+        'result_type': result_type,
+        'roqet_results_count': roqet_results_count,
+        'vars_order': _projected_vars_order[:],
+        'is_sorted_by_query': is_sorted_by_query # Return this status
+    }
+
+def read_query_results_file(result_file_path: Path, result_format_hint: str, expected_vars_order: list, sort_output: bool): # Added sort_output
     abs_result_file_path = result_file_path.resolve()
     cmd = [ROQET, "-q", "-R", result_format_hint, "-r", "simple", "-t", str(abs_result_file_path)]
     if logger.level == logging.DEBUG: logger.debug(f"(read_query_results_file): Running {' '.join(cmd)}")
     try:
         with open(ROQET_ERR, 'w') as f_err:
-            # Corrected: removed capture_output=True, added stdout=subprocess.PIPE, ensured check=False implicitly
-            process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=f_err, text=True)
+            process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=f_err, text=True) # No capture_output, check=False is default
         with open(ROQET_ERR, 'r') as f_err_read: roqet_stderr_content = f_err_read.read()
-        if process.returncode != 0 or "Error" in roqet_stderr_content: # Original script checks for "Error" in stderr too
+
+        if process.returncode != 0 or "Error" in roqet_stderr_content:
             logger.warning(f"Reading query results file '{abs_result_file_path}' (format {result_format_hint}) FAILED.")
             if roqet_stderr_content: logger.warning(f"  Stderr from roqet:\n{roqet_stderr_content.strip()}")
-            # process.stderr would be None here as it was redirected to f_err.
-            # If we need its content and it wasn't written to file for some reason, that's an issue.
-            # However, the logic relies on ROQET_ERR file.
             return None
+
         parsed_rows_for_output = []
         first_row = True
         current_vars_order = []
@@ -566,7 +588,10 @@ def read_query_results_file(result_file_path: Path, result_format_hint: str, exp
             order_to_use = expected_vars_order if expected_vars_order else current_vars_order
             formatted_row_parts = [f"{var}={defined_or_null(row_data.get(var))}" for var in order_to_use]
             parsed_rows_for_output.append(f"row: [{', '.join(formatted_row_parts)}]")
-        parsed_rows_for_output.sort()
+
+        if sort_output: # Conditional sort based on new parameter
+            parsed_rows_for_output.sort()
+
         with open(RESULT_OUT, "w") as f_res_out:
             for r_line in parsed_rows_for_output: f_res_out.write(r_line + "\n")
         return {'count': len(parsed_rows_for_output)}
@@ -582,8 +607,12 @@ def read_rdf_graph_file(result_file_path: Path, base_uri: str):
     cmd = [TO_NTRIPLES, str(abs_result_file_path), base_uri]
     if logger.level == logging.DEBUG: logger.debug(f"(read_rdf_graph_file): Running {' '.join(cmd)}")
     try:
+        # This one still uses capture_output=True for stderr.
+        # For consistency, we could change it, but it's for TO_NTRIPLES, not ROQET.
+        # The original Perl script redirects TO_NTRIPLES stderr to a file too.
         with open(TO_NTRIPLES_ERR, 'w') as f_err:
-            process = subprocess.run(cmd, capture_output=True, text=True, stderr=f_err)
+            process = subprocess.run(cmd, capture_output=True, text=True, stderr=f_err) # stderr to file
+
         with open(TO_NTRIPLES_ERR, 'r') as f_err_read: to_ntriples_stderr = f_err_read.read()
         if process.returncode != 0 or "Error -" in to_ntriples_stderr:
             logger.warning(f"Parsing RDF graph result file '{abs_result_file_path}' FAILED - {TO_NTRIPLES} errors.")
