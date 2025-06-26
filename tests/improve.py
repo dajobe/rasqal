@@ -498,7 +498,8 @@ def run_testsuite_py(testsuite_info, indent_prefix, args):
         results[test_detail['status']].append(test_detail)
 
         if args.verbose == 0:
-            char_map = {'pass': '.', 'fail': 'F', 'xfail': '*', 'uxpass': '!', 'skipped': '-'}
+            # Corrected keys to match actual status values from COUNTERS
+            char_map = {'passed': '.', 'failed': 'F', 'xfailed': '*', 'uxpassed': '!', 'skipped': '-'}
             print(char_map.get(test_detail['status'], '?'), end='', flush=True)
             column += 1
             if column >= LINE_WRAP:
