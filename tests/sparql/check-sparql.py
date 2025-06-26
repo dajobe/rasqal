@@ -534,11 +534,15 @@ def read_query_results_file(result_file_path: Path, result_format_hint: str, exp
     if logger.level == logging.DEBUG: logger.debug(f"(read_query_results_file): Running {' '.join(cmd)}")
     try:
         with open(ROQET_ERR, 'w') as f_err:
-            process = subprocess.run(cmd, capture_output=True, text=True, stderr=f_err)
+            # Corrected: removed capture_output=True, added stdout=subprocess.PIPE, ensured check=False implicitly
+            process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=f_err, text=True)
         with open(ROQET_ERR, 'r') as f_err_read: roqet_stderr_content = f_err_read.read()
-        if process.returncode != 0 or "Error" in roqet_stderr_content:
+        if process.returncode != 0 or "Error" in roqet_stderr_content: # Original script checks for "Error" in stderr too
             logger.warning(f"Reading query results file '{abs_result_file_path}' (format {result_format_hint}) FAILED.")
             if roqet_stderr_content: logger.warning(f"  Stderr from roqet:\n{roqet_stderr_content.strip()}")
+            # process.stderr would be None here as it was redirected to f_err.
+            # If we need its content and it wasn't written to file for some reason, that's an issue.
+            # However, the logic relies on ROQET_ERR file.
             return None
         parsed_rows_for_output = []
         first_row = True
