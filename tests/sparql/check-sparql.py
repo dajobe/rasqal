@@ -46,6 +46,10 @@ logger = logging.getLogger(__name__)
 
 CURDIR = Path.cwd()
 
+# Helper function to normalize blank node IDs in output
+def normalize_blank_nodes(text_output):
+    return re.sub(r'blank \w+', 'blank _', text_output)
+
 # Temporary file names
 ROQET_OUT = "roqet.out"
 RESULT_OUT = "result.out"
