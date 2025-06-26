@@ -50,6 +50,10 @@ CURDIR = Path.cwd()
 def normalize_blank_nodes(text_output):
     return re.sub(r'blank \w+', 'blank _', text_output)
 
+# Helper to mimic Perl's defined_or_NULL
+def defined_or_null(value):
+    return value if value is not None else "NULL"
+
 # Temporary file names
 ROQET_OUT = "roqet.out"
 RESULT_OUT = "result.out"
