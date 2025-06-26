@@ -386,17 +386,20 @@ def run_test_py(testsuite_info, test_details, args):
             except OSError as e_unlink:
                 logger.warning(f"Could not remove temporary log file {log_file_path}: {e_unlink}")
 
-    # Adjust status based on expectation
-    if expected_status == 'fail':
+    # Adjust status based on expectation to match COUNTERS keys
+    if expected_status == 'fail': # Test was expected to fail
         if final_status == 'fail':
-            test_details['status'] = 'xfail' # Expected failure
+            test_details['status'] = 'xfailed'
             test_details['detail'] = test_details.get('detail', "") + " (Test failed as expected)"
         else: # final_status == 'pass'
-            test_details['status'] = 'uxpass' # Unexpected pass
+            test_details['status'] = 'uxpassed'
             test_details['detail'] = "Test passed but was expected to fail."
-    else: # expected_status == 'pass'
-        test_details['status'] = final_status # 'pass' or 'fail'
-        # Detail is already set if it failed. If it passed, detail remains empty or as set.
+    else: # expected_status == 'pass' (Test was expected to pass)
+        if final_status == 'pass':
+            test_details['status'] = 'passed'
+        else: # final_status == 'fail'
+            test_details['status'] = 'failed'
+        # Detail is already set if it failed by the execution logic above.
 
     # SIGINT handling (abort) - This is harder with subprocess.run as it blocks.
     # The Perl script checks $? & 127 for signals.
