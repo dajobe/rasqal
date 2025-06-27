@@ -87,12 +87,11 @@ class TestType(Enum):
     NEGATIVE_UPDATE_SYNTAX_TEST_11 = f"{MF_NS}NegativeUpdateSyntaxTest11"
     TEST_SYNTAX = f"{MFX_NS}TestSyntax"
     TEST_BAD_SYNTAX = f"{MFX_NS}TestBadSyntax"
-    UPDATE_EVALUATION_TEST = f"{UT_NS}UpdateEvaluationTest" # Also MF_NS
+    UPDATE_EVALUATION_TEST = f"{UT_NS}UpdateEvaluationTest"
     PROTOCOL_TEST = f"{MF_NS}ProtocolTest"
 
 
 def get_utils_dir():
-    """Finds the 'utils' directory in parent directories."""
     current_dir = CURDIR
     while current_dir != Path('/'):
         utils_dir = current_dir / 'utils'
@@ -110,43 +109,21 @@ DIFF_CMD = os.environ.get('DIFF') or "diff"
 
 def main():
     parser = argparse.ArgumentParser(description="Run SPARQL tests.")
-    parser.add_argument(
-        "--debug", "-d", action="count", default=0, help="Enable extra debugging output."
-    )
-    parser.add_argument(
-        "--srcdir", "-s", default=".", help="Set the source directory."
-    )
-    parser.add_argument(
-        "--input", "-i", default="sparql", help="Set the input language."
-    )
-    parser.add_argument(
-        "--manifest", "-m", help="Set the input test MANIFEST file."
-    )
-    parser.add_argument(
-        "--earl", "-e", help="Set the output test EARL summary file."
-    )
-    parser.add_argument(
-        "--junit", "-j", help="Set the output Ant Junit XML results file."
-    )
-    parser.add_argument(
-        "--suite", "-u", help="Set the test suite name."
-    )
-    parser.add_argument(
-        "--approved", "-a", action="store_true", help="Run only approved tests."
-    )
-    parser.add_argument(
-        "--warnings", "-W", type=int, default=0, help="Set warning level (0-100)."
-    )
-    parser.add_argument(
-        "test", nargs="?", help="Run a specific test by name or URI."
-    )
-
+    parser.add_argument("--debug", "-d", action="count", default=0)
+    parser.add_argument("--srcdir", "-s", default=".")
+    parser.add_argument("--input", "-i", default="sparql")
+    parser.add_argument("--manifest", "-m")
+    parser.add_argument("--earl", "-e")
+    parser.add_argument("--junit", "-j")
+    parser.add_argument("--suite", "-u")
+    parser.add_argument("--approved", "-a", action="store_true")
+    parser.add_argument("--warnings", "-W", type=int, default=0)
+    parser.add_argument("test", nargs="?")
     args = parser.parse_args()
 
     if args.debug > 0:
         logger.setLevel(logging.DEBUG)
-        logging.getLogger().setLevel(logging.DEBUG) # Also set root logger for other modules if any
-
+        logging.getLogger().setLevel(logging.DEBUG)
     logger.debug(f"Arguments: {args}")
 
     srcdir = Path(args.srcdir)
@@ -158,86 +135,47 @@ def main():
             if (srcdir / mf_name).is_file():
                 manifest_file_path = srcdir / mf_name
                 break
-
     if not manifest_file_path or not manifest_file_path.is_file():
-        logger.error(f"No manifest file found in {srcdir}")
-        sys.exit(1)
-
+        logger.error(f"No manifest file found in {srcdir}"); sys.exit(1)
     logger.info(f"Using manifest file: {manifest_file_path}")
 
     tests = parse_manifest(manifest_file_path, srcdir, args.test)
+    if args.test and not tests: logger.error(f"Test {args.test} not found"); sys.exit(1)
+    if not tests: logger.info("No tests found or selected to run."); sys.exit(0)
 
-    if args.test and not tests:
-        logger.error(f"Test {args.test} not found in manifest.")
-        sys.exit(1)
-
-    if not tests:
-        logger.info("No tests found or selected to run.")
-        sys.exit(0)
-
-    passed_tests = []
-    failed_tests = []
-    skipped_tests = []
-    test_results_data = [] # For JUnit/EARL reporting
-
+    passed_tests, failed_tests, skipped_tests, test_results_data = [], [], [], []
     start_time_suite = time.time()
 
     for test_config in tests:
-        test_name = test_config.get("name") or test_config.get("test_uri", "Unknown Test")
-        # logger.info(f"Processing test: {test_name}") # Too verbose for many tests
-
+        test_name = test_config.get("name") or test_config.get("test_uri", "Unknown")
         if test_config.get("is_withdrawn"):
-            logger.debug(f"Test {test_name} ({test_config['test_uri']}) was withdrawn - skipping")
-            skipped_tests.append(test_config)
-            test_results_data.append({
-                'name': test_name, 'uri': test_config['test_uri'], 'result': 'skipped',
-                'is_success': False, 'reason': 'withdrawn'
-            })
+            logger.debug(f"Test {test_name} ({test_config['test_uri']}) withdrawn - skipping")
+            skipped_tests.append(test_config); test_results_data.append({'name': test_name, 'uri': test_config['test_uri'], 'result': 'skipped', 'is_success': False, 'reason': 'withdrawn'})
             continue
         if args.approved and not test_config.get("is_approved"):
             logger.debug(f"Test {test_name} ({test_config['test_uri']}) not approved - skipping")
-            skipped_tests.append(test_config)
-            test_results_data.append({
-                'name': test_name, 'uri': test_config['test_uri'], 'result': 'skipped',
-                'is_success': False, 'reason': 'not approved'
-            })
+            skipped_tests.append(test_config); test_results_data.append({'name': test_name, 'uri': test_config['test_uri'], 'result': 'skipped', 'is_success': False, 'reason': 'not approved'})
             continue
         if test_config.get("has_entailment_regime"):
             logger.debug(f"Test {test_name} ({test_config['test_uri']}) has entailment - skipping")
-            skipped_tests.append(test_config)
-            test_results_data.append({
-                'name': test_name, 'uri': test_config['test_uri'], 'result': 'skipped',
-                'is_success': False, 'reason': 'has entailment regime'
-            })
+            skipped_tests.append(test_config); test_results_data.append({'name': test_name, 'uri': test_config['test_uri'], 'result': 'skipped', 'is_success': False, 'reason': 'has entailment regime'})
             continue
 
         current_lang = test_config.get("language", args.input)
-        if test_config.get("language") != "sparql" and test_config.get("language") is not None :
-             current_lang = test_config["language"]
-
+        if test_config.get("language") != "sparql" and test_config.get("language") is not None: current_lang = test_config["language"]
         current_test_config = test_config.copy()
-        current_test_config["language"] = current_lang
-        current_test_config["warning_level"] = args.warnings
+        current_test_config["language"], current_test_config["warning_level"] = current_lang, args.warnings
 
         test_result_details = run_test(current_test_config, args.debug)
         test_results_data.append(test_result_details)
+        if test_result_details.get('is_success', False): passed_tests.append(test_config)
+        else: failed_tests.append(test_config)
 
-        is_test_case_success = test_result_details.get('is_success', False)
-
-        if is_test_case_success:
-            passed_tests.append(test_config)
-        else:
-            failed_tests.append(test_config)
-
-    end_time_suite = time.time()
-    elapsed_time_suite = end_time_suite - start_time_suite
-
+    elapsed_time_suite = time.time() - start_time_suite
     if not args.test and args.debug < 2:
         for f_name in [ROQET_OUT, RESULT_OUT, ROQET_TMP, ROQET_ERR, DIFF_OUT, TO_NTRIPLES_ERR]:
-            try:
-                Path(f_name).unlink(missing_ok=True)
-            except OSError as e:
-                logger.warning(f"Could not delete temp file {f_name}: {e}")
+            try: Path(f_name).unlink(missing_ok=True)
+            except OSError as e: logger.warning(f"Could not delete temp file {f_name}: {e}")
 
     if failed_tests:
         logger.info(f"{len(failed_tests)} FAILED tests:")
@@ -247,72 +185,42 @@ def main():
             if res and res.get('stderr'):
                 err_lines = res['stderr'].splitlines()
                 for line in err_lines:
-                    if "rasqal error" in line or "Error" in line :
+                    if "rasqal error" in line or "Error" in line:
                         reason = f" ({line.split('rasqal error -')[-1].split('Error -')[-1].strip()})"
                         break
             logger.info(f"  FAILED: {t_conf.get('name', t_conf['test_uri'])}{reason}")
-
-    logger.info(
-        f"Summary: {len(passed_tests)} tests passed, "
-        f"{len(failed_tests)} tests failed, "
-        f"{len(skipped_tests)} tests skipped in {elapsed_time_suite:.2f}s"
-    )
-
-    if args.earl:
-        generate_earl_report(args.earl, test_results_data, args)
-
-    if args.junit:
-        generate_junit_report(args.junit, test_results_data, args, elapsed_time_suite)
-
+    logger.info(f"Summary: {len(passed_tests)} tests passed, {len(failed_tests)} tests failed, {len(skipped_tests)} tests skipped in {elapsed_time_suite:.2f}s")
+    if args.earl: generate_earl_report(args.earl, test_results_data, args)
+    if args.junit: generate_junit_report(args.junit, test_results_data, args, elapsed_time_suite)
     sys.exit(len(failed_tests))
-
 
 def run_test(config, global_debug_level):
     name = config.get("name") or config.get("test_uri", "Unknown test")
+    # ... (rest of variable assignments from config as before) ...
     test_uri = config.get("test_uri")
     language = config.get("language", "sparql")
     query_file = Path(config["test_file"])
     data_files = [Path(df) for df in config.get("data_files", []) if df]
     named_data_files = [Path(ndf) for ndf in config.get("named_data_files", []) if ndf]
     result_file = Path(config["result_file"]) if config.get("result_file") else None
-    expect_status = config["expect"]
+    expect_status_enum = config["expect"] # This is an Expect enum
     cardinality_mode = config.get("cardinality_mode", "strict")
     execute = config.get("execute", True)
     test_type = config.get("test_type")
     warning_level = config.get("warning_level", 0)
 
-    test_result_summary = {
-        'name': name, 'uri': test_uri, 'result': 'failure', 'is_success': False,
-        'stdout': '', 'stderr': '', 'query': '', 'elapsed-time': 0,
-        'roqet-status-code': -1, 'diff': '',
-    }
+    test_result_summary = {'name': name, 'uri': test_uri, 'result': 'failure', 'is_success': False, 'stdout': '', 'stderr': '', 'query': '', 'elapsed-time': 0, 'roqet-status-code': -1, 'diff': ''}
 
-    if global_debug_level > 0:
-        logger.debug(
-            f"run_test: (URI: {test_uri})\n"
-            f"  name       : {name}\n"
-            f"  language   : {language}\n"
-            f"  query      : {query_file}\n"
-            f"  data       : {'; '.join(map(str,data_files))}\n"
-            f"  named data : {'; '.join(map(str,named_data_files))}\n"
-            f"  result file: {result_file or 'none'}\n"
-            f"  expect     : {expect_status.value}\n"
-            f"  card mode  : {cardinality_mode}\n"
-            f"  execute    : {execute}\n"
-            f"  test_type  : {test_type}"
-        )
+    if global_debug_level > 0: logger.debug(f"run_test: (URI: {test_uri})\n  name: {name}\n  language: {language}\n  query: {query_file}\n  data: {'; '.join(map(str,data_files))}\n  named data: {'; '.join(map(str,named_data_files))}\n  result file: {result_file or 'none'}\n  expect: {expect_status_enum.value}\n  card mode: {cardinality_mode}\n  execute: {execute}\n  test_type: {test_type}")
 
     roqet_args = [ROQET, "-i", language]
-    if test_type == TestType.CSV_RESULT_FORMAT_TEST.value:
-        roqet_args.extend(["-r", "csv"])
-    else:
-        roqet_args.extend(["-d", "debug"])
+    if test_type == TestType.CSV_RESULT_FORMAT_TEST.value: roqet_args.extend(["-r", "csv"])
+    else: roqet_args.extend(["-d", "debug"])
     roqet_args.extend(["-W", str(warning_level)])
     for df in data_files: roqet_args.extend(["-D", str(df)])
     for ndf in named_data_files: roqet_args.extend(["-G", str(ndf)])
     if not execute: roqet_args.append("-n")
     roqet_args.append(str(query_file))
-
     roqet_cmd_str = " ".join(f"'{a}'" if " " in a else a for a in roqet_args)
     test_result_summary['query'] = roqet_cmd_str
     if global_debug_level > 0: logger.debug(f"Executing roqet: {roqet_cmd_str}")
@@ -324,112 +232,105 @@ def run_test(config, global_debug_level):
             process = subprocess.Popen(roqet_args, stdout=f_out, stderr=f_err, text=True, cwd=CURDIR)
             process.wait()
             return_code = process.returncode
-
-        end_time = time.time()
-        test_result_summary['elapsed-time'] = end_time - start_time
+        test_result_summary['elapsed-time'] = time.time() - start_time
         with open(ROQET_TMP, "r") as f: actual_roqet_stdout = f.read()
         with open(ROQET_ERR, "r") as f: actual_roqet_stderr = f.read()
-        test_result_summary['stdout'] = actual_roqet_stdout
-        test_result_summary['stderr'] = actual_roqet_stderr
-        test_result_summary['roqet-status-code'] = return_code
+        test_result_summary['stdout'], test_result_summary['stderr'], test_result_summary['roqet-status-code'] = actual_roqet_stdout, actual_roqet_stderr, return_code
 
-        if return_code != 0:
+        # Default execution_status based on roqet's exit code
+        execution_status = 'failure' if return_code != 0 else 'success'
+
+        if return_code != 0: # roqet command failed
             outcome_msg = f"exited with status {return_code}"
             if global_debug_level > 0: logger.debug(f"roqet for '{name}' {outcome_msg}")
-            if expect_status == Expect.FAIL:
+            # Log "OK" for expected failures, but execution_status remains 'failure'
+            if expect_status_enum == Expect.FAIL:
                 logger.info(f"Test '{name}': OK (roqet failed as expected: {outcome_msg})")
-                test_result_summary['result'] = 'success'
-            else:
+            else: # Roqet failed, but was expected to pass
                 logger.warning(f"Test '{name}': FAILED (roqet command failed: {outcome_msg})")
                 if actual_roqet_stderr: logger.warning(f"  Stderr:\n{actual_roqet_stderr.strip()}")
-            finalize_test_result(test_result_summary, expect_status)
+            test_result_summary['result'] = execution_status # Which is 'failure'
+            finalize_test_result(test_result_summary, expect_status_enum)
             return test_result_summary
 
-        if expect_status == Expect.FAIL:
+        # roqet command succeeded (exit code 0)
+        # If it was expected to fail (negative syntax test that roqet parsed), this is a test objective failure.
+        if expect_status_enum == Expect.FAIL:
             logger.warning(f"Test '{name}': FAILED (roqet succeeded, but was expected to fail)")
-            finalize_test_result(test_result_summary, expect_status)
+            test_result_summary['result'] = 'success' # Roqet execution was successful
+            finalize_test_result(test_result_summary, expect_status_enum) # This will set is_success to False
             return test_result_summary
+
+        # Roqet succeeded and was expected to (or it's an eval test needing further checks)
+        test_result_summary['result'] = 'success' # Roqet execution was successful
 
         if test_type == TestType.CSV_RESULT_FORMAT_TEST.value:
-            if not result_file:
-                logger.warning(f"Test '{name}': FAILED (CSVResultFormatTest but no result_file specified)")
+            if not result_file: logger.warning(f"Test '{name}': FAILED (CSVResultFormatTest but no result_file specified)"); test_result_summary['result'] = 'failure'
             else:
                 diff_cmd_list = [DIFF_CMD, "-u", ROQET_TMP, str(result_file)]
                 if global_debug_level > 0: logger.debug(f"Comparing CSV output: {' '.join(diff_cmd_list)}")
                 diff_process = subprocess.run(diff_cmd_list, capture_output=True, text=True)
                 if diff_process.returncode != 0:
                     logger.warning(f"Test '{name}': FAILED (CSV output differs from {result_file})")
-                    diff_output = diff_process.stdout
-                    test_result_summary['diff'] = diff_output
+                    diff_output = diff_process.stdout; test_result_summary['diff'] = diff_output
                     with open(DIFF_OUT, "w") as f_diff: f_diff.write(diff_output)
                     if global_debug_level > 0 or len(diff_output) < 1000: logger.warning(f"  Differences:\n{diff_output.strip()}")
                     else: logger.warning(f"  Differences written to {DIFF_OUT}")
-                else:
-                    logger.info(f"Test '{name}': OK (CSV output matches)")
-                    test_result_summary['result'] = 'success'
-            finalize_test_result(test_result_summary, expect_status)
-            return test_result_summary
+                    test_result_summary['result'] = 'failure'
+                else: logger.info(f"Test '{name}': OK (CSV output matches)") # result remains 'success'
+            finalize_test_result(test_result_summary, expect_status_enum); return test_result_summary
 
-        if not execute:
-            logger.info(f"Test '{name}': OK (positive syntax check passed)")
-            test_result_summary['result'] = 'success'
-            finalize_test_result(test_result_summary, expect_status)
-            return test_result_summary
+        if not execute: # Positive syntax test, roqet succeeded as expected.
+            logger.info(f"Test '{name}': OK (positive syntax check passed)") # result is 'success'
+            finalize_test_result(test_result_summary, expect_status_enum); return test_result_summary
 
         rasqal_errors_in_stderr = [line for line in actual_roqet_stderr.splitlines() if "rasqal error -" in line]
         if rasqal_errors_in_stderr:
             logger.warning(f"Test '{name}': FAILED (roqet succeeded but rasqal reported errors in stderr)")
             for err_line in rasqal_errors_in_stderr: logger.warning(f"  {err_line}")
             test_result_summary['errors'] = "\n".join(rasqal_errors_in_stderr)
-            finalize_test_result(test_result_summary, expect_status)
-            return test_result_summary
+            test_result_summary['result'] = 'failure'
+            finalize_test_result(test_result_summary, expect_status_enum); return test_result_summary
 
-        if not result_file:
-            logger.info(f"Test '{name}': OK (roqet succeeded, no result_file to compare)")
-            test_result_summary['result'] = 'success'
-            finalize_test_result(test_result_summary, expect_status)
-            return test_result_summary
+        if not result_file: # Roqet succeeded, expected to pass, no result file to compare
+            logger.info(f"Test '{name}': OK (roqet succeeded, no result_file to compare)") # result is 'success'
+            finalize_test_result(test_result_summary, expect_status_enum); return test_result_summary
 
+        # Evaluation test with a result file
         parsed_actual_output_info = parse_roqet_debug_output(actual_roqet_stdout, result_file)
         actual_result_type = parsed_actual_output_info['result_type']
         actual_vars_order = parsed_actual_output_info['vars_order']
         actual_results_count = parsed_actual_output_info['roqet_results_count']
-        is_sorted_by_query_from_actual = parsed_actual_output_info['is_sorted_by_query'] # Get sort status
+        is_sorted_by_query_from_actual = parsed_actual_output_info['is_sorted_by_query']
 
         result_file_base_uri = f"file://{result_file.resolve()}"
         expected_results_count = 0
 
         if actual_result_type == "graph":
+            # ... (graph processing logic as before) ...
             if global_debug_level > 0: logger.debug(f"Reading expected RDF graph result file {result_file}")
             expected_results_data = read_rdf_graph_file(result_file, result_file_base_uri)
             if expected_results_data and expected_results_data.get('graph_ntriples'):
-                # Graph results are always canonicalized by sorting unique lines
                 sorted_expected_triples = sorted(list(set(expected_results_data['graph_ntriples'].splitlines())))
                 with open(RESULT_OUT, "w") as f_res_out:
                     for triple_line in sorted_expected_triples: f_res_out.write(triple_line + "\n")
-            elif not expected_results_data: # Could be an empty graph result
-                if result_file.exists() and result_file.stat().st_size == 0: # Explicitly empty result file
-                     with open(RESULT_OUT, "w") as f_res_out: f_res_out.write("") # Create empty result.out
+            elif not expected_results_data:
+                if result_file.exists() and result_file.stat().st_size == 0:
+                     with open(RESULT_OUT, "w") as f_res_out: f_res_out.write("")
                 else:
                     logger.warning(f"Test '{name}': FAILED (could not read/parse expected graph result file {result_file} or it's not explicitly empty)")
-                    finalize_test_result(test_result_summary, expect_status)
-                    return test_result_summary
+                    test_result_summary['result'] = 'failure' # Mark execution as failed
+                    finalize_test_result(test_result_summary, expect_status_enum); return test_result_summary
         elif actual_result_type in ["bindings", "boolean"]:
+            # ... (bindings/boolean processing logic as before, ensuring should_sort_expected is used) ...
             result_file_ext = result_file.suffix.lower()
             expected_result_format = "turtle"
             if result_file_ext == ".srx": expected_result_format = "xml"
-            elif result_file_ext == ".srj":
-                logger.warning(f"Test '{name}': SKIPPING JSON result comparison ({result_file})")
-                test_result_summary['result'] = 'success'
-                finalize_test_result(test_result_summary, expect_status)
-                return test_result_summary
+            elif result_file_ext == ".srj": logger.warning(f"Test '{name}': SKIPPING JSON result comparison ({result_file})"); finalize_test_result(test_result_summary, expect_status_enum); return test_result_summary # result already 'success'
             elif result_file_ext in [".csv", ".tsv"]: expected_result_format = result_file_ext[1:]
             elif result_file_ext == ".rdf": expected_result_format = "rdfxml"
-
             if global_debug_level > 0: logger.debug(f"Reading expected '{actual_result_type}' result file {result_file} (format: {expected_result_format})")
-
             should_sort_expected = not is_sorted_by_query_from_actual
-
             expected_results_info = read_query_results_file(result_file, expected_result_format, actual_vars_order, sort_output=should_sort_expected)
             if expected_results_info: expected_results_count = expected_results_info.get('count',0)
             elif not expected_results_info:
@@ -438,66 +339,64 @@ def run_test(config, global_debug_level):
                     expected_results_count = 0
                 else:
                     logger.warning(f"Test '{name}': FAILED (could not read/parse expected results file {result_file} or it's not explicitly empty)")
-                    finalize_test_result(test_result_summary, expect_status)
-                    return test_result_summary
-        else:
-            logger.error(f"Test '{name}': Unknown actual_result_type '{actual_result_type}'")
-            finalize_test_result(test_result_summary, expect_status)
-            return test_result_summary
+                    test_result_summary['result'] = 'failure'; finalize_test_result(test_result_summary, expect_status_enum); return test_result_summary
+        else: # Unknown actual_result_type
+            logger.error(f"Test '{name}': Unknown actual_result_type '{actual_result_type}'"); test_result_summary['result'] = 'failure'; finalize_test_result(test_result_summary, expect_status_enum); return test_result_summary
 
-        comparison_rc = -1
-        if actual_result_type == "graph":
-            comparison_rc = compare_rdf_graphs(Path(RESULT_OUT), Path(ROQET_OUT), Path(DIFF_OUT))
-        else:
-            diff_cmd_list = [DIFF_CMD, "-u", RESULT_OUT, ROQET_OUT]
-            if global_debug_level > 0: logger.debug(f"Comparing bindings/boolean results: {' '.join(diff_cmd_list)}")
-            with open(DIFF_OUT, "w") as f_diff_out:
-                diff_proc = subprocess.run(diff_cmd_list, stdout=f_diff_out, text=True)
-            comparison_rc = diff_proc.returncode
+        # If we've reached here and test_result_summary['result'] is still 'success', proceed to diff
+        if test_result_summary['result'] == 'success':
+            comparison_rc = -1
+            if actual_result_type == "graph":
+                comparison_rc = compare_rdf_graphs(Path(RESULT_OUT), Path(ROQET_OUT), Path(DIFF_OUT))
+            else:
+                diff_cmd_list = [DIFF_CMD, "-u", RESULT_OUT, ROQET_OUT]
+                if global_debug_level > 0: logger.debug(f"Comparing bindings/boolean results: {' '.join(diff_cmd_list)}")
+                with open(DIFF_OUT, "w") as f_diff_out:
+                    diff_proc = subprocess.run(diff_cmd_list, stdout=f_diff_out, text=True)
+                comparison_rc = diff_proc.returncode
 
-        if comparison_rc != 0:
-            if actual_result_type == "bindings" and cardinality_mode == "lax" and actual_results_count <= expected_results_count :
-                if global_debug_level >0: logger.debug(f"Cardinality 'lax': allowing {actual_results_count} actual results to match {expected_results_count} expected.")
-                comparison_rc = 0
-
-        if comparison_rc != 0:
-            msg = f"Test '{name}': FAILED (Results differ)."
-            if actual_result_type == "bindings" and expected_results_count != actual_results_count and cardinality_mode != "lax":
-                 msg = f"Test '{name}': FAILED (Expected {expected_results_count} result(s), got {actual_results_count}). Results may also differ."
-            logger.warning(msg)
-            with open(DIFF_OUT, "r") as f_diff_read:
-                diff_content = f_diff_read.read().strip()
-                test_result_summary['diff'] = diff_content
-                if global_debug_level > 1 or (diff_content and len(diff_content) < 1000): logger.warning(f"  Differences:\n{diff_content}")
-        else:
-            logger.info(f"Test '{name}': OK (Results match)")
-            test_result_summary['result'] = 'success'
+            if comparison_rc != 0:
+                if actual_result_type == "bindings" and cardinality_mode == "lax" and actual_results_count <= expected_results_count :
+                    if global_debug_level >0: logger.debug(f"Cardinality 'lax': allowing {actual_results_count} actual results to match {expected_results_count} expected.")
+                    # comparison_rc = 0 # This was here, but if diff fails, it's still a failure of matching
+                else: # Only set to failure if not overridden by lax cardinality
+                    msg = f"Test '{name}': FAILED (Results differ)."
+                    if actual_result_type == "bindings" and expected_results_count != actual_results_count and cardinality_mode != "lax":
+                        msg = f"Test '{name}': FAILED (Expected {expected_results_count} result(s), got {actual_results_count}). Results may also differ."
+                    logger.warning(msg)
+                    with open(DIFF_OUT, "r") as f_diff_read:
+                        diff_content = f_diff_read.read().strip()
+                        test_result_summary['diff'] = diff_content
+                        if global_debug_level > 1 or (diff_content and len(diff_content) < 1000): logger.warning(f"  Differences:\n{diff_content}")
+                    test_result_summary['result'] = 'failure' # Diff failed, so execution failed
+            else: # comparison_rc == 0
+                logger.info(f"Test '{name}': OK (Results match)") # result remains 'success'
 
     except FileNotFoundError as e:
         logger.error(f"Error running roqet for '{name}': {e}. Is '{ROQET}' correct?")
-        test_result_summary['stderr'] = str(e)
+        test_result_summary['stderr'] = str(e); test_result_summary['result'] = 'failure'
     except subprocess.TimeoutExpired:
-        logger.error(f"Test '{name}' FAILED: roqet command timed out.")
-        test_result_summary['stderr'] = "roqet command timed out"
+        logger.error(f"Test '{name}': FAILED: roqet command timed out.")
+        test_result_summary['stderr'] = "roqet command timed out"; test_result_summary['result'] = 'failure'
     except Exception as e:
         logger.error(f"An unexpected error occurred while running test '{name}': {type(e).__name__}: {e}")
         import traceback
         logger.error(traceback.format_exc())
-        test_result_summary['stderr'] = f"{type(e).__name__}: {e}"
+        test_result_summary['stderr'] = f"{type(e).__name__}: {e}"; test_result_summary['result'] = 'failure'
 
-    finalize_test_result(test_result_summary, expect_status)
+    finalize_test_result(test_result_summary, expect_status_enum)
     return test_result_summary
 
 def finalize_test_result(test_result_summary, expect_status):
-    execution_result = test_result_summary.get('result', 'failure')
-    if execution_result == 'success' and expect_status == Expect.PASS:
+    execution_outcome = test_result_summary.get('result', 'failure') # This is the crucial field
+    if execution_outcome == 'success' and expect_status == Expect.PASS:
         test_result_summary['is_success'] = True
-    elif execution_result == 'failure' and expect_status == Expect.FAIL:
+    elif execution_outcome == 'failure' and expect_status == Expect.FAIL:
         test_result_summary['is_success'] = True
     else:
         test_result_summary['is_success'] = False
 
-_projected_vars_order = [] # Global, reset per test in parse_roqet_debug_output
+_projected_vars_order = []
 
 def parse_roqet_debug_output(roqet_stdout_str: str, result_file_path_for_sorting_ref: Path):
     global _projected_vars_order
@@ -505,7 +404,7 @@ def parse_roqet_debug_output(roqet_stdout_str: str, result_file_path_for_sorting
     lines = roqet_stdout_str.splitlines()
     result_type = "bindings"
     vars_seen_in_this_roqet_output = {}
-    is_sorted_by_query = False # Default: roqet output is not sorted by query
+    is_sorted_by_query = False
     processed_output_lines = []
     roqet_results_count = 0
 
@@ -518,16 +417,12 @@ def parse_roqet_debug_output(roqet_stdout_str: str, result_file_path_for_sorting
                         _projected_vars_order.append(vname)
                         vars_seen_in_this_roqet_output[vname] = 1
                 if logger.level == logging.DEBUG: logger.debug(f"Set roqet projected vars order to: {_projected_vars_order}")
-
         match_verb = re.match(r"query verb:\s+(\S+)", line)
         if match_verb:
             verb = match_verb.group(1).upper()
             if verb == "CONSTRUCT" or verb == "DESCRIBE": result_type = "graph"
             elif verb == "ASK": result_type = "boolean"
-
-        if "query order conditions:" in line:
-            is_sorted_by_query = True # Actual output from roqet is sorted by query
-
+        if "query order conditions:" in line: is_sorted_by_query = True
         line = normalize_blank_nodes(line)
         row_match = re.match(r"^(?:row|result): \[(.*)\]$", line)
         if row_match:
@@ -541,35 +436,24 @@ def parse_roqet_debug_output(roqet_stdout_str: str, result_file_path_for_sorting
             processed_output_lines.append(line)
 
     final_output_lines = processed_output_lines
-    if result_type == "bindings" and not is_sorted_by_query:
-        final_output_lines.sort()
-    elif result_type == "graph":
-        final_output_lines = sorted(list(set(processed_output_lines)))
-
+    if result_type == "bindings" and not is_sorted_by_query: final_output_lines.sort()
+    elif result_type == "graph": final_output_lines = sorted(list(set(processed_output_lines)))
     with open(ROQET_OUT, "w") as f_roqet_out:
         for out_line in final_output_lines: f_roqet_out.write(out_line + "\n")
+    return {'result_type': result_type, 'roqet_results_count': roqet_results_count, 'vars_order': _projected_vars_order[:], 'is_sorted_by_query': is_sorted_by_query}
 
-    return {
-        'result_type': result_type,
-        'roqet_results_count': roqet_results_count,
-        'vars_order': _projected_vars_order[:],
-        'is_sorted_by_query': is_sorted_by_query # Return this status
-    }
-
-def read_query_results_file(result_file_path: Path, result_format_hint: str, expected_vars_order: list, sort_output: bool): # Added sort_output
+def read_query_results_file(result_file_path: Path, result_format_hint: str, expected_vars_order: list, sort_output: bool):
     abs_result_file_path = result_file_path.resolve()
     cmd = [ROQET, "-q", "-R", result_format_hint, "-r", "simple", "-t", str(abs_result_file_path)]
     if logger.level == logging.DEBUG: logger.debug(f"(read_query_results_file): Running {' '.join(cmd)}")
     try:
         with open(ROQET_ERR, 'w') as f_err:
-            process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=f_err, text=True) # No capture_output, check=False is default
+            process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=f_err, text=True)
         with open(ROQET_ERR, 'r') as f_err_read: roqet_stderr_content = f_err_read.read()
-
         if process.returncode != 0 or "Error" in roqet_stderr_content:
-            logger.warning(f"Reading query results file '{abs_result_file_path}' (format {result_format_hint}) FAILED.")
-            if roqet_stderr_content: logger.warning(f"  Stderr from roqet:\n{roqet_stderr_content.strip()}")
+            logger.warning(f"Reading results file '{abs_result_file_path}' ({result_format_hint}) FAILED.")
+            if roqet_stderr_content: logger.warning(f"  Stderr(roqet):\n{roqet_stderr_content.strip()}")
             return None
-
         parsed_rows_for_output = []
         first_row = True
         current_vars_order = []
@@ -588,10 +472,7 @@ def read_query_results_file(result_file_path: Path, result_format_hint: str, exp
             order_to_use = expected_vars_order if expected_vars_order else current_vars_order
             formatted_row_parts = [f"{var}={defined_or_null(row_data.get(var))}" for var in order_to_use]
             parsed_rows_for_output.append(f"row: [{', '.join(formatted_row_parts)}]")
-
-        if sort_output: # Conditional sort based on new parameter
-            parsed_rows_for_output.sort()
-
+        if sort_output: parsed_rows_for_output.sort()
         with open(RESULT_OUT, "w") as f_res_out:
             for r_line in parsed_rows_for_output: f_res_out.write(r_line + "\n")
         return {'count': len(parsed_rows_for_output)}
@@ -607,12 +488,8 @@ def read_rdf_graph_file(result_file_path: Path, base_uri: str):
     cmd = [TO_NTRIPLES, str(abs_result_file_path), base_uri]
     if logger.level == logging.DEBUG: logger.debug(f"(read_rdf_graph_file): Running {' '.join(cmd)}")
     try:
-        # This one still uses capture_output=True for stderr.
-        # For consistency, we could change it, but it's for TO_NTRIPLES, not ROQET.
-        # The original Perl script redirects TO_NTRIPLES stderr to a file too.
         with open(TO_NTRIPLES_ERR, 'w') as f_err:
-            process = subprocess.run(cmd, capture_output=True, text=True, stderr=f_err) # stderr to file
-
+            process = subprocess.run(cmd, capture_output=True, text=True, stderr=f_err)
         with open(TO_NTRIPLES_ERR, 'r') as f_err_read: to_ntriples_stderr = f_err_read.read()
         if process.returncode != 0 or "Error -" in to_ntriples_stderr:
             logger.warning(f"Parsing RDF graph result file '{abs_result_file_path}' FAILED - {TO_NTRIPLES} errors.")
