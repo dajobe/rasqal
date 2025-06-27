@@ -24,7 +24,7 @@
 #
 # Requires:
 #   roqet (from rasqal) compiled in the parent directory
-#   rapper (from raptor) in PATH for manifest parsing
+#   to-ntriples (Rasqal utility) for manifest parsing
 #
 # Depends on a variety of rasqal internal debug print formats
 #
@@ -624,25 +624,25 @@ def _parse_nt_line(line):
 
 def parse_manifest(manifest_file_path: Path, srcdir: Path, unique_test_filter=None):
     nt_lines = []
-    manifest_format = "turtle"
-    if manifest_file_path.suffix == ".n3": manifest_format = "n3"
-    elif manifest_file_path.suffix == ".nt": manifest_format = "ntriples"
-    cmd_rapper = ["rapper", "-i", manifest_format, "-o", "ntriples", str(manifest_file_path.resolve())]
-    logger.debug(f"Parsing manifest with rapper: {' '.join(cmd_rapper)}")
+    cmd_to_nt = [TO_NTRIPLES, str(manifest_file_path.resolve())]
+    logger.debug(f"Parsing manifest with {TO_NTRIPLES}: {' '.join(cmd_to_nt)}")
     try:
-        process = subprocess.run(cmd_rapper, capture_output=True, text=True, check=True)
+        process = subprocess.run(cmd_to_nt, capture_output=True, text=True, check=True)
         nt_lines = process.stdout.splitlines()
     except subprocess.CalledProcessError as e:
-        logger.error(f"Rapper err for {manifest_file_path}: {e}\nStdout: {e.stdout}\nStderr: {e.stderr}")
-        logger.info(f"Fallback to {TO_NTRIPLES} for {manifest_file_path}")
-        cmd_to_nt = [TO_NTRIPLES, str(manifest_file_path.resolve())]
-        try:
-            process_to_nt = subprocess.run(cmd_to_nt, capture_output=True, text=True, check=True)
-            nt_lines = process_to_nt.stdout.splitlines()
-        except Exception as e2: logger.error(f"{TO_NTRIPLES} failed: {e2}"); sys.exit(1)
-    except FileNotFoundError: logger.error(f"rapper not found."); sys.exit(1)
-    except Exception as e: logger.error(f"rapper exec failed: {e}"); sys.exit(1)
-    if not nt_lines: logger.error(f"No output from rapper/to-ntriples for {manifest_file_path}"); sys.exit(1)
+        logger.error(f"Error running {TO_NTRIPLES} for {manifest_file_path}: {e}")
+        logger.error(f"Stderr from {TO_NTRIPLES}: {e.stderr}")
+        sys.exit(1)
+    except FileNotFoundError:
+        logger.error(f"{TO_NTRIPLES} command not found. Please ensure it is installed and in the correct path (e.g., utils directory).")
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"Failed to execute {TO_NTRIPLES}: {e}")
+        sys.exit(1)
+
+    if not nt_lines:
+        logger.error(f"No N-Triples output from {TO_NTRIPLES} for {manifest_file_path}")
+        sys.exit(1)
 
     triples_by_subject = {}
     for line in nt_lines:
