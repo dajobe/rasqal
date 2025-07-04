@@ -1,0 +1,56 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dawgt:   <http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+@prefix t:      <http://ns.librdf.org/2009/test-manifest#> .
+
+<>  rdf:type mf:Manifest ;
+    rdfs:comment "Value Testing Negative Tests (should fail when run as queries)" ;
+    mf:entries
+    ([  rdf:type t:XFailTest ;
+	mf:name    "typePromotion-decimal-decimal-pass" ;
+        rdfs:comment
+            "Test: product of type promotion within the xsd:decimal type tree. Expected to fail due to engine type promotion bug." ;
+        mf:action
+            [ qt:data   <typePromotion-0.n3> ;
+              qt:query  <typePromotion-decimal-decimal-pass.rq> ] ;
+        mf:result  <typePromotion-decimal-decimal-pass-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  rdf:type t:XFailTest ;
+	mf:name    "boolean-false-canonical" ;
+        rdfs:comment
+            "Test: Lexical form of FALSE. Expected to fail due to engine boolean handling bug." ;
+        mf:action
+            [ qt:data   <boolean-0.n3> ;
+              qt:query  <boolean-false-canonical.rq> ] ;
+        mf:result  <boolean-false-canonical-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  rdf:type t:XFailTest ;
+	mf:name    "boolean-true-canonical" ;
+        rdfs:comment
+            "Test: Lexical form of TRUE. Expected to fail due to engine boolean handling bug." ;
+        mf:action
+            [ qt:data   <boolean-0.n3> ;
+              qt:query  <boolean-true-canonical.rq> ] ;
+        mf:result  <boolean-true-canonical-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  rdf:type t:XFailTest ;
+	mf:name    "boolean-EBV-canonical" ;
+        rdfs:comment
+            "Test: Lexical form of EBV. Expected to fail due to engine boolean handling bug." ;
+        mf:action
+            [ qt:data   <boolean-0.n3> ;
+              qt:query  <boolean-EBV-canonical.rq> ] ;
+        mf:result  <boolean-EBV-canonical-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+    # End of tests
+   ). 

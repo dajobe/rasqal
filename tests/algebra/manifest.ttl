@@ -1,0 +1,45 @@
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .
+
+<> a mf:Manifest;
+   rdfs:comment "SPARQL Algebra Conversions";
+   t:path ".";
+   mf:entries (
+     [ a t:PositiveTest;
+       mf:name "test-01";
+       rdfs:comment "SPARQL algebra test-01.rq";
+       mf:action <test-01.rq> ]
+     [ a t:PositiveTest;
+       mf:name "test-02";
+       rdfs:comment "SPARQL algebra test-02.rq";
+       mf:action <test-02.rq> ]
+     [ a t:PositiveTest;
+       mf:name "test-03";
+       rdfs:comment "SPARQL algebra test-03.rq";
+       mf:action <test-03.rq> ]
+     [ a t:PositiveTest;
+       mf:name "test-04";
+       rdfs:comment "SPARQL algebra test-04.rq";
+       mf:action <test-04.rq> ]
+     [ a t:PositiveTest;
+       mf:name "test-05";
+       rdfs:comment "SPARQL algebra test-05.rq";
+       mf:action <test-05.rq> ]
+     [ a t:PositiveTest;
+       mf:name "test-06";
+       rdfs:comment "SPARQL algebra test-06.rq";
+       mf:action <test-06.rq> ]
+     [ a t:PositiveTest;
+       mf:name "test-07";
+       rdfs:comment "SPARQL algebra test-07.rq";
+       mf:action <test-07.rq> ]
+     [ a t:PositiveTest;
+       mf:name "test-08";
+       rdfs:comment "SPARQL algebra test-08.rq";
+       mf:action <test-08.rq> ]
+     [ a t:PositiveTest;
+       mf:name "test-09";
+       rdfs:comment "SPARQL algebra test-09.rq";
+       mf:action <test-09.rq> ]
+   ) . 

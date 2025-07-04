@@ -1,0 +1,13 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+
+<> a mf:Manifest ;
+    rdfs:comment "SPARQL 1.1 Update syntax parsing - negative tests" ;
+    mf:entries ([
+            a mf:NegativeSyntaxTest11;
+            rdfs:comment "sparql failing to parse of bad-1.rq" ;
+            mf:action <bad-1.rq> ;
+            mf:name "bad-1.rq"
+        ]
+    ) . 

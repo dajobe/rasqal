@@ -1,0 +1,32 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+
+<>  rdf:type mf:Manifest ;
+    rdfs:comment "SPARQL syntax negative test cases (should fail parsing)" ;
+    mf:entries
+    (
+     [  mf:name    "nojam" ;
+        rdfs:comment
+            "Invalid syntax with AND and == operator" ;
+        mf:action
+            [ qt:query  <nojam.rq> ]
+      ]
+
+     [  mf:name    "namespaces" ;
+        rdfs:comment
+            "Using rdf:type without declaring rdf namespace" ;
+        mf:action
+            [ qt:query  <namespaces.rq> ]
+      ]
+
+     [  mf:name    "select-no-gp" ;
+        rdfs:comment
+            "SELECT without WHERE clause" ;
+        mf:action
+            [ qt:query  <select-no-gp.rq> ]
+      ]
+
+    # End of tests
+   ). 

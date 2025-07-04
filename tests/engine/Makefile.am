@@ -51,7 +51,7 @@ rasqal_triples_test_LDADD = $(top_builddir)/src/librasqal.la
 check-local: $(local_tests) run-rasqal-tests
 
 run-rasqal-tests: $(local_tests)
-	@$(PERL) $(srcdir)/../improve .
+	@$(PYTHON) $(srcdir)/../improve.py .
 
 $(top_builddir)/src/librasqal.la:
 	cd $(top_builddir)/src && $(MAKE) librasqal.la
@@ -63,19 +63,17 @@ get-testsuites-list:
 	@echo "engine"
 
 get-testsuite-engine:
-	@tests="$(local_tests)"; \
-	$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(RECHO) ' '; \
-	$(RECHO) "<> a mf:Manifest; rdfs:comment \"Query Engine Tests\"; mf:entries ("; \
-	for test in $$tests; do \
-	  comment="rdql query $$test"; \
-	  expect="PositiveTest"; \
-	  arg="$(top_srcdir)/data/"; \
-	  if [ $$test = rasqal_limit_test$(EXEEXT) ]; then \
-	    arg="$$arg/letters.nt"; \
-          fi; \
-	  $(RECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"./$$test $$arg\" ]"; \
-	done; \
-	$(RECHO) ")."
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../sparql/generate_sparql_plan.py \
+		--suite-name engine \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type PositiveTest \
+		--action-template "./{test_id} $(top_srcdir)/data/" \
+		--comment-template "engine test {test_id}" \
+		rasqal_order_test rasqal_graph_test rasqal_construct_test rasqal_triples_test
+
+dist-hook:
+	$(PYTHON3) $(srcdir)/../sparql/package_sparql_tests.py \
+		--manifest-file $(srcdir)/manifest.ttl \
+		--srcdir $(srcdir) \
+		--distdir $(distdir)

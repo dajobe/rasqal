@@ -17,7 +17,8 @@
 # See LICENSE.html or LICENSE.txt at the top of this package for the
 # complete terms and further detail along with the license texts for
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
-# 
+
+ALGEBRA_MANIFEST_FILE= manifest.ttl
 
 local_tests=convert_graph_pattern$(EXEEXT)
 
@@ -26,7 +27,7 @@ test-06.rq test-07.rq test-08.rq test-09.rq
 ALGEBRA_RESULT_FILES=$(ALGEBRA_TEST_FILES:.rq=.out)
 
 EXTRA_DIST= $(ALGEBRA_TEST_FILES) $(ALGEBRA_RESULT_FILES) \
-check-algebra
+check_algebra.py $(ALGEBRA_MANIFEST_FILE)
 
 EXTRA_PROGRAMS=$(local_tests)
 
@@ -44,23 +45,27 @@ BASE_URI=http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#
 
 # These are compiled here and used elsewhere for running tests
 check-local: convert_graph_pattern$(EXEEXT) $(ALGEBRA_TEST_FILES)
-	@$(PERL) $(srcdir)/../improve .
+	@$(srcdir)/../improve.py .
 
 get-testsuites-list:
 	@echo "sparql-algebra"
 
 get-testsuite-sparql-algebra:
-	@$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(RECHO) ' '; \
-	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Algebra Conversions\"; t:path \"$(abs_builddir):$$PATH\"; mf:entries ("; \
-	for test in $(ALGEBRA_TEST_FILES); do \
-	  comment="SPARQL algebra $$test"; \
-	  base=$(BASE_URI)$$test; \
-	  $(RECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"\"\"$(PERL) $(srcdir)/check-algebra \"$(srcdir)/$$test\" \"$$base\" \"\"\" ]"; \
-	done; \
-	$(RECHO) ")."
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../sparql/generate_sparql_plan.py \
+		--suite-name sparql-algebra \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type PositiveTest \
+		--action-template "$(PYTHON3) $(srcdir)/check_algebra.py {query_file} $(BASE_URI){query_file}" \
+		--comment-template "SPARQL algebra {query_file}" \
+		$(ALGEBRA_TEST_FILES)
+
+dist-hook:
+	$(PYTHON3) $(srcdir)/../sparql/package_sparql_tests.py \
+		--manifest-file $(srcdir)/$(ALGEBRA_MANIFEST_FILE) \
+		--srcdir $(srcdir) \
+		--distdir $(distdir)
 
 $(top_builddir)/src/librasqal.la:
 	cd $(top_builddir)/src && $(MAKE) librasqal.la
+

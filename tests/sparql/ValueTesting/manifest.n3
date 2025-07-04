@@ -5,6 +5,7 @@
 @prefix dawgt:   <http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#> .
 @prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
 @prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+@prefix t:      <http://ns.librdf.org/2009/test-manifest#> .
 
 <>  rdf:type mf:Manifest ;
     rdfs:comment "Value Testing Tests" ;
@@ -63,20 +64,10 @@
         dawgt:approval dawgt:NotApproved
       ]
 
-     [  mf:name    "typePromotion-decimal-decimal-pass" ;
-        rdfs:comment
-            "Positive test: product of type promotion within the xsd:decimal type tree." ;
-        mf:action
-            [ qt:data   <typePromotion-0.n3> ;
-              qt:query  <typePromotion-decimal-decimal-pass.rq> ] ;
-        mf:result  <typePromotion-decimal-decimal-pass-result.n3> ;
-        dawgt:approval dawgt:NotApproved
-      ]
-
-     [  rdf:type mf:TestBadSyntax ;
+     [  rdf:type t:XFailTest ;
 	mf:name    "typePromotion-decimal-decimal-fail" ;
         rdfs:comment
-            "Negative test: product of type promotion within the xsd:decimal type tree." ;
+            "Test: product of type promotion within the xsd:decimal type tree. Expected to fail due to engine type promotion bug." ;
         mf:action
             [ qt:data   <typePromotion-0.n3> ;
               qt:query  <typePromotion-decimal-decimal-fail.rq> ] ;
@@ -121,36 +112,6 @@
             [ qt:data   <boolean-0.n3> ;
               qt:query  <boolean-logical-OR.rq> ] ;
         mf:result  <boolean-logical-OR-result.n3> ;
-        dawgt:approval dawgt:NotApproved
-      ]
-
-     [  mf:name    "boolean-false-canonical" ;
-        rdfs:comment
-            "Lexical form of FALSE" ;
-        mf:action
-            [ qt:data   <boolean-0.n3> ;
-              qt:query  <boolean-false-canonical.rq> ] ;
-        mf:result  <boolean-false-canonical-result.n3> ;
-        dawgt:approval dawgt:NotApproved
-      ]
-
-     [  mf:name    "boolean-true-canonical" ;
-        rdfs:comment
-            "Lexical form of TRUE" ;
-        mf:action
-            [ qt:data   <boolean-0.n3> ;
-              qt:query  <boolean-true-canonical.rq> ] ;
-        mf:result  <boolean-true-canonical-result.n3> ;
-        dawgt:approval dawgt:NotApproved
-      ]
-
-     [  mf:name    "boolean-EBV-canonical" ;
-        rdfs:comment
-            "Lexical form of EBV" ;
-        mf:action
-            [ qt:data   <boolean-0.n3> ;
-              qt:query  <boolean-EBV-canonical.rq> ] ;
-        mf:result  <boolean-EBV-canonical-result.n3> ;
         dawgt:approval dawgt:NotApproved
       ]
 

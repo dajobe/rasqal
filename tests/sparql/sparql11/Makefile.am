@@ -19,42 +19,53 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-SPARQL_MODEL_FILES= \
-data-1.ttl \
-subquery-1.ttl
-
-EXPECTED_SPARQL_CORRECT= \
-isnumeric-1.rq \
-subquery-1.rq
-
-EXPECTED_SPARQL_CORRECT_FAILURES=
+MANIFEST_FILE = manifest.ttl
 
 EXTRA_DIST= \
-$(SPARQL_MODEL_FILES) \
-$(EXPECTED_SPARQL_CORRECT)
+data-1.ttl \
+subquery-1.ttl
 
 build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
 
 check-local: build-sparql-parser-test
-	@$(PERL) $(srcdir)/../../improve .
+	@$(PYTHON) $(srcdir)/../../improve.py .
 
 get-testsuites-list:
 	@echo "sparql-parse-good"
 
 get-testsuite-sparql-parse-good:
-	@prog=sparql_parser_test; \
-	$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(RECHO) ' '; \
-	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL 1.1 expressions legal parsing\"; mf:entries ("; \
-	for test in $(EXPECTED_SPARQL_CORRECT); do \
-	  comment="sparql parsing of $$test"; \
-	  $(RECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i sparql11 $(srcdir)/$$test\" ]"; \
-	done; \
-	for test in $(EXPECTED_SPARQL_CORRECT_FAILURES); do \
-	  comment="sparql parsing of $$test"; \
-	  $(RECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i sparql11 $(srcdir)/$$test\" ]"; \
-	done; \
-	$(RECHO) ")."
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+		--suite-name sparql-parse-good \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type PositiveTest \
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {srcdir}/{query_file}" \
+		--comment-template "sparql parsing of {query_file}" \
+		--manifest-file $(srcdir)/$(MANIFEST_FILE)
+
+get-testsuite-sparql-parse-bad:
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+		--suite-name sparql-parse-bad \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type NegativeTest \
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {srcdir}/{query_file}" \
+		--comment-template "sparql failing to parse of {query_file}" \
+		--manifest-file $(srcdir)/$(MANIFEST_FILE)
+
+get-testsuite-sparql-query:
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+		--suite-name sparql-query \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type PositiveTest \
+		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
+		--comment-template "sparql query {test_id}" \
+		--manifest-file $(srcdir)/$(MANIFEST_FILE)
+
+dist-hook:
+	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+		--manifest-file $(srcdir)/$(MANIFEST_FILE) \
+		--srcdir $(srcdir) \
+		--distdir $(distdir)

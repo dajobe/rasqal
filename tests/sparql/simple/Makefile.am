@@ -20,32 +20,15 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-SPARQL_MANIFEST_FILES= manifest.n3
-
-SPARQL_MODEL_FILES= \
-data-01.n3 data-02.n3 dawg-data-01.n3
-
-SPARQL_TEST_NAMES= \
-dawg-triple-pattern-001 \
-dawg-triple-pattern-002 \
-dawg-triple-pattern-003 \
-dawg-triple-pattern-004
-
-SPARQL_TEST_FILES= \
-dawg-tp-01.rq dawg-tp-02.rq dawg-tp-03.rq dawg-tp-04.rq
-
-SPARQL_RESULT_FILES= \
-result-tp-01.n3 result-tp-02.n3 result-tp-03.n3 result-tp-04.n3
+SPARQL_MANIFEST_FILE= manifest.n3
 
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES) \
-$(SPARQL_MODEL_FILES) \
-$(SPARQL_TEST_FILES) \
-$(SPARQL_RESULT_FILES)
+$(SPARQL_MANIFEST_FILE)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
 .PHONY: build-core build-roqet build-sparql-test-utils check-local get-testsuites-list get-testsuite-sparql-lexer get-testsuite-sparql-parser
+
 
 # This sequence allows parallel building of build-core and then once
 # that is built, parallel building of the dependent programs: roqet,
@@ -60,38 +43,42 @@ build-sparql-test-utils: build-core
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_lexer_test sparql_parser_test)
 
 check-local: build-roqet build-sparql-test-utils
-	@$(PERL) $(srcdir)/../../improve .
+	@$(srcdir)/../../improve.py .
 
 get-testsuites-list:
 	@echo "sparql-lexer sparql-parser sparql-query"
 
-get-testsuite-sparql-lexer get-testsuite-sparql-parser:
-	@tests="$(SPARQL_TEST_FILES)"; \
-	type=`echo $@ | sed -e 's/^.*sparql-//' -e 's/er$$//'`; \
-	verb=`echo $$type`ing; \
-	prog=sparql_`echo $$type`er_test; \
-	$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(RECHO) ' '; \
-	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL legal $$verb\"; mf:entries ("; \
-	for test in $$tests; do \
-	  comment="sparql $$type of $$test"; \
-	  $(RECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog $(srcdir)/$$test\" ]"; \
-	done; \
-	$(RECHO) ")."
+get-testsuite-sparql-lexer:
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+		--suite-name sparql-lexer \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type PositiveTest \
+		--action-template "$(top_builddir)/src/sparql_lexer_test {srcdir}/{query_file}" \
+		--comment-template "sparql lexer of {query_file}" \
+		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
+
+get-testsuite-sparql-parser:
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+		--suite-name sparql-parser \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type PositiveTest \
+		--action-template "$(top_builddir)/src/sparql_parser_test {srcdir}/{query_file}" \
+		--comment-template "sparql parser of {query_file}" \
+		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
 
 get-testsuite-sparql-query:
-	@tests="$(SPARQL_TEST_NAMES)"; \
-	$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(RECHO) ' '; \
-	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Query Execution\"; mf:entries ("; \
-	for test in $$tests; do \
-	  comment="sparql query $$test"; \
-	  expect="PositiveTest"; \
-	  t=`echo $$test`; \
-	  $(RECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) $$t\" ]"; \
-	done; \
-	$(RECHO) ")."
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+		--suite-name sparql-query \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type PositiveTest \
+		--action-template "$(srcdir)/../check_sparql.py -s $(srcdir) {test_id}" \
+		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
+
+dist-hook:
+	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE) \
+		--srcdir $(srcdir) \
+		--distdir $(distdir)

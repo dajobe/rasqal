@@ -31,7 +31,10 @@ sparql11 \
 federated \
 warnings
 
-EXTRA_DIST=check-sparql
+EXTRA_DIST= \
+check_sparql.py \
+generate_sparql_plan.py \
+package_sparql_tests.py
 
 check-sparql-lexer: check-sparql-lexer-recursive
 

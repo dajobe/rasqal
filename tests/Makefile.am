@@ -28,4 +28,4 @@ if RASQAL_QUERY_LAQRS
 SUBDIRS += laqrs
 endif
 
-EXTRA_DIST=improve
+EXTRA_DIST= improve.py rasqal_test_util.py

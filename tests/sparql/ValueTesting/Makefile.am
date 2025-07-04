@@ -20,7 +20,7 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-SPARQL_MANIFEST_FILES= manifest.n3
+SPARQL_MANIFEST_FILES= manifest.n3 manifest-negative.n3
 
 SPARQL_MODEL_FILES= \
 boolean-0.n3 \
@@ -101,38 +101,47 @@ build-sparql-test-utils: build-core
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_lexer_test sparql_parser_test)
 
 check-local: build-roqet build-sparql-test-utils
-	@$(PERL) $(srcdir)/../../improve .
+	@$(PYTHON) $(srcdir)/../../improve.py .
 
 get-testsuites-list:
-	@echo "sparql-lexer sparql-parser sparql-query"
+	@echo "sparql-lexer sparql-parser sparql-query sparql-query-negative"
 
 get-testsuite-sparql-lexer get-testsuite-sparql-parser:
-	@type=`echo $@ | sed -e 's/^.*sparql-//' -e 's/er$$//'`; \
-	verb=`echo $$type`ing; \
-	prog=sparql_`echo $$type`er_test; \
-	$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(RECHO) ' '; \
-	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL legal $$verb\"; mf:entries ("; \
-	for test in $(SPARQL_TEST_FILES); do \
-	  comment="sparql $$type of $$test"; \
-	  $(RECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog $(srcdir)/$$test\" ]"; \
-	done; \
-	$(RECHO) ")."
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+		--suite-name sparql-parser \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type PositiveTest \
+		--action-template "$(top_builddir)/src/sparql_parser_test {srcdir}/{query_file}" \
+		--comment-template "sparql parser of {query_file}" \
+		--manifest-file $(srcdir)/manifest.n3
 
 get-testsuite-sparql-query:
-	@$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(RECHO) ' '; \
-	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Query Execution\"; mf:entries ("; \
-	for test in $(EXPECTED_SPARQL_CORRECT); do \
-	  comment="sparql query $$test"; \
-	  $(RECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) '$$test'\" ]"; \
-	done; \
-	for test in $(EXPECTED_SPARQL_CORRECT_FAILURES); do \
-	  comment="sparql query $$test"; \
-	  $(RECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) '$$test'\" ]"; \
-	done; \
-	$(RECHO) ")."
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+		--suite-name sparql-query \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type PositiveTest \
+		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
+		--comment-template "sparql query {test_id}" \
+		--manifest-file $(srcdir)/manifest.n3
+
+get-testsuite-sparql-query-negative:
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+		--suite-name sparql-query-negative \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type NegativeTest \
+		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} -m {srcdir}/manifest-negative.n3 {test_id}" \
+		--comment-template "sparql query {test_id}" \
+		--manifest-file $(srcdir)/manifest-negative.n3
+
+dist-hook:
+	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+		--manifest-file $(srcdir)/manifest.n3 \
+		--srcdir $(srcdir) \
+		--distdir $(distdir)
+	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+		--manifest-file $(srcdir)/manifest-negative.n3 \
+		--srcdir $(srcdir) \
+		--distdir $(distdir)

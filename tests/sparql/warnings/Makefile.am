@@ -54,19 +54,23 @@ build-roqet: build-core
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
 check-local: build-roqet
-	@$(PERL) $(srcdir)/../../improve .
+	@$(PYTHON) $(srcdir)/../../improve.py .
 
 get-testsuites-list:
-	@echo "sparql-query"
+	@echo "sparql-warnings"
 
-get-testsuite-sparql-query:
-	@$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(RECHO) ' '; \
-	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Query Preparation Warnings\"; mf:entries ("; \
-	for test in $(EXPECTED_SPARQL_WARNINGS); do \
-	  comment="sparql warning $$test"; \
-	  $(RECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) -W 100 '$$test'\" ]"; \
-	done; \
-	$(RECHO) ")."
+get-testsuite-sparql-warnings:
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+		--suite-name sparql-warnings \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type NegativeTest \
+		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s $(srcdir) -W 100 {test_id}" \
+		--comment-template "sparql warning {test_id}" \
+		--manifest-file $(srcdir)/manifest.ttl
+
+dist-hook:
+	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILES) \
+		--srcdir $(srcdir) \
+		--distdir $(distdir)

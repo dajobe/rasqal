@@ -1,0 +1,59 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+
+<>  rdf:type mf:Manifest ;
+    rdfs:comment "SPARQL 1.1 Aggregation test cases - positive tests" ;
+    mf:entries
+    ( 
+      [  mf:name    "Aggregate 1 - SUM with GROUP BY and HAVING" ;
+         mf:action
+            [ qt:query  <agg-1.rq> ;
+              qt:data   <data-1.ttl> ] ;
+         mf:result  <agg-1.ttl>
+      ]
+
+      [  mf:name    "Aggregate 2 - SUM" ;
+         mf:action
+            [ qt:query  <agg-2.rq> ;
+              qt:data   <data-1.ttl> ] ;
+         mf:result  <agg-2.ttl>
+      ]
+
+      [  mf:name    "Aggregate 3 - SAMPLE and GROUP BY" ;
+         mf:action
+            [ qt:query  <agg-3.rq> ;
+              qt:data   <data-1.ttl> ] ;
+         mf:result  <agg-3.ttl>
+      ]
+
+      [  mf:name    "Group Concat 1 - Newline separator" ;
+         mf:action
+            [ qt:query  <group-concat-1.rq> ;
+              qt:data   <data-2.ttl> ] ;
+         mf:result  <group-concat-1.ttl>
+      ]
+
+      [  mf:name    "Group Concat 2 - default separator" ;
+         mf:action
+            [ qt:query  <group-concat-2.rq> ;
+              qt:data   <data-2.ttl> ] ;
+         mf:result  <group-concat-2.ttl>
+      ]
+
+      [  mf:name    "Group Concat 3 - HAVING" ;
+         mf:action
+            [ qt:query  <group-concat-3.rq> ;
+              qt:data   <data-2.ttl> ] ;
+         mf:result  <group-concat-3.ttl>
+      ]
+
+      [  mf:name    "Group Concat 4 - DISTINCT" ;
+         mf:action
+            [ qt:query  <group-concat-4.rq> ;
+              qt:data   <data-2.ttl> ] ;
+         mf:result  <group-concat-4.ttl>
+      ]
+
+    ). 

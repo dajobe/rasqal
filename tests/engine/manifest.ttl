@@ -1,0 +1,28 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:   <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix t:    <http://ns.librdf.org/2009/test-manifest#> .
+
+<> a mf:Manifest ;
+   rdfs:comment "Query Engine Tests" ;
+   mf:entries (
+     [ a t:PositiveTest ;
+       mf:name "rasqal_order_test" ;
+       rdfs:comment "rdql query rasqal_order_test" ;
+       mf:action "./rasqal_order_test ../../data/" ]
+     [ a t:PositiveTest ;
+       mf:name "rasqal_graph_test" ;
+       rdfs:comment "rdql query rasqal_graph_test" ;
+       mf:action "./rasqal_graph_test ../../data/" ]
+     [ a t:PositiveTest ;
+       mf:name "rasqal_construct_test" ;
+       rdfs:comment "rdql query rasqal_construct_test" ;
+       mf:action "./rasqal_construct_test ../../data/" ]
+     [ a t:PositiveTest ;
+       mf:name "rasqal_limit_test" ;
+       rdfs:comment "rdql query rasqal_limit_test" ;
+       mf:action "./rasqal_limit_test ../../data/letters.nt" ]
+     [ a t:PositiveTest ;
+       mf:name "rasqal_triples_test" ;
+       rdfs:comment "rdql query rasqal_triples_test" ;
+       mf:action "./rasqal_triples_test ../../data/" ]
+   ) . 

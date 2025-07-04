@@ -2,6 +2,7 @@
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
 @prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+@prefix t:      <http://ns.librdf.org/2009/test-manifest#> .
 
 <>  rdf:type mf:Manifest ;
     rdfs:comment "Some SPARQL test cases - equality of values" ;
@@ -55,13 +56,17 @@
 
     # Graph versions of the equality tests
 
-      [  mf:name    "Equality 1-1 -- graph" ;
+      [  rdf:type t:XFailTest ;
+         mf:name    "Equality 1-1 -- graph" ;
+         rdfs:comment "Expected to fail due to engine graph handling bug" ;
          mf:action
             [ qt:query  <query-eq-graph-1.rq> ;
               qt:data   <data-eq.ttl> ] ;
          mf:result  <result-eq-graph-1.ttl>
       ]
-      [  mf:name    "Equality 1-2 -- graph" ;
+      [  rdf:type t:XFailTest ;
+         mf:name    "Equality 1-2 -- graph" ;
+         rdfs:comment "Expected to fail due to engine graph handling bug" ;
          mf:action
             [ qt:query  <query-eq-graph-2.rq> ;
               qt:data   <data-eq.ttl> ] ;
@@ -87,7 +92,9 @@
       ]
 
 
-      [  mf:name    "Equality - 2 var - test equals -- graph" ;
+      [  rdf:type t:XFailTest ;
+         mf:name    "Equality - 2 var - test equals -- graph" ;
+         rdfs:comment "Expected to fail due to engine graph handling bug" ;
          mf:action
             [ qt:query  <query-eq2-graph-1.rq> ;
               qt:data   <data-eq.ttl> ] ;

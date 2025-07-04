@@ -1,0 +1,125 @@
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:    <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:    <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .
+
+<> a mf:Manifest ;
+    rdfs:comment "LAQRS laqrs-parse-good tests" ;
+    mf:entries (
+        [ a t:PositiveTest;
+          mf:name "agg-function1";
+          rdfs:comment "laqrs parsing of agg-function1.rq";
+          mf:action [ qt:query <agg-function1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "avg1";
+          rdfs:comment "laqrs parsing of avg1.rq";
+          mf:action [ qt:query <avg1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "bnode1";
+          rdfs:comment "laqrs parsing of bnode1.rq";
+          mf:action [ qt:query <bnode1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "bnode2";
+          rdfs:comment "laqrs parsing of bnode2.rq";
+          mf:action [ qt:query <bnode2.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "coalesce1";
+          rdfs:comment "laqrs parsing of coalesce1.rq";
+          mf:action [ qt:query <coalesce1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "count1";
+          rdfs:comment "laqrs parsing of count1.rq";
+          mf:action [ qt:query <count1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "count2";
+          rdfs:comment "laqrs parsing of count2.rq";
+          mf:action [ qt:query <count2.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "count3";
+          rdfs:comment "laqrs parsing of count3.rq";
+          mf:action [ qt:query <count3.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "count4";
+          rdfs:comment "laqrs parsing of count4.rq";
+          mf:action [ qt:query <count4.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "coverage";
+          rdfs:comment "laqrs parsing of coverage.rq";
+          mf:action [ qt:query <coverage.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "delete";
+          rdfs:comment "laqrs parsing of delete.rq";
+          mf:action [ qt:query <delete.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "explain";
+          rdfs:comment "laqrs parsing of explain.rq";
+          mf:action [ qt:query <explain.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "function-distinct1";
+          rdfs:comment "laqrs parsing of function-distinct1.rq";
+          mf:action [ qt:query <function-distinct1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "if1";
+          rdfs:comment "laqrs parsing of if1.rq";
+          mf:action [ qt:query <if1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "in1";
+          rdfs:comment "laqrs parsing of in1.rq";
+          mf:action [ qt:query <in1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "in2";
+          rdfs:comment "laqrs parsing of in2.rq";
+          mf:action [ qt:query <in2.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "insert";
+          rdfs:comment "laqrs parsing of insert.rq";
+          mf:action [ qt:query <insert.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "iri1";
+          rdfs:comment "laqrs parsing of iri1.rq";
+          mf:action [ qt:query <iri1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "let1";
+          rdfs:comment "laqrs parsing of let1.rq";
+          mf:action [ qt:query <let1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "let2";
+          rdfs:comment "laqrs parsing of let2.rq";
+          mf:action [ qt:query <let2.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "let3";
+          rdfs:comment "laqrs parsing of let3.rq";
+          mf:action [ qt:query <let3.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "let4";
+          rdfs:comment "laqrs parsing of let4.rq";
+          mf:action [ qt:query <let4.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "max1";
+          rdfs:comment "laqrs parsing of max1.rq";
+          mf:action [ qt:query <max1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "min1";
+          rdfs:comment "laqrs parsing of min1.rq";
+          mf:action [ qt:query <min1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "strdt1";
+          rdfs:comment "laqrs parsing of strdt1.rq";
+          mf:action [ qt:query <strdt1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "strdt2";
+          rdfs:comment "laqrs parsing of strdt2.rq";
+          mf:action [ qt:query <strdt2.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "strlang1";
+          rdfs:comment "laqrs parsing of strlang1.rq";
+          mf:action [ qt:query <strlang1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "sum1";
+          rdfs:comment "laqrs parsing of sum1.rq";
+          mf:action [ qt:query <sum1.rq> ] ]
+        [ a t:PositiveTest;
+          mf:name "uri1";
+          rdfs:comment "laqrs parsing of uri1.rq";
+          mf:action [ qt:query <uri1.rq> ] ]
+    ) . 

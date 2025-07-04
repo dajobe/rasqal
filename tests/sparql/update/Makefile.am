@@ -19,100 +19,47 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-SPARQL_MANIFEST_FILES= manifest.ttl
-
-SPARQL_MODEL_FILES= \
-data.ttl
-
-EXPECTED_SPARQL_CORRECT= \
-insert-data-1.rq \
-insert-data-2.rq \
-insert-data-3.rq \
-insert-data-4.rq \
-delete-data-1.rq \
-delete-data-2.rq \
-delete-1.rq \
-delete-2.rq \
-insert-1.rq \
-insert-2.rq \
-insert-3.rq \
-load-1.rq \
-load-2.rq \
-load-3.rq \
-load-4.rq \
-clear-1.rq \
-clear-2.rq \
-clear-3.rq \
-clear-4.rq \
-create-1.rq \
-create-2.rq \
-delete-1.rq \
-drop-1.rq \
-drop-2.rq \
-delete-insert-1.rq \
-copy-1.rq \
-copy-2.rq \
-copy-3.rq \
-move-1.rq \
-move-2.rq \
-move-3.rq \
-add-1.rq \
-add-2.rq \
-add-3.rq \
-multiple-1.rq \
-delete-where-1.rq \
-delete-where-2.rq
-
-
-
-SPARQL_BAD_TEST_FILES= \
-bad-1.rq
-
-EXPECTED_SPARQL_CORRECT_FAILURES=
+SPARQL_MANIFEST_FILES= manifest-good.ttl manifest-bad.ttl
 
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES) \
-$(SPARQL_MODEL_FILES) \
-$(EXPECTED_SPARQL_CORRECT) \
-$(SPARQL_BAD_TEST_FILES)
+$(SPARQL_MANIFEST_FILES)
 
 build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
 
 check-local: build-sparql-parser-test
-	@$(PERL) $(srcdir)/../../improve .
+	@$(PYTHON) $(srcdir)/../../improve.py .
 
 get-testsuites-list:
 	@echo "sparql-parse-good sparql-parse-bad"
 
 get-testsuite-sparql-parse-good:
-	@prog=sparql_parser_test; \
-	$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(RECHO) ' '; \
-	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL 1.1 Update legal parsing\"; mf:entries ("; \
-	for test in $(EXPECTED_SPARQL_CORRECT); do \
-	  comment="sparql parsing of $$test"; \
-	  $(RECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i sparql11 $(srcdir)/$$test\" ]"; \
-	done; \
-	for test in $(EXPECTED_SPARQL_CORRECT_FAILURES); do \
-	  comment="sparql parsing of $$test"; \
-	  $(RECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i sparql11 $(srcdir)/$$test\" ]"; \
-	done; \
-	$(RECHO) ")."
-
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+		--suite-name sparql-parse-good \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type PositiveTest \
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {srcdir}/{query_file}" \
+		--comment-template "sparql parsing of {query_file}" \
+		--manifest-file $(srcdir)/manifest-good.ttl
 
 get-testsuite-sparql-parse-bad:
-	@prog=sparql_parser_test; \
-	$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(RECHO) ' '; \
-	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL 1.1 Update illegal parsing\"; mf:entries ("; \
-	for test in $(SPARQL_BAD_TEST_FILES); do \
-	  comment="sparql failing to parse of $$test"; \
-	  $(RECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i sparql11 $(srcdir)/$$test\" ]"; \
-	done; \
-	$(RECHO) ")."
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+		--suite-name sparql-parse-bad \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type NegativeTest \
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {srcdir}/{query_file}" \
+		--comment-template "sparql failing to parse of {query_file}" \
+		--manifest-file $(srcdir)/manifest-bad.ttl
+
+dist-hook:
+	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+		--manifest-file $(srcdir)/manifest-good.ttl \
+		--srcdir $(srcdir) \
+		--distdir $(distdir)
+	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+		--manifest-file $(srcdir)/manifest-bad.ttl \
+		--srcdir $(srcdir) \
+		--distdir $(distdir)
 
