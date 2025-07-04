@@ -55,6 +55,7 @@ get-testsuite-sparql-algebra:
 		--suite-name sparql-algebra \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
+		--test-category generic \
 		--test-type PositiveTest \
 		--action-template "$(PYTHON3) $(srcdir)/check_algebra.py {query_file} $(BASE_URI){query_file}" \
 		--comment-template "SPARQL algebra {query_file}" \
