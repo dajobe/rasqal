@@ -41,14 +41,15 @@ def extract_all_files_from_manifest(manifest_path):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Collects all test files referenced in a SPARQL manifest and copies them to a distribution directory.",
+        description="Collects all test files referenced in SPARQL manifests and copies them to a distribution directory.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
         "--manifest-file",
         type=Path,
+        action='append',
         required=True,
-        help="Path to the manifest file (e.g., manifest.n3) to extract file lists from."
+        help="Path to a manifest file (e.g., manifest.n3) to extract file lists from. Can be specified multiple times."
     )
     parser.add_argument(
         "--srcdir",
@@ -65,9 +66,12 @@ def main():
 
     args = parser.parse_args()
 
-    if not args.manifest_file.exists():
-        print(f"Error: Manifest file not found at {args.manifest_file}", file=sys.stderr)
-        sys.exit(1)
+    # Validate all manifest files exist
+    for manifest_file in args.manifest_file:
+        if not manifest_file.exists():
+            print(f"Error: Manifest file not found at {manifest_file}", file=sys.stderr)
+            sys.exit(1)
+    
     if not args.srcdir.is_dir():
         print(f"Error: Source directory not found at {args.srcdir}", file=sys.stderr)
         sys.exit(1)
@@ -75,8 +79,16 @@ def main():
     # Ensure the destination directory exists
     args.distdir.mkdir(parents=True, exist_ok=True)
 
-    files_to_copy = extract_all_files_from_manifest(args.manifest_file)
-    print(f"Copying {len(files_to_copy)} test files to {args.distdir}..." )
+    # Collect all files from all manifest files
+    all_files_to_copy = set()
+    for manifest_file in args.manifest_file:
+        files_from_manifest = extract_all_files_from_manifest(manifest_file)
+        all_files_to_copy.update(files_from_manifest)
+        print(f"Found {len(files_from_manifest)} files in {manifest_file}")
+
+    # Convert to sorted list for consistent output
+    files_to_copy = sorted(list(all_files_to_copy))
+    print(f"Copying {len(files_to_copy)} unique test files to {args.distdir}..." )
 
     for f in files_to_copy:
         src_path = args.srcdir / f

@@ -106,9 +106,6 @@ get-testsuite-sparql-bad-parser:
 dist-hook:
 	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
 		--manifest-file $(srcdir)/manifest.n3 \
-		--srcdir $(srcdir) \
-		--distdir $(distdir)
-	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
 		--manifest-file $(srcdir)/manifest-bad.n3 \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)
