@@ -22,23 +22,8 @@
 
 SPARQL_MANIFEST_FILES= manifest.n3
 
-SPARQL_MODEL_FILES= \
-data.n3
-
-SPARQL_TEST_FILES= \
-bound1.rq
-
-SPARQL_RESULT_FILES= \
-bound1-result.n3
-
-EXPECTED_SPARQL_CORRECT= \
-dawg-bound-query-001
-
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES) \
-$(SPARQL_MODEL_FILES) \
-$(SPARQL_TEST_FILES) \
-$(SPARQL_RESULT_FILES)
+$(SPARQL_MANIFEST_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
@@ -68,7 +53,7 @@ get-testsuite-sparql-lexer:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_lexer_test {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_lexer_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql lexer of {query_file}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -78,7 +63,7 @@ get-testsuite-sparql-parser:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql parser of {query_file}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -88,7 +73,7 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--comment-template "sparql query {test_id}" \
 		--manifest-file $(srcdir)/manifest.n3
 

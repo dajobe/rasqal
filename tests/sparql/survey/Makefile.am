@@ -22,38 +22,8 @@
 
 SPARQL_MANIFEST_FILES= manifest.ttl
 
-SPARQL_MODEL_FILES= \
-survey-sample.ttl
-
-SPARQL_TEST_FILES= \
-query-survey-1.rq query-survey-2.rq query-survey-3.rq	\
-query-survey-8.rq query-survey-9.rq query-survey-10.rq	\
-query-survey-11.rq query-survey-12.rq query-survey-13.rq
-
-SPARQL_RESULT_FILES= \
-result-survey-1.ttl result-survey-2.ttl result-survey-3.ttl	\
-result-survey-8.ttl result-survey-9.ttl result-survey-10.ttl	\
-result-survey-11.ttl result-survey-12.ttl result-survey-13.ttl
-
-EXPECTED_SPARQL_CORRECT= \
-   survey-1 \
-   survey-2 \
-   survey-3 \
-   survey-8 \
-   survey-9 \
-   survey-10 \
-   survey-11 \
-   survey-12 \
-   survey-13
-
-# Test failures
-EXPECTED_SPARQL_CORRECT_FAILURES=
-
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES) \
-$(SPARQL_MODEL_FILES) \
-$(SPARQL_TEST_FILES) \
-$(SPARQL_RESULT_FILES)
+$(SPARQL_MANIFEST_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
@@ -83,7 +53,7 @@ get-testsuite-sparql-lexer get-testsuite-sparql-parser:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql parser of {query_file}" \
 		--manifest-file $(srcdir)/manifest.ttl
 
@@ -93,7 +63,7 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--comment-template "sparql query {test_id}" \
 		--manifest-file $(srcdir)/manifest.ttl
 

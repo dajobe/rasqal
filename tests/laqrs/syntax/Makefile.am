@@ -22,7 +22,8 @@
 MANIFEST_FILE= manifest.ttl
 
 EXTRA_DIST = \
-    $(MANIFEST_FILE)
+    $(MANIFEST_FILE) \
+    manifest-bad.ttl
 
 build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
@@ -39,7 +40,7 @@ get-testsuite-laqrs-parse-good:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i laqrs {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test -i laqrs {abs_srcdir}/{query_file}" \
 		--comment-template "laqrs parsing of {query_file}" \
 		--manifest-file $(srcdir)/$(MANIFEST_FILE)
 
@@ -49,13 +50,14 @@ get-testsuite-laqrs-parse-bad:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type NegativeTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i laqrs {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test -i laqrs {abs_srcdir}/{query_file}" \
 		--comment-template "laqrs failing to parse of {query_file}" \
 		--manifest-file $(srcdir)/manifest-bad.ttl
 
 dist-hook:
 	$(PYTHON3) $(srcdir)/../../sparql/package_sparql_tests.py \
 		--manifest-file $(srcdir)/$(MANIFEST_FILE) \
+		--manifest-file $(srcdir)/manifest-bad.ttl \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)
 

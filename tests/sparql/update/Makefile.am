@@ -39,7 +39,7 @@ get-testsuite-sparql-parse-good:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \
 		--comment-template "sparql parsing of {query_file}" \
 		--manifest-file $(srcdir)/manifest-good.ttl
 
@@ -49,7 +49,7 @@ get-testsuite-sparql-parse-bad:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type NegativeTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \
 		--comment-template "sparql failing to parse of {query_file}" \
 		--manifest-file $(srcdir)/manifest-bad.ttl
 

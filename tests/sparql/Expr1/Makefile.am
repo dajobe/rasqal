@@ -22,33 +22,12 @@
 
 SPARQL_MANIFEST_FILES= manifest.n3
 
-SPARQL_MODEL_FILES= \
-data-1.ttl
-
-SPARQL_TEST_FILES= \
-expr-1.rq expr-2.rq expr-3.rq
-
-SPARQL_TEST_NAMES= \
-"OPTIONAL-FILTER" \
-"OPTIONAL - Outer FILTER" \
-"OPTIONAL - Outer FILTER with BOUND"
-
-EXPECTED_SPARQL_CORRECT= $(SPARQL_TEST_NAMES)
-
-EXPECTED_SPARQL_CORRECT_FAILURES= 
-
-SPARQL_RESULT_FILES= \
-expr-1-result.ttl expr-2-result.ttl expr-3-result.ttl
-
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES) \
-$(SPARQL_MODEL_FILES) \
-$(SPARQL_TEST_FILES) \
-$(SPARQL_RESULT_FILES)
+$(SPARQL_MANIFEST_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
-.PHONY: build-core build-roqet build-sparql-test-utils check-local get-testsuites-list get-testsuite-sparql-lexer get-testsuite-sparql-parser get-testsuite-sparql-query get-testsuite-sparql-query-failures
+.PHONY: build-core build-roqet build-sparql-test-utils check-local get-testsuites-list get-testsuite-sparql-lexer get-testsuite-sparql-parser get-testsuite-sparql-query
 
 # This sequence allows parallel building of build-core and then once
 # that is built, parallel building of the dependent programs: roqet,
@@ -74,7 +53,7 @@ get-testsuite-sparql-lexer:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_lexer_test {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_lexer_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql lexer of {query_file}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -84,7 +63,7 @@ get-testsuite-sparql-parser:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql parser of {query_file}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -94,19 +73,11 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--comment-template "sparql query {test_id}" \
 		--manifest-file $(srcdir)/manifest.n3
 
-get-testsuite-sparql-query-failures:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
-		--suite-name sparql-query-failures \
-		--srcdir $(srcdir) \
-		--builddir $(top_builddir) \
-		--test-type NegativeTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s $(srcdir) {test_id}" \
-		--comment-template "sparql query {test_id}" \
-		--manifest-file $(srcdir)/manifest.n3
+
 
 dist-hook:
 	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \

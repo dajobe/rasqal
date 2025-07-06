@@ -54,7 +54,7 @@ get-testsuite-sparql-lexer:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_lexer_test {srcdir}/{query_file}" \
+		--action-template "../../../src/sparql_lexer_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql lexer of {query_file}" \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
 
@@ -64,7 +64,7 @@ get-testsuite-sparql-parser:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {srcdir}/{query_file}" \
+		--action-template "../../../src/sparql_parser_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql parser of {query_file}" \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
 
@@ -74,7 +74,7 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(srcdir)/../check_sparql.py -s $(srcdir) {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
 
 dist-hook:

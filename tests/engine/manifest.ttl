@@ -18,10 +18,6 @@
        rdfs:comment "rdql query rasqal_construct_test" ;
        mf:action "./rasqal_construct_test ../../data/" ]
      [ a t:PositiveTest ;
-       mf:name "rasqal_limit_test" ;
-       rdfs:comment "rdql query rasqal_limit_test" ;
-       mf:action "./rasqal_limit_test ../../data/letters.nt" ]
-     [ a t:PositiveTest ;
        mf:name "rasqal_triples_test" ;
        rdfs:comment "rdql query rasqal_triples_test" ;
        mf:action "./rasqal_triples_test ../../data/" ]

@@ -22,67 +22,10 @@
 
 SPARQL_MANIFEST_FILES= manifest.n3 manifest-negative.n3
 
-SPARQL_MODEL_FILES= \
-boolean-0.n3 \
-extendedType-0.n3 \
-typePromotion-0.n3
-
-SPARQL_TEST_FILES= \
-boolean-EBV-canonical.rq \
-boolean-equiv-FALSE.rq \
-boolean-equiv-TRUE.rq \
-boolean-equiv-xsdType.rq \
-boolean-false-canonical.rq \
-boolean-logical-OR.rq \
-boolean-true-canonical.rq \
-extendedType-eq-pass.rq \
-extendedType-graph.rq \
-extendedType-literal-eq.rq \
-extendedType-literal-ne.rq \
-extendedType-ne-fail.rq \
-typePromotion-decimal-decimal-fail.rq \
-typePromotion-decimal-decimal-pass.rq
-
-EXPECTED_SPARQL_CORRECT= \
-   "extendedType-eq-pass" \
-   "extendedType-ne-fail" \
-   "extendedType-literal-eq" \
-   "extendedType-literal-ne" \
-   "extendedType-graph" \
-   "typePromotion-decimal-decimal-fail" \
-   "boolean-equiv-FALSE" \
-   "boolean-equiv-TRUE" \
-   "boolean-equiv-xsdType" \
-   "boolean-logical-OR"
-
-# Test failures
-EXPECTED_SPARQL_CORRECT_FAILURES= \
-  typePromotion-decimal-decimal-pass \
-  boolean-false-canonical \
-  boolean-true-canonical \
-  boolean-EBV-canonical
-
-SPARQL_RESULT_FILES= \
-boolean-EBV-canonical-result.n3 \
-boolean-equiv-FALSE-result.n3 \
-boolean-equiv-TRUE-result.n3 \
-boolean-equiv-xsdType-result.n3 \
-boolean-false-canonical-result.n3 \
-boolean-logical-OR-result.n3 \
-boolean-true-canonical-result.n3 \
-extendedType-eq-pass-result.n3 \
-extendedType-graph-result.n3 \
-extendedType-literal-eq-result.n3 \
-extendedType-literal-ne-result.n3 \
-extendedType-ne-fail-result.n3 \
-typePromotion-decimal-decimal-fail-result.n3 \
-typePromotion-decimal-decimal-pass-result.n3
+# REMOVED: SPARQL_MODEL_FILES, SPARQL_TEST_FILES, SPARQL_RESULT_FILES, EXPECTED_SPARQL_CORRECT, EXPECTED_SPARQL_CORRECT_FAILURES
 
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES) \
-$(SPARQL_MODEL_FILES) \
-$(SPARQL_TEST_FILES) \
-$(SPARQL_RESULT_FILES)
+$(SPARQL_MANIFEST_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
@@ -112,7 +55,7 @@ get-testsuite-sparql-lexer get-testsuite-sparql-parser:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql parser of {query_file}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -122,7 +65,7 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--comment-template "sparql query {test_id}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -132,7 +75,7 @@ get-testsuite-sparql-query-negative:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type NegativeTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} -m {srcdir}/manifest-negative.n3 {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) -m $(srcdir)/manifest-negative.n3 {test_id}" \
 		--comment-template "sparql query {test_id}" \
 		--manifest-file $(srcdir)/manifest-negative.n3
 

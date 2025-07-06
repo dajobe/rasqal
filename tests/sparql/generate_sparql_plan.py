@@ -21,26 +21,41 @@
 
 import argparse
 import sys
+import logging
 from pathlib import Path
+import os
+import subprocess
+import shlex
+from typing import Optional
 
 # Add the parent directory to the Python path to find rasqal_test_util
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from rasqal_test_util import ManifestParser, find_tool, Namespaces, decode_literal
+from rasqal_test_util import (
+    ManifestParser,
+    find_tool,
+    Namespaces,
+    decode_literal,
+    ManifestParsingError,
+    UtilityNotFoundError,
+    setup_logging,
+)
+
 
 def _escape_turtle_literal(s: str) -> str:
     """Escapes a string for use as a triple-quoted Turtle literal.
     Handles backslashes, triple double quotes, and control characters (\n, \r, \t).
     """
-    # Escape backslashes first, then triple quotes
-    s = s.replace('\\', '\\\\')
-    s = s.replace('"""', '\"""')
-    if s.endswith('"'): # avoid """{escaped ending with "}"""
+    # Escape backslashes first
+    s = s.replace("\\", "\\\\")
+    # Handle triple quotes by replacing with escaped double quotes
+    s = s.replace('"""', '\\"\\"\\"')
+    if s.endswith('"'):  # avoid """{escaped ending with "}"""
         s = s[:-1] + '\\"'
     # Escape newlines, carriage returns, and tabs
-    s = s.replace('\n', '\\n')
-    s = s.replace('\r', '\\r')
-    s = s.replace('\t', '\\t')
+    s = s.replace("\n", "\\n")
+    s = s.replace("\r", "\\r")
+    s = s.replace("\t", "\\t")
     return s
 
 
@@ -48,263 +63,416 @@ def _escape_shell_argument(s: str) -> str:
     """Escapes a string for use as a shell argument.
     Handles spaces, quotes, and special shell characters.
     """
-    import shlex
     return shlex.quote(s)
 
 
-def main():
-
+def _parse_arguments() -> argparse.Namespace:
+    """Parse command line arguments and return parsed namespace."""
     parser = argparse.ArgumentParser(
         description="Generate a Turtle-formatted SPARQL test plan file or extract file lists from a manifest.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
+        "-d", "--debug", action="store_true", help="Enable debug logging"
+    )
+    parser.add_argument(
         "--suite-name",
-        help="The name of the test suite (e.g., 'sparql-query', 'sparql-lexer'). Required for plan generation."
+        help="The name of the test suite (e.g., 'sparql-query', 'sparql-lexer'). Required for plan generation.",
     )
     parser.add_argument(
         "--srcdir",
         type=Path,
-        help="The source directory (equivalent to $(srcdir) in Makefile.am). Required for plan generation and --copy-to-distdir."
+        help="The source directory (equivalent to $(srcdir) in Makefile.am). Required for plan generation and --copy-to-distdir.",
     )
     parser.add_argument(
         "--builddir",
         type=Path,
-        help="The build directory (equivalent to $(top_builddir) in Makefile.am). Required for plan generation."
+        help="The build directory (equivalent to $(top_builddir) in Makefile.am). Required for plan generation.",
     )
     parser.add_argument(
         "--test-type",
         default="PositiveTest",
-        help="The type of test (e.g., 'PositiveTest', 'NegativeTest', 'XFailTest'). Required for plan generation."
+        help="The type of test (e.g., 'PositiveTest', 'NegativeTest', 'XFailTest'). Required for plan generation.",
     )
     parser.add_argument(
         "--test-category",
-        choices=["sparql", "laqrs", "engine", "generic"],
+        choices=["sparql", "engine", "generic"],
         default="sparql",
-        help="The category of tests to generate. 'sparql' for SPARQL tests, 'laqrs' for LAQRS tests, 'engine' for C executable tests, 'generic' for custom tests."
+        help="The category of tests to generate. 'sparql' for SPARQL tests, 'engine' for C executable tests, 'generic' for custom tests.",
     )
     parser.add_argument(
         "--action-template",
-        help="A template string for the mf:action. Placeholders: {srcdir}, {builddir}, {test_id}, {query_file}. Required for plan generation."
+        required=True,
+        help="A template string for the mf:action. Placeholders: {srcdir}, {builddir}, {test_id}, {query_file}, {abs_srcdir}, {abs_builddir}, {abs_executable}. Required for plan generation.",
     )
     parser.add_argument(
         "--comment-template",
-        default="sparql {suite_name} of {test_id}",
-        help="A template string for the rdfs:comment. Placeholders: {suite_name}, {test_id}, {query_file}."
+        default="Test {suite_name} {test_id}",
+        help="A template string for the rdfs:comment. Placeholders: {suite_name}, {test_id}, {query_file}.",
     )
     parser.add_argument(
         "--manifest-file",
         type=Path,
-        help="Path to a manifest file (e.g., manifest.n3) to extract test IDs from or to generate file lists."
+        help="Path to a manifest file (e.g., manifest.n3) to extract test IDs from or to generate file lists.",
+    )
+    parser.add_argument(
+        "--test-data-file-map",
+        default=None,
+        help="Comma-separated list of test_id:data_file pairs, e.g. 'rasqal_order_test:animals.nt,rasqal_graph_test:graph-a.ttl'",
     )
     parser.add_argument(
         "TEST_IDS",
-        nargs='*',
-        help="List of test identifiers (e.g., dawg-triple-pattern-001, dawg-tp-01.rq). Used if --manifest-file is not provided."
+        nargs="*",
+        help="List of test identifiers (e.g., dawg-triple-pattern-001, dawg-tp-01.rq). Used if --manifest-file is not provided.",
     )
 
     args = parser.parse_args()
 
-    # Logic for generating test plan (original functionality)
-    if args.test_category == "generic":
-        if not all([args.suite_name, args.srcdir, args.builddir, args.action_template]):
-            parser.error("For generic test generation, --suite-name, --srcdir, --builddir, and --action-template are required.")
-    elif args.test_category in ["sparql", "laqrs", "engine"]:
-        if not all([args.suite_name, args.srcdir, args.builddir]):
-            parser.error("For {args.test_category} test generation, --suite-name, --srcdir, and --builddir are required.")
+    # Validate required arguments
+    if not all([args.suite_name, args.srcdir, args.builddir, args.action_template]):
+        parser.error(
+            "--suite-name, --srcdir, --builddir, and --action-template are required for plan generation."
+        )
 
-    tests = []
-    if args.manifest_file:
-        if not args.manifest_file.exists():
-            print(f"Error: Manifest file not found at {args.manifest_file}", file=sys.stderr)
-            sys.exit(1)
-        to_ntriples_cmd = find_tool('to-ntriples')
-        if not to_ntriples_cmd:
-            sys.exit(1)
-        try:
-            # Parse the ORIGINAL manifest file
-            manifest_parser = ManifestParser(args.manifest_file, to_ntriples_cmd)
-            
-            # Find manifest URI
-            manifest_node_uri = None
-            for s, triples in manifest_parser.triples_by_subject.items():
-                if any(t['p'] == f"<{Namespaces.RDF}type>" and t['o_full'] == f"<{Namespaces.MF}Manifest>" for t in triples):
-                    manifest_node_uri = s
-                    break
-            
-            if not manifest_node_uri:
-                print("Error: Could not find mf:Manifest entry.", file=sys.stderr)
-                sys.exit(1)
+    # Parse test-data-file-map into a dictionary if provided
+    args.test_data_file_map_dict = {}
+    if args.test_data_file_map:
+        for pair in args.test_data_file_map.split(","):
+            if ":" in pair:
+                test_id, data_file = pair.split(":", 1)
+                args.test_data_file_map_dict[test_id.strip()] = data_file.strip()
 
-            # Find entries list head
-            entries_list_head = next((t['o_full'] for t in manifest_parser.triples_by_subject.get(manifest_node_uri, []) if t['p'] == f"<{Namespaces.MF}entries>"), None)
+    return args
 
-            if not entries_list_head:
-                print("Error: Could not find mf:entries list.", file=sys.stderr)
-                sys.exit(1)
 
-            # Traverse list
-            current_list_item_node = entries_list_head
-            while current_list_item_node and current_list_item_node != f"<{Namespaces.RDF}nil>":
-                list_node_triples = manifest_parser.triples_by_subject.get(current_list_item_node, [])
-                entry_node_full = next((t['o_full'] for t in list_node_triples if t['p'] == f"<{Namespaces.RDF}first>"), None)
-
-                if entry_node_full:
-                    entry_triples = manifest_parser.triples_by_subject.get(entry_node_full, [])
-                    
-                    test_id = decode_literal(next((t['o_full'] for t in entry_triples if t['p'] == f"<{Namespaces.MF}name>"), '""'))
-                    
-                    # Determine test type based on rdf:type
-                    test_type = args.test_type  # default
-                    type_triple = next((t for t in entry_triples if t['p'] == f"<{Namespaces.RDF}type>"), None)
-                    if type_triple:
-                        type_uri = type_triple['o_full']
-                        if 'TestBadSyntax' in type_uri or 'TestNegativeSyntax' in type_uri:
-                            # Negative syntax tests should be negative for all suites
-                            # that can execute queries (parser, query)
-                            if args.suite_name in ['sparql-parser', 'sparql-query']:
-                                test_type = 'NegativeTest'
-                            else:
-                                test_type = 'PositiveTest'  # Skip negative tests for lexer
-                        elif 'XFailTest' in type_uri:
-                            # Expected failure tests should be marked as XFailTest for all suites
-                            test_type = 'XFailTest'
-                        elif 'TestSyntax' in type_uri:
-                            test_type = 'PositiveTest'
-                    
-                    query_file = None
-                    action_node = next((t['o_full'] for t in entry_triples if t['p'] == f"<{Namespaces.MF}action>"), None)
-                    if action_node:
-                        # Handle both formats:
-                        # 1. mf:action <file.rq> (direct file reference)
-                        # 2. mf:action [ qt:query <file://path/to/file.rq> ] (complex action)
-                        
-                        # First, try direct file reference
-                        if action_node.startswith('<') and action_node.endswith('>'):
-                            uri_string = action_node[1:-1]
-                            if uri_string.startswith('file://'):
-                                # Handle file:// URIs
-                                path_part = uri_string[len('file://'):]
-                                query_file = Path(path_part).name
-                            elif not uri_string.startswith('http://') and not uri_string.startswith('https://'):
-                                # Assume it's a relative file reference
-                                query_file = Path(uri_string).name
-                        
-                        # If not found, try complex action format
-                        if not query_file:
-                            action_triples = manifest_parser.triples_by_subject.get(action_node, [])
-                            query_triple = next((t for t in action_triples if t['p'] == f"<{Namespaces.QT}query>"), None)
-                            if query_triple:
-                                raw_uri = query_triple['o_full']
-                                if raw_uri.startswith('<') and raw_uri.endswith('>'):
-                                    uri_string = raw_uri[1:-1]
-                                    if uri_string.startswith('file://'):
-                                        path_part = uri_string[len('file://'):]
-                                        query_file = Path(path_part).name
-                    
-                    if test_id:
-                        tests.append({'id': test_id, 'query_file': query_file or '', 'test_type': test_type})
-
-                current_list_item_node = next((t['o_full'] for t in list_node_triples if t['p'] == f"<{Namespaces.RDF}rest>"), None)
-
-        except RuntimeError as e:
-            print(f"Error parsing manifest: {e}", file=sys.stderr)
-            sys.exit(1)
+def _determine_test_type(type_uri: str, suite_name: str, default_type: str) -> str:
+    """Determine the test type based on the type URI and suite name."""
+    if "TestBadSyntax" in type_uri or "TestNegativeSyntax" in type_uri:
+        # Negative syntax tests should be negative for all suites
+        # that can execute queries (parser, query)
+        if suite_name in ["sparql-parser", "sparql-query"]:
+            return "NegativeTest"
+        else:
+            return "PositiveTest"  # Skip negative tests for lexer
+    elif "XFailTest" in type_uri:
+        # Expected failure tests should be marked as XFailTest for all suites
+        return "XFailTest"
+    elif "TestSyntax" in type_uri:
+        return "PositiveTest"
     else:
-        if not args.TEST_IDS:
-            parser.error("Either --manifest-file or TEST_IDS must be provided for plan generation.")
-        # Handle TEST_IDS - set query_file to test_id for LAQRS and similar test types
-        for test_id in args.TEST_IDS:
-            tests.append({'id': test_id, 'query_file': test_id})
+        return default_type
 
-    abs_srcdir = str(args.srcdir.resolve()) if args.srcdir else ''
-    abs_builddir = str(args.builddir.resolve()) if args.builddir else ''
 
-    # For engine/laqrs, compute abs_executable for each test
+def _extract_query_file_and_action(
+    action_node: str,
+    action_triples: list,
+    test_category: str,
+    srcdir: Path,
+    builddir: Optional[Path] = None,
+) -> tuple:
+    """Extract query file, data file, and action from action node."""
+    query_file = None
+    data_file = None
+    action = None
+
+    # If the action is a literal, decode it
+    if action_node.startswith('"'):
+        action_value = decode_literal(action_node)
+    # If the action is a URI or blank node, try to extract a literal from the referenced node
+    else:
+        literal_action = next(
+            (
+                t["o_full"]
+                for t in action_triples
+                if t["p"] == f"<{Namespaces.MF}action>" and t["o_full"].startswith('"')
+            ),
+            None,
+        )
+        if literal_action:
+            action_value = decode_literal(literal_action)
+        else:
+            action_value = decode_literal(action_node)
+        # For sparql tests, extract qt:query as query_file
+        if test_category == "sparql":
+            qt_query = next(
+                (
+                    t["o_full"]
+                    for t in action_triples
+                    if t["p"] == f"<{Namespaces.QT}query>"
+                ),
+                None,
+            )
+            if qt_query and qt_query.startswith("<") and qt_query.endswith(">"):
+                query_file = os.path.basename(qt_query[1:-1])
+                if not query_file:
+                    query_file = qt_query[1:-1]  # Use full URI if basename is empty
+            # Extract qt:data as data_file (relative to srcdir)
+            qt_data = next(
+                (
+                    t["o_full"]
+                    for t in action_triples
+                    if t["p"] == f"<{Namespaces.QT}data>"
+                ),
+                None,
+            )
+            if qt_data and qt_data.startswith("<") and qt_data.endswith(">"):
+                data_file = os.path.basename(qt_data[1:-1])
+                if not data_file:
+                    data_file = qt_data[1:-1]
+    # For generic tests, extract qt:query as query_file (handles DAWG-style manifests)
+    if test_category == "generic":
+        qt_query = next(
+            (
+                t["o_full"]
+                for t in action_triples
+                if t["p"] == f"<{Namespaces.QT}query>"
+            ),
+            None,
+        )
+        if qt_query and qt_query.startswith("<") and qt_query.endswith(">"):
+            query_file = os.path.basename(qt_query[1:-1])
+            if not query_file:
+                query_file = qt_query[1:-1]  # Use full URI if basename is empty
+        # For generic tests, also try to extract from mf:action if it's a URI (fallback)
+        elif action_node.startswith("<") and action_node.endswith(">"):
+            query_file = os.path.basename(action_node[1:-1])
+        action = query_file if query_file else action_value
+    # For sparql tests, set query_file to the filename from mf:action if it's a URI
+    elif (
+        test_category == "sparql"
+        and action_node.startswith("<")
+        and action_node.endswith(">")
+    ):
+        query_file = os.path.basename(action_node[1:-1])
+        action = action_value
+    else:
+        action = action_value
+    return query_file, data_file, action
+
+
+def _process_manifest_entries(
+    manifest_parser: ManifestParser,
+    manifest_node_uri: str,
+    args: argparse.Namespace,
+    logger: logging.Logger,
+) -> list:
+    """Process manifest entries and return list of test information."""
+    tests = []
+
+    # Use the new iteration method
+    for entry_node_full in manifest_parser.iter_manifest_entries(manifest_node_uri):
+        entry_triples = manifest_parser.triples_by_subject.get(entry_node_full, [])
+
+        # Extract test ID
+        test_id_triple = next(
+            (t for t in entry_triples if t["p"] == f"<{Namespaces.MF}name>"), None
+        )
+        if not test_id_triple:
+            continue
+        test_id = decode_literal(test_id_triple["o_full"])
+
+        # Determine test type based on manifest
+        test_type = args.test_type  # Default
+        type_triple = next(
+            (t for t in entry_triples if t["p"] == f"<{Namespaces.RDF}type>"), None
+        )
+        if type_triple:
+            test_type = _determine_test_type(
+                type_triple["o_full"], args.suite_name, args.test_type
+            )
+
+        query_file = None
+        data_file = None
+        action = None
+        action_node = next(
+            (
+                t["o_full"]
+                for t in entry_triples
+                if t["p"] == f"<{Namespaces.MF}action>"
+            ),
+            None,
+        )
+        if action_node:
+            action_triples = manifest_parser.triples_by_subject.get(action_node, [])
+            query_file, data_file, action = _extract_query_file_and_action(
+                action_node,
+                action_triples,
+                args.test_category,
+                args.srcdir,
+                args.builddir,
+            )
+            tests.append(
+                {
+                    "id": test_id,
+                    "query_file": query_file or "",
+                    "data_file": data_file or "",
+                    "test_type": test_type,
+                    "action": action,
+                }
+            )
+        else:
+            tests.append(
+                {
+                    "id": test_id,
+                    "query_file": query_file or "",
+                    "data_file": data_file or "",
+                    "test_type": test_type,
+                }
+            )
+
+    return tests
+
+
+def _process_test_ids(test_ids: list, test_category: str) -> list:
+    """Process test IDs when no manifest file is provided."""
+    tests = []
+    for test_id in test_ids:
+        tests.append({"id": test_id, "query_file": test_id})
+    return tests
+
+
+def _compute_executable_paths(tests: list, args: argparse.Namespace) -> list:
+    """Compute absolute executable paths for each test based on test category."""
     for test_info in tests:
         if args.test_category == "engine":
-            abs_executable = str((args.srcdir / test_info['id']).resolve()) if args.srcdir else test_info['id']
-            test_info['abs_executable'] = abs_executable
-        elif args.test_category == "laqrs":
-            abs_executable = str((args.builddir / 'src' / 'sparql_parser_test').resolve()) if args.builddir else 'sparql_parser_test'
-            test_info['abs_executable'] = abs_executable
+            # For engine tests, use the build directory path to the test binary
+            abs_executable = (
+                str((args.builddir / "tests" / "engine" / test_info["id"]).resolve())
+                if args.builddir
+                else test_info["id"]
+            )
+            test_info["abs_executable"] = abs_executable
         else:
-            test_info['abs_executable'] = ''
+            test_info["abs_executable"] = ""
+    return tests
 
-    # Generate action template based on test category
-    if args.test_category == "generic":
-        action_template = args.action_template
-        comment_template = args.comment_template
-    elif args.test_category == "sparql":
-        # Use provided action_template if available, otherwise default
-        if args.action_template:
-            action_template = args.action_template
-            comment_template = args.comment_template if args.comment_template else "SPARQL {suite_name} {test_id}"
-        else:
-            action_template = "$(PYTHON3) $(srcdir)/../check_sparql.py -s $(srcdir) {test_id}"
-            comment_template = "SPARQL {suite_name} {test_id}"
-    elif args.test_category == "laqrs":
-        action_template = "{abs_executable} -i laqrs {query_file}"
-        comment_template = "laqrs parsing of {query_file}"
-    elif args.test_category == "engine":
-        action_template = "{abs_executable} ../../data/"
-        comment_template = "rdql query {test_id}"
-        for test_info in tests:
-            if test_info['id'] == 'rasqal_limit_test':
-                test_info['action_template'] = f"{{abs_executable}} ../../data/letters.nt"
-            else:
-                test_info['action_template'] = action_template
-    else:
-        # Default for algebra or unknown: use check_algebra.py
-        action_template = "$(PYTHON3) $(srcdir)/check_algebra.py {query_file} $(BASE_URI){query_file}"
-        comment_template = "SPARQL algebra {query_file}"
 
-    # Print Turtle header
-    print(f'''@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+def _print_turtle_header(test_category: str, suite_name: str):
+    """Print the Turtle header for the test plan."""
+    print(
+        f"""@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix mf:    <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
 @prefix qt:    <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
 @prefix t:     <http://ns.librdf.org/2009/test-manifest#> .
 
 <> a mf:Manifest ;
-    rdfs:comment "{args.test_category.upper()} {args.suite_name} tests" ;
+    rdfs:comment "{test_category.upper()} {suite_name} tests" ;
     mf:entries (
-''')
+"""
+    )
 
-    if tests:
-        for i, test_info in enumerate(tests):
-            test_id = test_info['id'].strip()
-            if not test_id:
-                continue
-            query_file = test_info['query_file']
-            test_type = test_info.get('test_type', args.test_type)
-            template_vars = dict(
-                srcdir=args.srcdir,
-                builddir=args.builddir,
-                abs_srcdir=abs_srcdir,
-                abs_builddir=abs_builddir,
-                abs_executable=test_info.get('abs_executable', ''),
-                test_id=_escape_shell_argument(test_id),
-                query_file=query_file
-            )
-            if args.test_category == "engine" and 'action_template' in test_info:
-                action_raw = test_info['action_template'].format(**template_vars)
-            else:
-                action_raw = action_template.format(**template_vars)
-            comment_raw = comment_template.format(
-                suite_name=args.suite_name,
-                test_id=test_id,
-                query_file=query_file
-            )
-            escaped_test_id_for_print = _escape_turtle_literal(test_id)
-            escaped_action_for_print = _escape_turtle_literal(action_raw)
-            escaped_comment_for_print = _escape_turtle_literal(comment_raw)
-            print(f'''  [ a t:{test_type};
+
+def _print_test_entries(tests: list, args: argparse.Namespace):
+    """Print the test entries in Turtle format."""
+    if not tests:
+        print("  ) .")
+        return
+
+    abs_srcdir = str(args.srcdir.resolve()) if args.srcdir else ""
+    abs_builddir = str(args.builddir.resolve()) if args.builddir else ""
+
+    for i, test_info in enumerate(tests):
+        test_id = test_info["id"].strip()
+        if not test_id:
+            continue
+        query_file = test_info.get("query_file", "")
+        data_file = test_info.get("data_file", "")
+        # Use full path for query_file
+        query_file_full = str(args.srcdir / query_file) if query_file else ""
+        data_file_full = str(args.srcdir / data_file) if data_file else ""
+        test_type = test_info.get("test_type", args.test_type)
+        # Add data_file if mapping is provided and template uses it (override manifest if present)
+        data_file_override = (
+            args.test_data_file_map_dict.get(test_id, "")
+            if hasattr(args, "test_data_file_map_dict")
+            else ""
+        )
+        if data_file_override:
+            data_file = data_file_override
+            data_file_full = str(args.srcdir / data_file) if data_file else ""
+        template_vars = dict(
+            srcdir=str(args.srcdir),
+            builddir=str(args.builddir),
+            abs_srcdir=abs_srcdir,
+            abs_builddir=abs_builddir,
+            abs_executable=test_info.get("abs_executable", ""),
+            test_id=_escape_shell_argument(test_id),
+            query_file=test_info.get("query_file", ""),
+            data_file=data_file,
+            query_file_full=query_file_full,
+            data_file_full=data_file_full,
+        )
+        # Use pre-computed action if available, otherwise format the template
+        if "action_raw" in test_info:
+            action_raw = test_info["action_raw"]
+        else:
+            action_raw = args.action_template.format(**template_vars)
+        comment_raw = args.comment_template.format(
+            suite_name=args.suite_name, test_id=test_id, query_file=query_file
+        )
+        escaped_test_id_for_print = _escape_turtle_literal(test_id)
+        escaped_action_for_print = _escape_turtle_literal(action_raw)
+        escaped_comment_for_print = _escape_turtle_literal(comment_raw)
+        print(
+            f'''  [ a t:{test_type};
     mf:name """{escaped_test_id_for_print}""";
     rdfs:comment """{escaped_comment_for_print}""";
-    mf:action """{escaped_action_for_print}""" ]''')
-        print('    ) .')
+    mf:action """{escaped_action_for_print}""" ]'''
+        )
+    print("    ) .")
+
+
+def main():
+    """Main function - orchestrates the test plan generation process."""
+    args = _parse_arguments()
+    logger = setup_logging(debug=args.debug)
+
+    # Debug: print manifest file, cwd, sys.path
+    logger.debug(f"manifest_file: {args.manifest_file}")
+    logger.debug(f"cwd: {Path.cwd()}")
+    logger.debug(f"sys.path: {sys.path}")
+
+    # Process tests based on input method
+    if args.manifest_file:
+        try:
+            manifest_parser = ManifestParser.from_manifest_file(
+                args.manifest_file, args.srcdir, logger
+            )
+            manifest_node_uri = manifest_parser.find_manifest_node()
+            logger.debug(f"Found manifest node: {manifest_node_uri}")
+        except (FileNotFoundError, UtilityNotFoundError, RuntimeError) as e:
+            logger.error(f"Error creating manifest parser: {e}")
+            sys.exit(1)
+        except ManifestParsingError as e:
+            logger.error(f"Could not find manifest node: {e}")
+            # Debug: print all subjects and their types for troubleshooting
+            logger.debug(
+                f"Total subjects found: {len(manifest_parser.triples_by_subject)}"
+            )
+            for s, triples in manifest_parser.triples_by_subject.items():
+                types = [
+                    t["o_full"] for t in triples if t["p"] == f"<{Namespaces.RDF}type>"
+                ]
+                logger.debug(f"Subject: {s} Types: {types}")
+            sys.exit(1)
+        tests = _process_manifest_entries(
+            manifest_parser, manifest_node_uri, args, logger
+        )
     else:
-        print('    ) .')
+        if not args.TEST_IDS:
+            logger.error(
+                "Either --manifest-file or TEST_IDS must be provided for plan generation."
+            )
+            sys.exit(1)
+        tests = _process_test_ids(args.TEST_IDS, args.test_category)
+
+    # Compute executable paths
+    tests = _compute_executable_paths(tests, args)
+
+    # Generate output
+    _print_turtle_header(args.test_category, args.suite_name)
+    _print_test_entries(tests, args)
+
 
 if __name__ == "__main__":
     main()

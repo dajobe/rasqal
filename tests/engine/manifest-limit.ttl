@@ -1,0 +1,12 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:   <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix t:    <http://ns.librdf.org/2009/test-manifest#> .
+
+<> a mf:Manifest ;
+   rdfs:comment "Query Engine Limit Test" ;
+   mf:entries (
+     [ a t:PositiveTest ;
+       mf:name "rasqal_limit_test" ;
+       rdfs:comment "rdql query rasqal_limit_test" ;
+       mf:action "./rasqal_limit_test ../../data/letters.nt" ]
+   ) . 

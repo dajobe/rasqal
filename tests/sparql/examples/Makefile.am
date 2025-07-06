@@ -22,52 +22,8 @@
 
 SPARQL_MANIFEST_FILES= manifest.n3
 
-SPARQL_MODEL_FILES= \
-ex2-1a.n3 ex2-1d.n3 ex2-1f.n3 ex2-2a.n3 ex2-3a.n3 ex2-4a.n3 ex3.n3	\
-ex11.2.3.1_0.n3 ex11.2.3.1_1.n3 ex11.2.3.2_0.n3 ex11.2.3.3_0.n3		\
-ex11.2.3.4_0.n3 ex11.2.3.5_0.n3 ex11.2.3.6_0.n3 ex11.2.3.7_0.n3		\
-ex11.2.3.8_0.n3 ex11_0.n3
-
-SPARQL_TEST_FILES= \
-ex2-1a.rq ex2-1b.rq ex2-1c.rq ex2-1e.rq ex2-2a.rq ex2-3a.rq ex2-4a.rq	\
-ex3.rq ex11.2.3.1_0.rq ex11.2.3.1_1.rq ex11.2.3.2_0.rq			\
-ex11.2.3.2_1.rq ex11.2.3.3_0.rq ex11.2.3.4_0.rq ex11.2.3.5_0.rq		\
-ex11.2.3.6_0.rq ex11.2.3.7_0.rq ex11.2.3.8_0.rq ex11_0.rq ex11_1.rq
-
-EXPECTED_SPARQL_CORRECT= \
-  sparql-query-example-a \
-  sparql-query-example-b \
-  sparql-query-example-c \
-  sparql-query-example-d \
-  sparql-query-example-e \
-  sparql-query-example-Testing-Values-0 \
-  sparql-query-example-Testing-Values-1 \
-  sparql-query-example-Testing-Values-RDFterm-equal \
-  sparql-query-example-Testing-Values-RDFterm-equal-2 \
-  sparql-query-example-Testing-Values-isURI \
-  sparql-query-example-Testing-Values-isLiteral \
-  sparql-query-example-Testing-Values-str \
-  sparql-query-example-Testing-Values-lang \
-  sparql-query-example-Testing-Values-isBlank \
-  sparql-query-example-Testing-Values-bound \
-  sparql-query-example-Testing-Values-bound-2
-
-EXPECTED_SPARQL_CORRECT_FAILURES=
-
-SPARQL_RESULT_FILES= \
-ex2-1a-result.n3 ex2-2a-result.n3 ex2-3a-result.n3 ex2-4a-result.n3	\
-ex3-result.n3 ex11.2.3.1_0-result.n3 ex11.2.3.1_1-result.n3		\
-ex11.2.3.2_0-result.n3 ex11.2.3.2_1-result.n3 ex11.2.3.3_0-result.n3	\
-ex11.2.3.4_0-result.n3 ex11.2.3.5_0-result.n3 ex11.2.3.6_0-result.n3	\
-ex11.2.3.7_0-result.n3 ex11.2.3.8_0-result.n3 ex11_0-result.n3		\
-ex11_1-result.n3
-
-
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES) \
-$(SPARQL_MODEL_FILES) \
-$(SPARQL_TEST_FILES) \
-$(SPARQL_RESULT_FILES)
+$(SPARQL_MANIFEST_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
@@ -97,7 +53,7 @@ get-testsuite-sparql-lexer:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_lexer_test {srcdir}/{query_file}" \
+		--action-template "../../../src/sparql_lexer_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql lexer of {query_file}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -107,7 +63,7 @@ get-testsuite-sparql-parser:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {srcdir}/{query_file}" \
+		--action-template "../../../src/sparql_parser_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql parser of {query_file}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -117,7 +73,7 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--comment-template "sparql query {test_id}" \
 		--manifest-file $(srcdir)/manifest.n3
 

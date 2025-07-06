@@ -39,28 +39,8 @@ get-testsuite-sparql-parse-good:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \
 		--comment-template "sparql parsing of {query_file}" \
-		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
-
-get-testsuite-sparql-parse-bad:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
-		--suite-name sparql-parse-bad \
-		--srcdir $(srcdir) \
-		--builddir $(top_builddir) \
-		--test-type NegativeTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {srcdir}/{query_file}" \
-		--comment-template "sparql failing to parse of {query_file}" \
-		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
-
-get-testsuite-sparql-query:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
-		--suite-name sparql-query \
-		--srcdir $(srcdir) \
-		--builddir $(top_builddir) \
-		--test-type PositiveTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
-		--comment-template "sparql query {test_id}" \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
 
 dist-hook:

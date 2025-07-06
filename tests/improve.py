@@ -41,7 +41,14 @@ from pathlib import Path
 # Add the parent directory to the Python path to find rasqal_test_util
 sys.path.append(str(Path(__file__).resolve().parent))
 
-from rasqal_test_util import Namespaces, TestResult, find_tool, run_command, ManifestParser
+from rasqal_test_util import (
+    Namespaces,
+    TestResult,
+    find_tool,
+    run_command,
+    ManifestParser,
+    decode_literal,
+)
 
 # Configure logging: Set up a basic logger that will be configured further by argparse
 logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
@@ -62,52 +69,9 @@ INDENT_STR = "  "  # Using 2 spaces for indentation
 
 # Global command variables - initialized once at script start
 MAKE_CMD = os.environ.get("MAKE", "make")
-TO_NTRIPLES_CMD: Optional[str] = None
-
-
-def _init_to_ntriples_cmd() -> None:
-    """
-    Initializes the TO_NTRIPLES_CMD global variable.
-    """
-    global TO_NTRIPLES_CMD
-    TO_NTRIPLES_CMD = find_tool('to-ntriples')
-
-
-
-
-
-def decode_literal(lit_str: str) -> str:
-    """
-    Decodes an N-Triples literal string, handling common escapes.
-    Expected to receive only valid literal strings (quoted, with optional suffix).
-    """
-    if not lit_str or not lit_str.startswith('"'):
-        # If it's not a quoted string, it's either a URI or Blank Node already handled.
-        # Or it's a malformed literal. Return as is.
-        return lit_str
-
-    # Attempt to extract the value part from within the quotes and unescape it.
-    value_part_match = re.match(
-        r'^"(?P<value>(?:[^"\\]|\\.)*)"(?:@[\w-]+|\^\^<[^>]+>)?$', lit_str
-    )
-    if not value_part_match:
-        logger.warning(f"Malformed literal string passed to decode_literal: {lit_str}")
-        return lit_str
-
-    val = value_part_match.group("value")
-
-    # Unescape common N-Triples sequences:
-    # Order matters: replace longer sequences first to avoid partial replacements.
-    val = val.replace('\\"', '"')
-    val = val.replace("\\n", "\n")
-    val = val.replace("\\r", "\r")
-    val = val.replace("\\t", "\t")
-    val = val.replace("\\\\", "\\")  # Unescape escaped backslashes last
-    return val
 
 
 def format_testsuite_result(
-
     file_handle,
     result_summary: Dict[str, List[Dict[str, Any]]],
     indent_prefix: str,
@@ -251,10 +215,13 @@ class Testsuite:
 
         # This part (reading and parsing the plan file) runs in both modes.
         try:
-            parser = ManifestParser(self.plan_file, TO_NTRIPLES_CMD)
+            parser = ManifestParser(self.plan_file)
             self.tests = self._extract_tests_from_parser(parser)
         except (RuntimeError, FileNotFoundError) as e:
-            return {"status": "fail", "details": f"Failed to parse plan file {self.plan_file}: {e}"}
+            return {
+                "status": "fail",
+                "details": f"Failed to parse plan file {self.plan_file}: {e}",
+            }
 
         if self.path_for_suite:
             self._original_env_path = os.environ.get("PATH", "")
@@ -268,13 +235,15 @@ class Testsuite:
 
         return {"status": "pass", "details": ""}
 
-    def _extract_tests_from_parser(self, parser: ManifestParser) -> List[Dict[str, Any]]:
+    def _extract_tests_from_parser(
+        self, parser: ManifestParser
+    ) -> List[Dict[str, Any]]:
         """Extracts test details from a parsed manifest."""
         tests = []
         manifest_node_uri = None
         for s, triples in parser.triples_by_subject.items():
             for t in triples:
-                if t['p'] == f"<{NS.RDF}type>" and t['o_full'] == f"<{NS.MF}Manifest>":
+                if t["p"] == f"<{NS.RDF}type>" and t["o_full"] == f"<{NS.MF}Manifest>":
                     manifest_node_uri = s
                     break
             if manifest_node_uri:
@@ -290,18 +259,55 @@ class Testsuite:
             elif triple["p"] == f"<{NS.T}path>":
                 self.path_for_suite = decode_literal(triple["o_full"])
 
-        entries_list_head = next((t['o_full'] for t in parser.triples_by_subject.get(manifest_node_uri, []) if t['p'] == f"<{NS.MF}entries>"), None)
+        entries_list_head = next(
+            (
+                t["o_full"]
+                for t in parser.triples_by_subject.get(manifest_node_uri, [])
+                if t["p"] == f"<{NS.MF}entries>"
+            ),
+            None,
+        )
 
         current_list_item_node = entries_list_head
         while current_list_item_node and current_list_item_node != f"<{NS.RDF}nil>":
-            list_node_triples = parser.triples_by_subject.get(current_list_item_node, [])
-            entry_node_full = next((t['o_full'] for t in list_node_triples if t['p'] == f"<{NS.RDF}first>"), None)
+            list_node_triples = parser.triples_by_subject.get(
+                current_list_item_node, []
+            )
+            entry_node_full = next(
+                (
+                    t["o_full"]
+                    for t in list_node_triples
+                    if t["p"] == f"<{NS.RDF}first>"
+                ),
+                None,
+            )
 
             if entry_node_full:
                 entry_triples = parser.triples_by_subject.get(entry_node_full, [])
-                test_name = decode_literal(next((t['o_full'] for t in entry_triples if t['p'] == f"<{NS.MF}name>"), '""'))
-                test_action = decode_literal(next((t['o_full'] for t in entry_triples if t['p'] == f"<{NS.MF}action>"), '""'))
-                entry_type_full = next((t['o_full'] for t in entry_triples if t['p'] == f"<{NS.RDF}type>"), "")
+                test_name = decode_literal(
+                    next(
+                        (
+                            t["o_full"]
+                            for t in entry_triples
+                            if t["p"] == f"<{NS.MF}name>"
+                        ),
+                        '""',
+                    )
+                )
+                test_action = decode_literal(
+                    next(
+                        (
+                            t["o_full"]
+                            for t in entry_triples
+                            if t["p"] == f"<{NS.MF}action>"
+                        ),
+                        '""',
+                    )
+                )
+                entry_type_full = next(
+                    (t["o_full"] for t in entry_triples if t["p"] == f"<{NS.RDF}type>"),
+                    "",
+                )
 
                 expect = TestResult.PASSED
                 is_xfail_test = False
@@ -311,16 +317,25 @@ class Testsuite:
                     expect = TestResult.FAILED
                     is_xfail_test = True
 
-                tests.append({
-                    "name": test_name,
-                    "action": test_action,
-                    "expect": expect,
-                    "is_xfail_test": is_xfail_test,
-                    "dir": self.directory,
-                    "test_uri": entry_node_full[1:-1] if entry_node_full.startswith('<') else entry_node_full
-                })
+                tests.append(
+                    {
+                        "name": test_name,
+                        "action": test_action,
+                        "expect": expect,
+                        "is_xfail_test": is_xfail_test,
+                        "dir": self.directory,
+                        "test_uri": (
+                            entry_node_full[1:-1]
+                            if entry_node_full.startswith("<")
+                            else entry_node_full
+                        ),
+                    }
+                )
 
-            current_list_item_node = next((t['o_full'] for t in list_node_triples if t['p'] == f"<{NS.RDF}rest>"), None)
+            current_list_item_node = next(
+                (t["o_full"] for t in list_node_triples if t["p"] == f"<{NS.RDF}rest>"),
+                None,
+            )
 
         return tests
 
@@ -515,7 +530,7 @@ class Testsuite:
 
         # Determine the final test status based on actual execution outcome vs. expected outcome
         is_xfail_test = test_details.get("is_xfail_test", False)
-        
+
         if expected_status_enum == TestResult.FAILED:
             if actual_run_status == TestResult.FAILED:
                 test_details["status"] = TestResult.XFAILED.value
@@ -526,7 +541,9 @@ class Testsuite:
                 # For XFailTest, if it passes, mark it as PASSED (not UXPASSED)
                 if is_xfail_test:
                     test_details["status"] = TestResult.PASSED.value
-                    test_details["detail"] = "Test passed (XFailTest - expected to fail but passed)"
+                    test_details["detail"] = (
+                        "Test passed (XFailTest - expected to fail but passed)"
+                    )
                 else:
                     test_details["status"] = TestResult.UXPASSED.value
                     test_details["detail"] = "Test passed but was expected to fail."
@@ -724,7 +741,6 @@ def main():
     Main entry point for the improve script.
     Handles argument parsing, directory scanning, and overall test execution flow.
     """
-    _init_to_ntriples_cmd()
 
     parser = argparse.ArgumentParser(
         description="Run Rasqal test suites.",
@@ -789,15 +805,6 @@ def main():
         logger.setLevel(logging.WARNING)
 
     logger.debug(f"Starting {sys.argv[0]} with arguments: {args}")
-    logger.debug(f"Resolved TO_NTRIPLES command: {TO_NTRIPLES_CMD}")
-
-    if not (shutil.which(TO_NTRIPLES_CMD) or Path(TO_NTRIPLES_CMD).is_file()):
-        logger.error(
-            f"'{TO_NTRIPLES_CMD}' utility not found or not executable. "
-            "Please ensure it's installed and in your PATH or "
-            "TO_NTRIPLES environment variable is set."
-        )
-        sys.exit(1)  # Exit immediately if a critical dependency is missing
 
     if args.prepared:
         # In --prepared mode, the first positional argument is the base directory,

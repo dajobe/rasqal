@@ -21,24 +21,8 @@
 
 SPARQL_MANIFEST_FILES= manifest.ttl
 
-SPARQL_MODEL_FILES= \
-empty.nt
-
-SPARQL_TEST_FILES= \
-warning-1.rq warning-2.rq warning-3.rq
-
-SPARQL_TEST_NAMES= \
-$(SPARQL_TEST_FILES)
-
-EXPECTED_SPARQL_WARNINGS= $(SPARQL_TEST_NAMES)
-
-SPARQL_RESULT_FILES=
-
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES) \
-$(SPARQL_MODEL_FILES) \
-$(SPARQL_TEST_FILES) \
-$(SPARQL_RESULT_FILES)
+$(SPARQL_MANIFEST_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
@@ -65,7 +49,7 @@ get-testsuite-sparql-warnings:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type NegativeTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s $(srcdir) -W 100 {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) -W 100 {test_id}" \
 		--comment-template "sparql warning {test_id}" \
 		--manifest-file $(srcdir)/manifest.ttl
 

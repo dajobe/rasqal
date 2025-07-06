@@ -23,7 +23,8 @@ MANIFEST_FILE = manifest.ttl
 
 EXTRA_DIST= \
 data-1.ttl \
-subquery-1.ttl
+subquery-1.ttl \
+manifest.ttl
 
 build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
@@ -40,7 +41,7 @@ get-testsuite-sparql-parse-good:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \
 		--comment-template "sparql parsing of {query_file}" \
 		--manifest-file $(srcdir)/$(MANIFEST_FILE)
 
@@ -50,7 +51,7 @@ get-testsuite-sparql-parse-bad:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type NegativeTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \
 		--comment-template "sparql failing to parse of {query_file}" \
 		--manifest-file $(srcdir)/$(MANIFEST_FILE)
 
@@ -60,7 +61,7 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--comment-template "sparql query {test_id}" \
 		--manifest-file $(srcdir)/$(MANIFEST_FILE)
 

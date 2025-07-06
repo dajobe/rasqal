@@ -22,63 +22,8 @@
 
 SPARQL_MANIFEST_FILES= manifest.ttl
 
-SPARQL_MODEL_FILES= empty.nt
-
-SPARQL_TEST_FILES_CORE= \
-syntax-basic-01.rq syntax-basic-02.rq syntax-basic-03.rq		\
-syntax-basic-04.rq syntax-basic-05.rq syntax-basic-06.rq		\
-syntax-bnodes-01.rq syntax-bnodes-02.rq \
-syntax-bnodes-05.rq syntax-bnodes-06.rq		\
-syntax-bnodes-07.rq							\
-syntax-expr-01.rq syntax-expr-02.rq syntax-expr-03.rq			\
-syntax-expr-04.rq syntax-expr-05.rq syntax-expr-06.rq			\
-syntax-forms-01.rq syntax-forms-02.rq					\
-syntax-limit-offset-07.rq syntax-limit-offset-07.rq			\
-syntax-limit-offset-09.rq						\
-syntax-lists-01.rq syntax-lists-02.rq syntax-lists-03.rq		\
-syntax-lists-04.rq syntax-lists-05.rq					\
-syntax-lit-01.rq syntax-lit-02.rq syntax-lit-03.rq syntax-lit-04.rq	\
-syntax-lit-05.rq syntax-lit-06.rq syntax-lit-07.rq syntax-lit-08.rq	\
-syntax-lit-09.rq syntax-lit-10.rq syntax-lit-11.rq syntax-lit-12.rq	\
-syntax-lit-13.rq syntax-lit-14.rq					\
-syntax-order-01.rq syntax-order-02.rq syntax-order-03.rq		\
-syntax-order-04.rq syntax-order-05.rq syntax-order-06.rq		\
-syntax-pat-01.rq syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq	\
-syntax-qname-07.rq syntax-qname-08.rq syntax-qname-09.rq		\
-syntax-qname-10.rq syntax-qname-11.rq syntax-qname-12.rq		\
-syntax-qname-13.rq syntax-qname-14.rq					\
-syntax-struct-01.rq syntax-struct-02.rq					\
-syntax-struct-03.rq syntax-struct-04.rq syntax-struct-05.rq		\
-syntax-struct-06.rq syntax-struct-07.rq syntax-struct-08.rq		\
-syntax-struct-09.rq syntax-struct-10.rq					\
-syntax-union-01.rq syntax-union-02.rq
-
-SPARQL_TEST_FILES=$(SPARQL_TEST_FILES_CORE) \
-syntax-keywords-01.rq syntax-keywords-02.rq syntax-keywords-03.rq \
-syntax-qname-01.rq syntax-qname-02.rq syntax-qname-03.rq \
-syntax-qname-04.rq syntax-qname-05.rq syntax-qname-06.rq \
-syntax-struct-11.rq syntax-struct-12.rq
-
-SPARQL_TEST_NAMES=$(SPARQL_TEST_FILES_CORE) \
-  "keyword FILTER as a namespace prefix" \
-  "keyword FILTER as a local name" \
-  "keyword UNION as a namespace prefix"
-
-EXPECTED_SPARQL_PARSER_FAILURES=
-
-EXPECTED_SPARQL_PARSER_FAILURES_COUNT= 0
-
-EXPECTED_SPARQL_CORRECT_FAILURES= \
-$(EXPECTED_SPARQL_PARSER_FAILURES)
-
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT = \
-$(EXPECTED_SPARQL_PARSER_FAILURES_COUNT)
-
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES) \
-$(SPARQL_MODEL_FILES) \
-$(SPARQL_MANIFEST_FILES) \
-$(SPARQL_TEST_FILES)
+$(SPARQL_MANIFEST_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
@@ -108,7 +53,7 @@ get-testsuite-sparql-lexer get-testsuite-sparql-parser:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql parser of {query_file}" \
 		--manifest-file $(srcdir)/manifest.ttl
 
@@ -118,7 +63,7 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--comment-template "sparql query {test_id}" \
 		--manifest-file $(srcdir)/manifest.ttl
 

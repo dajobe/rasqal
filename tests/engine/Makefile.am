@@ -23,7 +23,11 @@ local_tests=rasqal_order_test$(EXEEXT) rasqal_graph_test$(EXEEXT) \
 rasqal_construct_test$(EXEEXT) rasqal_limit_test$(EXEEXT) \
 rasqal_triples_test$(EXEEXT)
 
+MANIFEST_FILE = manifest.ttl
+
 EXTRA_PROGRAMS=$(local_tests)
+
+EXTRA_DIST = $(MANIFEST_FILE) manifest-limit.ttl
 
 AM_CPPFLAGS=@RASQAL_INTERNAL_CPPFLAGS@ -I$(top_srcdir)/src
 AM_CFLAGS=@RASQAL_INTERNAL_CPPFLAGS@ $(MEM)
@@ -60,20 +64,34 @@ $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
 
 get-testsuites-list:
-	@echo "engine"
+	@echo "engine engine-limit"
 
 get-testsuite-engine:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../sparql/generate_sparql_plan.py \
 		--suite-name engine \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
+		--test-category engine \
 		--test-type PositiveTest \
-		--action-template "./{test_id} $(top_srcdir)/data/" \
+		--action-template "{abs_executable} {abs_srcdir}/../../data/" \
 		--comment-template "engine test {test_id}" \
-		rasqal_order_test rasqal_graph_test rasqal_construct_test rasqal_triples_test
+		--manifest-file $(top_srcdir)/tests/engine/$(MANIFEST_FILE)
+
+get-testsuite-engine-limit:
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../sparql/generate_sparql_plan.py \
+		--suite-name engine-limit \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-category engine \
+		--test-type PositiveTest \
+		--action-template "{abs_executable} {abs_srcdir}/../../data/{data_file}" \
+		--test-data-file-map "rasqal_limit_test:letters.nt" \
+		--comment-template "engine limit test {test_id}" \
+		--manifest-file $(top_srcdir)/tests/engine/manifest-limit.ttl
 
 dist-hook:
 	$(PYTHON3) $(srcdir)/../sparql/package_sparql_tests.py \
-		--manifest-file $(srcdir)/manifest.ttl \
+		--manifest-file $(abs_srcdir)/$(MANIFEST_FILE) \
+		--manifest-file $(abs_srcdir)/manifest-limit.ttl \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)

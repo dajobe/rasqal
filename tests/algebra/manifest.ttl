@@ -1,6 +1,7 @@
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
 @prefix t:     <http://ns.librdf.org/2009/test-manifest#> .
+@prefix qt:    <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
 
 <> a mf:Manifest;
    rdfs:comment "SPARQL Algebra Conversions";
@@ -9,37 +10,46 @@
      [ a t:PositiveTest;
        mf:name "test-01";
        rdfs:comment "SPARQL algebra test-01.rq";
-       mf:action <test-01.rq> ]
+       mf:action [ qt:query <test-01.rq> ];
+       t:extraFile <test-01.out> ]
      [ a t:PositiveTest;
        mf:name "test-02";
        rdfs:comment "SPARQL algebra test-02.rq";
-       mf:action <test-02.rq> ]
+       mf:action [ qt:query <test-02.rq> ];
+       t:extraFile <test-02.out> ]
      [ a t:PositiveTest;
        mf:name "test-03";
        rdfs:comment "SPARQL algebra test-03.rq";
-       mf:action <test-03.rq> ]
+       mf:action [ qt:query <test-03.rq> ];
+       t:extraFile <test-03.out> ]
      [ a t:PositiveTest;
        mf:name "test-04";
        rdfs:comment "SPARQL algebra test-04.rq";
-       mf:action <test-04.rq> ]
+       mf:action [ qt:query <test-04.rq> ];
+       t:extraFile <test-04.out> ]
      [ a t:PositiveTest;
        mf:name "test-05";
        rdfs:comment "SPARQL algebra test-05.rq";
-       mf:action <test-05.rq> ]
+       mf:action [ qt:query <test-05.rq> ];
+       t:extraFile <test-05.out> ]
      [ a t:PositiveTest;
        mf:name "test-06";
        rdfs:comment "SPARQL algebra test-06.rq";
-       mf:action <test-06.rq> ]
+       mf:action [ qt:query <test-06.rq> ];
+       t:extraFile <test-06.out> ]
      [ a t:PositiveTest;
        mf:name "test-07";
        rdfs:comment "SPARQL algebra test-07.rq";
-       mf:action <test-07.rq> ]
+       mf:action [ qt:query <test-07.rq> ];
+       t:extraFile <test-07.out> ]
      [ a t:PositiveTest;
        mf:name "test-08";
        rdfs:comment "SPARQL algebra test-08.rq";
-       mf:action <test-08.rq> ]
+       mf:action [ qt:query <test-08.rq> ];
+       t:extraFile <test-08.out> ]
      [ a t:PositiveTest;
        mf:name "test-09";
        rdfs:comment "SPARQL algebra test-09.rq";
-       mf:action <test-09.rq> ]
+       mf:action [ qt:query <test-09.rq> ];
+       t:extraFile <test-09.out> ]
    ) . 

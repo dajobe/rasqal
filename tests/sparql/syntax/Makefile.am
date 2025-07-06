@@ -22,34 +22,8 @@
 
 SPARQL_MANIFEST_FILES= manifest.n3 manifest-bad.n3
 
-SPARQL_MODEL_FILES= \
-data.n3 order.ttl
-
-SPARQL_TEST_FILES= \
-describe1.rq groups.rq 0triples.rq \
-construct1.rq construct2.rq \
-ask0.rq distinct0.rq limit0.rq cast0.rq cast1.rq offset0.rq \
-select-dup.rq order-distinct.rq distinct-undef.rq \
-blankuri.rq
-
-SPARQL_BAD_TEST_FILES= \
-nojam.rq namespaces.rq select-no-gp.rq
-
-SPARQL_TEST_NAMES= \
-   sparql-0triples \
-   order-by-distinct \
-   distinct-with-undef-var
-
-
-SPARQL_RESULT_FILES= \
-result-0triples.n3 result-order-distinct.ttl result-distinct-undef.ttl
-
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES) \
-$(SPARQL_MODEL_FILES) \
-$(SPARQL_TEST_FILES) \
-$(SPARQL_BAD_TEST_FILES) \
-$(SPARQL_RESULT_FILES)
+$(SPARQL_MANIFEST_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
@@ -79,7 +53,7 @@ get-testsuite-sparql-lexer get-testsuite-sparql-parser:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql parser of {query_file}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -89,7 +63,7 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--comment-template "sparql query {test_id}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -99,7 +73,7 @@ get-testsuite-sparql-bad-parser:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type NegativeTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql bad syntax of {query_file}" \
 		--manifest-file $(srcdir)/manifest-bad.n3
 

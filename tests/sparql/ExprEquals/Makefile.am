@@ -20,47 +20,10 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-SPARQL_MANIFEST_FILES= manifest.n3
-
-SPARQL_MODEL_FILES= \
-data-eq.ttl
-
-SPARQL_TEST_FILES= \
-query-eq-1.rq query-eq-2.rq query-eq-3.rq query-eq-4.rq query-eq-5.rq	\
-query-eq2-1.rq query-eq2-2.rq query-eq2-graph-1.rq \
-query-eq-graph-1.rq query-eq-graph-2.rq query-eq-graph-3.rq	\
-query-eq-graph-4.rq query-eq-graph-5.rq
-
-EXPECTED_SPARQL_CORRECT= \
-  "Equality 1-1" \
-  "Equality 1-2" \
-  "Equality 1-3" \
-  "Equality 1-4" \
-  "Equality 1-5" \
-  "Equality - 2 var - test equals" \
-  "Equality 1-3 -- graph" \
-  "Equality 1-4 -- graph" \
-  "Equality 1-5 -- graph"
-
-EXPECTED_SPARQL_CORRECT_FAILURES= \
-  "Equality 1-1 -- graph" \
-  "Equality 1-2 -- graph" \
-  "Equality - 2 var - test equals -- graph"
-
-SPARQL_RESULT_FILES= \
-result-eq-1.ttl result-eq-2.ttl result-eq-3.ttl result-eq-4.ttl	\
-result-eq-5.ttl \
-result-eq2-1.ttl result-eq2-2.ttl result-eq2-graph-1.ttl \
-result-eq-graph-1.ttl result-eq-graph-2.ttl \
-result-eq-graph-3.ttl result-eq-graph-4.ttl \
-result-eq-graph-5.ttl
-
+SPARQL_MANIFEST_FILES= manifest.n3 manifest-failures.n3
 
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES) \
-$(SPARQL_MODEL_FILES) \
-$(SPARQL_TEST_FILES) \
-$(SPARQL_RESULT_FILES)
+$(SPARQL_MANIFEST_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
@@ -82,7 +45,7 @@ check-local: build-roqet build-sparql-test-utils
 	@$(PYTHON) $(srcdir)/../../improve.py .
 
 get-testsuites-list:
-	@echo "sparql-lexer sparql-parser sparql-query"
+	@echo "sparql-lexer sparql-parser sparql-query sparql-query-failures"
 
 get-testsuite-sparql-lexer:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
@@ -90,7 +53,7 @@ get-testsuite-sparql-lexer:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_lexer_test {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_lexer_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql lexer of {query_file}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -100,7 +63,7 @@ get-testsuite-sparql-parser:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql parser of {query_file}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -110,7 +73,7 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--comment-template "sparql query {test_id}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -120,12 +83,13 @@ get-testsuite-sparql-query-failures:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type NegativeTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s $(srcdir) {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--comment-template "sparql query {test_id}" \
-		--manifest-file $(srcdir)/manifest.n3
+		--manifest-file $(srcdir)/manifest-failures.n3
 
 dist-hook:
 	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
-		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILES) \
+		--manifest-file $(srcdir)/manifest.n3 \
+		--manifest-file $(srcdir)/manifest-failures.n3 \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)

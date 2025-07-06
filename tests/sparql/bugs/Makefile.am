@@ -51,9 +51,9 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--comment-template "sparql query {test_id}" \
-		--manifest-file $(MANIFEST_FILE)
+		--manifest-file $(srcdir)/$(MANIFEST_FILE)
 
 dist-hook:
 	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \

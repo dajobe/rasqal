@@ -22,34 +22,8 @@
 
 SPARQL_MANIFEST_FILES= manifest.n3
 
-SPARQL_MODEL_FILES= \
-data-1.ttl data-2.ttl
-
-SPARQL_TEST_FILES= \
-query-bev-1.rq query-bev-2.rq query-bev-3.rq \
-query-bev-4.rq query-bev-5.rq query-bev-6.rq
-
-SPARQL_TEST_NAMES= \
-  "Test 'boolean effective value' - true" \
-  "Test 'boolean effective value' - false" \
-  "Test 'boolean effective value' - &&" \
-  "Test 'boolean effective value' - ||" \
-  "Test 'boolean effective value' - optional" \
-  "Test 'boolean effective value' - unknown types"
-
-EXPECTED_SPARQL_CORRECT= $(SPARQL_TEST_NAMES)
-
-EXPECTED_SPARQL_CORRECT_FAILURES=
-
-SPARQL_RESULT_FILES= \
-result-bev-1.ttl result-bev-2.ttl result-bev-3.ttl \
-result-bev-4.ttl result-bev-5.ttl result-bev-6.ttl
-
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES) \
-$(SPARQL_MODEL_FILES) \
-$(SPARQL_TEST_FILES) \
-$(SPARQL_RESULT_FILES)
+$(SPARQL_MANIFEST_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
@@ -79,7 +53,7 @@ get-testsuite-sparql-lexer:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_lexer_test {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_lexer_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql lexer of {query_file}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -89,7 +63,7 @@ get-testsuite-sparql-parser:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {srcdir}/{query_file}" \
+		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \
 		--comment-template "sparql parser of {query_file}" \
 		--manifest-file $(srcdir)/manifest.n3
 
@@ -99,7 +73,7 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON) $(srcdir)/../check_sparql.py -s {srcdir} {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--comment-template "sparql query {test_id}" \
 		--manifest-file $(srcdir)/manifest.n3
 

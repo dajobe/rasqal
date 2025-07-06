@@ -44,9 +44,16 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from rasqal_test_util import (
-    Namespaces, TestResult, TestType, TestConfig, 
-    find_tool, run_command, ManifestParser, 
-    SparqlTestError, ManifestParsingError, UtilityNotFoundError
+    Namespaces,
+    TestResult,
+    TestType,
+    TestConfig,
+    find_tool,
+    run_command,
+    ManifestParser,
+    SparqlTestError,
+    ManifestParsingError,
+    UtilityNotFoundError,
 )
 
 # Configure logging
@@ -71,12 +78,9 @@ def normalize_blank_nodes(text_output: str) -> str:
     return re.sub(r"blank \w+", "blank _", text_output)
 
 
-ROQET = find_tool('roqet')
-TO_NTRIPLES = find_tool('to-ntriples')
+ROQET = find_tool("roqet") or "roqet"
+TO_NTRIPLES = find_tool("to-ntriples") or "to-ntriples"
 DIFF_CMD = os.environ.get("DIFF") or "diff"
-
-
-
 
 
 # --- Constants and Enums ---
@@ -92,16 +96,12 @@ TO_NTRIPLES_ERR = Path("to_ntriples.err")
 NS = Namespaces()
 
 
-
-
-
-
-
-
 # --- Core Test Runner Functions ---
 
 
-def finalize_test_result(test_result_summary: Dict[str, Any], expect_status: TestResult):
+def finalize_test_result(
+    test_result_summary: Dict[str, Any], expect_status: TestResult
+):
     """
     Sets the final 'is_success' status based on the execution outcome and expected status.
     """
@@ -123,14 +123,22 @@ def _execute_roqet(config: TestConfig) -> Dict[str, Any]:
         roqet_args.extend(["-d", "debug"])  # Debug output for analysis
     roqet_args.extend(["-W", str(config.warning_level)])
 
-    for df in config.data_files:
+    # Only use non-None data files
+    for df in [d for d in config.data_files if d is not None]:
         roqet_args.extend(["-D", str(df)])
-    for ndf in config.named_data_files:
+    for ndf in [n for n in config.named_data_files if n is not None]:
         roqet_args.extend(["-G", str(ndf)])
 
     if not config.execute:
         roqet_args.append("-n")  # Don't execute query, just parse
-    roqet_args.append(str(config.test_file))
+
+    # Always pass the test file as a file:// URI if it is an absolute path
+    test_file_path = str(config.test_file)
+    if os.path.isabs(test_file_path):
+        test_file_uri = f"file://{test_file_path}"
+    else:
+        test_file_uri = test_file_path
+    roqet_args.append(test_file_uri)
 
     # Simplified logging of roqet arguments to avoid backslash/quoting issues
     logger.debug(f"Executing roqet: {' '.join(map(str, roqet_args))}")
@@ -231,7 +239,7 @@ def _process_actual_output(roqet_stdout_str: str) -> Dict[str, Any]:
 def find_manifest(srcdir: Path, explicit_manifest: Optional[Path]) -> Path:
     """
     Determines the manifest file path. If explicit_manifest is provided,
-    it's used. Otherwise, it searches for manifest.ttl or manifest.n3 in srcdir.
+    it's used. Otherwise, it searches for manifest files in srcdir.
     """
     if explicit_manifest:
         manifest_path = srcdir / explicit_manifest
@@ -241,12 +249,18 @@ def find_manifest(srcdir: Path, explicit_manifest: Optional[Path]) -> Path:
             )
         return manifest_path
     else:
-        for mf_name in ["manifest.ttl", "manifest.n3"]:
+        # Look for common manifest file names
+        for mf_name in [
+            "manifest.ttl",
+            "manifest.n3",
+            "manifest-good.n3",
+            "manifest-bad.n3",
+        ]:
             manifest_path = srcdir / mf_name
             if manifest_path.is_file():
                 return manifest_path
         raise ManifestParsingError(
-            f"No manifest file found in {srcdir}. Looked for manifest.ttl, manifest.n3"
+            f"No manifest file found in {srcdir}. Looked for manifest.ttl, manifest.n3, manifest-good.n3, manifest-bad.n3"
         )
 
 
@@ -275,7 +289,9 @@ def read_query_results_file(
         logger.debug(f"(read_query_results_file): Running {' '.join(cmd)}")
     try:
         process = run_command(
-            cmd, CURDIR, f"Error reading results file '{abs_result_file_path}' ({result_format_hint})"
+            cmd,
+            CURDIR,
+            f"Error reading results file '{abs_result_file_path}' ({result_format_hint})",
         )
         roqet_stderr_content = process.stderr
 
@@ -349,8 +365,8 @@ def read_rdf_graph_file(result_file_path: Path) -> Optional[str]:
         logger.debug(f"(read_rdf_graph_file): Running {' '.join(cmd)}")
     try:
         process = run_command(
-        cmd, CURDIR, f"Error running '{TO_NTRIPLES}' for {abs_result_file_path}"
-    )
+            cmd, CURDIR, f"Error running '{TO_NTRIPLES}' for {abs_result_file_path}"
+        )
         to_ntriples_stderr = process.stderr
 
         if process.returncode != 0 or (
@@ -478,7 +494,8 @@ def _compare_actual_vs_expected(
     else:
         diff_process = run_command(
             [DIFF_CMD, "-u", str(RESULT_OUT), str(ROQET_OUT)],
-            CURDIR, f"Error running diff for '{name}'",
+            CURDIR,
+            f"Error running diff for '{name}'",
         )
         DIFF_OUT.write_text(diff_process.stdout)
         comparison_rc = diff_process.returncode
@@ -590,7 +607,9 @@ def compare_rdf_graphs(
     cmd_list = [DIFF_CMD, "-u", abs_file1, abs_file2]
     logger.debug(f"Comparing graphs using system diff: {' '.join(cmd_list)}")
     try:
-        process = run_command(cmd_list, CURDIR, f"Error running system diff ('{DIFF_CMD}')")
+        process = run_command(
+            cmd_list, CURDIR, f"Error running system diff ('{DIFF_CMD}')"
+        )
         diff_output_path.write_text(process.stdout)
         return process.returncode
     except UtilityNotFoundError as e:
@@ -606,7 +625,9 @@ def compare_rdf_graphs(
 def get_rasqal_version() -> str:
     """Retrieves the roqet (Rasqal) version string."""
     try:
-        return run_command([ROQET, "-v"], CURDIR, "Could not get roqet version").stdout.strip()
+        return run_command(
+            [ROQET, "-v"], CURDIR, "Could not get roqet version"
+        ).stdout.strip()
     except (UtilityNotFoundError, TestExecutionError) as e:
         logger.warning(f"Could not get roqet version: {e}")
         return "unknown"
@@ -809,19 +830,29 @@ def run_single_test(config: TestConfig, global_debug_level: int) -> Dict[str, An
                     logger.warning(
                         f"  Stderr:\n{roqet_execution_data['stderr'].strip()}"
                     )
-            logger.debug(f"Before finalize (roqet failed): config.expect={config.expect}, returncode={roqet_execution_data['returncode']}, is_success={test_result_summary['is_success']}")
+            logger.debug(
+                f"Before finalize (roqet failed): config.expect={config.expect}, returncode={roqet_execution_data['returncode']}, is_success={test_result_summary['is_success']}"
+            )
             finalize_test_result(test_result_summary, config.expect)
-            logger.debug(f"After finalize (roqet failed): is_success={test_result_summary['is_success']}")
+            logger.debug(
+                f"After finalize (roqet failed): is_success={test_result_summary['is_success']}"
+            )
             return test_result_summary
 
         # roqet command succeeded (exit code 0)
-        if config.expect == TestResult.FAILED:  # Roqet succeeded, but was expected to fail
+        if (
+            config.expect == TestResult.FAILED
+        ):  # Roqet succeeded, but was expected to fail
             logger.warning(
                 f"Test '{config.name}': FAILED (roqet succeeded, but was expected to fail)"
             )
-            logger.debug(f"Before finalize (roqet succeeded, expected fail): config.expect={config.expect}, returncode={roqet_execution_data['returncode']}, is_success={test_result_summary['is_success']}")
+            logger.debug(
+                f"Before finalize (roqet succeeded, expected fail): config.expect={config.expect}, returncode={roqet_execution_data['returncode']}, is_success={test_result_summary['is_success']}"
+            )
             finalize_test_result(test_result_summary, config.expect)
-            logger.debug(f"After finalize (roqet succeeded, expected fail): is_success={test_result_summary['is_success']}")
+            logger.debug(
+                f"After finalize (roqet succeeded, expected fail): is_success={test_result_summary['is_success']}"
+            )
             return test_result_summary
 
         # Roqet succeeded and was expected to pass (or it's an eval test needing further checks)
@@ -832,8 +863,9 @@ def run_single_test(config: TestConfig, global_debug_level: int) -> Dict[str, An
                 )
                 test_result_summary["result"] = "failure"  # Mark execution as failed
             else:
-                diff_process = _run_command(
+                diff_process = run_command(
                     [DIFF_CMD, "-u", str(ROQET_TMP), str(config.result_file)],
+                    CURDIR,
                     f"Error comparing CSV output for '{config.name}'",
                 )
                 if diff_process.returncode != 0:
@@ -856,7 +888,9 @@ def run_single_test(config: TestConfig, global_debug_level: int) -> Dict[str, An
         if not config.execute:  # Syntax test (positive or negative)
             if config.expect == TestResult.FAILED:
                 # Negative syntax test - roqet should have failed
-                logger.warning(f"Test '{config.name}': FAILED (negative syntax test, but roqet succeeded)")
+                logger.warning(
+                    f"Test '{config.name}': FAILED (negative syntax test, but roqet succeeded)"
+                )
                 test_result_summary["result"] = "failure"
             else:
                 # Positive syntax test - roqet succeeded as expected
@@ -979,16 +1013,15 @@ def _initialize_logging(debug_level: int):
     logger.debug(f"Arguments parsed: debug={debug_level}")
 
 
-def _discover_and_filter_tests(args: argparse.Namespace) -> Tuple[List[TestConfig], ManifestParser]:
+def _discover_and_filter_tests(
+    args: argparse.Namespace,
+) -> Tuple[List[TestConfig], ManifestParser]:
     """Discovers tests from the manifest and applies filtering rules."""
     manifest_file_path = find_manifest(args.srcdir, args.manifest)
     logger.info(f"Using manifest file: {manifest_file_path}")
 
     try:
-        to_ntriples_cmd = find_tool('to-ntriples')
-        if not to_ntriples_cmd:
-            raise SparqlTestError("Could not find 'to-ntriples' utility.")
-        parser = ManifestParser(manifest_file_path, to_ntriples_cmd)
+        parser = ManifestParser(manifest_file_path)
         tests = parser.get_tests(args.srcdir, args.test)
     except (ManifestParsingError, SparqlTestError) as e:
         logger.critical(f"Failed to parse manifest: {e}")

@@ -22,12 +22,7 @@ ALGEBRA_MANIFEST_FILE= manifest.ttl
 
 local_tests=convert_graph_pattern$(EXEEXT)
 
-ALGEBRA_TEST_FILES=test-01.rq test-02.rq test-03.rq test-04.rq test-05.rq \
-test-06.rq test-07.rq test-08.rq test-09.rq
-ALGEBRA_RESULT_FILES=$(ALGEBRA_TEST_FILES:.rq=.out)
-
-EXTRA_DIST= $(ALGEBRA_TEST_FILES) $(ALGEBRA_RESULT_FILES) \
-check_algebra.py $(ALGEBRA_MANIFEST_FILE)
+EXTRA_DIST= check_algebra.py $(ALGEBRA_MANIFEST_FILE)
 
 EXTRA_PROGRAMS=$(local_tests)
 
@@ -57,9 +52,9 @@ get-testsuite-sparql-algebra:
 		--builddir $(top_builddir) \
 		--test-category generic \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(srcdir)/check_algebra.py {query_file} $(BASE_URI){query_file}" \
+		--action-template "$(PYTHON3) $(srcdir)/check_algebra.py $(srcdir)/{query_file} $(BASE_URI)" \
 		--comment-template "SPARQL algebra {query_file}" \
-		--manifest-file $(srcdir)/$(ALGEBRA_MANIFEST_FILE)
+		--manifest-file $(top_srcdir)/tests/algebra/$(ALGEBRA_MANIFEST_FILE)
 
 dist-hook:
 	$(PYTHON3) $(srcdir)/../sparql/package_sparql_tests.py \
