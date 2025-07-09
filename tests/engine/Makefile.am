@@ -33,7 +33,8 @@ AM_CPPFLAGS=@RASQAL_INTERNAL_CPPFLAGS@ -I$(top_srcdir)/src
 AM_CFLAGS=@RASQAL_INTERNAL_CPPFLAGS@ $(MEM)
 AM_LDFLAGS=@RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
-CLEANFILES=$(local_tests)
+CLEANFILES=$(local_tests) \
+	engine-plan.ttl engine-limit-plan.ttl
 
 rasqal_order_test_SOURCES = rasqal_order_test.c
 rasqal_order_test_LDADD = $(top_builddir)/src/librasqal.la
@@ -73,7 +74,7 @@ get-testsuite-engine:
 		--builddir $(top_builddir) \
 		--test-category engine \
 		--test-type PositiveTest \
-		--action-template "{abs_executable} {abs_srcdir}/../../data/" \
+		--action-template "{builddir}/tests/engine/{test_id} {abs_srcdir}/../../data/" \
 		--comment-template "engine test {test_id}" \
 		--manifest-file $(top_srcdir)/tests/engine/$(MANIFEST_FILE)
 
@@ -84,7 +85,7 @@ get-testsuite-engine-limit:
 		--builddir $(top_builddir) \
 		--test-category engine \
 		--test-type PositiveTest \
-		--action-template "{abs_executable} {abs_srcdir}/../../data/{data_file}" \
+		--action-template "{builddir}/tests/engine/{test_id} {abs_srcdir}/../../data/{data_file}" \
 		--test-data-file-map "rasqal_limit_test:letters.nt" \
 		--comment-template "engine limit test {test_id}" \
 		--manifest-file $(top_srcdir)/tests/engine/manifest-limit.ttl

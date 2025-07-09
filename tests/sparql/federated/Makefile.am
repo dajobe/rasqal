@@ -31,17 +31,15 @@ check-local: build-sparql-parser-test
 	@$(PYTHON) $(srcdir)/../../improve.py .
 
 get-testsuites-list:
-	@echo "sparql-parse-good"
+	@echo "sparql-parser-positive"
 
-get-testsuite-sparql-parse-good:
+get-testsuite-sparql-parser-positive:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
-		--suite-name sparql-parse-good \
+		--suite-name sparql-parser-positive \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \
-		--comment-template "sparql parsing of {query_file}" \
-		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
 
 dist-hook:
 	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \

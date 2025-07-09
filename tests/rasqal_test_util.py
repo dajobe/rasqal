@@ -26,13 +26,209 @@ import logging
 import shutil
 from enum import Enum
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Union
 
 import re
 from dataclasses import dataclass, field
 import argparse
 
+# Add the parent directory to the Python path to find rasqal_test_util
+sys.path.append(str(Path(__file__).resolve().parent))
+
 logger = logging.getLogger(__name__)
+
+# --- Test Suite Configuration System ---
+
+
+class TestExecutionMode(Enum):
+    """Different modes for test execution based on what's being tested."""
+
+    LEXER_ONLY = "lexer-only"  # Only lexical analysis
+    PARSER_ONLY = "parser-only"  # Syntax parsing only
+    FULL_EXECUTION = "full-execution"  # Complete query execution
+
+
+@dataclass
+class TestSuiteConfig:
+    """Configuration for a test suite defining its behavior."""
+
+    name: str
+    execution_mode: TestExecutionMode
+    test_id_predicate: str  # Which predicate to use for test IDs
+    supports_negative_tests: bool = True
+    supports_execution: bool = True
+    comment_template: Optional[str] = (
+        None  # Custom template override, None for defaults
+    )
+
+    def get_test_id_predicate(self) -> str:
+        """Get the RDF predicate to use for extracting test IDs."""
+        return self.test_id_predicate
+
+
+# Define known test suites
+KNOWN_TEST_SUITES = {
+    # SPARQL Lexer tests (lexical analysis only)
+    "sparql-lexer": TestSuiteConfig(
+        name="sparql-lexer",
+        execution_mode=TestExecutionMode.LEXER_ONLY,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-query#query>",
+        supports_negative_tests=False,
+        supports_execution=False,
+    ),
+    # SPARQL Parser tests (syntax parsing only)
+    "sparql-parser": TestSuiteConfig(
+        name="sparql-parser",
+        execution_mode=TestExecutionMode.PARSER_ONLY,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-query#query>",
+        supports_negative_tests=True,
+        supports_execution=False,
+    ),
+    "sparql-parser-positive": TestSuiteConfig(
+        name="sparql-parser-positive",
+        execution_mode=TestExecutionMode.PARSER_ONLY,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=False,
+        supports_execution=False,
+    ),
+    "sparql-parser-negative": TestSuiteConfig(
+        name="sparql-parser-negative",
+        execution_mode=TestExecutionMode.PARSER_ONLY,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=True,
+        supports_execution=False,
+    ),
+    "sparql-bad-syntax": TestSuiteConfig(
+        name="sparql-bad-syntax",
+        execution_mode=TestExecutionMode.PARSER_ONLY,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=True,
+        supports_execution=False,
+    ),
+    # SPARQL Query execution tests (full execution)
+    "sparql-query": TestSuiteConfig(
+        name="sparql-query",
+        execution_mode=TestExecutionMode.FULL_EXECUTION,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=True,
+        supports_execution=True,
+    ),
+    "sparql-query-negative": TestSuiteConfig(
+        name="sparql-query-negative",
+        execution_mode=TestExecutionMode.FULL_EXECUTION,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=True,
+        supports_execution=True,
+    ),
+    "sparql-algebra": TestSuiteConfig(
+        name="sparql-algebra",
+        execution_mode=TestExecutionMode.FULL_EXECUTION,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=True,
+        supports_execution=True,
+    ),
+    # SPARQL Warning tests
+    "sparql-warnings": TestSuiteConfig(
+        name="sparql-warnings",
+        execution_mode=TestExecutionMode.FULL_EXECUTION,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=False,
+        supports_execution=True,
+    ),
+    # LAQRS tests (Language for Advanced Querying of RDF Streams)
+    "laqrs-parser-positive": TestSuiteConfig(
+        name="laqrs-parser-positive",
+        execution_mode=TestExecutionMode.PARSER_ONLY,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=False,
+        supports_execution=False,
+    ),
+    "laqrs-parser-negative": TestSuiteConfig(
+        name="laqrs-parser-negative",
+        execution_mode=TestExecutionMode.PARSER_ONLY,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=True,
+        supports_execution=False,
+    ),
+    # Engine tests (C executable tests)
+    "engine": TestSuiteConfig(
+        name="engine",
+        execution_mode=TestExecutionMode.FULL_EXECUTION,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=False,
+        supports_execution=True,
+    ),
+    "engine-limit": TestSuiteConfig(
+        name="engine-limit",
+        execution_mode=TestExecutionMode.FULL_EXECUTION,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=False,
+        supports_execution=True,
+    ),
+}
+
+
+def get_test_suite_config(suite_name: str) -> TestSuiteConfig:
+    """Get configuration for a test suite by name."""
+    if suite_name not in KNOWN_TEST_SUITES:
+        # Default to full execution for unknown suites
+        return TestSuiteConfig(
+            name=suite_name,
+            execution_mode=TestExecutionMode.FULL_EXECUTION,
+            test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+            supports_negative_tests=True,
+            supports_execution=True,
+        )
+    return KNOWN_TEST_SUITES[suite_name]
+
+
+def get_available_test_suites() -> List[str]:
+    """Get list of available test suite names."""
+    return list(KNOWN_TEST_SUITES.keys())
+
+
+def validate_test_suite_name(suite_name: str) -> bool:
+    """Validate if a test suite name is known."""
+    return suite_name in KNOWN_TEST_SUITES
+
+
+def get_default_comment_template(suite_name: str) -> str:
+    """Generate a default comment template based on suite name and configuration."""
+    config = get_test_suite_config(suite_name)
+    parts = suite_name.split("-")
+    language = parts[0]  # sparql, laqrs, engine
+    test_type = parts[1] if len(parts) > 1 else ""
+    mode = parts[2] if len(parts) > 2 else ""
+
+    if language == "engine":
+        if test_type == "limit":
+            return "engine limit test {test_id}"
+        return "engine test {test_id}"
+    elif test_type == "warnings":
+        return f"{language} warning {{test_id}}"
+    elif test_type == "lexer":
+        return f"{language} lexer of {{query_file}}"
+    elif test_type == "parser":
+        if mode == "negative":
+            return f"{language} failing to parse of {{query_file}}"
+        else:
+            return f"{language} parser of {{query_file}}"
+    elif test_type == "query":
+        return f"{language} query {{test_id}}"
+    else:
+        return f"{language} {test_type} {{test_id}}"
+
+
+def get_comment_template(suite_name: str, custom_template: Optional[str] = None) -> str:
+    """Get the comment template for a test suite, using custom override or default."""
+    if custom_template:
+        return custom_template
+
+    config = get_test_suite_config(suite_name)
+    if config.comment_template:
+        return config.comment_template
+
+    return get_default_comment_template(suite_name)
 
 
 # --- Custom Exceptions ---
@@ -137,6 +333,54 @@ class TestConfig:
     result_file: Optional[Path] = None
     extra_files: List[Path] = field(default_factory=list)
     warning_level: int = 0
+
+    def should_run_test(self, approved_only: bool = False) -> bool:
+        """
+        Determines if this test should be run based on filtering criteria.
+
+        Args:
+            approved_only: If True, only run tests explicitly marked as approved
+
+        Returns:
+            True if the test should be run, False if it should be skipped
+        """
+        if self.is_withdrawn:
+            return False
+        if approved_only and not self.is_approved:
+            return False
+        if self.has_entailment_regime:
+            return False
+        if self.test_type in [
+            TestType.UPDATE_EVALUATION_TEST.value,
+            f"{Namespaces.MF}UpdateEvaluationTest",
+            TestType.PROTOCOL_TEST.value,
+        ]:
+            return False
+        return True
+
+    def get_skip_reason(self, approved_only: bool = False) -> Optional[str]:
+        """
+        Gets the reason why this test would be skipped.
+
+        Args:
+            approved_only: If True, check approved-only filtering
+
+        Returns:
+            Reason string if test would be skipped, None if it would run
+        """
+        if self.is_withdrawn:
+            return "withdrawn"
+        if approved_only and not self.is_approved:
+            return "not approved"
+        if self.has_entailment_regime:
+            return "has entailment regime"
+        if self.test_type in [
+            TestType.UPDATE_EVALUATION_TEST.value,
+            f"{Namespaces.MF}UpdateEvaluationTest",
+            TestType.PROTOCOL_TEST.value,
+        ]:
+            return "unsupported test type"
+        return None
 
 
 # --- Utility Functions ---
@@ -274,6 +518,250 @@ def decode_literal(lit_str: str) -> str:
     val = val.replace("\\t", "\t")
     val = val.replace("\\\\", "\\")  # Unescape escaped backslashes last
     return val
+
+
+def escape_turtle_literal(s: str) -> str:
+    """Escapes a string for use as a triple-quoted Turtle literal.
+    Handles backslashes, triple double quotes, and control characters (\n, \r, \t).
+    """
+    # Escape backslashes first
+    s = s.replace("\\", "\\\\")
+    # Handle triple quotes by replacing with escaped double quotes
+    s = s.replace('"""', '\\"\\"\\"')
+    if s.endswith('"'):  # avoid """{escaped ending with "}"""
+        s = s[:-1] + '\\"'
+    # Escape newlines, carriage returns, and tabs
+    s = s.replace("\n", "\\n")
+    s = s.replace("\r", "\\r")
+    s = s.replace("\t", "\\t")
+    return s
+
+
+class ManifestTripleExtractor:
+    """Helper class for extracting values from RDF triples."""
+
+    def __init__(self, triples_by_subject: Dict[str, List[Dict[str, Any]]]):
+        self.triples_by_subject = triples_by_subject
+
+    def get_obj_val(self, subj: str, pred: str) -> Optional[str]:
+        """Get a single object value for a subject-predicate pair."""
+        return next(
+            (
+                t["o_full"]
+                for t in self.triples_by_subject.get(subj, [])
+                if t["p"] == pred
+            ),
+            None,
+        )
+
+    def get_obj_vals(self, subj: str, pred: str) -> List[str]:
+        """Get all object values for a subject-predicate pair."""
+        return [
+            t["o_full"] for t in self.triples_by_subject.get(subj, []) if t["p"] == pred
+        ]
+
+    def unquote(self, val: Optional[str]) -> str:
+        """Unquote a URI or literal value."""
+        if not val:
+            return ""
+        if val.startswith("<") and val.endswith(">"):
+            return val[1:-1]
+        if val.startswith('"'):
+            return decode_literal(val)
+        return val
+
+
+class PathResolver:
+    """Helper class for resolving URIs to file paths."""
+
+    def __init__(self, srcdir: Path, extractor: ManifestTripleExtractor):
+        self.srcdir = srcdir
+        self.extractor = extractor
+
+    def resolve_path(self, uri_val: Optional[str]) -> Optional[Path]:
+        """Resolve a URI to a file path."""
+        if not uri_val:
+            return None
+        ps = self.extractor.unquote(uri_val)
+        if ps.startswith("file:///"):
+            p = Path(ps[len("file://") :])
+        elif ps.startswith("file:/"):
+            p = Path(ps[len("file:") :])
+        else:
+            p = Path(ps)
+        return p.resolve() if p.is_absolute() else (self.srcdir / p).resolve()
+
+    def resolve_paths(self, uri_vals: List[str]) -> List[Path]:
+        """Resolve multiple URIs to file paths, filtering out None values."""
+        return [
+            p
+            for p in [self.resolve_path(uri_val) for uri_val in uri_vals]
+            if p is not None
+        ]
+
+
+class TestTypeResolver:
+    """Helper class for determining test types and behavior."""
+
+    @staticmethod
+    def resolve_test_behavior(query_type: str) -> Tuple[bool, TestResult, str]:
+        """
+        Determine test execution behavior based on test type.
+
+        Returns:
+            Tuple of (execute, expect, language)
+        """
+        if not query_type:
+            return True, TestResult.PASSED, "sparql"
+
+        # Positive syntax tests
+        if query_type in [
+            TestType.POSITIVE_SYNTAX_TEST.value,
+            TestType.POSITIVE_SYNTAX_TEST_11.value,
+        ]:
+            lang = "sparql11" if "11" in query_type else "sparql"
+            return False, TestResult.PASSED, lang
+
+        # Negative syntax tests
+        elif query_type in [
+            TestType.NEGATIVE_SYNTAX_TEST.value,
+            TestType.NEGATIVE_SYNTAX_TEST_11.value,
+            TestType.BAD_SYNTAX_TEST.value,
+        ]:
+            lang = "sparql11" if "11" in query_type else "sparql"
+            return False, TestResult.FAILED, lang
+
+        # Generic syntax tests
+        elif query_type == TestType.TEST_SYNTAX.value:
+            return False, TestResult.PASSED, "sparql"
+
+        # Skip unsupported test types
+        elif query_type in [
+            TestType.UPDATE_EVALUATION_TEST.value,
+            TestType.PROTOCOL_TEST.value,
+        ]:
+            return False, TestResult.SKIPPED, "sparql"
+
+        # Default: execute normally
+        return True, TestResult.PASSED, "sparql"
+
+    @staticmethod
+    def should_skip_test_type(query_type: str) -> bool:
+        """Check if a test type should be skipped entirely."""
+        return query_type in [
+            TestType.UPDATE_EVALUATION_TEST.value,
+            TestType.PROTOCOL_TEST.value,
+        ]
+
+    @staticmethod
+    def classify_test_type(type_uri: str, suite_name: str, default_type: str) -> str:
+        """
+        Determine the test type based on the type URI and suite name.
+
+        Args:
+            type_uri: The RDF type URI from the manifest
+            suite_name: Name of the test suite
+            default_type: Default test type to return if no specific classification
+
+        Returns:
+            Classified test type string
+        """
+        suite_config = get_test_suite_config(suite_name)
+
+        if "TestBadSyntax" in type_uri or "TestNegativeSyntax" in type_uri:
+            if suite_config.supports_negative_tests:
+                return "NegativeTest"
+            else:
+                return "PositiveTest"  # Skip negative tests for unsupported modes
+        elif "XFailTest" in type_uri:
+            # Expected failure tests should be marked as XFailTest for all suites
+            return "XFailTest"
+        elif "TestSyntax" in type_uri:
+            return "PositiveTest"
+        else:
+            return default_type
+
+
+class TestConfigBuilder:
+    """Helper class for building TestConfig objects from manifest data."""
+
+    def __init__(self, extractor: ManifestTripleExtractor, path_resolver: PathResolver):
+        self.extractor = extractor
+        self.path_resolver = path_resolver
+
+    def build_test_config(
+        self,
+        entry_uri_full: str,
+        action_node: str,
+        query_node: str,
+        test_file: Path,
+        execute: bool,
+        expect: TestResult,
+        language: str,
+        query_type: str,
+    ) -> TestConfig:
+        """Build a TestConfig object from parsed manifest data."""
+
+        # Extract basic metadata
+        name = self.extractor.unquote(
+            self.extractor.get_obj_val(entry_uri_full, f"<{Namespaces.MF}name>")
+        )
+
+        # Extract file lists
+        data_files = self.path_resolver.resolve_paths(
+            self.extractor.get_obj_vals(action_node, f"<{Namespaces.QT}data>")
+        )
+        named_data_files = self.path_resolver.resolve_paths(
+            self.extractor.get_obj_vals(action_node, f"<{Namespaces.QT}graphData>")
+        )
+        extra_files = self.path_resolver.resolve_paths(
+            self.extractor.get_obj_vals(entry_uri_full, f"<{Namespaces.T}extraFile>")
+        )
+
+        # Extract result file
+        result_file = self.path_resolver.resolve_path(
+            self.extractor.get_obj_val(entry_uri_full, f"<{Namespaces.MF}result>")
+        )
+
+        # Extract approval status
+        approval = self.extractor.unquote(
+            self.extractor.get_obj_val(entry_uri_full, f"<{Namespaces.DAWGT}approval>")
+        )
+        is_withdrawn = approval == f"{Namespaces.DAWGT}Withdrawn"
+        is_approved = approval == f"{Namespaces.DAWGT}Approved"
+
+        # Extract cardinality mode
+        cardinality = self.extractor.unquote(
+            self.extractor.get_obj_val(
+                entry_uri_full, f"<{Namespaces.MF}resultCardinality>"
+            )
+        )
+        cardinality_mode = (
+            "lax" if cardinality == f"{Namespaces.MF}LaxCardinality" else "strict"
+        )
+
+        # Extract entailment regime
+        has_entailment_regime = bool(
+            self.extractor.get_obj_val(action_node, f"<{Namespaces.T}entailmentRegime>")
+        )
+
+        return TestConfig(
+            name=name,
+            test_uri=self.extractor.unquote(entry_uri_full),
+            test_file=test_file,
+            data_files=data_files,
+            named_data_files=named_data_files,
+            result_file=result_file,
+            extra_files=extra_files,
+            expect=expect,
+            test_type=query_type,
+            execute=execute,
+            language=language,
+            cardinality_mode=cardinality_mode,
+            is_withdrawn=is_withdrawn,
+            is_approved=is_approved,
+            has_entailment_regime=has_entailment_regime,
+        )
 
 
 class ManifestParser:
@@ -418,173 +906,77 @@ class ManifestParser:
         logger = logging.getLogger(__name__)
         tests: List[TestConfig] = []
 
-        # Helper functions for parsing
-        def get_obj_val(subj: str, pred: str) -> Optional[str]:
-            return next(
-                (
-                    t["o_full"]
-                    for t in self.triples_by_subject.get(subj, [])
-                    if t["p"] == pred
-                ),
-                None,
-            )
-
-        def get_obj_vals(subj: str, pred: str) -> List[str]:
-            return [
-                t["o_full"]
-                for t in self.triples_by_subject.get(subj, [])
-                if t["p"] == pred
-            ]
-
-        def unquote(val: Optional[str]) -> str:
-            if not val:
-                return ""
-            if val.startswith("<") and val.endswith(">"):
-                return val[1:-1]
-            if val.startswith('"'):
-                return decode_literal(val)
-            return val
-
-        def rpv(uri_val: Optional[str], base: Path) -> Optional[Path]:
-            if not uri_val:
-                return None
-            ps = unquote(uri_val)
-            if ps.startswith("file:///"):
-                p = Path(ps[len("file://") :])
-            elif ps.startswith("file:/"):
-                p = Path(ps[len("file:") :])
-            else:
-                p = Path(ps)
-            return p.resolve() if p.is_absolute() else (base / p).resolve()
+        # Create helper instances
+        extractor = ManifestTripleExtractor(self.triples_by_subject)
+        path_resolver = PathResolver(srcdir, extractor)
+        config_builder = TestConfigBuilder(extractor, path_resolver)
 
         # Find the manifest node and iterate over entries
-        manifest_node_uri = None
-        for s, triples in self.triples_by_subject.items():
-            if any(t["p"] == f"<{Namespaces.MF}entries>" for t in triples):
-                manifest_node_uri = s
-                break
-
-        if not manifest_node_uri:
-            raise ManifestParsingError("No mf:entries property found in manifest.")
+        manifest_node_uri = self.find_manifest_node()
 
         # Iterate over manifest entries
         for entry_uri_full in self.iter_manifest_entries(manifest_node_uri):
-            name = unquote(get_obj_val(entry_uri_full, f"<{Namespaces.MF}name>"))
-            action_node = get_obj_val(entry_uri_full, f"<{Namespaces.MF}action>")
-            query_type_full = get_obj_val(entry_uri_full, f"<{Namespaces.RDF}type>")
-            query_type = unquote(query_type_full)
-
+            # Extract basic entry information
+            action_node = extractor.get_obj_val(
+                entry_uri_full, f"<{Namespaces.MF}action>"
+            )
             if not action_node:
                 continue
 
-            expect, execute, lang = TestResult.PASSED, True, "sparql"
-            query_node = get_obj_val(action_node, f"<{Namespaces.QT}query>")
+            query_type = extractor.unquote(
+                extractor.get_obj_val(entry_uri_full, f"<{Namespaces.RDF}type>")
+            )
 
-            if query_type:
-                if query_type in [
-                    TestType.POSITIVE_SYNTAX_TEST.value,
-                    TestType.POSITIVE_SYNTAX_TEST_11.value,
-                ]:
-                    query_node, execute = action_node, False
-                    if "11" in query_type:
-                        lang = "sparql11"
-                elif query_type in [
-                    TestType.NEGATIVE_SYNTAX_TEST.value,
-                    TestType.NEGATIVE_SYNTAX_TEST_11.value,
-                    TestType.BAD_SYNTAX_TEST.value,
-                ]:
-                    query_node, execute, expect = action_node, False, TestResult.FAILED
-                    if "11" in query_type:
-                        lang = "sparql11"
-                elif query_type == TestType.TEST_SYNTAX.value:
-                    query_node, execute = action_node, False
-                elif query_type in [
-                    TestType.UPDATE_EVALUATION_TEST.value,
-                    TestType.PROTOCOL_TEST.value,
-                ]:
+            # Skip unsupported test types
+            if TestTypeResolver.should_skip_test_type(query_type):
+                continue
+
+            # Determine test behavior and query node
+            execute, expect, language = TestTypeResolver.resolve_test_behavior(
+                query_type
+            )
+
+            # For syntax tests, the action node is the query node
+            if not execute:
+                query_node = action_node
+            else:
+                query_node = extractor.get_obj_val(
+                    action_node, f"<{Namespaces.QT}query>"
+                )
+                if not query_node:
                     continue
 
-            if not query_node:
-                continue
-
-            # Filter out None values for paths
-            test_file = rpv(query_node, srcdir)
+            # Resolve test file path
+            test_file = path_resolver.resolve_path(query_node)
             if test_file is None:
+                logger.warning(f"Could not resolve test file for {entry_uri_full}")
                 continue
 
-            data_files = [
-                p
-                for p in [
-                    rpv(df, srcdir)
-                    for df in get_obj_vals(action_node, f"<{Namespaces.QT}data>")
-                ]
-                if p is not None
-            ]
-            named_data_files = [
-                p
-                for p in [
-                    rpv(ndf, srcdir)
-                    for ndf in get_obj_vals(action_node, f"<{Namespaces.QT}graphData>")
-                ]
-                if p is not None
-            ]
-
-            # Extract extra files from t:extraFile predicate
-            extra_files = [
-                p
-                for p in [
-                    rpv(ef, srcdir)
-                    for ef in get_obj_vals(entry_uri_full, f"<{Namespaces.T}extraFile>")
-                ]
-                if p is not None
-            ]
-
-            config = TestConfig(
-                name=name,
-                test_uri=unquote(entry_uri_full),
-                test_file=test_file,
-                data_files=data_files,
-                named_data_files=named_data_files,
-                result_file=rpv(
-                    get_obj_val(entry_uri_full, f"<{Namespaces.MF}result>"), srcdir
-                ),
-                extra_files=extra_files,
-                expect=expect,
-                test_type=query_type,
-                execute=execute,
-                language=lang,
-                cardinality_mode=(
-                    "lax"
-                    if unquote(
-                        get_obj_val(
-                            entry_uri_full, f"<{Namespaces.MF}resultCardinality>"
-                        )
-                    )
-                    == f"{Namespaces.MF}LaxCardinality"
-                    else "strict"
-                ),
-                is_withdrawn=unquote(
-                    get_obj_val(entry_uri_full, f"<{Namespaces.DAWGT}approval>")
-                )
-                == f"{Namespaces.DAWGT}Withdrawn",
-                is_approved=unquote(
-                    get_obj_val(entry_uri_full, f"<{Namespaces.DAWGT}approval>")
-                )
-                == f"{Namespaces.DAWGT}Approved",
-                has_entailment_regime=bool(
-                    get_obj_val(action_node, f"<{Namespaces.T}entailmentRegime>")
-                ),
+            # Build the test config
+            config = config_builder.build_test_config(
+                entry_uri_full,
+                action_node,
+                query_node,
+                test_file,
+                execute,
+                expect,
+                language,
+                query_type,
             )
+
             logger.debug(
                 f"Test config created: name={config.name}, expect={config.expect.value}, test_type={config.test_type}"
             )
 
+            # Apply filtering
             if not unique_test_filter or (
-                name == unique_test_filter or unique_test_filter in config.test_uri
+                config.name == unique_test_filter
+                or unique_test_filter in config.test_uri
             ):
                 tests.append(config)
                 if unique_test_filter and (
-                    name == unique_test_filter or unique_test_filter in config.test_uri
+                    config.name == unique_test_filter
+                    or unique_test_filter in config.test_uri
                 ):
                     break
 
@@ -613,25 +1005,33 @@ class ManifestParser:
             logger.warning("No main manifest node found.")
             return []
 
+        # Get suite configuration
+        suite_config = get_test_suite_config(suite_name)
+        predicate = suite_config.get_test_id_predicate()
+        logger.debug(f"Using predicate '{predicate}' for suite '{suite_name}'")
+
         # Iterate over manifest entries
         for entry_node_full in self.iter_manifest_entries(manifest_node_uri):
             entry_triples = self.triples_by_subject.get(entry_node_full, [])
 
-            if suite_name in ["sparql-lexer", "sparql-parser"]:
-                predicate = f"<{Namespaces.QT}query>"
-                for triple in entry_triples:
-                    if triple["p"] == predicate:
-                        test_id = triple["o_full"][1:-1]  # Extract URI from <...>
-                        test_ids.add(test_id)
-                        logger.debug(f"    Found lexer/parser test ID: {test_id}")
-            else:  # sparql-query
-                predicate = f"<{Namespaces.MF}name>"
-                for triple in entry_triples:
-                    if triple["p"] == predicate:
-                        # Use decode_literal for literals
+            for triple in entry_triples:
+                if triple["p"] == predicate:
+                    if suite_config.execution_mode in [
+                        TestExecutionMode.LEXER_ONLY,
+                        TestExecutionMode.PARSER_ONLY,
+                    ]:
+                        # For lexer/parser tests, extract URI from <...>
+                        test_id = triple["o_full"][1:-1]
+                        logger.debug(
+                            f"    Found {suite_config.execution_mode.value} test ID: {test_id}"
+                        )
+                    else:
+                        # For execution tests, use decode_literal for literals
                         test_id = decode_literal(triple["o_full"])
-                        test_ids.add(test_id)
-                        logger.debug(f"    Found query test ID: {test_id}")
+                        logger.debug(
+                            f"    Found {suite_config.execution_mode.value} test ID: {test_id}"
+                        )
+                    test_ids.add(test_id)
 
         logger.debug(f"Final extracted test_ids: {sorted(list(test_ids))}")
         return sorted(list(test_ids))

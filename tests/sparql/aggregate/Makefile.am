@@ -24,7 +24,9 @@ SPARQL_MANIFEST_FILES= manifest-good.n3 manifest-bad.n3
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES)
 
-CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
+CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out \
+	sparql-parser-positive-plan.ttl sparql-parser-negative-plan.ttl \
+	sparql-query-plan.ttl sparql-lexer-plan.ttl sparql-parser-plan.ttl
 
 build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
@@ -33,27 +35,23 @@ check-local: build-sparql-parser-test
 	@$(PYTHON) $(srcdir)/../../improve.py .
 
 get-testsuites-list:
-	@echo "sparql-parse-good sparql-parse-bad sparql-query sparql-lexer sparql-parser"
+	@echo "sparql-parser-positive sparql-parser-negative sparql-query sparql-lexer sparql-parser"
 
-get-testsuite-sparql-parse-good:
+get-testsuite-sparql-parser-positive:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
-		--suite-name sparql-parse-good \
+		--suite-name sparql-parser-positive \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \
-		--comment-template "sparql parsing of {query_file}" \
-		--manifest-file $(srcdir)/manifest-good.n3
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/manifest-good.n3
 
-get-testsuite-sparql-parse-bad:
+get-testsuite-sparql-parser-negative:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
-		--suite-name sparql-parse-bad \
+		--suite-name sparql-parser-negative \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type NegativeTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \
-		--comment-template "sparql failing to parse of {query_file}" \
-		--manifest-file $(srcdir)/manifest-bad.n3
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/manifest-bad.n3
 
 get-testsuite-sparql-query:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
@@ -61,9 +59,7 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
-		--comment-template "sparql query {test_id}" \
-		--manifest-file $(srcdir)/manifest-good.n3
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \		--manifest-file $(srcdir)/manifest-good.n3
 
 get-testsuite-sparql-lexer:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
@@ -71,9 +67,7 @@ get-testsuite-sparql-lexer:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_lexer_test {abs_srcdir}/{query_file}" \
-		--comment-template "sparql lexer of {query_file}" \
-		--manifest-file $(srcdir)/manifest-good.n3
+		--action-template "$(top_builddir)/src/sparql_lexer_test {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/manifest-good.n3
 
 get-testsuite-sparql-parser:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
@@ -81,9 +75,7 @@ get-testsuite-sparql-parser:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \
-		--comment-template "sparql parser of {query_file}" \
-		--manifest-file $(srcdir)/manifest-good.n3
+		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/manifest-good.n3
 
 dist-hook:
 	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \

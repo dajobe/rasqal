@@ -24,6 +24,8 @@ SPARQL_MANIFEST_FILES= manifest-good.ttl manifest-bad.ttl
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES)
 
+CLEANFILES=sparql-parser-positive-plan.ttl sparql-parser-negative-plan.ttl
+
 build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
 
@@ -31,27 +33,23 @@ check-local: build-sparql-parser-test
 	@$(PYTHON) $(srcdir)/../../improve.py .
 
 get-testsuites-list:
-	@echo "sparql-parse-good sparql-parse-bad"
+	@echo "sparql-parser-positive sparql-parser-negative"
 
-get-testsuite-sparql-parse-good:
+get-testsuite-sparql-parser-positive:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
-		--suite-name sparql-parse-good \
+		--suite-name sparql-parser-positive \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \
-		--comment-template "sparql parsing of {query_file}" \
-		--manifest-file $(srcdir)/manifest-good.ttl
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/manifest-good.ttl
 
-get-testsuite-sparql-parse-bad:
+get-testsuite-sparql-parser-negative:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
-		--suite-name sparql-parse-bad \
+		--suite-name sparql-parser-negative \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type NegativeTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \
-		--comment-template "sparql failing to parse of {query_file}" \
-		--manifest-file $(srcdir)/manifest-bad.ttl
+		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/manifest-bad.ttl
 
 dist-hook:
 	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \

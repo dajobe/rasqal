@@ -32,27 +32,23 @@ check-local: build-sparql-parser-test
 	@$(PYTHON) $(srcdir)/../../improve.py .
 
 get-testsuites-list:
-	@echo "laqrs-parse-good laqrs-parse-bad"
+	@echo "laqrs-parser-positive laqrs-parser-negative"
 
-get-testsuite-laqrs-parse-good:
+get-testsuite-laqrs-parser-positive:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../../sparql/generate_sparql_plan.py \
-		--suite-name laqrs-parse-good \
+		--suite-name laqrs-parser-positive \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i laqrs {abs_srcdir}/{query_file}" \
-		--comment-template "laqrs parsing of {query_file}" \
-		--manifest-file $(srcdir)/$(MANIFEST_FILE)
+		--action-template "$(top_builddir)/src/sparql_parser_test -i laqrs {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/$(MANIFEST_FILE)
 
-get-testsuite-laqrs-parse-bad:
+get-testsuite-laqrs-parser-negative:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../../sparql/generate_sparql_plan.py \
-		--suite-name laqrs-parse-bad \
+		--suite-name laqrs-parser-negative \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type NegativeTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test -i laqrs {abs_srcdir}/{query_file}" \
-		--comment-template "laqrs failing to parse of {query_file}" \
-		--manifest-file $(srcdir)/manifest-bad.ttl
+		--action-template "$(top_builddir)/src/sparql_parser_test -i laqrs {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/manifest-bad.ttl
 
 dist-hook:
 	$(PYTHON3) $(srcdir)/../../sparql/package_sparql_tests.py \

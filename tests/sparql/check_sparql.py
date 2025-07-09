@@ -85,6 +85,9 @@ DIFF_CMD = os.environ.get("DIFF") or "diff"
 
 # --- Constants and Enums ---
 
+# Global flag for file preservation
+_preserve_debug_files = False
+
 # Temporary file names (using Path for consistency)
 ROQET_OUT = Path("roqet.out")
 RESULT_OUT = Path("result.out")
@@ -149,9 +152,10 @@ def _execute_roqet(config: TestConfig) -> Dict[str, Any]:
     )
     elapsed_time = time.time() - start_time
 
-    # Save raw outputs to temp files for potential debugging
-    ROQET_TMP.write_text(process.stdout)
-    ROQET_ERR.write_text(process.stderr)
+    # Save raw outputs to temp files only if preserving files
+    if _preserve_debug_files:
+        ROQET_TMP.write_text(process.stdout)
+        ROQET_ERR.write_text(process.stderr)
 
     return {
         "stdout": process.stdout,
@@ -170,7 +174,7 @@ _projected_vars_order: List[str] = (
 def _process_actual_output(roqet_stdout_str: str) -> Dict[str, Any]:
     """
     Parses roqet's debug output to extract result type, variable order, and actual results.
-    Also writes a normalized version of the output to ROQET_OUT.
+    Also writes a normalized version of the output to ROQET_OUT if debug level >= 2.
     """
     global _projected_vars_order
     _projected_vars_order = []  # Reset for each new parse
@@ -226,7 +230,9 @@ def _process_actual_output(roqet_stdout_str: str) -> Dict[str, Any]:
         # For graphs, ensure uniqueness and consistent sorting of triples
         final_output_lines = sorted(list(set(processed_output_lines)))
 
-    ROQET_OUT.write_text("\n".join(final_output_lines) + "\n")
+    # Write to file only if preserving files
+    if _preserve_debug_files:
+        ROQET_OUT.write_text("\n".join(final_output_lines) + "\n")
 
     return {
         "result_type": result_type,
@@ -339,7 +345,9 @@ def read_query_results_file(
         if sort_output:
             parsed_rows_for_output.sort()
 
-        RESULT_OUT.write_text("\n".join(parsed_rows_for_output) + "\n")
+        # Write to file only if preserving files
+        if _preserve_debug_files:
+            RESULT_OUT.write_text("\n".join(parsed_rows_for_output) + "\n")
         return {"count": len(parsed_rows_for_output)}
 
     except UtilityNotFoundError as e:
@@ -426,7 +434,9 @@ def _compare_actual_vs_expected(
         expected_ntriples = read_rdf_graph_file(expected_result_file)
         if expected_ntriples is not None:  # Allow empty graph
             sorted_expected_triples = sorted(list(set(expected_ntriples.splitlines())))
-            RESULT_OUT.write_text("\n".join(sorted_expected_triples) + "\n")
+            # Write to file only if preserving files
+            if _preserve_debug_files:
+                RESULT_OUT.write_text("\n".join(sorted_expected_triples) + "\n")
         else:
             logger.warning(
                 f"Test '{name}': FAILED (could not read/parse expected graph result file {expected_result_file} or it's not explicitly empty)"
@@ -497,7 +507,9 @@ def _compare_actual_vs_expected(
             CURDIR,
             f"Error running diff for '{name}'",
         )
-        DIFF_OUT.write_text(diff_process.stdout)
+        # Write diff output only if preserving files
+        if _preserve_debug_files:
+            DIFF_OUT.write_text(diff_process.stdout)
         comparison_rc = diff_process.returncode
 
     if comparison_rc != 0:
@@ -551,9 +563,11 @@ def compare_rdf_graphs(
         logger.debug(f"Comparing graphs using NTC: {' '.join(cmd_list)}")
         try:
             process = run_command(cmd_list, CURDIR, "Error running NTC")
-            diff_output_path.write_text(
-                process.stdout + process.stderr
-            )  # NTC can write output to stdout/stderr
+            # Write diff output only if preserving files
+            if _preserve_debug_files:
+                diff_output_path.write_text(
+                    process.stdout + process.stderr
+                )  # NTC can write output to stdout/stderr
             if process.stderr:
                 logger.debug(f"NTC stderr: {process.stderr.strip()}")
             return process.returncode
@@ -586,9 +600,11 @@ def compare_rdf_graphs(
             )
             try:
                 process = run_command(cmd_list, CURDIR, "Error running Jena rdfcompare")
-                diff_output_path.write_text(
-                    process.stdout + process.stderr
-                )  # Jena writes to stdout/stderr
+                # Write diff output only if preserving files
+                if _preserve_debug_files:
+                    diff_output_path.write_text(
+                        process.stdout + process.stderr
+                    )  # Jena writes to stdout/stderr
                 if process.stderr:
                     logger.debug(f"Jena rdfcompare stderr: {process.stderr.strip()}")
                 if process.returncode != 0:
@@ -610,7 +626,9 @@ def compare_rdf_graphs(
         process = run_command(
             cmd_list, CURDIR, f"Error running system diff ('{DIFF_CMD}')"
         )
-        diff_output_path.write_text(process.stdout)
+        # Write diff output only if preserving files
+        if _preserve_debug_files:
+            diff_output_path.write_text(process.stdout)
         return process.returncode
     except UtilityNotFoundError as e:
         logger.error(e)
@@ -1005,78 +1023,86 @@ def _parse_arguments() -> argparse.Namespace:
     return args
 
 
-def _initialize_logging(debug_level: int):
+def _initialize_logging(debug_level: int, preserve_files: bool = False):
     """Sets the logging level based on debug argument."""
     if debug_level > 0:
         logger.setLevel(logging.DEBUG)
         logging.getLogger().setLevel(logging.DEBUG)  # Also set the root logger level
-    logger.debug(f"Arguments parsed: debug={debug_level}")
+
+    # Set a global flag for file preservation
+    global _preserve_debug_files
+    _preserve_debug_files = preserve_files or debug_level >= 2
+
+    logger.debug(
+        f"Arguments parsed: debug={debug_level}, preserve_files={_preserve_debug_files}"
+    )
 
 
 def _discover_and_filter_tests(
     args: argparse.Namespace,
-) -> Tuple[List[TestConfig], ManifestParser]:
-    """Discovers tests from the manifest and applies filtering rules."""
+) -> Tuple[List[TestConfig], List[TestConfig], ManifestParser]:
+    """Discovers all tests and returns both filtered and unfiltered lists."""
     manifest_file_path = find_manifest(args.srcdir, args.manifest)
     logger.info(f"Using manifest file: {manifest_file_path}")
 
     try:
         parser = ManifestParser(manifest_file_path)
-        tests = parser.get_tests(args.srcdir, args.test)
+        all_tests = parser.get_tests(args.srcdir, args.test)
     except (ManifestParsingError, SparqlTestError) as e:
         logger.critical(f"Failed to parse manifest: {e}")
         sys.exit(1)
 
-    if args.test and not tests:
+    if args.test and not all_tests:
         logger.error(f"Test '{args.test}' not found in manifest.")
         sys.exit(1)  # Critical early exit
-    if not tests:
+    if not all_tests:
         logger.info("No tests found or selected to run.")
         sys.exit(0)  # Critical early exit
 
-    # Apply initial filtering based on command line arguments
-    filtered_tests: List[TestConfig] = []
-    for test_config in tests:
-        if test_config.is_withdrawn:
+    # Apply filtering to get tests to run
+    tests_to_run = []
+    for test_config in all_tests:
+        if test_config.should_run_test(approved_only=args.approved):
+            tests_to_run.append(test_config)
+        else:
+            skip_reason = test_config.get_skip_reason(approved_only=args.approved)
             logger.debug(
-                f"Test '{test_config.name}' ({test_config.test_uri}) skipped: withdrawn"
+                f"Test '{test_config.name}' ({test_config.test_uri}) skipped: {skip_reason}"
             )
-            continue
-        if args.approved and not test_config.is_approved:
-            logger.debug(
-                f"Test '{test_config.name}' ({test_config.test_uri}) skipped: not approved"
-            )
-            continue
-        if test_config.has_entailment_regime:
-            logger.debug(
-                f"Test '{test_config.name}' ({test_config.test_uri}) skipped: has entailment regime"
-            )
-            continue
-        if test_config.test_type in [
-            TestType.UPDATE_EVALUATION_TEST.value,
-            NS.MF + "UpdateEvaluationTest",
-            TestType.PROTOCOL_TEST.value,
-        ]:
-            logger.debug(
-                f"Test '{test_config.name}' ({test_config.test_uri}) skipped: unsupported test type"
-            )
-            continue
-        filtered_tests.append(test_config)
-    return filtered_tests, parser
+
+    return tests_to_run, all_tests, parser
 
 
 def _run_all_tests(
-    tests_to_run: List[TestConfig], args: argparse.Namespace
+    tests_to_run: List[TestConfig],
+    all_tests: List[TestConfig],
+    args: argparse.Namespace,
 ) -> Tuple[
     List[TestConfig], List[TestConfig], List[TestConfig], List[Dict[str, Any]], float
 ]:
-    """Executes all filtered tests and collects results."""
+    """Executes filtered tests and marks others as skipped."""
     passed_tests: List[TestConfig] = []
     failed_tests: List[TestConfig] = []
     skipped_tests: List[TestConfig] = []
     test_results_data: List[Dict[str, Any]] = []
-    start_time_suite = time.time()
 
+    # Mark tests that weren't run as skipped
+    tests_to_run_uris = {test.test_uri for test in tests_to_run}
+    for test in all_tests:
+        if test.test_uri not in tests_to_run_uris:
+            skipped_tests.append(test)
+            test_results_data.append(
+                {
+                    "name": test.name,
+                    "uri": test.test_uri,
+                    "result": "skipped",
+                    "is_success": False,
+                    "reason": test.get_skip_reason(approved_only=args.approved),
+                }
+            )
+
+    # Run the actual tests
+    start_time_suite = time.time()
     for test_config in tests_to_run:
         # Set runtime specific config from args
         test_config.language = test_config.language or args.input
@@ -1113,7 +1139,7 @@ def _summarize_and_report(
 ):
     """Summarizes test results, cleans up, and generates reports."""
     # Clean up temporary files
-    if not args.test and args.debug < 2:
+    if not _preserve_debug_files:
         for f_path in [
             ROQET_OUT,
             RESULT_OUT,
@@ -1160,58 +1186,17 @@ def _summarize_and_report(
 def main():
     """Main entry point for the SPARQL test runner."""
     args = _parse_arguments()
-    _initialize_logging(args.debug)
+    _initialize_logging(args.debug, preserve_files=bool(args.test))
 
     try:
-        tests_to_run, parser = _discover_and_filter_tests(args)
+        tests_to_run, all_tests, parser = _discover_and_filter_tests(args)
         (
             passed_tests,
             failed_tests,
             skipped_tests,
             test_results_data,
             elapsed_time_suite,
-        ) = _run_all_tests(tests_to_run, args)
-
-        # Re-incorporate originally skipped tests for summary/reports if they were not explicitly filtered
-        # (This handles cases where a test was skipped in _discover_and_filter_tests but still needs to be counted)
-        # Note: This re-parsing of the manifest might be inefficient if done frequently.
-        # A better approach might be to collect ALL tests initially, mark them as 'skipped' if filtered,
-        # and then process. But for now, adhering to the request's structure.
-        all_initial_tests = parser.get_tests(args.srcdir, args.test)
-        actual_skipped_tests = [
-            t
-            for t in all_initial_tests
-            if t not in passed_tests
-            and t not in failed_tests
-            and t not in skipped_tests
-            and (
-                t.is_withdrawn
-                or (args.approved and not t.is_approved)
-                or t.has_entailment_regime
-                or t.test_type
-                in [
-                    TestType.UPDATE_EVALUATION_TEST.value,
-                    NS.MF + "UpdateEvaluationTest",
-                    TestType.PROTOCOL_TEST.value,
-                ]
-            )
-        ]
-        # Add their data to test_results_data if not already there
-        for skipped_t in actual_skipped_tests:
-            # Check if this skipped test's URI is already in test_results_data (e.g., from an early skip)
-            if not any(res["uri"] == skipped_t.test_uri for res in test_results_data):
-                test_results_data.append(
-                    {
-                        "name": skipped_t.name,
-                        "uri": skipped_t.test_uri,
-                        "result": "skipped",
-                        "is_success": False,
-                        "reason": "skipped by filter",  # Generic reason for these cases
-                    }
-                )
-                skipped_tests.append(
-                    skipped_t
-                )  # Ensure it's counted in skipped_tests for summary
+        ) = _run_all_tests(tests_to_run, all_tests, args)
 
         _summarize_and_report(
             passed_tests,

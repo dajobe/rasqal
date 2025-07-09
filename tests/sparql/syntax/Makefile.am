@@ -53,9 +53,7 @@ get-testsuite-sparql-lexer get-testsuite-sparql-parser:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \
-		--comment-template "sparql parser of {query_file}" \
-		--manifest-file $(srcdir)/manifest.n3
+		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/manifest.n3
 
 get-testsuite-sparql-query:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
@@ -63,9 +61,7 @@ get-testsuite-sparql-query:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
-		--comment-template "sparql query {test_id}" \
-		--manifest-file $(srcdir)/manifest.n3
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \		--manifest-file $(srcdir)/manifest.n3
 
 get-testsuite-sparql-bad-parser:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \

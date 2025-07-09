@@ -36,34 +36,11 @@ from rasqal_test_util import (
     find_tool,
     Namespaces,
     decode_literal,
+    escape_turtle_literal,
     ManifestParsingError,
     UtilityNotFoundError,
     setup_logging,
 )
-
-
-def _escape_turtle_literal(s: str) -> str:
-    """Escapes a string for use as a triple-quoted Turtle literal.
-    Handles backslashes, triple double quotes, and control characters (\n, \r, \t).
-    """
-    # Escape backslashes first
-    s = s.replace("\\", "\\\\")
-    # Handle triple quotes by replacing with escaped double quotes
-    s = s.replace('"""', '\\"\\"\\"')
-    if s.endswith('"'):  # avoid """{escaped ending with "}"""
-        s = s[:-1] + '\\"'
-    # Escape newlines, carriage returns, and tabs
-    s = s.replace("\n", "\\n")
-    s = s.replace("\r", "\\r")
-    s = s.replace("\t", "\\t")
-    return s
-
-
-def _escape_shell_argument(s: str) -> str:
-    """Escapes a string for use as a shell argument.
-    Handles spaces, quotes, and special shell characters.
-    """
-    return shlex.quote(s)
 
 
 def _parse_arguments() -> argparse.Namespace:
@@ -75,9 +52,14 @@ def _parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "-d", "--debug", action="store_true", help="Enable debug logging"
     )
+    # Import here to avoid circular imports
+    from rasqal_test_util import get_available_test_suites
+
+    available_suites = get_available_test_suites()
+
     parser.add_argument(
         "--suite-name",
-        help="The name of the test suite (e.g., 'sparql-query', 'sparql-lexer'). Required for plan generation.",
+        help=f"The name of the test suite. Available: {', '.join(available_suites)}. Required for plan generation.",
     )
     parser.add_argument(
         "--srcdir",
@@ -103,12 +85,12 @@ def _parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--action-template",
         required=True,
-        help="A template string for the mf:action. Placeholders: {srcdir}, {builddir}, {test_id}, {query_file}, {abs_srcdir}, {abs_builddir}, {abs_executable}. Required for plan generation.",
+        help="A template string for the mf:action. Placeholders: {srcdir}, {builddir}, {test_id}, {query_file}, {abs_srcdir}, {abs_builddir}. Required for plan generation.",
     )
     parser.add_argument(
         "--comment-template",
-        default="Test {suite_name} {test_id}",
-        help="A template string for the rdfs:comment. Placeholders: {suite_name}, {test_id}, {query_file}.",
+        default=None,
+        help="A template string for the rdfs:comment. Placeholders: {suite_name}, {test_id}, {query_file}. If not provided, uses default based on suite name.",
     )
     parser.add_argument(
         "--manifest-file",
@@ -134,6 +116,15 @@ def _parse_arguments() -> argparse.Namespace:
             "--suite-name, --srcdir, --builddir, and --action-template are required for plan generation."
         )
 
+    # Validate suite name
+    from rasqal_test_util import validate_test_suite_name
+
+    if args.suite_name and not validate_test_suite_name(args.suite_name):
+        available_suites = get_available_test_suites()
+        parser.error(
+            f"Unknown test suite '{args.suite_name}'. Available suites: {', '.join(available_suites)}"
+        )
+
     # Parse test-data-file-map into a dictionary if provided
     args.test_data_file_map_dict = {}
     if args.test_data_file_map:
@@ -145,180 +136,133 @@ def _parse_arguments() -> argparse.Namespace:
     return args
 
 
-def _determine_test_type(type_uri: str, suite_name: str, default_type: str) -> str:
-    """Determine the test type based on the type URI and suite name."""
-    if "TestBadSyntax" in type_uri or "TestNegativeSyntax" in type_uri:
-        # Negative syntax tests should be negative for all suites
-        # that can execute queries (parser, query)
-        if suite_name in ["sparql-parser", "sparql-query"]:
-            return "NegativeTest"
-        else:
-            return "PositiveTest"  # Skip negative tests for lexer
-    elif "XFailTest" in type_uri:
-        # Expected failure tests should be marked as XFailTest for all suites
-        return "XFailTest"
-    elif "TestSyntax" in type_uri:
-        return "PositiveTest"
-    else:
-        return default_type
-
-
-def _extract_query_file_and_action(
-    action_node: str,
-    action_triples: list,
-    test_category: str,
-    srcdir: Path,
-    builddir: Optional[Path] = None,
-) -> tuple:
-    """Extract query file, data file, and action from action node."""
-    query_file = None
-    data_file = None
-    action = None
-
-    # If the action is a literal, decode it
-    if action_node.startswith('"'):
-        action_value = decode_literal(action_node)
-    # If the action is a URI or blank node, try to extract a literal from the referenced node
-    else:
-        literal_action = next(
-            (
-                t["o_full"]
-                for t in action_triples
-                if t["p"] == f"<{Namespaces.MF}action>" and t["o_full"].startswith('"')
-            ),
-            None,
-        )
-        if literal_action:
-            action_value = decode_literal(literal_action)
-        else:
-            action_value = decode_literal(action_node)
-        # For sparql tests, extract qt:query as query_file
-        if test_category == "sparql":
-            qt_query = next(
-                (
-                    t["o_full"]
-                    for t in action_triples
-                    if t["p"] == f"<{Namespaces.QT}query>"
-                ),
-                None,
-            )
-            if qt_query and qt_query.startswith("<") and qt_query.endswith(">"):
-                query_file = os.path.basename(qt_query[1:-1])
-                if not query_file:
-                    query_file = qt_query[1:-1]  # Use full URI if basename is empty
-            # Extract qt:data as data_file (relative to srcdir)
-            qt_data = next(
-                (
-                    t["o_full"]
-                    for t in action_triples
-                    if t["p"] == f"<{Namespaces.QT}data>"
-                ),
-                None,
-            )
-            if qt_data and qt_data.startswith("<") and qt_data.endswith(">"):
-                data_file = os.path.basename(qt_data[1:-1])
-                if not data_file:
-                    data_file = qt_data[1:-1]
-    # For generic tests, extract qt:query as query_file (handles DAWG-style manifests)
-    if test_category == "generic":
-        qt_query = next(
-            (
-                t["o_full"]
-                for t in action_triples
-                if t["p"] == f"<{Namespaces.QT}query>"
-            ),
-            None,
-        )
-        if qt_query and qt_query.startswith("<") and qt_query.endswith(">"):
-            query_file = os.path.basename(qt_query[1:-1])
-            if not query_file:
-                query_file = qt_query[1:-1]  # Use full URI if basename is empty
-        # For generic tests, also try to extract from mf:action if it's a URI (fallback)
-        elif action_node.startswith("<") and action_node.endswith(">"):
-            query_file = os.path.basename(action_node[1:-1])
-        action = query_file if query_file else action_value
-    # For sparql tests, set query_file to the filename from mf:action if it's a URI
-    elif (
-        test_category == "sparql"
-        and action_node.startswith("<")
-        and action_node.endswith(">")
-    ):
-        query_file = os.path.basename(action_node[1:-1])
-        action = action_value
-    else:
-        action = action_value
-    return query_file, data_file, action
-
-
 def _process_manifest_entries(
     manifest_parser: ManifestParser,
     manifest_node_uri: str,
     args: argparse.Namespace,
     logger: logging.Logger,
 ) -> list:
-    """Process manifest entries and return list of test information."""
+    """Process manifest entries using the existing get_tests() method."""
+    # For engine tests, use a simpler approach since they don't follow W3C format
+    if args.test_category == "engine":
+        return _process_engine_manifest_entries(
+            manifest_parser, manifest_node_uri, args, logger
+        )
+
+    # Use the existing get_tests() method to get TestConfig objects
+    test_configs = manifest_parser.get_tests(args.srcdir)
+
     tests = []
+    for config in test_configs:
+        test_id = config.name
 
-    # Use the new iteration method
-    for entry_node_full in manifest_parser.iter_manifest_entries(manifest_node_uri):
-        entry_triples = manifest_parser.triples_by_subject.get(entry_node_full, [])
-
-        # Extract test ID
-        test_id_triple = next(
-            (t for t in entry_triples if t["p"] == f"<{Namespaces.MF}name>"), None
-        )
-        if not test_id_triple:
-            continue
-        test_id = decode_literal(test_id_triple["o_full"])
-
-        # Determine test type based on manifest
+        # Determine test type using the existing logic
         test_type = args.test_type  # Default
-        type_triple = next(
-            (t for t in entry_triples if t["p"] == f"<{Namespaces.RDF}type>"), None
-        )
-        if type_triple:
-            test_type = _determine_test_type(
-                type_triple["o_full"], args.suite_name, args.test_type
+        if config.test_type:
+            from rasqal_test_util import TestTypeResolver
+
+            test_type = TestTypeResolver.classify_test_type(
+                config.test_type, args.suite_name, args.test_type
             )
 
+        # Extract query file and data file
         query_file = None
         data_file = None
-        action = None
-        action_node = next(
+
+        if config.test_file:
+            # Handle both relative and absolute paths
+            try:
+                query_file = str(config.test_file.relative_to(args.srcdir))
+            except ValueError:
+                # If the file is not relative to srcdir, use the filename
+                query_file = config.test_file.name
+
+            # Handle data files similarly
+            data_file = None
+            if config.data_files:
+                try:
+                    data_file = str(config.data_files[0].relative_to(args.srcdir))
+                except ValueError:
+                    data_file = config.data_files[0].name
+
+        tests.append(
+            {
+                "id": test_id,
+                "query_file": query_file or "",
+                "data_file": data_file or "",
+                "test_type": test_type,
+            }
+        )
+
+    return tests
+
+
+def _process_engine_manifest_entries(
+    manifest_parser: ManifestParser,
+    manifest_node_uri: str,
+    args: argparse.Namespace,
+    logger: logging.Logger,
+) -> list:
+    """Process engine manifest entries which use a simpler format."""
+    tests = []
+
+    # Find the manifest node and iterate over entries
+    entries_list_head = None
+    for s, triples in manifest_parser.triples_by_subject.items():
+        for t in triples:
+            if t["p"] == f"<{Namespaces.MF}entries>":
+                entries_list_head = t["o_full"]
+                break
+        if entries_list_head:
+            break
+
+    if not entries_list_head:
+        logger.warning("Could not find mf:entries list in engine manifest")
+        return tests
+
+    # Traverse list and extract each entry
+    current_list_item_node = entries_list_head
+    while current_list_item_node and current_list_item_node != f"<{Namespaces.RDF}nil>":
+        list_node_triples = manifest_parser.triples_by_subject.get(
+            current_list_item_node, []
+        )
+        entry_node_full = next(
             (
                 t["o_full"]
-                for t in entry_triples
-                if t["p"] == f"<{Namespaces.MF}action>"
+                for t in list_node_triples
+                if t["p"] == f"<{Namespaces.RDF}first>"
             ),
             None,
         )
-        if action_node:
-            action_triples = manifest_parser.triples_by_subject.get(action_node, [])
-            query_file, data_file, action = _extract_query_file_and_action(
-                action_node,
-                action_triples,
-                args.test_category,
-                args.srcdir,
-                args.builddir,
-            )
-            tests.append(
-                {
-                    "id": test_id,
-                    "query_file": query_file or "",
-                    "data_file": data_file or "",
-                    "test_type": test_type,
-                    "action": action,
-                }
-            )
-        else:
-            tests.append(
-                {
-                    "id": test_id,
-                    "query_file": query_file or "",
-                    "data_file": data_file or "",
-                    "test_type": test_type,
-                }
-            )
+
+        if entry_node_full:
+            entry_triples = manifest_parser.triples_by_subject.get(entry_node_full, [])
+
+            # Extract test name
+            test_name = None
+            for t in entry_triples:
+                if t["p"] == f"<{Namespaces.MF}name>":
+                    test_name = decode_literal(t["o_full"])
+                    break
+
+            if test_name:
+                tests.append(
+                    {
+                        "id": test_name,
+                        "query_file": "",
+                        "data_file": "",
+                        "test_type": args.test_type,
+                    }
+                )
+
+        current_list_item_node = next(
+            (
+                t["o_full"]
+                for t in list_node_triples
+                if t["p"] == f"<{Namespaces.RDF}rest>"
+            ),
+            None,
+        )
 
     return tests
 
@@ -328,22 +272,6 @@ def _process_test_ids(test_ids: list, test_category: str) -> list:
     tests = []
     for test_id in test_ids:
         tests.append({"id": test_id, "query_file": test_id})
-    return tests
-
-
-def _compute_executable_paths(tests: list, args: argparse.Namespace) -> list:
-    """Compute absolute executable paths for each test based on test category."""
-    for test_info in tests:
-        if args.test_category == "engine":
-            # For engine tests, use the build directory path to the test binary
-            abs_executable = (
-                str((args.builddir / "tests" / "engine" / test_info["id"]).resolve())
-                if args.builddir
-                else test_info["id"]
-            )
-            test_info["abs_executable"] = abs_executable
-        else:
-            test_info["abs_executable"] = ""
     return tests
 
 
@@ -395,8 +323,7 @@ def _print_test_entries(tests: list, args: argparse.Namespace):
             builddir=str(args.builddir),
             abs_srcdir=abs_srcdir,
             abs_builddir=abs_builddir,
-            abs_executable=test_info.get("abs_executable", ""),
-            test_id=_escape_shell_argument(test_id),
+            test_id=shlex.quote(test_id),
             query_file=test_info.get("query_file", ""),
             data_file=data_file,
             query_file_full=query_file_full,
@@ -407,12 +334,16 @@ def _print_test_entries(tests: list, args: argparse.Namespace):
             action_raw = test_info["action_raw"]
         else:
             action_raw = args.action_template.format(**template_vars)
-        comment_raw = args.comment_template.format(
+        # Use the new comment template system
+        from rasqal_test_util import get_comment_template
+
+        comment_template = get_comment_template(args.suite_name, args.comment_template)
+        comment_raw = comment_template.format(
             suite_name=args.suite_name, test_id=test_id, query_file=query_file
         )
-        escaped_test_id_for_print = _escape_turtle_literal(test_id)
-        escaped_action_for_print = _escape_turtle_literal(action_raw)
-        escaped_comment_for_print = _escape_turtle_literal(comment_raw)
+        escaped_test_id_for_print = escape_turtle_literal(test_id)
+        escaped_action_for_print = escape_turtle_literal(action_raw)
+        escaped_comment_for_print = escape_turtle_literal(comment_raw)
         print(
             f'''  [ a t:{test_type};
     mf:name """{escaped_test_id_for_print}""";
@@ -465,9 +396,6 @@ def main():
             )
             sys.exit(1)
         tests = _process_test_ids(args.TEST_IDS, args.test_category)
-
-    # Compute executable paths
-    tests = _compute_executable_paths(tests, args)
 
     # Generate output
     _print_turtle_header(args.test_category, args.suite_name)
