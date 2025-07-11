@@ -128,7 +128,7 @@ librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/../scripts/fix-groff-xhtml.py
 README: README.html
 	$(LYNX) $(LYNXARGS) $< > $@
 
-rasqal-changes.xml: $(srcdir)/rasqal-changes.tsv $(srcdir)/../scripts/process-changes.pl
-	$(PERL) $(srcdir)/../scripts/process-changes.pl --package rasqal --docbook-xml $@ "Rasqal" $(srcdir)/rasqal-changes.tsv
+rasqal-changes.xml: $(srcdir)/rasqal-changes.tsv $(srcdir)/../scripts/process-changes.py
+	$(PYTHON3) $(srcdir)/../scripts/process-changes.py --package rasqal --docbook-xml $@ "Rasqal" $(srcdir)/rasqal-changes.tsv
 
 endif
