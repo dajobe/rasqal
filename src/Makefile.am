@@ -203,18 +203,18 @@ SUFFIXES = .html .txt
 
 if MAINTAINER_MODE
 # Actually it needs sparql_parser.h but nevermind
-sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/../scripts/fix-flex.pl
+sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/../scripts/fix-flex.py
 	$(AM_V_GEN) \
 	$(LEX) -o$@ $(srcdir)/sparql_lexer.l; \
 	for file in sparql_lexer.c sparql_lexer.h; do \
-	  $(PERL) $(top_srcdir)/scripts/fix-flex.pl $$file > sparql_lexer.t || rm -f $$file; \
+	  $(PYTHON3) $(top_srcdir)/scripts/fix-flex.py $$file > sparql_lexer.t || rm -f $$file; \
 	  mv -f sparql_lexer.t $$file; \
 	done
 
-sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/../scripts/fix-bison.pl
+sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/../scripts/fix-bison.py
 	$(AM_V_GEN) \
 	$(BISON) -o $@ $(srcdir)/sparql_parser.y
-	$(PERL) $(top_srcdir)/scripts/fix-bison.pl $@
+	$(PYTHON3) $(top_srcdir)/scripts/fix-bison.py $@
 
 sparql_lexer.h: sparql_lexer.c ; @exit 0
 sparql_parser.h: sparql_parser.c ; @exit 0

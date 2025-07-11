@@ -150,6 +150,7 @@ AC_CHECK_PROGS(AWK, awk gawk nawk)
 # Find a tar command for 'make dist'
 AC_CHECK_PROGS(TAR, gnutar gtar tar)
 AC_CHECK_PROGS(PERL, perl)
+AC_CHECK_PROGS(PYTHON3, python3 python)
 
 AM_MISSING_PROG(ACLOCAL, aclocal, $missing_dir)
 AM_MISSING_PROG(AUTOCONF, autoconf, $missing_dir)
