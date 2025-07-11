@@ -20,6 +20,8 @@
 # 
 
 EXTRA_DIST= \
-fix-groff-xhtml.pl \
+fix-bison.py \
+fix-flex.py \
+fix-groff-xhtml.py \
 fix-gtkdoc-header.pl \
 process-changes.pl

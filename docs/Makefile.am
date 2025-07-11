@@ -115,8 +115,8 @@ LYNX=lynx
 LYNXARGS=-dump -nolist
 
 if MAINTAINER_MODE
-librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/../scripts/fix-groff-xhtml.pl
-	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | $(PERL) $(srcdir)/../scripts/fix-groff-xhtml.pl $@
+librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/../scripts/fix-groff-xhtml.py
+	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | $(PYTHON3) $(srcdir)/../scripts/fix-groff-xhtml.py $@
 
 # FIXME: automate updating the rasqal-overrides.txt definition of
 #   rasqal_triples_match  rasqal_triples_source
