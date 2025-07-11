@@ -393,7 +393,6 @@ EXPONENT [eE][+-]?[0-9]+
 [Dd][Ee][Ll][Ee][Tt][Ee]  { return DELETE; }
 [Ii][Nn][Ss][Ee][Rr][Tt]  { return INSERT; }
 [Ss][Aa][Mm][Ee][Tt][Ee][Rr][Mm] { return SAMETERM; }
-[Ll][Ee][Tt] { return LET; }
 [Cc][Oo][Aa][Ll][Ee][Ss][Cc][Ee] { return COALESCE; }
 [Ww][Ii][Tt][Hh] { return WITH; }
 [Cc][Ll][Ee][Aa][Rr] { return CLEAR; }
@@ -490,8 +489,6 @@ EXPONENT [eE][+-]?[0-9]+
 "*"         { return '*'; }
 "/"         { return '/'; }
 "!"         { return '!'; }
-
-":="         { return ASSIGN; }
 
 {LANGTAG} {  /* this if is for clang, it thinks yyleng can be 0 */
              if(yyleng) {
@@ -1583,14 +1580,8 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
     case IF:
       return "IF";
 
-    case LET:
-      return "LET";
-
     case AS:
       return "AS";
-
-    case ASSIGN:
-      return ":=";
 
     case COALESCE:
       return "COALESCE";

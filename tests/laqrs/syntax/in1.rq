@@ -1,5 +1,0 @@
-SELECT *
-WHERE {
- ?s ?p ?o
- FILTER (?o IN (1, 2, 3) )
-}

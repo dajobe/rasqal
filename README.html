@@ -18,8 +18,8 @@
 (RDF) query language syntaxes, query construction and execution of
 queries returning results as bindings, boolean, RDF graphs/triples or
 syntaxes.  The supported query languages are SPARQL Query 1.0, SPARQL
-Query 1.1, SPARQL Update 1.1 (no executing) and the Experimental
-SPARQL extensions (LAQRS).  Rasqal can write binding query results in
+Query 1.1 and SPARQL Update 1.1 (no executing)
+Rasqal can write binding query results in
 the SPARQL XML, SPARQL JSON, CSV, TSV, HTML, ASCII tables, RDF/XML
 and Turtle / N3 and read them in SPARQL XML, CSV, TSV,
 RDF/XML and Turtle / N3.
@@ -136,18 +136,13 @@ which shows the SPARQL 1.1 tests that fail and any diagnosis.
 
 
 
-<h3>LAQRS Adds to Querying RDF in SPARQL (LAQRS)</h3>
+<h3>Extensions</h3>
 
 <p>
-<a href="https://www.dajobe.org/2007/04/laqrs/">LAQRS</a> is
-an <b>experimental</b> set of syntax extensions for SPARQL.  The
-syntax and features may change at any time.  At present Rasqal
-provides parsing and API support for alternate update syntaxes,
-the <code>EXPLAIN</code> keyword, plus executing a few experimental
-extension functions:
+Rasqal provides parsing and API support for the <code>EXPLAIN</code>
+keyword, plus executing a few experimental extension functions:
 <code>NOW()</code> / <code>CURRENT_DATETIME()</code>,
-<code>FROM_UNIXTIME()</code> and
-<code>TO_UNIXTIME()</code>.
+<code>FROM_UNIXTIME()</code> and <code>TO_UNIXTIME()</code>.
 </p>
 
 

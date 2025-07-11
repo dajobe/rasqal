@@ -1622,7 +1622,7 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
                                                       gp->filter_expression);
       break;
 
-    case RASQAL_GRAPH_PATTERN_OPERATOR_LET:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_BIND:
       /* Mentions in expression */
       rasqal_query_let_build_variables_use_map(query, &use_map[offset],
                                                gp->filter_expression);
@@ -1922,7 +1922,7 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
       /* Only mentions */
       break;
 
-    case RASQAL_GRAPH_PATTERN_OPERATOR_LET:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_BIND:
       rc = rasqal_query_let_build_variables_use_map_binds(gp, vars_scope);
       break;
       

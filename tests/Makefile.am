@@ -24,8 +24,5 @@ SUBDIRS= algebra engine
 if RASQAL_QUERY_SPARQL
 SUBDIRS += sparql
 endif
-if RASQAL_QUERY_LAQRS
-SUBDIRS += laqrs
-endif
 
 EXTRA_DIST= improve.py rasqal_test_util.py

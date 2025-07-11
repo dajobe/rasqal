@@ -228,14 +228,14 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
 /*
  * shift/reduce conflicts
  * FIXME: document this
- *  35 total
+ *  34 total
  *
- *   7 shift/reduce are OPTIONAL/GRAPH/FILTER/SERVICE/MINUS/LET/{
+ *   6 shift/reduce are OPTIONAL/GRAPH/FILTER/SERVICE/MINUS/{
  *      after a TriplesBlockOpt has been accepted but before a
  *      GraphPatternListOpt.  Choice is made to reduce with GraphPatternListOpt.
  * 
  */
-%expect 35
+%expect 34
 
 /* word symbols */
 %token SELECT FROM WHERE
@@ -256,7 +256,7 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
 %token ISLITERAL "isLiteral"
 %token ISNUMERIC "isNumeric"
 %token SAMETERM "sameTerm"
-/* SPARQL 1.1 (draft) / LAQRS */
+/* SPARQL 1.1 */
 %token GROUP HAVING
 %token COUNT SUM AVG MIN MAX GROUP_CONCAT SAMPLE SEPARATOR
 %token DELETE INSERT WITH CLEAR CREATE SILENT DATA DROP LOAD INTO DEFAULT
@@ -273,8 +273,8 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
 %token MD5 SHA1 SHA224 SHA256 SHA384 SHA512
 %token UUID STRUUID
 %token VALUES
-/* LAQRS */
-%token EXPLAIN LET
+/* Rasqal extensions */
+%token EXPLAIN
 %token CURRENT_DATETIME NOW FROM_UNIXTIME TO_UNIXTIME
 
 /* expression delimiters */
@@ -300,9 +300,6 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
 %left '+' '-' '*' '/'
 
 /* unary operations */
-
-/* laqrs operations */
-%token ASSIGN ":="
 
 /* string */
 %token
@@ -383,7 +380,7 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
     GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
     GraphPatternNotTriples
     GraphPatternListOpt GraphPatternList GraphPatternListFilter
-    LetGraphPattern Bind ServiceGraphPattern
+    Bind ServiceGraphPattern
     WhereClause WhereClauseOpt
     InlineDataGraphPattern
 
@@ -414,7 +411,7 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
 
 %type
   <variable>
-    Var VarName VarOrBadVarName SelectTerm AsVarOpt
+    Var VarName VarOrVarName SelectTerm AsVarOpt
 
 %type
   <uri>
@@ -568,7 +565,7 @@ Query: Prologue ExplainOpt ReportFormat ValuesClauseOpt
 ;
 
 
-/* LAQRS */
+/* Rasqal extension */
 ExplainOpt: EXPLAIN
 {
   rasqal_sparql_query_language* sparql;
@@ -578,7 +575,7 @@ ExplainOpt: EXPLAIN
     rq->explain = 1;
   else {
     sparql_syntax_error(rq,
-                        "EXPLAIN can only used with LAQRS");
+                        "EXPLAIN is only supported as a Rasqal extensions");
     YYERROR;
   }
 }
@@ -847,7 +844,7 @@ SelectTerm: Var
 {
   $$ = $1;
 }
-| '(' Expression AS VarOrBadVarName ')'
+| '(' Expression AS VarOrVarName ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(rq->context);
@@ -1331,7 +1328,7 @@ GraphRef: GRAPH URI_LITERAL
 ;
 
 
-/* LAQRS */
+/* SPARQL 1.1 Update */
 DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
 {
   rasqal_sparql_query_language* sparql;
@@ -1343,10 +1340,6 @@ DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
     YYERROR;
   }
   
-  /* LAQRS: experimental syntax */
-  sparql_syntax_warning(rq,
-                        "DELETE FROM <uri> ... WHERE ... is deprecated LAQRS syntax.");
-
   if($2)
     rasqal_query_add_data_graphs(rq, $2);
 
@@ -1548,7 +1541,7 @@ ModifyTemplateList: ModifyTemplateList ModifyTemplate
 
 
 
-/* SPARQL 1.1 Update (draft) / LAQRS */
+/* SPARQL 1.1 Update */
 InsertQuery: INSERT DatasetClauseList WhereClauseOpt
 {
   rasqal_sparql_query_language* sparql;
@@ -1559,10 +1552,6 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
                         "INSERT can only be used with a SPARQL 1.1 Update");
     YYERROR;
   }
-
-  /* LAQRS: experimental syntax */
-  sparql_syntax_warning(rq,
-                        "INSERT FROM <uri> ... WHERE ... is deprecated LAQRS syntax.");
 
   if($2)
     rasqal_query_add_data_graphs(rq, $2);
@@ -1799,7 +1788,7 @@ GraphRefAll: GraphRef
 ;
 
 
-/* SPARQL 1.1 Update (draft) / LAQRS */
+/* SPARQL 1.1 Update */
 ClearQuery: CLEAR SilentOpt GraphRefAll
 {
   rasqal_sparql_query_language* sparql;
@@ -1878,7 +1867,7 @@ SilentOpt: SILENT
 ;
 
 
-/* SPARQL 1.1 Update (draft) / LAQRS */
+/* SPARQL 1.1 Update */
 CreateQuery: CREATE SilentOpt URI_LITERAL
 {
   rasqal_sparql_query_language* sparql;
@@ -1940,7 +1929,7 @@ CreateQuery: CREATE SilentOpt URI_LITERAL
 ;
 
 
-/* SPARQL 1.1 Update (draft) / LAQRS */
+/* SPARQL 1.1 Update */
 DropQuery: DROP SilentOpt GraphRefAll
 {
   rasqal_sparql_query_language* sparql;
@@ -3197,10 +3186,6 @@ GraphPatternNotTriples: GroupOrUnionGraphPattern
 {
   $$ = $1;
 }
-| LetGraphPattern
-{
-  $$ = $1;
-}
 | Bind
 {
   $$ = $1;
@@ -3331,7 +3316,7 @@ Bind: BIND '(' Expression AS Var ')'
                           "BIND can only be used with SPARQL 1.1");
       YYERROR;
     } else {
-      $$ = rasqal_new_let_graph_pattern(rq, $5, $3);
+      $$ = rasqal_new_bind_graph_pattern(rq, $5, $3);
     }
   } else
     $$ = NULL;
@@ -3476,27 +3461,6 @@ GroupOrUnionGraphPatternList: GroupOrUnionGraphPatternList UNION GroupGraphPatte
                                               RASQAL_GRAPH_PATTERN_OPERATOR_UNION);
   if(!$$)
     YYERROR_MSG("GroupOrUnionGraphPatternList 1: cannot create gp");
-}
-;
-
-
-/* LAQRS: LET (?var := expression) . */
-LetGraphPattern: LET '(' Var ASSIGN Expression ')'
-{
-  rasqal_sparql_query_language* sparql;
-  sparql = (rasqal_sparql_query_language*)(rq->context);
-
-  $$ = NULL;
-  if($3 && $5) {
-    if(sparql->experimental)
-      $$ = rasqal_new_let_graph_pattern(rq, $3, $5);
-    else {
-      sparql_syntax_error(rq,
-                          "LET can only be used with LAQRS");
-      YYERROR;
-    }
-  } else
-    $$ = NULL;
 }
 ;
 
@@ -4460,20 +4424,14 @@ VarName: IDENTIFIER
 ;
 
 
-/* LAQRS legacy  */
-VarOrBadVarName: '?' VarName
+/* Var prefix choice  */
+VarOrVarName: '?' VarName
 {
   $$ = $2;
 }
 | '$' VarName
 {
   $$ = $2;
-}
-| VarName
-{
-  $$ = $1;
-  sparql_syntax_warning(rq,
-                        "... AS varname is deprecated LAQRS syntax, use ... AS ?varname");
 }
 ;
 
@@ -5446,7 +5404,7 @@ DatetimeBuiltinAccessors: YEAR '(' Expression ')'
 ;
 
 
-/* LAQRS */
+/* Rasqal extension */
 DatetimeExtensions: CURRENT_DATETIME '(' ')'
 {
   rasqal_sparql_query_language* sparql;
@@ -5460,7 +5418,7 @@ DatetimeExtensions: CURRENT_DATETIME '(' ')'
       YYERROR_MSG("DatetimeExtensions: cannot create CURRENT_DATETIME() expr");
   } else {
     sparql_syntax_error(rq,
-                        "CURRENT_DATETIME() can only used with LAQRS");
+                        "CURRENT_DATETIME() can only used with Rasqal extensions");
     YYERROR;
   }
 }
@@ -5495,7 +5453,7 @@ DatetimeExtensions: CURRENT_DATETIME '(' ')'
       YYERROR_MSG("DatetimeExtensions: cannot create FROM_UNIXTIME() expr");
   } else {
     sparql_syntax_error(rq,
-                        "FROM_UNIXTIME() can only used with LAQRS");
+                        "FROM_UNIXTIME() can only used with Rasqal extensions");
     YYERROR;
   }
   
@@ -5513,7 +5471,7 @@ DatetimeExtensions: CURRENT_DATETIME '(' ')'
       YYERROR_MSG("DatetimeExtensions: cannot create TO_UNIXTIME() expr");
   } else {
     sparql_syntax_error(rq,
-                        "TO_UNIXTIME() can only used with LAQRS");
+                        "TO_UNIXTIME() can only used with Rasqal extensions");
     YYERROR;
   }
   
@@ -5727,9 +5685,8 @@ rasqal_sparql_query_language_init(rasqal_query* rdf_query, const char *name)
       rqe->sparql_scda = 0;
     }
 
-    /* LAQRS for experiments */
-    if(!strcmp(name, "laqrs"))
-      rqe->experimental = 1;
+    /* Just enable rasqal extensions by default */
+    rqe->experimental = 1;
   }
 
   return 0;
@@ -6124,45 +6081,6 @@ rasqal_init_query_language_sparql11(rasqal_world* world)
 }
 
 
-static const char* const laqrs_names[] = { "laqrs", NULL};
-
-static const raptor_type_q laqrs_types[] = {
-  { NULL, 0, 0}
-};
-
-
-static int
-rasqal_laqrs_query_language_register_factory(rasqal_query_language_factory *factory)
-{
-  int rc = 0;
-
-  factory->desc.names = laqrs_names;
-
-  factory->desc.mime_types = laqrs_types;
-
-  factory->desc.label = "LAQRS adds to Querying RDF in SPARQL";
-
-  factory->desc.uri_strings = NULL;
-
-  factory->context_length = sizeof(rasqal_sparql_query_language);
-
-  factory->init      = rasqal_sparql_query_language_init;
-  factory->terminate = rasqal_sparql_query_language_terminate;
-  factory->prepare   = rasqal_sparql_query_language_prepare;
-  factory->iostream_write_escaped_counted_string = rasqal_sparql_query_language_iostream_write_escaped_counted_string;
-
-  return rc;
-}
-
-
-int
-rasqal_init_query_language_laqrs(rasqal_world* world)
-{
-  return !rasqal_query_language_register_factory(world,
-                                                 &rasqal_laqrs_query_language_register_factory);
-}
-
-
 #ifdef STANDALONE
 #include <stdio.h>
 #include <locale.h>
@@ -6249,7 +6167,7 @@ main(int argc, char *argv[])
   }
   
   if(usage) {
-    fprintf(stderr, "SPARQL/LAQRS parser test for Rasqal %s\n", 
+    fprintf(stderr, "SPARQL parser test for Rasqal %s\n", 
             rasqal_version_string);
     fprintf(stderr, "USAGE: %s [OPTIONS] SPARQL-QUERY-FILE\n", program);
     fprintf(stderr, "OPTIONS:\n");

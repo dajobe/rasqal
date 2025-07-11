@@ -1390,8 +1390,8 @@ rasqal_algebra_graph_graph_pattern_to_algebra(rasqal_query* query,
 
 
 static rasqal_algebra_node*
-rasqal_algebra_let_graph_pattern_to_algebra(rasqal_query* query,
-                                            rasqal_graph_pattern* gp)
+rasqal_algebra_bind_graph_pattern_to_algebra(rasqal_query* query,
+                                             rasqal_graph_pattern* gp)
 {
   rasqal_expression *expr;
     
@@ -1559,8 +1559,8 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
       node = rasqal_algebra_graph_graph_pattern_to_algebra(query, gp);
       break;
 
-    case RASQAL_GRAPH_PATTERN_OPERATOR_LET:
-      node = rasqal_algebra_let_graph_pattern_to_algebra(query, gp);
+    case RASQAL_GRAPH_PATTERN_OPERATOR_BIND:
+      node = rasqal_algebra_bind_graph_pattern_to_algebra(query, gp);
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_SELECT:

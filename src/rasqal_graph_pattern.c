@@ -182,7 +182,7 @@ rasqal_new_filter_graph_pattern(rasqal_query* query,
 
 
 /*
- * rasqal_new_let_graph_pattern:
+ * rasqal_new_bind_graph_pattern:
  * @query: #rasqal_graph_pattern query object
  * @var: variable to assign
  * @expr: expression
@@ -192,9 +192,9 @@ rasqal_new_filter_graph_pattern(rasqal_query* query,
  * Return value: a new #rasqal_graph_pattern object or NULL on failure
  **/
 rasqal_graph_pattern*
-rasqal_new_let_graph_pattern(rasqal_query *query,
-                             rasqal_variable *var,
-                             rasqal_expression *expr)
+rasqal_new_bind_graph_pattern(rasqal_query *query,
+                              rasqal_variable *var,
+                              rasqal_expression *expr)
 {
   rasqal_graph_pattern* gp;
 
@@ -202,7 +202,7 @@ rasqal_new_let_graph_pattern(rasqal_query *query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(var, rasqal_variable, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(expr, rasqal_expression, NULL);
   
-  gp = rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_LET);
+  gp = rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_BIND);
   if(!gp) {
     rasqal_free_expression(expr);
     return NULL;
@@ -1271,7 +1271,7 @@ rasqal_new_values_graph_pattern(rasqal_query* query,
  * rasqal_graph_pattern_get_variable:
  * @graph_pattern: #rasqal_graph_pattern graph pattern object
  *
- * Get the variable for #RASQAL_GRAPH_PATTERN_OPERATOR_LET graph pattern
+ * Get the variable for #RASQAL_GRAPH_PATTERN_OPERATOR_BIND graph pattern
  * 
  * Return value: graph variable or NULL if wrong graph pattern or not defined
  **/
@@ -1281,7 +1281,7 @@ rasqal_graph_pattern_get_variable(rasqal_graph_pattern* graph_pattern)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern,
                                             rasqal_graph_pattern, NULL);
 
-  if(graph_pattern->op == RASQAL_GRAPH_PATTERN_OPERATOR_LET)
+  if(graph_pattern->op == RASQAL_GRAPH_PATTERN_OPERATOR_BIND)
     return graph_pattern->var;
   else
     return NULL;

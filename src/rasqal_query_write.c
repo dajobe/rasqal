@@ -810,7 +810,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     return;
   }
 
-  if(op == RASQAL_GRAPH_PATTERN_OPERATOR_LET) {
+  if(op == RASQAL_GRAPH_PATTERN_OPERATOR_BIND) {
     /* LAQRS */
     raptor_iostream_counted_string_write("LET (", 5, iostr);
     rasqal_query_write_sparql_variable(wc, iostr, gp->var);

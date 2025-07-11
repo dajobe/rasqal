@@ -1,9 +1,0 @@
-# BNODE(string) =>  make a blank node with given name
-
-PREFIX ex: <http://example.org/dt#>
-
-SELECT ?c
-WHERE {
-  ?a ?b ?c
-  FILTER ( BNODE("foo") = _:foo )
-}

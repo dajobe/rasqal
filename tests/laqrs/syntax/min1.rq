@@ -1,2 +1,0 @@
-SELECT ( MIN(?c) AS x )
-WHERE { ?a ?b ?c }
