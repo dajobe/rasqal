@@ -104,8 +104,8 @@ rasqal-changes.tsv
 DISTCLEANFILES += \
 rasqal-fake.h
 
-$(builddir)/rasqal-fake.h: $(builddir)/../src/rasqal.h $(srcdir)/../scripts/fix-gtkdoc-header.pl
-	$(PERL) $(srcdir)/../scripts/fix-gtkdoc-header.pl < $< > $@
+$(builddir)/rasqal-fake.h: $(builddir)/../src/rasqal.h $(srcdir)/../scripts/fix-gtkdoc-header.py
+	$(PYTHON3) $(srcdir)/../scripts/fix-gtkdoc-header.py < $< > $@
 
 $(builddir)/../src/rasqal.h:
 	cd $(builddir)/../src && $(MAKE) rasqal.h
