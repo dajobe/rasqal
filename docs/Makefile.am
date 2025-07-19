@@ -39,8 +39,6 @@ CFILE_GLOB=$(top_srcdir)/src/rasqal_*.c
 
 IGNORE_CFILES= \
 rasqal_xsd_datatypes.c \
-rdql_lexer.c \
-rdql_parser.c \
 sparql_lexer.c \
 sparql_parser.c \
 strcasecmp.c \
@@ -58,12 +56,10 @@ IGNORE_HFILES= \
 	rasqal_config.h \
 	rasqal_getopt.h \
 	rasqal_internal.h \
-	rdql_common.h \
-	rdql_lexer.h \
-	rdql_parser.h \
 	sparql_common.h \
 	sparql_lexer.h \
 	sparql_parser.h \
+	ssort.h \
 	win32_rasqal_config.h \
 	mtwist_config.h
 
