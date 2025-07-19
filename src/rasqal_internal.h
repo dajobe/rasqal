@@ -1159,6 +1159,7 @@ void rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level, rapto
 void rasqal_query_simple_error(void* user_data /* query */, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
 void rasqal_world_simple_error(void* user_data /* world */, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
 void rasqal_log_warning_simple(rasqal_world* world, rasqal_warning_level warn_level, raptor_locator* locator, const char* message, ...) RASQAL_PRINTF_FORMAT(4, 5);
+void rasqal_log_trace_simple(rasqal_world* world, raptor_locator* locator, const char* message, ...) RASQAL_PRINTF_FORMAT(3, 4);
 
 const char* rasqal_basename(const char* name);
 unsigned char* rasqal_world_default_generate_bnodeid_handler(void *user_data, unsigned char *user_bnodeid);

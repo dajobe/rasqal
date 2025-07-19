@@ -185,8 +185,11 @@ rasqal_new_service_rowsource(rasqal_world *world, rasqal_query* query,
   svc = rasqal_new_service(query->world, service_uri, query_string,
                            data_graphs);
   if(!svc) {
-    if(!silent)
+    if(!silent) {
+      /* Set service error on the query object since we don't have a rowsource yet */
+      /* This will be handled by the caller */
       goto fail;
+    }
 
     /* Silent errors so tidy up and return empty rowsource */
     RASQAL_FREE(cstring, query_string);

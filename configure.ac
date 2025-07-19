@@ -1524,6 +1524,7 @@ tests/sparql/aggregate/Makefile
 tests/sparql/sparql11/Makefile
 tests/sparql/federated/Makefile
 tests/sparql/warnings/Makefile
+tests/sparql/errors/Makefile
 utils/Makefile
 win32/Makefile
 rasqal.spec

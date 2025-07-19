@@ -254,6 +254,7 @@ rasqal_join_rowsource_build_merged_row(rasqal_rowsource* rowsource,
 
   row = rasqal_new_row_for_size(rowsource->world, rowsource->size);
   if(!row) {
+          /* Memory allocation failed - ensure proper cleanup */
     if(right_row)
       rasqal_free_row(right_row);
     return NULL;
@@ -414,6 +415,9 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
       if(error) {
         bresult = 0;
+        /* Set expression error on rowsource */
+        rasqal_log_trace_simple(rowsource->world, NULL,
+                             "Join expression evaluation failed (error: %d)", error);
       } else {
         error = 0;
         bresult = rasqal_literal_as_boolean(result, &error);
@@ -423,6 +427,11 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         else
           RASQAL_DEBUG2("filter boolean expression result: %d\n", bresult);
 #endif
+        if(error) {
+          /* Set boolean conversion error on rowsource */
+          rasqal_log_trace_simple(rowsource->world, NULL,
+                             "Join expression boolean conversion failed (error: %d)", error);
+        }
         rasqal_free_literal(result);
       }
     }

@@ -1,0 +1,3 @@
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Empty result set - division by zero error prevents any results 

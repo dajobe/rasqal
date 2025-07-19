@@ -1,0 +1,11 @@
+# Test query to trigger rowsource errors with division by zero
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX fn: <http://www.w3.org/2005/xpath-functions#>
+
+SELECT ?s ?p ?o ?error_result
+WHERE {
+  ?s ?p ?o .
+  # This expression will trigger a division by zero error
+  # Using a mathematical operation that should fail
+  BIND((5 / 0) AS ?error_result)
+} 

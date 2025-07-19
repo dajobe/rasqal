@@ -1,0 +1,11 @@
+# Test query to trigger filter expression errors
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX fn: <http://www.w3.org/2005/xpath-functions#>
+
+SELECT ?s ?p ?o
+WHERE {
+  ?s ?p ?o .
+  # This filter expression will trigger an error during evaluation
+  # Using an invalid function call that should fail
+  FILTER(fn:substring(?o, -1, 5))
+} 

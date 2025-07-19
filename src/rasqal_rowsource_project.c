@@ -147,12 +147,14 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     int i;
     
     nrow = rasqal_new_row_for_size(rowsource->world, rowsource->size);
-    if(!nrow)
+    if(!nrow) {
+      /* Memory allocation failed - ensure proper cleanup */
       goto failed;
+    }
 
     rasqal_row_set_rowsource(nrow, rowsource);
     nrow->offset = row->offset;
-      
+
     for(i = 0; i < rowsource->size; i++) {
       int offset = con->projection[i];
       if(offset >= 0)
@@ -172,12 +174,16 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
                                                  query->eval_context,
                                                  &error);
           if(error) {
-            /* FIXME: Errors are ignored - check this */
-#if 0
+            rasqal_log_trace_simple(rowsource->world, NULL,
+                                   "Expression evaluation failed in projection rowsource (error: %d)", error);
             goto failed;
-#endif
-          } else
+          } else {
             nrow->values[i] = rasqal_new_literal_from_literal(v->value);
+            if(!nrow->values[i]) {
+              /* Memory allocation failed - ensure proper cleanup */
+              goto failed;
+            }
+          }
 
         }
       }

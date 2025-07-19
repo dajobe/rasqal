@@ -1,0 +1,57 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+
+<>  rdf:type mf:Manifest ;
+    rdfs:comment "Errors API test cases" ;
+    mf:entries
+    ( 
+     [  mf:name    "XPath substring() invalid arguments" ;
+        rdfs:comment
+            "Error API test 1 - function error handled gracefully" ;
+        mf:action
+            [ qt:query  <error-api-1.rq> ;
+              qt:data   <data.ttl> ] ;
+        mf:result  <error-api-1-result.ttl>
+     ]
+
+     [  mf:name    "Division by zero error" ;
+        rdfs:comment
+            "Error API test 2 - should trigger expression error" ;
+        mf:action
+            [ qt:query  <error-api-2.rq> ;
+              qt:data   <data.ttl> ] ;
+        mf:result  <error-api-2-result.ttl>
+     ]
+
+     [  mf:name    "Filter expression error" ;
+        rdfs:comment
+            "Error API test 3 - should trigger filter expression error" ;
+        mf:action
+            [ qt:query  <error-api-3.rq> ;
+              qt:data   <data.ttl> ] ;
+        mf:result  <error-api-3-result.ttl>
+     ]
+
+     [  mf:name    "Join expression error" ;
+        rdfs:comment
+            "Error API test 4 - should trigger join expression error" ;
+        mf:action
+            [ qt:query  <error-api-4.rq> ;
+              qt:data   <data.ttl> ] ;
+        mf:result  <error-api-4-result.ttl>
+     ]
+
+     [  mf:name    "Projection expression error" ;
+        rdfs:comment
+            "Error API test 5 - should trigger projection expression error" ;
+        mf:action
+            [ qt:query  <error-api-5.rq> ;
+              qt:data   <data.ttl> ] ;
+        mf:result  <error-api-5-result.ttl>
+     ]
+
+    ).
+
+

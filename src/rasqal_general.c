@@ -573,6 +573,32 @@ rasqal_log_warning_simple(rasqal_world* world,
   va_end(arguments);
 }
 
+/**
+ * rasqal_log_trace_simple:
+ * @world: rasqal world object
+ * @locator: location information (can be NULL)
+ * @message: format string for the trace message
+ * @...: variable arguments for the format string
+ *
+ * Log a TRACE level message for detailed execution engine activities.
+ *
+ * This function is used for logging non-error conditions that provide
+ * valuable debugging information, such as expression evaluation
+ * "failures" that are correctly handled by the SPARQL algebra.
+ *
+ * TRACE messages are only shown when the log level is set to TRACE.
+ */
+void
+rasqal_log_trace_simple(rasqal_world* world,
+                        raptor_locator* locator, const char* message, ...)
+{
+  va_list arguments;
+
+  va_start(arguments, message);
+  rasqal_log_error_varargs(world, RAPTOR_LOG_LEVEL_TRACE, locator, message, arguments);
+  va_end(arguments);
+}
+
 
 void
 rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,

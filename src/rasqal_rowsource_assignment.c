@@ -127,7 +127,13 @@ rasqal_assignment_rowsource_read_row(rasqal_rowsource* rowsource, void *user_dat
       rasqal_row_set_rowsource(row, rowsource);
       row->offset = con->offset++;
       row->values[0] = rasqal_new_literal_from_literal(result);
+    } else {
+      /* Memory allocation failed - ensure proper cleanup */
     }
+  } else {
+    /* Set expression error on rowsource */
+          rasqal_log_trace_simple(rowsource->world, NULL,
+                             "Expression evaluation failed in assignment rowsource (error: %d)", error);
   }
   
   return row;

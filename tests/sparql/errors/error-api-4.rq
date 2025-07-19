@@ -1,0 +1,12 @@
+# Test query to trigger join expression errors
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX fn: <http://www.w3.org/2005/xpath-functions#>
+
+SELECT ?s1 ?p1 ?o1 ?s2 ?p2 ?o2
+WHERE {
+  ?s1 ?p1 ?o1 .
+  ?s2 ?p2 ?o2 .
+  # This join expression will trigger an error during evaluation
+  # Using an invalid mathematical operation that should fail
+  FILTER((?o1 + ?o2) / 0)
+} 

@@ -1,0 +1,6 @@
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <http://example.org/> .
+
+ex:subject1 ex:property1 "test string" .
+ex:subject2 ex:property2 "another string" .
+ex:subject3 ex:property3 "third string" . 

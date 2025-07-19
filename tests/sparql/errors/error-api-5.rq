@@ -1,0 +1,11 @@
+# Test query to trigger projection expression errors
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX fn: <http://www.w3.org/2005/xpath-functions#>
+
+SELECT ?s ?p ?o ?error_result
+WHERE {
+  ?s ?p ?o .
+  # This projection expression will trigger an error during evaluation
+  # Using an invalid type conversion that should fail
+  BIND(xsd:integer("not a number") AS ?error_result)
+} 

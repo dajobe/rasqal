@@ -29,7 +29,8 @@ bugs \
 aggregate \
 sparql11 \
 federated \
-warnings
+warnings \
+errors
 
 EXTRA_DIST= \
 check_sparql.py \

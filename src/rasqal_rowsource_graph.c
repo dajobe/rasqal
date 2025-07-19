@@ -232,6 +232,7 @@ rasqal_graph_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     
     nrow = rasqal_new_row_for_size(rowsource->world, 1 + row->size);
     if(!nrow) {
+      /* Memory allocation failed - ensure proper cleanup */
       rasqal_free_row(row);
       row = NULL;
     } else {
