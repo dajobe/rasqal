@@ -694,9 +694,31 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       rasqal_free_row(row);
       row = NULL;
     }
-  } else if (con->last_group_id >= 0) {
+  } else if (con->last_group_id >= 0 || con->finished) {
     int offset = 0;
     int i;
+
+    /* Initialize aggregate expressions if not already done */
+    if(con->last_group_id < 0) {
+      for(i = 0; i < con->expr_count; i++) {
+        rasqal_agg_expr_data* expr_data = &con->expr_data[i];
+
+        if(!expr_data->agg_user_data) {
+          /* init once */
+          expr_data->agg_user_data = rasqal_builtin_agg_expression_execute_init(rowsource->world,
+                                                                                expr_data->expr);
+
+          if(!expr_data->agg_user_data) {
+            error = 1;
+            break;
+          }
+        }
+      }
+
+      if(error) {
+        return NULL;
+      }
+    }
 
     /* Generate result row and reset for next group */
     row = rasqal_new_row(rowsource);
