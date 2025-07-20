@@ -21,7 +21,7 @@ syntaxes.  The supported query languages are SPARQL Query 1.0, SPARQL
 Query 1.1 and SPARQL Update 1.1 (no executing)
 Rasqal can write binding query results in
 the SPARQL XML, SPARQL JSON, CSV, TSV, HTML, ASCII tables, RDF/XML
-and Turtle / N3 and read them in SPARQL XML, CSV, TSV,
+and Turtle / N3 and read them in SPARQL XML, SPARQL JSON, CSV, TSV,
 RDF/XML and Turtle / N3.
 </p>
 
@@ -50,7 +50,7 @@ no known memory leaks.
 <li>A query execution engine executing sub-queries, aggregate expressions and grouping.</li>
 <li>The complete SPARQL 1.1 (draft) built-in function and operator library</li>
 <li>A query result binding API.</li>
-<li>Query result bindings formatting into SPARQL XML, SPARQL JSON, CSV, TSV, HTML, ASCII tables, RDF/XML, Turtle / N3 and from SPARQL XML, RDF/XML and Turtle / N3.</li>
+<li>Query result bindings formatting into SPARQL XML, SPARQL JSON, CSV, TSV, HTML, ASCII tables, RDF/XML, Turtle / N3 and from SPARQL XML, SPARQL JSON, RDF/XML and Turtle / N3.</li>
 <li>Triple store querying APIs to support running over external RDF graphs.</li>
 <li>No memory leaks.</li>
 <li><a href="roqet.html">roqet</a> standalone command line RDF query utility program</li>
@@ -100,13 +100,17 @@ subqueries, expression in SELECT, assignment, short form for
 <code>CONSTRUCT</code> and all the new set of builtin functions and
 operators.</p>
 
+<p>Implemented parts of SPARQL 1.1:</p>
+<ul>
+  <li>JSON result format reading</li>
+</ul>
+
 <p>Unimplemented parts of SPARQL 1.1:</p>
 <ul>
   <li><code>BIND</code> scope</li>
   <li><code>VALUES</code>: part of federated query</li>
   <li>Decimal and double canonical format details</li>
   <li><code>EXISTS</code> / <code>NOT EXISTS</code></li>
-  <li>JSON result format reading</li>
   <li><code>MINUS</code></li>
   <li><em>Property Paths</em>: These are likely never be supported
   since it is a lot of work (estimate: 3 months full time) and might

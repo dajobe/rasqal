@@ -784,6 +784,64 @@ AC_MSG_RESULT($have_digest_gcrypt)
 
 AC_ARG_WITH(digest-library, [  --with-digest-library=NAME   Use message digest library - mhash, gcrypt, internal (auto)], digest_library="$withval", digest_library="")
 
+dnl YAJL library
+AC_ARG_WITH(yajl, [  --with-yajl=DIR  YAJL installation directory or 'no' to disable (default=auto)], yajl_prefix="$withval", yajl_prefix="none")
+
+have_yajl=0
+
+if test "x$yajl_prefix" != "xno" ; then
+  AC_MSG_CHECKING(for yajl installation)
+
+  if test "x$yajl_prefix" = "xyes" ; then
+    yajl_prefix="none"
+  fi
+
+  # Nothing given - search
+  if test "X$yajl_prefix" = "Xnone" ; then
+    for dir in /opt/local /usr/local /usr; do
+      if test -r $dir/include/yajl/yajl_parse.h; then
+        yajl_prefix=$dir
+        break
+      fi
+    done
+  fi
+
+  if test "X$yajl_prefix" = "Xnone" ; then
+    AC_MSG_RESULT(not found. Get it from https://lloyd.github.com/yajl/ and use --with-yajl=DIR if necessary to configure the installation directory.)
+  else
+    AC_MSG_RESULT($yajl_prefix)
+
+    # Store old flags
+    oCPPFLAGS="$CPPFLAGS"
+    oLIBS="$LIBS"
+
+    if test "$yajl_prefix" = "/usr"; then
+      yajl_prefix=
+    else
+      LDFLAGS="-L$yajl_prefix/lib $LDFLAGS"
+      CPPFLAGS="-I$yajl_prefix/include $CPPFLAGS"
+    fi
+
+    AC_CHECK_LIB(yajl, yajl_parse, libyajl=1, libyajl=0)
+    AC_CHECK_LIB(yajl, yajl_tree_parse, yajl_api_version=2, yajl_api_version=1)
+    AC_CHECK_HEADERS(yajl/yajl_parse.h)
+
+    if test $libyajl = 1 -a "$ac_cv_header_yajl_yajl_parse_h" = yes; then
+      have_yajl=1
+
+      AC_MSG_CHECKING(YAJL API version)
+      AC_MSG_RESULT($yajl_api_version)
+      if test $yajl_api_version = 2; then
+        AC_DEFINE_UNQUOTED(HAVE_YAJL2, 1, [YAJL has API version 2])
+      fi
+    fi
+
+    # Restore flags
+    CPPFLAGS="$oCPPFLAGS"
+    LIBS="$oLIBS"
+  fi
+fi
+
 for digest_library_name in $digest_library mhash gcrypt internal; do
   case $digest_library_name in
     mhash)
@@ -830,6 +888,33 @@ fi
 AC_MSG_RESULT($digest_library)
 
 AM_CONDITIONAL(RASQAL_DIGEST_INTERNAL, test $digest_library = internal)
+
+dnl Result format summary variables
+result_formats_available="sparql-xml csv tsv html table rdfxml turtle srj"
+result_formats_enabled=
+
+dnl SRJ result format requirements
+srj_format_ok=no
+AC_MSG_CHECKING(SRJ result format requirements)
+if test $have_yajl = 1; then
+  AC_MSG_RESULT(yes)
+  srj_format_ok=yes
+  AC_DEFINE_UNQUOTED(RASQAL_RESULT_FORMAT_SRJ, 1, [Enable SPARQL Results JSON format support])
+else
+  AC_MSG_RESULT(no - libyajl is not available)
+fi
+
+AM_CONDITIONAL(RASQAL_RESULT_FORMAT_SRJ, test $srj_format_ok = yes)
+
+dnl Build result formats enabled list
+for format in $result_formats_available; do
+  if test $format = srj; then
+    if test $srj_format_ok != yes; then
+      continue
+    fi
+  fi
+  result_formats_enabled="$result_formats_enabled $format"
+done
 
 
 dnl Check for uuid libraries
@@ -1100,6 +1185,15 @@ if test $need_digest_gcrypt = yes; then
 
   unset C
   unset L
+fi
+
+
+if test $srj_parser_ok = yes; then
+  if test "x$yajl_prefix" != "x"; then
+    RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS -I$yajl_prefix/include"
+    RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS -L$yajl_prefix/lib"
+  fi
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS -lyajl"
 fi
 
 
@@ -1525,6 +1619,7 @@ tests/sparql/sparql11/Makefile
 tests/sparql/federated/Makefile
 tests/sparql/warnings/Makefile
 tests/sparql/errors/Makefile
+tests/sparql/srj/Makefile
 utils/Makefile
 win32/Makefile
 rasqal.spec
@@ -1542,6 +1637,8 @@ AC_MSG_RESULT([
 Rasqal build summary:
   RDF query languages available : $rdf_query_languages_available
   RDF query languages enabled   :$rdf_query_languages_enabled
+  Result formats available      : $result_formats_available
+  Result formats enabled        :$result_formats_enabled
   Raptor version                : $RAPTOR_VERSION
   Decimal library               : $decimal_library
   Regex library                 : $regex_library

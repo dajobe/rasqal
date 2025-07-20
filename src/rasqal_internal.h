@@ -73,12 +73,13 @@ void rasqal_sign_free(void *ptr);
   
 #define RASQAL_MALLOC(type, size)   (type)rasqal_sign_malloc(size)
 #define RASQAL_CALLOC(type, nmemb, size) (type)rasqal_sign_calloc(nmemb, size)
-#define RASQAL_REALLOC(type, ptr, size) (type0rasqal_sign_realloc(ptr, size)
+#define RASQAL_REALLOC(type, ptr, size) (type)rasqal_sign_realloc(ptr, size)
 #define RASQAL_FREE(type, ptr)   rasqal_sign_free((void*)ptr)
 
 #else
 #define RASQAL_MALLOC(type, size) (type)malloc(size)
 #define RASQAL_CALLOC(type, size, count) (type)calloc(size, count)
+#define RASQAL_REALLOC(type, ptr, size) (type)realloc(ptr, size)
 #define RASQAL_FREE(type, ptr)   free((void*)ptr)
 
 #endif
@@ -1448,6 +1449,11 @@ int rasqal_init_result_format_turtle(rasqal_world*);
 
 /* rasqal_format_rdf.c */
 int rasqal_init_result_format_rdf(rasqal_world*);
+
+#ifdef RASQAL_RESULT_FORMAT_SRJ
+/* SRJ (SPARQL Results JSON) reader via YAJL */
+int rasqal_init_result_format_srj(rasqal_world*);
+#endif
 
 /* rasqal_row.c */
 rasqal_row* rasqal_new_row(rasqal_rowsource* rowsource);

@@ -1,0 +1,12 @@
+PREFIX : <http://example.org/>
+
+SELECT ?name ?age ?height ?birthDate ?isActive ?homepage ?friend
+WHERE {
+  ?person :name ?name ;
+          :age ?age ;
+          :height ?height ;
+          :birthDate ?birthDate ;
+          :isActive ?isActive ;
+          :homepage ?homepage ;
+          :friend ?friend .
+} 

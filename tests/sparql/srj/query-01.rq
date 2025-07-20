@@ -1,0 +1,9 @@
+PREFIX : <http://example.org/>
+
+SELECT ?name ?age ?email
+WHERE {
+  ?person :name ?name ;
+          :age ?age ;
+          :email ?email .
+}
+ORDER BY ?name 

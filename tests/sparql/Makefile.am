@@ -32,6 +32,10 @@ federated \
 warnings \
 errors
 
+if RASQAL_RESULT_FORMAT_SRJ
+SUBDIRS += srj
+endif
+
 EXTRA_DIST= \
 check_sparql.py \
 generate_sparql_plan.py \

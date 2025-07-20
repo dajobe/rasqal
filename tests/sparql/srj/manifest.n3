@@ -1,0 +1,62 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dawgt:   <http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+
+<>  rdf:type mf:Manifest ;
+    rdfs:comment "SRJ (SPARQL Results JSON) reading tests" ;
+    mf:entries
+    (
+     [  mf:name    "srj-basic-bindings" ;
+        rdfs:comment
+            "Basic variable bindings with simple literals and typed literals" ;
+        mf:action
+            [ qt:query  <query-01.rq> ;
+              qt:data   <data-01.n3> ] ;
+        mf:result  <result-01.srj> ;
+        dawgt:approval dawgt:Approved
+      ]
+
+     [  mf:name    "srj-ask-true" ;
+        rdfs:comment
+            "ASK query returning true" ;
+        mf:action
+            [ qt:query  <query-ask-01.rq> ;
+              qt:data   <data-01.n3> ] ;
+        mf:result  <result-ask-01.srj> ;
+        dawgt:approval dawgt:Approved
+      ]
+
+     [  mf:name    "srj-data-types" ;
+        rdfs:comment
+            "Various data types: URIs, blank nodes, typed literals, language tags" ;
+        mf:action
+            [ qt:query  <query-types.rq> ;
+              qt:data   <data-types.n3> ] ;
+        mf:result  <result-types.srj> ;
+        dawgt:approval dawgt:Approved
+      ]
+
+     [  mf:name    "srj-empty-results" ;
+        rdfs:comment
+            "Query returning no results" ;
+        mf:action
+            [ qt:query  <query-empty.rq> ;
+              qt:data   <data-01.n3> ] ;
+        mf:result  <result-empty.srj> ;
+        dawgt:approval dawgt:Approved
+      ]
+
+     [  mf:name    "srj-ask-false" ;
+        rdfs:comment
+            "ASK query returning false" ;
+        mf:action
+            [ qt:query  <query-ask-false.rq> ;
+              qt:data   <data-01.n3> ] ;
+        mf:result  <result-ask-false.srj> ;
+        dawgt:approval dawgt:Approved
+      ]
+
+    # End of tests
+   ). 

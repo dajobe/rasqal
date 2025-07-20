@@ -129,6 +129,10 @@ librasqal_la_SOURCES += sparql_lexer.c sparql_lexer.h \
 sparql_parser.c sparql_parser.h sparql_common.h
 endif
 
+if RASQAL_RESULT_FORMAT_SRJ
+librasqal_la_SOURCES += rasqal_format_srj.c
+endif
+
 if STRCASECMP
 librasqal_la_SOURCES += strcasecmp.c
 endif

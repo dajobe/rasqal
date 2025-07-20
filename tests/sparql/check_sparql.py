@@ -348,6 +348,8 @@ def read_query_results_file(
         # Write to file only if preserving files
         if _preserve_debug_files:
             RESULT_OUT.write_text("\n".join(parsed_rows_for_output) + "\n")
+#        # Always write to RESULT_OUT since it's used for comparison
+#        RESULT_OUT.write_text("\n".join(parsed_rows_for_output) + "\n")
         return {"count": len(parsed_rows_for_output)}
 
     except UtilityNotFoundError as e:
@@ -449,13 +451,7 @@ def _compare_actual_vs_expected(
         if result_file_ext == ".srx":
             expected_result_format = "xml"
         elif result_file_ext == ".srj":
-            logger.warning(
-                f"Test '{name}': SKIPPING JSON result comparison ({expected_result_file})"
-            )
-            test_result_summary["result"] = (
-                "skipped"  # This is a comparison skip, not test execution skip
-            )
-            return
+            expected_result_format = "srj"
         elif result_file_ext in [".csv", ".tsv"]:
             expected_result_format = result_file_ext[1:]
         elif result_file_ext == ".rdf":

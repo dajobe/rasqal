@@ -135,6 +135,10 @@ rasqal_init_result_formats(rasqal_world* world)
 
   rc += rasqal_init_result_format_rdf(world) != 0;
 
+#ifdef RASQAL_RESULT_FORMAT_SRJ
+  rc += rasqal_init_result_format_srj(world) != 0;
+#endif
+
   return rc;
 }
 

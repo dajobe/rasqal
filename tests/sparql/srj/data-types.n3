@@ -1,0 +1,17 @@
+@prefix : <http://example.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+:person1 :name "John"@en ;
+         :name "Jean"@fr ;
+         :age "30"^^xsd:integer ;
+         :height "1.75"^^xsd:decimal ;
+         :birthDate "1990-01-01"^^xsd:date ;
+         :isActive "true"^^xsd:boolean ;
+         :homepage <http://example.org/john> ;
+         :friend _:bob .
+
+_:bob :name "Bob" ;
+      :age "25"^^xsd:integer ;
+      :homepage <http://example.org/bob> ;
+      :friend :person1 . 

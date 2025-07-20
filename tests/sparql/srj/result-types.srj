@@ -1,0 +1,27 @@
+{
+  "head": {
+    "vars": ["name", "age", "height", "birthDate", "isActive", "homepage", "friend"]
+  },
+  "results": {
+    "bindings": [
+      {
+        "name": { "type": "literal", "value": "John", "xml:lang": "en" },
+        "age": { "type": "literal", "value": "30", "datatype": "http://www.w3.org/2001/XMLSchema#integer" },
+        "height": { "type": "literal", "value": "1.75", "datatype": "http://www.w3.org/2001/XMLSchema#decimal" },
+        "birthDate": { "type": "literal", "value": "1990-01-01", "datatype": "http://www.w3.org/2001/XMLSchema#date" },
+        "isActive": { "type": "literal", "value": "true", "datatype": "http://www.w3.org/2001/XMLSchema#boolean" },
+        "homepage": { "type": "uri", "value": "http://example.org/john" },
+        "friend": { "type": "bnode", "value": "bob" }
+      },
+      {
+        "name": { "type": "literal", "value": "Jean", "xml:lang": "fr" },
+        "age": { "type": "literal", "value": "30", "datatype": "http://www.w3.org/2001/XMLSchema#integer" },
+        "height": { "type": "literal", "value": "1.75", "datatype": "http://www.w3.org/2001/XMLSchema#decimal" },
+        "birthDate": { "type": "literal", "value": "1990-01-01", "datatype": "http://www.w3.org/2001/XMLSchema#date" },
+        "isActive": { "type": "literal", "value": "true", "datatype": "http://www.w3.org/2001/XMLSchema#boolean" },
+        "homepage": { "type": "uri", "value": "http://example.org/john" },
+        "friend": { "type": "bnode", "value": "bob" }
+      }
+    ]
+  }
+} 
