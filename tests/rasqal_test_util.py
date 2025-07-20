@@ -135,6 +135,14 @@ KNOWN_TEST_SUITES = {
         supports_negative_tests=False,
         supports_execution=True,
     ),
+    # SRJ Writer tests (SPARQL Results JSON format writing)
+    "srj-writer": TestSuiteConfig(
+        name="srj-writer",
+        execution_mode=TestExecutionMode.FULL_EXECUTION,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=False,
+        supports_execution=True,
+    ),
     # LAQRS tests (Language for Advanced Querying of RDF Streams)
     "laqrs-parser-positive": TestSuiteConfig(
         name="laqrs-parser-positive",

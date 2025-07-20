@@ -1,0 +1,25 @@
+{
+  "head": {
+    "vars": ["name", "age", "email"]
+  },
+  "results": {
+    "ordered": true,
+    "distinct": false,
+    "bindings": [
+      {
+        "name": { "type": "literal", "value": "Alice" },
+        "age": { "type": "literal", "value": "30", "datatype": "http://www.w3.org/2001/XMLSchema#integer" },
+        "email": { "type": "literal", "value": "alice@example.org" }
+      },
+      {
+        "name": { "type": "literal", "value": "Bob" },
+        "age": { "type": "literal", "value": "25", "datatype": "http://www.w3.org/2001/XMLSchema#integer" },
+        "email": { "type": "literal", "value": "bob@example.org" }
+      },
+      {
+        "name": { "type": "literal", "value": "Charlie" },
+        "age": { "type": "literal", "value": "35", "datatype": "http://www.w3.org/2001/XMLSchema#integer" },
+        "email": { "type": "literal", "value": "charlie@example.org" }
+      }
+    ]  }
+}

@@ -1188,7 +1188,7 @@ if test $need_digest_gcrypt = yes; then
 fi
 
 
-if test $srj_parser_ok = yes; then
+if test $srj_format_ok = yes; then
   if test "x$yajl_prefix" != "x"; then
     RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS -I$yajl_prefix/include"
     RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS -L$yajl_prefix/lib"

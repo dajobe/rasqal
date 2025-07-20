@@ -21,9 +21,12 @@
 # 
 
 SPARQL_MANIFEST_FILE= manifest.n3
+SPARQL_WRITER_MANIFEST_FILE= manifest-writer.n3
 
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILE)
+$(SPARQL_MANIFEST_FILE) \
+$(SPARQL_WRITER_MANIFEST_FILE) \
+check_srj_writer.py
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
@@ -50,7 +53,7 @@ else
 endif
 
 get-testsuites-list:
-	@echo "sparql-query"
+	@echo "sparql-query srj-writer"
 
 get-testsuite-sparql-query:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
@@ -60,6 +63,15 @@ get-testsuite-sparql-query:
 		--test-type PositiveTest \
 		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
+
+get-testsuite-srj-writer:
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+		--suite-name srj-writer \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type PositiveTest \
+		--action-template "$(PYTHON3) $(srcdir)/check_srj_writer.py --roqet $(top_builddir)/utils/roqet --test-dir $(srcdir) {test_id}" \
+		--manifest-file $(srcdir)/$(SPARQL_WRITER_MANIFEST_FILE)
 
 dist-hook:
 	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \

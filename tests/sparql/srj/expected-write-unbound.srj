@@ -1,0 +1,26 @@
+{
+  "head": {
+    "vars": ["person", "name", "email", "phone"]
+  },
+  "results": {
+    "ordered": false,
+    "distinct": false,
+    "bindings": [
+      {
+        "person": { "type": "uri", "value": "http://example.org/alice" },
+        "name": { "type": "literal", "value": "Alice" },
+        "email": { "type": "literal", "value": "alice@example.org" }
+      },
+      {
+        "person": { "type": "uri", "value": "http://example.org/bob" },
+        "name": { "type": "literal", "value": "Bob" },
+        "email": { "type": "literal", "value": "bob@example.org" }
+      },
+      {
+        "person": { "type": "uri", "value": "http://example.org/charlie" },
+        "name": { "type": "literal", "value": "Charlie" },
+        "email": { "type": "literal", "value": "charlie@example.org" }
+      }
+    ]
+  }
+}

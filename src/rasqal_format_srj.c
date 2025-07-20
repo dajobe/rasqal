@@ -56,6 +56,15 @@ static int rasqal_srj_rowsource_ensure_variables(rasqal_rowsource* rowsource, vo
 static int rasqal_srj_get_boolean(rasqal_query_results_formatter *formatter, rasqal_world* world, raptor_iostream *iostr, raptor_uri *base_uri, unsigned int flags);
 static rasqal_literal* rasqal_srj_create_literal(rasqal_world* world, const char* type, const char* value, const char* datatype, const char* lang);
 
+/* Writer forward declarations */
+static int rasqal_query_results_write_srj(rasqal_query_results_formatter* formatter, raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
+static void rasqal_srj_write_head(raptor_iostream* iostr, rasqal_query_results* results);
+static void rasqal_srj_write_boolean(raptor_iostream* iostr, rasqal_query_results* results);
+static void rasqal_srj_write_results(raptor_iostream* iostr, rasqal_query_results* results, rasqal_query* query);
+static void rasqal_srj_write_uri(raptor_iostream* iostr, raptor_uri* uri);
+static void rasqal_srj_write_literal(raptor_iostream* iostr, rasqal_literal* literal);
+static void rasqal_srj_write_bnode(raptor_iostream* iostr, const unsigned char* bnode_id);
+
 /* SRJ parsing context */
 typedef struct {
   rasqal_rowsource* rowsource;
@@ -182,7 +191,7 @@ rasqal_query_results_srj_register_factory(rasqal_query_results_format_factory *f
 
   factory->desc.flags = 0;
 
-  factory->write         = NULL; /* no writer */
+  factory->write         = rasqal_query_results_write_srj;
   factory->get_rowsource = rasqal_query_results_get_rowsource_srj;
   factory->recognise_syntax = rasqal_srj_recognise_syntax;
   factory->get_boolean      = rasqal_srj_get_boolean;
@@ -346,14 +355,14 @@ rasqal_srj_create_literal(rasqal_world* world,
     raptor_uri* dt_uri = NULL;
     unsigned char* copied_value;
     char* copied_lang = NULL;
-    
+
     /* Copy the value string to avoid memory corruption */
     size_t value_len = strlen(value);
     copied_value = RASQAL_MALLOC(unsigned char*, value_len + 1);
     if(!copied_value)
       return NULL;
     memcpy(copied_value, value, value_len + 1);
-    
+
     /* Copy the language string if present */
     if(lang) {
       size_t lang_len = strlen(lang);
@@ -362,7 +371,7 @@ rasqal_srj_create_literal(rasqal_world* world,
         memcpy(copied_lang, lang, lang_len + 1);
       }
     }
-    
+
     if(datatype) {
       dt_uri = raptor_new_uri(world->raptor_world_ptr,
                               (const unsigned char*)datatype);
@@ -683,7 +692,7 @@ rasqal_srj_end_map_handler(void* ctx)
           RASQAL_DEBUG2("SRJ: Created new row, size %d", context->current_row->size);
 #endif
         }
-        
+
         if(context->current_row) {
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
           RASQAL_DEBUG4("SRJ: Creating literal: type='%s', value='%s', datatype='%s'", 
@@ -1027,7 +1036,7 @@ rasqal_srj_get_boolean(rasqal_query_results_formatter *formatter,
   }
 
   bv = context->boolean_value;
-  
+
   rasqal_srj_context_finish(context);
 
   return bv;
@@ -1092,6 +1101,220 @@ rasqal_query_results_get_rowsource_srj(rasqal_query_results_formatter* formatter
   context->iostr = iostr;
 
   return rowsource;
+}
+
+/* SRJ Writing Implementation */
+
+/* Helper function to write URI terms */
+static void
+rasqal_srj_write_uri(raptor_iostream* iostr, raptor_uri* uri)
+{
+  const unsigned char* str;
+  size_t str_len;
+
+  raptor_iostream_counted_string_write("\"type\": \"uri\", \"value\": \"", 25,
+                                       iostr);
+  str = raptor_uri_as_counted_string(uri, &str_len);
+  str_len = strlen(RASQAL_GOOD_CAST(const char*, str));
+  raptor_string_escaped_write(str, str_len, '\"',
+                              RAPTOR_ESCAPED_WRITE_JSON_LITERAL, iostr);
+  raptor_iostream_write_byte('\"', iostr);
+}
+
+/* Helper function to write literal terms */
+static void
+rasqal_srj_write_literal(raptor_iostream* iostr, rasqal_literal* literal)
+{
+  raptor_iostream_counted_string_write("\"type\": \"literal\", \"value\": \"",
+                                       29, iostr);
+  raptor_string_escaped_write(literal->string, literal->string_len, '\"',
+                              RAPTOR_ESCAPED_WRITE_JSON_LITERAL, iostr);
+  raptor_iostream_write_byte('\"', iostr);
+
+  if(literal->language) {
+    raptor_iostream_counted_string_write(", \"xml:lang\": \"", 15, iostr);
+    raptor_iostream_string_write(RASQAL_GOOD_CAST(const unsigned char*, literal->language), iostr);
+    raptor_iostream_write_byte('\"', iostr);
+  }
+
+  if(literal->datatype) {
+    const unsigned char* dt_str;
+    raptor_iostream_counted_string_write(", \"datatype\": \"", 15, iostr);
+    dt_str = raptor_uri_as_string(literal->datatype);
+    raptor_iostream_string_write(dt_str, iostr);
+    raptor_iostream_write_byte('\"', iostr);
+  }
+}
+
+/* Helper function to write blank node terms */
+static void
+rasqal_srj_write_bnode(raptor_iostream* iostr, const unsigned char* bnode_id)
+{
+  raptor_iostream_counted_string_write("\"type\": \"bnode\", \"value\": \"", 27, iostr);
+  raptor_string_ntriples_write(bnode_id, strlen(RASQAL_GOOD_CAST(const char*, bnode_id)), '\"', iostr);
+  raptor_iostream_write_byte('\"', iostr);
+}
+
+/* Write head section */
+static void
+rasqal_srj_write_head(raptor_iostream* iostr, rasqal_query_results* results)
+{
+  int i;
+
+  raptor_iostream_counted_string_write("  \"head\": {\n", 12, iostr);
+
+  if(rasqal_query_results_is_bindings(results)) {
+    raptor_iostream_counted_string_write("    \"vars\": [", 13, iostr);
+
+    for(i = 0; 1; i++) {
+      const unsigned char *name = rasqal_query_results_get_binding_name(results, i);
+      if(!name)
+        break;
+
+      if(i > 0)
+        raptor_iostream_counted_string_write(", ", 2, iostr);
+
+      raptor_iostream_write_byte('\"', iostr);
+      raptor_iostream_string_write(name, iostr);
+      raptor_iostream_write_byte('\"', iostr);
+    }
+
+    raptor_iostream_counted_string_write("]\n", 2, iostr);
+  }
+
+  raptor_iostream_counted_string_write("  },\n", 5, iostr);
+}
+
+/* Write boolean results */
+static void
+rasqal_srj_write_boolean(raptor_iostream* iostr, rasqal_query_results* results)
+{
+  raptor_iostream_counted_string_write("  \"boolean\": ", 12, iostr);
+
+  if(rasqal_query_results_get_boolean(results))
+    raptor_iostream_counted_string_write("true", 4, iostr);
+  else
+    raptor_iostream_counted_string_write("false", 5, iostr);
+}
+
+/* Write results section */
+static void
+rasqal_srj_write_results(raptor_iostream* iostr, rasqal_query_results* results, rasqal_query* query)
+{
+  int row_comma = 0;
+
+  raptor_iostream_counted_string_write("  \"results\": {\n", 15, iostr);
+
+  /* Write optional metadata */
+  if(query) {
+    raptor_iostream_counted_string_write("    \"ordered\": ", 15, iostr);
+    if(rasqal_query_get_order_condition(query, 0) != NULL)
+      raptor_iostream_counted_string_write("true", 4, iostr);
+    else
+      raptor_iostream_counted_string_write("false", 5, iostr);
+    raptor_iostream_counted_string_write(",\n", 2, iostr);
+
+    raptor_iostream_counted_string_write("    \"distinct\": ", 16, iostr);
+    if(rasqal_query_get_distinct(query))
+      raptor_iostream_counted_string_write("true", 4, iostr);
+    else
+      raptor_iostream_counted_string_write("false", 5, iostr);
+    raptor_iostream_counted_string_write(",\n", 2, iostr);
+  }
+
+  /* Write bindings array */
+  raptor_iostream_counted_string_write("    \"bindings\": [\n", 18, iostr);
+
+  while(!rasqal_query_results_finished(results)) {
+    int column_comma = 0;
+    int i;
+
+    if(row_comma)
+      raptor_iostream_counted_string_write(",\n", 2, iostr);
+
+    raptor_iostream_counted_string_write("      {\n", 8, iostr);
+
+    for(i = 0; i < rasqal_query_results_get_bindings_count(results); i++) {
+      const unsigned char *name = rasqal_query_results_get_binding_name(results, i);
+      rasqal_literal *l = rasqal_query_results_get_binding_value(results, i);
+
+      if(l) {
+        if(column_comma)
+          raptor_iostream_counted_string_write(",\n", 2, iostr);
+
+        raptor_iostream_counted_string_write("        \"", 9, iostr);
+        raptor_iostream_string_write(name, iostr);
+        raptor_iostream_counted_string_write("\": { ", 5, iostr);
+
+        switch(l->type) {
+          case RASQAL_LITERAL_URI:
+            rasqal_srj_write_uri(iostr, l->value.uri);
+            break;
+          case RASQAL_LITERAL_BLANK:
+            rasqal_srj_write_bnode(iostr, l->string);
+            break;
+          case RASQAL_LITERAL_STRING:
+          default:
+            rasqal_srj_write_literal(iostr, l);
+            break;
+        }
+
+        raptor_iostream_counted_string_write(" }", 2, iostr);
+        column_comma = 1;
+      }
+    }
+
+    raptor_iostream_counted_string_write("\n      }", 8, iostr);
+    row_comma = 1;
+
+    rasqal_query_results_next(results);
+  }
+
+  raptor_iostream_counted_string_write("\n    ]\n", 6, iostr);
+  raptor_iostream_counted_string_write("  }", 3, iostr);
+}
+
+/* Main writer function */
+static int
+rasqal_query_results_write_srj(rasqal_query_results_formatter* formatter,
+                               raptor_iostream *iostr,
+                               rasqal_query_results* results,
+                               raptor_uri *base_uri)
+{
+  rasqal_world* world = rasqal_query_results_get_world(results);
+  rasqal_query* query = rasqal_query_results_get_query(results);
+  rasqal_query_results_type type;
+
+  type = rasqal_query_results_get_type(results);
+
+  if(type != RASQAL_QUERY_RESULTS_BINDINGS &&
+     type != RASQAL_QUERY_RESULTS_BOOLEAN) {
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                            "Cannot write SRJ for %s query result format",
+                            rasqal_query_results_type_label(type));
+    return 1;
+  }
+
+  /* Write opening brace */
+  raptor_iostream_counted_string_write("{\n", 2, iostr);
+
+  /* Write head section */
+  rasqal_srj_write_head(iostr, results);
+
+  /* Handle boolean results */
+  if(rasqal_query_results_is_boolean(results)) {
+    rasqal_srj_write_boolean(iostr, results);
+    goto done;
+  }
+
+  /* Write results section */
+  rasqal_srj_write_results(iostr, results, query);
+
+done:
+  /* Write closing brace */
+  raptor_iostream_counted_string_write("\n}\n", 3, iostr);
+
+  return 0;
 }
 
 /* End of SRJ format implementation */

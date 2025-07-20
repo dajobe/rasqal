@@ -1,0 +1,16 @@
+@prefix ex: <http://example.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+ex:person1 foaf:name "Alice \"quoted\" Smith" ;
+          foaf:nick "Alice\nNewline" ;
+          foaf:title "Ms. Smith\tTabbed" ;
+          foaf:description "Text with\\backslash and /forward-slash" ;
+          foaf:age 30 .
+
+ex:person2 foaf:name "Special chars: éñ中文" ;
+          foaf:nick "unicode_test" ;
+          foaf:age 25 .
+
+ex:person3 foaf:name "Control chars: \u0001\u0002\u0003" ;
+          foaf:nick "control_test" ;
+          foaf:age 35 . 

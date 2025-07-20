@@ -1,0 +1,27 @@
+{
+  "head": {
+    "vars": ["person", "name", "nick", "description"]
+  },
+  "results": {
+    "ordered": false,
+    "distinct": false,
+    "bindings": [
+      {
+        "person": { "type": "uri", "value": "http://example.org/person1" },
+        "name": { "type": "literal", "value": "Alice \"quoted\" Smith" },
+        "nick": { "type": "literal", "value": "Alice\nNewline" },
+        "description": { "type": "literal", "value": "Text with\\backslash and /forward-slash" }
+      },
+      {
+        "person": { "type": "uri", "value": "http://example.org/person2" },
+        "name": { "type": "literal", "value": "Special chars: éñ中文" },
+        "nick": { "type": "literal", "value": "unicode_test" }
+      },
+      {
+        "person": { "type": "uri", "value": "http://example.org/person3" },
+        "name": { "type": "literal", "value": "Control chars: \u0001\u0002\u0003" },
+        "nick": { "type": "literal", "value": "control_test" }
+      }
+    ]
+  }
+} 

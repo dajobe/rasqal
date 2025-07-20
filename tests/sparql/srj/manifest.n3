@@ -12,9 +12,9 @@
         rdfs:comment
             "Basic variable bindings with simple literals and typed literals" ;
         mf:action
-            [ qt:query  <query-01.rq> ;
-              qt:data   <data-01.n3> ] ;
-        mf:result  <result-01.srj> ;
+            [ qt:query  <query-basic-bindings.rq> ;
+              qt:data   <data-basic-bindings.n3> ] ;
+        mf:result  <result-basic-bindings.srj> ;
         dawgt:approval dawgt:Approved
       ]
 
@@ -22,9 +22,9 @@
         rdfs:comment
             "ASK query returning true" ;
         mf:action
-            [ qt:query  <query-ask-01.rq> ;
-              qt:data   <data-01.n3> ] ;
-        mf:result  <result-ask-01.srj> ;
+            [ qt:query  <query-ask-true.rq> ;
+              qt:data   <data-basic-bindings.n3> ] ;
+        mf:result  <result-ask-true.srj> ;
         dawgt:approval dawgt:Approved
       ]
 
@@ -43,7 +43,7 @@
             "Query returning no results" ;
         mf:action
             [ qt:query  <query-empty.rq> ;
-              qt:data   <data-01.n3> ] ;
+              qt:data   <data-basic-bindings.n3> ] ;
         mf:result  <result-empty.srj> ;
         dawgt:approval dawgt:Approved
       ]
@@ -53,7 +53,7 @@
             "ASK query returning false" ;
         mf:action
             [ qt:query  <query-ask-false.rq> ;
-              qt:data   <data-01.n3> ] ;
+              qt:data   <data-basic-bindings.n3> ] ;
         mf:result  <result-ask-false.srj> ;
         dawgt:approval dawgt:Approved
       ]

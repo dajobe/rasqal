@@ -1,0 +1,26 @@
+{
+  "head": {
+    "vars": ["s", "p", "o"]
+  },
+  "results": {
+    "ordered": false,
+    "distinct": false,
+    "bindings": [
+      {
+        "s": { "type": "uri", "value": "http://example.org/person1" },
+        "p": { "type": "uri", "value": "http://xmlns.com/foaf/0.1/name" },
+        "o": { "type": "literal", "value": "Alice", "xml:lang": "en" }
+      },
+      {
+        "s": { "type": "uri", "value": "http://example.org/person2" },
+        "p": { "type": "uri", "value": "http://xmlns.com/foaf/0.1/name" },
+        "o": { "type": "literal", "value": "Bob" }
+      },
+      {
+        "s": { "type": "bnode", "value": "graphid0_person3" },
+        "p": { "type": "uri", "value": "http://xmlns.com/foaf/0.1/name" },
+        "o": { "type": "literal", "value": "Charlie" }
+      }
+    ]
+  }
+}

@@ -1,0 +1,82 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dawgt:   <http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+
+<>  rdf:type mf:Manifest ;
+    rdfs:comment "SRJ (SPARQL Results JSON) writing tests" ;
+    mf:entries
+    (
+     [  mf:name    "srj-write-basic-bindings" ;
+        rdfs:comment
+            "Test SRJ writer with basic variable bindings and simple literals" ;
+        mf:action
+            [ qt:query  <query-basic-bindings.rq> ;
+              qt:data   <data-basic-bindings.n3> ] ;
+        mf:result  <expected-write-basic-bindings.srj> ;
+        dawgt:approval dawgt:Approved
+      ]
+
+     [  mf:name    "srj-write-ask-true" ;
+        rdfs:comment
+            "Test SRJ writer with ASK query returning true" ;
+        mf:action
+            [ qt:query  <query-ask-true.rq> ;
+              qt:data   <data-basic-bindings.n3> ] ;
+        mf:result  <expected-write-ask-true.srj> ;
+        dawgt:approval dawgt:Approved
+      ]
+
+     [  mf:name    "srj-write-ask-false" ;
+        rdfs:comment
+            "Test SRJ writer with ASK query returning false" ;
+        mf:action
+            [ qt:query  <query-ask-false.rq> ;
+              qt:data   <data-basic-bindings.n3> ] ;
+        mf:result  <expected-write-ask-false.srj> ;
+        dawgt:approval dawgt:Approved
+      ]
+
+     [  mf:name    "srj-write-data-types" ;
+        rdfs:comment
+            "Test SRJ writer with various data types: URIs, blank nodes, typed literals, language tags" ;
+        mf:action
+            [ qt:query  <query-data-types.rq> ;
+              qt:data   <data-data-types.n3> ] ;
+        mf:result  <expected-write-types.srj> ;
+        dawgt:approval dawgt:Approved
+      ]
+
+     [  mf:name    "srj-write-empty-results" ;
+        rdfs:comment
+            "Test SRJ writer with query returning no results" ;
+        mf:action
+            [ qt:query  <query-empty.rq> ;
+              qt:data   <data-basic-bindings.n3> ] ;
+        mf:result  <expected-write-empty.srj> ;
+        dawgt:approval dawgt:Approved
+      ]
+
+     [  mf:name    "srj-write-special-chars" ;
+        rdfs:comment
+            "Test SRJ writer with special characters and JSON escaping" ;
+        mf:action
+            [ qt:query  <query-special.rq> ;
+              qt:data   <data-special-chars.n3> ] ;
+        mf:result  <expected-write-special-chars.srj> ;
+        dawgt:approval dawgt:Approved
+      ]
+
+     [  mf:name    "srj-write-unbound-vars" ;
+        rdfs:comment
+            "Test SRJ writer with unbound variables (OPTIONAL patterns)" ;
+        mf:action
+            [ qt:query  <query-unbound.rq> ;
+              qt:data   <data-basic-bindings.n3> ] ;
+        mf:result  <expected-write-unbound.srj> ;
+        dawgt:approval dawgt:Approved
+      ]
+
+    # End of tests
+   ). 
