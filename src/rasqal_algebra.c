@@ -773,7 +773,7 @@ rasqal_algebra_node_get_operator(rasqal_algebra_node* node)
 }
 
 
-static struct {
+static const struct {
   const char* const label;
   size_t length;
 } rasqal_algebra_node_operator_labels[RASQAL_ALGEBRA_OPERATOR_LAST + 1] = {
