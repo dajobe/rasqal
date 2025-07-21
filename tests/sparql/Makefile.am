@@ -30,7 +30,8 @@ aggregate \
 sparql11 \
 federated \
 warnings \
-errors
+errors \
+csv-tsv
 
 if RASQAL_RESULT_FORMAT_SRJ
 SUBDIRS += srj

@@ -1,0 +1,10 @@
+# w3c-test-data.ttl
+# Data to generate W3C specification test case results
+# Adapted from: https://www.w3.org/TR/sparql11-results-csv-tsv/
+
+<http://example/x> <http://example/hasLiteral> "String" .
+<http://example/x> <http://example/hasLiteral> "String-with-dquote\"" .
+_:blank0 <http://example/hasLiteral> "Blank node" .
+<http://example/missing> <http://example/hasLiteral> "Missing 'x'" .
+_:blank1 <http://example/hasLiteral> "String-with-lang"@en .
+_:blank1 <http://example/hasLiteral> "123"^^<http://www.w3.org/2001/XMLSchema#integer> .

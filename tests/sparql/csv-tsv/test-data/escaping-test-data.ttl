@@ -1,0 +1,6 @@
+# escaping-test-data.ttl
+# Test data for special character escaping
+
+<http://example.org/s1> <http://example.org/p1> "has,comma" .
+<http://example.org/s2> <http://example.org/p2> "has\"quote" .
+<http://example.org/s3> <http://example.org/p3> "line1\nline2" .

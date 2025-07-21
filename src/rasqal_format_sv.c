@@ -5,24 +5,24 @@
  * Intended to read and write the
  *   SPARQL 1.1 Query Results CSV and TSV Formats (DRAFT)
  *   http://www.w3.org/2009/sparql/docs/csv-tsv-results/results-csv-tsv.html
- * 
+ *
  * Copyright (C) 2009-2011, David Beckett http://www.dajobe.org/
- * 
+ *
  * This package is Free Software and part of Redland http://librdf.org/
- * 
+ *
  * It is licensed under the following three licenses as alternatives:
  *   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
  *   2. GNU General Public License (GPL) V2 or any newer version
  *   3. Apache License, V2.0 or any newer version
- * 
+ *
  * You may not use this file except in compliance with at least one of
  * the above three licenses.
- * 
+ *
  * See LICENSE.html or LICENSE.txt at the top of this package for the
  * complete terms and further detail along with the license texts for
  * the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
- * 
- * 
+ *
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -99,9 +99,9 @@ rasqal_iostream_write_csv_string(const unsigned char *string, size_t len,
  * @eol_str_len: length of @eol_str
  *
  * INTERNAL - Write a @sep-separated values version of the query results format to an iostream.
- * 
+ *
  * If the writing succeeds, the query results will be exhausted.
- * 
+ *
  * Return value: non-0 on failure
  **/
 static int
@@ -124,24 +124,48 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
     emit_mkr = 1;
   else
     emit_mkr = 0;
-  
-  if(!rasqal_query_results_is_bindings(results)) {
+
+  /* Handle both variable binding results (SELECT) and boolean results (ASK) */
+  if(!rasqal_query_results_is_bindings(results) &&
+     !rasqal_query_results_is_boolean(results)) {
     rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                             &query->locator,
-                            "Can only write %s format for variable binding results",
+                            "Can only write %s format for variable binding or boolean results",
                             label);
     return 1;
+  }
+
+  /* Handle Boolean Results (ASK queries) */
+  if(rasqal_query_results_is_boolean(results)) {
+    int boolean_result = rasqal_query_results_get_boolean(results);
+
+    if(boolean_result < 0) {
+      rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
+                              &query->locator,
+                              "Failed to get boolean result for %s format",
+                              label);
+      return 1;
+    }
+
+    /* Write the boolean value as per W3C SPARQL CSV/TSV specification */
+    if(boolean_result)
+      raptor_iostream_counted_string_write("true", 4, iostr);
+    else
+      raptor_iostream_counted_string_write("false", 5, iostr);
+
+    raptor_iostream_counted_string_write(eol_str, eol_str_len, iostr);
+    return 0;
   }
 
   if(emit_mkr) {
     raptor_iostream_counted_string_write("result is relation with format = csv;\n", 38, iostr);
     raptor_iostream_counted_string_write("begin relation result;\n", 23, iostr);
   }
-  
+
   /* Header */
   for(i = 0; 1; i++) {
     const unsigned char *name;
-    
+
     name = rasqal_query_results_get_binding_name(results, i);
     if(!name)
       break;
@@ -171,7 +195,7 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
       if(l) {
         const unsigned char* str;
         size_t len;
-        
+
         switch(l->type) {
           case RASQAL_LITERAL_URI:
             str = RASQAL_GOOD_CAST(const unsigned char*, raptor_uri_as_counted_string(l->value.uri, &len));
@@ -200,7 +224,7 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
                 if(ltype >= RASQAL_LITERAL_INTEGER &&
                    ltype <= RASQAL_LITERAL_DECIMAL) {
                   /* write integer, float, double and decimal XSD typed
-                   * data without quotes, datatype or language 
+                   * data without quotes, datatype or language
                    */
                   raptor_string_ntriples_write(l->string, l->string_len, '\0', iostr);
                   break;
@@ -256,7 +280,7 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
     if(emit_mkr)
       raptor_iostream_counted_string_write(";", 1, iostr);
     raptor_iostream_counted_string_write(eol_str, eol_str_len, iostr);
-    
+
     rasqal_query_results_next(results);
   }
   if(emit_mkr)
@@ -304,11 +328,11 @@ rasqal_query_results_write_tsv(rasqal_query_results_formatter* formatter,
 
 
 
-typedef struct 
+typedef struct
 {
   rasqal_world* world;
   rasqal_rowsource* rowsource;
-  
+
   int failed;
 
   /* Input fields */
@@ -335,7 +359,7 @@ typedef struct
 
   int data_is_turtle;
 } rasqal_rowsource_sv_context;
-  
+
 
 static sv_status_t
 rasqal_rowsource_sv_header_callback(sv *t, void *user_data,
@@ -358,7 +382,9 @@ rasqal_rowsource_sv_header_callback(sv *t, void *user_data,
       p++;
       len--;
     }
-    
+
+
+
     v = rasqal_variables_table_add2(con->vars_table,
                                     RASQAL_VARIABLE_TYPE_NORMAL,
                                     RASQAL_GOOD_CAST(const unsigned char*, p),
@@ -369,7 +395,7 @@ rasqal_rowsource_sv_header_callback(sv *t, void *user_data,
       rasqal_free_variable(v);
     }
   }
-  
+
   return SV_STATUS_OK;
 }
 
@@ -384,6 +410,8 @@ rasqal_rowsource_sv_data_callback(sv *t, void *user_data,
   unsigned i;
 
   con = (rasqal_rowsource_sv_context*)user_data;
+
+
 
   row = rasqal_new_row(con->rowsource);
   if(!row)
@@ -401,11 +429,56 @@ rasqal_rowsource_sv_data_callback(sv *t, void *user_data,
       /* missing */
       l = NULL;
     } else if(con->data_is_turtle) {
+      /* For TSV, we need to handle quoted literals properly */
+      unsigned char* ntriples_field = NULL;
+      size_t ntriples_len = field_len;
+
+      /* If this looks like a literal (not a URI or blank node), add quotes for N-Triples parsing */
+      if(field_len > 0 && *field != '<' && *field != '_') {
+        /* This is likely a literal, add quotes for N-Triples parsing */
+        ntriples_field = RASQAL_MALLOC(unsigned char*, field_len + 3);
+        if(!ntriples_field)
+          goto fail;
+
+        ntriples_field[0] = '"';
+        memcpy(ntriples_field + 1, field, field_len);
+        ntriples_field[field_len + 1] = '"';
+        ntriples_field[field_len + 2] = '\0';
+        ntriples_len = field_len + 2;
+      } else {
+        /* URI or blank node, use as-is */
+        ntriples_field = RASQAL_GOOD_CAST(unsigned char*, field);
+      }
+
       l = rasqal_new_literal_from_ntriples_counted_string(con->world,
-                                                          RASQAL_GOOD_CAST(unsigned char*,field),
-                                                          field_len);
-      if(!l)
-        goto fail;
+                                                          ntriples_field,
+                                                          ntriples_len);
+
+      /* Free the allocated field if we created one */
+      if(ntriples_field != RASQAL_GOOD_CAST(unsigned char*, field)) {
+        RASQAL_FREE(char*, ntriples_field);
+      }
+
+      if(!l) {
+        /* N-Triples parsing failed, try as plain string literal */
+        unsigned char* lvalue;
+
+        lvalue = RASQAL_MALLOC(unsigned char*, field_len + 1);
+        if(!lvalue)
+          goto fail;
+
+        if(!field_len)
+          *lvalue = '\0';
+        else
+          memcpy(lvalue, field, field_len);
+        lvalue[field_len] = '\0';
+
+        l = rasqal_new_string_literal_node(con->world, lvalue, NULL, NULL);
+        if(!l) {
+          RASQAL_FREE(char*, lvalue);
+          goto fail;
+        }
+      }
     } else {
       unsigned char* lvalue;
 
@@ -459,8 +532,11 @@ rasqal_rowsource_sv_init(rasqal_rowsource* rowsource, void *user_data)
   if(!con->t)
     return 1;
 
-  if(con->data_is_turtle)
+  if(con->data_is_turtle) {
+    /* TSV format: Configure for W3C SPARQL 1.1 compliance */
     sv_set_option(con->t, SV_OPTION_QUOTED_FIELDS, 0L);
+    sv_set_option(con->t, SV_OPTION_ESCAPE_CHAR, '\\');  /* Set backslash as escape character */
+  }
 
   return 0;
 }
@@ -882,13 +958,13 @@ static const char* const csv_uri_strings[] = {
 };
 
 static const raptor_type_q csv_types[] = {
-  { "text/csv", 8, 10}, 
-  { "text/csv; header=present", 24, 10}, 
+  { "text/csv", 8, 10},
+  { "text/csv; header=present", 24, 10},
   { NULL, 0, 0}
 };
 
 static int
-rasqal_query_results_csv_register_factory(rasqal_query_results_format_factory *factory) 
+rasqal_query_results_csv_register_factory(rasqal_query_results_format_factory *factory)
 {
   int rc = 0;
 
@@ -899,7 +975,7 @@ rasqal_query_results_csv_register_factory(rasqal_query_results_format_factory *f
   factory->desc.uri_strings = csv_uri_strings;
 
   factory->desc.flags = 0;
-  
+
   factory->write         = rasqal_query_results_write_csv;
   factory->get_rowsource = rasqal_query_results_get_rowsource_csv;
   factory->recognise_syntax = rasqal_query_results_csv_recognise_syntax;
@@ -914,13 +990,13 @@ static const char* const mkr_uri_strings[] = {
 };
 
 static const raptor_type_q mkr_types[] = {
-  { "text/mkr", 8, 10}, 
-  { "text/mkr; header=present", 24, 10}, 
+  { "text/mkr", 8, 10},
+  { "text/mkr; header=present", 24, 10},
   { NULL, 0, 0}
 };
 
 static int
-rasqal_query_results_mkr_register_factory(rasqal_query_results_format_factory *factory) 
+rasqal_query_results_mkr_register_factory(rasqal_query_results_format_factory *factory)
 {
   int rc = 0;
 
@@ -931,7 +1007,7 @@ rasqal_query_results_mkr_register_factory(rasqal_query_results_format_factory *f
   factory->desc.uri_strings = mkr_uri_strings;
 
   factory->desc.flags = 0;
-  
+
   factory->write         = rasqal_query_results_write_mkr;
   factory->get_rowsource = rasqal_query_results_get_rowsource_mkr;
   factory->recognise_syntax = rasqal_query_results_mkr_recognise_syntax;
@@ -951,13 +1027,13 @@ static const char* const tsv_uri_strings[] = {
 
 
 static const raptor_type_q tsv_types[] = {
-  { "text/tab-separated-values", 25, 10}, 
+  { "text/tab-separated-values", 25, 10},
   { NULL, 0, 0}
 };
 
 
 static int
-rasqal_query_results_tsv_register_factory(rasqal_query_results_format_factory *factory) 
+rasqal_query_results_tsv_register_factory(rasqal_query_results_format_factory *factory)
 {
   int rc = 0;
 
@@ -968,7 +1044,7 @@ rasqal_query_results_tsv_register_factory(rasqal_query_results_format_factory *f
   factory->desc.uri_strings = tsv_uri_strings;
 
   factory->desc.flags = 0;
-  
+
   factory->write         = rasqal_query_results_write_tsv;
   factory->get_rowsource = rasqal_query_results_get_rowsource_tsv;
   factory->recognise_syntax = rasqal_query_results_tsv_recognise_syntax;
@@ -991,6 +1067,6 @@ rasqal_init_result_format_sv(rasqal_world* world)
   if(!rasqal_world_register_query_results_format_factory(world,
                                                          &rasqal_query_results_tsv_register_factory))
     return 1;
-  
+
   return 0;
 }

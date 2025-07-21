@@ -33,6 +33,8 @@ import logging
 from pathlib import Path
 import time
 import re
+import subprocess
+import xml.etree.ElementTree as ET
 from typing import List, Dict, Any, Optional, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
@@ -184,6 +186,7 @@ def _process_actual_output(roqet_stdout_str: str) -> Dict[str, Any]:
     is_sorted_by_query = False
     processed_output_lines: List[str] = []
     roqet_results_count = 0
+    actual_boolean_value = None
 
     for line in lines:
         if match := re.match(r"projected variable names: (.*)", line):
@@ -202,6 +205,10 @@ def _process_actual_output(roqet_stdout_str: str) -> Dict[str, Any]:
                 result_type = "graph"
             elif verb == "ASK":
                 result_type = "boolean"
+        elif result_type == "boolean" and line.strip() in ["true", "false"]:
+            # Capture boolean result value for ASK queries
+            actual_boolean_value = line.strip() == "true"
+            processed_output_lines.append(line.strip())
         elif "query order conditions:" in line:
             is_sorted_by_query = True
         elif row_match := re.match(r"^(?:row|result): \[(.*)\]$", line):
@@ -239,6 +246,7 @@ def _process_actual_output(roqet_stdout_str: str) -> Dict[str, Any]:
         "roqet_results_count": roqet_results_count,
         "vars_order": _projected_vars_order[:],  # Return a copy
         "is_sorted_by_query": is_sorted_by_query,
+        "boolean_value": actual_boolean_value,  # Add boolean value for ASK queries
     }
 
 
@@ -277,9 +285,32 @@ def read_query_results_file(
     sort_output: bool,
 ) -> Optional[Dict[str, Any]]:
     """
-    Reads a SPARQL query results file (e.g., SRX, CSV) using roqet and normalizes its output.
+    Reads a SPARQL query results file (e.g., SRX, SRJ, CSV, TSV) using roqet and normalizes its output.
     Returns a dictionary with result count or None on error.
     """
+    # Handle boolean results (ASK queries) for CSV/TSV formats
+    if result_format_hint in ["csv", "tsv"]:
+        # Try to detect if this is a boolean result by checking file content
+        try:
+            content = result_file_path.read_text().strip()
+            # CSV/TSV boolean results contain just "true" or "false"
+            if content.lower() in ["true", "false"]:
+                # Parse boolean result properly
+                boolean_value = content.lower() == "true"
+                logger.debug(f"Parsed CSV/TSV boolean result: {boolean_value}")
+                return {
+                    "type": "boolean",
+                    "value": boolean_value,
+                    "count": 1,
+                    "vars": [],
+                    "results": []
+                }
+        except Exception as e:
+            logger.debug(f"Could not read file content for boolean detection: {e}")
+
+        return parse_csv_tsv_with_roqet(
+            result_file_path, result_format_hint, expected_vars_order, sort_output
+        )
     abs_result_file_path = result_file_path.resolve()
     cmd = [
         ROQET,
@@ -348,8 +379,8 @@ def read_query_results_file(
         # Write to file only if preserving files
         if _preserve_debug_files:
             RESULT_OUT.write_text("\n".join(parsed_rows_for_output) + "\n")
-#        # Always write to RESULT_OUT since it's used for comparison
-#        RESULT_OUT.write_text("\n".join(parsed_rows_for_output) + "\n")
+        #        # Always write to RESULT_OUT since it's used for comparison
+        #        RESULT_OUT.write_text("\n".join(parsed_rows_for_output) + "\n")
         return {"count": len(parsed_rows_for_output)}
 
     except UtilityNotFoundError as e:
@@ -359,6 +390,149 @@ def read_query_results_file(
         logger.error(
             f"Error in read_query_results_file for {abs_result_file_path}: {e}"
         )
+        return None
+
+
+def parse_csv_tsv_with_roqet(
+    file_path: Path,
+    format_type: str,
+    expected_vars_order: List[str],
+    sort_output: bool,
+) -> Optional[Dict[str, Any]]:
+    """
+    Parse CSV/TSV files using roqet's built-in parsing capabilities.
+    Converts CSV/TSV to SRX format for normalized comparison.
+    """
+
+    file_path = Path(file_path)
+
+    # Basic existence check only - let roqet handle format validation
+    if not file_path.exists():
+        logger.error(f"{format_type} file does not exist: {file_path}")
+        return None
+
+    # Use roqet to convert CSV/TSV to normalized SRX format for comparison
+    try:
+        cmd = [ROQET, "-R", format_type, "-t", str(file_path), "-r", "xml"]
+        if logger.level == logging.DEBUG:
+            logger.debug(f"(parse_csv_tsv_with_roqet): Running {' '.join(cmd)}")
+
+        result = run_command(
+            cmd, CURDIR, f"Failed to parse {format_type} file {file_path}"
+        )
+
+        if result.returncode != 0:
+            logger.error(
+                f"roqet failed to parse {format_type} file {file_path}: {result.stderr}"
+            )
+            return None
+
+        if not result.stdout.strip():
+            logger.warning(
+                f"roqet produced empty output for {format_type} file {file_path}"
+            )
+            return {"count": 0, "vars": [], "results": []}
+
+        # Parse the converted SRX output using XML parsing
+        return parse_srx_from_roqet_output(
+            result.stdout, expected_vars_order, sort_output
+        )
+
+    except subprocess.TimeoutExpired:
+        logger.error(f"Timeout parsing {format_type} file {file_path}")
+        return None
+    except Exception as e:
+        logger.error(f"Error parsing {format_type} file {file_path}: {e}")
+        return None
+
+
+def parse_srx_from_roqet_output(
+    srx_content: str, expected_vars_order: List[str], sort_output: bool
+) -> Optional[Dict[str, Any]]:
+    """
+    Parse SRX content from roqet output into normalized format.
+    Returns a dictionary compatible with existing test infrastructure.
+    """
+    try:
+        # Parse XML using ElementTree
+        root = ET.fromstring(srx_content)
+
+        # Extract namespaces
+        ns = {"sparql": "http://www.w3.org/2005/sparql-results#"}
+
+        # Extract variables
+        vars_elem = root.find(".//sparql:head", ns)
+        variables = []
+        if vars_elem is not None:
+            for var_elem in vars_elem.findall(".//sparql:variable", ns):
+                var_name = var_elem.get("name")
+                if var_name:
+                    variables.append(var_name)
+
+        # Convert to the format expected by existing test infrastructure
+        parsed_rows_for_output = []
+
+        # Extract results
+        results_elem = root.find(".//sparql:results", ns)
+        if results_elem is not None:
+            for result_elem in results_elem.findall(".//sparql:result", ns):
+                result_row = {}
+                for binding_elem in result_elem.findall(".//sparql:binding", ns):
+                    var_name = binding_elem.get("name")
+                    if var_name:
+                        # Extract value based on type
+                        value_elem = binding_elem.find("*")
+                        if value_elem is not None:
+                            if value_elem.tag.endswith("uri"):
+                                result_row[var_name] = f'uri("{value_elem.text}")'
+                            elif value_elem.tag.endswith("literal"):
+                                # Handle different literal types
+                                datatype = value_elem.get("datatype")
+                                lang = value_elem.get(
+                                    "{http://www.w3.org/XML/1998/namespace}lang"
+                                )
+                                if datatype:
+                                    result_row[var_name] = (
+                                        f'literal("{value_elem.text}", datatype={datatype})'
+                                    )
+                                elif lang:
+                                    result_row[var_name] = (
+                                        f'literal("{value_elem.text}", lang={lang})'
+                                    )
+                                else:
+                                    result_row[var_name] = (
+                                        f'string("{value_elem.text}")'
+                                    )
+                            elif value_elem.tag.endswith("bnode"):
+                                result_row[var_name] = f"blank {value_elem.text}"
+
+                # Use expected_vars_order if available, otherwise use discovered variables
+                order_to_use = expected_vars_order if expected_vars_order else variables
+
+                # Format row in the same way as the existing function
+                formatted_row_parts = [
+                    f"{var}={result_row.get(var, NS.RS + 'undefined')}"
+                    for var in order_to_use
+                ]
+                parsed_rows_for_output.append(
+                    f"row: [{', '.join(formatted_row_parts)}]"
+                )
+
+        # Sort results if requested
+        if sort_output:
+            parsed_rows_for_output.sort()
+
+        # Write to file only if preserving files (consistent with existing behavior)
+        if _preserve_debug_files:
+            RESULT_OUT.write_text("\n".join(parsed_rows_for_output) + "\n")
+
+        return {"count": len(parsed_rows_for_output)}
+
+    except ET.ParseError as e:
+        logger.error(f"Error parsing SRX XML: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Error processing SRX content: {e}")
         return None
 
 
@@ -493,10 +667,25 @@ def _compare_actual_vs_expected(
         test_result_summary["result"] = "failure"
         return
 
-    # If processing expected results didn't fail, proceed to diff
+    # If processing expected results didn't fail, proceed to comparison
     comparison_rc = -1
     if actual_result_type == "graph":
         comparison_rc = compare_rdf_graphs(RESULT_OUT, ROQET_OUT, DIFF_OUT)
+    elif actual_result_type == "boolean" and expected_results_info and expected_results_info.get("type") == "boolean":
+        # Handle boolean result comparison directly
+        expected_boolean = expected_results_info.get("value", False)
+        # Get actual boolean from processed output
+        actual_boolean = actual_result_info.get("boolean_value", False)
+        
+        if expected_boolean == actual_boolean:
+            comparison_rc = 0
+            logger.debug(f"Boolean comparison successful: expected={expected_boolean}, actual={actual_boolean}")
+        else:
+            comparison_rc = 1
+            logger.debug(f"Boolean comparison failed: expected={expected_boolean}, actual={actual_boolean}")
+            # Write comparison details for debugging
+            if _preserve_debug_files:
+                DIFF_OUT.write_text(f"Expected: {expected_boolean}\nActual: {actual_boolean}\n")
     else:
         diff_process = run_command(
             [DIFF_CMD, "-u", str(RESULT_OUT), str(ROQET_OUT)],

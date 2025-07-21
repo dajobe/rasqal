@@ -1,0 +1,5 @@
+# test-escaping.rq
+# Test special character escaping in CSV/TSV formats
+SELECT ?s ?p ?o WHERE {
+  ?s ?p ?o .
+}

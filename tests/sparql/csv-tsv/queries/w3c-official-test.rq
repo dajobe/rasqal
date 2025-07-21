@@ -1,0 +1,7 @@
+# w3c-official-test.rq
+# Query to generate W3C specification test case data
+# Note: Adapted from W3C spec to use RDF triples instead of VALUES (rasqal compatible)
+# Source: https://www.w3.org/TR/sparql11-results-csv-tsv/
+SELECT ?x ?literal WHERE {
+  ?x <http://example/hasLiteral> ?literal .
+}

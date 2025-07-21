@@ -1620,6 +1620,7 @@ tests/sparql/federated/Makefile
 tests/sparql/warnings/Makefile
 tests/sparql/errors/Makefile
 tests/sparql/srj/Makefile
+tests/sparql/csv-tsv/Makefile
 utils/Makefile
 win32/Makefile
 rasqal.spec
