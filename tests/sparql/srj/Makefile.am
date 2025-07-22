@@ -38,6 +38,7 @@ CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 # sparql_lexer_test and sparql_parser_test
 build-core:
 	@(cd $(top_builddir)/src ; $(MAKE))
+	@(cd $(top_builddir)/utils ; $(MAKE))
 
 build-roqet: build-core
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
@@ -70,7 +71,7 @@ get-testsuite-format-srj-write:
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(srcdir)/check_format_srj.py --test-case {test_id} --srcdir $(srcdir)" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/srj/check_format_srj.py --test-case {test_id} --srcdir $(srcdir)" \
 		--manifest-file $(srcdir)/$(SPARQL_WRITER_MANIFEST_FILE)
 
 dist-hook:

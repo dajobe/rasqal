@@ -24,8 +24,21 @@ EXTRA_DIST = \
 	check_format_csv_tsv.py \
 	$(CSV_TSV_MANIFEST_FILE)
 
+.PHONY: build-core bbuild-roqet check-local get-testsuites-list get-testsuite-format-csv-tsv
+
+
+# This sequence allows parallel building of build-core and then once
+# that is built, parallel building of the dependent programs: roqet,
+# sparql_lexer_test and sparql_parser_test
+build-core:
+	@(cd $(top_builddir)/src ; $(MAKE))
+	@(cd $(top_builddir)/utils ; $(MAKE))
+
+build-roqet: build-core
+	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
+
 # Run tests locally through improve.py
-check-local:
+check-local: build-roqet
 	@$(srcdir)/../../improve.py .
 
 # Register with improve.py test discovery
@@ -40,7 +53,7 @@ get-testsuite-format-csv-tsv:
 		--builddir $(top_builddir) \
 		--test-category generic \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(srcdir)/check_format_csv_tsv.py --test-case {test_id} --srcdir $(srcdir)" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/csv-tsv/check_format_csv_tsv.py --test-case {test_id} --srcdir $(srcdir)" \
 		--comment-template "CSV/TSV format test {test_id}" \
 		--manifest-file $(top_srcdir)/tests/sparql/csv-tsv/$(CSV_TSV_MANIFEST_FILE)
 
@@ -50,5 +63,3 @@ dist-hook:
 		--manifest-file $(srcdir)/$(CSV_TSV_MANIFEST_FILE) \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)
-
-.PHONY: check-local get-testsuites-list get-testsuite-format-csv-tsv
