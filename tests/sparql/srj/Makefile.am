@@ -21,16 +21,16 @@
 # 
 
 SPARQL_MANIFEST_FILE= manifest.n3
-SPARQL_WRITER_MANIFEST_FILE= manifest-writer.n3
+SPARQL_WRITER_MANIFEST_FILE= manifest-writer.ttl
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILE) \
 $(SPARQL_WRITER_MANIFEST_FILE) \
-check_srj_writer.py
+check_format_srj.py
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
-.PHONY: build-core build-roqet build-sparql-test-utils check-local get-testsuites-list get-testsuite-sparql-lexer get-testsuite-sparql-parser
+.PHONY: build-core build-roqet build-sparql-test-utils check-local get-testsuites-list get-testsuite-format-srj-read get-testsuite-format-srj-write
 
 
 # This sequence allows parallel building of build-core and then once
@@ -53,24 +53,24 @@ else
 endif
 
 get-testsuites-list:
-	@echo "sparql-query srj-writer"
+	@echo "format-srj-read format-srj-write"
 
-get-testsuite-sparql-query:
+get-testsuite-format-srj-read:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
-		--suite-name sparql-query \
+		--suite-name format-srj-read \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
 		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
 
-get-testsuite-srj-writer:
+get-testsuite-format-srj-write:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
-		--suite-name srj-writer \
+		--suite-name format-srj-write \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(srcdir)/check_srj_writer.py --roqet $(top_builddir)/utils/roqet --test-dir $(srcdir) {test_id}" \
+		--action-template "$(PYTHON3) $(srcdir)/check_format_srj.py --test-case {test_id} --srcdir $(srcdir)" \
 		--manifest-file $(srcdir)/$(SPARQL_WRITER_MANIFEST_FILE)
 
 dist-hook:

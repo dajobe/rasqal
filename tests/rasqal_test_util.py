@@ -26,7 +26,7 @@ import logging
 import shutil
 from enum import Enum
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple, Union
+from typing import List, Dict, Any, Optional, Tuple, Union, Callable
 
 import re
 from dataclasses import dataclass, field
@@ -135,9 +135,17 @@ KNOWN_TEST_SUITES = {
         supports_negative_tests=False,
         supports_execution=True,
     ),
+    # SRJ Reader tests (SPARQL Results JSON format reading)
+    "format-srj-read": TestSuiteConfig(
+        name="format-srj-read",
+        execution_mode=TestExecutionMode.FULL_EXECUTION,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=False,
+        supports_execution=True,
+    ),
     # SRJ Writer tests (SPARQL Results JSON format writing)
-    "srj-writer": TestSuiteConfig(
-        name="srj-writer",
+    "format-srj-write": TestSuiteConfig(
+        name="format-srj-write",
         execution_mode=TestExecutionMode.FULL_EXECUTION,
         test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
         supports_negative_tests=False,
@@ -168,6 +176,14 @@ KNOWN_TEST_SUITES = {
     ),
     "engine-limit": TestSuiteConfig(
         name="engine-limit",
+        execution_mode=TestExecutionMode.FULL_EXECUTION,
+        test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
+        supports_negative_tests=False,
+        supports_execution=True,
+    ),
+    # CSV/TSV Format tests
+    "format-csv-tsv": TestSuiteConfig(
+        name="format-csv-tsv",
         execution_mode=TestExecutionMode.FULL_EXECUTION,
         test_id_predicate="<http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name>",
         supports_negative_tests=False,
@@ -493,6 +509,132 @@ def run_command(
         raise RuntimeError(
             f"{error_prefix}. Unexpected error running '{cmd[0]}'."
         ) from e
+
+
+# --- Format Testing Utilities ---
+
+
+def run_roqet_with_format(
+    query_file: str,
+    data_file: Optional[str],
+    result_format: str,
+    roqet_path: Optional[str] = None,
+    timeout: int = 30,
+    additional_args: Optional[List[str]] = None,
+) -> Tuple[str, str, int]:
+    """
+    Run roqet with specified output format.
+
+    Args:
+        query_file: Path to SPARQL query file
+        data_file: Path to data file (optional)
+        result_format: Output format (csv, tsv, srj, xml, etc.)
+        roqet_path: Path to roqet executable (auto-detected if None)
+        timeout: Command timeout in seconds
+        additional_args: Additional command line arguments
+
+    Returns:
+        Tuple of (stdout, stderr, returncode)
+    """
+    if roqet_path is None:
+        roqet_path = find_tool("roqet") or "roqet"
+
+    cmd = [roqet_path, "-r", result_format, "-W", "0", "-q", query_file]
+    if data_file:
+        cmd.extend(["-D", data_file])
+    if additional_args:
+        cmd.extend(additional_args)
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        return result.stdout, result.stderr, result.returncode
+    except subprocess.TimeoutExpired:
+        return "", f"Command timed out after {timeout} seconds", 124
+    except Exception as e:
+        return "", f"Error running roqet: {e}", 1
+
+
+def filter_format_output(output: str, result_format: str) -> Optional[str]:
+    """
+    Filter format-specific output from roqet output.
+
+    Args:
+        output: Raw roqet output
+        result_format: Expected format (json/srj will look for JSON, others return as-is)
+
+    Returns:
+        Filtered output or None if format not found
+    """
+    if result_format.lower() in ["json", "srj"]:
+        # Filter out debug output - look for JSON start
+        json_start = output.find("{")
+        if json_start >= 0:
+            return output[json_start:]
+        return None
+    else:
+        # For CSV, TSV, XML etc., return output as-is
+        return output.strip() if output.strip() else None
+
+
+def run_manifest_test(
+    test_id: str,
+    srcdir: Path,
+    test_handler_map: Dict[str, Callable[[Any, Path], int]],
+    manifest_filename: str = "manifest.ttl",
+) -> int:
+    """
+    Generic manifest-driven test execution.
+
+    Args:
+        test_id: Test case identifier from manifest
+        srcdir: Source directory containing manifest and test files
+        test_handler_map: Map of test_id to handler function
+        manifest_filename: Name of manifest file
+
+    Returns:
+        0 for success, 1 for failure
+    """
+    import os
+
+    try:
+        # Parse manifest to get test details
+        manifest_file = srcdir / manifest_filename
+        if not manifest_file.exists():
+            print(f"Manifest file not found: {manifest_file}")
+            return 1
+
+        parser = ManifestParser(manifest_file)
+        tests = parser.get_tests(srcdir)
+
+        # Find the test case
+        test_config = None
+        for test in tests:
+            if test.name == test_id:
+                test_config = test
+                break
+
+        if test_config is None:
+            print(f"Test case '{test_id}' not found in manifest")
+            return 1
+
+        # Change to source directory for relative paths
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(srcdir)
+
+            # Look for handler function
+            if test_id in test_handler_map:
+                return test_handler_map[test_id](test_config, srcdir)
+            else:
+                print(f"No handler found for test case: {test_id}")
+                return 1
+
+        finally:
+            os.chdir(original_cwd)
+
+    except Exception as e:
+        print(f"Error running test case {test_id}: {e}")
+        return 1
 
 
 # --- Manifest Parsing ---

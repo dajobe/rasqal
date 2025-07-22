@@ -39,6 +39,7 @@ endif
 
 EXTRA_DIST= \
 check_sparql.py \
+format_test_base.py \
 generate_sparql_plan.py \
 package_sparql_tests.py
 

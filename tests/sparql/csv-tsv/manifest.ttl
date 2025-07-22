@@ -1,0 +1,33 @@
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .
+@prefix qt:    <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+
+<> a mf:Manifest;
+   rdfs:comment "CSV/TSV Format Support Tests";
+   t:path ".";
+   mf:entries (
+     [ a t:PositiveTest;
+       mf:name "w3c-official-csv";
+       rdfs:comment "CSV format W3C official compliance";
+       mf:action [ qt:query <w3c-official-test.rq>;
+                   qt:data <w3c-test-data.ttl> ];
+       t:extraFile <w3c-official-test.csv> ]
+     [ a t:PositiveTest;
+       mf:name "w3c-official-tsv";
+       rdfs:comment "TSV format W3C official compliance";
+       mf:action [ qt:query <w3c-official-test.rq>;
+                   qt:data <w3c-test-data.ttl> ];
+       t:extraFile <w3c-official-test.tsv> ]
+     [ a t:PositiveTest;
+       mf:name "csv-escaping";
+       rdfs:comment "CSV escaping compliance test";
+       mf:action [ qt:query <test-escaping.rq>;
+                   qt:data <escaping-test-data.ttl> ];
+       t:extraFile <test-escaping.csv> ]
+     [ a t:PositiveTest;
+       mf:name "boolean-parsing";
+       rdfs:comment "CSV boolean result parsing test";
+       mf:action [ ];
+       t:extraFile <boolean-test.csv> ]
+   ) . 
