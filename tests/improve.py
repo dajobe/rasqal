@@ -165,16 +165,34 @@ class Testsuite:
             )
 
             try:
+                logger.debug(
+                    f"PATH before subprocess.run: {os.environ.get('PATH', '(not set)')}"
+                )
+                process = subprocess.run(
+                    make_cmd_list,
+                    cwd=self.directory,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    check=False,
+                    encoding="utf-8",
+                )
+
+                # Filter out g?make[<NUMBER>] lines from stdout
+                if process.stdout:
+                    filtered_lines = []
+                    for line in process.stdout.splitlines():
+                        if not re.match(r"^g?make\[\d+\]", line):
+                            filtered_lines.append(line)
+                    filtered_output = "\n".join(filtered_lines)
+                    if filtered_lines and not filtered_output.endswith("\n"):
+                        filtered_output += "\n"
+                else:
+                    filtered_output = ""
+
+                # Write filtered output to plan file
                 with self.plan_file.open("w", encoding="utf-8") as f_out:
-                    process = subprocess.run(
-                        make_cmd_list,
-                        cwd=self.directory,
-                        stdout=f_out,
-                        stderr=subprocess.PIPE,
-                        text=True,
-                        check=False,
-                        encoding="utf-8",
-                    )
+                    f_out.write(filtered_output)
 
                 if process.returncode != 0:
                     details = (
@@ -225,7 +243,7 @@ class Testsuite:
 
         if self.path_for_suite:
             self._original_env_path = os.environ.get("PATH", "")
-            new_path_segment = str(Path(self.path_for_suite).resolve())
+            new_path_segment = str((self.directory / self.path_for_suite).resolve())
             os.environ["PATH"] = f"{new_path_segment}{os.pathsep}{os.environ['PATH']}"
             if self.args.debug > 0:
                 logger.debug(
@@ -257,7 +275,11 @@ class Testsuite:
             if triple["p"] == f"<{NS.RDFS}comment>":
                 self.description = decode_literal(triple["o_full"])
             elif triple["p"] == f"<{NS.T}path>":
+                logger.debug(
+                    f"Found t:path triple: p='{triple['p']}', o_full='{triple['o_full']}'"
+                )
                 self.path_for_suite = decode_literal(triple["o_full"])
+                logger.debug(f"Decoded t:path value: '{self.path_for_suite}'")
 
         entries_list_head = next(
             (
@@ -351,22 +373,27 @@ class Testsuite:
         # Context manager for PATH modification
         class PathManager:
             def __enter__(self_path_mgr):
+                logger.debug(
+                    f"PathManager.__enter__: path_for_suite='{self.path_for_suite}', debug={self.args.debug}"
+                )
                 if self.path_for_suite:
                     self_path_mgr._original_path = os.environ.get("PATH", "")
+                    new_path_segment = str(
+                        (self.directory / self.path_for_suite).resolve()
+                    )
+                    os.environ["PATH"] = (
+                        f"{new_path_segment}{os.pathsep}{os.environ['PATH']}"
+                    )
+                    logger.debug(
+                        f"PathManager set PATH for suite '{self.name}': {new_path_segment}. "
+                        f"New PATH: {os.environ['PATH']}"
+                    )
 
             def __exit__(self_path_mgr, exc_type, exc_val, exc_tb):
-                if self.path_for_suite and self_path_mgr._original_path is not None:
+                if self.path_for_suite and hasattr(self_path_mgr, '_original_path'):
                     os.environ["PATH"] = self_path_mgr._original_path
                     if self.args.debug > 0:
-                        logger.debug(
-                            f"Restored PATH to: {self_path_mgr._original_path}"
-                        )
-                elif self.path_for_suite and "PATH" in os.environ:
-                    del os.environ["PATH"]
-                    if self.args.debug > 0:
-                        logger.debug(
-                            "Unset PATH as it was not originally set before suite."
-                        )
+                        logger.debug(f"Restored PATH to: {self_path_mgr._original_path}")
 
         with PathManager():
             if not self.args.verbose:
@@ -485,6 +512,9 @@ class Testsuite:
 
         try:
             full_cmd_for_shell = f'{action_cmd} > "{str(log_file_path)}" 2>&1'
+            logger.debug(
+                f"PATH before subprocess.run: {os.environ.get('PATH', '(not set)')}"
+            )
             process = subprocess.run(
                 full_cmd_for_shell,
                 cwd=self.directory,
@@ -563,6 +593,9 @@ def get_testsuites_from_dir(directory: Path, args: argparse.Namespace) -> List[s
     )
     try:
         # Run a simple 'make' to ensure the directory is ready.
+        logger.debug(
+            f"PATH before subprocess.run: {os.environ.get('PATH', '(not set)')}"
+        )
         subprocess.run(
             [MAKE_CMD],
             cwd=directory,
@@ -585,6 +618,9 @@ def get_testsuites_from_dir(directory: Path, args: argparse.Namespace) -> List[s
         f"Running command to get testsuites list in {directory}: {' '.join(make_cmd_list)}"
     )
     try:
+        logger.debug(
+            f"PATH before subprocess.run: {os.environ.get('PATH', '(not set)')}"
+        )
         process = subprocess.run(
             make_cmd_list,
             cwd=directory,

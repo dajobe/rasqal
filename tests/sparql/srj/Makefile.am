@@ -77,5 +77,6 @@ get-testsuite-format-srj-write:
 dist-hook:
 	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE) \
+		--manifest-file $(srcdir)/$(SPARQL_WRITER_MANIFEST_FILE) \
 		--srcdir $(srcdir) \
 		--distdir $(distdir) 

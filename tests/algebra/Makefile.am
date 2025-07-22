@@ -54,7 +54,8 @@ get-testsuite-sparql-algebra:
 		--test-type PositiveTest \
 		--action-template "$(PYTHON3) $(srcdir)/check_algebra.py $(srcdir)/{query_file} $(BASE_URI)" \
 		--comment-template "SPARQL algebra {query_file}" \
-		--manifest-file $(top_srcdir)/tests/algebra/$(ALGEBRA_MANIFEST_FILE)
+		--manifest-file $(top_srcdir)/tests/algebra/$(ALGEBRA_MANIFEST_FILE) \
+		--path $(top_builddir)/tests/algebra
 
 dist-hook:
 	$(PYTHON3) $(srcdir)/../sparql/package_sparql_tests.py \

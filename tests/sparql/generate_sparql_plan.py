@@ -103,6 +103,10 @@ def _parse_arguments() -> argparse.Namespace:
         help="Comma-separated list of test_id:data_file pairs, e.g. 'rasqal_order_test:animals.nt,rasqal_graph_test:graph-a.ttl'",
     )
     parser.add_argument(
+        "--path",
+        help="Path to be prepended to PATH environment variable when running tests (adds t:path to manifest)",
+    )
+    parser.add_argument(
         "TEST_IDS",
         nargs="*",
         help="List of test identifiers (e.g., dawg-triple-pattern-001, dawg-tp-01.rq). Used if --manifest-file is not provided.",
@@ -275,8 +279,11 @@ def _process_test_ids(test_ids: list, test_category: str) -> list:
     return tests
 
 
-def _print_turtle_header(test_category: str, suite_name: str):
+def _print_turtle_header(
+    test_category: str, suite_name: str, path: Optional[str] = None
+):
     """Print the Turtle header for the test plan."""
+    path_line = f'    t:path """{path}""" ;\n' if path else ""
     print(
         f"""@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix mf:    <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
@@ -285,7 +292,7 @@ def _print_turtle_header(test_category: str, suite_name: str):
 
 <> a mf:Manifest ;
     rdfs:comment "{test_category.upper()} {suite_name} tests" ;
-    mf:entries (
+{path_line}    mf:entries (
 """
     )
 
@@ -398,7 +405,7 @@ def main():
         tests = _process_test_ids(args.TEST_IDS, args.test_category)
 
     # Generate output
-    _print_turtle_header(args.test_category, args.suite_name)
+    _print_turtle_header(args.test_category, args.suite_name, args.path)
     _print_test_entries(tests, args)
 
 
