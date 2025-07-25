@@ -1,0 +1,2088 @@
+<!DOCTYPE html>
+<html lang='en' prefix='dawgt:   http://www.w3.org/2001/sw/DataAccess/tests/test-dawg# mf: http://www.w3.org/2001/sw/DataAccess/tests/test-manifest# mfx:    http://jena.hpl.hp.com/2005/05/test-manifest-extra# qt:     http://www.w3.org/2001/sw/DataAccess/tests/test-query# sd:      http://www.w3.org/ns/sparql-service-description# ut:     http://www.w3.org/2009/sparql/tests/test-update#'>
+  <head>
+    <meta content='text/html;charset=utf-8' http-equiv='Content-Type'>
+    <meta content='width=device-width, initial-scale=1.0' name='viewport'>
+    <link href='https://www.w3.org/StyleSheets/TR/base' rel='stylesheet' type='text/css'>
+    <style>
+      body {background-image: none;}
+      dl.editor>dd {
+        margin: 0 0 0 40px;
+      }
+      dl.test-detail {
+        padding: 0.5em;
+      }
+      dl.test-detail>dt {
+        float: left;
+        clear: left;
+        text-align: right;
+        font-weight: bold;
+        color: green;
+      }
+      dl.test-detail>dt:after {content: ": "}
+      dl.test-detail>dd {
+        margin: 0 0 0 110px;
+        padding: 0 0 0.5em 0;
+      }
+      dl.test-description>dt {margin-top: 2em;}
+      dd {margin-left: 0;}
+      dd code {display: inline;}
+      footer {text-align: center;}
+    </style>
+    <title>
+      entailment regime test cases
+    </title>
+    <style>
+      em.rfc2119 {
+        text-transform: lowercase;
+        font-variant:   small-caps;
+        font-style:     normal;
+        color:          #900;
+      }
+      a.testlink {
+        color: inherit;
+        text-decoration: none;
+      }
+      a.testlink:hover {
+        text-decoration: underline;
+      }
+      .warning {color: orange;}
+      .error {color: red;}
+    </style>
+  </head>
+  <body resource='./' typeof='mf:Manifest'>
+    <p>
+      <a href='http://www.w3.org/'>
+        <img alt='W3C' height='48' src='http://www.w3.org/Icons/w3c_home' width='72'>
+      </a>
+    </p>
+    <h1 property='rdfs:label'>entailment regime test cases</h1>
+    <p><a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> © 2010 <a href="http://www.w3.org/"><acronym title="World Wide Web Consortium">W3C</acronym></a><sup>®</sup> (<a href="http://www.csail.mit.edu/"><acronym title="Massachusetts Institute of Technology">MIT</acronym></a>, <a href="http://www.ercim.org/"><acronym title="European Research Consortium for Informatics and Mathematics">ERCIM</acronym></a>, <a href="http://www.keio.ac.jp/">Keio</a>), All Rights Reserved. W3C <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a>, and <a href="http://www.w3.org/Consortium/Legal/copyright-documents">document use</a> rules apply.</p>
+    <hr title='Separator for header'>
+    <div>
+      <h2 id='abstract'>Abstract</h2>
+      <p property='rdfs:comment'>
+      </p>
+      <p>This page describes W3C SPARQL Working Group's SPARQL 1.1 test suite.</p>
+      <h3 id='contributing-tests'>Contributing Tests</h3>
+      <p>The test manifests and entries are built automatically from <a href="manifest.ttl">manifest.ttl</a> using a Rake task. Tests may be contributed via pull request to <a href="https://github.com/w3c/rdf-tests">https://github.com/w3c/rdf-tests</a> with suitable changes to the <a href="manifest.ttl">manifest.ttl</a> and referenced files.</p>
+      <h3 id='distribution'>Distribution</h3>
+      <p>Distributed under both the <a href="http://www.w3.org/Consortium/Legal/2008/04-testsuite-license">W3C Test Suite License</a> and the <a href="http://www.w3.org/Consortium/Legal/2008/03-bsd-license">W3C 3-clause BSD License</a>. To contribute to a W3C Test Suite, see the <a href="http://www.w3.org/2004/10/27-testcases">policies and contribution forms</a>.</p>
+      <h3 id='disclaimer'>Disclaimer</h3>
+      <p>UNDER BOTH MUTUALLY EXCLUSIVE LICENSES, THIS DOCUMENT AND ALL DOCUMENTS, TESTS AND SOFTWARE THAT LINK THIS STATEMENT ARE PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THE DOCUMENT ARE SUITABLE FOR ANY PURPOSE; NOR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY THIRD PARTY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+        COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE DOCUMENT OR THE PERFORMANCE OR IMPLEMENTATION OF THE CONTENTS THEREOF.</p>
+    </div>
+    <div>
+      <h2>
+        Test Descriptions
+      </h2>
+      <dl class='test-description'>
+        <dt id='bind01'>
+          <a class='testlink' href='#bind01'>
+            bind01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind01' property='mf:name'>bind01 - BIND fixed data for OWL DL</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='bind01.srx' property='mf:result'>bind01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='bind02'>
+          <a class='testlink' href='#bind02'>
+            bind02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind02' property='mf:name'>bind02 - BIND fixed data for OWL DL</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='bind02.srx' property='mf:result'>bind02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='bind03'>
+          <a class='testlink' href='#bind03'>
+            bind03:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind03' property='mf:name'>bind03 - BIND fixed data for OWL DL</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind03' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='bind03.srx' property='mf:result'>bind03.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='bind04'>
+          <a class='testlink' href='#bind04'>
+            bind04:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind04' property='mf:name'>bind04 - BIND fixed data for OWL DL</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind04' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='bind04.srx' property='mf:result'>bind04.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='bind05'>
+          <a class='testlink' href='#bind05'>
+            bind05:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind05' property='mf:name'>bind05 - BIND fixed data for OWL DL</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind05' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='bind05.srx' property='mf:result'>bind05.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='bind06'>
+          <a class='testlink' href='#bind06'>
+            bind06:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind06' property='mf:name'>bind06 - BIND fixed data for OWL DL</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind06' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='bind06.srx' property='mf:result'>bind06.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='bind07'>
+          <a class='testlink' href='#bind07'>
+            bind07:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind07' property='mf:name'>bind07 - BIND fixed data for OWL DL</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind07' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='bind07.srx' property='mf:result'>bind07.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='bind08'>
+          <a class='testlink' href='#bind08'>
+            bind08:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind08' property='mf:name'>bind08 - BIND fixed data for OWL DL</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#bind08' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='bind08.srx' property='mf:result'>bind08.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='d-ent-01'>
+          <a class='testlink' href='#d-ent-01'>
+            d-ent-01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#d-ent-01' property='mf:name'>D-Entailment test to show that  neither literals in subject position nor newly introduced surrogate blank nodes are to be returned in query answers</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#d-ent-01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/D'>http://www.w3.org/ns/entailment/D</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='d-ent-01.srx' property='mf:result'>d-ent-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='lang'>
+          <a class='testlink' href='#lang'>
+            lang:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#lang' property='mf:name'>Literal with language tag test</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#lang' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='lang.srx' property='mf:result'>lang.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='owlds01'>
+          <a class='testlink' href='#owlds01'>
+            owlds01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#owlds01' property='mf:name'>bnodes are not existentials</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#owlds01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='owlds01.srx' property='mf:result'>owlds01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='owlds02'>
+          <a class='testlink' href='#owlds02'>
+            owlds02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#owlds02' property='mf:name'>bnodes are not existentials with answer</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#owlds02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='owlds02.srx' property='mf:result'>owlds02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='paper-sparqldl-Q1'>
+          <a class='testlink' href='#paper-sparqldl-Q1'>
+            paper-sparqldl-Q1:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#paper-sparqldl-Q1' property='mf:name'>paper-sparqldl-Q1</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#paper-sparqldl-Q1' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='paper-sparqldl-Q1.srx' property='mf:result'>paper-sparqldl-Q1.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='paper-sparqldl-Q1-rdfs'>
+          <a class='testlink' href='#paper-sparqldl-Q1-rdfs'>
+            paper-sparqldl-Q1-rdfs:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#paper-sparqldl-Q1-rdfs' property='mf:name'>paper-sparqldl-Q1-rdfs</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#paper-sparqldl-Q1-rdfs' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='paper-sparqldl-Q1-rdfs.srx' property='mf:result'>paper-sparqldl-Q1-rdfs.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='paper-sparqldl-Q2'>
+          <a class='testlink' href='#paper-sparqldl-Q2'>
+            paper-sparqldl-Q2:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#paper-sparqldl-Q2' property='mf:name'>paper-sparqldl-Q2</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#paper-sparqldl-Q2' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='paper-sparqldl-Q2.srx' property='mf:result'>paper-sparqldl-Q2.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='paper-sparqldl-Q3'>
+          <a class='testlink' href='#paper-sparqldl-Q3'>
+            paper-sparqldl-Q3:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#paper-sparqldl-Q3' property='mf:name'>paper-sparqldl-Q3</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#paper-sparqldl-Q3' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='paper-sparqldl-Q3.srx' property='mf:result'>paper-sparqldl-Q3.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='paper-sparqldl-Q4'>
+          <a class='testlink' href='#paper-sparqldl-Q4'>
+            paper-sparqldl-Q4:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#paper-sparqldl-Q4' property='mf:name'>paper-sparqldl-Q4</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#paper-sparqldl-Q4' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='paper-sparqldl-Q4.srx' property='mf:result'>paper-sparqldl-Q4.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='paper-sparqldl-Q5'>
+          <a class='testlink' href='#paper-sparqldl-Q5'>
+            paper-sparqldl-Q5:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#paper-sparqldl-Q5' property='mf:name'>paper-sparqldl-Q5</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#paper-sparqldl-Q5' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='paper-sparqldl-Q5.srx' property='mf:result'>paper-sparqldl-Q5.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='parent10'>
+          <a class='testlink' href='#parent10'>
+            parent10:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent10' property='mf:name'>filtered subclass query with (hasChild some Thing) restriction</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent10' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='parent10.srx' property='mf:result'>parent10.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='parent2'>
+          <a class='testlink' href='#parent2'>
+            parent2:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent2' property='mf:name'>parent query with distinguished variable</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent2' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='parent2.srx' property='mf:result'>parent2.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='parent3'>
+          <a class='testlink' href='#parent3'>
+            parent3:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent3' property='mf:name'>parent query with (hasChild some Thing) restriction</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent3' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='parent3.srx' property='mf:result'>parent3.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='parent4'>
+          <a class='testlink' href='#parent4'>
+            parent4:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent4' property='mf:name'>parent query with (hasChild min 1) restriction</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent4' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='parent4.srx' property='mf:result'>parent4.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='parent5'>
+          <a class='testlink' href='#parent5'>
+            parent5:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent5' property='mf:name'>parent query with (hasChild some Female) restriction</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent5' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='parent5.srx' property='mf:result'>parent5.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='parent6'>
+          <a class='testlink' href='#parent6'>
+            parent6:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent6' property='mf:name'>parent query with (hasChild min 1 Female) restriction</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent6' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='parent6.srx' property='mf:result'>parent6.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='parent7'>
+          <a class='testlink' href='#parent7'>
+            parent7:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent7' property='mf:name'>parent query with (hasChild max 1 Female) restriction</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent7' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='parent7.srx' property='mf:result'>parent7.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='parent8'>
+          <a class='testlink' href='#parent8'>
+            parent8:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent8' property='mf:name'>parent query with (hasChild exactly 1 Female) restriction</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent8' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='parent8.srx' property='mf:result'>parent8.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='parent9'>
+          <a class='testlink' href='#parent9'>
+            parent9:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent9' property='mf:name'>subclass query with (hasChild some Thing) restriction</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#parent9' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='parent9.srx' property='mf:result'>parent9.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='plainLit'>
+          <a class='testlink' href='#plainLit'>
+            plainLit:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#plainLit' property='mf:name'>Plain literals with language tag are not the same as the same literal without</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#plainLit' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='plainLit.srx' property='mf:result'>plainLit.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdf01'>
+          <a class='testlink' href='#rdf01'>
+            rdf01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdf01' property='mf:name'>RDF inference test</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdf01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/RDF'>http://www.w3.org/ns/entailment/RDF</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdf01.srx' property='mf:result'>rdf01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdf02'>
+          <a class='testlink' href='#rdf02'>
+            rdf02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdf02' property='mf:name'>RDF inference test</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdf02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/RDF'>http://www.w3.org/ns/entailment/RDF</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdf02.srx' property='mf:result'>rdf02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdf03'>
+          <a class='testlink' href='#rdf03'>
+            rdf03:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdf03' property='mf:name'>RDF test for blank node cardinalities</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdf03' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/RDF'>http://www.w3.org/ns/entailment/RDF</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdf03.srx' property='mf:result'>rdf03.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdf04'>
+          <a class='testlink' href='#rdf04'>
+            rdf04:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdf04' property='mf:name'>simple triple pattern match</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdf04' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdf04.srx' property='mf:result'>rdf04.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdfs01'>
+          <a class='testlink' href='#rdfs01'>
+            rdfs01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs01' property='mf:name'>RDFS inference test rdfs:subPropertyOf</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdfs01.srx' property='mf:result'>rdfs01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdfs02'>
+          <a class='testlink' href='#rdfs02'>
+            rdfs02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs02' property='mf:name'>RDFS inference test rdfs:subPropertyOf</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdfs02.srx' property='mf:result'>rdfs02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdfs03'>
+          <a class='testlink' href='#rdfs03'>
+            rdfs03:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs03' property='mf:name'>RDFS inference test combining subPropertyOf and domain</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs03' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdfs03.srx' property='mf:result'>rdfs03.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdfs04'>
+          <a class='testlink' href='#rdfs04'>
+            rdfs04:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs04' property='mf:name'>RDFS inference test subClassOf</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs04' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdfs04.srx' property='mf:result'>rdfs04.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdfs05'>
+          <a class='testlink' href='#rdfs05'>
+            rdfs05:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs05' property='mf:name'>RDFS inference test subClassOf</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs05' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdfs05.srx' property='mf:result'>rdfs05.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdfs06'>
+          <a class='testlink' href='#rdfs06'>
+            rdfs06:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs06' property='mf:name'>RDFS inference test domain</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs06' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdfs06.srx' property='mf:result'>rdfs06.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdfs07'>
+          <a class='testlink' href='#rdfs07'>
+            rdfs07:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs07' property='mf:name'>RDFS inference test range</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs07' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdfs07.srx' property='mf:result'>rdfs07.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdfs08'>
+          <a class='testlink' href='#rdfs08'>
+            rdfs08:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs08' property='mf:name'>RDFS inference test rdf:XMLLiteral subclass of rdfs:Literal</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs08' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdfs08.srx' property='mf:result'>rdfs08.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdfs09'>
+          <a class='testlink' href='#rdfs09'>
+            rdfs09:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs09' property='mf:name'>RDFS inference test transitivity of subClassOf</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs09' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdfs09.srx' property='mf:result'>rdfs09.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdfs10'>
+          <a class='testlink' href='#rdfs10'>
+            rdfs10:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs10' property='mf:name'>RDFS inference test transitivity of subPropertyOf</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs10' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdfs10.srx' property='mf:result'>rdfs10.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdfs11'>
+          <a class='testlink' href='#rdfs11'>
+            rdfs11:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs11' property='mf:name'>RDFS inference test subProperty and instances</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs11' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdfs11.srx' property='mf:result'>rdfs11.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdfs12'>
+          <a class='testlink' href='#rdfs12'>
+            rdfs12:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs12' property='mf:name'>RDFS inference test containers</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs12' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdfs12.srx' property='mf:result'>rdfs12.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rdfs13'>
+          <a class='testlink' href='#rdfs13'>
+            rdfs13:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs13' property='mf:name'>RDFS inference test to show that neither literals in subject position nor newly introduced surrogate blank nodes are to be returned in query answers</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rdfs13' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rdfs13.srx' property='mf:result'>rdfs13.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rif01'>
+          <a class='testlink' href='#rif01'>
+            rif01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rif01' property='mf:name'>RIF Logical Entailment (referencing RIF XML)</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rif01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/RIF'>http://www.w3.org/ns/entailment/RIF</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rif01.srx' property='mf:result'>rif01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rif03'>
+          <a class='testlink' href='#rif03'>
+            rif03:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rif03' property='mf:name'>RIF Core WG tests: Frames</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rif03' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/RIF'>http://www.w3.org/ns/entailment/RIF</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rif03.srx' property='mf:result'>rif03.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rif04'>
+          <a class='testlink' href='#rif04'>
+            rif04:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rif04' property='mf:name'>RIF Core WG tests: Modeling Brain Anatomy</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rif04' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/RIF'>http://www.w3.org/ns/entailment/RIF</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rif04.srx' property='mf:result'>rif04.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rif06'>
+          <a class='testlink' href='#rif06'>
+            rif06:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rif06' property='mf:name'>RIF Core WG tests: RDF Combination Blank Node</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#rif06' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/RIF'>http://www.w3.org/ns/entailment/RIF</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rif06.srx' property='mf:result'>rif06.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='simple1'>
+          <a class='testlink' href='#simple1'>
+            simple1:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple1' property='mf:name'>simple 1</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple1' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='simple1.srx' property='mf:result'>simple1.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='simple2'>
+          <a class='testlink' href='#simple2'>
+            simple2:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple2' property='mf:name'>simple 2</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple2' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='simple2.srx' property='mf:result'>simple2.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='simple3'>
+          <a class='testlink' href='#simple3'>
+            simple3:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple3' property='mf:name'>simple 3</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple3' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='simple3.srx' property='mf:result'>simple3.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='simple4'>
+          <a class='testlink' href='#simple4'>
+            simple4:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple4' property='mf:name'>simple 4</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple4' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='simple4.srx' property='mf:result'>simple4.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='simple5'>
+          <a class='testlink' href='#simple5'>
+            simple5:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple5' property='mf:name'>simple 5</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple5' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='simple5.srx' property='mf:result'>simple5.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='simple6'>
+          <a class='testlink' href='#simple6'>
+            simple6:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple6' property='mf:name'>simple 6</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple6' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='simple6.srx' property='mf:result'>simple6.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='simple7'>
+          <a class='testlink' href='#simple7'>
+            simple7:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple7' property='mf:name'>simple 7</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple7' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='simple7.srx' property='mf:result'>simple7.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='simple8'>
+          <a class='testlink' href='#simple8'>
+            simple8:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple8' property='mf:name'>simple 8</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#simple8' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource='http://www.w3.org/ns/owl-profile/DL'>http://www.w3.org/ns/owl-profile/DL</dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource='http://www.w3.org/ns/entailment/OWL-Direct'>http://www.w3.org/ns/entailment/OWL-Direct</dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='simple8.srx' property='mf:result'>simple8.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sparqldl-01'>
+          <a class='testlink' href='#sparqldl-01'>
+            sparqldl-01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-01' property='mf:name'>sparqldl-01.rq: triple pattern</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sparqldl-01.srx' property='mf:result'>sparqldl-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sparqldl-02'>
+          <a class='testlink' href='#sparqldl-02'>
+            sparqldl-02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-02' property='mf:name'>sparqldl-02.rq: simple combined query</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sparqldl-02.srx' property='mf:result'>sparqldl-02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sparqldl-03'>
+          <a class='testlink' href='#sparqldl-03'>
+            sparqldl-03:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-03' property='mf:name'>sparqldl-03.rq: combined query with complex class description</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-03' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sparqldl-03.srx' property='mf:result'>sparqldl-03.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sparqldl-04'>
+          <a class='testlink' href='#sparqldl-04'>
+            sparqldl-04:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-04' property='mf:name'>sparqldl-04.rq: bug fixing test</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-04' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sparqldl-04.srx' property='mf:result'>sparqldl-04.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sparqldl-05'>
+          <a class='testlink' href='#sparqldl-05'>
+            sparqldl-05:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-05' property='mf:name'>sparqldl-05.rq: simple undistinguished variable test.</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-05' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sparqldl-05.srx' property='mf:result'>sparqldl-05.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sparqldl-06'>
+          <a class='testlink' href='#sparqldl-06'>
+            sparqldl-06:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-06' property='mf:name'>sparqldl-06.rq: cycle of undistinguished variables</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-06' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sparqldl-06.srx' property='mf:result'>sparqldl-06.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sparqldl-07'>
+          <a class='testlink' href='#sparqldl-07'>
+            sparqldl-07:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-07' property='mf:name'>sparqldl-07.rq: two distinguished variables + undist.</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-07' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sparqldl-07.srx' property='mf:result'>sparqldl-07.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sparqldl-08'>
+          <a class='testlink' href='#sparqldl-08'>
+            sparqldl-08:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-08' property='mf:name'>sparqldl-08.rq: two distinguished variables + undist.</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-08' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sparqldl-08.srx' property='mf:result'>sparqldl-08.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sparqldl-09'>
+          <a class='testlink' href='#sparqldl-09'>
+            sparqldl-09:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-09' property='mf:name'>sparqldl-09.rq: undist vars test</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-09' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sparqldl-09.srx' property='mf:result'>sparqldl-09.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sparqldl-10'>
+          <a class='testlink' href='#sparqldl-10'>
+            sparqldl-10:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-10' property='mf:name'>sparqldl-10.rq: undist vars test</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-10' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sparqldl-10.srx' property='mf:result'>sparqldl-10.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sparqldl-11'>
+          <a class='testlink' href='#sparqldl-11'>
+            sparqldl-11:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-11' property='mf:name'>sparqldl-11.rq: domain test</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-11' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sparqldl-11.srx' property='mf:result'>sparqldl-11.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sparqldl-12'>
+          <a class='testlink' href='#sparqldl-12'>
+            sparqldl-12:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-12' property='mf:name'>sparqldl-12.rq: range test</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-12' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sparqldl-12.srx' property='mf:result'>sparqldl-12.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sparqldl-13'>
+          <a class='testlink' href='#sparqldl-13'>
+            sparqldl-13:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-13' property='mf:name'>sparqldl-13.rq: sameAs</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest#sparqldl-13' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+                <dt>EntailmentProfile</dt>
+                <dd property='sd:EntailmentProfile' resource=''></dd>
+                <dt>entailmentRegime</dt>
+                <dd property='sd:entailmentRegime' resource=''></dd>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sparqldl-13.srx' property='mf:result'>sparqldl-13.srx</a>
+            </dd>
+          </dl>
+        </dd>
+      </dl>
+    </div>
+    <footer>
+      <p><a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright ©</a> 2015 <a href="http://www.w3.org/">W3C</a>® (<a href="http://www.csail.mit.edu/">MIT</a>, <a href="http://www.ercim.org/">ERCIM</a>, <a href="http://www.keio.ac.jp/">Keio</a>, <a href="http://ev.buaa.edu.cn/">Beihang</a>). W3C® <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and <a href="http://www.w3.org/Consortium/Legal/copyright-documents">document use</a> rules apply.</p>
+    </footer>
+  </body>
+</html>

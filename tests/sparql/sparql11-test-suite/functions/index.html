@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang='en' prefix='dawgt:   http://www.w3.org/2001/sw/DataAccess/tests/test-dawg# mf: http://www.w3.org/2001/sw/DataAccess/tests/test-manifest# mfx:    http://jena.hpl.hp.com/2005/05/test-manifest-extra# qt:     http://www.w3.org/2001/sw/DataAccess/tests/test-query# sd:      http://www.w3.org/ns/sparql-service-description# ut:     http://www.w3.org/2009/sparql/tests/test-update#'>
+  <head>
+    <meta content='text/html;charset=utf-8' http-equiv='Content-Type'>
+    <meta content='width=device-width, initial-scale=1.0' name='viewport'>
+    <link href='https://www.w3.org/StyleSheets/TR/base' rel='stylesheet' type='text/css'>
+    <style>
+      body {background-image: none;}
+      dl.editor>dd {
+        margin: 0 0 0 40px;
+      }
+      dl.test-detail {
+        padding: 0.5em;
+      }
+      dl.test-detail>dt {
+        float: left;
+        clear: left;
+        text-align: right;
+        font-weight: bold;
+        color: green;
+      }
+      dl.test-detail>dt:after {content: ": "}
+      dl.test-detail>dd {
+        margin: 0 0 0 110px;
+        padding: 0 0 0.5em 0;
+      }
+      dl.test-description>dt {margin-top: 2em;}
+      dd {margin-left: 0;}
+      dd code {display: inline;}
+      footer {text-align: center;}
+    </style>
+    <title>
+      Built-in Functions
+    </title>
+    <style>
+      em.rfc2119 {
+        text-transform: lowercase;
+        font-variant:   small-caps;
+        font-style:     normal;
+        color:          #900;
+      }
+      a.testlink {
+        color: inherit;
+        text-decoration: none;
+      }
+      a.testlink:hover {
+        text-decoration: underline;
+      }
+      .warning {color: orange;}
+      .error {color: red;}
+    </style>
+  </head>
+  <body resource='./' typeof='mf:Manifest'>
+    <p>
+      <a href='http://www.w3.org/'>
+        <img alt='W3C' height='48' src='http://www.w3.org/Icons/w3c_home' width='72'>
+      </a>
+    </p>
+    <h1 property='rdfs:label'>Built-in Functions</h1>
+    <p><a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> © 2010 <a href="http://www.w3.org/"><acronym title="World Wide Web Consortium">W3C</acronym></a><sup>®</sup> (<a href="http://www.csail.mit.edu/"><acronym title="Massachusetts Institute of Technology">MIT</acronym></a>, <a href="http://www.ercim.org/"><acronym title="European Research Consortium for Informatics and Mathematics">ERCIM</acronym></a>, <a href="http://www.keio.ac.jp/">Keio</a>), All Rights Reserved. W3C <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a>, and <a href="http://www.w3.org/Consortium/Legal/copyright-documents">document use</a> rules apply.</p>
+    <hr title='Separator for header'>
+    <div>
+      <h2 id='abstract'>Abstract</h2>
+      <p property='rdfs:comment'>
+      </p>
+      <p>This page describes W3C SPARQL Working Group's SPARQL 1.1 test suite.</p>
+      <h3 id='contributing-tests'>Contributing Tests</h3>
+      <p>The test manifests and entries are built automatically from <a href="manifest.ttl">manifest.ttl</a> using a Rake task. Tests may be contributed via pull request to <a href="https://github.com/w3c/rdf-tests">https://github.com/w3c/rdf-tests</a> with suitable changes to the <a href="manifest.ttl">manifest.ttl</a> and referenced files.</p>
+      <h3 id='distribution'>Distribution</h3>
+      <p>Distributed under both the <a href="http://www.w3.org/Consortium/Legal/2008/04-testsuite-license">W3C Test Suite License</a> and the <a href="http://www.w3.org/Consortium/Legal/2008/03-bsd-license">W3C 3-clause BSD License</a>. To contribute to a W3C Test Suite, see the <a href="http://www.w3.org/2004/10/27-testcases">policies and contribution forms</a>.</p>
+      <h3 id='disclaimer'>Disclaimer</h3>
+      <p>UNDER BOTH MUTUALLY EXCLUSIVE LICENSES, THIS DOCUMENT AND ALL DOCUMENTS, TESTS AND SOFTWARE THAT LINK THIS STATEMENT ARE PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THE DOCUMENT ARE SUITABLE FOR ANY PURPOSE; NOR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY THIRD PARTY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+        COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE DOCUMENT OR THE PERFORMANCE OR IMPLEMENTATION OF THE CONTENTS THEREOF.</p>
+    </div>
+    <div>
+      <h2>
+        Test Descriptions
+      </h2>
+      <dl class='test-description'>
+        <dt id='strdt01'>
+          <a class='testlink' href='#strdt01'>
+            strdt01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strdt01' property='mf:name'>STRDT()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strdt01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='strdt01.srx' property='mf:result'>strdt01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='strdt02'>
+          <a class='testlink' href='#strdt02'>
+            strdt02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strdt02' property='mf:name'>STRDT(STR())</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strdt02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='strdt02.srx' property='mf:result'>strdt02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='strdt03-rdf11'>
+          <a class='testlink' href='#strdt03-rdf11'>
+            strdt03-rdf11:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strdt03-rdf11' property='mf:name'>STRDT() TypeErrors (updated for RDF 1.1)</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strdt03-rdf11' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='strdt03-rdf11.srx' property='mf:result'>strdt03-rdf11.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='strlang01'>
+          <a class='testlink' href='#strlang01'>
+            strlang01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strlang01' property='mf:name'>STRLANG()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strlang01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='strlang01.srx' property='mf:result'>strlang01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='strlang02'>
+          <a class='testlink' href='#strlang02'>
+            strlang02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strlang02' property='mf:name'>STRLANG(STR())</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strlang02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='strlang02.srx' property='mf:result'>strlang02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='strlang03-rdf11'>
+          <a class='testlink' href='#strlang03-rdf11'>
+            strlang03-rdf11:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strlang03-rdf11' property='mf:name'>STRLANG() TypeErrors (updated for RDF 1.1)</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strlang03-rdf11' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='strlang03-rdf11.srx' property='mf:result'>strlang03-rdf11.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='isnumeric01'>
+          <a class='testlink' href='#isnumeric01'>
+            isnumeric01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#isnumeric01' property='mf:name'>isNumeric()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#isnumeric01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='isnumeric01.srx' property='mf:result'>isnumeric01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='abs01'>
+          <a class='testlink' href='#abs01'>
+            abs01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#abs01' property='mf:name'>ABS()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#abs01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='abs01.srx' property='mf:result'>abs01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='ceil01'>
+          <a class='testlink' href='#ceil01'>
+            ceil01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#ceil01' property='mf:name'>CEIL()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#ceil01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='ceil01.srx' property='mf:result'>ceil01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='floor01'>
+          <a class='testlink' href='#floor01'>
+            floor01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#floor01' property='mf:name'>FLOOR()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#floor01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='floor01.srx' property='mf:result'>floor01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='round01'>
+          <a class='testlink' href='#round01'>
+            round01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#round01' property='mf:name'>ROUND()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#round01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='round01.srx' property='mf:result'>round01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='concat01'>
+          <a class='testlink' href='#concat01'>
+            concat01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#concat01' property='mf:name'>CONCAT()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#concat01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='concat01.srx' property='mf:result'>concat01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='concat02'>
+          <a class='testlink' href='#concat02'>
+            concat02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#concat02' property='mf:name'>CONCAT() 2</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#concat02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='concat02.srx' property='mf:result'>concat02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='concat-empty'>
+          <a class='testlink' href='#concat-empty'>
+            concat-empty:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#concat-empty' property='mf:name'>CONCAT() without parameter</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#concat-empty' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='concat-empty.srx' property='mf:result'>concat-empty.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='concat-single'>
+          <a class='testlink' href='#concat-single'>
+            concat-single:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#concat-single' property='mf:name'>CONCAT() with a single parameter</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#concat-single' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='concat-single.srx' property='mf:result'>concat-single.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='substring01'>
+          <a class='testlink' href='#substring01'>
+            substring01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#substring01' property='mf:name'>SUBSTR() (3-argument)</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#substring01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='substring01.srx' property='mf:result'>substring01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='substring01-non-bmp'>
+          <a class='testlink' href='#substring01-non-bmp'>
+            substring01-non-bmp:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#substring01-non-bmp' property='mf:name'>SUBSTR() (3-argument) on non-BMP unicode strings</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#substring01-non-bmp' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='substring01-non-bmp.srx' property='mf:result'>substring01-non-bmp.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='substring02'>
+          <a class='testlink' href='#substring02'>
+            substring02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#substring02' property='mf:name'>SUBSTR() (2-argument)</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#substring02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='substring02.srx' property='mf:result'>substring02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='substring02-non-bmp'>
+          <a class='testlink' href='#substring02-non-bmp'>
+            substring02-non-bmp:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#substring02-non-bmp' property='mf:name'>SUBSTR() (2-argument) on non-BMP unicode strings</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#substring02-non-bmp' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='substring02-non-bmp.srx' property='mf:result'>substring02-non-bmp.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='length01'>
+          <a class='testlink' href='#length01'>
+            length01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#length01' property='mf:name'>STRLEN()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#length01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='length01.srx' property='mf:result'>length01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='length01-non-bmp'>
+          <a class='testlink' href='#length01-non-bmp'>
+            length01-non-bmp:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#length01-non-bmp' property='mf:name'>STRLEN() on non-BMP unicode strings</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#length01-non-bmp' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='length01-non-bmp.srx' property='mf:result'>length01-non-bmp.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='ucase01'>
+          <a class='testlink' href='#ucase01'>
+            ucase01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#ucase01' property='mf:name'>UCASE()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#ucase01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='ucase01.srx' property='mf:result'>ucase01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='ucase01-non-bmp'>
+          <a class='testlink' href='#ucase01-non-bmp'>
+            ucase01-non-bmp:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#ucase01-non-bmp' property='mf:name'>UCASE() on non-BMP unicode strings</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#ucase01-non-bmp' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='ucase01-non-bmp.srx' property='mf:result'>ucase01-non-bmp.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='lcase01'>
+          <a class='testlink' href='#lcase01'>
+            lcase01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#lcase01' property='mf:name'>LCASE()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#lcase01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='lcase01.srx' property='mf:result'>lcase01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='lcase01-non-bmp'>
+          <a class='testlink' href='#lcase01-non-bmp'>
+            lcase01-non-bmp:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#lcase01-non-bmp' property='mf:name'>LCASE() on non-BMP unicode strings</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#lcase01-non-bmp' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='lcase01-non-bmp.srx' property='mf:result'>lcase01-non-bmp.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='encode01'>
+          <a class='testlink' href='#encode01'>
+            encode01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#encode01' property='mf:name'>ENCODE_FOR_URI()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#encode01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='encode01.srx' property='mf:result'>encode01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='encode01-non-bmp'>
+          <a class='testlink' href='#encode01-non-bmp'>
+            encode01-non-bmp:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#encode01-non-bmp' property='mf:name'>ENCODE_FOR_URI() on non-BMP unicode strings</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#encode01-non-bmp' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='encode01-non-bmp.srx' property='mf:result'>encode01-non-bmp.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='contains01'>
+          <a class='testlink' href='#contains01'>
+            contains01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#contains01' property='mf:name'>CONTAINS()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#contains01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='contains01.srx' property='mf:result'>contains01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='starts01'>
+          <a class='testlink' href='#starts01'>
+            starts01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#starts01' property='mf:name'>STRSTARTS()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#starts01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='starts01.srx' property='mf:result'>starts01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='ends01'>
+          <a class='testlink' href='#ends01'>
+            ends01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#ends01' property='mf:name'>STRENDS()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#ends01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='ends01.srx' property='mf:result'>ends01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='plus-1-corrected'>
+          <a class='testlink' href='#plus-1-corrected'>
+            plus-1-corrected:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#plus-1-corrected' property='mf:name'>plus-1-corrected</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#plus-1-corrected' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+            <p>plus operator on ?x + ?y on string and numeric values</p>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='plus-1.srx' property='mf:result'>plus-1.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='plus-2-corrected'>
+          <a class='testlink' href='#plus-2-corrected'>
+            plus-2-corrected:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#plus-2-corrected' property='mf:name'>plus-2-corrected</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#plus-2-corrected' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+            <p>plus operator in combination with str(), i.e. str(?x) + str(?y), on string and numeric values</p>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='plus-2.srx' property='mf:result'>plus-2.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='md5-01'>
+          <a class='testlink' href='#md5-01'>
+            md5-01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#md5-01' property='mf:name'>MD5()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#md5-01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='md5-01.srx' property='mf:result'>md5-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='md5-02'>
+          <a class='testlink' href='#md5-02'>
+            md5-02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#md5-02' property='mf:name'>MD5() over Unicode data</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#md5-02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='md5-02.srx' property='mf:result'>md5-02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sha1-01'>
+          <a class='testlink' href='#sha1-01'>
+            sha1-01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#sha1-01' property='mf:name'>SHA1()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#sha1-01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sha1-01.srx' property='mf:result'>sha1-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sha1-02'>
+          <a class='testlink' href='#sha1-02'>
+            sha1-02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#sha1-02' property='mf:name'>SHA1() on Unicode data</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#sha1-02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sha1-02.srx' property='mf:result'>sha1-02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sha256-01'>
+          <a class='testlink' href='#sha256-01'>
+            sha256-01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#sha256-01' property='mf:name'>SHA256()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#sha256-01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sha256-01.srx' property='mf:result'>sha256-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sha256-02'>
+          <a class='testlink' href='#sha256-02'>
+            sha256-02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#sha256-02' property='mf:name'>SHA256() on Unicode data</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#sha256-02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sha256-02.srx' property='mf:result'>sha256-02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sha512-01'>
+          <a class='testlink' href='#sha512-01'>
+            sha512-01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#sha512-01' property='mf:name'>SHA512()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#sha512-01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sha512-01.srx' property='mf:result'>sha512-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='sha512-02'>
+          <a class='testlink' href='#sha512-02'>
+            sha512-02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#sha512-02' property='mf:name'>SHA512() on Unicode data</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#sha512-02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='sha512-02.srx' property='mf:result'>sha512-02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='minutes'>
+          <a class='testlink' href='#minutes'>
+            minutes:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#minutes' property='mf:name'>MINUTES()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#minutes' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='minutes-01.srx' property='mf:result'>minutes-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='seconds'>
+          <a class='testlink' href='#seconds'>
+            seconds:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#seconds' property='mf:name'>SECONDS()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#seconds' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='seconds-01.srx' property='mf:result'>seconds-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='hours'>
+          <a class='testlink' href='#hours'>
+            hours:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#hours' property='mf:name'>HOURS()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#hours' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='hours-01.srx' property='mf:result'>hours-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='month'>
+          <a class='testlink' href='#month'>
+            month:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#month' property='mf:name'>MONTH()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#month' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='month-01.srx' property='mf:result'>month-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='year'>
+          <a class='testlink' href='#year'>
+            year:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#year' property='mf:name'>YEAR()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#year' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='year-01.srx' property='mf:result'>year-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='day'>
+          <a class='testlink' href='#day'>
+            day:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#day' property='mf:name'>DAY()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#day' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='day-01.srx' property='mf:result'>day-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='timezone'>
+          <a class='testlink' href='#timezone'>
+            timezone:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#timezone' property='mf:name'>TIMEZONE()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#timezone' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='timezone-01.srx' property='mf:result'>timezone-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='tz'>
+          <a class='testlink' href='#tz'>
+            tz:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#tz' property='mf:name'>TZ()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#tz' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='tz-01.srx' property='mf:result'>tz-01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='bnode01'>
+          <a class='testlink' href='#bnode01'>
+            bnode01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#bnode01' property='mf:name'>BNODE(str)</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#bnode01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='bnode01.srx' property='mf:result'>bnode01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='bnode02'>
+          <a class='testlink' href='#bnode02'>
+            bnode02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#bnode02' property='mf:name'>BNODE()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#bnode02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='bnode02.srx' property='mf:result'>bnode02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='in01'>
+          <a class='testlink' href='#in01'>
+            in01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#in01' property='mf:name'>IN 1</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#in01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='in01.srx' property='mf:result'>in01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='in02'>
+          <a class='testlink' href='#in02'>
+            in02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#in02' property='mf:name'>IN 2</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#in02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='in02.srx' property='mf:result'>in02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='notin01'>
+          <a class='testlink' href='#notin01'>
+            notin01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#notin01' property='mf:name'>NOT IN 1</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#notin01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='notin01.srx' property='mf:result'>notin01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='notin02'>
+          <a class='testlink' href='#notin02'>
+            notin02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#notin02' property='mf:name'>NOT IN 2</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#notin02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='notin02.srx' property='mf:result'>notin02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='now01'>
+          <a class='testlink' href='#now01'>
+            now01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#now01' property='mf:name'>NOW()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#now01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='now01.srx' property='mf:result'>now01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='rand01'>
+          <a class='testlink' href='#rand01'>
+            rand01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#rand01' property='mf:name'>RAND()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#rand01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='rand01.srx' property='mf:result'>rand01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='iri01'>
+          <a class='testlink' href='#iri01'>
+            iri01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#iri01' property='mf:name'>IRI()/URI()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#iri01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='iri01.srx' property='mf:result'>iri01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='if01'>
+          <a class='testlink' href='#if01'>
+            if01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#if01' property='mf:name'>IF()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#if01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='if01.srx' property='mf:result'>if01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='if02'>
+          <a class='testlink' href='#if02'>
+            if02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#if02' property='mf:name'>IF() error propogation</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#if02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='if02.srx' property='mf:result'>if02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='coalesce01'>
+          <a class='testlink' href='#coalesce01'>
+            coalesce01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#coalesce01' property='mf:name'>COALESCE()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#coalesce01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='coalesce01.srx' property='mf:result'>coalesce01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='strbefore01a'>
+          <a class='testlink' href='#strbefore01a'>
+            strbefore01a:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strbefore01a' property='mf:name'>STRBEFORE()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strbefore01a' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='strbefore01a.srx' property='mf:result'>strbefore01a.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='strbefore02'>
+          <a class='testlink' href='#strbefore02'>
+            strbefore02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strbefore02' property='mf:name'>STRBEFORE() datatyping</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strbefore02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='strbefore02.srx' property='mf:result'>strbefore02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='strafter01a'>
+          <a class='testlink' href='#strafter01a'>
+            strafter01a:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strafter01a' property='mf:name'>STRAFTER()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strafter01a' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='strafter01a.srx' property='mf:result'>strafter01a.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='strafter02'>
+          <a class='testlink' href='#strafter02'>
+            strafter02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strafter02' property='mf:name'>STRAFTER() datatyping</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#strafter02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='strafter02.srx' property='mf:result'>strafter02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='replace01'>
+          <a class='testlink' href='#replace01'>
+            replace01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#replace01' property='mf:name'>REPLACE()</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#replace01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='replace01.srx' property='mf:result'>replace01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='replace02'>
+          <a class='testlink' href='#replace02'>
+            replace02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#replace02' property='mf:name'>REPLACE() with overlapping pattern</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#replace02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='replace02.srx' property='mf:result'>replace02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='replace03'>
+          <a class='testlink' href='#replace03'>
+            replace03:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#replace03' property='mf:name'>REPLACE() with captured substring</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#replace03' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='replace03.srx' property='mf:result'>replace03.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='uuid01'>
+          <a class='testlink' href='#uuid01'>
+            uuid01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#uuid01' property='mf:name'>UUID() pattern match</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#uuid01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='uuid01.srx' property='mf:result'>uuid01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='uuid02'>
+          <a class='testlink' href='#uuid02'>
+            uuid02:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#uuid02' property='mf:name'>UUID() per binding</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#uuid02' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+            <p>UUID() calls generate results per invocation, not per query</p>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='uuid02.srx' property='mf:result'>uuid02.srx</a>
+            </dd>
+          </dl>
+        </dd>
+        <dt id='struuid01'>
+          <a class='testlink' href='#struuid01'>
+            struuid01:
+          </a>
+          <span about='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#struuid01' property='mf:name'>STRUUID() pattern match</span>
+        </dt>
+        <dd inlist='true' property='mf:entry' resource='http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest#struuid01' typeof='mf:QueryEvaluationTest'>
+          <div property='rdfs:comment'>
+          </div>
+          <dl class='test-detail'>
+            <dt>type</dt>
+            <dd>mf:QueryEvaluationTest</dd>
+            <dt>approval</dt>
+            <dd property='mf:approval' resource=''></dd>
+            <dt>action</dt>
+            <dd>
+              <dl class='test-detail' property='mf:action' resource=''>
+              </dl>
+            </dd>
+            <dt>result</dt>
+            <dd>
+              <a href='struuid01.srx' property='mf:result'>struuid01.srx</a>
+            </dd>
+          </dl>
+        </dd>
+      </dl>
+    </div>
+    <footer>
+      <p><a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright ©</a> 2015 <a href="http://www.w3.org/">W3C</a>® (<a href="http://www.csail.mit.edu/">MIT</a>, <a href="http://www.ercim.org/">ERCIM</a>, <a href="http://www.keio.ac.jp/">Keio</a>, <a href="http://ev.buaa.edu.cn/">Beihang</a>). W3C® <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and <a href="http://www.w3.org/Consortium/Legal/copyright-documents">document use</a> rules apply.</p>
+    </footer>
+  </body>
+</html>
