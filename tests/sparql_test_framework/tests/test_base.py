@@ -44,6 +44,16 @@ class SparqlTestFrameworkTestBase(unittest.TestCase):
     def tearDown(self):
         """Clean up test fixtures."""
         super().tearDown()
+        
+        # Clean up test_data directory if it exists and is empty
+        if self.test_data_dir.exists():
+            try:
+                # Remove the directory and all its contents
+                import shutil
+                shutil.rmtree(self.test_data_dir, ignore_errors=True)
+            except (OSError, IOError):
+                # Ignore errors during cleanup
+                pass
 
     def create_mock_manifest_triples(self, triples_data):
         """

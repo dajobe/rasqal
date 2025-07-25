@@ -44,19 +44,23 @@ TOOL_TESTS = \
 EXTRA_DIST = \
 	$(CORE_TESTS) \
 	$(RUNNER_TESTS) \
-	$(TOOL_TESTS) \
-	test_data
+	$(TOOL_TESTS)
 
 # Test execution targets
 check-framework-unit: $(EXTRA_DIST)
 	@echo "Running SPARQL Test Framework unit tests..."
 	@PYTHONPATH=$(top_srcdir)/tests:$(srcdir)/../../..:$$PYTHONPATH python3 -m unittest discover -s $(srcdir) -p "test_*.py" -v
+	@rm -rf test_data
 
 check-framework-unit-quick: $(EXTRA_DIST)
 	@echo "Running SPARQL Test Framework unit tests (quick mode)..."
 	@PYTHONPATH=$(top_srcdir)/tests:$(srcdir)/../../..:$$PYTHONPATH python3 -m unittest discover -s $(srcdir) -p "test_*.py"
+	@rm -rf test_data
 
 # Integration with main test suite
 check-local: check-framework-unit
+
+# Files to be cleaned up by automake
+CLEANFILES = test_data __pycache__ .pytest_cache
 
 .PHONY: check-framework-unit check-framework-unit-quick
