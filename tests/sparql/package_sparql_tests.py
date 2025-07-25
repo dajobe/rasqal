@@ -2,6 +2,9 @@
 #
 # package_sparql_tests.py - Helper script to package SPARQL test files for distribution.
 #
+# DEPRECATED: This script is deprecated. Use 'bundle-test-files' from tests/bin/ instead.
+# This script will be removed in a future version.
+#
 # Copyright (C) 2025, David Beckett http://www.dajobe.org/
 #
 # This package is Free Software and part of Redland http://librdf.org/
@@ -22,8 +25,17 @@
 import argparse
 import sys
 import logging
+import warnings
 from pathlib import Path
 import shutil
+
+# Issue deprecation warning
+warnings.warn(
+    "The 'package_sparql_tests.py' script is deprecated. Use 'bundle-test-files' from tests/bin/ instead. "
+    "This script will be removed in a future version.",
+    DeprecationWarning,
+    stacklevel=1,
+)
 
 # Add the parent directory to the Python path to find rasqal_test_util
 sys.path.append(str(Path(__file__).resolve().parent.parent))

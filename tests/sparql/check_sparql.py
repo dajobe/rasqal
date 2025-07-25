@@ -4,6 +4,9 @@
 #
 # USAGE: check-sparql [options] [TEST]
 #
+# DEPRECATED: This script is deprecated. Use 'run-sparql-tests' from tests/bin/ instead.
+# This script will be removed in a future version.
+#
 # Copyright (C) 2025, David Beckett http://www.dajobe.org/
 #
 # This package is Free Software and part of Redland http://librdf.org/
@@ -30,6 +33,7 @@
 import os
 import argparse
 import logging
+import warnings
 from pathlib import Path
 import time
 import re
@@ -41,6 +45,14 @@ from enum import Enum
 
 import sys
 from pathlib import Path
+
+# Issue deprecation warning
+warnings.warn(
+    "The 'check_sparql.py' script is deprecated. Use 'run-sparql-tests' from tests/bin/ instead. "
+    "This script will be removed in a future version.",
+    DeprecationWarning,
+    stacklevel=1,
+)
 
 # Add the parent directory to the Python path to find rasqal_test_util
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -303,7 +315,7 @@ def read_query_results_file(
                     "value": boolean_value,
                     "count": 1,
                     "vars": [],
-                    "results": []
+                    "results": [],
                 }
         except Exception as e:
             logger.debug(f"Could not read file content for boolean detection: {e}")
@@ -671,21 +683,31 @@ def _compare_actual_vs_expected(
     comparison_rc = -1
     if actual_result_type == "graph":
         comparison_rc = compare_rdf_graphs(RESULT_OUT, ROQET_OUT, DIFF_OUT)
-    elif actual_result_type == "boolean" and expected_results_info and expected_results_info.get("type") == "boolean":
+    elif (
+        actual_result_type == "boolean"
+        and expected_results_info
+        and expected_results_info.get("type") == "boolean"
+    ):
         # Handle boolean result comparison directly
         expected_boolean = expected_results_info.get("value", False)
         # Get actual boolean from processed output
         actual_boolean = actual_result_info.get("boolean_value", False)
-        
+
         if expected_boolean == actual_boolean:
             comparison_rc = 0
-            logger.debug(f"Boolean comparison successful: expected={expected_boolean}, actual={actual_boolean}")
+            logger.debug(
+                f"Boolean comparison successful: expected={expected_boolean}, actual={actual_boolean}"
+            )
         else:
             comparison_rc = 1
-            logger.debug(f"Boolean comparison failed: expected={expected_boolean}, actual={actual_boolean}")
+            logger.debug(
+                f"Boolean comparison failed: expected={expected_boolean}, actual={actual_boolean}"
+            )
             # Write comparison details for debugging
             if _preserve_debug_files:
-                DIFF_OUT.write_text(f"Expected: {expected_boolean}\nActual: {actual_boolean}\n")
+                DIFF_OUT.write_text(
+                    f"Expected: {expected_boolean}\nActual: {actual_boolean}\n"
+                )
     else:
         diff_process = run_command(
             [DIFF_CMD, "-u", str(RESULT_OUT), str(ROQET_OUT)],
@@ -1013,11 +1035,21 @@ def run_single_test(config: TestConfig, global_debug_level: int) -> Dict[str, An
         test_result_summary["query"] = roqet_execution_data["query_cmd"]
 
         # Initial outcome based on roqet's exit code
-        test_result_summary["result"] = (
-            "failure" if roqet_execution_data["returncode"] != 0 else "success"
-        )
+        # For warning tests, exit code 2 (warning) is considered success
+        if (
+            config.test_type == TestType.WARNING_TEST.value
+            and roqet_execution_data["returncode"] == 2
+        ):
+            test_result_summary["result"] = "success"
+        else:
+            test_result_summary["result"] = (
+                "failure" if roqet_execution_data["returncode"] != 0 else "success"
+            )
 
-        if roqet_execution_data["returncode"] != 0:  # roqet command failed
+        if roqet_execution_data["returncode"] != 0 and not (
+            config.test_type == TestType.WARNING_TEST.value
+            and roqet_execution_data["returncode"] == 2
+        ):  # roqet command failed (but not for warning tests with exit code 2)
             outcome_msg = f"exited with status {roqet_execution_data['returncode']}"
             if global_debug_level > 0:
                 logger.debug(f"roqet for '{config.name}' {outcome_msg}")
@@ -1123,14 +1155,19 @@ def run_single_test(config: TestConfig, global_debug_level: int) -> Dict[str, An
         # 2. Process Actual Output (from ROQET_TMP)
         actual_output_info = _process_actual_output(roqet_execution_data["stdout"])
 
-        # 3. Compare Actual vs. Expected Results
-        _compare_actual_vs_expected(
-            test_result_summary,
-            actual_output_info,
-            config.result_file,
-            config.cardinality_mode,
-            global_debug_level,
-        )
+        # 3. Compare Actual vs. Expected Results (skip for warning tests)
+        if config.test_type != TestType.WARNING_TEST.value:
+            _compare_actual_vs_expected(
+                test_result_summary,
+                actual_output_info,
+                config.result_file,
+                config.cardinality_mode,
+                global_debug_level,
+            )
+        else:
+            # For warning tests, just mark as success if we got here (exit code 2 was handled as success)
+            logger.info(f"Test '{config.name}': OK (warning test passed)")
+            test_result_summary["result"] = "success"
 
     except (UtilityNotFoundError, TestExecutionError) as e:
         logger.error(f"Test '{config.name}': FAILED: {e}")

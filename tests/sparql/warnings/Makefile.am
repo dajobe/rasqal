@@ -24,7 +24,8 @@ SPARQL_MANIFEST_FILES= manifest.ttl
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES)
 
-CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
+CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out \
+	sparql-warnings-plan.ttl
 
 .PHONY: build-core build-roqet check-lcoal
 
@@ -38,23 +39,23 @@ build-roqet: build-core
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
 check-local: build-roqet
-	@$(PYTHON) $(srcdir)/../../improve.py .
+	@$(top_srcdir)/tests/bin/run-test-suites .
 
 get-testsuites-list:
 	@echo "sparql-warnings"
 
 get-testsuite-sparql-warnings:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name sparql-warnings \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
-		--test-type NegativeTest \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) -W 100 {test_id}" \
-		--comment-template "sparql warning {test_id}" \
+		--test-type WarningTest \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s {srcdir} --manifest-file {srcdir}/manifest.ttl -W 100 --test-case {test_id}" \
+		--comment-template "sparql warning --test-case {test_id}" \
 		--manifest-file $(srcdir)/manifest.ttl
 
 dist-hook:
-	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILES) \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)

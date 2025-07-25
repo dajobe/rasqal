@@ -24,7 +24,8 @@ MANIFEST_FILE= manifest.ttl
 EXTRA_DIST= \
 $(MANIFEST_FILE)
 
-CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
+CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out \
+	sparql-query-plan.ttl
 
 RECHO=/bin/echo
 
@@ -40,22 +41,22 @@ build-roqet: build-core
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
 check-local: build-roqet
-	@$(PYTHON) $(srcdir)/../../improve.py .
+	@$(PYTHON) $(top_srcdir)/tests/bin/run-test-suites .
 
 get-testsuites-list:
 	@echo "sparql-query"
 
 get-testsuite-sparql-query:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name sparql-query \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s {srcdir} --manifest-file {srcdir}/$(MANIFEST_FILE) --test-case {test_id}" \
 		--manifest-file $(srcdir)/$(MANIFEST_FILE)
 
 dist-hook:
-	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(srcdir)/$(MANIFEST_FILE) \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)

@@ -2,6 +2,9 @@
 #
 # generate_sparql_plan.py - Helper script to generate SPARQL test plan files in Turtle format.
 #
+# DEPRECATED: This script is deprecated. Use 'create-test-plan' from tests/bin/ instead.
+# This script will be removed in a future version.
+#
 # Copyright (C) 2025, David Beckett http://www.dajobe.org/
 #
 # This package is Free Software and part of Redland http://librdf.org/
@@ -22,11 +25,20 @@
 import argparse
 import sys
 import logging
+import warnings
 from pathlib import Path
 import os
 import subprocess
 import shlex
 from typing import Optional
+
+# Issue deprecation warning
+warnings.warn(
+    "The 'generate_sparql_plan.py' script is deprecated. Use 'create-test-plan' from tests/bin/ instead. "
+    "This script will be removed in a future version.",
+    DeprecationWarning,
+    stacklevel=1,
+)
 
 # Add the parent directory to the Python path to find rasqal_test_util
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -169,6 +181,9 @@ def _process_manifest_entries(
                 config.test_type, args.suite_name, args.test_type
             )
 
+        # Convert URI to prefixed local name for Turtle output
+        test_type = Namespaces.uri_to_prefixed_name(test_type)
+
         # Extract query file and data file
         query_file = None
         data_file = None
@@ -250,12 +265,14 @@ def _process_engine_manifest_entries(
                     break
 
             if test_name:
+                # Convert test type to prefixed name for Turtle output
+                test_type = Namespaces.uri_to_prefixed_name(args.test_type)
                 tests.append(
                     {
                         "id": test_name,
                         "query_file": "",
                         "data_file": "",
-                        "test_type": args.test_type,
+                        "test_type": test_type,
                     }
                 )
 
@@ -289,6 +306,7 @@ def _print_turtle_header(
 @prefix mf:    <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
 @prefix qt:    <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
 @prefix t:     <http://ns.librdf.org/2009/test-manifest#> .
+@prefix mfx:   <http://jena.hpl.hp.com/2005/05/test-manifest-extra#> .
 
 <> a mf:Manifest ;
     rdfs:comment "{test_category.upper()} {suite_name} tests" ;
@@ -352,7 +370,7 @@ def _print_test_entries(tests: list, args: argparse.Namespace):
         escaped_action_for_print = escape_turtle_literal(action_raw)
         escaped_comment_for_print = escape_turtle_literal(comment_raw)
         print(
-            f'''  [ a t:{test_type};
+            f'''  [ a {test_type};
     mf:name """{escaped_test_id_for_print}""";
     rdfs:comment """{escaped_comment_for_print}""";
     mf:action """{escaped_action_for_print}""" ]'''

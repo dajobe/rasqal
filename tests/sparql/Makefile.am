@@ -28,6 +28,7 @@ update \
 bugs \
 aggregate \
 sparql11 \
+sparql11-test-suite \
 federated \
 warnings \
 errors \
@@ -36,12 +37,6 @@ csv-tsv
 if RASQAL_RESULT_FORMAT_SRJ
 SUBDIRS += srj
 endif
-
-EXTRA_DIST= \
-check_sparql.py \
-format_test_base.py \
-generate_sparql_plan.py \
-package_sparql_tests.py
 
 check-sparql-lexer: check-sparql-lexer-recursive
 

@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+"""
+CLI entry point for testing CSV and TSV result formats.
+Replaces the original check_format_csv_tsv.py script.
+"""
+
+import sys
+import os
+
+# Add the parent directory to the path to import the framework
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+from sparql_test_framework.runners.csv_tsv import main
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1621,6 +1621,9 @@ tests/sparql/warnings/Makefile
 tests/sparql/errors/Makefile
 tests/sparql/srj/Makefile
 tests/sparql/csv-tsv/Makefile
+tests/sparql/sparql11-test-suite/Makefile
+tests/sparql_test_framework/Makefile
+tests/sparql_test_framework/tests/Makefile
 utils/Makefile
 win32/Makefile
 rasqal.spec

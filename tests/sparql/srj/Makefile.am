@@ -25,10 +25,10 @@ SPARQL_WRITER_MANIFEST_FILE= manifest-writer.ttl
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILE) \
-$(SPARQL_WRITER_MANIFEST_FILE) \
-check_format_srj.py
+$(SPARQL_WRITER_MANIFEST_FILE)
 
-CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
+CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out \
+	format-srj-read-plan.ttl format-srj-write-plan.ttl
 
 .PHONY: build-core build-roqet build-sparql-test-utils check-local get-testsuites-list get-testsuite-format-srj-read get-testsuite-format-srj-write
 
@@ -48,7 +48,7 @@ build-sparql-test-utils: build-core
 
 check-local: build-roqet build-sparql-test-utils
 if RASQAL_RESULT_FORMAT_SRJ
-	@$(srcdir)/../../improve.py .
+	@$(top_srcdir)/tests/bin/run-test-suites .
 else
 	@echo "SRJ tests skipped - SRJ format support not available"
 endif
@@ -57,25 +57,25 @@ get-testsuites-list:
 	@echo "format-srj-read format-srj-write"
 
 get-testsuite-format-srj-read:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name format-srj-read \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s {srcdir} --manifest-file {srcdir}/$(SPARQL_MANIFEST_FILE) --test-case {test_id}" \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
 
 get-testsuite-format-srj-write:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name format-srj-write \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/srj/check_format_srj.py --test-case {test_id} --srcdir $(srcdir)" \
+		--action-template "$(top_srcdir)/tests/bin/test-srj-format --test-case {test_id} --srcdir {srcdir}" \
 		--manifest-file $(srcdir)/$(SPARQL_WRITER_MANIFEST_FILE)
 
 dist-hook:
-	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE) \
 		--manifest-file $(srcdir)/$(SPARQL_WRITER_MANIFEST_FILE) \
 		--srcdir $(srcdir) \

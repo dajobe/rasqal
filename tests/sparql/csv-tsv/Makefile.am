@@ -21,8 +21,7 @@
 CSV_TSV_MANIFEST_FILE = manifest.ttl
 
 EXTRA_DIST = \
-	check_format_csv_tsv.py \
-	$(CSV_TSV_MANIFEST_FILE)
+$(CSV_TSV_MANIFEST_FILE)
 
 .PHONY: build-core bbuild-roqet check-local get-testsuites-list get-testsuite-format-csv-tsv
 
@@ -37,29 +36,29 @@ build-core:
 build-roqet: build-core
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
-# Run tests locally through improve.py
+# Run tests locally through bin/run-test-suites
 check-local: build-roqet
-	@$(srcdir)/../../improve.py .
+	@$(top_srcdir)/tests/bin/run-test-suites .
 
-# Register with improve.py test discovery
+# Register with bin/run-test-suites test discovery
 get-testsuites-list:
 	@echo "format-csv-tsv"
 
-# Generate test plan for improve.py (following algebra pattern)
+# Generate test plan for bin/run-test-suites (following algebra pattern)
 get-testsuite-format-csv-tsv:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
-		--suite-name format-csv-tsv \
-		--srcdir $(srcdir) \
-		--builddir $(top_builddir) \
-		--test-category generic \
-		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/csv-tsv/check_format_csv_tsv.py --test-case {test_id} --srcdir $(srcdir)" \
-		--comment-template "CSV/TSV format test {test_id}" \
-		--manifest-file $(top_srcdir)/tests/sparql/csv-tsv/$(CSV_TSV_MANIFEST_FILE)
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
+	--suite-name format-csv-tsv \
+	--srcdir $(srcdir) \
+	--builddir $(top_builddir) \
+	--test-category generic \
+	--test-type PositiveTest \
+	--action-template "$(top_srcdir)/tests/bin/test-csv-tsv-format --test-case {test_id} --srcdir {srcdir}" \
+	--comment-template "CSV/TSV format test {test_id}" \
+	--manifest-file $(top_srcdir)/tests/sparql/csv-tsv/$(CSV_TSV_MANIFEST_FILE)
 
 # Distribution support
 dist-hook:
-	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(srcdir)/$(CSV_TSV_MANIFEST_FILE) \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)

@@ -37,29 +37,29 @@ build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
 
 check-local: build-roqet build-sparql-lexer-test build-sparql-parser-test
-	@$(PYTHON) $(srcdir)/../../../improve.py .
+	@$(PYTHON) $(top_srcdir)/tests/bin/run-test-suites .
 
 get-testsuites-list:
 	@echo "sparql-lexer sparql-parser"
 
 get-testsuite-sparql-lexer:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../../generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name sparql-lexer \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
-		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_lexer_test {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
+		--action-template "$(top_builddir)/src/sparql_lexer_test {abs_srcdir}/{query_file}" \
+		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
 
 get-testsuite-sparql-parser:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../../generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name sparql-parser \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
-		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
+		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \
+		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
 
 dist-hook:
-	$(PYTHON3) $(srcdir)/../../package_sparql_tests.py \
+	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE) \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)

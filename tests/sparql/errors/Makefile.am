@@ -24,7 +24,8 @@ SPARQL_MANIFEST_FILE= manifest.ttl
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILE)
 
-CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
+CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out \
+	sparql-query-negative-plan.ttl
 
 .PHONY: build-core build-roqet check-lcoal
 
@@ -38,23 +39,23 @@ build-roqet: build-core
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
 check-local: build-roqet
-	@$(PYTHON) $(srcdir)/../../improve.py .
+	@$(PYTHON3) $(top_srcdir)/tests/bin/run-test-suites .
 
 get-testsuites-list:
 	@echo "sparql-query-negative"
 
 get-testsuite-sparql-query-negative:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name sparql-query-negative \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \
-		--comment-template "sparql error API {test_id}" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s {srcdir} --manifest-file {srcdir}/manifest.ttl --test-case {test_id}" \
+		--comment-template "sparql error API --test-case {test_id}" \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
 
 dist-hook:
-	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE) \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)

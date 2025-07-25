@@ -30,13 +30,13 @@ build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
 
 check-local: build-sparql-parser-test
-	@$(PYTHON) $(srcdir)/../../improve.py .
+	@$(PYTHON) $(top_srcdir)/tests/bin/run-test-suites .
 
 get-testsuites-list:
 	@echo "sparql-parser-positive sparql-parser-negative"
 
 get-testsuite-sparql-parser-positive:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name sparql-parser-positive \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
@@ -44,7 +44,7 @@ get-testsuite-sparql-parser-positive:
 		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/manifest-good.ttl
 
 get-testsuite-sparql-parser-negative:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name sparql-parser-negative \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
@@ -52,7 +52,7 @@ get-testsuite-sparql-parser-negative:
 		--action-template "$(top_builddir)/src/sparql_parser_test -i sparql11 {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/manifest-bad.ttl
 
 dist-hook:
-	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(srcdir)/manifest-good.ttl \
 		--manifest-file $(srcdir)/manifest-bad.ttl \
 		--srcdir $(srcdir) \

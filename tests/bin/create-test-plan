@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+"""
+CLI entry point for test plan generation.
+
+This script provides a command-line interface for the PlanGenerator tool.
+"""
+
+import sys
+from pathlib import Path
+
+# Add the parent directory to the Python path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+from sparql_test_framework.tools.plan_generator import main
+
+if __name__ == "__main__":
+    main() 

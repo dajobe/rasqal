@@ -56,7 +56,7 @@ rasqal_triples_test_LDADD = $(top_builddir)/src/librasqal.la
 check-local: $(local_tests) run-rasqal-tests
 
 run-rasqal-tests: $(local_tests)
-	@$(PYTHON) $(srcdir)/../improve.py .
+	@$(PYTHON) $(top_srcdir)/tests/bin/run-test-suites .
 
 $(top_builddir)/src/librasqal.la:
 	cd $(top_builddir)/src && $(MAKE) librasqal.la
@@ -68,7 +68,7 @@ get-testsuites-list:
 	@echo "engine engine-limit"
 
 get-testsuite-engine:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../sparql/generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name engine \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
@@ -79,7 +79,7 @@ get-testsuite-engine:
 		--manifest-file $(top_srcdir)/tests/engine/$(MANIFEST_FILE)
 
 get-testsuite-engine-limit:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../sparql/generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name engine-limit \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
@@ -91,7 +91,7 @@ get-testsuite-engine-limit:
 		--manifest-file $(top_srcdir)/tests/engine/manifest-limit.ttl
 
 dist-hook:
-	$(PYTHON3) $(srcdir)/../sparql/package_sparql_tests.py \
+	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(abs_srcdir)/$(MANIFEST_FILE) \
 		--manifest-file $(abs_srcdir)/manifest-limit.ttl \
 		--srcdir $(srcdir) \

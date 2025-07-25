@@ -42,37 +42,40 @@ build-sparql-test-utils: build-core
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_lexer_test sparql_parser_test)
 
 check-local: build-roqet build-sparql-test-utils
-	@$(PYTHON) $(srcdir)/../../improve.py .
+	@$(PYTHON) $(top_srcdir)/tests/bin/run-test-suites .
 
 get-testsuites-list:
 	@echo "sparql-lexer sparql-parser sparql-query"
 
 get-testsuite-sparql-lexer:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name sparql-lexer \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_lexer_test {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/manifest.ttl
+		--action-template "$(top_builddir)/src/sparql_lexer_test {abs_srcdir}/{query_file}" \
+		--manifest-file $(srcdir)/manifest.ttl
 
 get-testsuite-sparql-parser:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name sparql-parser \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \		--manifest-file $(srcdir)/manifest.ttl
+		--action-template "$(top_builddir)/src/sparql_parser_test {abs_srcdir}/{query_file}" \
+		--manifest-file $(srcdir)/manifest.ttl
 
 get-testsuite-sparql-query:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name sparql-query \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/sparql/check_sparql.py -s $(srcdir) {test_id}" \		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s {srcdir} --manifest-file {srcdir}/$(SPARQL_MANIFEST_FILE) --test-case {test_id}" \
+		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
 
 dist-hook:
-	$(PYTHON3) $(srcdir)/../package_sparql_tests.py \
+	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE) \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)

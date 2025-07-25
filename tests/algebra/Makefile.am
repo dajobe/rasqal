@@ -22,7 +22,7 @@ ALGEBRA_MANIFEST_FILE= manifest.ttl
 
 local_tests=convert_graph_pattern$(EXEEXT)
 
-EXTRA_DIST= check_algebra.py $(ALGEBRA_MANIFEST_FILE)
+EXTRA_DIST= $(ALGEBRA_MANIFEST_FILE)
 
 EXTRA_PROGRAMS=$(local_tests)
 
@@ -31,7 +31,8 @@ AM_CFLAGS=@RASQAL_INTERNAL_CPPFLAGS@ $(MEM)
 AM_LDFLAGS=@RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 CLEANFILES=$(local_tests) \
-convert.out convert.err diff.out
+convert.out convert.err diff.out \
+sparql-algebra-plan.ttl
 
 convert_graph_pattern_SOURCES = convert_graph_pattern.c
 convert_graph_pattern_LDADD = $(top_builddir)/src/librasqal.la
@@ -40,25 +41,25 @@ BASE_URI=http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#
 
 # These are compiled here and used elsewhere for running tests
 check-local: convert_graph_pattern$(EXEEXT) $(ALGEBRA_TEST_FILES)
-	@$(srcdir)/../improve.py .
+	@$(top_srcdir)/tests/bin/run-test-suites .
 
 get-testsuites-list:
 	@echo "sparql-algebra"
 
 get-testsuite-sparql-algebra:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(srcdir)/../sparql/generate_sparql_plan.py \
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name sparql-algebra \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
 		--test-category generic \
 		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(srcdir)/check_algebra.py $(srcdir)/{query_file} $(BASE_URI)" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/test-algebra {srcdir}/{query_file} $(BASE_URI)" \
 		--comment-template "SPARQL algebra {query_file}" \
 		--manifest-file $(top_srcdir)/tests/algebra/$(ALGEBRA_MANIFEST_FILE) \
 		--path $(top_builddir)/tests/algebra
 
 dist-hook:
-	$(PYTHON3) $(srcdir)/../sparql/package_sparql_tests.py \
+	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(srcdir)/$(ALGEBRA_MANIFEST_FILE) \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)

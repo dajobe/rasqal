@@ -47,6 +47,6 @@ rasqal.pc
 rasqal.rdf
 rasqal.spec
 releases/
-run*
 setup.sh
 specs/
+valgrind-*

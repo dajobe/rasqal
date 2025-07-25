@@ -20,9 +20,14 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-SUBDIRS= algebra engine
+SUBDIRS= algebra engine sparql_test_framework
 if RASQAL_QUERY_SPARQL
 SUBDIRS += sparql
 endif
 
-EXTRA_DIST= improve.py rasqal_test_util.py
+# Ensure bin directory is included in distribution
+dist-hook:
+	@if test ! -d $(distdir)/bin; then \
+		echo "Copying bin directory to distribution"; \
+		cp -r $(srcdir)/bin $(distdir)/; \
+	fi

@@ -2,6 +2,8 @@
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+@prefix t:      <http://ns.librdf.org/2009/test-manifest#> .
 
 <>  rdf:type mf:Manifest ;
     rdfs:comment "Syntax tests Syntax SPARQL 1.1" ;
@@ -14,14 +16,17 @@
 
 ) .
 
-:test_1 rdf:type   mf:PositiveSyntaxTest11 ;
-  mf:name   "warning-1.rq" ;
-  mf:action <warning-1.rq> ; .
+:test_1 rdf:type   t:WarningTest ;
+  mf:name   "warning-1" ;
+  mf:action [ qt:query <warning-1.rq> ] ;
+  mf:result <warning-1.out> ; .
 
-:test_2 rdf:type   mf:PositiveSyntaxTest11 ;
-  mf:name   "warning-2.rq" ;
-  mf:action <warning-2.rq> ; .
+:test_2 rdf:type   t:WarningTest ;
+  mf:name   "warning-2" ;
+  mf:action [ qt:query <warning-2.rq> ] ;
+  mf:result <warning-2.out> ; .
 
-:test_3 rdf:type   mf:PositiveSyntaxTest11 ;
-  mf:name   "warning-3.rq" ;
-  mf:action <warning-3.rq> ; .
+:test_3 rdf:type   t:WarningTest ;
+  mf:name   "warning-3" ;
+  mf:action [ qt:query <warning-3.rq> ] ;
+  mf:result <warning-3.out> ; .
