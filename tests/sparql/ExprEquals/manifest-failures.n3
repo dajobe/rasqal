@@ -1,3 +1,8 @@
+# NOTE: The tests in this manifest are only expected to fail in the query suite due to known engine bugs (e.g., integer equality).
+# These tests always pass in the lexer and parser suites because the queries are syntactically valid.
+# As a result, the test system may report 'unexpectedly passed' (Uxpassed) for these tests in the lexer/parser suites.
+# This is expected and can be ignored; only the query suite result is relevant for these cases.
+
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
@@ -10,7 +15,7 @@
     ( 
       [  rdf:type t:XFailTest ;
          mf:name    "Equality 1-1 -- graph" ;
-         rdfs:comment "Expected to fail due to engine graph handling bug" ;
+         rdfs:comment "Expected to fail due to engine integer equality bug - '01'^^xsd:integer not recognized as equal to 1" ;
          mf:action
             [ qt:query  <query-eq-graph-1.rq> ;
               qt:data   <data-eq.ttl> ] ;
@@ -18,7 +23,7 @@
       ]
       [  rdf:type t:XFailTest ;
          mf:name    "Equality 1-2 -- graph" ;
-         rdfs:comment "Expected to fail due to engine graph handling bug" ;
+         rdfs:comment "Expected to fail due to engine integer equality bug - '01'^^xsd:integer not recognized as equal to 1" ;
          mf:action
             [ qt:query  <query-eq-graph-2.rq> ;
               qt:data   <data-eq.ttl> ] ;
@@ -26,7 +31,7 @@
       ]
       [  rdf:type t:XFailTest ;
          mf:name    "Equality - 2 var - test equals -- graph" ;
-         rdfs:comment "Expected to fail due to engine graph handling bug" ;
+         rdfs:comment "Expected to fail due to engine integer equality bug - '01'^^xsd:integer not recognized as equal to 1" ;
          mf:action
             [ qt:query  <query-eq2-graph-1.rq> ;
               qt:data   <data-eq.ttl> ] ;
