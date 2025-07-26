@@ -11,7 +11,6 @@
     mf:entries
     (
     :bind07
-    :bind10
     ) .
 
 :bind07 rdf:type t:XFailTest ;
@@ -24,20 +23,6 @@
     mf:result  <../sparql11-test-suite/bind/bind07.srx>
     .
 
-:bind10 rdf:type t:XFailTest ;
-    mf:name    "bind10 - BIND (expected to fail)" ;
-    rdfs:comment """Expected to fail due to XML output format issue.
-    The query correctly returns no results (FILTER is always false),
-    but the XML output format does not include variable declarations
-    in the head when there are no results, while the expected result
-    includes them. This appears to be a test framework or specification
-    issue rather than a query execution bug.""" ;
-    dawgt:approval dawgt:Approved ;
-    mf:action
-         [ qt:query  <../sparql11-test-suite/bind/bind10.rq> ;
-           qt:data   <../sparql11-test-suite/bind/data.ttl> ] ;
-    mf:result  <../sparql11-test-suite/bind/bind10.srx>
-    .
 
 
 
