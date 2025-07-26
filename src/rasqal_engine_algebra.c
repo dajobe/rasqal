@@ -446,7 +446,7 @@ rasqal_algebra_values_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
 {
   rasqal_query *query = execution_data->query;
   rasqal_bindings* bindings = rasqal_new_bindings_from_bindings(node->bindings);
-  return rasqal_new_bindings_rowsource(query->world, query, bindings);
+  return rasqal_new_values_rowsource(query->world, query, bindings);
 }
 
 
