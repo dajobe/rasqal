@@ -10,8 +10,25 @@
     rdfs:label "BIND Failing Tests" ;
     mf:entries
     (
+    :bind04
     :bind07
+    :bind10
     ) .
+
+:bind04 rdf:type t:XFailTest ;
+    mf:name    "bind04 - BIND (expected to fail)" ;
+    rdfs:comment """Expected to fail due to SELECT * projection bug in Rasqal engine.
+    The query uses SELECT * with BIND(?nova AS ?z) where ?nova is unbound.
+    According to SPARQL specification, unbound variables should not appear in results.
+    However, the engine incorrectly includes unbound variables in SELECT * projection.
+    This causes the test to fail because the actual output includes ?nova=NULL while
+    the expected output correctly omits the unbound variable entirely.""" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/bind/bind04.rq> ;
+           qt:data   <../sparql11-test-suite/bind/data.ttl> ] ;
+    mf:result  <../sparql11-test-suite/bind/bind04.srx>
+    .
 
 :bind07 rdf:type t:XFailTest ;
     mf:name    "bind07 - BIND (expected to fail)" ;
@@ -21,5 +38,21 @@
          [ qt:query  <../sparql11-test-suite/bind/bind07.rq> ;
            qt:data   <../sparql11-test-suite/bind/data.ttl> ] ;
     mf:result  <../sparql11-test-suite/bind/bind07.srx>
+    .
+
+:bind10 rdf:type t:XFailTest ;
+    mf:name    "bind10 - BIND (expected to fail)" ;
+    rdfs:comment """Expected to fail due to SELECT * projection bug in Rasqal engine.
+    The query uses SELECT * with BIND(?z := 4) and FILTER(?v = ?z) in a nested group.
+    The variable ?z is bound in the outer scope but not accessible in the FILTER.
+    According to SPARQL specification, unbound variables should not appear in results.
+    However, the engine incorrectly includes unbound variables in SELECT * projection.
+    This causes the test to fail because the actual output includes unbound variables
+    while the expected output correctly omits them.""" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/bind/bind10.rq> ;
+           qt:data   <../sparql11-test-suite/bind/data.ttl> ] ;
+    mf:result  <../sparql11-test-suite/bind/bind10.srx>
     .
 
