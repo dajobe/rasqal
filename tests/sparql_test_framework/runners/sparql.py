@@ -33,7 +33,7 @@ from typing import List, Dict, Any, Optional, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
 
-from ..test_types import TestResult, TestType, Namespaces
+from ..test_types import TestResult, TestType, Namespaces, TestTypeResolver
 from ..config import TestConfig
 from ..utils import find_tool, run_command, SparqlTestError
 from ..manifest import ManifestParser, UtilityNotFoundError
@@ -1029,13 +1029,17 @@ def run_single_test(config: TestConfig, global_debug_level: int) -> Dict[str, An
             return test_result_summary
 
         # roqet command succeeded (exit code 0) - for non-warning tests
-        if (
-            config.expect == TestResult.FAILED
-        ):  # Roqet succeeded, but was expected to fail
+        if config.expect == TestResult.FAILED or config.expect == TestResult.XFAILED:
+            # Test was expected to fail but succeeded - use centralized logic
+            final_result, detail = TestTypeResolver.determine_test_result(
+                config.expect, TestResult.PASSED
+            )
             logger.warning(
                 f"Test '{config.name}': FAILED (roqet succeeded, but was expected to fail)"
             )
-            finalize_test_result(test_result_summary, config.expect)
+            test_result_summary["result"] = "failure"
+            test_result_summary["detail"] = detail
+            finalize_test_result(test_result_summary, final_result)
             return test_result_summary
 
         # Roqet succeeded and was expected to pass

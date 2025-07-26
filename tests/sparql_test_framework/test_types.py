@@ -282,3 +282,57 @@ class TestTypeResolver:
                 return TestType.POSITIVE_SYNTAX_TEST.value
 
         return default_type or TestType.QUERY_EVALUATION_TEST.value
+
+    @staticmethod
+    def determine_test_result(expected_status: TestResult, actual_status: TestResult) -> Tuple[TestResult, str]:
+        """
+        Centralized logic for determining final test result given expected and actual status.
+        
+        This function handles all test result scenarios including:
+        - Tests that pass when expected to pass
+        - Tests that fail when expected to fail
+        - Tests that fail when expected to pass (unexpected failures)
+        - Tests that pass when expected to fail (unexpected passes)
+        - XFailTests that fail as expected
+        - XFailTests that unexpectedly pass
+        
+        Args:
+            expected_status: The expected test status
+            actual_status: The actual test execution status
+            
+        Returns:
+            Tuple of (final_result, detail_message)
+        """
+        # Handle XFailTests (expected to fail)
+        if expected_status == TestResult.XFAILED:
+            if actual_status == TestResult.FAILED:
+                return TestResult.XFAILED, "Test failed as expected"
+            else:
+                return TestResult.UXPASSED, "Test passed (XFailTest - expected to fail but passed)"
+        
+        # Handle regular tests expected to fail
+        elif expected_status == TestResult.FAILED:
+            if actual_status == TestResult.FAILED:
+                return TestResult.XFAILED, "Test failed as expected"
+            else:
+                return TestResult.UXPASSED, "Test passed but was expected to fail"
+        
+        # Handle tests expected to pass
+        elif expected_status == TestResult.PASSED:
+            if actual_status == TestResult.PASSED:
+                return TestResult.PASSED, "Test passed as expected"
+            else:
+                return TestResult.FAILED, "Test failed unexpectedly"
+        
+        # Handle skipped tests
+        elif expected_status == TestResult.SKIPPED:
+            if actual_status == TestResult.SKIPPED:
+                return TestResult.SKIPPED, "Test skipped as expected"
+            else:
+                return actual_status, "Test was expected to be skipped"
+        
+        # Default case: return actual status
+        else:
+            return actual_status, ""
+
+

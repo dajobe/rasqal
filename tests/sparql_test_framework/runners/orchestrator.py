@@ -31,7 +31,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 
-from ..test_types import TestResult, Namespaces
+from ..test_types import TestResult, Namespaces, TestTypeResolver
 from ..utils import find_tool, run_command, decode_literal
 from ..manifest import ManifestParser
 
@@ -537,31 +537,13 @@ class Testsuite:
         # Determine the final test status based on actual execution outcome vs. expected outcome
         is_xfail_test = test_details.get("is_xfail_test", False)
 
-        if expected_status_enum == TestResult.FAILED:
-            if actual_run_status == TestResult.FAILED:
-                result["result"] = TestResult.XFAILED.value
-                result["detail"] = (
-                    result.get("detail", "") + " (Test failed as expected)"
-                )
-            else:
-                result["result"] = TestResult.UXPASSED.value
-                result["detail"] = "Test passed but was expected to fail."
-        elif expected_status_enum == TestResult.XFAILED:
-            if actual_run_status == TestResult.FAILED:
-                result["result"] = TestResult.XFAILED.value
-                result["detail"] = (
-                    result.get("detail", "") + " (Test failed as expected)"
-                )
-            else:
-                result["result"] = TestResult.PASSED.value
-                result["detail"] = (
-                    "Test passed (XFailTest - expected to fail but passed)"
-                )
-        else:  # expected_status_enum == TestResult.PASSED
-            if actual_run_status == TestResult.PASSED:
-                result["result"] = TestResult.PASSED.value
-            else:
-                result["result"] = TestResult.FAILED.value
+        # Use centralized test result determination logic
+        final_result, detail = TestTypeResolver.determine_test_result(
+            expected_status_enum, actual_run_status
+        )
+        result["result"] = final_result.value
+        if detail:
+            result["detail"] = result.get("detail", "") + " (" + detail + ")"
 
         return result
 
