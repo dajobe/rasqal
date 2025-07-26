@@ -1,6 +1,6 @@
 # -*- Mode: Makefile -*-
 #
-# Makefile.am - automake file for Rasqal warnings tests
+# Makefile.am - automake file for Rasqal error handling tests
 #
 # Copyright (C) 2025, David Beckett https://www.dajobe.org/
 #
@@ -19,15 +19,15 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 #
 
-SPARQL_MANIFEST_FILE= manifest.ttl
+SPARQL_MANIFEST_FILES= manifest.ttl manifest-failing.ttl
 
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILE)
+$(SPARQL_MANIFEST_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out \
-	sparql-query-negative-plan.ttl
+	sparql-query-plan.ttl sparql-query-negative-plan.ttl
 
-.PHONY: build-core build-roqet check-lcoal
+.PHONY: build-core build-roqet check-local
 
 # This sequence allows parallel building of build-core and then once
 # that is built, parallel building of the dependent programs: roqet
@@ -42,20 +42,31 @@ check-local: build-roqet
 	@$(PYTHON3) $(top_srcdir)/tests/bin/run-test-suites .
 
 get-testsuites-list:
-	@echo "sparql-query-negative"
+	@echo "sparql-query sparql-query-negative"
+
+get-testsuite-sparql-query:
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
+		--suite-name sparql-query \
+		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
+		--test-type PositiveTest \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s {srcdir} --manifest-file {srcdir}/manifest.ttl --test-case {test_id}" \
+		--comment-template "sparql error API --test-case {test_id}" \
+		--manifest-file $(srcdir)/manifest.ttl
 
 get-testsuite-sparql-query-negative:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
 		--suite-name sparql-query-negative \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
-		--test-type PositiveTest \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s {srcdir} --manifest-file {srcdir}/manifest.ttl --test-case {test_id}" \
-		--comment-template "sparql error API --test-case {test_id}" \
-		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE)
+		--test-type XFailTest \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s {srcdir} --manifest-file {srcdir}/manifest-failing.ttl --test-case {test_id}" \
+		--comment-template "sparql error API (expected to fail) --test-case {test_id}" \
+		--manifest-file $(srcdir)/manifest-failing.ttl
 
 dist-hook:
 	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
-		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILE) \
+		--manifest-file $(srcdir)/manifest.ttl \
+		--manifest-file $(srcdir)/manifest-failing.ttl \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)
