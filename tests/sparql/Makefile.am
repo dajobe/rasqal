@@ -27,6 +27,7 @@ SyntaxDev \
 update \
 bugs \
 aggregate \
+bind \
 sparql11 \
 sparql11-test-suite \
 federated \

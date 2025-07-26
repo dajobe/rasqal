@@ -2562,6 +2562,23 @@ rasqal_query_let_build_variables_use_map_binds(rasqal_graph_pattern* gp,
                                                unsigned short* vars_scope)
 {
   rasqal_variable* v = gp->var;
+  rasqal_query* query = gp->query;
+
+  /* W3C SPARQL 1.1 requirement: "The variable introduced by the BIND
+   * clause must not have been used in the group graph pattern up to
+   * the point of use in BIND"
+   */
+  if(v && vars_scope && (vars_scope[v->offset] & RASQAL_VAR_USE_IN_SCOPE)) {
+    /* Variable is already in scope - this violates W3C SPARQL 1.1 */
+    if(query && !query->failed) {
+      /* Set query error */
+      rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
+                              &query->locator,
+                              "BIND variable %s already used in group graph pattern",
+                              v->name);
+    }
+    return 1;
+  }
 
   rasqal_graph_pattern_promote_variable_mention_to_bind(gp, v, vars_scope);
 
