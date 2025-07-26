@@ -251,7 +251,7 @@ def _process_actual_output(roqet_stdout_str: str) -> Dict[str, Any]:
         final_output_lines = sorted(list(set(processed_output_lines)))
 
     # Always write to file for comparison, cleanup later if not preserving
-    ROQET_OUT.write_text("\n".join(final_output_lines) + "\n")
+    ROQET_OUT.write_text("\n".join(final_output_lines) + "\n" if final_output_lines else "")
 
     return {
         "result_type": result_type,
@@ -365,7 +365,7 @@ def read_query_results_file(
             parsed_rows_for_output.sort()
 
         # Always write to file for comparison, cleanup later if not preserving
-        RESULT_OUT.write_text("\n".join(parsed_rows_for_output) + "\n")
+        RESULT_OUT.write_text("\n".join(parsed_rows_for_output) + "\n" if parsed_rows_for_output else "")
 
         return {
             "content": (
@@ -510,7 +510,7 @@ def parse_srx_from_roqet_output(
             parsed_rows_for_output.sort()
 
         # Always write to file for comparison, cleanup later if not preserving
-        RESULT_OUT.write_text("\n".join(parsed_rows_for_output) + "\n")
+        RESULT_OUT.write_text("\n".join(parsed_rows_for_output) + "\n" if parsed_rows_for_output else "")
 
         return {"count": len(parsed_rows_for_output)}
 
@@ -616,7 +616,7 @@ def _compare_actual_vs_expected(
         if expected_ntriples is not None:  # Allow empty graph
             sorted_expected_triples = sorted(list(set(expected_ntriples.splitlines())))
             # Always write to file for comparison, cleanup later if not preserving
-            RESULT_OUT.write_text("\n".join(sorted_expected_triples) + "\n")
+            RESULT_OUT.write_text("\n".join(sorted_expected_triples) + "\n" if sorted_expected_triples else "")
         else:
             logger.warning(
                 f"Test '{name}': FAILED (could not read/parse expected graph result file {expected_result_file} or it's not explicitly empty)"
