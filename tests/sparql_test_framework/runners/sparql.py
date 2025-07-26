@@ -331,6 +331,7 @@ def read_query_results_file(
         parsed_rows_for_output: List[str] = []
         current_vars_order: List[str] = []
         first_row = True
+        order_to_use: List[str] = expected_vars_order if expected_vars_order else []
 
         for line in process.stdout.splitlines():
             line = line.strip()
@@ -350,10 +351,9 @@ def read_query_results_file(
                             current_vars_order.append(var_name)
             first_row = False
 
-            # Use expected_vars_order if available, otherwise dynamically determined current_vars_order
-            order_to_use = (
-                expected_vars_order if expected_vars_order else current_vars_order
-            )
+            # Update order_to_use with dynamically determined current_vars_order if needed
+            if not expected_vars_order:
+                order_to_use = current_vars_order
             # Ensure all expected variables are present, fill with "NULL" if missing
             formatted_row_parts = [
                 f"{var}={row_data.get(var, NS.RS + 'undefined')}"
@@ -524,49 +524,24 @@ def parse_srx_from_roqet_output(
 
 def detect_result_format(result_file_path: Path) -> str:
     """
-    Detect the format of a result file by examining its content.
+    Detect the format of a result file by examining its suffix.
     Returns the appropriate format string for roqet.
     """
-    try:
-        content = result_file_path.read_text()
-        # Check for SPARQL Results format indicators
-        if (
-            "rs:ResultSet" in content
-            or "rs:resultVariable" in content
-            or "rs:binding" in content
-        ):
-            return "turtle"  # SPARQL Results format uses Turtle syntax
-        # Check for other formats
-        elif "<?xml" in content and "sparql-results" in content:
-            return "xml"
-        elif content.strip().startswith("{"):
-            return "srj"
-        elif result_file_path.suffix.lower() in [".csv", ".tsv"]:
-            return result_file_path.suffix.lower()[1:]  # Remove the dot
-        else:
-            # Default based on extension
-            ext = result_file_path.suffix.lower()
-            if ext == ".srx":
-                return "xml"
-            elif ext == ".srj":
-                return "srj"
-            elif ext == ".rdf":
-                return "rdfxml"
-            else:
-                return "turtle"  # Default for .ttl and other files
-    except Exception:
-        # Fallback to extension-based detection
-        ext = result_file_path.suffix.lower()
-        if ext == ".srx":
-            return "xml"
-        elif ext == ".srj":
-            return "srj"
-        elif ext == ".rdf":
-            return "rdfxml"
-        elif ext in [".csv", ".tsv"]:
-            return ext[1:]
-        else:
-            return "turtle"
+    ext = result_file_path.suffix.lower()
+    if ext == ".srx":
+        return "xml"
+    elif ext == ".srj":
+        return "srj"
+    elif ext == ".rdf":
+        return "rdfxml"
+    elif ext in [".csv", ".tsv"]:
+        return ext[1:]  # Remove the dot
+    elif ext == ".ttl":
+        return "turtle"
+    elif ext == ".n3":
+        return "turtle"  # Turtle parser can handle N3 format
+    else:
+        return "turtle"  # Default for unknown extensions
 
 
 def read_rdf_graph_file(result_file_path: Path) -> Optional[str]:
@@ -1307,9 +1282,9 @@ Examples:
                 elapsed_time,
             )
 
-            # Return 0 if test runner executed successfully, regardless of individual test results
-            # The orchestrator will handle reporting individual test failures
-            return 0
+            # Return appropriate exit code based on test results
+            # 0 = all tests passed, 1 = some tests failed
+            return 0 if not failed_tests else 1
 
         except Exception as e:
             logger.error(f"Error running SPARQL tests: {e}")
