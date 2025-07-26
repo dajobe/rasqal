@@ -1,8 +1,8 @@
 # http://www.w3.org/TR/2010/WD-sparql11-query-20100601/#aggregate-mapping
 
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX : <http://books.example/>
 
 SELECT (SUM(?val) AS ?sum)
 WHERE {
-  ?a rdf:value ?val .
+  ?a :price ?val .
 } GROUP BY ?a

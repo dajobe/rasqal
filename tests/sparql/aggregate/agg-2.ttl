@@ -3,5 +3,21 @@
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 []    rdf:type      rs:ResultSet ;
-      rs:resultVariable  "sum" .
+      rs:resultVariable  "sum" ;
+      rs:solution   [ rs:binding    [ rs:variable   "sum" ;
+                                      rs:value      "9"^^<http://www.w3.org/2001/XMLSchema#integer>
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "sum" ;
+                                      rs:value      "5"^^<http://www.w3.org/2001/XMLSchema#integer>
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "sum" ;
+                                      rs:value      "7"^^<http://www.w3.org/2001/XMLSchema#integer>
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "sum" ;
+                                      rs:value      "7"^^<http://www.w3.org/2001/XMLSchema#integer>
+                                    ] 
+      ] .
 
