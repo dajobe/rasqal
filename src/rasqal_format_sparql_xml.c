@@ -147,39 +147,90 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
   raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
   
   if(rasqal_query_results_is_bindings(results)) {
-    for(i=0; 1; i++) {
-      const unsigned char *name;
-      name=rasqal_query_results_get_binding_name(results, i);
-      if(!name)
-        break;
-      
-      /*     <variable name="x"/> */
-      variable_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
-                                                                        RASQAL_GOOD_CAST(const unsigned char*,"variable"),
-                                                                        NULL, base_uri);
-      if(!variable_element)
-        goto tidy;
-      
-      attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
-      if(!attrs)
-        goto tidy;
-      attrs[0] = raptor_new_qname_from_namespace_local_name(world->raptor_world_ptr,
-                                                            res_ns,
-                                                            RASQAL_GOOD_CAST(const unsigned char*,"name"),
-                                                            RASQAL_GOOD_CAST(const unsigned char*, name)); /* attribute value */
-      if(!attrs[0]) {
-        raptor_free_memory((void*)attrs);
-        goto tidy;
-      }
+    /* Get projected variables from the query (for SELECT clause variables) */
+    rasqal_query* query = rasqal_query_results_get_query(results);
+    raptor_sequence* projected_vars = NULL;
+    
+    if(query) {
+      projected_vars = rasqal_query_get_bound_variable_sequence(query);
+    }
+    
+    if(projected_vars) {
+      /* Use projected variables from SELECT clause */
+      for(i=0; 1; i++) {
+        rasqal_variable* var;
+        const unsigned char *name;
+        
+        var = (rasqal_variable*)raptor_sequence_get_at(projected_vars, i);
+        if(!var)
+          break;
+        
+        name = var->name;
+        
+        /*     <variable name="x"/> */
+        variable_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
+                                                                          RASQAL_GOOD_CAST(const unsigned char*,"variable"),
+                                                                          NULL, base_uri);
+        if(!variable_element)
+          goto tidy;
+        
+        attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
+        if(!attrs)
+          goto tidy;
+        attrs[0] = raptor_new_qname_from_namespace_local_name(world->raptor_world_ptr,
+                                                              res_ns,
+                                                              RASQAL_GOOD_CAST(const unsigned char*,"name"),
+                                                              RASQAL_GOOD_CAST(const unsigned char*, name)); /* attribute value */
+        if(!attrs[0]) {
+          raptor_free_memory((void*)attrs);
+          goto tidy;
+        }
 
-      raptor_xml_element_set_attributes(variable_element, attrs, 1);
-      
-      raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "    "), 4);
-      raptor_xml_writer_empty_element(xml_writer, variable_element);
-      raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
-      
-      raptor_free_xml_element(variable_element);
-      variable_element=NULL;
+        raptor_xml_element_set_attributes(variable_element, attrs, 1);
+        
+        raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "    "), 4);
+        raptor_xml_writer_empty_element(xml_writer, variable_element);
+        raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
+        
+        raptor_free_xml_element(variable_element);
+        variable_element=NULL;
+      }
+    } else {
+      /* Fallback: use binding names from results (original behavior) */
+      for(i=0; 1; i++) {
+        const unsigned char *name;
+        name=rasqal_query_results_get_binding_name(results, i);
+        if(!name)
+          break;
+        
+        /*     <variable name="x"/> */
+        variable_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
+                                                                          RASQAL_GOOD_CAST(const unsigned char*,"variable"),
+                                                                          NULL, base_uri);
+        if(!variable_element)
+          goto tidy;
+        
+        attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
+        if(!attrs)
+          goto tidy;
+        attrs[0] = raptor_new_qname_from_namespace_local_name(world->raptor_world_ptr,
+                                                              res_ns,
+                                                              RASQAL_GOOD_CAST(const unsigned char*,"name"),
+                                                              RASQAL_GOOD_CAST(const unsigned char*, name)); /* attribute value */
+        if(!attrs[0]) {
+          raptor_free_memory((void*)attrs);
+          goto tidy;
+        }
+
+        raptor_xml_element_set_attributes(variable_element, attrs, 1);
+        
+        raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "    "), 4);
+        raptor_xml_writer_empty_element(xml_writer, variable_element);
+        raptor_xml_writer_raw_counted(xml_writer, RASQAL_GOOD_CAST(const unsigned char*, "\n"), 1);
+        
+        raptor_free_xml_element(variable_element);
+        variable_element=NULL;
+      }
     }
   }
 
