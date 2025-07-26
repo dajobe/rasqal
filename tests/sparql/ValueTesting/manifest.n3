@@ -21,19 +21,6 @@
 	dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JulSep/0175>
       ]
 
-     [  mf:name    "extendedType-ne-fail" ;
-        rdfs:comment
-            "Opaque types can not be tested for != ." ;
-        rdfs:seeAlso
-            <http://www.w3.org/2005/04/26-dawg-irc#T15-21-30> ;
-        mf:action
-            [ qt:data   <extendedType-0.n3> ;
-              qt:query  <extendedType-ne-fail.rq> ] ;
-        mf:result  <extendedType-ne-fail-result.n3> ;
-        dawgt:approval dawgt:Approved ;
-	dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JulSep/0175>
-      ]
-
      [  mf:name    "extendedType-literal-eq" ;
         rdfs:comment
             "Test FILTER match on extended type." ;
@@ -44,16 +31,6 @@
         dawgt:approval dawgt:NotApproved
       ]
 
-     [  mf:name    "extendedType-literal-ne" ;
-        rdfs:comment
-            "Test FILTER negative match on extended type." ;
-        mf:action
-            [ qt:data   <extendedType-0.n3> ;
-              qt:query  <extendedType-literal-ne.rq> ] ;
-        mf:result  <extendedType-literal-ne-result.n3> ;
-        dawgt:approval dawgt:NotApproved
-      ]
-
      [  mf:name    "extendedType-graph" ;
         rdfs:comment
             "Test graph match on extended type." ;
@@ -61,17 +38,6 @@
             [ qt:data   <extendedType-0.n3> ;
               qt:query  <extendedType-graph.rq> ] ;
         mf:result  <extendedType-graph-result.n3> ;
-        dawgt:approval dawgt:NotApproved
-      ]
-
-     [  rdf:type t:XFailTest ;
-	mf:name    "typePromotion-decimal-decimal-fail" ;
-        rdfs:comment
-            "Test: product of type promotion within the xsd:decimal type tree. Expected to fail due to engine type promotion bug." ;
-        mf:action
-            [ qt:data   <typePromotion-0.n3> ;
-              qt:query  <typePromotion-decimal-decimal-fail.rq> ] ;
-        mf:result  <typePromotion-decimal-decimal-fail-result.n3> ;
         dawgt:approval dawgt:NotApproved
       ]
 
