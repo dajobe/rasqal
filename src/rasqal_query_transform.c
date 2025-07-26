@@ -2846,10 +2846,10 @@ rasqal_query_values_build_variables_use_map_binds(rasqal_query* query,
 
 /*
  * rasqal_query_variable_is_bound:
- * @gp: #rasqal_graph_pattern object
- * @variable: variable
+ * @query: #rasqal_query object
+ * @v: variable
  * 
- * INTERNAL - Test if a variable is bound in the given GP
+ * INTERNAL - Test if a variable is bound in the query
  *
  * Return value: non-0 if bound
  */
@@ -2864,9 +2864,12 @@ rasqal_query_variable_is_bound(rasqal_query* query, rasqal_variable* v)
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   height = (RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) + query->graph_pattern_count;
 
-  for(row_index = 0; row_index < height; row_index++) {
+  /* Only check graph pattern rows (after RASQAL_VAR_USE_MAP_OFFSET_LAST) */
+  for(row_index = RASQAL_VAR_USE_MAP_OFFSET_LAST + 1; row_index < height; row_index++) {
     unsigned short *row = &use_map[row_index * width];
-    if(row[v->offset])
+    unsigned short value = row[v->offset];
+    /* Check for bound value, not just any non-zero value */
+    if(value & RASQAL_VAR_USE_BOUND_HERE)
       return 1;
   }
   

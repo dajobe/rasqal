@@ -12,6 +12,7 @@
     :bind01
     :bind02
     :bind03
+    :bind04
     :bind05
     :bind06
     :bind08
@@ -43,6 +44,15 @@
          [ qt:query  <../sparql11-test-suite/bind/bind03.rq> ;
            qt:data   <../sparql11-test-suite/bind/data.ttl> ] ;
     mf:result  <../sparql11-test-suite/bind/bind03.srx>
+    .
+
+:bind04 rdf:type mf:QueryEvaluationTest ;
+    mf:name    "bind04 - BIND (working)" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/bind/bind04.rq> ;
+           qt:data   <../sparql11-test-suite/bind/data.ttl> ] ;
+    mf:result  <../sparql11-test-suite/bind/bind04.srx>
     .
 
 :bind05 rdf:type mf:QueryEvaluationTest ;
