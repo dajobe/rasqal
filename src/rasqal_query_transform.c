@@ -58,6 +58,7 @@ static int rasqal_query_select_build_variables_use_map(rasqal_query* query, unsi
 static int rasqal_query_select_build_variables_use_map_binds(rasqal_query* query, unsigned short *use_map, int width, rasqal_graph_pattern* gp, unsigned short* vars_scope);
 static int rasqal_query_union_build_variables_use_map_binds(rasqal_query* query, unsigned short *use_map, int width, rasqal_graph_pattern* gp, unsigned short* vars_scope);
 static int rasqal_query_values_build_variables_use_map_binds(rasqal_query* query, unsigned short *use_map, int width, rasqal_graph_pattern* gp, unsigned short* vars_scope);
+static int rasqal_graph_pattern_tree_mentions_variable(rasqal_graph_pattern* gp, rasqal_variable* v);
 
 
 int
@@ -265,6 +266,12 @@ rasqal_query_expand_wildcards(rasqal_query* rq, rasqal_projection* projection)
      !projection || !projection->wildcard)
     return 0;
   
+  /* If query graph pattern is not available yet, defer expansion */
+  if(!rq->query_graph_pattern) {
+    /* Keep the wildcard flag set for later expansion */
+    return 0;
+  }
+
   /* If 'SELECT *' was given, make the selects be a list of all variables */
   size = rasqal_variables_table_get_named_variables_count(rq->vars_table);
   for(i = 0; i < size; i++) {
@@ -1291,6 +1298,12 @@ rasqal_query_prepare_common(rasqal_query *query)
   if(projection) {
     if(rasqal_query_remove_duplicate_select_vars(query, projection))
       goto done;
+
+    /* Expand SELECT * to include only mentioned variables */
+    if(projection->wildcard) {
+      if(rasqal_query_expand_wildcards(query, projection))
+        goto done;
+    }
   }
 
   rasqal_query_fold_expressions(query);
@@ -1365,6 +1378,24 @@ rasqal_query_prepare_common(rasqal_query *query)
     rc = rasqal_query_build_variables_use(query, projection);
     if(rc)
       goto done;
+
+    /* Remove unbound variables from SELECT * projection */
+    if(projection && projection->wildcard) {
+      raptor_sequence* vars_seq = rasqal_projection_get_variables_sequence(projection);
+      if(vars_seq) {
+        int j;
+        int vars_size = raptor_sequence_size(vars_seq);
+
+        /* Remove unbound variables from the end to avoid index issues */
+        for(j = vars_size - 1; j >= 0; j--) {
+          rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(vars_seq, j);
+          if(!rasqal_query_variable_is_bound(query, v)) {
+            raptor_sequence_delete_at(vars_seq, j);
+            rasqal_free_variable(v);
+          }
+        }
+      }
+    }
 
     /* Turn FILTERs that refer to out-of-scope variables into FALSE */
     (void)rasqal_query_graph_pattern_visit2(query,
