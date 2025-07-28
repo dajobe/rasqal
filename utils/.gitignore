@@ -5,6 +5,8 @@
 *.lo
 *.o
 *.plist
+rasqal-compare
+rasqal-compare.exe
 roqet
 roqet.exe
 roqet.html

@@ -1,0 +1,213 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" rasqal-compare.1 - Rasqal SPARQL Query Results Comparison Utility
+.\"
+.\" Copyright (C) 2025 David Beckett - http://www.dajobe.org/
+.\"
+.TH rasqal-compare 1 "2025-07-27"
+.\" Please adjust this date whenever revising the manpage.
+.SH NAME
+rasqal-compare \- Rasqal SPARQL Query Results Comparison Utility
+.SH SYNOPSIS
+.B rasqal-compare
+.RB [ OPTIONS ]
+.B -e
+.IR "EXPECTED"
+.B -a
+.IR "ACTUAL"
+.br
+.B rasqal-compare
+.RB [ OPTIONS ]
+.B -q
+.IR "QUERY"
+.B -e
+.IR "EXPECTED"
+.RI "[DATA-FILES]"
+.br
+.B rasqal-compare
+.RB [ OPTIONS ]
+.B -q
+.IR "QUERY"
+.B -a
+.IR "ACTUAL"
+.RI "[DATA-FILES]"
+.SH DESCRIPTION
+The
+.B rasqal-compare
+utility compares SPARQL query results for equality. It can compare two
+result files directly, or execute a query against data and compare the
+results against an expected output file.
+.SH MAIN OPTIONS
+rasqal-compare uses the usual GNU command line syntax, with long
+options starting with two dashes (`-') if supported by the
+getopt_long function.  Otherwise only the short options are available.
+.TP
+.B \-q, \-\-query FILE
+Execute SPARQL query from
+.I FILE
+and compare results against expected or actual file.
+.TP
+.B \-e, \-\-expected FILE
+Expected results file to compare against.
+.TP
+.B \-a, \-\-actual FILE
+Actual results file to compare against (if not executing query).
+.TP
+.B \-d, \-\-data FILE
+RDF data file for query execution.
+.TP
+.B \-G, \-\-named-graph FILE
+Named graph file for query execution.
+.TP
+.B \-F, \-\-format FORMAT
+Data source format (default: auto-detect).
+.TP
+.B \-R, \-\-results-input-format FORMAT
+Input results format (default: auto-detect).
+.SH COMPARISON OPTIONS
+.TP
+.B \-o, \-\-order-sensitive
+Results must be in same order to be equal.
+.TP
+.B \-b, \-\-blank-node-strategy STRATEGY
+Blank node matching strategy:
+.RS
+.IP "any"
+Any blank node matches any other (default)
+.IP "id"
+Blank nodes must have same ID to match
+.IP "structure"
+Blank nodes match based on structural similarity
+.RE
+.TP
+.B \-m, \-\-max-differences N
+Maximum number of differences to report (default: 10).
+.TP
+.B \-n, \-\-normalize-whitespace
+Normalize whitespace in string comparisons.
+.TP
+.B \-i, \-\-ignore-case
+Ignore case in string comparisons.
+.SH DIFF OUTPUT OPTIONS
+.TP
+.B \-u, \-\-unified
+Output unified diff format.
+.TP
+.B \-j, \-\-json
+Output JSON diff format.
+.TP
+.B \-x, \-\-xml
+Output XML diff format.
+.TP
+.B \-c, \-\-context LINES
+Number of context lines in diff (default: 3).
+.SH STANDARD OPTIONS
+.TP
+.B \-h, \-\-help
+Print this help, then exit.
+.TP
+.B \-v, \-\-verbose
+Verbose output.
+.TP
+.B \-V, \-\-version
+Print version.
+.TP
+.B \-w, \-\-warnings LEVEL
+Set warning level (0-100, default: 50).
+.SH SUPPORTED INPUT FORMATS
+For variable bindings and boolean results:
+.RS
+.IP "xml"
+SPARQL XML Query Results (default)
+.IP "csv"
+Comma Separated Values (CSV)
+.IP "mkr"
+mKR relation (mkr)
+.IP "tsv"
+Tab Separated Values (TSV)
+.IP "turtle"
+Turtle Query Results
+.IP "rdfxml"
+RDF/XML Query Results
+.RE
+.PP
+For RDF graph results:
+.RS
+.IP "rdfxml"
+RDF/XML (default)
+.IP "ntriples"
+N-Triples
+.IP "turtle"
+Turtle Terse RDF Triple Language
+.IP "trig"
+TriG - Turtle with Named Graphs
+.IP "rss-tag-soup"
+RSS Tag Soup
+.IP "grddl"
+Gleaning Resource Descriptions from Dialects of Languages
+.IP "guess"
+Pick the parser to use using content type and URI
+.IP "rdfa"
+RDF/A via librdfa
+.IP "nquads"
+N-Quads
+.RE
+.SH EXIT CODES
+.TP
+.B 0
+Results are equal
+.TP
+.B 1
+Results are different
+.TP
+.B 2
+Error occurred
+.SH EXAMPLES
+.IP
+.B rasqal-compare -e expected.xml -a actual.xml
+.LP
+Compare two SPARQL XML result files for equality.
+.IP
+.B rasqal-compare -q query.rq -e expected.csv -d data.ttl
+.LP
+Execute a SPARQL query against RDF data and compare results against expected CSV file.
+.IP
+.B rasqal-compare -e results1.xml -a results2.xml -o
+.LP
+Compare two result files with order-sensitive comparison.
+.IP
+.B rasqal-compare -e expected.xml -a actual.xml -b structure
+.LP
+Compare results using structural blank node matching.
+.IP
+.B rasqal-compare -e expected.csv -a actual.csv -i -n
+.LP
+Compare CSV results with case-insensitive and whitespace-normalized string comparison.
+.IP
+.B rasqal-compare -e expected.xml -a actual.xml -u -c 5
+.LP
+Compare results and output unified diff format with 5 context lines.
+.SH "CONFORMING TO"
+\fISPARQL 1.1 Query Language\fR,
+Steve Harris and Andy Seaborne (eds),
+W3C Recommendation, 21 March 2013
+.UR http://www.w3.org/TR/2013/REC-sparql11-query-20130321/
+http://www.w3.org/TR/2013/REC-sparql11-query-20130321/
+.UE
+.LP
+\fISPARQL Query Results XML Format (Second Edition)\fR, 
+Sandro Hawke (Second Edition ed), Jeen Broekstra and Dave Beckett (eds),
+W3C Recommendation, 21 March 2013.
+.UR http://www.w3.org/TR/2013/REC-rdf-sparql-XMLres-20130321/
+http://www.w3.org/TR/2013/REC-rdf-sparql-XMLres-20130321/
+.UE
+.SH SEE ALSO
+.BR roqet(1), librasqal(3), libraptor(3)
+.SH CHANGES
+.br
+.SH AUTHOR
+Dave Beckett - 
+.UR https://www.dajobe.org/
+https://www.dajobe.org/
+.UE
+.br 

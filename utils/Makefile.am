@@ -20,13 +20,13 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-bin_PROGRAMS = roqet
-noinst_PROGRAMS = check-query to-ntriples
+bin_PROGRAMS = roqet rasqal-compare
+noinst_PROGRAMS = to-ntriples
 EXTRA_PROGRAMS = srxread srxwrite testrunner
 
 CLEANFILES = $(EXTRA_PROGRAMS) *.plist
 
-man_MANS = roqet.1
+man_MANS = roqet.1 rasqal-compare.1
 
 AM_CPPFLAGS= @RASQAL_INTERNAL_CPPFLAGS@ -I$(top_srcdir)/src
 AM_CFLAGS = $(MEM)
@@ -61,18 +61,20 @@ roqet_LDADD += $(top_builddir)/getopt/libgetopt.la
 roqet_DEPENDENCIES += $(top_builddir)/libgetopt/libgetopt.la
 endif
 
-check_query_SOURCES = check_query.c
-check_query_CPPFLAGS = $(AM_CPPFLAGS)
-check_query_LDADD = $(top_builddir)/src/librasqal.la librasqalcmdline.la
-check_query_DEPENDENCIES = $(top_builddir)/src/librasqal.la librasqalcmdline.la
-check_query_LDFLAGS = @RAPTOR2_LIBS@
+
+
+rasqal_compare_SOURCES = rasqal-compare.c
+rasqal_compare_CPPFLAGS = $(AM_CPPFLAGS)
+rasqal_compare_LDADD = $(top_builddir)/src/librasqal.la librasqalcmdline.la
+rasqal_compare_DEPENDENCIES = $(top_builddir)/src/librasqal.la librasqalcmdline.la
+rasqal_compare_LDFLAGS = @RAPTOR2_LIBS@
 if GETOPT
-check_query_CPPFLAGS += -I$(top_srcdir)/getopt
-check_query_LDADD += $(top_builddir)/getopt/libgetopt.la
-check_query_DEPENDENCIES += $(top_builddir)/libgetopt/libgetopt.la
+rasqal_compare_CPPFLAGS += -I$(top_srcdir)/getopt
+rasqal_compare_LDADD += $(top_builddir)/getopt/libgetopt.la
+rasqal_compare_DEPENDENCIES += $(top_builddir)/libgetopt/libgetopt.la
 endif
 
-testrunner_SOURCES = testrunner.c manifest.c manifest.h
+testrunner_SOURCES = testrunner.c
 testrunner_CPPFLAGS = $(AM_CPPFLAGS)
 testrunner_LDADD = $(top_builddir)/src/librasqal.la librasqalcmdline.la
 testrunner_DEPENDENCIES = $(top_builddir)/src/librasqal.la librasqalcmdline.la
@@ -99,10 +101,14 @@ srxwrite_LDFLAGS = @RAPTOR2_LIBS@
 
 EXTRA_DIST= \
 $(man_MANS) \
-roqet.html
+roqet.html \
+rasqal-compare.html
 
 if MAINTAINER_MODE
 roqet.html: $(srcdir)/roqet.1 $(srcdir)/../scripts/fix-groff-xhtml.py
+	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | $(PYTHON3) $(srcdir)/../scripts/fix-groff-xhtml.py $@
+
+rasqal-compare.html: $(srcdir)/rasqal-compare.1 $(srcdir)/../scripts/fix-groff-xhtml.py
 	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | $(PYTHON3) $(srcdir)/../scripts/fix-groff-xhtml.py $@
 
 endif
