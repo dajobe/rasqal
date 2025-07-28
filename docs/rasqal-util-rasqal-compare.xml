@@ -1,0 +1,573 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+<chapter id="rasqal-util-rasqal-compare">
+    <title>rasqal-compare utility</title>
+
+    <section id="rasqal-compare-intro">
+        <title>Introduction</title>
+
+        <para>The <command>rasqal-compare</command> utility is a command-line tool for comparing
+    SPARQL query results for equality. It supports multiple input formats and provides
+    flexible comparison options for semantic result comparison.</para>
+
+        <para>rasqal-compare can work in two modes:</para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    <emphasis>File comparison mode</emphasis> - Compare two result files directly</para>
+            </listitem>
+            <listitem>
+                <para>
+                    <emphasis>Query execution mode</emphasis> - Execute a query and compare against expected results</para>
+            </listitem>
+        </itemizedlist>
+
+        <para>The utility provides detailed difference reporting and supports various
+    output formats including human-readable, unified diff, JSON, and XML formats.</para>
+
+    </section>
+
+    <section id="rasqal-compare-usage">
+        <title>Usage</title>
+
+        <para>Basic usage patterns:</para>
+
+        <programlisting>
+# File comparison mode
+rasqal-compare -e EXPECTED_FILE -a ACTUAL_FILE
+
+# Query execution mode
+rasqal-compare -q QUERY_FILE -e EXPECTED_FILE -d DATA_FILE
+        </programlisting>
+
+        <para>Where:</para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    <option>-e</option> specifies the expected results file</para>
+            </listitem>
+            <listitem>
+                <para>
+                    <option>-a</option> specifies the actual results file (file comparison mode)</para>
+            </listitem>
+            <listitem>
+                <para>
+                    <option>-q</option> specifies the SPARQL query file (query execution mode)</para>
+            </listitem>
+            <listitem>
+                <para>
+                    <option>-d</option> specifies the RDF data file (query execution mode)</para>
+            </listitem>
+        </itemizedlist>
+
+    </section>
+
+    <section id="rasqal-compare-options">
+        <title>Command Line Options</title>
+
+        <section id="rasqal-compare-main-options">
+            <title>Main Options</title>
+
+            <para>Core options for controlling input and output:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <option>-q, --query FILE</option> - Execute SPARQL query from FILE</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-e, --expected FILE</option> - Expected results file to compare against</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-a, --actual FILE</option> - Actual results file to compare against (if not executing query)</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-d, --data FILE</option> - RDF data file for query execution</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-G, --named-graph FILE</option> - Named graph file for query execution</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-F, --format FORMAT</option> - Data source format (default: auto-detect)</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-R, --results-input-format FORMAT</option> - Input results format (default: auto-detect)</para>
+                </listitem>
+            </itemizedlist>
+
+        </section>
+
+        <section id="rasqal-compare-comparison-options">
+            <title>Comparison Options</title>
+
+            <para>Options for controlling how results are compared:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <option>-o, --order-sensitive</option> - Results must be in same order to be equal</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-b, --blank-node-strategy STRATEGY</option> - Blank node matching strategy:
+                        <itemizedlist>
+                            <listitem>
+                                <para>
+                                    <literal>any</literal> - Any blank node matches any other (default)</para>
+                            </listitem>
+                            <listitem>
+                                <para>
+                                    <literal>id</literal> - Blank nodes must have same ID to match</para>
+                            </listitem>
+                            <listitem>
+                                <para>
+                                    <literal>structure</literal> - Blank nodes match based on structural similarity</para>
+                            </listitem>
+                        </itemizedlist>
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-m, --max-differences N</option> - Maximum number of differences to report (default: 10)</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-n, --normalize-whitespace</option> - Normalize whitespace in string comparisons</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-i, --ignore-case</option> - Ignore case in string comparisons</para>
+                </listitem>
+            </itemizedlist>
+
+        </section>
+
+        <section id="rasqal-compare-output-options">
+            <title>Diff Output Options</title>
+
+            <para>Options for controlling the format of difference output:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <option>-u, --unified</option> - Output unified diff format</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-j, --json</option> - Output JSON diff format</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-x, --xml</option> - Output XML diff format</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-k, --debug</option> - Output debug format (similar to roqet -d debug)</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-c, --context LINES</option> - Number of context lines in diff (default: 3)</para>
+                </listitem>
+            </itemizedlist>
+
+        </section>
+
+        <section id="rasqal-compare-standard-options">
+            <title>Standard Options</title>
+
+            <para>Standard utility options:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <option>-h, --help</option> - Print help and exit</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-v, --verbose</option> - Verbose output</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-V, --version</option> - Print version</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <option>-w, --warnings LEVEL</option> - Set warning level (0-100, default: 50)</para>
+                </listitem>
+            </itemizedlist>
+
+        </section>
+
+    </section>
+
+    <section id="rasqal-compare-formats">
+        <title>Supported Input Formats</title>
+
+        <section id="rasqal-compare-bindings-formats">
+            <title>Variable Bindings and Boolean Results</title>
+
+            <para>For variable bindings and boolean results, rasqal-compare supports:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <literal>xml</literal> - SPARQL XML Query Results (default)</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <literal>csv</literal> - Comma Separated Values</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <literal>tsv</literal> - Tab Separated Values</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <literal>turtle</literal> - Turtle Query Results</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <literal>rdfxml</literal> - RDF/XML Query Results</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <literal>mkr</literal> - mKR relation format</para>
+                </listitem>
+            </itemizedlist>
+
+        </section>
+
+        <section id="rasqal-compare-graph-formats">
+            <title>RDF Graph Results</title>
+
+            <para>For RDF graph results, rasqal-compare supports:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <literal>rdfxml</literal> - RDF/XML (default)</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <literal>ntriples</literal> - N-Triples</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <literal>turtle</literal> - Turtle Terse RDF Triple Language</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <literal>trig</literal> - TriG - Turtle with Named Graphs</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <literal>nquads</literal> - N-Quads</para>
+                </listitem>
+            </itemizedlist>
+
+        </section>
+
+    </section>
+
+    <section id="rasqal-compare-exit-codes">
+        <title>Exit Codes</title>
+
+        <para>rasqal-compare uses consistent exit codes for automation:</para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    <literal>0</literal> - Results are equal</para>
+            </listitem>
+            <listitem>
+                <para>
+                    <literal>1</literal> - Results are different</para>
+            </listitem>
+            <listitem>
+                <para>
+                    <literal>2</literal> - Error occurred</para>
+            </listitem>
+        </itemizedlist>
+
+        <para>Example usage in scripts:</para>
+        <programlisting>
+#!/bin/bash
+if rasqal-compare -e expected.xml -a actual.xml; then
+    echo "Results match!"
+else
+    echo "Results differ!"
+    exit 1
+fi
+        </programlisting>
+
+    </section>
+
+    <section id="rasqal-compare-examples">
+        <title>Examples</title>
+
+        <section id="rasqal-compare-basic-examples">
+            <title>Basic Examples</title>
+
+            <para>Compare two SPARQL XML result files:</para>
+            <programlisting>
+rasqal-compare -e expected.xml -a actual.xml
+            </programlisting>
+
+            <para>Execute a SPARQL query against RDF data and compare results against expected CSV file:</para>
+            <programlisting>
+rasqal-compare -q query.rq -e expected.csv -d data.ttl
+            </programlisting>
+
+            <para>Compare two result files with order-sensitive comparison:</para>
+            <programlisting>
+rasqal-compare -e expected.xml -a actual.xml -o
+            </programlisting>
+
+        </section>
+
+        <section id="rasqal-compare-advanced-examples">
+            <title>Advanced Examples</title>
+
+            <para>Compare results using structural blank node matching:</para>
+            <programlisting>
+rasqal-compare -e expected.xml -a actual.xml -b structure
+            </programlisting>
+
+            <para>Compare CSV results with case-insensitive and whitespace-normalized string comparison:</para>
+            <programlisting>
+rasqal-compare -e expected.csv -a actual.csv -i -n
+            </programlisting>
+
+            <para>Compare results and output unified diff format with 5 context lines:</para>
+            <programlisting>
+rasqal-compare -e expected.xml -a actual.xml -u -c 5
+            </programlisting>
+
+            <para>Output JSON diff format for programmatic processing:</para>
+            <programlisting>
+rasqal-compare -e expected.xml -a actual.xml -j
+            </programlisting>
+
+        </section>
+
+    </section>
+
+    <section id="rasqal-compare-integration">
+        <title>Integration with Other Tools</title>
+
+        <section id="rasqal-compare-roqet-integration">
+            <title>Integration with roqet</title>
+
+            <para>rasqal-compare works well with roqet for generating and comparing results:</para>
+            <programlisting>
+# Generate expected results
+roqet -q query.rq -d data.ttl -r xml > expected.xml
+
+# Generate actual results
+roqet -q query.rq -d data.ttl -r xml > actual.xml
+
+# Compare them
+rasqal-compare -e expected.xml -a actual.xml
+            </programlisting>
+
+        </section>
+
+        <section id="rasqal-compare-testing-integration">
+            <title>Testing Integration</title>
+
+            <para>rasqal-compare is integrated with the Python test framework and can be used
+      with the <option>--use-rasqal-compare</option> flag:</para>
+            <programlisting>
+# Run tests with rasqal-compare
+tests/bin/run-test-suites --use-rasqal-compare tests/sparql/simple
+
+# System-wide enablement via environment variable RASQAL_COMPARE_ENABLE=yes make check
+            </programlisting>
+
+        </section>
+
+        <section id="rasqal-compare-ci-integration">
+            <title>Continuous Integration</title>
+
+            <para>rasqal-compare is ideal for continuous integration pipelines:</para>
+            <programlisting>
+#!/bin/bash
+# In a CI script
+rasqal-compare -q query.rq -e expected.xml -d data.ttl -q
+if [ $? -eq 0 ]; then
+    echo "✓ Query results match expected output"
+else
+    echo "✗ Query results differ from expected output"
+    exit 1
+fi
+            </programlisting>
+
+        </section>
+
+        <section id="rasqal-compare-git-integration">
+            <title>Git Integration</title>
+
+            <para>rasqal-compare can be used in git hooks to validate query results:</para>
+            <programlisting>
+#!/bin/bash
+# Compare results in a git hook
+rasqal-compare -q query.rq -e expected.xml -d data.ttl || {
+    echo "Query results have changed!"
+    exit 1
+}
+            </programlisting>
+
+        </section>
+
+    </section>
+
+    <section id="rasqal-compare-best-practices">
+        <title>Best Practices</title>
+
+        <section id="rasqal-compare-strategies">
+            <title>Comparison Strategies</title>
+
+            <para>Choose appropriate comparison strategies:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>Use <literal>-b any</literal> for blank nodes when you care about structure, not identity</para>
+                </listitem>
+                <listitem>
+                    <para>Use <literal>-b id</literal> when blank node identity matters</para>
+                </listitem>
+                <listitem>
+                    <para>Use <literal>-b structure</literal> for complex blank node matching</para>
+                </listitem>
+            </itemizedlist>
+
+        </section>
+
+        <section id="rasqal-compare-formats-best-practices">
+            <title>Format Handling</title>
+
+            <para>Handle different formats effectively:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>Always specify the input format with <option>-R</option> when not using the default XML</para>
+                </listitem>
+                <listitem>
+                    <para>Use <option>-F</option> to specify data source format when loading RDF data</para>
+                </listitem>
+            </itemizedlist>
+
+        </section>
+
+        <section id="rasqal-compare-automation">
+            <title>Automation</title>
+
+            <para>For automated testing:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>Use exit codes for automated testing</para>
+                </listitem>
+                <listitem>
+                    <para>Set <option>-m</option> to limit the number of differences reported</para>
+                </listitem>
+                <listitem>
+                    <para>Use <option>-v</option> for verbose output during debugging</para>
+                </listitem>
+            </itemizedlist>
+
+        </section>
+
+        <section id="rasqal-compare-performance">
+            <title>Performance</title>
+
+            <para>For optimal performance:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>For large result sets, consider using order-insensitive comparison</para>
+                </listitem>
+                <listitem>
+                    <para>Use appropriate blank node strategies to avoid expensive structural matching</para>
+                </listitem>
+            </itemizedlist>
+
+        </section>
+
+    </section>
+
+    <section id="rasqal-compare-troubleshooting">
+        <title>Troubleshooting</title>
+
+        <section id="rasqal-compare-common-issues">
+            <title>Common Issues</title>
+
+            <para>Common issues and solutions:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <emphasis>Format Detection</emphasis> - If format detection fails, explicitly specify with <option>-R</option>
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <emphasis>Blank Node Matching</emphasis> - Use <literal>-b any</literal> for most cases unless identity matters</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <emphasis>Large Result Sets</emphasis> - Use order-insensitive comparison for better performance</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <emphasis>Memory Usage</emphasis> - For very large results, consider streaming approaches</para>
+                </listitem>
+            </itemizedlist>
+
+        </section>
+
+        <section id="rasqal-compare-debugging">
+            <title>Debugging</title>
+
+            <para>Debugging techniques:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>Use <option>-v</option> for verbose output</para>
+                </listitem>
+                <listitem>
+                    <para>Use <option>-u</option> for unified diff format to see exact differences</para>
+                </listitem>
+                <listitem>
+                    <para>Check input format compatibility</para>
+                </listitem>
+                <listitem>
+                    <para>Verify data source formats with <option>-F</option>
+                    </para>
+                </listitem>
+            </itemizedlist>
+
+        </section>
+
+    </section>
+
+    <section id="rasqal-compare-conformance">
+        <title>Conformance</title>
+
+        <para>rasqal-compare conforms to:</para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    <ulink url="http://www.w3.org/TR/2013/REC-sparql11-query-20130321/">SPARQL 1.1 Query Language</ulink>,
+      Steve Harris and Andy Seaborne (eds), W3C Recommendation, 21 March 2013</para>
+            </listitem>
+            <listitem>
+                <para>
+                    <ulink url="http://www.w3.org/TR/2013/REC-rdf-sparql-XMLres-20130321/">SPARQL Query Results XML Format (Second Edition)</ulink>,
+      Sandro Hawke (Second Edition ed), Jeen Broekstra and Dave Beckett (eds), W3C Recommendation, 21 March 2013</para>
+            </listitem>
+        </itemizedlist>
+
+    </section>
+
+</chapter>
+
+<!--
+Local variables:
+mode: sgml
+sgml-parent-document: ("rasqal-docs.xml" "book" "part")
+End:
+-->

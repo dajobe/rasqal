@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter id="tutorial-query-results-compare">
+  <title>Comparing SPARQL Query Results</title>
+
+  <para>This chapter explains how to use Rasqal's query results comparison functionality
+  to compare SPARQL query results semantically. This is useful for testing,
+  validation, and ensuring consistency across different query implementations.</para>
+
+  <section id="tutorial-query-results-compare-overview">
+    <title>Overview</title>
+
+    <para>Rasqal provides comprehensive APIs for comparing SPARQL query results
+    with semantic awareness. The comparison functionality supports:</para>
+
+    <itemizedlist>
+      <listitem><para><emphasis>Multiple result types</emphasis> - Bindings, boolean, and graph results</para></listitem>
+      <listitem><para><emphasis>Configurable comparison options</emphasis> - Order sensitivity, case sensitivity, blank node strategies</para></listitem>
+      <listitem><para><emphasis>Detailed difference reporting</emphasis> - Specific information about what differs</para></listitem>
+      <listitem><para><emphasis>Flexible blank node handling</emphasis> - Multiple strategies for comparing blank nodes</para></listitem>
+      <listitem><para><emphasis>Integration with logging</emphasis> - Optional detailed output for debugging</para></listitem>
+    </itemizedlist>
+
+    <para>The comparison APIs are designed to be both simple for basic use cases
+    and powerful for advanced scenarios requiring detailed control over the
+    comparison process.</para>
+
+  </section>
+
+  <section id="tutorial-query-results-compare-basic">
+    <title>Basic Comparison</title>
+
+    <para>The simplest way to compare query results is using the core comparison workflow:</para>
+
+    <programlisting><![CDATA[
+#include <rasqal.h>
+
+rasqal_world* world = rasqal_new_world();
+rasqal_query_results* results1 = /* ... */;
+rasqal_query_results* results2 = /* ... */;
+
+// Create comparison context
+rasqal_query_results_compare* compare = rasqal_new_query_results_compare(world, results1, results2);
+
+// Execute comparison with default options
+rasqal_query_results_compare_result* result = rasqal_query_results_compare_execute(compare);
+
+int equal = result->equal;
+printf("Results are %s\n", equal ? "equal" : "different");
+
+// Cleanup
+rasqal_free_query_results_compare_result(result);
+rasqal_free_query_results_compare(compare);
+rasqal_free_world(world);
+]]></programlisting>
+
+    <para>This approach uses default comparison options and returns a simple
+    boolean indicating whether the results are equal. It's perfect for
+    basic testing scenarios where you just need to know if results match.</para>
+
+    <para>For more control over the comparison, you can configure custom options:</para>
+
+    <programlisting><![CDATA[
+#include <rasqal.h>
+
+rasqal_world* world = rasqal_new_world();
+rasqal_query_results* results1 = /* ... */;
+rasqal_query_results* results2 = /* ... */;
+
+// Create comparison context
+rasqal_query_results_compare* compare = rasqal_new_query_results_compare(world, results1, results2);
+
+// Configure custom options
+rasqal_query_results_compare_options options;
+rasqal_query_results_compare_options_init(&options);
+options.order_sensitive = 0;
+options.blank_node_strategy = RASQAL_COMPARE_BLANK_NODE_MATCH_STRUCTURE;
+
+// Set options on comparison context
+rasqal_query_results_compare_set_options(compare, &options);
+
+// Execute comparison
+rasqal_query_results_compare_result* result = rasqal_query_results_compare_execute(compare);
+
+int equal = result->equal;
+printf("Results are %s\n", equal ? "equal" : "different");
+
+// Cleanup
+rasqal_free_query_results_compare_result(result);
+rasqal_free_query_results_compare(compare);
+rasqal_free_world(world);
+]]></programlisting>
+
+    <section id="tutorial-query-results-compare-boolean">
+      <title>Comparing Boolean Results</title>
+
+      <para>For boolean results (ASK queries), you can use the specialized
+      <function>rasqal_query_results_compare_boolean()</function> function:</para>
+
+      <programlisting>
+rasqal_world* world = rasqal_new_world();
+rasqal_query_results* ask_result1 = /* ... */;
+rasqal_query_results* ask_result2 = /* ... */;
+
+int equal = rasqal_query_results_compare_boolean(world, ask_result1, ask_result2);
+printf("Boolean results are %s\n", equal ? "equal" : "different");
+
+rasqal_free_world(world);
+      </programlisting>
+
+      <para>This function ensures both results are boolean type and compares
+      their boolean values directly.</para>
+
+    </section>
+
+  </section>
+
+  <section id="tutorial-query-results-compare-advanced">
+    <title>Advanced Comparison with Options</title>
+
+    <para>For more control over the comparison process, you can use the
+    advanced comparison APIs with configurable options:</para>
+
+    <programlisting><![CDATA[
+#include <rasqal.h>
+
+rasqal_world* world = rasqal_new_world();
+rasqal_query_results* results1 = /* ... */;
+rasqal_query_results* results2 = /* ... */;
+
+// Create comparison context
+rasqal_query_results_compare* compare = rasqal_new_query_results_compare(world, results1, results2);
+
+// Configure comparison options
+rasqal_query_results_compare_options options;
+rasqal_query_results_compare_options_init(&options);
+options.order_sensitive = 0;  // Order doesn't matter
+
+options.max_differences = 10; // Report up to 10 differences
+options.blank_node_strategy = RASQAL_COMPARE_BLANK_NODE_MATCH_ANY;
+
+// Set options on comparison context
+rasqal_query_results_compare_set_options(compare, &options);
+
+// Execute comparison
+rasqal_query_results_compare_result* result = rasqal_query_results_compare_execute(compare);
+
+// Process results
+if (result->equal) {
+    printf("Results are equal\n");
+} else {
+    printf("Results differ - found %d differences:\n", result->differences_count);
+
+    // Get detailed difference information
+    for (int i = 0; i < result->differences_count; i++) {
+        printf("  %d: %s\n", i + 1, result->differences[i]);
+    }
+}
+
+// Cleanup
+rasqal_free_query_results_compare_result(result);
+rasqal_free_query_results_compare(compare);
+rasqal_free_world(world);
+]]></programlisting>
+
+    <section id="tutorial-query-results-compare-options">
+      <title>Comparison Options</title>
+
+      <para>The comparison options allow you to control various aspects of
+      the comparison process:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term><literal>order_sensitive</literal></term>
+          <listitem>
+            <para>If non-zero, results must be in the same order to be considered equal.
+            If zero (default), order doesn't matter and results are sorted before comparison.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><literal>max_differences</literal></term>
+          <listitem>
+            <para>Maximum number of differences to report before stopping. This helps
+            with performance when comparing large result sets.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><literal>blank_node_strategy</literal></term>
+          <listitem>
+            <para>Strategy for handling blank nodes:</para>
+            <itemizedlist>
+              <listitem><para><literal>RASQAL_COMPARE_BLANK_NODE_MATCH_ANY</literal> - Any blank node matches any other blank node</para></listitem>
+              <listitem><para><literal>RASQAL_COMPARE_BLANK_NODE_MATCH_ID</literal> - Blank nodes must have the same ID to match</para></listitem>
+              <listitem><para><literal>RASQAL_COMPARE_BLANK_NODE_MATCH_STRUCTURE</literal> - Blank nodes match based on structural similarity</para></listitem>
+            </itemizedlist>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+  </section>
+
+  <section id="tutorial-query-results-compare-examples">
+    <title>Practical Examples</title>
+
+    <section id="tutorial-query-results-compare-testing">
+      <title>Testing Query Results</title>
+
+      <para>A common use case is testing SPARQL query implementations by
+      comparing results against expected outputs:</para>
+
+      <programlisting><![CDATA[
+#include <rasqal.h>
+#include <stdio.h>
+
+int test_query_results(const char* query, const char* expected_file) {
+    rasqal_world* world = rasqal_new_world();
+
+    // Execute query to get actual results
+    rasqal_query_results* actual = execute_query(world, query);
+
+    // Load expected results from file
+    rasqal_query_results* expected = load_results_from_file(world, expected_file);
+
+    // Compare results using core comparison workflow
+    rasqal_query_results_compare* compare = rasqal_new_query_results_compare(world, actual, expected);
+    rasqal_query_results_compare_result* result = rasqal_query_results_compare_execute(compare);
+
+    int equal = result->equal;
+
+    if (!equal) {
+        printf("Test failed: results differ from expected\n");
+        printf("Found %d differences:\n", result->differences_count);
+        for (int i = 0; i < result->differences_count; i++) {
+            printf("  %s\n", result->differences[i]);
+        }
+    } else {
+        printf("Test passed: results match expected\n");
+    }
+
+    // Cleanup comparison
+    rasqal_free_query_results_compare_result(result);
+    rasqal_free_query_results_compare(compare);
+
+    // Cleanup
+    rasqal_free_query_results(actual);
+    rasqal_free_query_results(expected);
+    rasqal_free_world(world);
+
+    return equal ? 0 : 1;
+}
+]]></programlisting>
+
+    </section>
+
+    <section id="tutorial-query-results-compare-validation">
+      <title>Validating Query Consistency</title>
+
+      <para>You can use the comparison APIs to validate that different
+      query formulations produce equivalent results:</para>
+
+      <programlisting><![CDATA[
+#include <rasqal.h>
+
+int validate_query_equivalence(const char* query1, const char* query2) {
+    rasqal_world* world = rasqal_new_world();
+
+    // Execute both queries
+    rasqal_query_results* results1 = execute_query(world, query1);
+    rasqal_query_results* results2 = execute_query(world, query2);
+
+    // Compare with order-insensitive comparison
+    rasqal_query_results_compare* compare = rasqal_new_query_results_compare(world, results1, results2);
+
+    rasqal_query_results_compare_options options;
+    rasqal_query_results_compare_options_init(&options);
+    options.order_sensitive = 0;  // Order doesn't matter for equivalence
+    options.blank_node_strategy = RASQAL_COMPARE_BLANK_NODE_MATCH_STRUCTURE;
+
+    rasqal_query_results_compare_set_options(compare, &options);
+    rasqal_query_results_compare_result* result = rasqal_query_results_compare_execute(compare);
+
+    int equivalent = result->equal;
+
+    if (!equivalent) {
+        printf("Queries are not equivalent. Differences:\n");
+        for (int i = 0; i < result->differences_count; i++) {
+            printf("  %s\n", result->differences[i]);
+        }
+    }
+
+    // Cleanup
+    rasqal_free_query_results_compare_result(result);
+    rasqal_free_query_results_compare(compare);
+    rasqal_free_query_results(results1);
+    rasqal_free_query_results(results2);
+    rasqal_free_world(world);
+
+    return equivalent;
+}
+]]></programlisting>
+
+    </section>
+
+  </section>
+
+  <section id="tutorial-query-results-compare-best-practices">
+    <title>Best Practices</title>
+
+    <para>When using the query results comparison functionality, consider
+    these best practices:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><emphasis>Choose appropriate blank node strategy</emphasis> - Use
+        <literal>RASQAL_COMPARE_BLANK_NODE_MATCH_ANY</literal> for most testing
+        scenarios, <literal>RASQAL_COMPARE_BLANK_NODE_MATCH_ID</literal> when
+        blank node identity matters, and <literal>RASQAL_COMPARE_BLANK_NODE_MATCH_STRUCTURE</literal>
+        for structural equivalence testing.</para>
+      </listitem>
+      <listitem>
+        <para><emphasis>Set reasonable difference limits</emphasis> - Use
+        <literal>max_differences</literal> to avoid overwhelming output when
+        comparing large result sets.</para>
+      </listitem>
+      <listitem>
+        <para><emphasis>Consider order sensitivity</emphasis> - Most SPARQL
+        queries don't guarantee result order, so use order-insensitive
+        comparison unless order is specifically important.</para>
+      </listitem>
+      <listitem>
+        <para><emphasis>Handle memory properly</emphasis> - Always free
+        comparison contexts, results, and options to avoid memory leaks.</para>
+      </listitem>
+      <listitem>
+        <para><emphasis>Use appropriate comparison functions</emphasis> - Use
+        the simple boolean functions for basic testing and the advanced
+        APIs when you need detailed difference information.</para>
+      </listitem>
+    </itemizedlist>
+
+  </section>
+
+  <section id="tutorial-query-results-compare-format-specific">
+    <title>Format-Specific Comparison</title>
+
+    <para>For specific result types, you can use specialized comparison functions:</para>
+
+    <section id="tutorial-query-results-compare-bindings-specific">
+      <title>Bindings Comparison</title>
+
+      <para>Use the core comparison workflow for bindings comparison:</para>
+
+      <programlisting><![CDATA[
+#include <rasqal.h>
+
+rasqal_world* world = rasqal_new_world();
+rasqal_query_results* bindings1 = /* ... */;
+rasqal_query_results* bindings2 = /* ... */;
+
+// Create comparison context
+rasqal_query_results_compare* compare = rasqal_new_query_results_compare(world, bindings1, bindings2);
+
+// Configure comparison options
+rasqal_query_results_compare_options options;
+rasqal_query_results_compare_options_init(&options);
+options.order_sensitive = 0;
+
+
+// Set options and execute comparison
+rasqal_query_results_compare_set_options(compare, &options);
+rasqal_query_results_compare_result* result = rasqal_query_results_compare_execute(compare);
+
+int equal = result->equal;
+printf("Bindings are %s\n", equal ? "equal" : "different");
+
+// Cleanup
+rasqal_free_query_results_compare_result(result);
+rasqal_free_query_results_compare(compare);
+rasqal_free_world(world);
+]]></programlisting>
+
+    </section>
+
+    <section id="tutorial-query-results-compare-graph-specific">
+      <title>Graph Comparison</title>
+
+      <para>Use the core comparison workflow for graph comparison:</para>
+
+      <programlisting><![CDATA[
+#include <rasqal.h>
+
+rasqal_world* world = rasqal_new_world();
+rasqal_query_results* graph1 = /* ... */;
+rasqal_query_results* graph2 = /* ... */;
+
+// Create comparison context
+rasqal_query_results_compare* compare = rasqal_new_query_results_compare(world, graph1, graph2);
+
+// Configure comparison options
+rasqal_query_results_compare_options options;
+rasqal_query_results_compare_options_init(&options);
+options.blank_node_strategy = RASQAL_COMPARE_BLANK_NODE_MATCH_STRUCTURE;
+
+// Set options and execute comparison
+rasqal_query_results_compare_set_options(compare, &options);
+rasqal_query_results_compare_result* result = rasqal_query_results_compare_execute(compare);
+
+int equal = result->equal;
+printf("Graphs are %s\n", equal ? "equal" : "different");
+
+// Cleanup
+rasqal_free_query_results_compare_result(result);
+rasqal_free_query_results_compare(compare);
+rasqal_free_world(world);
+]]></programlisting>
+
+    </section>
+
+  </section>
+
+  <section id="tutorial-query-results-compare-integration">
+    <title>Integration with Test Frameworks</title>
+
+    <para>The query results comparison APIs integrate well with existing
+    test frameworks. Here's an example using a simple test framework:</para>
+
+    <programlisting><![CDATA[
+#include <rasqal.h>
+
+typedef struct {
+    const char* name;
+    const char* query;
+    const char* expected_file;
+    int order_sensitive;
+} test_case_t;
+
+int run_test_suite(test_case_t* tests, int test_count) {
+    rasqal_world* world = rasqal_new_world();
+    int passed = 0;
+
+    for (int i = 0; i < test_count; i++) {
+        test_case_t* test = &tests[i];
+        printf("Running test: %s\n", test->name);
+
+        // Execute query
+        rasqal_query_results* actual = execute_query(world, test->query);
+        rasqal_query_results* expected = load_results_from_file(world, test->expected_file);
+
+        // Compare results using core comparison workflow
+        rasqal_query_results_compare* compare = rasqal_new_query_results_compare(world, actual, expected);
+        
+        if (test->order_sensitive) {
+            // Order-sensitive comparison
+            rasqal_query_results_compare_options options;
+            rasqal_query_results_compare_options_init(&options);
+            options.order_sensitive = 1;
+            rasqal_query_results_compare_set_options(compare, &options);
+        } else {
+            // Order-insensitive comparison
+            rasqal_query_results_compare_options options;
+            rasqal_query_results_compare_options_init(&options);
+            options.order_sensitive = 0;
+            rasqal_query_results_compare_set_options(compare, &options);
+        }
+
+        rasqal_query_results_compare_result* result = rasqal_query_results_compare_execute(compare);
+
+        if (result->equal) {
+            printf("  PASS\n");
+            passed++;
+        } else {
+            printf("  FAIL - %d differences\n", result->differences_count);
+        }
+
+        rasqal_free_query_results_compare_result(result);
+        rasqal_free_query_results_compare(compare);
+
+        rasqal_free_query_results(actual);
+        rasqal_free_query_results(expected);
+    }
+
+    rasqal_free_world(world);
+    printf("Tests passed: %d/%d\n", passed, test_count);
+    return passed == test_count ? 0 : 1;
+}
+]]></programlisting>
+
+  </section>
+
+  <section id="tutorial-query-results-compare-next-steps">
+    <title>Next Steps</title>
+
+    <para>Now that you understand how to use the query results comparison
+    functionality, you can:</para>
+
+    <itemizedlist>
+      <listitem><para>Integrate comparison into your testing workflows</para></listitem>
+      <listitem><para>Use the <command>rasqal-compare</command> utility for
+      command-line result comparison</para></listitem>
+      <listitem><para>Explore the advanced options for specialized comparison needs</para></listitem>
+      <listitem><para>Refer to the <link linkend="reference-manual">Reference Manual</link>
+      for complete API documentation</para></listitem>
+    </itemizedlist>
+
+    <para>For more information about the comparison APIs, see the
+    <link linkend="reference-manual">Rasqal Reference Manual</link> which
+    provides comprehensive documentation of all functions and data structures.</para>
+
+  </section>
+
+</chapter>

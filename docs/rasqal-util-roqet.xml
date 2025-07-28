@@ -1,0 +1,558 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+<chapter id="rasqal-util-roqet">
+  <title>roqet utility</title>
+
+  <section id="roqet-intro">
+    <title>Introduction</title>
+
+    <para>The <command>roqet</command> utility is a command-line tool for executing
+    RDF queries against data sources. It provides a comprehensive interface for running
+    SPARQL queries and outputting results in various formats. roqet is built on the
+    Rasqal RDF query library and supports multiple query languages, data formats,
+    and output formats.</para>
+
+    <para>roqet can execute queries from files, command-line strings, or remote URIs,
+    and can work with local data files or remote SPARQL protocol services. It supports
+    all major RDF input formats and can output results in formats suitable for both
+    human reading and machine processing.</para>
+
+  </section>
+
+  <section id="roqet-synopsis">
+    <title>Synopsis</title>
+
+    <para>roqet supports several usage patterns:</para>
+
+    <programlisting>
+roqet [OPTIONS] &lt;query-URI&gt; [base-URI]
+roqet [OPTIONS] -e &lt;query-string&gt; [base-URI]
+roqet [OPTIONS] -p &lt;sparql-protocol-service-URI&gt; &lt;query-URI&gt; [base-URI]
+roqet [OPTIONS] -p &lt;sparql-protocol-service-URI&gt; -e &lt;query-string&gt; [base-URI]
+roqet [OPTIONS] -t &lt;query-results-file&gt; [base-URI]
+    </programlisting>
+
+    <para>Where:</para>
+    <itemizedlist>
+      <listitem>
+        <para><emphasis>query-URI</emphasis> is the URI of a file or web resource containing the query</para>
+      </listitem>
+      <listitem>
+        <para><emphasis>query-string</emphasis> is a SPARQL query given directly on the command line</para>
+      </listitem>
+      <listitem>
+        <para><emphasis>sparql-protocol-service-URI</emphasis> is the endpoint URL of a SPARQL service</para>
+      </listitem>
+      <listitem>
+        <para><emphasis>query-results-file</emphasis> is a file containing query results to be reformatted</para>
+      </listitem>
+      <listitem>
+        <para><emphasis>base-URI</emphasis> is an optional base URI for resolving relative URIs in the query</para>
+      </listitem>
+    </itemizedlist>
+
+  </section>
+
+  <section id="roqet-main-options">
+    <title>Main Options</title>
+
+    <para>These are the primary options that control how roqet operates:</para>
+
+    <variablelist>
+      <varlistentry>
+        <term><option>-e</option>, <option>--exec</option> <emphasis>QUERY</emphasis></term>
+        <listitem>
+          <para>Execute the query string given in <emphasis>QUERY</emphasis> instead of reading
+          from a file or URI. This allows you to specify SPARQL queries directly on the command line.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-p</option>, <option>--protocol</option> <emphasis>URI</emphasis></term>
+        <listitem>
+          <para>Execute the query against a SPARQL protocol service at <emphasis>URI</emphasis>
+          instead of running it locally. This requires either the <option>-e</option> option
+          for a query string or a query URI.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-i</option>, <option>--input</option> <emphasis>LANGUAGE</emphasis></term>
+        <listitem>
+          <para>Set the query language to one of:</para>
+          <itemizedlist>
+            <listitem><para><emphasis>sparql10</emphasis> - SPARQL 1.0 W3C RDF Query Language (default)</para></listitem>
+            <listitem><para><emphasis>sparql</emphasis> - SPARQL 1.1 (DRAFT) Query and Update Languages</para></listitem>
+            <listitem><para><emphasis>sparql11-query</emphasis> - SPARQL 1.1 (DRAFT) Query Language</para></listitem>
+            <listitem><para><emphasis>sparql11-update</emphasis> - SPARQL 1.1 (DRAFT) Update Language</para></listitem>
+          </itemizedlist>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-r</option>, <option>--results</option> <emphasis>FORMAT</emphasis></term>
+        <listitem>
+          <para>Set the query results output format. The available formats depend on the result type:</para>
+
+          <para><emphasis>For variable bindings and boolean results:</emphasis></para>
+          <itemizedlist>
+            <listitem><para><emphasis>simple</emphasis> - A simple text format (default)</para></listitem>
+            <listitem><para><emphasis>xml</emphasis> - SPARQL XML Query Results</para></listitem>
+            <listitem><para><emphasis>json</emphasis> - SPARQL JSON Query Results</para></listitem>
+            <listitem><para><emphasis>table</emphasis> - Table format</para></listitem>
+            <listitem><para><emphasis>csv</emphasis> - Comma Separated Values (CSV)</para></listitem>
+            <listitem><para><emphasis>tsv</emphasis> - Tab Separated Values (TSV)</para></listitem>
+            <listitem><para><emphasis>html</emphasis> - HTML Table</para></listitem>
+            <listitem><para><emphasis>turtle</emphasis> - Turtle Query Results</para></listitem>
+            <listitem><para><emphasis>rdfxml</emphasis> - RDF/XML Query Results</para></listitem>
+            <listitem><para><emphasis>mkr</emphasis> - mKR relation format</para></listitem>
+          </itemizedlist>
+
+          <para><emphasis>For RDF graph results:</emphasis></para>
+          <itemizedlist>
+            <listitem><para><emphasis>rdfxml</emphasis> - RDF/XML (default)</para></listitem>
+            <listitem><para><emphasis>ntriples</emphasis> - N-Triples</para></listitem>
+            <listitem><para><emphasis>turtle</emphasis> - Turtle Terse RDF Triple Language</para></listitem>
+            <listitem><para><emphasis>trig</emphasis> - TriG - Turtle with Named Graphs</para></listitem>
+            <listitem><para><emphasis>nquads</emphasis> - N-Quads</para></listitem>
+            <listitem><para><emphasis>rss-tag-soup</emphasis> - RSS Tag Soup</para></listitem>
+            <listitem><para><emphasis>grddl</emphasis> - Gleaning Resource Descriptions from Dialects of Languages</para></listitem>
+            <listitem><para><emphasis>rdfa</emphasis> - RDF/A via librdfa</para></listitem>
+            <listitem><para><emphasis>guess</emphasis> - Pick the parser to use using content type and URI</para></listitem>
+          </itemizedlist>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-t</option>, <option>--results</option> <emphasis>FILE</emphasis></term>
+        <listitem>
+          <para>Read query results from <emphasis>FILE</emphasis> instead of executing a query.
+          This allows you to reformat existing query results.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-R</option>, <option>--results-input-format</option> <emphasis>FORMAT</emphasis></term>
+        <listitem>
+          <para>Set the input query results format when using <option>-t</option>. Available formats:</para>
+          <itemizedlist>
+            <listitem><para><emphasis>xml</emphasis> - SPARQL XML Query Results (default)</para></listitem>
+            <listitem><para><emphasis>csv</emphasis> - Comma Separated Values (CSV)</para></listitem>
+            <listitem><para><emphasis>tsv</emphasis> - Tab Separated Values (TSV)</para></listitem>
+            <listitem><para><emphasis>turtle</emphasis> - Turtle Query Results</para></listitem>
+            <listitem><para><emphasis>rdfxml</emphasis> - RDF/XML Query Results</para></listitem>
+            <listitem><para><emphasis>mkr</emphasis> - mKR relation format</para></listitem>
+          </itemizedlist>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+  </section>
+
+  <section id="roqet-data-options">
+    <title>Data Source Options</title>
+
+    <para>These options control the RDF data sources used by the query:</para>
+
+    <variablelist>
+      <varlistentry>
+        <term><option>-D</option>, <option>--data</option> <emphasis>URI</emphasis></term>
+        <listitem>
+          <para>Add RDF data source <emphasis>URI</emphasis> (not a named graph). If no data sources
+          are given, the query itself must point to the data via SPARQL FROM statements.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-G</option>, <option>--named</option> <emphasis>URI</emphasis></term>
+        <listitem>
+          <para>Add RDF data source <emphasis>URI</emphasis> as a named graph. This is equivalent
+          to using <option>-s</option> or <option>--source</option>.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-s</option>, <option>--source</option> <emphasis>URI</emphasis></term>
+        <listitem>
+          <para>Add RDF data source <emphasis>URI</emphasis> as a named graph. This is equivalent
+          to using <option>-G</option> or <option>--named</option>.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-F</option>, <option>--format</option> <emphasis>NAME</emphasis></term>
+        <listitem>
+          <para>Set the data source format <emphasis>NAME</emphasis> for subsequent data graphs
+          specified with <option>-D</option> or <option>-G</option>. The default is to guess
+          the format based on the file extension or content. The <emphasis>NAME</emphasis>
+          is a Raptor parser name.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+  </section>
+
+  <section id="roqet-control-options">
+    <title>Control Options</title>
+
+    <para>These options control the behavior and output of roqet:</para>
+
+    <variablelist>
+      <varlistentry>
+        <term><option>-c</option>, <option>--count</option></term>
+        <listitem>
+          <para>Only count the triples and produce no other output. Useful for getting
+          just the number of results without the actual data.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-n</option>, <option>--dryrun</option></term>
+        <listitem>
+          <para>Prepare the query but do not execute it. Useful for checking query syntax
+          without running the actual query.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-q</option>, <option>--quiet</option></term>
+        <listitem>
+          <para>Suppress extra information messages. Only show the query results.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-E</option>, <option>--ignore-errors</option></term>
+        <listitem>
+          <para>Do not print error messages and do not exit with a non-zero status.
+          Useful for scripts that want to continue even if queries fail.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-W</option>, <option>--warnings</option> <emphasis>LEVEL</emphasis></term>
+        <listitem>
+          <para>Set the warning <emphasis>LEVEL</emphasis> in the range 0 (do not warn about anything)
+          to 100 (show every warning). The Rasqal default is 50.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+  </section>
+
+  <section id="roqet-debug-options">
+    <title>Debug and Information Options</title>
+
+    <para>These options provide debugging and diagnostic information:</para>
+
+    <variablelist>
+      <varlistentry>
+        <term><option>-d</option>, <option>--dump-query</option> <emphasis>FORMAT</emphasis></term>
+        <listitem>
+          <para>Print the parsed query out in the specified <emphasis>FORMAT</emphasis>:</para>
+          <itemizedlist>
+            <listitem><para><emphasis>none</emphasis> - No debug data (default)</para></listitem>
+            <listitem><para><emphasis>debug</emphasis> - Debug query dump (output format may change)</para></listitem>
+            <listitem><para><emphasis>structure</emphasis> - Query structure walk (output format may change)</para></listitem>
+            <listitem><para><emphasis>sparql</emphasis> - SPARQL format</para></listitem>
+          </itemizedlist>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-f</option>, <option>--feature</option> <emphasis>NAME(=VALUE)</emphasis></term>
+        <listitem>
+          <para>Set query feature <emphasis>NAME</emphasis> to the <emphasis>VALUE</emphasis>
+          or integer 1 if omitted. Available features:</para>
+          <itemizedlist>
+            <listitem><para><emphasis>noNet</emphasis> - Deny network requests</para></listitem>
+            <listitem><para><emphasis>randSeed</emphasis> - Set rand() seed</para></listitem>
+          </itemizedlist>
+          <para>Use <command>roqet -f help</command> to see the current list of valid features.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-v</option>, <option>--version</option></term>
+        <listitem>
+          <para>Print the Rasqal version and exit.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-h</option>, <option>--help</option></term>
+        <listitem>
+          <para>Show a summary of all available options.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+  </section>
+
+  <section id="roqet-examples">
+    <title>Examples</title>
+
+    <para>Here are comprehensive examples showing different usage patterns:</para>
+
+    <section id="roqet-examples-basic">
+      <title>Basic Query Execution</title>
+
+      <para>Execute a SPARQL query from a file:</para>
+      <programlisting>
+roqet query.rq
+      </programlisting>
+
+      <para>Execute a SPARQL query from a web URI:</para>
+      <programlisting>
+roqet http://example.org/sparql-query.rq
+      </programlisting>
+
+      <para>Execute a query with a base URI for resolving relative URIs:</para>
+      <programlisting>
+roqet query-file.rq http://example.org/base/
+      </programlisting>
+    </section>
+
+    <section id="roqet-examples-command-line">
+      <title>Command Line Queries</title>
+
+      <para>Execute a SPARQL query given directly on the command line:</para>
+      <programlisting>
+roqet -e 'SELECT * WHERE { ?s ?p ?o }'
+      </programlisting>
+
+      <para>Execute a query against specific data:</para>
+      <programlisting>
+roqet -e 'SELECT * WHERE { ?s ?p ?o }' -D data.rdf
+      </programlisting>
+
+      <para>Execute a query with multiple data sources:</para>
+      <programlisting>
+roqet -e 'SELECT * WHERE { ?s ?p ?o }' -D data1.ttl -D data2.rdf
+      </programlisting>
+    </section>
+
+    <section id="roqet-examples-output-formats">
+      <title>Output Format Examples</title>
+
+      <para>Output results in SPARQL XML format:</para>
+      <programlisting>
+roqet -r xml query.rq
+      </programlisting>
+
+      <para>Output results in JSON format:</para>
+      <programlisting>
+roqet -r json query.rq
+      </programlisting>
+
+      <para>Output results in CSV format:</para>
+      <programlisting>
+roqet -r csv query.rq
+      </programlisting>
+
+      <para>Output results in HTML table format:</para>
+      <programlisting>
+roqet -r html query.rq
+      </programlisting>
+
+      <para>For CONSTRUCT queries, output as RDF/XML:</para>
+      <programlisting>
+roqet -r rdfxml construct-query.rq
+      </programlisting>
+
+      <para>For CONSTRUCT queries, output as Turtle:</para>
+      <programlisting>
+roqet -r turtle construct-query.rq
+      </programlisting>
+    </section>
+
+    <section id="roqet-examples-sparql-protocol">
+      <title>SPARQL Protocol Examples</title>
+
+      <para>Execute a query against a remote SPARQL endpoint:</para>
+      <programlisting>
+roqet -p http://dbpedia.org/sparql query.rq
+      </programlisting>
+
+      <para>Execute a command-line query against a remote endpoint:</para>
+      <programlisting>
+roqet -p http://dbpedia.org/sparql -e 'SELECT * WHERE { ?s ?p ?o } LIMIT 10'
+      </programlisting>
+    </section>
+
+    <section id="roqet-examples-results-processing">
+      <title>Results Processing Examples</title>
+
+      <para>Read existing results and convert to different format:</para>
+      <programlisting>
+roqet -t results.srx -r csv
+      </programlisting>
+
+      <para>Read Turtle results and convert to CSV:</para>
+      <programlisting>
+roqet -t results.ttl -R turtle -r csv
+      </programlisting>
+
+      <para>Read XML results and convert to HTML:</para>
+      <programlisting>
+roqet -t results.xml -r html
+      </programlisting>
+    </section>
+
+    <section id="roqet-examples-debugging">
+      <title>Debugging Examples</title>
+
+      <para>Check query syntax without executing:</para>
+      <programlisting>
+roqet -n query.rq
+      </programlisting>
+
+      <para>Show parsed query structure:</para>
+      <programlisting>
+roqet -d structure query.rq
+      </programlisting>
+
+      <para>Show query in SPARQL format:</para>
+      <programlisting>
+roqet -d sparql query.rq
+      </programlisting>
+
+      <para>Count results only:</para>
+      <programlisting>
+roqet -c query.rq
+      </programlisting>
+    </section>
+
+    <section id="roqet-examples-advanced">
+      <title>Advanced Examples</title>
+
+      <para>Execute with specific data format:</para>
+      <programlisting>
+roqet -F turtle -D data.ttl -e 'SELECT * WHERE { ?s ?p ?o }'
+      </programlisting>
+
+      <para>Execute with named graphs:</para>
+      <programlisting>
+roqet -G http://example.org/graph1 -G http://example.org/graph2 query.rq
+      </programlisting>
+
+      <para>Execute with quiet mode and specific output format:</para>
+      <programlisting>
+roqet -q -r xml query.rq
+      </programlisting>
+
+      <para>Execute with error suppression:</para>
+      <programlisting>
+roqet -E query.rq
+      </programlisting>
+    </section>
+  </section>
+
+  <section id="roqet-supported-formats">
+    <title>Supported Formats</title>
+
+    <section id="roqet-input-formats">
+      <title>Input Data Formats</title>
+
+      <para>roqet supports reading RDF data in many formats through the Raptor library:</para>
+      <itemizedlist>
+        <listitem><para>RDF/XML</para></listitem>
+        <listitem><para>Turtle</para></listitem>
+        <listitem><para>N-Triples</para></listitem>
+        <listitem><para>N-Quads</para></listitem>
+        <listitem><para>TriG</para></listitem>
+        <listitem><para>JSON-LD</para></listitem>
+        <listitem><para>RDFa</para></listitem>
+        <listitem><para>RSS 1.0</para></listitem>
+        <listitem><para>GRDDL</para></listitem>
+        <listitem><para>CSV (with appropriate headers)</para></listitem>
+      </itemizedlist>
+
+      <para>The format is automatically detected based on file extension or content,
+      but can be explicitly specified with the <option>-F</option> option.</para>
+    </section>
+
+    <section id="roqet-output-formats">
+      <title>Output Result Formats</title>
+
+      <para>For variable bindings and boolean results:</para>
+      <itemizedlist>
+        <listitem><para><emphasis>simple</emphasis> - Human-readable text format</para></listitem>
+        <listitem><para><emphasis>xml</emphasis> - SPARQL XML Query Results (W3C standard)</para></listitem>
+        <listitem><para><emphasis>json</emphasis> - SPARQL JSON Query Results (W3C standard)</para></listitem>
+        <listitem><para><emphasis>csv</emphasis> - Comma Separated Values</para></listitem>
+        <listitem><para><emphasis>tsv</emphasis> - Tab Separated Values</para></listitem>
+        <listitem><para><emphasis>html</emphasis> - HTML table format</para></listitem>
+        <listitem><para><emphasis>table</emphasis> - ASCII table format</para></listitem>
+        <listitem><para><emphasis>turtle</emphasis> - Turtle syntax for results</para></listitem>
+        <listitem><para><emphasis>rdfxml</emphasis> - RDF/XML syntax for results</para></listitem>
+        <listitem><para><emphasis>mkr</emphasis> - mKR relation format</para></listitem>
+      </itemizedlist>
+
+      <para>For RDF graph results (CONSTRUCT/DESCRIBE queries):</para>
+      <itemizedlist>
+        <listitem><para><emphasis>rdfxml</emphasis> - RDF/XML (default)</para></listitem>
+        <listitem><para><emphasis>ntriples</emphasis> - N-Triples</para></listitem>
+        <listitem><para><emphasis>turtle</emphasis> - Turtle</para></listitem>
+        <listitem><para><emphasis>trig</emphasis> - TriG (Turtle with named graphs)</para></listitem>
+        <listitem><para><emphasis>nquads</emphasis> - N-Quads</para></listitem>
+        <listitem><para><emphasis>rss-tag-soup</emphasis> - RSS Tag Soup</para></listitem>
+        <listitem><para><emphasis>grddl</emphasis> - GRDDL</para></listitem>
+        <listitem><para><emphasis>rdfa</emphasis> - RDF/A</para></listitem>
+      </itemizedlist>
+    </section>
+  </section>
+
+  <section id="roqet-exit-codes">
+    <title>Exit Codes</title>
+
+    <para>roqet uses the following exit codes:</para>
+    <itemizedlist>
+      <listitem><para><emphasis>0</emphasis> - Success</para></listitem>
+      <listitem><para><emphasis>1</emphasis> - General error</para></listitem>
+      <listitem><para><emphasis>2</emphasis> - Query syntax error</para></listitem>
+      <listitem><para><emphasis>3</emphasis> - Data source error</para></listitem>
+      <listitem><para><emphasis>4</emphasis> - Output format error</para></listitem>
+    </itemizedlist>
+
+    <para>Note: When using <option>--ignore-errors</option>, roqet will exit with code 0
+    even if errors occur.</para>
+  </section>
+
+  <section id="roqet-conformance">
+    <title>Conformance</title>
+
+    <para>roqet conforms to the following W3C specifications:</para>
+    <itemizedlist>
+      <listitem><para>SPARQL 1.1 Query Language (W3C Recommendation, 21 March 2013)</para></listitem>
+      <listitem><para>SPARQL Query Results XML Format (Second Edition, W3C Recommendation, 21 March 2013)</para></listitem>
+      <listitem><para>SPARQL Query Results JSON Format (W3C Recommendation, 21 March 2013)</para></listitem>
+      <listitem><para>SPARQL Query Results CSV and TSV Formats (W3C Recommendation, 21 March 2013)</para></listitem>
+    </itemizedlist>
+  </section>
+
+  <section id="roqet-integration">
+    <title>Integration with Other Tools</title>
+
+    <para>roqet is designed to work well with other tools in the Redland stack:</para>
+    <itemizedlist>
+      <listitem><para><emphasis>rasqal-compare</emphasis> - Compare query results using the rasqal-compare utility</para></listitem>
+      <listitem><para><emphasis>raptor</emphasis> - RDF parsing and serialization</para></listitem>
+      <listitem><para><emphasis>redland</emphasis> - RDF storage and manipulation</para></listitem>
+    </itemizedlist>
+
+    <para>Example integration with rasqal-compare:</para>
+    <programlisting>
+roqet -r xml query.rq > actual.srx
+rasqal-compare -e expected.srx -a actual.srx
+    </programlisting>
+  </section>
+
+</chapter>
+
+<!--
+Local variables:
+mode: sgml
+sgml-parent-document: ("rasqal-docs.xml" "book" "part")
+End:
+-->

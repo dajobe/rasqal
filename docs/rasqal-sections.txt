@@ -284,6 +284,24 @@ rasqal_query_results_formatter_write
 </SECTION>
 
 <SECTION>
+<FILE>section-query_results_compare</FILE>
+rasqal_query_results_compare
+rasqal_query_results_compare_options
+rasqal_query_results_compare_result
+rasqal_compare_blank_node_strategy
+rasqal_new_query_results_compare
+rasqal_free_query_results_compare
+rasqal_query_results_compare_set_options
+rasqal_query_results_compare_execute
+rasqal_free_query_results_compare_result
+rasqal_query_results_compare_options_init
+
+RASQAL_COMPARE_BLANK_NODE_MATCH_ANY
+RASQAL_COMPARE_BLANK_NODE_MATCH_ID
+RASQAL_COMPARE_BLANK_NODE_MATCH_STRUCTURE
+</SECTION>
+
+<SECTION>
 <FILE>section-row</FILE>
 rasqal_row
 rasqal_new_row_for_size

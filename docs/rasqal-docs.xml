@@ -53,6 +53,7 @@
       <year>2015</year>
       <year>2023</year>
       <year>2024</year>
+      <year>2025</year>
       <holder>Dave Beckett</holder>
     </copyright>
     <copyright>
@@ -74,6 +75,23 @@ execution plans and execute the queries into query result sets.
 
   </chapter>
 
+  <part id="tutorial"> 
+    <title>Rasqal Tutorial</title>
+
+    <partintro id="tutorial-introduction">
+      <para>This part describes how to use the
+      <ulink url="http://librdf.org/rasqal/">Rasqal</ulink> APIs to
+      execute SPARQL queries and work with query results.</para>
+
+      <para>The next part contains the
+      <link linkend="reference-manual">Rasqal Reference Manual</link>
+      which comprehensively describes every class and function of the API.
+      </para>
+    </partintro>
+
+    <xi:include href="rasqal-tutorial-query-results-compare.xml"/>
+  </part>
+
   <part id="reference-manual">
     <title>Reference Manual</title>
 
@@ -91,6 +109,7 @@ execution plans and execute the queries into query result sets.
     <xi:include href="xml/section-prefix.xml"/>
     <xi:include href="xml/section-query.xml"/>
     <xi:include href="xml/section-query_results.xml"/>
+    <xi:include href="xml/section-query_results_compare.xml"/>
     <xi:include href="xml/section-query_results_formatter.xml"/>
     <xi:include href="xml/section-row.xml"/>
     <xi:include href="xml/section-service.xml"/>
@@ -106,6 +125,19 @@ execution plans and execute the queries into query result sets.
 
     <xi:include href="rasqal-changes.xml"/>
   </part>
+  <part id="utils"> 
+    <title>Rasqal Utilities</title>
+
+    <partintro id="utils-introduction">
+      <para>This part describes how to use the
+      <ulink url="https://librdf.org/rasqal/">Rasql</ulink> utility
+      programs to run RDF queries and manipulate query results.</para>
+    </partintro>
+
+    <xi:include href="rasqal-util-roqet.xml"/>
+    <xi:include href="rasqal-util-rasqal-compare.xml"/>
+  </part>
+
   <index id="indexes">
     <title>Index</title>
   </index>
