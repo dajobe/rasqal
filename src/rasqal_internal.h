@@ -1422,6 +1422,11 @@ typedef int (*raptor_data_compare_arg_handler)(const void *data1, const void *da
 int rasqal_query_results_sort(rasqal_query_results* query_result);
 int rasqal_query_results_set_boolean(rasqal_query_results* query_results, int value);
 
+/* Internal functions for adding data to query results (for testing and internal use) */
+int rasqal_query_results_add_binding_variable(rasqal_query_results* query_results, const unsigned char* name);
+int rasqal_query_results_add_binding(rasqal_query_results* query_results, int var_offset, raptor_term* term);
+int rasqal_query_results_add_triple(rasqal_query_results* query_results, raptor_statement* triple);
+
 /* rasqal_query_write.c */
 int rasqal_query_write_sparql_20060406_graph_pattern(rasqal_graph_pattern* gp, raptor_iostream *iostr,raptor_uri* base_uri);
 int rasqal_query_write_sparql_20060406(raptor_iostream *iostr, rasqal_query* query, raptor_uri *base_uri);

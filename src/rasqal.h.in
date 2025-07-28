@@ -1459,6 +1459,113 @@ RASQAL_API
 int rasqal_query_results_rewind(rasqal_query_results* query_results);
 
 
+/* Query Results Compare Module */
+
+/**
+ * rasqal_compare_blank_node_strategy:
+ * @RASQAL_COMPARE_BLANK_NODE_MATCH_ANY: blank nodes match any other blank node
+ * @RASQAL_COMPARE_BLANK_NODE_MATCH_ID: blank nodes must have same ID to match
+ * @RASQAL_COMPARE_BLANK_NODE_MATCH_STRUCTURE: blank nodes match based on structural similarity
+ *
+ * Strategies for handling blank nodes in comparison
+ */
+typedef enum {
+  RASQAL_COMPARE_BLANK_NODE_MATCH_ANY,
+  RASQAL_COMPARE_BLANK_NODE_MATCH_ID,
+  RASQAL_COMPARE_BLANK_NODE_MATCH_STRUCTURE
+} rasqal_compare_blank_node_strategy;
+
+/**
+ * rasqal_query_results_compare_options:
+ * @order_sensitive: whether to consider result order (default: false)
+ * @blank_node_strategy: how to handle blank nodes (default: RASQAL_COMPARE_BLANK_NODE_MATCH_ANY)
+ * @literal_comparison_flags: flags for literal comparison (default: RASQAL_COMPARE_XQUERY)
+ * @max_differences: maximum number of differences to report (default: 10)
+
+ * @canonicalize_uris: canonicalize URIs for comparison (default: false)
+ * @canonicalize_literals: canonicalize literals for comparison (default: false)
+ * @custom_compare_user_data: user data for custom comparison functions
+ * @custom_term_compare: custom function for comparing RDF terms (NULL for default)
+ * @custom_statement_compare: custom function for comparing RDF statements (NULL for default)
+ *
+ * Options for query results comparison
+ */
+typedef struct {
+  int order_sensitive;
+  rasqal_compare_blank_node_strategy blank_node_strategy;
+  int literal_comparison_flags;
+  int max_differences;
+
+  int canonicalize_uris;
+  int canonicalize_literals;
+  void* custom_compare_user_data;
+  int (*custom_term_compare)(void* user_data, raptor_term* first, raptor_term* second);
+  int (*custom_statement_compare)(void* user_data, raptor_statement* first, raptor_statement* second);
+} rasqal_query_results_compare_options;
+
+/**
+ * rasqal_query_results_compare_result:
+ * @equal: whether the results are equal
+ * @differences_count: number of differences found
+ * @differences: array of difference descriptions
+ * @differences_size: size of differences array
+ * @error_message: error message if comparison failed
+ *
+ * Result of query results comparison
+ */
+typedef struct {
+  int equal;
+  int differences_count;
+  char** differences;
+  int differences_size;
+  char* error_message;
+} rasqal_query_results_compare_result;
+
+/**
+ * rasqal_query_results_compare:
+ * @world: rasqal world
+ * @first_results: first query results to compare
+ * @second_results: second query results to compare
+ * @options: comparison options
+ *
+ * Query results comparison context
+ */
+typedef struct rasqal_query_results_compare_s rasqal_query_results_compare;
+
+/* Constructor and destructor */
+RASQAL_API
+rasqal_query_results_compare*
+rasqal_new_query_results_compare(rasqal_world* world,
+                                 rasqal_query_results* first_results,
+                                 rasqal_query_results* second_results);
+
+RASQAL_API
+void
+rasqal_free_query_results_compare(rasqal_query_results_compare* compare);
+
+/* Configuration */
+RASQAL_API
+int
+rasqal_query_results_compare_set_options(rasqal_query_results_compare* compare,
+                                         rasqal_query_results_compare_options* options);
+
+/* Comparison execution */
+RASQAL_API
+rasqal_query_results_compare_result*
+rasqal_query_results_compare_execute(rasqal_query_results_compare* compare);
+
+RASQAL_API
+void
+rasqal_free_query_results_compare_result(rasqal_query_results_compare_result* result);
+
+/* Helper function */
+RASQAL_API
+void
+rasqal_query_results_compare_options_init(rasqal_query_results_compare_options* options);
+
+
+
+
 /**
  * rasqal_query_results_format_flags:
  * @RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER: format can be read.

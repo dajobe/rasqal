@@ -1930,6 +1930,140 @@ rasqal_query_results_sort(rasqal_query_results* query_results)
 #endif /* not STANDALONE */
 
 
+#ifdef RASQAL_INTERNAL_FUNCTIONS
+/**
+ * rasqal_query_results_add_binding_variable:
+ * @query_results: query results object
+ * @name: variable name
+ *
+ * Add a binding variable to the query results.
+ *
+ * This is an internal function for testing and internal use.
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_query_results_add_binding_variable(rasqal_query_results* query_results,
+                                         const unsigned char* name)
+{
+  rasqal_variable* var;
+
+  if(!query_results || !name)
+    return 1;
+
+  if(!query_results->vars_table)
+    return 1;
+
+  var = rasqal_variables_table_add2(query_results->vars_table,
+                                   RASQAL_VARIABLE_TYPE_NORMAL,
+                                   name, strlen((const char*)name), NULL);
+  if(!var)
+    return 1;
+
+  return 0;
+}
+
+
+/**
+ * rasqal_query_results_add_binding:
+ * @query_results: query results object
+ * @var_offset: variable offset
+ * @term: term to bind
+ *
+ * Add a binding to the current row in the query results.
+ *
+ * This is an internal function for testing and internal use.
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_query_results_add_binding(rasqal_query_results* query_results,
+                                int var_offset,
+                                raptor_term* term)
+{
+  rasqal_literal* literal;
+  rasqal_row* row;
+
+  if(!query_results || var_offset < 0 || !term)
+    return 1;
+
+  /* Create a row if we don't have one */
+  if(!query_results->row) {
+    int size = rasqal_variables_table_get_named_variables_count(query_results->vars_table);
+    if(size == 0)
+      return 1;
+
+    row = rasqal_new_row_for_size(query_results->world, size);
+    if(!row)
+      return 1;
+
+    /* Initialize the row values to NULL */
+    for(int i = 0; i < size; i++) {
+      row->values[i] = NULL;
+    }
+
+    query_results->row = row;
+  } else {
+    row = query_results->row;
+  }
+
+  /* Convert raptor_term to rasqal_literal using existing function */
+  literal = rasqal_new_literal_from_term(query_results->world, term);
+  if(!literal)
+    return 1;
+
+  if(var_offset >= row->size) {
+    rasqal_free_literal(literal);
+    return 1;
+  }
+
+  if(row->values[var_offset])
+    rasqal_free_literal(row->values[var_offset]);
+
+  row->values[var_offset] = literal;
+
+  return 0;
+}
+
+
+/**
+ * rasqal_query_results_add_triple:
+ * @query_results: query results object
+ * @triple: triple to add
+ *
+ * Add a triple to the query results.
+ *
+ * This is an internal function for testing and internal use.
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_query_results_add_triple(rasqal_query_results* query_results,
+                               raptor_statement* triple)
+{
+  if(!query_results || !triple)
+    return 1;
+
+  if(query_results->type != RASQAL_QUERY_RESULTS_GRAPH)
+    return 1;
+
+  if(!query_results->results_sequence) {
+    query_results->results_sequence = raptor_new_sequence((raptor_data_free_handler)raptor_free_statement,
+                                                         (raptor_data_print_handler)raptor_statement_print);
+    if(!query_results->results_sequence)
+      return 1;
+  }
+
+  raptor_statement* copied_triple = raptor_statement_copy(triple);
+  if(!copied_triple)
+    return 1;
+
+  raptor_sequence_push(query_results->results_sequence, copied_triple);
+
+  return 0;
+}
+#endif /* RASQAL_INTERNAL_FUNCTIONS */
+
 
 #ifdef STANDALONE
 

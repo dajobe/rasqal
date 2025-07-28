@@ -51,8 +51,8 @@ rasqal_literal_test$(EXEEXT) \
 rasqal_regex_test$(EXEEXT) \
 rasqal_random_test$(EXEEXT) \
 rasqal_xsd_datatypes_test$(EXEEXT) \
-rasqal_results_compare_test$(EXEEXT) \
-rasqal_query_results_test$(EXEEXT)
+rasqal_query_results_test$(EXEEXT) \
+rasqal_query_results_compare_test$(EXEEXT)
 
 # These 2 test programs are compiled here and run here as 'smoke
 # tests' but mostly used in tests in $(srcdir)/../tests/sparql
@@ -121,7 +121,7 @@ rasqal_regex.c \
 snprintf.c \
 rasqal_double.c \
 rasqal_ntriples.c \
-rasqal_results_compare.c \
+rasqal_query_results_compare.c \
 ssort.h
 
 if RASQAL_QUERY_SPARQL
@@ -322,13 +322,14 @@ rasqal_xsd_datatypes_test_SOURCES = rasqal_xsd_datatypes.c
 rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE
 rasqal_xsd_datatypes_test_LDADD = librasqal.la
 
-rasqal_results_compare_test_SOURCES = rasqal_results_compare.c
-rasqal_results_compare_test_CPPFLAGS = -DSTANDALONE
-rasqal_results_compare_test_LDADD = librasqal.la
+
 
 rasqal_query_results_test_SOURCES = rasqal_query_results.c
 rasqal_query_results_test_CPPFLAGS = -DSTANDALONE
 rasqal_query_results_test_LDADD = librasqal.la
+
+rasqal_query_results_compare_test_SOURCES = rasqal_query_results_compare_test.c
+rasqal_query_results_compare_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
