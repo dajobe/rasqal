@@ -26,6 +26,7 @@ CORE_TESTS = \
 	test_config.py \
 	test_execution.py \
 	test_manifest.py \
+	test_rasqal_compare_integration.py \
 	test_types.py \
 	test_utils.py
 

@@ -28,7 +28,7 @@ from typing import Dict, Optional
 
 from ..config import TestConfig
 
-from ..utils import run_command, setup_logging, find_tool
+from ..utils import run_command, setup_logging, find_tool, compare_files_custom_diff
 
 
 # Global flag for file preservation
@@ -90,7 +90,6 @@ Examples:
 
     def run_single_test(self, test_file: str, base_uri: str) -> int:
         """Run a single algebra test."""
-        diff_cmd = os.environ.get("DIFF", "diff")
 
         # Setup file paths
         convert_graph_pattern = find_tool("convert_graph_pattern")
@@ -165,16 +164,13 @@ Examples:
             else:
                 self.logger.error(f"Test '{test_file}' FAILED - output mismatch")
 
-                # Generate diff
-                with open(diff_file, "w") as diff_f:
-                    diff_result = run_command(
-                        [diff_cmd, "-u", str(expected_file), out_file],
-                        Path("."),
-                        "Error running diff",
-                    )
-                    diff_f.write(diff_result.stdout)
-                    if diff_result.stderr:
-                        diff_f.write(diff_result.stderr)
+                # Generate diff using custom diff function
+                try:
+                    compare_files_custom_diff(Path(expected_file), Path(out_file), Path(diff_file))
+                except Exception as e:
+                    self.logger.error(f"Error generating diff: {e}")
+                    with open(diff_file, "w") as diff_f:
+                        diff_f.write(f"Error generating diff: {e}\n")
 
                 self.logger.error(f"Diff saved to {diff_file}")
                 # Don't cleanup on failure to preserve debug files
