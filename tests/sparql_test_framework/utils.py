@@ -542,3 +542,90 @@ class ManifestTripleExtractor:
             return decode_literal(value)
 
         return value
+
+
+def generate_custom_diff(expected_content: str, actual_content: str, expected_file: str = "expected", actual_file: str = "actual") -> str:
+    """
+    Generate a custom diff-like output without using the system diff command.
+    
+    This function creates a diff-like output similar to what roqet -d debug produces,
+    showing differences between expected and actual content in a structured format.
+    
+    Args:
+        expected_content: The expected content as a string
+        actual_content: The actual content as a string
+        expected_file: Name of the expected file (for display purposes)
+        actual_file: Name of the actual file (for display purposes)
+        
+    Returns:
+        A string containing the diff-like output
+    """
+    if expected_content == actual_content:
+        return "Files are identical"
+    
+    expected_lines = expected_content.splitlines()
+    actual_lines = actual_content.splitlines()
+    
+    diff_output = []
+    diff_output.append(f"--- {expected_file}")
+    diff_output.append(f"+++ {actual_file}")
+    diff_output.append("")
+    
+    # Enhanced comparison with context awareness
+    max_lines = max(len(expected_lines), len(actual_lines))
+    
+    for i in range(max_lines):
+        expected_line = expected_lines[i] if i < len(expected_lines) else None
+        actual_line = actual_lines[i] if i < len(actual_lines) else None
+        
+        if expected_line == actual_line:
+            diff_output.append(f" {expected_line}")
+        else:
+            # Show both lines when they differ
+            if expected_line is not None:
+                diff_output.append(f"-{expected_line}")
+            if actual_line is not None:
+                diff_output.append(f"+{actual_line}")
+    
+    # Add summary information
+    diff_output.append("")
+    diff_output.append(f"Summary: {len(expected_lines)} expected lines, {len(actual_lines)} actual lines")
+    
+    return "\n".join(diff_output)
+
+
+def compare_files_custom_diff(file1_path: Path, file2_path: Path, diff_output_path: Path) -> int:
+    """
+    Compare two files using custom diff generation instead of system diff command.
+    
+    Args:
+        file1_path: Path to first file (expected)
+        file2_path: Path to second file (actual)
+        diff_output_path: Path to write diff output to
+        
+    Returns:
+        0 if files are identical, 1 if different, 2 on error
+    """
+    try:
+        # Read file contents
+        content1 = file1_path.read_text(encoding='utf-8', errors='replace')
+        content2 = file2_path.read_text(encoding='utf-8', errors='replace')
+        
+        # Generate custom diff
+        diff_content = generate_custom_diff(
+            content1, 
+            content2, 
+            str(file1_path), 
+            str(file2_path)
+        )
+        
+        # Write diff output
+        diff_output_path.write_text(diff_content)
+        
+        # Return 0 if identical, 1 if different
+        return 0 if content1 == content2 else 1
+        
+    except Exception as e:
+        error_msg = f"Error comparing files: {e}\n"
+        diff_output_path.write_text(error_msg)
+        return 2

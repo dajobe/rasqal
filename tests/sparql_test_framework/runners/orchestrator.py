@@ -477,6 +477,16 @@ class Testsuite:
             "log": "",
         }
 
+        # Add --use-rasqal-compare flag if enabled
+        if hasattr(self.args, "use_rasqal_compare") and self.args.use_rasqal_compare:
+            # Check if the command is a Python script that supports the flag
+            if "python" in action_cmd and (
+                "sparql.py" in action_cmd
+                or "test_runner" in action_cmd
+                or "run-sparql-tests" in action_cmd
+            ):
+                action_cmd += " --use-rasqal-compare"
+
         path_prefix = (
             f"PATH={os.environ.get('PATH','(not set)')} " if self.path_for_suite else ""
         )
@@ -614,6 +624,11 @@ Examples:
             action="store_true",
             help="Run all testsuites found below the given DIR (requires Makefiles in subdirectories).",
         )
+        parser.add_argument(
+            "--use-rasqal-compare",
+            action="store_true",
+            help="Use rasqal-compare utility for result comparison (experimental)",
+        )
 
         return parser
 
@@ -628,6 +643,16 @@ Examples:
             logging.getLogger().setLevel(logging.INFO)
         else:
             logging.getLogger().setLevel(logging.WARNING)
+
+        # Check for RASQAL_COMPARE_ENABLE environment variable
+        if os.environ.get("RASQAL_COMPARE_ENABLE", "").lower() == "yes":
+            if not args.use_rasqal_compare:
+                args.use_rasqal_compare = True
+                logger.warning("RASQAL_COMPARE_ENABLE=yes: automatically enabling --use-rasqal-compare")
+
+        # Log when --use-rasqal-compare is enabled (either explicitly or via environment variable)
+        if args.use_rasqal_compare:
+            logger.warning("--use-rasqal-compare flag enabled: using rasqal-compare utility for result comparison")
 
     def get_testsuites_from_dir(self, directory: Path) -> List[str]:
         """Get list of available test suites from directory."""

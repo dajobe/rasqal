@@ -35,7 +35,7 @@ from enum import Enum
 
 from ..test_types import TestResult, TestType, Namespaces, TestTypeResolver
 from ..config import TestConfig
-from ..utils import find_tool, run_command, SparqlTestError
+from ..utils import find_tool, run_command, SparqlTestError, compare_files_custom_diff
 from ..manifest import ManifestParser, UtilityNotFoundError
 from ..execution import run_roqet_with_format, filter_format_output
 
@@ -64,7 +64,8 @@ def normalize_blank_nodes(text_output: str) -> str:
 
 ROQET = find_tool("roqet") or "roqet"
 TO_NTRIPLES = find_tool("to-ntriples") or "to-ntriples"
-DIFF_CMD = os.environ.get("DIFF") or "diff"
+RASQAL_COMPARE = find_tool("rasqal-compare") or "rasqal-compare"
+DIFF_CMD = find_tool("diff") or "diff"
 
 
 # --- Constants and Enums ---
@@ -588,6 +589,7 @@ def _compare_actual_vs_expected(
     expected_result_file: Optional[Path],
     cardinality_mode: str,
     global_debug_level: int,
+    use_rasqal_compare: bool = False,
 ):
     """
     Compares the actual roqet output with the expected results.
@@ -665,7 +667,13 @@ def _compare_actual_vs_expected(
     # If processing expected results didn't fail, proceed to comparison
     comparison_rc = -1
     if actual_result_type == "graph":
-        comparison_rc = compare_rdf_graphs(RESULT_OUT, ROQET_OUT, DIFF_OUT)
+        if use_rasqal_compare:
+            # Use rasqal-compare utility for graph comparison
+            logger.debug(f"Using rasqal-compare for graph comparison")
+            comparison_rc = compare_with_rasqal_compare(RESULT_OUT, ROQET_OUT, DIFF_OUT, "readable")
+        else:
+            # Use existing graph comparison logic
+            comparison_rc = compare_rdf_graphs(RESULT_OUT, ROQET_OUT, DIFF_OUT)
     elif (
         actual_result_type == "boolean"
         and expected_results_info
@@ -692,20 +700,26 @@ def _compare_actual_vs_expected(
             with open(ROQET_TMP, "w") as f:
                 f.write(actual_result_info.get("content", ""))
 
-            # Generate diff
-            diff_result = run_command(
-                [DIFF_CMD, "-u", str(RESULT_OUT), str(ROQET_TMP)],
-                CURDIR,
-                "Error generating diff",
-            )
+            if use_rasqal_compare:
+                # Use rasqal-compare utility for comparison
+                logger.debug(f"Using rasqal-compare for comparison")
+                comparison_rc = compare_with_rasqal_compare(RESULT_OUT, ROQET_TMP, DIFF_OUT, "readable")
+            else:
+                # Use system diff command for comparison
+                logger.debug(f"Using system diff for comparison")
+                diff_result = run_command(
+                    [DIFF_CMD, "-u", str(RESULT_OUT), str(ROQET_TMP)],
+                    CURDIR,
+                    "Error generating diff",
+                )
 
-            # Write diff output
-            with open(DIFF_OUT, "w") as f:
-                f.write(diff_result.stdout)
-                if diff_result.stderr:
-                    f.write(diff_result.stderr)
+                # Write diff output
+                with open(DIFF_OUT, "w") as f:
+                    f.write(diff_result.stdout)
+                    if diff_result.stderr:
+                        f.write(diff_result.stderr)
 
-            comparison_rc = diff_result.returncode
+                comparison_rc = diff_result.returncode
         except Exception as e:
             logger.error(f"Error comparing bindings: {e}")
             comparison_rc = 1
@@ -720,6 +734,58 @@ def _compare_actual_vs_expected(
         test_result_summary["diff"] = (
             DIFF_OUT.read_text() if DIFF_OUT.exists() else "No diff available"
         )
+
+
+def compare_with_rasqal_compare(
+    expected_file: Path, actual_file: Path, diff_output_path: Path, diff_format: str = "readable"
+) -> int:
+    """
+    Compare two files using the rasqal-compare utility.
+    
+    Args:
+        expected_file: Path to expected result file
+        actual_file: Path to actual result file  
+        diff_output_path: Path to write diff output to
+        diff_format: Diff format to use (readable, unified, json, xml, debug)
+        
+    Returns:
+        0 if files are identical, 1 if different, 2 on error
+    """
+    try:
+        # Build rasqal-compare command
+        cmd = [
+            RASQAL_COMPARE,
+            "-e", str(expected_file),
+            "-a", str(actual_file)
+        ]
+        
+        # Add diff format option
+        if diff_format == "unified":
+            cmd.append("-u")
+        elif diff_format == "json":
+            cmd.append("-j")
+        elif diff_format == "xml":
+            cmd.append("-x")
+        elif diff_format == "debug":
+            cmd.append("-k")
+        
+        logger.debug(f"Running rasqal-compare: {' '.join(cmd)}")
+        
+        # Run rasqal-compare
+        result = run_command(cmd, CURDIR, "Error running rasqal-compare")
+        
+        # Write output to diff file
+        diff_output_path.write_text(result.stdout)
+        if result.stderr:
+            diff_output_path.write_text(f"\nSTDERR:\n{result.stderr}")
+        
+        # rasqal-compare returns 0 for equal, 1 for different, 2 for error
+        return result.returncode
+        
+    except Exception as e:
+        error_msg = f"Error running rasqal-compare: {e}\n"
+        diff_output_path.write_text(error_msg)
+        return 2
 
 
 def compare_rdf_graphs(
@@ -791,19 +857,13 @@ def compare_rdf_graphs(
                     f"Error running Jena rdfcompare: {e}. Falling back to diff."
                 )
 
-    # Fallback to system diff
-    cmd_list = [DIFF_CMD, "-u", abs_file1, abs_file2]
-    logger.debug(f"Comparing graphs using system diff: {' '.join(cmd_list)}")
+    # Fallback to custom diff (no system diff dependency)
+    logger.debug(f"Comparing graphs using custom diff: {abs_file1} vs {abs_file2}")
     try:
-        process = run_command(
-            cmd_list, CURDIR, f"Error running system diff ('{DIFF_CMD}')"
-        )
-        # Always write diff output for debugging, cleanup later if not preserving
-        diff_output_path.write_text(process.stdout)
-        return process.returncode
+        return compare_files_custom_diff(file1_path, file2_path, diff_output_path)
     except Exception as e:
-        logger.error(f"Error running diff command: {e}")
-        diff_output_path.write_text(f"Error running diff command: {e}\n")
+        logger.error(f"Error running custom diff: {e}")
+        diff_output_path.write_text(f"Error running custom diff: {e}\n")
         return 2  # Indicate a general error
 
 
@@ -915,7 +975,7 @@ def generate_junit_report(
         logger.error(f"Error generating JUnit report: {e}")
 
 
-def run_single_test(config: TestConfig, global_debug_level: int) -> Dict[str, Any]:
+def run_single_test(config: TestConfig, global_debug_level: int, use_rasqal_compare: bool = False) -> Dict[str, Any]:
     """
     Runs a single SPARQL test using roqet and compares results.
     Returns a dictionary summarizing the test outcome.
@@ -1044,6 +1104,7 @@ def run_single_test(config: TestConfig, global_debug_level: int) -> Dict[str, An
                 config.result_file,
                 config.cardinality_mode,
                 global_debug_level,
+                use_rasqal_compare,
             )
         else:
             # For warning tests, just mark as success if we got here (exit code 2 was handled as success)
@@ -1134,6 +1195,11 @@ Examples:
             default=0,
             help="Warning level for roqet (0-3)",
         )
+        parser.add_argument(
+            "--use-rasqal-compare",
+            action="store_true",
+            help="Use rasqal-compare utility for result comparison (experimental)",
+        )
 
         return parser
 
@@ -1158,6 +1224,16 @@ Examples:
         # Set global file preservation flag
         global _preserve_debug_files
         _preserve_debug_files = args.preserve_files
+
+        # Check for RASQAL_COMPARE_ENABLE environment variable
+        if os.environ.get("RASQAL_COMPARE_ENABLE", "").lower() == "yes":
+            if not args.use_rasqal_compare:
+                args.use_rasqal_compare = True
+                logger.warning("RASQAL_COMPARE_ENABLE=yes: automatically enabling --use-rasqal-compare")
+
+        # Log when --use-rasqal-compare is enabled
+        if args.use_rasqal_compare:
+            logger.warning("--use-rasqal-compare flag enabled: using rasqal-compare utility for result comparison")
 
     def discover_and_filter_tests(
         self,
@@ -1210,7 +1286,7 @@ Examples:
         for test_config in tests_to_run:
             logger.info(f"Running test: {test_config.name}")
 
-            result = run_single_test(test_config, self.global_debug_level)
+            result = run_single_test(test_config, self.global_debug_level, self.args.use_rasqal_compare)
             test_results_data.append(result)
 
             if result["is_success"]:
