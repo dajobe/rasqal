@@ -54,6 +54,7 @@ no known memory leaks.
 <li>Triple store querying APIs to support running over external RDF graphs.</li>
 <li>No memory leaks.</li>
 <li><a href="roqet.html">roqet</a> standalone command line RDF query utility program</li>
+<li><a href="utils/rasqal-compare.html">rasqal-compare</a> standalone command line SPARQL query results comparison utility</li>
 </ul>
 
 <p>Known bugs and issues are recorded in the
@@ -70,6 +71,8 @@ command line <a href="roqet.html">roqet</a>
 query utility giving a query language
 identifier (default sparql), the query string and optionally
 the data to use unless it is declared in the query string.
+Additionally, the <a href="utils/rasqal-compare.html">rasqal-compare</a>
+utility can be used to compare SPARQL query results for equality testing.
 </p>
 
 <p>Rasqal is used inside Redland to provide support for query
@@ -157,7 +160,9 @@ keyword, plus executing a few experimental extension functions:
 It is demonstrated in the
 <a href="roqet.html">roqet</a>
 utility program which shows how to call the query engine and
-operate over the query results.  When Rasqal is used inside
+operate over the query results, and the
+<a href="utils/rasqal-compare.html">rasqal-compare</a>
+utility which demonstrates query result comparison.  When Rasqal is used inside
 <a href="http://librdf.org/">Redland</a>,
 the Redland documentation explains
 how to call the query engine and contains several example programs.

@@ -1902,6 +1902,7 @@ rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
   int i;
   int rc = 0;
   rasqal_variable* v;
+  (void)node; /* unused parameter */
   
   if(!projection)
     return 0;
@@ -2044,6 +2045,7 @@ rasqal_algebra_replace_aggregate_expressions(rasqal_query* query,
 {
   int i;
   rasqal_expression* expr;
+  (void)query; /* unused parameter */
 
   /* It is now a mistake to find a new aggregate expressions not
    * previously found in SELECT

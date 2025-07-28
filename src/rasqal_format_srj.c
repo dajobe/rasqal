@@ -119,18 +119,21 @@ typedef struct {
 static void*
 rasqal_srj_yajl_malloc(void* ctx, RASQAL_YAJL_LEN_TYPE size)
 {
+  (void)ctx; /* unused parameter */
   return RASQAL_MALLOC(void*, size);
 }
 
 static void*
 rasqal_srj_yajl_realloc(void* ctx, void* ptr, RASQAL_YAJL_LEN_TYPE size)
 {
+  (void)ctx; /* unused parameter */
   return RASQAL_REALLOC(void*, ptr, size);
 }
 
 static void
 rasqal_srj_yajl_free(void* ctx, void* ptr)
 {
+  (void)ctx; /* unused parameter */
   RASQAL_FREE(void*, ptr);
 }
 
@@ -216,6 +219,8 @@ rasqal_srj_recognise_syntax(rasqal_query_results_format_factory* factory,
                             const char *mime_type)
 {
   int score = 0;
+  (void)factory; /* unused parameter */
+  (void)identifier; /* unused parameter */
 
   if(suffix) {
     if(!strcmp((const char*)suffix, "srj"))
@@ -877,6 +882,7 @@ static int
 rasqal_srj_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_srj_context* context = (rasqal_srj_context*)user_data;
+  (void)rowsource; /* unused parameter */
   rasqal_srj_context_finish(context);
   return 0;
 }
@@ -996,6 +1002,9 @@ rasqal_srj_get_boolean(rasqal_query_results_formatter *formatter,
 {
   rasqal_srj_context* context;
   int bv;
+  (void)formatter; /* unused parameter */
+  (void)base_uri; /* unused parameter */
+  (void)flags; /* unused parameter */
 
   context = RASQAL_CALLOC(rasqal_srj_context*, sizeof(*context), 1);
   if(!context)
@@ -1053,6 +1062,9 @@ rasqal_query_results_get_rowsource_srj(rasqal_query_results_formatter* formatter
 {
   rasqal_srj_context* context;
   rasqal_rowsource* rowsource = NULL;
+  (void)formatter; /* unused parameter */
+  (void)base_uri; /* unused parameter */
+  (void)flags; /* unused parameter */
 
   context = RASQAL_CALLOC(rasqal_srj_context*, sizeof(*context), 1);
   if(!context)
@@ -1254,6 +1266,20 @@ rasqal_srj_write_results(raptor_iostream* iostr, rasqal_query_results* results, 
             rasqal_srj_write_bnode(iostr, l->string);
             break;
           case RASQAL_LITERAL_STRING:
+          case RASQAL_LITERAL_XSD_STRING:
+          case RASQAL_LITERAL_BOOLEAN:
+          case RASQAL_LITERAL_INTEGER:
+          case RASQAL_LITERAL_FLOAT:
+          case RASQAL_LITERAL_DOUBLE:
+          case RASQAL_LITERAL_DECIMAL:
+          case RASQAL_LITERAL_DATETIME:
+          case RASQAL_LITERAL_DATE:
+          case RASQAL_LITERAL_UDT:
+          case RASQAL_LITERAL_PATTERN:
+          case RASQAL_LITERAL_QNAME:
+          case RASQAL_LITERAL_VARIABLE:
+          case RASQAL_LITERAL_INTEGER_SUBTYPE:
+          case RASQAL_LITERAL_UNKNOWN:
           default:
             rasqal_srj_write_literal(iostr, l);
             break;
@@ -1284,6 +1310,8 @@ rasqal_query_results_write_srj(rasqal_query_results_formatter* formatter,
   rasqal_world* world = rasqal_query_results_get_world(results);
   rasqal_query* query = rasqal_query_results_get_query(results);
   rasqal_query_results_type type;
+  (void)formatter; /* unused parameter */
+  (void)base_uri; /* unused parameter */
 
   type = rasqal_query_results_get_type(results);
 

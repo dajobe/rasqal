@@ -245,6 +245,8 @@ rasqal_expression_evaluate_rand(rasqal_expression *e,
 {
   rasqal_world* world = eval_context->world;
   double d;
+  (void)e; /* unused parameter */
+  (void)error_p; /* unused parameter */
   
   d = rasqal_random_drand(eval_context->random);
 
@@ -399,12 +401,7 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
                                 int *error_p,
                                 int want_uri)
 {
-#ifdef RASQAL_UUID_NONE
-  return NULL;
-
-#else
-
-  rasqal_world* world = eval_context->world;
+  rasqal_world* world;
 #if defined(RASQAL_UUID_OSSP)
   uuid_t* data;
 #else
@@ -414,6 +411,20 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
   size_t output_len = RASQAL_UUID_STRING_LEN;
   unsigned char* output;
   unsigned char* p;
+  unsigned short hex;
+  unsigned char c;
+  raptor_uri* u;
+  rasqal_literal* l;
+
+  (void)e; /* unused parameter */
+  (void)error_p; /* unused parameter */
+
+#ifdef RASQAL_UUID_NONE
+  return NULL;
+
+#else
+
+  world = eval_context->world;
 
 #if defined(RASQAL_UUID_LIBUUID) || defined(RASQAL_UUID_LIBC)
   uuid_generate(data);
@@ -449,11 +460,10 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
   uuid_destroy(data);
 #else
   for(i = 0; i < RASQAL_UUID_LEN; i++) {
-    unsigned short hex;
 #ifdef RASQAL_UUID_INTERNAL
-    unsigned char c = data.b[i];
+    c = data.b[i];
 #else
-    unsigned char c = data[i];
+    c = data[i];
 #endif
 
     hex = (c & 0xf0) >> 4;
@@ -468,8 +478,7 @@ rasqal_expression_evaluate_uuid(rasqal_expression *e,
 
   /* after this output becomes owned by result */
   if(want_uri) {
-    raptor_uri* u;
-    rasqal_literal* l = NULL;
+    l = NULL;
 
     u = raptor_new_uri(world->raptor_world_ptr, output);
     if(u)

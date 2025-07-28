@@ -61,6 +61,7 @@ rasqal_expression_evaluate_now(rasqal_expression *e,
   rasqal_world* world = eval_context->world;
   struct timeval *tv;
   rasqal_xsd_datetime* dt;
+  (void)e; /* unused parameter */
 
   tv = rasqal_world_get_now_timeval(world);
   if(!tv)

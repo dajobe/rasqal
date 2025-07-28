@@ -1611,6 +1611,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
 int
 rasqal_expression_has_qname(void *user_data, rasqal_expression *e)
 {
+  (void)user_data; /* unused parameter */
   if(e->op == RASQAL_EXPR_LITERAL)
     return rasqal_literal_has_qname(e->literal);
 
@@ -2266,6 +2267,7 @@ static int
 rasqal_expression_mentions_aggregate_visitor(void *user_data,
                                              rasqal_expression *e)
 {
+  (void)user_data; /* unused parameter */
   return rasqal_expression_is_aggregate(e);
 }
 

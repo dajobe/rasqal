@@ -562,6 +562,7 @@ rasqal_expression_evaluate_coalesce(rasqal_expression *e,
 {
   int size = raptor_sequence_size(e->args);
   int i;
+  (void)error_p; /* unused parameter */
   
   for(i = 0; i < size; i++) {
     rasqal_expression* arg_e;
