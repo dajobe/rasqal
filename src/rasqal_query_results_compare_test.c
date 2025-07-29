@@ -286,6 +286,9 @@ test_bindings_comparison(void)
   rasqal_query_results_compare* compare = NULL;
   rasqal_query_results_compare_result* result = NULL;
   int test_result = 0;
+  rasqal_query_results_compare_options options;
+  rasqal_query_results_compare* compare_with_options = NULL;
+  rasqal_query_results_compare_result* result_with_options = NULL;
 
   world = rasqal_new_world();
   if(!world)
@@ -320,10 +323,6 @@ test_bindings_comparison(void)
     rasqal_free_query_results_compare(compare);
 
   /* Test with options */
-  rasqal_query_results_compare_options options;
-  rasqal_query_results_compare* compare_with_options = NULL;
-  rasqal_query_results_compare_result* result_with_options = NULL;
-
   rasqal_query_results_compare_options_init(&options);
   options.order_sensitive = 0;
   options.blank_node_strategy = RASQAL_COMPARE_BLANK_NODE_MATCH_ANY;
@@ -383,7 +382,7 @@ test_blank_node_strategies(void)
   /* Test MATCH_ANY strategy */
   rasqal_query_results_compare_options_init(&options);
   options.blank_node_strategy = RASQAL_COMPARE_BLANK_NODE_MATCH_ANY;
-  
+
   compare = rasqal_new_query_results_compare(world, results1, results2);
   if(compare) {
     rasqal_query_results_compare_set_options(compare, &options);
@@ -397,7 +396,7 @@ test_blank_node_strategies(void)
 
   /* Test MATCH_ID strategy */
   options.blank_node_strategy = RASQAL_COMPARE_BLANK_NODE_MATCH_ID;
-  
+
   compare = rasqal_new_query_results_compare(world, results1, results2);
   if(compare) {
     rasqal_query_results_compare_set_options(compare, &options);
@@ -411,7 +410,7 @@ test_blank_node_strategies(void)
 
   /* Test MATCH_STRUCTURE strategy (should work but warn about not being fully implemented) */
   options.blank_node_strategy = RASQAL_COMPARE_BLANK_NODE_MATCH_STRUCTURE;
-  
+
   compare = rasqal_new_query_results_compare(world, results1, results2);
   if(compare) {
     rasqal_query_results_compare_set_options(compare, &options);
