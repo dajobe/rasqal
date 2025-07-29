@@ -1481,7 +1481,6 @@ typedef enum {
  * @blank_node_strategy: how to handle blank nodes (default: RASQAL_COMPARE_BLANK_NODE_MATCH_ANY)
  * @literal_comparison_flags: flags for literal comparison (default: RASQAL_COMPARE_XQUERY)
  * @max_differences: maximum number of differences to report (default: 10)
-
  * @canonicalize_uris: canonicalize URIs for comparison (default: false)
  * @canonicalize_literals: canonicalize literals for comparison (default: false)
  * @custom_compare_user_data: user data for custom comparison functions
