@@ -65,6 +65,19 @@ static void rasqal_srj_write_uri(raptor_iostream* iostr, raptor_uri* uri);
 static void rasqal_srj_write_literal(raptor_iostream* iostr, rasqal_literal* literal);
 static void rasqal_srj_write_bnode(raptor_iostream* iostr, const unsigned char* bnode_id);
 
+/* Parsing state machine */
+typedef enum {
+  STATE_BEFORE_ROOT,
+  STATE_IN_HEAD,
+  STATE_IN_VARS_ARRAY,
+  STATE_IN_RESULTS,
+  STATE_IN_BINDINGS_ARRAY,
+  STATE_IN_BINDING_OBJECT,
+  STATE_IN_VALUE_OBJECT,
+  STATE_COMPLETE,
+  STATE_ERROR
+} rasqal_srj_context_state;
+
 /* SRJ parsing context */
 typedef struct {
   rasqal_rowsource* rowsource;
@@ -73,18 +86,7 @@ typedef struct {
   raptor_iostream* iostr;
   yajl_handle handle;
 
-  /* Parsing state machine */
-  enum {
-    STATE_BEFORE_ROOT,
-    STATE_IN_HEAD,
-    STATE_IN_VARS_ARRAY,
-    STATE_IN_RESULTS,
-    STATE_IN_BINDINGS_ARRAY,
-    STATE_IN_BINDING_OBJECT,
-    STATE_IN_VALUE_OBJECT,
-    STATE_COMPLETE,
-    STATE_ERROR
-  } state;
+  rasqal_srj_context_state state;
 
   /* Current parsing context */
   char* current_key;
@@ -1006,7 +1008,7 @@ rasqal_srj_get_boolean(rasqal_query_results_formatter *formatter,
   (void)base_uri; /* unused parameter */
   (void)flags; /* unused parameter */
 
-  context = RASQAL_CALLOC(rasqal_srj_context*, sizeof(*context), 1);
+  context = RASQAL_CALLOC(rasqal_srj_context*, 1, sizeof(*context));
   if(!context)
     return -1;
 
@@ -1066,7 +1068,7 @@ rasqal_query_results_get_rowsource_srj(rasqal_query_results_formatter* formatter
   (void)base_uri; /* unused parameter */
   (void)flags; /* unused parameter */
 
-  context = RASQAL_CALLOC(rasqal_srj_context*, sizeof(*context), 1);
+  context = RASQAL_CALLOC(rasqal_srj_context*, 1, sizeof(*context));
   if(!context)
     return NULL;
 
@@ -1076,7 +1078,7 @@ rasqal_query_results_get_rowsource_srj(rasqal_query_results_formatter* formatter
   context->finished = 0;
   context->rows_size = 16; /* Initial row queue size */
 
-  context->rows = RASQAL_CALLOC(rasqal_row**, sizeof(rasqal_row*), context->rows_size);
+  context->rows = RASQAL_CALLOC(rasqal_row**, context->rows_size, sizeof(rasqal_row*));
   if(!context->rows) {
     rasqal_srj_context_finish(context);
     return NULL;
