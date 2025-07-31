@@ -1579,6 +1579,18 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
       node = rasqal_algebra_service_graph_pattern_to_algebra(query, gp);
       break;
 
+    case RASQAL_GRAPH_PATTERN_OPERATOR_EXISTS:
+      /* EXISTS patterns are handled as expressions, not standalone
+       * algebra nodes */
+      RASQAL_DEBUG1("EXISTS graph pattern should be wrapped in expression\n");
+      break;
+
+    case RASQAL_GRAPH_PATTERN_OPERATOR_NOT_EXISTS:
+      /* NOT EXISTS patterns are handled as expressions, not
+       * standalone algebra nodes */
+      RASQAL_DEBUG1("NOT EXISTS graph pattern should be wrapped in expression\n");
+      break;
+
     case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:

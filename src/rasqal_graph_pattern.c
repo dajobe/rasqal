@@ -315,6 +315,44 @@ rasqal_new_single_graph_pattern(rasqal_query* query,
 
 
 /*
+ * rasqal_new_exists_graph_pattern:
+ * @query: #rasqal_query query object
+ * @pattern: graph pattern for EXISTS evaluation
+ *
+ * INTERNAL - Create a new EXISTS graph pattern object.
+ * 
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_exists_graph_pattern(rasqal_query* query,
+                                rasqal_graph_pattern* pattern)
+{
+  return rasqal_new_single_graph_pattern(query, 
+                                         RASQAL_GRAPH_PATTERN_OPERATOR_EXISTS,
+                                         pattern);
+}
+
+
+/*
+ * rasqal_new_not_exists_graph_pattern:
+ * @query: #rasqal_query query object
+ * @pattern: graph pattern for NOT EXISTS evaluation
+ *
+ * INTERNAL - Create a new NOT EXISTS graph pattern object.
+ * 
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_not_exists_graph_pattern(rasqal_query* query,
+                                    rasqal_graph_pattern* pattern)
+{
+  return rasqal_new_single_graph_pattern(query, 
+                                         RASQAL_GRAPH_PATTERN_OPERATOR_NOT_EXISTS,
+                                         pattern);
+}
+
+
+/*
  * rasqal_free_graph_pattern:
  * @gp: #rasqal_graph_pattern object
  *
@@ -445,7 +483,9 @@ static const char* const rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTE
   "Select",
   "Service",
   "Minus",
-  "Values"
+  "Values",
+  "Exists",
+  "NotExists"
 };
 
 
@@ -1080,6 +1120,64 @@ rasqal_new_basic_graph_pattern_from_formula(rasqal_query* query,
 
 
 /**
+ * rasqal_new_basic_graph_pattern_from_formula_exists:
+ * @query: #rasqal_graph_pattern query object
+ * @formula: triples sequence containing the graph pattern
+ *
+ * INTERNAL - Create a new graph pattern object over a formula for EXISTS expressions.
+ * Unlike rasqal_new_basic_graph_pattern_from_formula(), this function does NOT add
+ * the formula triples to the main query's triples sequence to prevent variable 
+ * scoping issues. The formula triples are kept separate for EXISTS evaluation.
+ * This function frees the formula passed in.
+ * 
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_basic_graph_pattern_from_formula_exists(rasqal_query* query,
+                                                   rasqal_formula* formula)
+{
+  rasqal_graph_pattern* gp;
+  raptor_sequence *formula_triples = formula->triples;
+  int triple_pattern_size = 0;
+
+  /* Create a separate triples sequence for EXISTS patterns */
+  raptor_sequence *exists_triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
+                                                        (raptor_data_print_handler)rasqal_triple_print);
+  if(!exists_triples) {
+    rasqal_free_formula(formula);
+    return NULL;
+  }
+
+  if(formula_triples) {
+    /* Copy formula triples to the separate EXISTS triples sequence */
+    triple_pattern_size = raptor_sequence_size(formula_triples);
+    
+    if(raptor_sequence_join(exists_triples, formula_triples)) {
+      raptor_free_sequence(exists_triples);
+      rasqal_free_formula(formula);
+      return NULL;
+    }
+  }
+
+  rasqal_free_formula(formula);
+
+  /* Create basic graph pattern using the separate triples sequence */
+  gp = rasqal_new_basic_graph_pattern(query, exists_triples, 
+                                      0, 
+                                      triple_pattern_size - 1);
+  
+  if(gp) {
+    /* Mark as EXISTS pattern and store reference to separate triples */
+    gp->is_exists_pattern = 1;
+  } else {
+    raptor_free_sequence(exists_triples);
+  }
+
+  return gp;
+}
+
+
+/**
  * rasqal_new_2_group_graph_pattern:
  * @query: query object
  * @first_gp: first graph pattern
@@ -1502,4 +1600,33 @@ rasqal_graph_pattern_get_parent(rasqal_query *query,
                                    &fpd);
 
   return fpd.parent_gp;
+}
+
+
+/**
+ * rasqal_graph_pattern_mark_as_exists:
+ * @gp: graph pattern
+ *
+ * INTERNAL - Mark a graph pattern and all its sub-patterns as EXISTS patterns
+ * to prevent their variables from being treated as main query variables.
+ **/
+void
+rasqal_graph_pattern_mark_as_exists(rasqal_graph_pattern* gp)
+{
+  int i;
+  
+  if(!gp)
+    return;
+    
+  /* Mark this pattern as an EXISTS pattern */
+  gp->is_exists_pattern = 1;
+  
+  /* Recursively mark all sub-patterns */
+  if(gp->graph_patterns) {
+    for(i = 0; i < raptor_sequence_size(gp->graph_patterns); i++) {
+      rasqal_graph_pattern* sgp;
+      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      rasqal_graph_pattern_mark_as_exists(sgp);
+    }
+  }
 }

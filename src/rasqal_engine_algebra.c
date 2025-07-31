@@ -235,42 +235,6 @@ rasqal_algebra_assignment_algebra_node_to_rowsource(rasqal_engine_algebra_data* 
 }
 
 
-static int
-rasqal_algebra_visitor_set_origin(rasqal_query* query,
-                                  rasqal_algebra_node* node,
-                                  void *user_data)
-{
-  rasqal_literal *origin = (rasqal_literal*)user_data;
-  int i;
-  
-  if(node->op != RASQAL_ALGEBRA_OPERATOR_BGP)
-    return 0;
-
-  for(i = node->start_column; i <= node->end_column; i++) {
-    rasqal_triple *t;
-    rasqal_literal *o = NULL;
-    
-    t = (rasqal_triple*)raptor_sequence_get_at(node->triples, i);
-    if(origin)
-      o = rasqal_new_literal_from_literal(origin);
-    
-    rasqal_triple_set_origin(t, o);
-  }
-  return 0;
-}
-
-
-static void
-rasqal_algebra_node_set_origin(rasqal_query *query,
-                               rasqal_algebra_node* node,
-                               rasqal_literal *origin) 
-{
-  rasqal_algebra_node_visit(query, node, 
-                            rasqal_algebra_visitor_set_origin,
-                            origin);
-}
-
-
 static rasqal_rowsource*
 rasqal_algebra_graph_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
                                                rasqal_algebra_node* node,
@@ -320,17 +284,14 @@ eval(D(G), Graph(IRI,P)) = the empty multiset
   if(!v && graph->type == RASQAL_LITERAL_URI) {
     if(rasqal_query_dataset_contains_named_graph(query, graph->value.uri)) {
       /* case #1 - IRI is a graph name in D */
-
-      /* Set the origin of all triple patterns inside node->node1 to
-       * URI graph->value.uri
-       *
-       * FIXME - this is a hack.  The graph URI should be a parameter
-       * to all rowsource constructors.
-       */
-      rasqal_algebra_node_set_origin(query, node->node1, graph);
-
       rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1,
                                             error_p);
+      /* Set graph origin on the returned rowsource to propagate to
+       * child rowsources
+       */
+      if(rs) {
+        rasqal_rowsource_set_origin(rs, graph);
+      }
     } else {
       /* case #2 - IRI is not a graph name in D - return empty rowsource */
       rasqal_free_algebra_node(node->node1);
