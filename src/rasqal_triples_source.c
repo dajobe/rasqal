@@ -243,7 +243,7 @@ rasqal_triples_source_triple_present(rasqal_triples_source *rts,
 }
 
 
-static void
+void
 rasqal_free_triples_match(rasqal_triples_match* rtm)
 {
   if(!rtm)
