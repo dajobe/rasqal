@@ -3435,6 +3435,42 @@ rasqal_literal_value(rasqal_literal* l)
 }
 
 
+/**
+ * rasqal_literal_bound_value:
+ * @literal: #rasqal_literal object
+ *
+ * INTERNAL - Get bound value of a variable literal for pattern instantiation.
+ *
+ * This function directly accesses variable bindings without relying on
+ * expression evaluation context, making it suitable for EXISTS pattern
+ * instantiation, sub-query variable propagation, and other contexts where
+ * the standard rasqal_literal_value() evaluation context access is not
+ * appropriate.
+ *
+ * Return value: new literal with bound value, copy of original literal if not a variable, or NULL on failure
+ */
+rasqal_literal*
+rasqal_literal_bound_value(rasqal_literal* literal)
+{
+  if(!literal)
+    return NULL;
+
+  if(literal->type == RASQAL_LITERAL_VARIABLE) {
+    rasqal_variable* var = literal->value.variable;
+    if(var && var->value) {
+      /* Variable has bound value - return copy of bound value */
+      return rasqal_new_literal_from_literal(var->value);
+    } else {
+      /* Variable is unbound - return copy of variable for pattern matching */
+      return rasqal_new_literal_from_literal(literal);
+    }
+  } else {
+    /* Not a variable - return copy of literal */
+    return rasqal_new_literal_from_literal(literal);
+  }
+}
+
+
 int
 rasqal_literal_is_numeric(rasqal_literal* literal)
 {

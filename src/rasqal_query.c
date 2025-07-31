@@ -152,6 +152,9 @@ rasqal_new_query(rasqal_world *world, const char *name,
   if(!query->eval_context)
     goto tidy;
 
+  /* Set query reference for complex expressions like EXISTS */
+  query->eval_context->query = query;
+
   if(factory->init(query, name))
     goto tidy;
   
