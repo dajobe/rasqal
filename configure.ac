@@ -1595,6 +1595,7 @@ tests/algebra/Makefile
 tests/engine/Makefile
 tests/sparql/Makefile
 tests/sparql/bind/Makefile
+tests/sparql/exists/Makefile
 tests/sparql/values/Makefile
 tests/sparql/bugs/Makefile
 tests/sparql/simple/Makefile

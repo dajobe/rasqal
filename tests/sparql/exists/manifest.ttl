@@ -1,0 +1,63 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix : <http://www.dajobe.org/tests/rasqal/exists/working/manifest#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+@prefix dawgt:   <http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#> .
+
+<>  rdf:type mf:Manifest ;
+    rdfs:label "EXISTS Working Tests" ;
+    mf:entries
+    ( 
+    :exists01
+    :exists02
+    :exists03
+    :exists04
+    :exists05
+    ) .
+
+:exists01 rdf:type mf:QueryEvaluationTest ;
+    mf:name    "exists01 - Exists with one constant (working)" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/exists/exists01.rq> ;
+           qt:data   <../sparql11-test-suite/exists/exists01.ttl> ] ;
+    mf:result  <../sparql11-test-suite/exists/exists01.srx>
+    .
+
+:exists02 rdf:type mf:QueryEvaluationTest ;
+    mf:name    "exists02 - Exists with ground triple (working)" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/exists/exists02.rq> ;
+           qt:data   <../sparql11-test-suite/exists/exists01.ttl> ] ;
+    mf:result  <../sparql11-test-suite/exists/exists02.srx>
+    .
+
+:exists03 rdf:type mf:QueryEvaluationTest ;
+    mf:name    "exists03 - Exists within graph pattern (working)" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/exists/exists03.rq> ;
+           qt:data   <../sparql11-test-suite/exists/exists01.ttl> ;
+           qt:graphData   <../sparql11-test-suite/exists/exists02.ttl> ] ;
+    mf:result  <../sparql11-test-suite/exists/exists03.srx>
+    .
+
+:exists04 rdf:type mf:QueryEvaluationTest ;
+    mf:name    "exists04 - Nested positive exists (working)" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/exists/exists04.rq> ;
+           qt:data   <../sparql11-test-suite/exists/exists01.ttl> ] ;
+    mf:result  <../sparql11-test-suite/exists/exists04.srx>
+    .
+
+:exists05 rdf:type mf:QueryEvaluationTest ;
+    mf:name    "exists05 - Nested negative exists in positive exists (working)" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/exists/exists05.rq> ;
+           qt:data   <../sparql11-test-suite/exists/exists01.ttl> ] ;
+    mf:result  <../sparql11-test-suite/exists/exists05.srx>
+    .
