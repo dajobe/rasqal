@@ -773,6 +773,8 @@ rasqal_expression_clear(rasqal_expression* e)
       
     case RASQAL_EXPR_COALESCE:
     case RASQAL_EXPR_CONCAT:
+    case RASQAL_EXPR_EXISTS:
+    case RASQAL_EXPR_NOT_EXISTS:
       raptor_free_sequence(e->args);
       break;
 
@@ -984,7 +986,9 @@ rasqal_expression_visit(rasqal_expression* e,
       break;
 
     case RASQAL_EXPR_VARSTAR:
-      /* constants */
+    case RASQAL_EXPR_EXISTS:
+    case RASQAL_EXPR_NOT_EXISTS:
+      /* constants - EXISTS/NOT EXISTS args contain graph patterns, not expressions */
       break;
       
     case RASQAL_EXPR_IN:
@@ -1105,7 +1109,9 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "strafter",
   "replace",
   "uuid",
-  "struuid"
+  "struuid",
+  "exists",
+  "not exists"
 };
 
 
@@ -1340,6 +1346,13 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_VARSTAR:
       raptor_iostream_counted_string_write("varstar", 7, iostr);
       break;
+
+    case RASQAL_EXPR_EXISTS:
+    case RASQAL_EXPR_NOT_EXISTS:
+      raptor_iostream_counted_string_write("op ", 3, iostr);
+      rasqal_expression_write_op(e, iostr);
+      raptor_iostream_counted_string_write("(GP)", 4, iostr);
+      break;
       
     case RASQAL_EXPR_COALESCE:
     case RASQAL_EXPR_CONCAT:
@@ -1564,6 +1577,13 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_VARSTAR:
       fputs("varstar", fh);
       break;
+
+    case RASQAL_EXPR_EXISTS:
+    case RASQAL_EXPR_NOT_EXISTS:
+      fputs("op ", fh);
+      rasqal_expression_print_op(e, fh);
+      fputs("(GP)", fh);
+      break;
       
     case RASQAL_EXPR_COALESCE:
     case RASQAL_EXPR_CONCAT:
@@ -1779,6 +1799,12 @@ rasqal_expression_is_constant(rasqal_expression* e)
       break;
 
     case RASQAL_EXPR_VARSTAR:
+      result=0;
+      break;
+
+    case RASQAL_EXPR_EXISTS:
+    case RASQAL_EXPR_NOT_EXISTS:
+      /* EXISTS/NOT EXISTS are not constant - they depend on graph pattern evaluation */
       result=0;
       break;
       
@@ -2172,6 +2198,13 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
       /* 0-args: always equal */
       rc = 0;
       break;
+
+    case RASQAL_EXPR_EXISTS:
+    case RASQAL_EXPR_NOT_EXISTS:
+      /* Compare EXISTS expressions based on their graph patterns */
+      /* TODO: This is complex - for now treat as never equal */
+      rc = 1;
+      break;
       
     case RASQAL_EXPR_RAND:
       /* 0-args: always different */
@@ -2380,6 +2413,8 @@ rasqal_new_evaluation_context(rasqal_world* world,
   eval_context->world = world;
   eval_context->locator = locator;
   eval_context->flags = flags;
+  eval_context->query = NULL;  /* Set by caller if needed for complex expressions */
+  eval_context->graph_origin = NULL;  /* Set by caller when evaluating within GRAPH context */
 
   eval_context->random = rasqal_new_random(world);
   if(!eval_context->random) {
@@ -2406,6 +2441,9 @@ rasqal_free_evaluation_context(rasqal_evaluation_context* eval_context)
 
   if(eval_context->base_uri)
     raptor_free_uri(eval_context->base_uri);
+
+  if(eval_context->graph_origin)
+    rasqal_free_literal(eval_context->graph_origin);
 
   if(eval_context->random)
     rasqal_free_random(eval_context->random);
@@ -2456,6 +2494,49 @@ rasqal_evaluation_context_set_rand_seed(rasqal_evaluation_context* eval_context,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(eval_context, rasqal_evaluation_context, 1);
 
   return rasqal_random_seed(eval_context->random, seed);
+}
+
+
+/**
+ * rasqal_evaluation_context_set_graph_origin:
+ * @eval_context: #rasqal_evaluation_context object
+ * @graph_origin: graph origin literal (or NULL)
+ *
+ * Set the graph origin for a #rasqal_evaluation_context
+ *
+ * Takes a copy of the literal.
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_evaluation_context_set_graph_origin(rasqal_evaluation_context* eval_context,
+                                          rasqal_literal* graph_origin)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(eval_context, rasqal_evaluation_context, 1);
+
+  if(eval_context->graph_origin)
+    rasqal_free_literal(eval_context->graph_origin);
+
+  eval_context->graph_origin = graph_origin ? rasqal_new_literal_from_literal(graph_origin) : NULL;
+
+  return 0;
+}
+
+
+/**
+ * rasqal_evaluation_context_get_graph_origin:
+ * @eval_context: #rasqal_evaluation_context object
+ *
+ * Get the graph origin for a #rasqal_evaluation_context
+ *
+ * Return value: graph origin literal or NULL if not set
+ */
+rasqal_literal*
+rasqal_evaluation_context_get_graph_origin(rasqal_evaluation_context* eval_context)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(eval_context, rasqal_evaluation_context, NULL);
+
+  return eval_context->graph_origin;
 }
 
 

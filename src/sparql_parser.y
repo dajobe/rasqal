@@ -263,7 +263,7 @@ print_op_expr(sparql_op_expr* oe, FILE* fh)
 %token TO ADD MOVE COPY ALL
 %token COALESCE
 %token AS IF
-%token NOT IN
+%token NOT EXISTS IN
 %token BINDINGS UNDEF SERVICE MINUS
 %token YEAR MONTH DAY HOURS MINUTES SECONDS TIMEZONE TZ
 %token STRLEN SUBSTR UCASE LCASE STRSTARTS STRENDS CONTAINS ENCODE_FOR_URI CONCAT
@@ -5210,6 +5210,42 @@ BuiltInCall: STR '(' Expression ')'
   if(!$$)
     YYERROR_MSG("BuiltInCall 12: cannot create expr");
 }
+| EXISTS GroupGraphPattern
+{
+  raptor_sequence* args;
+  
+  /* Put the original graph pattern directly in the expression args
+   * The EXISTS evaluation will handle the logic, not a graph pattern wrapper */
+  args = raptor_new_sequence(NULL, NULL);
+  if(!args || raptor_sequence_push(args, $2)) {
+    if(args)
+      raptor_free_sequence(args);
+    rasqal_free_graph_pattern($2);
+    YYERROR_MSG("BuiltInCall 13: cannot create args sequence");
+  }
+  
+  $$ = rasqal_new_expr_seq_expression(rq->world, RASQAL_EXPR_EXISTS, args);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 13: cannot create EXISTS expr");
+}
+| NOT EXISTS GroupGraphPattern
+{
+  raptor_sequence* args;
+  
+  /* Put the original graph pattern directly in the expression args
+   * The NOT EXISTS evaluation will handle the logic, not a graph pattern wrapper */
+  args = raptor_new_sequence(NULL, NULL);
+  if(!args || raptor_sequence_push(args, $3)) {
+    if(args)
+      raptor_free_sequence(args);
+    rasqal_free_graph_pattern($3);
+    YYERROR_MSG("BuiltInCall 14: cannot create args sequence");
+  }
+  
+  $$ = rasqal_new_expr_seq_expression(rq->world, RASQAL_EXPR_NOT_EXISTS, args);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 14: cannot create NOT EXISTS expr");
+}
 | RegexExpression
 {
   $$ = $1;
@@ -5578,7 +5614,25 @@ NumericLiteralNegative: INTEGER_NEGATIVE_LITERAL
 /* SPARQL Grammar: IRIref */
 IRIref: URI_LITERAL
 {
-  $$ = rasqal_new_uri_literal(rq->world, $1);
+  raptor_uri* uri;
+  
+  /* Resolve relative URIs against query base URI for proper SPARQL compliance */
+  if(rq->base_uri) {
+    uri = raptor_new_uri_relative_to_base(rq->world->raptor_world_ptr, 
+                                          rq->base_uri, 
+                                          raptor_uri_as_string($1));
+    /* Free the original URI since we've created a resolved copy */
+    raptor_free_uri($1);
+  } else {
+    /* Use the original URI directly - rasqal_new_uri_literal takes ownership */
+    uri = $1;
+  }
+  
+  if(!uri) {
+    YYERROR_MSG("IRIref 1: cannot resolve URI");
+  }
+  
+  $$ = rasqal_new_uri_literal(rq->world, uri);
   if(!$$)
     YYERROR_MSG("IRIref 1: cannot create literal");
 }

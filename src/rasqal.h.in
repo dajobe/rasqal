@@ -722,7 +722,8 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_REPLACE: Expression for SPARQL 1.1 REPLACE()
  * @RASQAL_EXPR_UUID: Expression for SPARQL 1.1 UUID()
  * @RASQAL_EXPR_STRUUID: Expression for SPARQL 1.1 STRUUID()
- * @RASQAL_EXPR_UNKNOWN: Internal
+ * @RASQAL_EXPR_EXISTS: Expression for SPARQL 1.1 EXISTS { graph_pattern }
+ * @RASQAL_EXPR_NOT_EXISTS: Expression for SPARQL 1.1 NOT EXISTS { graph_pattern  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
  * Rasqal expression operators.  A mixture of unary, binary and
@@ -824,8 +825,10 @@ typedef enum {
   RASQAL_EXPR_REPLACE,
   RASQAL_EXPR_UUID,
   RASQAL_EXPR_STRUUID,
+  RASQAL_EXPR_EXISTS,
+  RASQAL_EXPR_NOT_EXISTS,
   /* internal */
-  RASQAL_EXPR_LAST = RASQAL_EXPR_STRUUID
+  RASQAL_EXPR_LAST = RASQAL_EXPR_NOT_EXISTS
 } rasqal_op;
 
 
@@ -1104,6 +1107,8 @@ typedef struct {
  * @RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE: SERVICE graph pattern
  * @RASQAL_GRAPH_PATTERN_OPERATOR_MINUS: MINUS graph pattern
  * @RASQAL_GRAPH_PATTERN_OPERATOR_VALUES: VALUES graph pattern
+ * @RASQAL_GRAPH_PATTERN_OPERATOR_EXISTS: EXISTS graph pattern
+ * @RASQAL_GRAPH_PATTERN_OPERATOR_NOT_EXISTS: NOT EXISTS graph pattern
  * @RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN: Internal.
  * @RASQAL_GRAPH_PATTERN_OPERATOR_LAST: Internal.
  *
@@ -1123,8 +1128,10 @@ typedef enum {
   RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE   = 9,
   RASQAL_GRAPH_PATTERN_OPERATOR_MINUS     = 10,
   RASQAL_GRAPH_PATTERN_OPERATOR_VALUES    = 11,
+  RASQAL_GRAPH_PATTERN_OPERATOR_EXISTS    = 12,
+  RASQAL_GRAPH_PATTERN_OPERATOR_NOT_EXISTS = 13,
 
-  RASQAL_GRAPH_PATTERN_OPERATOR_LAST = RASQAL_GRAPH_PATTERN_OPERATOR_VALUES
+  RASQAL_GRAPH_PATTERN_OPERATOR_LAST = RASQAL_GRAPH_PATTERN_OPERATOR_NOT_EXISTS
 } rasqal_graph_pattern_operator;
 
 
@@ -1648,6 +1655,8 @@ typedef struct rasqal_random_s rasqal_random;
  * @flags: expression comparison flags
  * @seed: random seed
  * @random: random number generator object
+ * @query: Query context for complex expressions like EXISTS
+ * @graph_origin: Graph origin URI for expressions evaluated within GRAPH patterns (or NULL)
  *
  * A context for evaluating an expression such as with
  * rasqal_expression_evaluate2()
@@ -1659,6 +1668,8 @@ typedef struct {
   int flags;
   unsigned int seed;
   rasqal_random* random;
+  rasqal_query* query;  /* Query context for complex expressions like EXISTS */
+  rasqal_literal* graph_origin;  /* Graph origin for GRAPH pattern context */
 } rasqal_evaluation_context;
 
 
@@ -1729,6 +1740,10 @@ RASQAL_API
 int rasqal_evaluation_context_set_base_uri(rasqal_evaluation_context* eval_context, raptor_uri *base_uri);
 RASQAL_API
 int rasqal_evaluation_context_set_rand_seed(rasqal_evaluation_context* eval_context, unsigned int seed);
+RASQAL_API
+int rasqal_evaluation_context_set_graph_origin(rasqal_evaluation_context* eval_context, rasqal_literal* graph_origin);
+RASQAL_API
+rasqal_literal* rasqal_evaluation_context_get_graph_origin(rasqal_evaluation_context* eval_context);
 
 
 /* Literal class */

@@ -408,6 +408,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Bb][Nn][Oo][Dd][Ee] { return BNODE; }
 [Dd][Ee][Ff][Aa][Uu][Ll][Tt] { return DEFAULT; }
 [Nn][Oo][Tt] { return NOT; }
+[Ee][Xx][Ii][Ss][Tt][Ss] { return EXISTS; }
 [Ii][Nn] { return IN; }
 [Gg][Rr][Oo][Uu][Pp]_[Cc][Oo][Nn][Cc][Aa][Tt] { return GROUP_CONCAT; }
 [Ss][Ee][Pp][Aa][Rr][Aa][Tt][Oo][Rr] { return SEPARATOR; }
@@ -1603,6 +1604,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case NOT:
       return "NOT";
+
+    case EXISTS:
+      return "EXISTS";
 
     case IN:
       return "IN";

@@ -353,6 +353,9 @@ struct rasqal_graph_pattern_s {
   /* SILENT flag for SERVICE graph pattern */
   unsigned int silent : 1;
 
+  /* EXISTS pattern flag - marks patterns that are part of EXISTS expressions */
+  unsigned int is_exists_pattern : 1;
+
   /* SELECT graph pattern: sequence of #rasqal_data_graph */
   raptor_sequence* data_graphs;
 
@@ -366,6 +369,8 @@ rasqal_graph_pattern* rasqal_new_filter_graph_pattern(rasqal_query* query, rasqa
 rasqal_graph_pattern* rasqal_new_bind_graph_pattern(rasqal_query *query, rasqal_variable *var, rasqal_expression *expr);  
 rasqal_graph_pattern* rasqal_new_select_graph_pattern(rasqal_query *query, rasqal_projection* projection, raptor_sequence* data_graphs, rasqal_graph_pattern* where, rasqal_solution_modifier* modifier, rasqal_bindings* bindings);
 rasqal_graph_pattern* rasqal_new_single_graph_pattern(rasqal_query* query, rasqal_graph_pattern_operator op, rasqal_graph_pattern* single);
+rasqal_graph_pattern* rasqal_new_exists_graph_pattern(rasqal_query* query, rasqal_graph_pattern* pattern);
+rasqal_graph_pattern* rasqal_new_not_exists_graph_pattern(rasqal_query* query, rasqal_graph_pattern* pattern);
 rasqal_graph_pattern* rasqal_new_values_graph_pattern(rasqal_query* query, rasqal_bindings* bindings);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
@@ -690,6 +695,9 @@ rasqal_rowsource* rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_q
 
 /* rasqal_rowsource_empty.c */
 rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* query);
+
+/* rasqal_rowsource_exists.c */
+rasqal_rowsource* rasqal_new_exists_rowsource(rasqal_world *world, rasqal_query* query, rasqal_triples_source* triples_source, rasqal_graph_pattern* exists_pattern, rasqal_row* outer_row, rasqal_literal* graph_origin, int is_negated);
 
 /* rasqal_rowsource_engine.c */
 rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_results);
@@ -1176,11 +1184,16 @@ unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size
 unsigned char* rasqal_query_generate_bnodeid(rasqal_query* rdf_query, unsigned char *user_bnodeid);
 
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern_from_formula(rasqal_query* query, rasqal_formula* formula);
+rasqal_graph_pattern* rasqal_new_basic_graph_pattern_from_formula_exists(rasqal_query* query, rasqal_formula* formula);
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern_from_triples(rasqal_query* query, raptor_sequence* triples);
 
 rasqal_graph_pattern* rasqal_new_2_group_graph_pattern(rasqal_query* query, rasqal_graph_pattern* first_gp, rasqal_graph_pattern* second_gp);
 
 rasqal_graph_pattern* rasqal_graph_pattern_get_parent(rasqal_query *query, rasqal_graph_pattern* gp, rasqal_graph_pattern* tree_gp);
+
+/* EXISTS pattern support */
+void rasqal_graph_pattern_mark_as_exists(rasqal_graph_pattern* gp);
+int rasqal_query_variable_only_in_exists(rasqal_query* query, rasqal_variable* var);
 
 
 /* sparql_parser.y */
@@ -1351,6 +1364,7 @@ extern const unsigned char* rasqal_xsd_boolean_false;
 rasqal_literal* rasqal_literal_cast(rasqal_literal* l, raptor_uri* datatype, int flags,  int* error_p);
 rasqal_literal* rasqal_new_numeric_literal(rasqal_world*, rasqal_literal_type type, double d);
 int rasqal_literal_is_numeric(rasqal_literal* literal);
+rasqal_literal* rasqal_literal_bound_value(rasqal_literal* literal);
 rasqal_literal* rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error);
 rasqal_literal* rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error);
 rasqal_literal* rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error);
@@ -1494,6 +1508,7 @@ int rasqal_triples_source_triple_present(rasqal_triples_source *rts, rasqal_trip
 int rasqal_triples_source_support_feature(rasqal_triples_source *rts, rasqal_triples_source_feature feature);
 
 rasqal_triples_match* rasqal_new_triples_match(rasqal_query* query, rasqal_triples_source* triples_source, rasqal_triple_meta *m, rasqal_triple *t);
+void rasqal_free_triples_match(rasqal_triples_match* rtm);
 rasqal_triple_parts rasqal_triples_match_bind_match(struct rasqal_triples_match_s* rtm, rasqal_variable *bindings[4],rasqal_triple_parts parts);
 void rasqal_triples_match_next_match(struct rasqal_triples_match_s* rtm);
 int rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm);
