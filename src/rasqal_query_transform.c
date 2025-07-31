@@ -59,6 +59,7 @@ static int rasqal_query_select_build_variables_use_map_binds(rasqal_query* query
 static int rasqal_query_union_build_variables_use_map_binds(rasqal_query* query, unsigned short *use_map, int width, rasqal_graph_pattern* gp, unsigned short* vars_scope);
 static int rasqal_query_values_build_variables_use_map_binds(rasqal_query* query, unsigned short *use_map, int width, rasqal_graph_pattern* gp, unsigned short* vars_scope);
 static int rasqal_graph_pattern_tree_mentions_variable(rasqal_graph_pattern* gp, rasqal_variable* v);
+static int rasqal_query_triple_in_exists_pattern(rasqal_query* query, int triple_index);;
 
 
 int
@@ -1247,12 +1248,19 @@ rasqal_query_build_variables_use(rasqal_query* query,
                                   v->name);
       } else if(!(agg_row[i] & RASQAL_VAR_USE_BOUND_HERE) &&
                 !(agg_row[i] & RASQAL_VAR_USE_MENTIONED_HERE)) {
-        rasqal_log_error_simple(query->world,
-                                RAPTOR_LOG_LEVEL_ERROR,
-                                &query->locator,
-                                "Variable %s was not bound and not used in the query (where is it from?)", 
-                                v->name);
-        errors++;
+        /* Check if this variable is only used in EXISTS expressions */
+        int only_in_exists = rasqal_query_variable_only_in_exists(query, v);
+        
+        if(!only_in_exists) {
+          rasqal_log_error_simple(query->world,
+                                  RAPTOR_LOG_LEVEL_ERROR,
+                                  &query->locator,
+                                  "Variable %s was not bound and not used in the query (where is it from?)", 
+                                  v->name);
+          errors++;
+        } else {
+          /* Variable is only used in EXISTS expressions - this is valid */
+        }
       }
     }
 
@@ -1268,7 +1276,101 @@ rasqal_query_build_variables_use(rasqal_query* query,
 }
 
 
-/**
+/*
+ * rasqal_query_variable_only_in_exists:
+ * @query: query object
+ * @var: variable to check
+ *
+ * INTERNAL - Check if a variable is only used in EXISTS expressions
+ * 
+ * Returns: 1 if variable is only used in EXISTS patterns, 0 otherwise
+ */
+int
+rasqal_query_variable_only_in_exists(rasqal_query* query, rasqal_variable* var)
+{
+  int i;
+  int used_in_main_query = 0;
+  int used_in_exists = 0;
+  
+  if(!query || !var || !query->triples)
+    return 0;
+  
+  /* Check all triples in the query */
+  for(i = 0; i < raptor_sequence_size(query->triples); i++) {
+    rasqal_triple* triple = (rasqal_triple*)raptor_sequence_get_at(query->triples, i);
+    int triple_uses_var = 0;
+    
+    if(!triple)
+      continue;
+    
+    /* Check if this triple uses the variable */
+    if(triple->subject && triple->subject->type == RASQAL_LITERAL_VARIABLE &&
+       triple->subject->value.variable == var) {
+      triple_uses_var = 1;
+    }
+    if(triple->predicate && triple->predicate->type == RASQAL_LITERAL_VARIABLE &&
+       triple->predicate->value.variable == var) {
+      triple_uses_var = 1;
+    }
+    if(triple->object && triple->object->type == RASQAL_LITERAL_VARIABLE &&
+       triple->object->value.variable == var) {
+      triple_uses_var = 1;
+    }
+    
+    if(triple_uses_var) {
+      /* Now determine if this triple belongs to an EXISTS pattern */
+      if(rasqal_query_triple_in_exists_pattern(query, i)) {
+        used_in_exists = 1;
+      } else {
+        used_in_main_query = 1;
+      }
+    }
+  }
+  
+  /* Variable is only in EXISTS if it's used in EXISTS but not in main query */
+  return (used_in_exists && !used_in_main_query);
+}
+
+
+/*
+ * rasqal_query_triple_in_exists_pattern:
+ * @query: query object
+ * @triple_index: index of triple in query->triples sequence
+ *
+ * INTERNAL - Check if a triple belongs to an EXISTS pattern
+ * 
+ * Returns: 1 if triple is part of an EXISTS pattern, 0 otherwise
+ */
+static int
+rasqal_query_triple_in_exists_pattern(rasqal_query* query, int triple_index)
+{
+  rasqal_graph_pattern* gp;
+  int i;
+  
+  if(!query || !query->query_graph_pattern)
+    return 0;
+  
+  /* Look through all graph patterns to find one marked as EXISTS
+   * that covers this triple index.  100 is an arbitrary limit to
+   * prevent infinite loops */  
+  for(i = 0; i < 100; i++) {
+    gp = rasqal_query_get_graph_pattern(query, i);
+    if(!gp)
+      break;
+    
+    if(gp->is_exists_pattern && 
+       gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BASIC &&
+       triple_index >= gp->start_column && 
+       triple_index <= gp->end_column) {
+      return 1;
+    }
+  }
+  
+  return 0;
+}
+
+
+/*
  * rasqal_query_prepare_common:
  * @query: query
  *
@@ -1635,10 +1737,17 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
   switch(gp->op) {
     case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC:
       /* BGP (part 1) - everything is a mention */
-      rasqal_query_triples_build_variables_use_map_row(query->triples, 
-                                                       &use_map[offset],
-                                                       gp->start_column,
-                                                       gp->end_column);
+      /* Skip variable marking for EXISTS patterns to prevent scoping issues */
+      /* DEBUG: GP #%d Basic pattern - is_exists_pattern=%d, columns %d-%d */
+      if(!gp->is_exists_pattern) {
+        rasqal_query_triples_build_variables_use_map_row(query->triples, 
+                                                         &use_map[offset],
+                                                         gp->start_column,
+                                                         gp->end_column);
+      } else {
+        fprintf(stderr, "DEBUG: Skipping variable analysis for EXISTS pattern GP #%d (columns %d-%d)\n", 
+                gp->gp_index, gp->start_column, gp->end_column);
+      }
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
@@ -1670,6 +1779,8 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
     case RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE:
     case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
     case RASQAL_GRAPH_PATTERN_OPERATOR_VALUES:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_EXISTS:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_NOT_EXISTS:
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
       break;
   }
@@ -1982,6 +2093,8 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE:
     case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_EXISTS:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_NOT_EXISTS:
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
       break;
   }
@@ -2221,6 +2334,14 @@ static int
 rasqal_query_expression_build_variables_use_map_row(unsigned short *use_map_row,
                                                     rasqal_expression *e)
 {
+  /* EXISTS expressions contain graph patterns with their own
+   * variable scope.  Variables inside EXISTS patterns should not be
+   * marked as mentioned in the main query scope to avoid "variable
+   * not bound" errors.
+   */
+  if(e->op == RASQAL_EXPR_EXISTS || e->op == RASQAL_EXPR_NOT_EXISTS)
+    return 0;
+
   if(e->literal) {
     rasqal_variable* v;
 

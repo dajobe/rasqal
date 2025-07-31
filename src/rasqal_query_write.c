@@ -50,6 +50,7 @@ typedef struct
 } sparql_writer_context;
 
 static void rasqal_query_write_sparql_expression(sparql_writer_context *wc, raptor_iostream* iostr, rasqal_expression* e);
+static void rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc, raptor_iostream* iostr, rasqal_graph_pattern* gp, int gp_index, unsigned int indent);
 
 
 static void
@@ -543,6 +544,30 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
         rasqal_query_write_sparql_expression(wc, iostr, e2);
       }
       raptor_iostream_counted_string_write(" )", 2, iostr);
+      break;
+
+    case RASQAL_EXPR_EXISTS:
+      raptor_iostream_counted_string_write("EXISTS ", 7, iostr);
+      if(e->args && raptor_sequence_size(e->args) > 0) {
+        rasqal_graph_pattern* gp = (rasqal_graph_pattern*)raptor_sequence_get_at(e->args, 0);
+        if(gp) {
+          raptor_iostream_counted_string_write("{ ", 2, iostr);
+          rasqal_query_write_sparql_graph_pattern(wc, iostr, gp, -1, 0);
+          raptor_iostream_counted_string_write(" }", 2, iostr);
+        }
+      }
+      break;
+
+    case RASQAL_EXPR_NOT_EXISTS:
+      raptor_iostream_counted_string_write("NOT EXISTS ", 11, iostr);
+      if(e->args && raptor_sequence_size(e->args) > 0) {
+        rasqal_graph_pattern* gp = (rasqal_graph_pattern*)raptor_sequence_get_at(e->args, 0);
+        if(gp) {
+          raptor_iostream_counted_string_write("{ ", 2, iostr);
+          rasqal_query_write_sparql_graph_pattern(wc, iostr, gp, -1, 0);
+          raptor_iostream_counted_string_write(" }", 2, iostr);
+        }
+      }
       break;
 
     case RASQAL_EXPR_UNKNOWN:
