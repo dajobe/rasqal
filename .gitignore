@@ -14,7 +14,8 @@
 .gdbinit
 .libs
 .pytest_cache/
-/specs
+.vscode/
+specs/
 CLAUDE.md
 INSTALL
 LICENSE.txt
