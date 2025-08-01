@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter id="query-engine-architecture">
+  <title>Rasqal Query Engine Architecture</title>
+
+  <para>This chapter provides a comprehensive overview of the Rasqal RDF query engine architecture, covering the complete query execution pipeline, variable binding mechanisms, and architectural patterns that developers need to understand when working with Rasqal internals.</para>
+
+  <section id="query-engine-overview">
+    <title>Overview</title>
+
+    <para>Rasqal follows a classic compiler architecture with distinct phases that transform SPARQL queries from text to results. The query engine implements a four-phase pipeline: parsing, transformation, algebra generation, and rowsource execution. Each phase has specific responsibilities and architectural patterns that enable efficient query processing and extensibility.</para>
+
+    <para>The architecture is designed to support multiple query languages (SPARQL, RDQL) while maintaining a unified internal representation through the algebra system. This design enables query optimization, execution planning, and efficient processing of complex graph patterns and expressions.</para>
+
+    <para>The architecture provides a robust foundation for RDF query processing with clear separation of concerns, extensible design, and efficient execution patterns. Understanding these architectural patterns is essential for developers working with Rasqal internals, implementing custom extensions, or optimizing query performance.</para>
+
+  </section>
+
+  <section id="query-execution-pipeline">
+    <title>Query Execution Pipeline</title>
+
+    <para>The Rasqal query execution pipeline consists of four main phases that transform SPARQL queries from text to results:</para>
+
+    <section id="parsing-phase">
+      <title>Parsing Phase</title>
+
+      <para>The parsing phase takes SPARQL query text and produces an Abstract Syntax Tree (AST) in the <literal>rasqal_query</literal> structure. This phase handles lexical analysis, syntax analysis, and AST construction through the <filename>sparql_parser.y</filename> and <filename>sparql_lexer.l</filename> files.</para>
+
+      <para>During parsing, the system:</para>
+      <itemizedlist>
+        <listitem><para>Performs lexical analysis to identify tokens and keywords</para></listitem>
+        <listitem><para>Constructs syntax trees for graph patterns, expressions, and variable declarations</para></listitem>
+        <listitem><para>Registers variables and establishes initial scoping</para></listitem>
+        <listitem><para>Validates basic syntax and semantic constraints</para></listitem>
+      </itemizedlist>
+
+    </section>
+
+    <section id="transformation-phase">
+      <title>Transformation Phase</title>
+
+      <para>The query transformation phase takes the raw AST from the parser and produces a validated and transformed query structure. This phase performs variable analysis, type checking, and optimization preparation through <filename>rasqal_query_transform.c</filename>.</para>
+
+      <para>Key transformation activities include:</para>
+      <itemizedlist>
+        <listitem><para>Variable scope analysis and binding validation</para></listitem>
+        <listitem><para>Type checking for expressions and literals</para></listitem>
+        <listitem><para>Constant folding and expression simplification</para></listitem>
+        <listitem><para>Preparation for algebra generation</para></listitem>
+      </itemizedlist>
+
+    </section>
+
+    <section id="algebra-generation-phase">
+      <title>Algebra Generation Phase</title>
+
+      <para>The algebra generation phase converts the transformed query into a relational algebra representation, mapping graph patterns to algebra operator trees. This phase creates the foundation for query optimization and execution planning.</para>
+
+      <para>The algebra system provides:</para>
+      <itemizedlist>
+        <listitem><para>Unified representation for different query languages</para></listitem>
+        <listitem><para>Foundation for query optimization</para></listitem>
+        <listitem><para>Execution planning capabilities</para></listitem>
+        <listitem><para>Extensibility for new query features</para></listitem>
+      </itemizedlist>
+
+    </section>
+
+    <section id="rowsource-execution-phase">
+      <title>Rowsource Execution Phase</title>
+
+      <para>The rowsource execution phase takes algebra operators and produces query results through iterator-based execution with lazy evaluation. This phase implements the actual data access and result generation.</para>
+
+      <para>Execution characteristics include:</para>
+      <itemizedlist>
+        <listitem><para>Lazy evaluation for memory efficiency</para></listitem>
+        <listitem><para>Iterator-based processing for large result sets</para></listitem>
+        <listitem><para>Early termination support for LIMIT clauses</para></listitem>
+        <listitem><para>Streaming results for interactive applications</para></listitem>
+      </itemizedlist>
+
+    </section>
+
+  </section>
+
+  <section id="parser-architecture">
+    <title>Parser Architecture</title>
+
+    <para>The SPARQL parser is implemented using Bison (yacc) with grammar rules that create AST nodes during parsing. Parser actions create various structures including graph patterns, expressions, and variable registrations.</para>
+
+    <para>Variables are registered during parsing through <function>rasqal_query_add_variable</function>, which creates variables from literals and adds them to the query structure. This registration must happen before variables can be used in expressions, creating challenges for patterns that introduce new variables.</para>
+
+    <para>The parser tightly couples patterns with main query structures, which creates variable scoping challenges that require special handling for complex query features.</para>
+
+  </section>
+
+  <section id="algebra-system">
+    <title>Algebra System</title>
+
+    <para>Rasqal represents graph patterns as a hierarchy with various operator types including basic patterns, optional patterns, union patterns, group patterns, graph patterns, filter patterns, and others. Each pattern type has specific semantics and evaluation requirements.</para>
+
+    <para>Basic graph patterns consist of triple patterns, which are the fundamental building blocks containing subject, predicate, object, and optional named graph context.</para>
+
+    <para>The algebra system provides the foundation for query optimization and execution planning, with each operator type having specific performance characteristics and optimization opportunities.</para>
+
+    <section id="algebra-operators">
+      <title>Algebra Operators</title>
+
+      <para>The algebra system supports the following operator types:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>Basic Graph Patterns</term>
+          <listitem><para>Triple patterns that form the fundamental data access units</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Optional Patterns</term>
+          <listitem><para>Left outer join semantics for optional data matching</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Union Patterns</term>
+          <listitem><para>Disjunctive combination of multiple graph patterns</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Group Patterns</term>
+          <listitem><para>Conjunctive combination of multiple graph patterns</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Graph Patterns</term>
+          <listitem><para>Named graph context for pattern evaluation</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Filter Patterns</term>
+          <listitem><para>Expression-based filtering of pattern results</para></listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+  </section>
+
+  <section id="rowsource-architecture">
+    <title>Rowsource Architecture</title>
+
+    <para>Rasqal uses the iterator pattern for query execution, with rowsources implementing <function>get_next_row</function>, <function>finished</function>, and <function>reset</function> methods. This architecture enables lazy evaluation, memory efficiency for large result sets, early termination for LIMIT clauses, and streaming results.</para>
+
+    <para>The execution flow follows a bottom-up approach, generating rows from basic graph patterns and processing them through operators like JOIN, OPTIONAL, and FILTER before collecting results at the top level.</para>
+
+    <para>The rowsource architecture provides excellent extensibility for new algebra operators through specialized rowsource implementations.</para>
+
+    <section id="rowsource-types">
+      <title>Rowsource Types</title>
+
+      <para>The rowsource system includes several specialized types:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>Triples Pattern Rowsource</term>
+          <listitem><para>Handles basic graph pattern execution and triple matching</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Filter Rowsource</term>
+          <listitem><para>Applies filter expressions to rows from other rowsources</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Join Rowsource</term>
+          <listitem><para>Implements join operations between multiple rowsources</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Optional Rowsource</term>
+          <listitem><para>Implements left outer join semantics for optional patterns</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Union Rowsource</term>
+          <listitem><para>Combines results from multiple rowsources</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Project Rowsource</term>
+          <listitem><para>Selects and reorders variables in result rows</para></listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+  </section>
+
+  <section id="expression-evaluation-system">
+    <title>Expression Evaluation System</title>
+
+    <para>Rasqal supports various expression types including literals, functions, variables, logical operators, comparison operators, and specialized operators. Each expression type has specific evaluation semantics and requirements.</para>
+
+    <para>Expressions are evaluated within a <literal>rasqal_evaluation_context</literal> that provides access to the world, query, flags, comparison flags, and current row bindings. However, this context has significant limitations - it doesn't provide access to triples source for data lookup, query execution state, or other rowsources for sub-query execution.</para>
+
+    <para>This architectural boundary creates challenges for features that require data access within expression evaluation. The expression evaluation system is intentionally limited to literal operations, not query execution, which forces complex features to rely on heuristics rather than actual data lookup.</para>
+
+    <section id="expression-types">
+      <title>Expression Types</title>
+
+      <para>The expression system supports the following types:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>Literals</term>
+          <listitem><para>Constant values including strings, numbers, booleans, and URIs</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Variables</term>
+          <listitem><para>Variable references that resolve to current bindings</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Functions</term>
+          <listitem><para>Built-in and user-defined function calls</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Logical Operators</term>
+          <listitem><para>AND, OR, NOT operations on boolean expressions</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Comparison Operators</term>
+          <listitem><para>Equality, inequality, and ordering comparisons</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Arithmetic Operators</term>
+          <listitem><para>Mathematical operations on numeric expressions</para></listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+  </section>
+
+  <section id="variable-binding-system">
+    <title>Variable Binding System</title>
+
+    <para>The variable binding system is one of the most complex aspects of Rasqal's architecture, with variables having a sophisticated lifecycle from parse-time registration through runtime binding and sub-query propagation.</para>
+
+    <para>Variables are represented with a structure containing name, current binding value, offset position in rows, and usage flags indicating how the variable is used throughout the query.</para>
+
+    <para>Rasqal has two distinct patterns for accessing variable bindings depending on the execution context. The primary mechanism for expression evaluation uses <function>rasqal_literal_value</function>, which returns bound values when variables are bound or NULL when unbound. For pattern instantiation and sub-query execution, direct access to variable values through the variable structure is required.</para>
+
+    <section id="variable-lifecycle">
+      <title>Variable Lifecycle</title>
+
+      <para>Variables follow a specific lifecycle through the query execution process:</para>
+
+      <orderedlist>
+        <listitem><para><emphasis>Registration</emphasis> - Variables are registered during parsing and added to the query's variable table</para></listitem>
+        <listitem><para><emphasis>Analysis</emphasis> - The query transformer analyzes variable usage and binding patterns</para></listitem>
+        <listitem><para><emphasis>Binding</emphasis> - Variables receive values during query execution</para></listitem>
+        <listitem><para><emphasis>Propagation</emphasis> - Variable bindings are propagated to sub-queries and expressions</para></listitem>
+        <listitem><para><emphasis>Cleanup</emphasis> - Variable bindings are cleaned up after query completion</para></listitem>
+      </orderedlist>
+
+    </section>
+
+    <section id="variable-access-patterns">
+      <title>Variable Access Patterns</title>
+
+      <para>Rasqal provides two distinct patterns for accessing variable bindings:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>Expression Context Access</term>
+          <listitem><para>Uses <function>rasqal_literal_value</function> during expression evaluation within an active evaluation context</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Direct Variable Access</term>
+          <listitem><para>Used for direct access to variable bindings in pattern instantiation and sub-query contexts</para></listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+  </section>
+
+  <section id="graph-pattern-management">
+    <title>Graph Pattern Management</title>
+
+    <para>Graph patterns are built during parsing through functions like <function>rasqal_new_basic_graph_pattern_from_formula</function>, which creates patterns from formula structures. The parser automatically adds pattern triples to the main query's triple sequence during pattern construction, which can cause variable scoping issues that require special handling.</para>
+
+    <para>Filter expressions are attached to graph patterns and evaluated during pattern execution. The integration between graph patterns and filter expressions creates complex evaluation requirements, especially for nested patterns.</para>
+
+    <para>Pattern integration assumes global pattern integration, requiring special handling for scoped sub-patterns that need isolation for proper scoping.</para>
+
+  </section>
+
+  <section id="query-transformation-system">
+    <title>Query Transformation System</title>
+
+    <para>The query transformer performs comprehensive variable analysis in <function>rasqal_query_build_variables_use</function>, analyzing variable scope and binding context, ensuring proper variable binding, and identifying unbound variable usage.</para>
+
+    <para>The transformer prepares queries for optimization through constant folding, filter pushdown, and join reordering preparation. This phase is critical for query performance and correctness.</para>
+
+    <section id="transformation-phases">
+      <title>Transformation Phases</title>
+
+      <para>The query transformation system performs several key phases:</para>
+
+      <orderedlist>
+        <listitem><para><emphasis>Variable Analysis</emphasis> - Analyzes variable usage patterns and binding requirements</para></listitem>
+        <listitem><para><emphasis>Scope Validation</emphasis> - Validates variable scoping and identifies unbound variables</para></listitem>
+        <listitem><para><emphasis>Type Checking</emphasis> - Validates expression types and literal compatibility</para></listitem>
+        <listitem><para><emphasis>Constant Folding</emphasis> - Evaluates constant expressions at compile time</para></listitem>
+        <listitem><para><emphasis>Optimization Preparation</emphasis> - Prepares query structures for optimization</para></listitem>
+      </orderedlist>
+
+    </section>
+
+  </section>
+
+  <section id="triples-source-interface">
+    <title>Triples Source Interface</title>
+
+    <para>Rasqal abstracts data access through the triples source interface, which provides an abstract interface for data store access. This interface includes initialization, next match iteration, and finished state management.</para>
+
+    <para>The triples source pattern involves binding known variables in triple patterns, querying the underlying data store, and iterating through matching triples.</para>
+
+    <para>A key limitation is that the expression evaluation context doesn't provide direct access to triples source, making complex evaluation architecturally challenging and forcing reliance on heuristics rather than actual data lookup.</para>
+
+    <section id="triples-source-operations">
+      <title>Triples Source Operations</title>
+
+      <para>The triples source interface provides the following operations:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>Initialization</term>
+          <listitem><para>Sets up the triples source for query execution</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Triple Matching</term>
+          <listitem><para>Finds triples matching specified patterns</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Iteration</term>
+          <listitem><para>Iterates through matching triples</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Cleanup</term>
+          <listitem><para>Releases resources after query completion</para></listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+  </section>
+
+  <section id="error-handling-and-validation">
+    <title>Error Handling and Validation</title>
+
+    <para>Rasqal implements multi-level validation across parse-time, transform-time, and runtime phases. Parse-time validation handles syntax and basic semantic validation, transform-time validation performs variable binding and scope validation, and runtime validation handles type checking and evaluation errors.</para>
+
+    <para>Error propagation uses error flags passed through evaluation chains with early termination on error conditions.</para>
+
+    <para>The query validation pipeline ensures queries go through comprehensive validation including lexical, syntactic, semantic, and runtime phases.</para>
+
+    <section id="validation-levels">
+      <title>Validation Levels</title>
+
+      <para>Rasqal implements validation at multiple levels:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>Lexical Validation</term>
+          <listitem><para>Validates token recognition and basic syntax</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Syntactic Validation</term>
+          <listitem><para>Validates grammar rules and structure</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Semantic Validation</term>
+          <listitem><para>Validates variable binding and scope</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Runtime Validation</term>
+          <listitem><para>Validates expression evaluation and type checking</para></listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+  </section>
+
+
+
+  <section id="performance-considerations">
+    <title>Performance Considerations</title>
+
+    <para>Lazy evaluation provides memory efficiency for large datasets, early termination possibilities, and streaming result processing. This architecture enables efficient handling of large result sets and complex queries.</para>
+
+    <para>Optimization opportunities include leveraging RDF store indices, moving filters closer to data through filter pushdown, optimizing join execution order, and evaluating constants at compile time.</para>
+
+    <para>Bottleneck areas include frequent literal value lookups during variable binding, complex expression tree evaluation, triple pattern evaluation, and frequent object creation and destruction during memory allocation.</para>
+
+    <section id="optimization-strategies">
+      <title>Optimization Strategies</title>
+
+      <para>Rasqal employs several optimization strategies:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>Constant Folding</term>
+          <listitem><para>Evaluates constant expressions at compile time</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Filter Pushdown</term>
+          <listitem><para>Moves filters closer to data sources</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Join Reordering</term>
+          <listitem><para>Optimizes join execution order</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Early Termination</term>
+          <listitem><para>Stops processing when sufficient results are found</para></listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+  </section>
+
+  <section id="extensibility-and-customization">
+    <title>Extensibility and Customization</title>
+
+    <para>Rasqal's architecture provides several extension points for customizing query behavior and adding new functionality:</para>
+
+    <section id="custom-functions">
+      <title>Custom Functions</title>
+
+      <para>Developers can add custom functions to the expression system by implementing function registration and evaluation callbacks. This enables domain-specific functionality and integration with external systems.</para>
+
+    </section>
+
+    <section id="custom-triples-sources">
+      <title>Custom Triples Sources</title>
+
+      <para>The triples source interface allows implementing custom data access layers for different storage systems. This enables integration with various RDF stores and data sources.</para>
+
+    </section>
+
+    <section id="custom-rowsources">
+      <title>Custom Rowsources</title>
+
+      <para>The rowsource architecture supports implementing custom execution operators for specialized query processing requirements. This enables advanced optimization and domain-specific query features.</para>
+
+    </section>
+
+  </section>
+
+</chapter> 

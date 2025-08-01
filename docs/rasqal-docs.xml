@@ -92,6 +92,20 @@ execution plans and execute the queries into query result sets.
     <xi:include href="rasqal-tutorial-query-results-compare.xml"/>
   </part>
 
+  <part id="architecture">
+    <title>Rasqal Architecture</title>
+
+    <partintro id="architecture-introduction">
+      <para>This part describes the internal architecture of the
+      <ulink url="http://librdf.org/rasqal/">Rasqal</ulink> query engine,
+      including the query execution pipeline, variable binding mechanisms,
+      and architectural patterns that developers need to understand when
+      working with Rasqal internals.</para>
+    </partintro>
+
+    <xi:include href="rasqal-query-engine-architecture.xml"/>
+  </part>
+
   <part id="reference-manual">
     <title>Reference Manual</title>
 
