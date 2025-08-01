@@ -1745,8 +1745,7 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
                                                          gp->start_column,
                                                          gp->end_column);
       } else {
-        fprintf(stderr, "DEBUG: Skipping variable analysis for EXISTS pattern GP #%d (columns %d-%d)\n", 
-                gp->gp_index, gp->start_column, gp->end_column);
+        RASQAL_DEBUG4("Skipping variable analysis for EXISTS pattern GP #%d (columns %d-%d)\n", gp->gp_index, gp->start_column, gp->end_column);
       }
       break;
 

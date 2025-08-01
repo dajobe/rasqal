@@ -146,13 +146,7 @@ rasqal_evaluate_exists_pattern(rasqal_graph_pattern* gp,
                                rasqal_query* query,
                                rasqal_row* outer_row)
 {
-  fprintf(stderr, "EXISTS PATTERN DEBUG: Graph pattern operator = %d\n", gp ? gp->op : -1);
-  if(gp && gp->triples) {
-    fprintf(stderr, "EXISTS PATTERN DEBUG: Number of triples = %d\n", raptor_sequence_size(gp->triples));
-  }
-  if(gp && gp->graph_patterns) {
-    fprintf(stderr, "EXISTS PATTERN DEBUG: Number of sub-patterns = %d\n", raptor_sequence_size(gp->graph_patterns));
-  }
+
 
   if(!gp || !triples_source || !query)
     return 0;
@@ -176,7 +170,6 @@ rasqal_evaluate_exists_pattern(rasqal_graph_pattern* gp,
       return rasqal_evaluate_union_exists_pattern(gp, triples_source, query, outer_row);
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_FILTER:
-      fprintf(stderr, "EXISTS PATTERN DEBUG: About to call rasqal_evaluate_filter_exists_pattern\n");
       return rasqal_evaluate_filter_exists_pattern(gp, triples_source, query, outer_row);
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
@@ -245,13 +238,6 @@ rasqal_evaluate_exists_pattern_with_origin(rasqal_graph_pattern* gp,
 {
   if(!gp)
     return 0;
-
-#ifdef RASQAL_DEBUG
-  fprintf(stderr, "EXISTS PATTERN DEBUG: Graph pattern operator = %d (with origin)\n", gp->op);
-  if(gp->triples) {
-    fprintf(stderr, "EXISTS PATTERN DEBUG: Number of triples = %d\n", (int)raptor_sequence_size(gp->triples));
-  }
-#endif
 
   switch(gp->op) {
     case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC:
@@ -750,27 +736,10 @@ rasqal_evaluate_filter_exists_pattern(rasqal_graph_pattern* gp,
   rasqal_graph_pattern* pattern_gp;
   int pattern_result;
 
-  fprintf(stderr, "FILTER DEBUG: rasqal_evaluate_filter_exists_pattern called\n");
-  if(!gp) {
-    fprintf(stderr, "FILTER DEBUG: gp is NULL\n");
+  if(!gp)
     return 0;
-  }
 
-  fprintf(stderr, "FILTER DEBUG: gp->origin = %p\n", gp->origin);
-  if(gp->origin) {
-    fprintf(stderr, "FILTER DEBUG: Filter pattern has graph origin: ");
-    rasqal_literal_print(gp->origin, stderr);
-    fprintf(stderr, "\n");
-  } else {
-    fprintf(stderr, "FILTER DEBUG: Filter pattern has NO graph origin\n");
-  }
-
-  fprintf(stderr, "FILTER DEBUG: gp->filter_expression = %p\n", gp->filter_expression);
-  if(gp->filter_expression) {
-    fprintf(stderr, "FILTER DEBUG: filter expression op = %d\n", gp->filter_expression->op);
-  }
   if(!gp->graph_patterns) {
-    fprintf(stderr, "FILTER DEBUG: gp->graph_patterns is NULL - this is normal for standalone FILTER expressions\n");
     /* For standalone FILTER expressions, the expression is in filter_expression, not graph_patterns */
     if(gp->filter_expression) {
       rasqal_evaluation_context* eval_context;
@@ -779,14 +748,10 @@ rasqal_evaluate_filter_exists_pattern(rasqal_graph_pattern* gp,
       int filter_result;
       int i;
 
-      fprintf(stderr, "FILTER DEBUG: Evaluating standalone filter expression\n");
-
       /* Initialize evaluation context */
       eval_context = rasqal_new_evaluation_context(query->world, &query->locator, 0);
-      if(!eval_context) {
-        fprintf(stderr, "FILTER DEBUG: Failed to create evaluation context\n");
+      if(!eval_context)
         return 0;
-      }
 
       /* CRITICAL: Set query context for nested EXISTS expressions */
       eval_context->query = query;
@@ -796,11 +761,8 @@ rasqal_evaluate_filter_exists_pattern(rasqal_graph_pattern* gp,
         for(i = 0; i < outer_row->size; i++) {
           rasqal_variable* var = rasqal_row_get_variable_by_offset(outer_row, i);
           rasqal_literal* value = outer_row->values[i];
-          if(var && value) {
-            fprintf(stderr, "FILTER DEBUG: Setting variable %s for filter evaluation\n",
-                    (char*)var->name);
+          if(var && value)
             var->value = rasqal_new_literal_from_literal(value);
-          }
         }
       }
 
@@ -820,38 +782,27 @@ rasqal_evaluate_filter_exists_pattern(rasqal_graph_pattern* gp,
 
       rasqal_free_evaluation_context(eval_context);
 
-      if(expr_error || !expr_result) {
-        fprintf(stderr, "FILTER DEBUG: Filter expression evaluation failed\n");
+      if(expr_error || !expr_result)
         return 0;
-      }
 
       filter_result = rasqal_literal_as_boolean(expr_result, &expr_error);
       rasqal_free_literal(expr_result);
 
-      if(expr_error) {
-        fprintf(stderr, "FILTER DEBUG: Filter expression boolean conversion failed\n");
+      if(expr_error)
         return 0;
-      }
 
-      fprintf(stderr, "FILTER DEBUG: Filter expression result = %d\n", filter_result);
       return filter_result;
     }
     return 0;
   }
-  if(raptor_sequence_size(gp->graph_patterns) < 1) {
-    fprintf(stderr, "FILTER DEBUG: gp->graph_patterns size < 1\n");
+  if(raptor_sequence_size(gp->graph_patterns) < 1)
     return 0;
-  }
-  if(!gp->filter_expression) {
-    fprintf(stderr, "FILTER DEBUG: gp->filter_expression is NULL\n");
-    return 0;
-  }
-  fprintf(stderr, "FILTER DEBUG: gp has %d sub-patterns and a filter expression\n",
-          raptor_sequence_size(gp->graph_patterns));
 
-  if(!gp->graph_patterns || raptor_sequence_size(gp->graph_patterns) < 1) {
+  if(!gp->filter_expression)
     return 0;
-  }
+
+  if(!gp->graph_patterns || raptor_sequence_size(gp->graph_patterns) < 1)
+    return 0;
 
   /* FILTER has pattern + constraint expressions */
   pattern_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, 0);
@@ -880,7 +831,6 @@ rasqal_evaluate_filter_exists_pattern(rasqal_graph_pattern* gp,
       raptor_sequence* vars_seq = rasqal_variables_table_get_named_variables_sequence(query->vars_table);
       if(vars_seq) {
         old_values_count = raptor_sequence_size(vars_seq);
-        fprintf(stderr, "FILTER DEBUG: Setting up variable bindings, outer_row size=%d, vars_count=%d\n", outer_row->size, old_values_count);
         if(old_values_count > 0) {
           old_values = (rasqal_literal**)RASQAL_CALLOC(rasqal_literal**, old_values_count, sizeof(rasqal_literal*));
           if(!old_values) {
@@ -893,10 +843,7 @@ rasqal_evaluate_filter_exists_pattern(rasqal_graph_pattern* gp,
             if(var) {
               old_values[i] = var->value;
               if(i < outer_row->size && outer_row->values[i]) {
-                fprintf(stderr, "FILTER DEBUG: Setting variable %s to value from outer_row[%d]\n", var->name, i);
                 var->value = rasqal_new_literal_from_literal(outer_row->values[i]);
-              } else {
-                fprintf(stderr, "FILTER DEBUG: Variable %s has no value in outer_row[%d]\n", var->name, i);
               }
             }
           }
