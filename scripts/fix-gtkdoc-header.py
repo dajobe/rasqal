@@ -31,7 +31,7 @@ def main():
     """
     for line in sys.stdin:
         # Remove trailing macros
-        line = re.sub(r"RASQAL_PRINTF_FORMAT\(\d+, \d+\);", ";", line)
+        line = re.sub(r"(RASQAL|RAPTOR)_PRINTF_FORMAT\(\d+, \d+\);", ";", line)
 
         # gtk-doc hates const in some places
         line = re.sub(r"const char\* const\* (\w+)", r"const char* \1", line)

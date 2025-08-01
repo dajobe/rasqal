@@ -395,7 +395,7 @@ def version_for_sort(version_string: str) -> List[str]:
 
 
 def parse_tsv_file(
-    tsv_file: Path,
+    tsv_file: Path, no_warn_version: str = None
 ) -> Tuple[List[Tuple[str, str]], Dict[str, VersionChanges]]:
     version_pairs = []
     version_pairs_seen = set()
@@ -492,10 +492,11 @@ def parse_tsv_file(
                         and old_name == new_name
                         and old_args == new_args
                     ):
-                        print(
-                            f"Warning: Line records no function change: {fields}",
-                            file=sys.stderr,
-                        )
+                        if not no_warn_version or fields[0] != no_warn_version:
+                            print(
+                                f"Warning: Line records no function change: {fields}",
+                                file=sys.stderr,
+                            )
                     else:
                         change_set.changed_functions.append(
                             ChangedFunction(
@@ -665,6 +666,10 @@ def main():
         "--package", help="Set the package name (used as a prefix in IDs)"
     )
     parser.add_argument(
+        "--no-warn-version", 
+        help="Don't warn about unchanged functions for this old version (e.g., 1.4.21 for raptor)"
+    )
+    parser.add_argument(
         "package_name", metavar="PACKAGE-NAME", help="The name of the package"
     )
     parser.add_argument(
@@ -679,7 +684,7 @@ def main():
     package = args.package_name
     id_prefix = args.package or package
 
-    version_pairs, changes = parse_tsv_file(args.tsv_file)
+    version_pairs, changes = parse_tsv_file(args.tsv_file, args.no_warn_version)
 
     if args.docbook_xml:
         generate_docbook_xml(
