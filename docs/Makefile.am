@@ -107,8 +107,8 @@ rasqal-tutorial-query-results-compare.xml
 DISTCLEANFILES += \
 rasqal-fake.h
 
-$(builddir)/rasqal-fake.h: $(builddir)/../src/rasqal.h $(srcdir)/../scripts/fix-gtkdoc-header.py
-	$(PYTHON3) $(srcdir)/../scripts/fix-gtkdoc-header.py < $< > $@
+$(builddir)/rasqal-fake.h: $(top_builddir)/src/rasqal.h $(top_srcdir)/scripts/fix-gtkdoc-header.py
+	$(PYTHON3) $(top_srcdir)/scripts/fix-gtkdoc-header.py < $< > $@
 
 $(builddir)/../src/rasqal.h:
 	cd $(builddir)/../src && $(MAKE) rasqal.h
@@ -118,8 +118,8 @@ LYNX=lynx
 LYNXARGS=-dump -nolist
 
 if MAINTAINER_MODE
-librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/../scripts/fix-groff-xhtml.py
-	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | $(PYTHON3) $(srcdir)/../scripts/fix-groff-xhtml.py $@
+librasqal.html: $(srcdir)/librasqal.3 $(top_srcdir)/scripts/fix-groff-xhtml.py
+	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | $(PYTHON3) $(top_srcdir)/scripts/fix-groff-xhtml.py $@
 
 # FIXME: automate updating the rasqal-overrides.txt definition of
 #   rasqal_triples_match  rasqal_triples_source
@@ -131,7 +131,7 @@ librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/../scripts/fix-groff-xhtml.py
 README: README.html
 	$(LYNX) $(LYNXARGS) $< > $@
 
-rasqal-changes.xml: $(srcdir)/rasqal-changes.tsv $(srcdir)/../scripts/process-changes.py
-	$(PYTHON3) $(srcdir)/../scripts/process-changes.py --package rasqal --docbook-xml $@ "Rasqal" $(srcdir)/rasqal-changes.tsv
+rasqal-changes.xml: $(srcdir)/rasqal-changes.tsv $(top_srcdir)/scripts/process-changes.py
+	$(PYTHON3) $(top_srcdir)/scripts/process-changes.py --package rasqal --docbook-xml $@ "Rasqal" $(srcdir)/rasqal-changes.tsv
 
 endif
