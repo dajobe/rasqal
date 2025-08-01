@@ -98,8 +98,16 @@
 0.9.32	-	-	-	0.9.33	int	rasqal_literal_is_rdf_literal	(rasqal_literal* l)	-
 0.9.32	rasqal_data_graph*	rasqal_new_data_graph_from_uri	(rasqal_world* world, raptor_uri* uri, raptor_uri* name_uri, int flags, const char* format_type, const char* format_name, raptor_uri* format_uri)	0.9.33	rasqal_data_graph*	rasqal_new_data_graph_from_uri	(rasqal_world* world, raptor_uri* uri, raptor_uri* name_uri, unsigned int flags, const char* format_type, const char* format_name, raptor_uri* format_uri)	Made flags argument unsigned
 0.9.32	rasqal_expression*	rasqal_new_group_concat_expression	(rasqal_world* world, int flags, raptor_sequence* args, rasqal_literal* separator)	0.9.33	rasqal_expression*	rasqal_new_group_concat_expression	(rasqal_world* world, unsigned int flags, raptor_sequence* args, rasqal_literal* separator)	Made flags argument unsigned
+0.9.33	-	-	-	0.9.34	rasqal_query_results_compare*	rasqal_new_query_results_compare	(rasqal_world* world, rasqal_query_results* first_results, rasqal_query_results* second_results)	-
+0.9.33	-	-	-	0.9.34	void	+rasqal_free_query_results_compare	(rasqal_query_results_compare* compare)	-
+0.9.33	-	-	-	0.9.34	void	rasqal_query_results_compare_set_options	(rasqal_query_results_compare* compare, rasqal_query_results_compare_options* options)	
+0.9.33	-	-	-	0.9.34	rasqal_query_results_compare_result*	rasqal_query_results_compare_execute	(rasqal_query_results_compare* compare)	-
+0.9.33	-	-	-	0.9.34	void	rasqal_free_query_results_compare_result	(rasqal_query_results_compare_result* result)	-
+0.9.33	-	-	-	0.9.34	void	rasqal_query_results_compare_options_init	(rasqal_query_results_compare_options* options)	-
+0.9.33	-	-	-	0.9.34	int	rasqal_evaluation_context_set_graph_origin	(rasqal_evaluation_context* eval_context, rasqal_literal* graph_origin)	-
+0.9.33	-	-	-	0.9.34	rasqal_literal*	rasqal_evaluation_context_get_graph_origin	(rasqal_evaluation_context* eval_context)	-
 #
-# Types
+# Types including Enums
 #
 0.9.21	type	rasqal_generate_bnodeid_handler2	-	0.9.22	type	rasqal_generate_bnodeid_handler	-	Handler now takes a pointer to the #rasqal_world object not #rasqal_query.
 0.9.21	type	rasqal_data_graph	-	0.9.22	type	rasqal_data_graph	-	Added const for format_type and format_name fields.
@@ -112,8 +120,12 @@
 0.9.28	type	rasqal_xsd_datetime	-	0.9.29	type	rasqal_xsd_datetime	-	Added time_on_timeline and have_tz fields.
 0.9.32	type	rasqal_triples_source_factory	-	0.9.33	type	rasqal_triples_source_factory	-	API v3: Added init_triples_source2 handler field using #rasqal_triples_error_handler2
 0.9.32	type	-	-	0.9.33	type	rasqal_triples_error_handler2	-	Added for rasqal_variables_table_add2()
+0.9.33	type	-	-	0.9.34	type	rasqal_query_results_compare_options	-	Added for query results comparison module
+0.9.33	type	-	-	0.9.34	type	rasqal_query_results_compare_results	-	Added for query results comparison module
+0.9.33	enum	-	-	0.9.34	type	rasqal_compare_blank_node_strategy	-	Added for query results comparison module
+0.9.33	type	-	-	0.9.34	type	rasqal_evaluation_context	-	Added two fields query and graph_origin used for EXISTS execution.
 #
-# Enums
+# Enum values
 #
 #0.9.21	enum	oldenumvalueor-	-	0.9.22	enum	newenumvalueor-	-	Note
 0.9.21	enum	-	-	0.9.22	enum	RASQAL_XSD_DATETIME_NO_TZ	-	Sentinel XSD Decimal timezone value indicating no timezone is present.
@@ -159,3 +171,7 @@
 0.9.28	enum	-	-	0.9.29	enum	RASQAL_EXPR_STRUUID	-	Expression for STRUUID() string UUID
 0.9.28	enum	-	-	0.9.29	enum	RASQAL_EXPR_UUID	-	Expression for UUID() UUID
 0.9.30	enum	-	-	0.9.31	enum	RASQAL_GRAPH_PATTERN_OPERATOR_VALUES	-	Graph pattern for VALUES()
+0.9.33	enum	-	-	0.9.34	enum	RASQAL_EXPR_EXISTS	-	Expression for SPARQL 1.1 EXISTS { graph_pattern }
+0.9.33	enum	-	-	0.9.34	enum	RASQAL_EXPR_NOT_EXISTS	-	Expression for SPARQL 1.1 NOT EXISTS { graph_pattern  * @RASQAL_EXPR_UNKNOWN: Internal
+0.9.33	enum	-	-	0.9.34	enum	RASQAL_GRAPH_PATTERN_OPERATOR_BIND	-	Deprecates RASQAL_GRAPH_PATTERN_OPERATOR_BIND
+0.9.33	enum	-	-	0.9.34	enum	RASQAL_GRAPH_PATTERN_OPERATOR_LET	-	-
