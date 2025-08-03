@@ -35,7 +35,8 @@ sparql11-test-suite \
 federated \
 warnings \
 errors \
-csv-tsv
+csv-tsv \
+compare
 
 if RASQAL_RESULT_FORMAT_SRJ
 SUBDIRS += srj
