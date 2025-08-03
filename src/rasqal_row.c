@@ -103,8 +103,12 @@ rasqal_new_row(rasqal_rowsource* rowsource)
   size = rasqal_rowsource_get_size(rowsource);
 
   row = rasqal_new_row_common(rowsource->world, size, order_size);
-  if(row)
+  if(row) {
     row->rowsource = rowsource;
+  } else {
+    /* If row allocation failed, decrement the rowsource usage count */
+    rasqal_free_rowsource(rowsource);
+  }
 
   return row;
 }
