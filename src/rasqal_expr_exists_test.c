@@ -346,7 +346,6 @@ int main(int argc, char *argv[])
   {
     rasqal_literal* graph_origin;
     rasqal_expression* exists_expr;
-    rasqal_expression* filter_expr;
     rasqal_graph_pattern* exists_pattern;
     rasqal_literal* result;
     raptor_sequence* triples;
@@ -370,6 +369,8 @@ int main(int argc, char *argv[])
             exists_expr = rasqal_new_expr_seq_expression(world, RASQAL_EXPR_EXISTS, args);
 
             if(exists_expr) {
+              rasqal_literal* context_origin;
+
               /* Simulate multi-layer context: Set graph origin */
               rasqal_evaluation_context_set_graph_origin(eval_context, graph_origin);
               eval_context->query = query;
@@ -378,7 +379,7 @@ int main(int argc, char *argv[])
               result = rasqal_expression_evaluate2(exists_expr, eval_context, &error);
 
               /* Verify graph context is accessible during nested evaluation */
-              rasqal_literal* context_origin = rasqal_evaluation_context_get_graph_origin(eval_context);
+              context_origin = rasqal_evaluation_context_get_graph_origin(eval_context);
               if(context_origin) {
                 if(verbose)
                   printf("  Multi-layer graph context propagation working\n");
@@ -419,11 +420,13 @@ int main(int argc, char *argv[])
       raptor_new_uri(world->raptor_world_ptr, (const unsigned char*)"http://example.org/inner-graph"));
 
     if(outer_graph && inner_graph) {
+      rasqal_literal* retrieved;
+
       /* Set outer graph context */
       rasqal_evaluation_context_set_graph_origin(eval_context, outer_graph);
 
       /* Verify outer context is set */
-      rasqal_literal* retrieved = rasqal_evaluation_context_get_graph_origin(eval_context);
+      retrieved = rasqal_evaluation_context_get_graph_origin(eval_context);
       if(retrieved && rasqal_literal_equals(retrieved, outer_graph)) {
         if(verbose)
           printf("  Outer graph context set successfully\n");
