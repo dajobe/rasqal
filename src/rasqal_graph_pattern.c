@@ -368,6 +368,10 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->graph_patterns)
     raptor_free_sequence(gp->graph_patterns);
   
+  /* Only free triples for EXISTS patterns that have their own triples sequence */
+  if(gp->is_exists_pattern && gp->triples)
+    raptor_free_sequence(gp->triples);
+  
   if(gp->filter_expression)
     rasqal_free_expression(gp->filter_expression);
 
