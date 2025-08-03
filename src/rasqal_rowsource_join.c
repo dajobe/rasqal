@@ -222,8 +222,11 @@ rasqal_join_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   rowsource->size = 0;
 
   /* copy in variables from left rowsource */
-  if(rasqal_rowsource_copy_variables(rowsource, con->left))
+  if(rasqal_rowsource_copy_variables(rowsource, con->left)) {
+    RASQAL_FREE(int, con->right_map);
+    con->right_map = NULL;
     return 1;
+  }
   
   /* add any new variables not already seen from right rowsource */
   for(i = 0; i < map_size; i++) {
@@ -234,8 +237,11 @@ rasqal_join_rowsource_ensure_variables(rasqal_rowsource* rowsource,
     if(!v)
       break;
     offset = rasqal_rowsource_add_variable(rowsource, v);
-    if(offset < 0)
+    if(offset < 0) {
+      RASQAL_FREE(int, con->right_map);
+      con->right_map = NULL;
       return 1;
+    }
 
     con->right_map[i] = offset;
   }
