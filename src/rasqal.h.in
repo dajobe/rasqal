@@ -1510,11 +1510,42 @@ typedef struct {
 } rasqal_query_results_compare_options;
 
 /**
+ * rasqal_query_results_compare_difference:
+ * @description: description of the difference
+ * @expected: expected value (NULL if not applicable)
+ * @actual: actual value (NULL if not applicable)
+ *
+ * Simple string difference structure
+ */
+typedef struct {
+  char* description;
+  char* expected;    // NULL if not applicable
+  char* actual;      // NULL if not applicable
+} rasqal_query_results_compare_difference;
+
+/**
+ * rasqal_query_results_compare_triple_difference:
+ * @description: description of the difference
+ * @expected_triple: expected triple (NULL if not applicable)
+ * @actual_triple: actual triple (NULL if not applicable)
+ *
+ * Triple difference structure
+ */
+typedef struct {
+  char* description;
+  raptor_statement* expected_triple;  // NULL if not applicable
+  raptor_statement* actual_triple;    // NULL if not applicable
+} rasqal_query_results_compare_triple_difference;
+
+/**
  * rasqal_query_results_compare_result:
  * @equal: whether the results are equal
- * @differences_count: number of differences found
- * @differences: array of difference descriptions
+ * @differences_count: number of string differences found
+ * @triple_differences_count: number of triple differences found
+ * @differences: array of string differences
+ * @triple_differences: array of triple differences
  * @differences_size: size of differences array
+ * @triple_differences_size: size of triple_differences array
  * @error_message: error message if comparison failed
  *
  * Result of query results comparison
@@ -1522,8 +1553,11 @@ typedef struct {
 typedef struct {
   int equal;
   int differences_count;
-  char** differences;
+  int triple_differences_count;
+  rasqal_query_results_compare_difference* differences;
+  rasqal_query_results_compare_triple_difference* triple_differences;
   int differences_size;
+  int triple_differences_size;
   char* error_message;
 } rasqal_query_results_compare_result;
 
@@ -1564,10 +1598,25 @@ RASQAL_API
 void
 rasqal_free_query_results_compare_result(rasqal_query_results_compare_result* result);
 
-/* Helper function */
+/* Helper functions */
 RASQAL_API
 void
 rasqal_query_results_compare_options_init(rasqal_query_results_compare_options* options);
+
+/* Difference reporting functions */
+RASQAL_API
+int
+rasqal_query_results_compare_add_difference(rasqal_query_results_compare* compare,
+                                           const char* description,
+                                           const char* expected,
+                                           const char* actual);
+
+RASQAL_API
+int
+rasqal_query_results_compare_add_triple_difference(rasqal_query_results_compare* compare,
+                                                  const char* description,
+                                                  raptor_statement* expected_triple,
+                                                  raptor_statement* actual_triple);
 
 
 
