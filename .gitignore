@@ -12,6 +12,7 @@
 .gdb_history
 .gdbinit
 .libs
+.lldbinit
 .pytest_cache/
 /.vscode/
 /CLAUDE.md
