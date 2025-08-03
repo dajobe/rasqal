@@ -89,6 +89,7 @@ rasqal_new_graph_pattern(rasqal_query* query,
  * @triples: triples sequence containing the graph pattern
  * @start_column: first triple in the pattern
  * @end_column: last triple in the pattern
+ * @owns_triples: non-0 if this graph pattern owns the triples sequence
  *
  * INTERNAL - Create a new graph pattern object over triples.
  * 
@@ -97,7 +98,8 @@ rasqal_new_graph_pattern(rasqal_query* query,
 rasqal_graph_pattern*
 rasqal_new_basic_graph_pattern(rasqal_query* query,
                                raptor_sequence *triples,
-                               int start_column, int end_column)
+                               int start_column, int end_column,
+                               int owns_triples)
 {
   rasqal_graph_pattern* gp;
 
@@ -111,6 +113,7 @@ rasqal_new_basic_graph_pattern(rasqal_query* query,
   gp->triples = triples;
   gp->start_column = start_column;
   gp->end_column = end_column;
+  gp->owns_triples = owns_triples ? 1 : 0;
 
   return gp;
 }
@@ -368,8 +371,8 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->graph_patterns)
     raptor_free_sequence(gp->graph_patterns);
   
-  /* Only free triples for EXISTS patterns that have their own triples sequence */
-  if(gp->is_exists_pattern && gp->triples)
+  /* Only free triples for patterns that own their triples sequence */
+  if(gp->owns_triples && gp->triples)
     raptor_free_sequence(gp->triples);
   
   if(gp->filter_expression)
@@ -1115,9 +1118,9 @@ rasqal_new_basic_graph_pattern_from_formula(rasqal_query* query,
 
   rasqal_free_formula(formula);
 
-  gp = rasqal_new_basic_graph_pattern(query, triples, 
+    gp = rasqal_new_basic_graph_pattern(query, triples,
                                       offset, 
-                                      offset + triple_pattern_size - 1);
+                                      offset + triple_pattern_size - 1, 0);
 
   return gp;
 }
@@ -1168,11 +1171,12 @@ rasqal_new_basic_graph_pattern_from_formula_exists(rasqal_query* query,
   /* Create basic graph pattern using the separate triples sequence */
   gp = rasqal_new_basic_graph_pattern(query, exists_triples, 
                                       0, 
-                                      triple_pattern_size - 1);
+                                      triple_pattern_size - 1, 0);
   
   if(gp) {
     /* Mark as EXISTS pattern and store reference to separate triples */
     gp->is_exists_pattern = 1;
+    gp->owns_triples = 1;  /* This pattern owns its triples sequence */
   } else {
     raptor_free_sequence(exists_triples);
   }
@@ -1336,7 +1340,7 @@ rasqal_new_basic_graph_pattern_from_triples(rasqal_query* query,
 
   gp = rasqal_new_basic_graph_pattern(query, graph_triples,
                                       offset, 
-                                      offset + triple_pattern_size - 1);
+                                      offset + triple_pattern_size - 1, 0);
 
   return gp;
 }

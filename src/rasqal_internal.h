@@ -356,6 +356,9 @@ struct rasqal_graph_pattern_s {
   /* EXISTS pattern flag - marks patterns that are part of EXISTS expressions */
   unsigned int is_exists_pattern : 1;
 
+  /* OWNED_TRIPLES flag - marks patterns that own their triples sequence */
+  unsigned int owns_triples : 1;
+
   /* SELECT graph pattern: sequence of #rasqal_data_graph */
   raptor_sequence* data_graphs;
 
@@ -363,7 +366,7 @@ struct rasqal_graph_pattern_s {
   rasqal_bindings* bindings;
 };
 
-rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
+rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column, int owns_triples);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, rasqal_graph_pattern_operator op);
 rasqal_graph_pattern* rasqal_new_filter_graph_pattern(rasqal_query* query, rasqal_expression* expr);
 rasqal_graph_pattern* rasqal_new_bind_graph_pattern(rasqal_query *query, rasqal_variable *var, rasqal_expression *expr);  

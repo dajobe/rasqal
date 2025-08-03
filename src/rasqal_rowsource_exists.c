@@ -1361,7 +1361,7 @@ int main(int argc, char *argv[])
       goto tidy;
     }
 
-    exists_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0);
+          exists_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0, 1);
     if(!exists_pattern) {
       fprintf(stderr, "%s: Failed to create basic graph pattern\n", program);
       raptor_free_sequence(triples);

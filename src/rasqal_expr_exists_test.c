@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
     triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                                  (raptor_data_print_handler)rasqal_triple_print);
     if(triples) {
-      test_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0);
+      test_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0, 1);
       if(test_pattern) {
         /* Create EXISTS expression */
         raptor_sequence* args = raptor_new_sequence(NULL, NULL);
@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
     triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                                  (raptor_data_print_handler)rasqal_triple_print);
     if(triples) {
-      test_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0);
+      test_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0, 1);
       if(test_pattern) {
         /* Create NOT EXISTS expression */
         raptor_sequence* args = raptor_new_sequence(NULL, NULL);
@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
       triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                                    (raptor_data_print_handler)rasqal_triple_print);
       if(triples) {
-        test_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0);
+        test_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0, 1);
         if(test_pattern) {
           /* Create EXISTS expression */
           raptor_sequence* args = raptor_new_sequence(NULL, NULL);
@@ -371,7 +371,7 @@ int main(int argc, char *argv[])
       triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                                    (raptor_data_print_handler)rasqal_triple_print);
       if(triples) {
-        exists_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0);
+        exists_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0, 1);
         if(exists_pattern) {
           /* Create EXISTS expression */
           raptor_sequence* args = raptor_new_sequence(NULL, NULL);
@@ -512,7 +512,7 @@ int main(int argc, char *argv[])
             if(triples) {
               raptor_sequence_push(triples, test_triple);
 
-              exists_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0);
+              exists_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0, 1);
               if(exists_pattern) {
                 /* Create EXISTS expression */
                 raptor_sequence* args = raptor_new_sequence(NULL, NULL);
