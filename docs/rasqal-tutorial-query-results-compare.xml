@@ -22,7 +22,9 @@
 
     <para>The comparison APIs are designed to be both simple for basic use cases
     and powerful for advanced scenarios requiring detailed control over the
-    comparison process.</para>
+    comparison process. The APIs provide structured difference reporting that
+    eliminates the need for fragile string parsing and enables rich,
+    machine-readable output formats.</para>
 
   </section>
 
@@ -144,17 +146,33 @@ rasqal_query_results_compare_set_options(compare, &options);
 // Execute comparison
 rasqal_query_results_compare_result* result = rasqal_query_results_compare_execute(compare);
 
-// Process results
-if (result->equal) {
-    printf("Results are equal\n");
-} else {
-    printf("Results differ - found %d differences:\n", result->differences_count);
+    // Process results
+    if (result->equal) {
+        printf("Results are equal\n");
+    } else {
+        printf("Results differ - found %d differences:\n", result->differences_count);
 
-    // Get detailed difference information
-    for (int i = 0; i < result->differences_count; i++) {
-        printf("  %d: %s\n", i + 1, result->differences[i]);
+        // Get detailed difference information using structured data
+        for (int i = 0; i < result->differences_count; i++) {
+            rasqal_query_results_compare_difference* diff = &result->differences[i];
+            printf("  %d: %s", i + 1, diff->description);
+            if (diff->expected || diff->actual) {
+                printf(" (expected: %s, actual: %s)",
+                       diff->expected ? diff->expected : "missing",
+                       diff->actual ? diff->actual : "missing");
+            }
+            printf("\n");
+        }
+
+        // Process triple differences if any
+        if (result->triple_differences_count > 0) {
+            printf("Found %d triple differences:\n", result->triple_differences_count);
+            for (int i = 0; i < result->triple_differences_count; i++) {
+                rasqal_query_results_compare_triple_difference* diff = &result->triple_differences[i];
+                printf("  %d: %s\n", i + 1, diff->description);
+            }
+        }
     }
-}
 
 // Cleanup
 rasqal_free_query_results_compare_result(result);
@@ -233,7 +251,22 @@ int test_query_results(const char* query, const char* expected_file) {
         printf("Test failed: results differ from expected\n");
         printf("Found %d differences:\n", result->differences_count);
         for (int i = 0; i < result->differences_count; i++) {
-            printf("  %s\n", result->differences[i]);
+            rasqal_query_results_compare_difference* diff = &result->differences[i];
+            printf("  %s", diff->description);
+            if (diff->expected || diff->actual) {
+                printf(" (expected: %s, actual: %s)",
+                       diff->expected ? diff->expected : "missing",
+                       diff->actual ? diff->actual : "missing");
+            }
+            printf("\n");
+        }
+        
+        if (result->triple_differences_count > 0) {
+            printf("Found %d triple differences:\n", result->triple_differences_count);
+            for (int i = 0; i < result->triple_differences_count; i++) {
+                rasqal_query_results_compare_triple_difference* diff = &result->triple_differences[i];
+                printf("  %s\n", diff->description);
+            }
         }
     } else {
         printf("Test passed: results match expected\n");
@@ -286,7 +319,22 @@ int validate_query_equivalence(const char* query1, const char* query2) {
     if (!equivalent) {
         printf("Queries are not equivalent. Differences:\n");
         for (int i = 0; i < result->differences_count; i++) {
-            printf("  %s\n", result->differences[i]);
+            rasqal_query_results_compare_difference* diff = &result->differences[i];
+            printf("  %s", diff->description);
+            if (diff->expected || diff->actual) {
+                printf(" (expected: %s, actual: %s)",
+                       diff->expected ? diff->expected : "missing",
+                       diff->actual ? diff->actual : "missing");
+            }
+            printf("\n");
+        }
+        
+        if (result->triple_differences_count > 0) {
+            printf("Triple differences:\n");
+            for (int i = 0; i < result->triple_differences_count; i++) {
+                rasqal_query_results_compare_triple_difference* diff = &result->triple_differences[i];
+                printf("  %s\n", diff->description);
+            }
         }
     }
 
@@ -337,6 +385,16 @@ int validate_query_equivalence(const char* query1, const char* query2) {
         <para><emphasis>Use appropriate comparison functions</emphasis> - Use
         the simple boolean functions for basic testing and the advanced
         APIs when you need detailed difference information.</para>
+      </listitem>
+      <listitem>
+        <para><emphasis>Leverage structured difference reporting</emphasis> - Use
+        the structured difference data instead of parsing string output for
+        more robust and maintainable code.</para>
+      </listitem>
+      <listitem>
+        <para><emphasis>Choose appropriate output formats</emphasis> - Use JSON
+        or XML output for machine processing, readable format for human review,
+        and unified format for integration with diff tools.</para>
       </listitem>
     </itemizedlist>
 
@@ -420,6 +478,140 @@ rasqal_free_world(world);
 
   </section>
 
+  <section id="tutorial-query-results-compare-structured-differences">
+    <title>Structured Difference Reporting</title>
+
+    <para>The query results comparison API provides structured difference reporting
+    that eliminates the need for fragile string parsing and enables rich,
+    machine-readable output formats. The structured approach provides detailed
+    information about what differs between query results.</para>
+
+    <section id="tutorial-query-results-compare-difference-structures">
+      <title>Difference Data Structures</title>
+
+      <para>The comparison result contains structured difference information in
+      two main categories:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para><emphasis>String differences</emphasis> - Simple value mismatches
+          stored in <literal>rasqal_query_results_compare_difference</literal> structures
+          containing description, expected value, and actual value.</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>Triple differences</emphasis> - Graph structure differences
+          stored in <literal>rasqal_query_results_compare_triple_difference</literal>
+          structures containing description and the expected/actual triples.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>This structured approach enables:</para>
+
+      <itemizedlist>
+        <listitem><para>Machine-readable output formats (JSON, XML)</para></listitem>
+        <listitem><para>Programmatic access to difference details</para></listitem>
+        <listitem><para>Integration with testing frameworks</para></listitem>
+        <listitem><para>Rich error reporting and debugging</para></listitem>
+      </itemizedlist>
+
+    </section>
+
+    <section id="tutorial-query-results-compare-utility">
+      <title>Using the rasqal-compare Utility</title>
+
+      <para>The <command>rasqal-compare</command> utility provides command-line
+      access to the structured difference reporting functionality with multiple
+      output formats:</para>
+
+      <programlisting>
+# Basic comparison with readable output
+rasqal-compare -e expected.xml -a actual.xml
+
+# JSON output format for machine processing
+rasqal-compare -e expected.xml -a actual.xml -j
+
+# XML output format
+rasqal-compare -e expected.xml -a actual.xml -x
+
+# Unified diff format
+rasqal-compare -e expected.xml -a actual.xml -u
+
+# Debug format with detailed information
+rasqal-compare -e expected.xml -a actual.xml --format debug
+      </programlisting>
+
+      <para>The utility supports various input formats and comparison options:</para>
+
+      <programlisting>
+# Compare with custom options
+rasqal-compare -e expected.xml -a actual.xml \
+  --blank-node-strategy structure \
+  --order-sensitive \
+  --max-differences 5
+
+# Compare different input formats
+rasqal-compare -R xml -e expected.xml -a actual.ttl
+rasqal-compare -R srj -e expected.srj -a actual.srj
+      </programlisting>
+
+    </section>
+
+    <section id="tutorial-query-results-compare-programmatic">
+      <title>Programmatic Access to Structured Differences</title>
+
+      <para>You can access the structured difference information programmatically
+      for custom processing:</para>
+
+      <programlisting><![CDATA[
+#include <rasqal.h>
+
+void process_differences(rasqal_query_results_compare_result* result) {
+    if (result->equal) {
+        printf("Results are identical\n");
+        return;
+    }
+
+    printf("Found %d string differences and %d triple differences\n",
+           result->differences_count, result->triple_differences_count);
+
+    // Process string differences
+    for (int i = 0; i < result->differences_count; i++) {
+        rasqal_query_results_compare_difference* diff = &result->differences[i];
+        
+        printf("String difference %d:\n", i + 1);
+        printf("  Description: %s\n", diff->description);
+        printf("  Expected: %s\n", diff->expected ? diff->expected : "missing");
+        printf("  Actual: %s\n", diff->actual ? diff->actual : "missing");
+    }
+
+    // Process triple differences
+    for (int i = 0; i < result->triple_differences_count; i++) {
+        rasqal_query_results_compare_triple_difference* diff = &result->triple_differences[i];
+        
+        printf("Triple difference %d:\n", i + 1);
+        printf("  Description: %s\n", diff->description);
+        
+        if (diff->expected_triple) {
+            printf("  Expected triple: <%s> <%s> <%s>\n",
+                   raptor_term_to_string(diff->expected_triple->subject),
+                   raptor_term_to_string(diff->expected_triple->predicate),
+                   raptor_term_to_string(diff->expected_triple->object));
+        }
+        
+        if (diff->actual_triple) {
+            printf("  Actual triple: <%s> <%s> <%s>\n",
+                   raptor_term_to_string(diff->actual_triple->subject),
+                   raptor_term_to_string(diff->actual_triple->predicate),
+                   raptor_term_to_string(diff->actual_triple->object));
+        }
+    }
+}
+]]></programlisting>
+
+    </section>
+
+  </section>
+
   <section id="tutorial-query-results-compare-integration">
     <title>Integration with Test Frameworks</title>
 
@@ -496,9 +688,11 @@ int run_test_suite(test_case_t* tests, int test_count) {
     functionality, you can:</para>
 
     <itemizedlist>
-      <listitem><para>Integrate comparison into your testing workflows</para></listitem>
-      <listitem><para>Use the <command>rasqal-compare</command> utility for
-      command-line result comparison</para></listitem>
+              <listitem><para>Integrate comparison into your testing workflows</para></listitem>
+        <listitem><para>Use the <command>rasqal-compare</command> utility for
+        command-line result comparison with multiple output formats</para></listitem>
+      <listitem><para>Explore the structured difference reporting for programmatic
+      access to comparison details</para></listitem>
       <listitem><para>Explore the advanced options for specialized comparison needs</para></listitem>
       <listitem><para>Refer to the <link linkend="reference-manual">Reference Manual</link>
       for complete API documentation</para></listitem>

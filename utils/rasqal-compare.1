@@ -34,9 +34,11 @@ rasqal-compare \- Rasqal SPARQL Query Results Comparison Utility
 .SH DESCRIPTION
 The
 .B rasqal-compare
-utility compares SPARQL query results for equality. It can compare two
-result files directly, or execute a query against data and compare the
-results against an expected output file.
+utility compares SPARQL query results for equality using structured
+difference reporting. It can compare two result files directly, or execute
+a query against data and compare the results against an expected output file.
+The utility provides detailed, machine-readable difference information in
+multiple output formats.
 .SH MAIN OPTIONS
 rasqal-compare uses the usual GNU command line syntax, with long
 options starting with two dashes (`-') if supported by the
@@ -94,10 +96,13 @@ Ignore case in string comparisons.
 Output unified diff format.
 .TP
 .B \-j, \-\-json
-Output JSON diff format.
+Output JSON diff format with structured difference data.
 .TP
 .B \-x, \-\-xml
-Output XML diff format.
+Output XML diff format with structured difference data.
+.TP
+.B \-\-format FORMAT
+Output format: readable (default), json, xml, unified, debug.
 .TP
 .B \-c, \-\-context LINES
 Number of context lines in diff (default: 3).
@@ -152,6 +157,19 @@ RDF/A via librdfa
 .IP "nquads"
 N-Quads
 .RE
+.SH STRUCTURED DIFFERENCE REPORTING
+The utility provides structured difference reporting that eliminates the need
+for fragile string parsing. Differences are categorized into:
+.TP
+.B String differences
+Simple value mismatches with description, expected value, and actual value.
+.TP
+.B Triple differences
+Graph structure differences with description and the expected/actual triples.
+.PP
+This structured approach enables machine-readable output formats (JSON, XML)
+and programmatic access to difference details for integration with testing
+frameworks and automated systems.
 .SH EXIT CODES
 .TP
 .B 0
@@ -187,6 +205,14 @@ Compare CSV results with case-insensitive and whitespace-normalized string compa
 .B rasqal-compare -e expected.xml -a actual.xml -u -c 5
 .LP
 Compare results and output unified diff format with 5 context lines.
+.IP
+.B rasqal-compare -e expected.xml -a actual.xml --format json
+.LP
+Compare results and output structured JSON format with detailed difference information.
+.IP
+.B rasqal-compare -e expected.xml -a actual.xml --format debug
+.LP
+Compare results and output debug format with comprehensive difference details.
 .SH "CONFORMING TO"
 \fISPARQL 1.1 Query Language\fR,
 Steve Harris and Andy Seaborne (eds),

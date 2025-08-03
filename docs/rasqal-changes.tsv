@@ -99,13 +99,15 @@
 0.9.32	rasqal_data_graph*	rasqal_new_data_graph_from_uri	(rasqal_world* world, raptor_uri* uri, raptor_uri* name_uri, int flags, const char* format_type, const char* format_name, raptor_uri* format_uri)	0.9.33	rasqal_data_graph*	rasqal_new_data_graph_from_uri	(rasqal_world* world, raptor_uri* uri, raptor_uri* name_uri, unsigned int flags, const char* format_type, const char* format_name, raptor_uri* format_uri)	Made flags argument unsigned
 0.9.32	rasqal_expression*	rasqal_new_group_concat_expression	(rasqal_world* world, int flags, raptor_sequence* args, rasqal_literal* separator)	0.9.33	rasqal_expression*	rasqal_new_group_concat_expression	(rasqal_world* world, unsigned int flags, raptor_sequence* args, rasqal_literal* separator)	Made flags argument unsigned
 0.9.33	-	-	-	0.9.34	rasqal_query_results_compare*	rasqal_new_query_results_compare	(rasqal_world* world, rasqal_query_results* first_results, rasqal_query_results* second_results)	-
-0.9.33	-	-	-	0.9.34	void	+rasqal_free_query_results_compare	(rasqal_query_results_compare* compare)	-
+0.9.33	-	-	-	0.9.34	void	rasqal_free_query_results_compare	(rasqal_query_results_compare* compare)	-
 0.9.33	-	-	-	0.9.34	void	rasqal_query_results_compare_set_options	(rasqal_query_results_compare* compare, rasqal_query_results_compare_options* options)	
 0.9.33	-	-	-	0.9.34	rasqal_query_results_compare_result*	rasqal_query_results_compare_execute	(rasqal_query_results_compare* compare)	-
 0.9.33	-	-	-	0.9.34	void	rasqal_free_query_results_compare_result	(rasqal_query_results_compare_result* result)	-
 0.9.33	-	-	-	0.9.34	void	rasqal_query_results_compare_options_init	(rasqal_query_results_compare_options* options)	-
 0.9.33	-	-	-	0.9.34	int	rasqal_evaluation_context_set_graph_origin	(rasqal_evaluation_context* eval_context, rasqal_literal* graph_origin)	-
 0.9.33	-	-	-	0.9.34	rasqal_literal*	rasqal_evaluation_context_get_graph_origin	(rasqal_evaluation_context* eval_context)	-
+0.9.33	-	-	-	0.9.34	int	rasqal_query_results_compare_add_difference	(rasqal_query_results_compare* compare, const char* description, const char* expected, const char* actual)	-
+0.9.33	-	-	-	0.9.34	int	rasqal_query_results_compare_add_triple_difference	(rasqal_query_results_compare* compare, const char* description, raptor_statement* expected_triple, raptor_statement* actual_triple)	-
 #
 # Types including Enums
 #
@@ -121,9 +123,11 @@
 0.9.32	type	rasqal_triples_source_factory	-	0.9.33	type	rasqal_triples_source_factory	-	API v3: Added init_triples_source2 handler field using #rasqal_triples_error_handler2
 0.9.32	type	-	-	0.9.33	type	rasqal_triples_error_handler2	-	Added for rasqal_variables_table_add2()
 0.9.33	type	-	-	0.9.34	type	rasqal_query_results_compare_options	-	Added for query results comparison module
-0.9.33	type	-	-	0.9.34	type	rasqal_query_results_compare_results	-	Added for query results comparison module
+0.9.33	type	-	-	0.9.34	type	rasqal_query_results_compare_result	-	Added for query results comparison module
 0.9.33	enum	-	-	0.9.34	type	rasqal_compare_blank_node_strategy	-	Added for query results comparison module
 0.9.33	type	-	-	0.9.34	type	rasqal_evaluation_context	-	Added two fields query and graph_origin used for EXISTS execution.
+0.9.33	type	-	-	0.9.34	type	rasqal_query_results_compare_difference	-	Added for structured difference reporting in query results comparison
+0.9.33	type	-	-	0.9.34	type	rasqal_query_results_compare_triple_difference	-	Added for structured triple difference reporting in query results comparison
 #
 # Enum values
 #

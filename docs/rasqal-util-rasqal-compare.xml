@@ -22,8 +22,10 @@
             </listitem>
         </itemizedlist>
 
-        <para>The utility provides detailed difference reporting and supports various
-    output formats including human-readable, unified diff, JSON, and XML formats.</para>
+        <para>The utility provides detailed structured difference reporting and supports various
+    output formats including human-readable, unified diff, JSON, and XML formats. 
+    Structured differences include expected and actual values for better debugging and
+    machine-readable output for automated processing.</para>
 
     </section>
 
@@ -172,6 +174,44 @@ rasqal-compare -q QUERY_FILE -e EXPECTED_FILE -d DATA_FILE
                         <option>-c, --context LINES</option> - Number of context lines in diff (default: 3)</para>
                 </listitem>
             </itemizedlist>
+
+        </section>
+
+        <section id="rasqal-compare-structured-differences">
+            <title>Structured Difference Reporting</title>
+
+            <para>rasqal-compare provides structured difference reporting that includes both
+            expected and actual values for better debugging and machine-readable output.
+            Each difference includes:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <emphasis>Description</emphasis> - Human-readable description of the difference</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <emphasis>Expected value</emphasis> - The value that was expected</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <emphasis>Actual value</emphasis> - The value that was actually found</para>
+                </listitem>
+            </itemizedlist>
+
+            <para>For triple differences, the structured output includes:</para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <emphasis>Expected triple</emphasis> - The triple that was expected (subject, predicate, object)</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <emphasis>Actual triple</emphasis> - The triple that was actually found</para>
+                </listitem>
+            </itemizedlist>
+
+            <para>This structured approach eliminates the need for fragile string parsing
+            and provides consistent output across all formats (readable, JSON, XML, unified).</para>
 
         </section>
 
@@ -347,6 +387,13 @@ rasqal-compare -e expected.xml -a actual.xml -u -c 5
 rasqal-compare -e expected.xml -a actual.xml -j
             </programlisting>
 
+            <para>Example structured output showing expected and actual values:</para>
+            <programlisting>
+Found 2 differences:
+  1: Value mismatch in column 'name' (expected: "Alice", actual: "Bob")
+  2: Missing triple (expected: &lt;http://example.org/person1&gt; &lt;http://example.org/name&gt; "Alice", actual: missing)
+            </programlisting>
+
         </section>
 
     </section>
@@ -507,6 +554,10 @@ rasqal-compare -q query.rq -e expected.xml -d data.ttl || {
                 <listitem>
                     <para>
                         <emphasis>Blank Node Matching</emphasis> - Use <literal>-b any</literal> for most cases unless identity matters</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <emphasis>NULL Values</emphasis> - NULL values are properly handled and compared correctly (NULL vs NULL is equal, NULL vs non-NULL is different)</para>
                 </listitem>
                 <listitem>
                     <para>
