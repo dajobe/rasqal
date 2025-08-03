@@ -158,9 +158,13 @@ int main(int argc, char *argv[])
             if(verbose)
               printf("  EXISTS expression created successfully\n");
             rasqal_free_expression(exists_expr);
+            /* Free the graph pattern since expression is freed */
+            raptor_sequence_pop(args);
+            rasqal_free_graph_pattern(test_pattern);
           } else {
             fprintf(stderr, "%s: Failed to create EXISTS expression\n", program);
             failures++;
+            raptor_free_sequence(args);
           }
         } else {
           rasqal_free_graph_pattern(test_pattern);
@@ -199,9 +203,13 @@ int main(int argc, char *argv[])
             if(verbose)
               printf("  NOT EXISTS expression created successfully\n");
             rasqal_free_expression(not_exists_expr);
+            /* Free the graph pattern since expression is freed */
+            raptor_sequence_pop(args);
+            rasqal_free_graph_pattern(test_pattern);
           } else {
             fprintf(stderr, "%s: Failed to create NOT EXISTS expression\n", program);
             failures++;
+            raptor_free_sequence(args);
           }
         } else {
           rasqal_free_graph_pattern(test_pattern);
@@ -323,9 +331,12 @@ int main(int argc, char *argv[])
                   printf("  EXISTS expression evaluation returned NULL (expected for empty pattern)\n");
               }
 
+              /* Free the graph pattern before freeing the expression */
+              raptor_sequence_pop(args);
+              rasqal_free_graph_pattern(test_pattern);
               rasqal_free_expression(exists_expr);
             } else {
-              rasqal_free_graph_pattern(test_pattern);
+              raptor_free_sequence(args);
             }
           } else {
             rasqal_free_graph_pattern(test_pattern);
@@ -391,7 +402,12 @@ int main(int argc, char *argv[])
               if(result)
                 rasqal_free_literal(result);
 
+              /* Free the graph pattern before freeing the expression */
+              raptor_sequence_pop(args);
+              rasqal_free_graph_pattern(exists_pattern);
               rasqal_free_expression(exists_expr);
+            } else {
+              raptor_free_sequence(args);
             }
           } else {
             rasqal_free_graph_pattern(exists_pattern);
@@ -523,7 +539,15 @@ int main(int argc, char *argv[])
                       }
                     }
 
+                    /* Free the graph pattern before freeing the expression */
+                    raptor_sequence_pop(args);
+                    /* Free the triples sequence that the graph pattern owns */
+                    raptor_free_sequence(exists_pattern->triples);
+                    exists_pattern->triples = NULL;
+                    rasqal_free_graph_pattern(exists_pattern);
                     rasqal_free_expression(exists_expr);
+                  } else {
+                    raptor_free_sequence(args);
                   }
                 } else {
                   rasqal_free_graph_pattern(exists_pattern);
