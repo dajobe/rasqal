@@ -421,28 +421,36 @@ rasqal_query_results_compare_add_difference(rasqal_query_results_compare* compar
   compare->differences[compare->differences_count].actual = NULL;
 
   /* Copy description */
-  compare->differences[compare->differences_count].description = strdup(description);
-  if(!compare->differences[compare->differences_count].description)
-    return 0;
+  {
+    size_t len = strlen(description);
+    compare->differences[compare->differences_count].description = RASQAL_MALLOC(char*, len + 1);
+    if(!compare->differences[compare->differences_count].description)
+      return 0;
+    memcpy(compare->differences[compare->differences_count].description, description, len + 1);
+  }
 
   /* Copy expected value if provided */
   if(expected) {
-    compare->differences[compare->differences_count].expected = strdup(expected);
+    size_t len = strlen(expected);
+    compare->differences[compare->differences_count].expected = RASQAL_MALLOC(char*, len + 1);
     if(!compare->differences[compare->differences_count].expected) {
       RASQAL_FREE(char*, compare->differences[compare->differences_count].description);
       return 0;
     }
+    memcpy(compare->differences[compare->differences_count].expected, expected, len + 1);
   }
 
   /* Copy actual value if provided */
   if(actual) {
-    compare->differences[compare->differences_count].actual = strdup(actual);
+    size_t len = strlen(actual);
+    compare->differences[compare->differences_count].actual = RASQAL_MALLOC(char*, len + 1);
     if(!compare->differences[compare->differences_count].actual) {
       RASQAL_FREE(char*, compare->differences[compare->differences_count].description);
       if(compare->differences[compare->differences_count].expected)
         RASQAL_FREE(char*, compare->differences[compare->differences_count].expected);
       return 0;
     }
+    memcpy(compare->differences[compare->differences_count].actual, actual, len + 1);
   }
 
   compare->differences_count++;
@@ -489,9 +497,13 @@ rasqal_query_results_compare_add_triple_difference(rasqal_query_results_compare*
   compare->triple_differences[compare->triple_differences_count].actual_triple = NULL;
 
   /* Copy description */
-  compare->triple_differences[compare->triple_differences_count].description = strdup(description);
-  if(!compare->triple_differences[compare->triple_differences_count].description)
-    return 0;
+  {
+    size_t len = strlen(description);
+    compare->triple_differences[compare->triple_differences_count].description = RASQAL_MALLOC(char*, len + 1);
+    if(!compare->triple_differences[compare->triple_differences_count].description)
+      return 0;
+    memcpy(compare->triple_differences[compare->triple_differences_count].description, description, len + 1);
+  }
 
   /* Copy expected triple if provided */
   if(expected_triple) {
