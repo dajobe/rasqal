@@ -1483,17 +1483,31 @@ typedef enum {
 } rasqal_compare_blank_node_strategy;
 
 /**
+ * rasqal_graph_comparison_options:
+ * @signature_threshold: signature complexity threshold for algorithm selection
+ * @max_search_time: maximum search time in seconds (integer)
+ * @incremental_mode: use incremental comparison for large graphs
+ * @signature_cache_size: signature cache size
+ *
+ * Advanced options for graph comparison algorithms
+ */
+typedef struct {
+  int signature_threshold;
+  int max_search_time;
+  int incremental_mode;
+  size_t signature_cache_size;
+} rasqal_graph_comparison_options;
+
+/**
  * rasqal_query_results_compare_options:
  * @order_sensitive: whether to consider result order (default: false)
  * @blank_node_strategy: how to handle blank nodes (default: RASQAL_COMPARE_BLANK_NODE_MATCH_ANY)
  * @literal_comparison_flags: flags for literal comparison (default: RASQAL_COMPARE_XQUERY)
  * @max_differences: maximum number of differences to report (default: 10)
- * @canonicalize_uris: canonicalize URIs for comparison (default: false)
- * @canonicalize_literals: canonicalize literals for comparison (default: false)
  * @custom_compare_user_data: user data for custom comparison functions
  * @custom_term_compare: custom function for comparing RDF terms (NULL for default)
  * @custom_statement_compare: custom function for comparing RDF statements (NULL for default)
- *
+ * @graph_comparison_options: advanced graph comparison options
  * Options for query results comparison
  */
 typedef struct {
@@ -1501,51 +1515,20 @@ typedef struct {
   rasqal_compare_blank_node_strategy blank_node_strategy;
   int literal_comparison_flags;
   int max_differences;
-
-  int canonicalize_uris;
-  int canonicalize_literals;
   void* custom_compare_user_data;
   int (*custom_term_compare)(void* user_data, raptor_term* first, raptor_term* second);
   int (*custom_statement_compare)(void* user_data, raptor_statement* first, raptor_statement* second);
+  rasqal_graph_comparison_options* graph_comparison_options;
 } rasqal_query_results_compare_options;
 
-/**
- * rasqal_query_results_compare_difference:
- * @description: description of the difference
- * @expected: expected value (NULL if not applicable)
- * @actual: actual value (NULL if not applicable)
- *
- * Simple string difference structure
- */
-typedef struct {
-  char* description;
-  char* expected;    // NULL if not applicable
-  char* actual;      // NULL if not applicable
-} rasqal_query_results_compare_difference;
 
-/**
- * rasqal_query_results_compare_triple_difference:
- * @description: description of the difference
- * @expected_triple: expected triple (NULL if not applicable)
- * @actual_triple: actual triple (NULL if not applicable)
- *
- * Triple difference structure
- */
-typedef struct {
-  char* description;
-  raptor_statement* expected_triple;  // NULL if not applicable
-  raptor_statement* actual_triple;    // NULL if not applicable
-} rasqal_query_results_compare_triple_difference;
 
 /**
  * rasqal_query_results_compare_result:
  * @equal: whether the results are equal
- * @differences_count: number of string differences found
- * @triple_differences_count: number of triple differences found
- * @differences: array of string differences
- * @triple_differences: array of triple differences
+ * @differences_count: number of differences found
+ * @differences: array of difference descriptions
  * @differences_size: size of differences array
- * @triple_differences_size: size of triple_differences array
  * @error_message: error message if comparison failed
  *
  * Result of query results comparison
@@ -1553,11 +1536,8 @@ typedef struct {
 typedef struct {
   int equal;
   int differences_count;
-  int triple_differences_count;
-  rasqal_query_results_compare_difference* differences;
-  rasqal_query_results_compare_triple_difference* triple_differences;
+  char** differences;
   int differences_size;
-  int triple_differences_size;
   char* error_message;
 } rasqal_query_results_compare_result;
 
@@ -1598,25 +1578,16 @@ RASQAL_API
 void
 rasqal_free_query_results_compare_result(rasqal_query_results_compare_result* result);
 
-/* Helper functions */
+/* Helper function */
 RASQAL_API
 void
 rasqal_query_results_compare_options_init(rasqal_query_results_compare_options* options);
 
-/* Difference reporting functions */
-RASQAL_API
-int
-rasqal_query_results_compare_add_difference(rasqal_query_results_compare* compare,
-                                           const char* description,
-                                           const char* expected,
-                                           const char* actual);
+/* Advanced graph comparison functions (Phase 1) */
 
 RASQAL_API
-int
-rasqal_query_results_compare_add_triple_difference(rasqal_query_results_compare* compare,
-                                                  const char* description,
-                                                  raptor_statement* expected_triple,
-                                                  raptor_statement* actual_triple);
+void
+rasqal_graph_comparison_options_init(rasqal_graph_comparison_options* options);
 
 
 
