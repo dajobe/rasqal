@@ -77,7 +77,7 @@ static char *program = NULL;
 #define HELP_PAD "\n      "
 #endif
 
-#define GETOPT_STRING "a:b:c:d:e:F:G:hi:jl:km:o:q:R:s:t:uvVwx"
+#define GETOPT_STRING "a:b:c:d:e:F:G:hi:jl:km:o:q:R:s:t:uvVwxS:"
 
 #ifdef HAVE_GETOPT_LONG
 
@@ -94,9 +94,7 @@ static struct option long_options[] =
   {"help", 0, 0, 'h'},
   {"input-format", 1, 0, 'i'},
   {"json", 0, 0, 'j'},
-  {"limit", 1, 0, 'l'},
   {"max-differences", 1, 0, 'm'},
-
   {"order-sensitive", 0, 0, 'o'},
   {"query", 1, 0, 'q'},
   {"results-input-format", 1, 0, 'R'},
@@ -108,6 +106,7 @@ static struct option long_options[] =
   {"warnings", 1, 0, 'w'},
   {"xml", 0, 0, 'x'},
   {"debug", 0, 0, 'k'},
+  {"signature-threshold", 1, 0, 'S'},
   {NULL, 0, 0, 0}
 };
 #endif
@@ -175,6 +174,8 @@ print_help(rasqal_world* world, raptor_world* raptor_world_ptr)
   puts("    id                     Blank nodes must have same ID to match");
   puts("    structure              Blank nodes match based on structural similarity");
   puts(HELP_TEXT("m", "max-differences N", HELP_PAD "Maximum number of differences to report (default: 10)"));
+  puts(HELP_TEXT("t", "timeout SECONDS ", HELP_PAD "Maximum search time for graph comparison (default: 30)"));
+  puts(HELP_TEXT("S", "signature-threshold N", HELP_PAD "Signature complexity threshold (default: 1000)"));
 
 
 
@@ -365,330 +366,83 @@ print_diff_output(rasqal_query_results_compare_result* result,
 {
   int i;
 
-  if(!result || (!result->differences_count && !result->triple_differences_count))
+  if(!result || !result->differences_count)
     return;
 
   if(!diff_format || !strcmp(diff_format, "readable")) {
-    /* Human-readable diff with structured data */
-    printf("Found %d differences:\n", result->differences_count + result->triple_differences_count);
-
-    /* String differences */
+    /* Human-readable diff */
+    printf("Found %d differences:\n", result->differences_count);
     for(i = 0; i < result->differences_count; i++) {
-      rasqal_query_results_compare_difference* diff = &result->differences[i];
-      printf("  %d: %s", i + 1, diff->description);
-      if(diff->expected || diff->actual) {
-        printf(" (expected: %s, actual: %s)",
-               diff->expected ? diff->expected : "missing",
-               diff->actual ? diff->actual : "missing");
-      }
-      printf("\n");
-    }
-
-    /* Triple differences */
-    for(i = 0; i < result->triple_differences_count; i++) {
-      rasqal_query_results_compare_triple_difference* diff = &result->triple_differences[i];
-      printf("  %d: %s", result->differences_count + i + 1, diff->description);
-      if(diff->expected_triple && diff->actual_triple) {
-        unsigned char *subj1, *pred1, *obj1, *subj2, *pred2, *obj2;
-        subj1 = raptor_term_to_string(diff->expected_triple->subject);
-        pred1 = raptor_term_to_string(diff->expected_triple->predicate);
-        obj1 = raptor_term_to_string(diff->expected_triple->object);
-        subj2 = raptor_term_to_string(diff->actual_triple->subject);
-        pred2 = raptor_term_to_string(diff->actual_triple->predicate);
-        obj2 = raptor_term_to_string(diff->actual_triple->object);
-        printf(" (expected: <%s> <%s> <%s>, actual: <%s> <%s> <%s>)",
-               subj1, pred1, obj1, subj2, pred2, obj2);
-        raptor_free_memory(subj1);
-        raptor_free_memory(pred1);
-        raptor_free_memory(obj1);
-        raptor_free_memory(subj2);
-        raptor_free_memory(pred2);
-        raptor_free_memory(obj2);
-      } else if(diff->expected_triple) {
-        unsigned char *subj, *pred, *obj;
-        subj = raptor_term_to_string(diff->expected_triple->subject);
-        pred = raptor_term_to_string(diff->expected_triple->predicate);
-        obj = raptor_term_to_string(diff->expected_triple->object);
-        printf(" (expected: <%s> <%s> <%s>, actual: missing)",
-               subj, pred, obj);
-        raptor_free_memory(subj);
-        raptor_free_memory(pred);
-        raptor_free_memory(obj);
-      } else if(diff->actual_triple) {
-        unsigned char *subj, *pred, *obj;
-        subj = raptor_term_to_string(diff->actual_triple->subject);
-        pred = raptor_term_to_string(diff->actual_triple->predicate);
-        obj = raptor_term_to_string(diff->actual_triple->object);
-        printf(" (expected: missing, actual: <%s> <%s> <%s>)",
-               subj, pred, obj);
-        raptor_free_memory(subj);
-        raptor_free_memory(pred);
-        raptor_free_memory(obj);
-      }
-      printf("\n");
+      printf("  %d: %s\n", i + 1, result->differences[i]);
     }
   } else if(!strcmp(diff_format, "unified")) {
-    /* Enhanced unified diff format with structured data */
-    int total_differences = result->differences_count + result->triple_differences_count;
-    
+    /* Enhanced unified diff format with better structure */
     printf("--- expected\n");
     printf("+++ actual\n");
     printf("@@ Comparison Results @@\n");
-    if(total_differences == 0) {
+
+    if(result->differences_count == 0) {
       printf("Results are identical\n");
     } else {
-      printf("Found %d differences:\n", total_differences);
-
-      /* String differences */
+      printf("Found %d differences:\n", result->differences_count);
       for(i = 0; i < result->differences_count; i++) {
-        rasqal_query_results_compare_difference* diff = &result->differences[i];
-        if(diff->expected && diff->actual) {
-          printf("-%s\n", diff->expected);
-          printf("+%s\n", diff->actual);
-        } else if(diff->expected) {
-          printf("-%s\n", diff->expected);
-          // No + line - value is missing in actual
-        } else if(diff->actual) {
-          // No - line - value is missing in expected
-          printf("+%s\n", diff->actual);
-        } else {
-          printf(" %s\n", diff->description);
-        }
-      }
+        const char* diff = result->differences[i];
 
-      /* Triple differences */
-      for(i = 0; i < result->triple_differences_count; i++) {
-        rasqal_query_results_compare_triple_difference* diff = &result->triple_differences[i];
-        if(diff->expected_triple && diff->actual_triple) {
-          unsigned char *subj1, *pred1, *obj1, *subj2, *pred2, *obj2;
-          subj1 = raptor_term_to_string(diff->expected_triple->subject);
-          pred1 = raptor_term_to_string(diff->expected_triple->predicate);
-          obj1 = raptor_term_to_string(diff->expected_triple->object);
-          subj2 = raptor_term_to_string(diff->actual_triple->subject);
-          pred2 = raptor_term_to_string(diff->actual_triple->predicate);
-          obj2 = raptor_term_to_string(diff->actual_triple->object);
-          printf("-%s %s %s\n", subj1, pred1, obj1);
-          printf("+%s %s %s\n", subj2, pred2, obj2);
-          raptor_free_memory(subj1);
-          raptor_free_memory(pred1);
-          raptor_free_memory(obj1);
-          raptor_free_memory(subj2);
-          raptor_free_memory(pred2);
-          raptor_free_memory(obj2);
-        } else if(diff->expected_triple) {
-          unsigned char *subj, *pred, *obj;
-          subj = raptor_term_to_string(diff->expected_triple->subject);
-          pred = raptor_term_to_string(diff->expected_triple->predicate);
-          obj = raptor_term_to_string(diff->expected_triple->object);
-          printf("-%s %s %s\n", subj, pred, obj);
-          raptor_free_memory(subj);
-          raptor_free_memory(pred);
-          raptor_free_memory(obj);
-          // No + line - triple is missing in actual
-        } else if(diff->actual_triple) {
-          // No - line - triple is missing in expected
-          unsigned char *subj, *pred, *obj;
-          subj = raptor_term_to_string(diff->actual_triple->subject);
-          pred = raptor_term_to_string(diff->actual_triple->predicate);
-          obj = raptor_term_to_string(diff->actual_triple->object);
-          printf("+%s %s %s\n", subj, pred, obj);
-          raptor_free_memory(subj);
-          raptor_free_memory(pred);
-          raptor_free_memory(obj);
+        /* Try to parse expected vs actual values from difference message */
+        const char* vs_pos = strstr(diff, " vs ");
+        if(vs_pos) {
+          /* Extract the part before " vs " as expected */
+          const char* expected_start = diff;
+          size_t expected_len = vs_pos - expected_start;
+
+          /* Extract the part after " vs " as actual */
+          const char* actual_start = vs_pos + 4;
+
+          /* Print in unified diff format */
+          printf("-%.*s\n", (int)expected_len, expected_start);
+          printf("+%s\n", actual_start);
+        } else {
+          /* No " vs " found, show the full difference */
+          printf(" %s\n", diff);
         }
       }
-      printf("\nSummary: %d differences found\n", total_differences);
+      printf("\nSummary: %d differences found\n", result->differences_count);
     }
   } else if(!strcmp(diff_format, "json")) {
-    /* JSON diff format with structured data */
+    /* JSON diff format */
     printf("{\n");
     printf("  \"equal\": %s,\n", result->equal ? "true" : "false");
     printf("  \"differences_count\": %d,\n", result->differences_count);
-    printf("  \"triple_differences_count\": %d,\n", result->triple_differences_count);
-
-    /* String differences */
     printf("  \"differences\": [\n");
     for(i = 0; i < result->differences_count; i++) {
-      rasqal_query_results_compare_difference* diff = &result->differences[i];
-      printf("    {\n");
-      printf("      \"description\": \"%s\"", diff->description);
-      if(diff->expected || diff->actual) {
-        printf(",\n      \"expected\": \"%s\"", diff->expected ? diff->expected : "missing");
-        printf(",\n      \"actual\": \"%s\"", diff->actual ? diff->actual : "missing");
-      }
-      printf("\n    }");
+      printf("    \"%s\"", result->differences[i]);
       if(i < result->differences_count - 1)
-        printf(",");
-      printf("\n");
-    }
-    printf("  ],\n");
-
-    /* Triple differences */
-    printf("  \"triple_differences\": [\n");
-    for(i = 0; i < result->triple_differences_count; i++) {
-      rasqal_query_results_compare_triple_difference* diff = &result->triple_differences[i];
-      printf("    {\n");
-      printf("      \"description\": \"%s\"", diff->description);
-      if(diff->expected_triple) {
-        unsigned char *subj, *pred, *obj;
-        subj = raptor_term_to_string(diff->expected_triple->subject);
-        pred = raptor_term_to_string(diff->expected_triple->predicate);
-        obj = raptor_term_to_string(diff->expected_triple->object);
-        printf(",\n      \"expected_triple\": {\n");
-        printf("        \"subject\": \"%s\",\n", subj);
-        printf("        \"predicate\": \"%s\",\n", pred);
-        printf("        \"object\": \"%s\"\n", obj);
-        printf("      }");
-        raptor_free_memory(subj);
-        raptor_free_memory(pred);
-        raptor_free_memory(obj);
-      }
-      if(diff->actual_triple) {
-        unsigned char *subj, *pred, *obj;
-        subj = raptor_term_to_string(diff->actual_triple->subject);
-        pred = raptor_term_to_string(diff->actual_triple->predicate);
-        obj = raptor_term_to_string(diff->actual_triple->object);
-        printf(",\n      \"actual_triple\": {\n");
-        printf("        \"subject\": \"%s\",\n", subj);
-        printf("        \"predicate\": \"%s\",\n", pred);
-        printf("        \"object\": \"%s\"\n", obj);
-        printf("      }");
-        raptor_free_memory(subj);
-        raptor_free_memory(pred);
-        raptor_free_memory(obj);
-      }
-      printf("\n    }");
-      if(i < result->triple_differences_count - 1)
         printf(",");
       printf("\n");
     }
     printf("  ]\n");
     printf("}\n");
   } else if(!strcmp(diff_format, "xml")) {
-    /* XML diff format with structured data */
+    /* XML diff format */
     printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     printf("<comparison>\n");
     printf("  <equal>%s</equal>\n", result->equal ? "true" : "false");
     printf("  <differences_count>%d</differences_count>\n", result->differences_count);
-    printf("  <triple_differences_count>%d</triple_differences_count>\n", result->triple_differences_count);
-
-    /* String differences */
     printf("  <differences>\n");
     for(i = 0; i < result->differences_count; i++) {
-      rasqal_query_results_compare_difference* diff = &result->differences[i];
-      printf("    <difference>\n");
-      printf("      <description>%s</description>\n", diff->description);
-      if(diff->expected || diff->actual) {
-        printf("      <expected>%s</expected>\n", diff->expected ? diff->expected : "missing");
-        printf("      <actual>%s</actual>\n", diff->actual ? diff->actual : "missing");
-      }
-      printf("    </difference>\n");
+      printf("    <difference>%s</difference>\n", result->differences[i]);
     }
     printf("  </differences>\n");
-
-    /* Triple differences */
-    printf("  <triple_differences>\n");
-    for(i = 0; i < result->triple_differences_count; i++) {
-      rasqal_query_results_compare_triple_difference* diff = &result->triple_differences[i];
-      printf("    <triple_difference>\n");
-      printf("      <description>%s</description>\n", diff->description);
-      if(diff->expected_triple) {
-        unsigned char *subj, *pred, *obj;
-        subj = raptor_term_to_string(diff->expected_triple->subject);
-        pred = raptor_term_to_string(diff->expected_triple->predicate);
-        obj = raptor_term_to_string(diff->expected_triple->object);
-        printf("      <expected_triple>\n");
-        printf("        <subject>%s</subject>\n", subj);
-        printf("        <predicate>%s</predicate>\n", pred);
-        printf("        <object>%s</object>\n", obj);
-        printf("      </expected_triple>\n");
-        raptor_free_memory(subj);
-        raptor_free_memory(pred);
-        raptor_free_memory(obj);
-      }
-      if(diff->actual_triple) {
-        unsigned char *subj, *pred, *obj;
-        subj = raptor_term_to_string(diff->actual_triple->subject);
-        pred = raptor_term_to_string(diff->actual_triple->predicate);
-        obj = raptor_term_to_string(diff->actual_triple->object);
-        printf("      <actual_triple>\n");
-        printf("        <subject>%s</subject>\n", subj);
-        printf("        <predicate>%s</predicate>\n", pred);
-        printf("        <object>%s</object>\n", obj);
-        printf("      </actual_triple>\n");
-        raptor_free_memory(subj);
-        raptor_free_memory(pred);
-        raptor_free_memory(obj);
-      }
-      printf("    </triple_difference>\n");
-    }
-    printf("  </triple_differences>\n");
     printf("</comparison>\n");
   } else if(!strcmp(diff_format, "debug")) {
-    /* Debug format with structured data */
+    /* Debug format similar to roqet -d debug */
     printf("comparison result: %s\n", result->equal ? "equal" : "different");
     printf("differences count: %d\n", result->differences_count);
-    printf("triple differences count: %d\n", result->triple_differences_count);
 
-    /* String differences */
     if(result->differences_count > 0) {
       printf("differences:\n");
       for(i = 0; i < result->differences_count; i++) {
-        rasqal_query_results_compare_difference* diff = &result->differences[i];
-        printf("  %d: %s", i + 1, diff->description);
-        if(diff->expected || diff->actual) {
-          printf(" (expected: %s, actual: %s)",
-                 diff->expected ? diff->expected : "missing",
-                 diff->actual ? diff->actual : "missing");
-        }
-        printf("\n");
-      }
-    }
-
-    /* Triple differences */
-    if(result->triple_differences_count > 0) {
-      printf("triple differences:\n");
-      for(i = 0; i < result->triple_differences_count; i++) {
-        rasqal_query_results_compare_triple_difference* diff = &result->triple_differences[i];
-        printf("  %d: %s", i + 1, diff->description);
-        if(diff->expected_triple && diff->actual_triple) {
-          unsigned char *subj1, *pred1, *obj1, *subj2, *pred2, *obj2;
-          subj1 = raptor_term_to_string(diff->expected_triple->subject);
-          pred1 = raptor_term_to_string(diff->expected_triple->predicate);
-          obj1 = raptor_term_to_string(diff->expected_triple->object);
-          subj2 = raptor_term_to_string(diff->actual_triple->subject);
-          pred2 = raptor_term_to_string(diff->actual_triple->predicate);
-          obj2 = raptor_term_to_string(diff->actual_triple->object);
-          printf(" (expected: <%s> <%s> <%s>, actual: <%s> <%s> <%s>)",
-                 subj1, pred1, obj1, subj2, pred2, obj2);
-          raptor_free_memory(subj1);
-          raptor_free_memory(pred1);
-          raptor_free_memory(obj1);
-          raptor_free_memory(subj2);
-          raptor_free_memory(pred2);
-          raptor_free_memory(obj2);
-        } else if(diff->expected_triple) {
-          unsigned char *subj, *pred, *obj;
-          subj = raptor_term_to_string(diff->expected_triple->subject);
-          pred = raptor_term_to_string(diff->expected_triple->predicate);
-          obj = raptor_term_to_string(diff->expected_triple->object);
-          printf(" (expected: <%s> <%s> <%s>, actual: missing)",
-                 subj, pred, obj);
-          raptor_free_memory(subj);
-          raptor_free_memory(pred);
-          raptor_free_memory(obj);
-        } else if(diff->actual_triple) {
-          unsigned char *subj, *pred, *obj;
-          subj = raptor_term_to_string(diff->actual_triple->subject);
-          pred = raptor_term_to_string(diff->actual_triple->predicate);
-          obj = raptor_term_to_string(diff->actual_triple->object);
-          printf(" (expected: missing, actual: <%s> <%s> <%s>)",
-                 subj, pred, obj);
-          raptor_free_memory(subj);
-          raptor_free_memory(pred);
-          raptor_free_memory(obj);
-        }
-        printf("\n");
+        printf("  %d: %s\n", i + 1, result->differences[i]);
       }
     }
 
@@ -745,6 +499,14 @@ main(int argc, char *argv[])
 
   /* Initialize comparison options with defaults */
   rasqal_query_results_compare_options_init(&options);
+  
+  /* Initialize graph comparison options */
+  if(!options.graph_comparison_options) {
+    options.graph_comparison_options = malloc(sizeof(rasqal_graph_comparison_options));
+    if(options.graph_comparison_options) {
+      rasqal_graph_comparison_options_init(options.graph_comparison_options);
+    }
+  }
 
   while (!usage && !help)
   {
@@ -820,11 +582,7 @@ main(int argc, char *argv[])
         diff_format = (const char*)"json";
         break;
 
-      case 'l':
-        if(optarg) {
-          /* TODO: Implement limit option */
-        }
-        break;
+
 
       case 'm':
         if(optarg) {
@@ -861,7 +619,12 @@ main(int argc, char *argv[])
 
       case 't':
         if(optarg) {
-          /* TODO: Implement timeout option */
+          /* Timeout option - set max_search_time for graph comparison */
+          if(options.graph_comparison_options) {
+            options.graph_comparison_options->max_search_time = atoi(optarg);
+            if(options.graph_comparison_options->max_search_time < 0)
+              options.graph_comparison_options->max_search_time = 30; /* Default 30 seconds */
+          }
         }
         break;
 
@@ -892,6 +655,17 @@ main(int argc, char *argv[])
 
       case 'k':
         diff_format = (const char*)"debug";
+        break;
+
+      case 'S':
+        if(optarg) {
+          /* Signature threshold option */
+          if(options.graph_comparison_options) {
+            options.graph_comparison_options->signature_threshold = atoi(optarg);
+            if(options.graph_comparison_options->signature_threshold < 0)
+              options.graph_comparison_options->signature_threshold = 1000; /* Default */
+          }
+        }
         break;
 
     }
@@ -1040,6 +814,8 @@ main(int argc, char *argv[])
     rasqal_free_query_results(expected_results);
   if(data_graphs)
     raptor_free_sequence(data_graphs);
+  if(options.graph_comparison_options)
+    free(options.graph_comparison_options);
   rasqal_free_world(world);
 
   return rc;

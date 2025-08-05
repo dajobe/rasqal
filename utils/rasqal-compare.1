@@ -85,11 +85,14 @@ Blank nodes match based on structural similarity
 .B \-m, \-\-max-differences N
 Maximum number of differences to report (default: 10).
 .TP
-.B \-n, \-\-normalize-whitespace
-Normalize whitespace in string comparisons.
-.TP
 .B \-i, \-\-ignore-case
 Ignore case in string comparisons.
+.TP
+.B \-t, \-\-timeout SECONDS
+Maximum search time for graph comparison (default: 30).
+.TP
+.B \-S, \-\-signature-threshold N
+Signature complexity threshold (default: 1000).
 .SH DIFF OUTPUT OPTIONS
 .TP
 .B \-u, \-\-unified
