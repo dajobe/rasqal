@@ -58,13 +58,13 @@ check-local: build-rasqal-compare
 	@echo "Test 4: different non-NULL values (should be different)..."
 	@$(top_builddir)/utils/rasqal-compare -R xml -e $(srcdir)/null-vs-value.xml -a $(srcdir)/null-vs-different-value.xml > /dev/null 2>&1 && (echo "FAIL: different non-NULL values should be different" && exit 1) || echo "PASS"
 	@echo "Test 5: NULL vs non-NULL error message..."
-	@$(top_builddir)/utils/rasqal-compare -R xml -k -e $(srcdir)/null-both.xml -a $(srcdir)/null-vs-value.xml 2>&1 | grep -q "NULL vs non-NULL value" || (echo "FAIL: Expected 'NULL vs non-NULL value' in output" && exit 1)
+	@$(top_builddir)/utils/rasqal-compare -R xml -k -e $(srcdir)/null-both.xml -a $(srcdir)/null-vs-value.xml 2>&1 | grep -q "o='NULL' vs row.*o='some value'" || (echo "FAIL: Expected 'o='NULL' vs row.*o='some value'' in output" && exit 1)
 	@echo "PASS"
 	@echo "Test 6: JSON output format..."
-	@$(top_builddir)/utils/rasqal-compare -R xml -j -e $(srcdir)/null-both.xml -a $(srcdir)/null-vs-value.xml 2>&1 | grep -q '"description": "NULL vs non-NULL value"' || (echo "FAIL: Expected JSON output with correct description" && exit 1)
+	@$(top_builddir)/utils/rasqal-compare -R xml -j -e $(srcdir)/null-both.xml -a $(srcdir)/null-vs-value.xml 2>&1 | grep -q '"row.*o='\''NULL'\'' vs row.*o='\''some value'\''"' || (echo "FAIL: Expected JSON output with correct description" && exit 1)
 	@echo "PASS"
 	@echo "Test 7: XML output format..."
-	@$(top_builddir)/utils/rasqal-compare -R xml -x -e $(srcdir)/null-both.xml -a $(srcdir)/null-vs-value.xml 2>&1 | grep -q '<description>NULL vs non-NULL value</description>' || (echo "FAIL: Expected XML output with correct description" && exit 1)
+	@$(top_builddir)/utils/rasqal-compare -R xml -x -e $(srcdir)/null-both.xml -a $(srcdir)/null-vs-value.xml 2>&1 | grep -q '<difference>row.*o='\''NULL'\'' vs row.*o='\''some value'\''</difference>' || (echo "FAIL: Expected XML output with correct description" && exit 1)
 	@echo "PASS"
 	@echo "Test 8: Unified diff output format..."
 	@$(top_builddir)/utils/rasqal-compare -R xml -u -e $(srcdir)/null-both.xml -a $(srcdir)/null-vs-value.xml 2>&1 | grep -q "o='NULL'" || (echo "FAIL: Expected unified diff output with NULL reference" && exit 1)
