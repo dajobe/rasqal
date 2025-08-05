@@ -56,6 +56,7 @@ IGNORE_HFILES= \
 	rasqal_config.h \
 	rasqal_getopt.h \
 	rasqal_internal.h \
+	rasqal_graph_isomorphism.h \
 	sparql_common.h \
 	sparql_lexer.h \
 	sparql_parser.h \
