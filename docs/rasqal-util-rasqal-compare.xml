@@ -270,10 +270,7 @@ rasqal-compare -q QUERY_FILE -e EXPECTED_FILE -d DATA_FILE
                     <para>
                         <literal>rdfxml</literal> - RDF/XML Query Results</para>
                 </listitem>
-                <listitem>
-                    <para>
-                        <literal>mkr</literal> - mKR relation format</para>
-                </listitem>
+
             </itemizedlist>
 
         </section>

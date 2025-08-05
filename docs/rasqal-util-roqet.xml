@@ -105,7 +105,6 @@ roqet [OPTIONS] -t &lt;query-results-file&gt; [base-URI]
             <listitem><para><emphasis>html</emphasis> - HTML Table</para></listitem>
             <listitem><para><emphasis>turtle</emphasis> - Turtle Query Results</para></listitem>
             <listitem><para><emphasis>rdfxml</emphasis> - RDF/XML Query Results</para></listitem>
-            <listitem><para><emphasis>mkr</emphasis> - mKR relation format</para></listitem>
           </itemizedlist>
 
           <para><emphasis>For RDF graph results:</emphasis></para>
@@ -141,7 +140,6 @@ roqet [OPTIONS] -t &lt;query-results-file&gt; [base-URI]
             <listitem><para><emphasis>tsv</emphasis> - Tab Separated Values (TSV)</para></listitem>
             <listitem><para><emphasis>turtle</emphasis> - Turtle Query Results</para></listitem>
             <listitem><para><emphasis>rdfxml</emphasis> - RDF/XML Query Results</para></listitem>
-            <listitem><para><emphasis>mkr</emphasis> - mKR relation format</para></listitem>
           </itemizedlist>
         </listitem>
       </varlistentry>
@@ -486,7 +484,6 @@ roqet -E query.rq
         <listitem><para><emphasis>table</emphasis> - ASCII table format</para></listitem>
         <listitem><para><emphasis>turtle</emphasis> - Turtle syntax for results</para></listitem>
         <listitem><para><emphasis>rdfxml</emphasis> - RDF/XML syntax for results</para></listitem>
-        <listitem><para><emphasis>mkr</emphasis> - mKR relation format</para></listitem>
       </itemizedlist>
 
       <para>For RDF graph results (CONSTRUCT/DESCRIBE queries):</para>
