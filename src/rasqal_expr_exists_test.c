@@ -158,12 +158,9 @@ int main(int argc, char *argv[])
             if(verbose)
               printf("  EXISTS expression created successfully\n");
             rasqal_free_expression(exists_expr);
-            /* The args sequence is owned by the expression and freed with it */
-            /* The graph pattern is also freed by the expression */
           } else {
             fprintf(stderr, "%s: Failed to create EXISTS expression\n", program);
             failures++;
-            raptor_free_sequence(args);
           }
         } else {
           rasqal_free_graph_pattern(test_pattern);
@@ -202,12 +199,9 @@ int main(int argc, char *argv[])
             if(verbose)
               printf("  NOT EXISTS expression created successfully\n");
             rasqal_free_expression(not_exists_expr);
-            /* The args sequence is owned by the expression and freed with it */
-            /* The graph pattern is also freed by the expression */
           } else {
             fprintf(stderr, "%s: Failed to create NOT EXISTS expression\n", program);
             failures++;
-            raptor_free_sequence(args);
           }
         } else {
           rasqal_free_graph_pattern(test_pattern);
@@ -329,10 +323,9 @@ int main(int argc, char *argv[])
                   printf("  EXISTS expression evaluation returned NULL (expected for empty pattern)\n");
               }
 
-              /* The args sequence and graph pattern are owned by the expression and freed with it */
               rasqal_free_expression(exists_expr);
             } else {
-              raptor_free_sequence(args);
+              rasqal_free_graph_pattern(test_pattern);
             }
           } else {
             rasqal_free_graph_pattern(test_pattern);
@@ -398,10 +391,7 @@ int main(int argc, char *argv[])
               if(result)
                 rasqal_free_literal(result);
 
-              /* The args sequence and graph pattern are owned by the expression and freed with it */
               rasqal_free_expression(exists_expr);
-            } else {
-              raptor_free_sequence(args);
             }
           } else {
             rasqal_free_graph_pattern(exists_pattern);
@@ -533,10 +523,7 @@ int main(int argc, char *argv[])
                       }
                     }
 
-                    /* The args sequence and graph pattern are owned by the expression and freed with it */
                     rasqal_free_expression(exists_expr);
-                  } else {
-                    raptor_free_sequence(args);
                   }
                 } else {
                   rasqal_free_graph_pattern(exists_pattern);
