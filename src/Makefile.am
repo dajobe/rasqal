@@ -25,7 +25,8 @@ lib_LTLIBRARIES = librasqal.la
 
 nodist_pkginclude_HEADERS = rasqal.h
 
-noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h sv_config.h
+noinst_HEADERS = rasqal_internal.h rasqal_graph_isomorphism.h \
+win32_rasqal_config.h sv_config.h
 
 man_MANS = rasqal-config.1
 
@@ -53,7 +54,9 @@ rasqal_regex_test$(EXEEXT) \
 rasqal_random_test$(EXEEXT) \
 rasqal_xsd_datatypes_test$(EXEEXT) \
 rasqal_query_results_test$(EXEEXT) \
-rasqal_query_results_compare_test$(EXEEXT)
+rasqal_query_results_compare_test$(EXEEXT) \
+rasqal_query_results_compare_public_test$(EXEEXT) \
+rasqal_graph_isomorphism_test$(EXEEXT)
 
 # These 2 test programs are compiled here and run here as 'smoke
 # tests' but mostly used in tests in $(srcdir)/../tests/sparql
@@ -124,6 +127,7 @@ snprintf.c \
 rasqal_double.c \
 rasqal_ntriples.c \
 rasqal_query_results_compare.c \
+rasqal_graph_isomorphism.c \
 ssort.h
 
 if RASQAL_QUERY_SPARQL
@@ -338,8 +342,18 @@ rasqal_query_results_test_SOURCES = rasqal_query_results.c
 rasqal_query_results_test_CPPFLAGS = -DSTANDALONE
 rasqal_query_results_test_LDADD = librasqal.la
 
-rasqal_query_results_compare_test_SOURCES = rasqal_query_results_compare_test.c
+# Tests query results compare internal (rasqal_internal.h) APIs
+rasqal_query_results_compare_test_SOURCES = rasqal_query_results_compare.c
+rasqal_query_results_compare_test_CPPFLAGS = -DSTANDALONE
 rasqal_query_results_compare_test_LDADD = librasqal.la
+
+# Tests query results compare public (raptor2.h.in) API
+rasqal_query_results_compare_public_test_SOURCES = rasqal_query_results_compare_test.c
+rasqal_query_results_compare_public_test_LDADD = librasqal.la
+
+rasqal_graph_isomorphism_test_SOURCES = rasqal_graph_isomorphism.c
+rasqal_graph_isomorphism_test_CPPFLAGS = -DSTANDALONE
+rasqal_graph_isomorphism_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
