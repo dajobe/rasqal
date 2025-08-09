@@ -80,6 +80,27 @@ typedef struct {
   int size;
 } rasqal_graph_isomorphism_signature_compartment;
 
+/**
+ * rasqal_free_graph_isomorphism_signature_compartment:
+ * @component: signature compartment to free
+ *
+ * Free a signature compartment structure and its contents.
+ *
+ * This function cleans up all resources associated with a signature
+ * compartment including the sequence of blank nodes and the signature
+ * data structure itself.
+ */
+static void
+rasqal_free_graph_isomorphism_signature_compartment(rasqal_graph_isomorphism_signature_compartment *component)
+{
+  if(!component)
+    return;
+  if(component->blank_nodes)
+    raptor_free_sequence(component->blank_nodes);
+  RASQAL_FREE(rasqal_graph_isomorphism_signature_compartment*, component);
+}
+
+
 /*
  * VF2 Algorithm State Structure
  * 
@@ -247,7 +268,8 @@ rasqal_graph_isomorphism_compartmentalize_by_signature(raptor_sequence* blank_no
   if(!blank_nodes || !triples || !world)
     return NULL;
 
-  compartments = raptor_new_sequence(NULL, NULL);
+  /* sequence of rasqal_graph_isomorphism_signature_compartment* that we own */
+  compartments = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_isomorphism_signature_compartment, NULL);
   if(!compartments)
     return NULL;
 
@@ -268,8 +290,9 @@ rasqal_graph_isomorphism_compartmentalize_by_signature(raptor_sequence* blank_no
     /* Look for existing compartment with same signature */
     found = 0;
     for(j = 0; j < raptor_sequence_size(compartments); j++) {
-              compartment = (rasqal_graph_isomorphism_signature_compartment*)raptor_sequence_get_at(compartments, j);
-      if(compartment && rasqal_graph_isomorphism_compare_signatures(&compartment->signature, signature) == 0) {
+      compartment = (rasqal_graph_isomorphism_signature_compartment*)raptor_sequence_get_at(compartments, j);
+      if(compartment &&
+         rasqal_graph_isomorphism_compare_signatures(&compartment->signature, signature) == 0) {
         /* Add to existing compartment */
         raptor_sequence_push(compartment->blank_nodes, bnode);
         compartment->size++;
@@ -282,6 +305,7 @@ rasqal_graph_isomorphism_compartmentalize_by_signature(raptor_sequence* blank_no
       /* Create new compartment */
       compartment = RASQAL_CALLOC(rasqal_graph_isomorphism_signature_compartment*, 1, sizeof(rasqal_graph_isomorphism_signature_compartment));
       if(compartment) {
+        /* sequence of raptor_term* references (not owned) */
         compartment->blank_nodes = raptor_new_sequence(NULL, NULL);
         if(compartment->blank_nodes) {
           raptor_sequence_push(compartment->blank_nodes, bnode);
@@ -1462,7 +1486,7 @@ test_signature_generation(void)
   if(!world || rasqal_world_open(world))
     return 0;
 
-  triples = raptor_new_sequence(NULL, NULL);
+  triples = raptor_new_sequence((raptor_data_free_handler)raptor_free_statement, NULL);
   if(!triples)
     goto cleanup;
 
@@ -1553,7 +1577,7 @@ test_compartmentalization(void)
   if(!world || rasqal_world_open(world))
     return 0;
 
-  triples = raptor_new_sequence(NULL, NULL);
+  triples = raptor_new_sequence((raptor_data_free_handler)raptor_free_statement, NULL);
   blank_nodes = raptor_new_sequence(NULL, NULL);
   
   if(!triples || !blank_nodes)
@@ -1728,6 +1752,8 @@ cleanup:
     raptor_free_sequence(ordered);
   if(compartments)
     raptor_free_sequence(compartments);
+  if(bnode)
+    raptor_free_term(bnode);
   if(blank_nodes)
     raptor_free_sequence(blank_nodes);
   if(triples)
@@ -1985,18 +2011,22 @@ int
 main(int argc, char *argv[])
 {
   char const *program = rasqal_basename(*argv);
+  int result;
   int failures = 0;
 
   printf("%s: Testing RDF Graph Isomorphism Detection Module\n", program);
 
-  failures += !test_signature_generation();
-  print_test_result("Signature Generation", test_signature_generation());
+  result = test_signature_generation();
+  print_test_result("Signature Generation", result);
+  failures += !result;
 
-  failures += !test_signature_comparison();
-  print_test_result("Signature Comparison", test_signature_comparison());
+  result = test_signature_comparison();
+  print_test_result("Signature Comparison", result);
+  failures += !result;
 
-  failures += !test_compartmentalization();
-  print_test_result("Compartmentalization", test_compartmentalization());
+  result = test_compartmentalization();
+  print_test_result("Compartmentalization", result);
+  failures += !result;
 
   failures += !test_ordering();
   print_test_result("Ordering", test_ordering());
