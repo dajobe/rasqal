@@ -386,6 +386,10 @@ rasqal_graph_isomorphism_detect_signature_based(rasqal_query_results_compare* co
       raptor_sequence_push(first_blank_nodes, triple->predicate);
     if(triple->object && triple->object->type == RAPTOR_TERM_TYPE_BLANK)
       raptor_sequence_push(first_blank_nodes, triple->object);
+
+    /* Advance */
+    if(rasqal_query_results_next_triple(compare->first_results))
+      break;
   }
 
   /* Collect triples and blank nodes from second result set */
@@ -403,6 +407,10 @@ rasqal_graph_isomorphism_detect_signature_based(rasqal_query_results_compare* co
       raptor_sequence_push(second_blank_nodes, triple->predicate);
     if(triple->object && triple->object->type == RAPTOR_TERM_TYPE_BLANK)
       raptor_sequence_push(second_blank_nodes, triple->object);
+
+    /* Advance */
+    if(rasqal_query_results_next_triple(compare->second_results))
+      break;
   }
 
   /* Compartmentalize blank nodes by signature */
@@ -480,6 +488,10 @@ rasqal_graph_isomorphism_detect_exhaustive(rasqal_query_results_compare* compare
       raptor_sequence_push(first_blank_nodes, triple->predicate);
     if(triple->object && triple->object->type == RAPTOR_TERM_TYPE_BLANK)
       raptor_sequence_push(first_blank_nodes, triple->object);
+
+    /* Advance */
+    if(rasqal_query_results_next_triple(compare->first_results))
+      break;
   }
 
   /* Collect triples and blank nodes from second result set */
@@ -497,6 +509,10 @@ rasqal_graph_isomorphism_detect_exhaustive(rasqal_query_results_compare* compare
       raptor_sequence_push(second_blank_nodes, triple->predicate);
     if(triple->object && triple->object->type == RAPTOR_TERM_TYPE_BLANK)
       raptor_sequence_push(second_blank_nodes, triple->object);
+
+    /* Advance */
+    if(rasqal_query_results_next_triple(compare->second_results))
+      break;
   }
 
   /* Use simple mapping test */
@@ -929,6 +945,10 @@ rasqal_graph_isomorphism_detect_vf2(rasqal_query_results_compare* compare)
       raptor_sequence_push(first_nodes, triple->predicate);
     if(triple->object)
       raptor_sequence_push(first_nodes, triple->object);
+
+    /* Advance to next triple; break on end */
+    if(rasqal_query_results_next_triple(compare->first_results))
+      break;
   }
 
   /* Collect triples and nodes from second result set */
@@ -946,6 +966,10 @@ rasqal_graph_isomorphism_detect_vf2(rasqal_query_results_compare* compare)
       raptor_sequence_push(second_nodes, triple->predicate);
     if(triple->object)
       raptor_sequence_push(second_nodes, triple->object);
+
+    /* Advance to next triple; break on end */
+    if(rasqal_query_results_next_triple(compare->second_results))
+      break;
   }
 
   /* Get timeout from graph comparison options if available */
@@ -1018,6 +1042,9 @@ rasqal_graph_isomorphism_compare_graphs_hybrid(rasqal_query_results_compare* com
     if(!triple)
       break;
     triple_count++;
+    /* Advance to next triple; stop if at end */
+    if(rasqal_query_results_next_triple(compare->first_results))
+      break;
   }
 
   /* Choose algorithm based on graph size */
@@ -1714,25 +1741,55 @@ test_vf2_detection(void)
   rasqal_query_results* results1 = NULL;
   rasqal_query_results* results2 = NULL;
   rasqal_query_results_compare* compare = NULL;
+  raptor_uri* base_uri = NULL;
   int result = 0;
 
   world = rasqal_new_world();
   if(!world || rasqal_world_open(world))
     return 0;
 
-  /* Create test query results with isomorphic graphs */
+  base_uri = raptor_new_uri(world->raptor_world_ptr, (unsigned char*)"http://example.org/");
+
+  /* Create test query results with isomorphic graphs using Turtle format */
+  /* Graph 1: _:b1 <p> "o1" . _:b2 <p> "o2" . _:b1 <q> _:b2 . */
+  /* Graph 2: _:x1 <p> "o1" . _:x2 <p> "o2" . _:x1 <q> _:x2 . */
+
   results1 = rasqal_new_query_results2(world, NULL, RASQAL_QUERY_RESULTS_GRAPH);
   results2 = rasqal_new_query_results2(world, NULL, RASQAL_QUERY_RESULTS_GRAPH);
-
   if(!results1 || !results2)
     goto cleanup;
 
-  /* Add isomorphic triples to both results */
-  /* Graph 1: _:b1 <p> <o1> . _:b2 <p> <o2> . _:b1 <q> _:b2 . */
-  /* Graph 2: _:x1 <p> <o1> . _:x2 <p> <o2> . _:x1 <q> _:x2 . */
-  
-  /* This is a simplified test - in a real implementation we'd add actual triples */
-  /* For now, just test that the function doesn't crash */
+  {
+    const char* ttl1 =
+      "@prefix : <http://example.org/> .\n"
+      "_:b1 :p \"o1\" .\n"
+      "_:b2 :p \"o2\" .\n"
+      "_:b1 :q _:b2 .\n";
+    const char* ttl2 =
+      "@prefix : <http://example.org/> .\n"
+      "_:x1 :p \"o1\" .\n"
+      "_:x2 :p \"o2\" .\n"
+      "_:x1 :q _:x2 .\n";
+    raptor_iostream* iostr;
+
+    iostr = raptor_new_iostream_from_string(world->raptor_world_ptr, (void*)ttl1, strlen(ttl1));
+    if(!iostr)
+      goto cleanup;
+    if(rasqal_query_results_load_graph_iostream(results1, "turtle", iostr, base_uri)) {
+      raptor_free_iostream(iostr);
+      goto cleanup;
+    }
+    raptor_free_iostream(iostr);
+
+    iostr = raptor_new_iostream_from_string(world->raptor_world_ptr, (void*)ttl2, strlen(ttl2));
+    if(!iostr)
+      goto cleanup;
+    if(rasqal_query_results_load_graph_iostream(results2, "turtle", iostr, base_uri)) {
+      raptor_free_iostream(iostr);
+      goto cleanup;
+    }
+    raptor_free_iostream(iostr);
+  }
   
   compare = RASQAL_CALLOC(rasqal_query_results_compare*, 1, sizeof(rasqal_query_results_compare));
   if(!compare)
@@ -1742,8 +1799,8 @@ test_vf2_detection(void)
   compare->first_results = results1;
   compare->second_results = results2;
 
-  /* Test VF2 detection - should handle empty graphs gracefully */
-  result = (rasqal_graph_isomorphism_detect_vf2(compare) == 1);
+  /* Test VF2 detection with isomorphic graphs */
+  result = (rasqal_graph_isomorphism_detect_vf2(compare) == 1); /* Should detect isomorphism */
 
 cleanup:
   if(compare)
@@ -1752,6 +1809,8 @@ cleanup:
     rasqal_free_query_results(results2);
   if(results1)
     rasqal_free_query_results(results1);
+  if(base_uri)
+    raptor_free_uri(base_uri);
   if(world)
     rasqal_free_world(world);
 
@@ -1765,19 +1824,53 @@ test_exhaustive_detection(void)
   rasqal_query_results* results1 = NULL;
   rasqal_query_results* results2 = NULL;
   rasqal_query_results_compare* compare = NULL;
+  raptor_uri* base_uri = NULL;
   int result = 0;
 
   world = rasqal_new_world();
   if(!world || rasqal_world_open(world))
     return 0;
 
-  /* Create test query results */
+  base_uri = raptor_new_uri(world->raptor_world_ptr, (unsigned char*)"http://example.org/");
+
+  /* Create test query results with isomorphic graphs using Turtle format */
   results1 = rasqal_new_query_results2(world, NULL, RASQAL_QUERY_RESULTS_GRAPH);
   results2 = rasqal_new_query_results2(world, NULL, RASQAL_QUERY_RESULTS_GRAPH);
-
   if(!results1 || !results2)
     goto cleanup;
 
+  {
+    const char* ttl1 =
+      "@prefix : <http://example.org/> .\n"
+      "_:b1 :p \"o1\" .\n"
+      "_:b2 :p \"o2\" .\n"
+      "_:b1 :q _:b2 .\n";
+    const char* ttl2 =
+      "@prefix : <http://example.org/> .\n"
+      "_:x1 :p \"o1\" .\n"
+      "_:x2 :p \"o2\" .\n"
+      "_:x1 :q _:x2 .\n";
+    raptor_iostream* iostr;
+
+    iostr = raptor_new_iostream_from_string(world->raptor_world_ptr, (void*)ttl1, strlen(ttl1));
+    if(!iostr)
+      goto cleanup;
+    if(rasqal_query_results_load_graph_iostream(results1, "turtle", iostr, base_uri)) {
+      raptor_free_iostream(iostr);
+      goto cleanup;
+    }
+    raptor_free_iostream(iostr);
+
+    iostr = raptor_new_iostream_from_string(world->raptor_world_ptr, (void*)ttl2, strlen(ttl2));
+    if(!iostr)
+      goto cleanup;
+    if(rasqal_query_results_load_graph_iostream(results2, "turtle", iostr, base_uri)) {
+      raptor_free_iostream(iostr);
+      goto cleanup;
+    }
+    raptor_free_iostream(iostr);
+  }
+  
   compare = RASQAL_CALLOC(rasqal_query_results_compare*, 1, sizeof(rasqal_query_results_compare));
   if(!compare)
     goto cleanup;
@@ -1786,8 +1879,8 @@ test_exhaustive_detection(void)
   compare->first_results = results1;
   compare->second_results = results2;
 
-  /* Test exhaustive detection - should handle empty graphs gracefully */
-  result = (rasqal_graph_isomorphism_detect_exhaustive(compare) == 1);
+  /* Test exhaustive detection with isomorphic graphs */
+  result = (rasqal_graph_isomorphism_detect_exhaustive(compare) == 1); /* Should detect isomorphism */
 
 cleanup:
   if(compare)
@@ -1796,6 +1889,8 @@ cleanup:
     rasqal_free_query_results(results2);
   if(results1)
     rasqal_free_query_results(results1);
+  if(base_uri)
+    raptor_free_uri(base_uri);
   if(world)
     rasqal_free_world(world);
 
@@ -1809,19 +1904,53 @@ test_hybrid_detection(void)
   rasqal_query_results* results1 = NULL;
   rasqal_query_results* results2 = NULL;
   rasqal_query_results_compare* compare = NULL;
+  raptor_uri* base_uri = NULL;
   int result = 0;
 
   world = rasqal_new_world();
   if(!world || rasqal_world_open(world))
     return 0;
 
-  /* Create test query results */
+  base_uri = raptor_new_uri(world->raptor_world_ptr, (unsigned char*)"http://example.org/");
+
+  /* Create test query results with isomorphic graphs using Turtle format */
   results1 = rasqal_new_query_results2(world, NULL, RASQAL_QUERY_RESULTS_GRAPH);
   results2 = rasqal_new_query_results2(world, NULL, RASQAL_QUERY_RESULTS_GRAPH);
-
   if(!results1 || !results2)
     goto cleanup;
 
+  {
+    const char* ttl1 =
+      "@prefix : <http://example.org/> .\n"
+      "_:b1 :p \"o1\" .\n"
+      "_:b2 :p \"o2\" .\n"
+      "_:b1 :q _:b2 .\n";
+    const char* ttl2 =
+      "@prefix : <http://example.org/> .\n"
+      "_:x1 :p \"o1\" .\n"
+      "_:x2 :p \"o2\" .\n"
+      "_:x1 :q _:x2 .\n";
+    raptor_iostream* iostr;
+
+    iostr = raptor_new_iostream_from_string(world->raptor_world_ptr, (void*)ttl1, strlen(ttl1));
+    if(!iostr)
+      goto cleanup;
+    if(rasqal_query_results_load_graph_iostream(results1, "turtle", iostr, base_uri)) {
+      raptor_free_iostream(iostr);
+      goto cleanup;
+    }
+    raptor_free_iostream(iostr);
+
+    iostr = raptor_new_iostream_from_string(world->raptor_world_ptr, (void*)ttl2, strlen(ttl2));
+    if(!iostr)
+      goto cleanup;
+    if(rasqal_query_results_load_graph_iostream(results2, "turtle", iostr, base_uri)) {
+      raptor_free_iostream(iostr);
+      goto cleanup;
+    }
+    raptor_free_iostream(iostr);
+  }
+  
   compare = RASQAL_CALLOC(rasqal_query_results_compare*, 1, sizeof(rasqal_query_results_compare));
   if(!compare)
     goto cleanup;
@@ -1830,8 +1959,8 @@ test_hybrid_detection(void)
   compare->first_results = results1;
   compare->second_results = results2;
 
-  /* Test hybrid detection - should handle empty graphs gracefully */
-  result = (rasqal_graph_isomorphism_compare_graphs_hybrid(compare) == 1);
+  /* Test hybrid detection with isomorphic graphs */
+  result = (rasqal_graph_isomorphism_compare_graphs_hybrid(compare) == 1); /* Should detect isomorphism */
 
 cleanup:
   if(compare)
@@ -1840,6 +1969,8 @@ cleanup:
     rasqal_free_query_results(results2);
   if(results1)
     rasqal_free_query_results(results1);
+  if(base_uri)
+    raptor_free_uri(base_uri);
   if(world)
     rasqal_free_world(world);
 
