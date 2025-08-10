@@ -106,6 +106,8 @@
 0.9.33	-	-	-	0.9.34	void	rasqal_query_results_compare_options_init	(rasqal_query_results_compare_options* options)	-
 0.9.33	-	-	-	0.9.34	int	rasqal_evaluation_context_set_graph_origin	(rasqal_evaluation_context* eval_context, rasqal_literal* graph_origin)	-
 0.9.33	-	-	-	0.9.34	rasqal_literal*	rasqal_evaluation_context_get_graph_origin	(rasqal_evaluation_context* eval_context)	-
+0.9.33	-	-	-	0.9.34	int	rasqal_query_results_compare_add_difference	(rasqal_query_results_compare* compare, const char* description, const char* expected, const char* actual)	-
+0.9.33	-	-	-	0.9.34	int	rasqal_query_results_compare_add_triple_difference	(rasqal_query_results_compare* compare, const char* description, raptor_statement* expected_triple, raptor_statement* actual_triple)	-
 #
 # Types including Enums
 #
