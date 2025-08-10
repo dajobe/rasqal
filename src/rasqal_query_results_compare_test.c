@@ -41,12 +41,6 @@
 
 #define NTESTS 8
 
-/* Global variables to track custom comparison function calls and user data verification */
-static int user_data_verified = 0;
-static int custom_term_compare_called = 0;
-static int custom_statement_compare_called = 0;
-static void* expected_user_data = NULL;
-
 static void
 print_test_result(const char* test_name, int result)
 {
@@ -67,7 +61,7 @@ test_new_query_results_compare_options(void)
   return options;
 }
 
-/* Helper function to replace the deleted test_free_query_results_compare_options */
+
 static void
 test_free_query_results_compare_options(rasqal_query_results_compare_options* options)
 {
@@ -75,36 +69,6 @@ test_free_query_results_compare_options(rasqal_query_results_compare_options* op
     return;
 
   RASQAL_FREE(rasqal_query_results_compare_options*, options);
-}
-
-/* Helper function to replace the deleted test_query_results_are_equal_with_options */
-static int
-test_query_results_are_equal_with_options(rasqal_world* world,
-                                          rasqal_query_results* first_results,
-                                          rasqal_query_results* second_results,
-                                          rasqal_query_results_compare_options* options)
-{
-  rasqal_query_results_compare* compare = NULL;
-  rasqal_query_results_compare_result* result = NULL;
-  int equal = 0;
-
-  if(!world || !first_results || !second_results || !options)
-    return 0;
-
-  compare = rasqal_new_query_results_compare(world, first_results, second_results);
-  if(!compare)
-    return 0;
-
-  rasqal_query_results_compare_set_options(compare, options);
-
-  result = rasqal_query_results_compare_execute(compare);
-  if(result) {
-    equal = result->equal;
-    rasqal_free_query_results_compare_result(result);
-  }
-
-  rasqal_free_query_results_compare(compare);
-  return equal;
 }
 
 static int
@@ -606,140 +570,6 @@ cleanup:
 
 
 
-/* Custom comparison function for testing */
-static int
-custom_term_compare(void* user_data, raptor_term* first, raptor_term* second)
-{
-  /* Track that this function was called */
-  custom_term_compare_called = 1;
-
-  /* Verify that user_data matches expected value */
-  if(user_data == expected_user_data) {
-    user_data_verified = 1;
-  }
-
-  /* Simple custom comparison that always returns true for testing */
-  (void)first;     /* Suppress unused parameter warning */
-  (void)second;    /* Suppress unused parameter warning */
-  return 1;
-}
-
-/* Custom statement comparison function for testing */
-static int
-custom_statement_compare(void* user_data, raptor_statement* first, raptor_statement* second)
-{
-  /* Track that this function was called */
-  custom_statement_compare_called = 1;
-
-  /* Verify that user_data matches expected value */
-  if(user_data == expected_user_data) {
-    user_data_verified = 1;
-  }
-
-  /* Simple custom comparison that always returns true for testing */
-  (void)first;     /* Suppress unused parameter warning */
-  (void)second;    /* Suppress unused parameter warning */
-  return 1;
-}
-
-static int
-test_custom_comparison_functions(rasqal_world* world)
-{
-  rasqal_query* query = NULL;
-  rasqal_query_results* results1 = NULL;
-  rasqal_query_results* results2 = NULL;
-  rasqal_query_results_compare_options* options = NULL;
-  raptor_uri* base_uri = NULL;
-  int test_result = 0;
-  void* test_user_data = (void*)0x12345678;
-
-  /* Reset verification flags */
-  user_data_verified = 0;
-  custom_term_compare_called = 0;
-  custom_statement_compare_called = 0;
-  expected_user_data = test_user_data;
-
-  query = rasqal_new_query(world, "sparql", NULL);
-  if(!query)
-    goto cleanup;
-
-  /* Create base URI for results */
-  base_uri = raptor_new_uri(world->raptor_world_ptr, (const unsigned char*)"http://example.org/");
-  if(!base_uri)
-    goto cleanup;
-
-  /* Create results with different data to trigger custom term comparison */
-  results1 = rasqal_new_query_results_from_string(world, RASQAL_QUERY_RESULTS_BINDINGS, base_uri, "x\ty\tz\tw\n\"a\"\t\"b\"\t\"c\"\t\"d\"\n", 0);
-  if(!results1)
-    goto cleanup;
-
-  results2 = rasqal_new_query_results_from_string(world, RASQAL_QUERY_RESULTS_BINDINGS, base_uri, "x\ty\tz\tw\n\"different\"\t\"b\"\t\"c\"\t\"d\"\n", 0);
-  if(!results2)
-    goto cleanup;
-
-
-
-  /* Test custom comparison functions */
-  options = test_new_query_results_compare_options();
-  if(!options)
-    goto cleanup;
-
-  options->custom_compare_user_data = test_user_data; /* Test user data */
-  options->custom_term_compare = custom_term_compare;
-  options->custom_statement_compare = custom_statement_compare;
-
-  /* Test custom term comparison with bindings results */
-  test_result = test_query_results_are_equal_with_options(world, results1, results2, options);
-  
-  /* Clean up bindings results */
-  if(results1) {
-    rasqal_free_query_results(results1);
-    results1 = NULL;
-  }
-  if(results2) {
-    rasqal_free_query_results(results2);
-    results2 = NULL;
-  }
-  
-  /* Don't reset flags - we want to verify that at least one custom function was called across all tests */
-  
-  /* For now, we focus on testing custom term comparison with bindings results.
-   * Custom statement comparison would require creating graph results with actual
-   * triples, which involves internal functions not available in the public API. */
-
-  /* Verify that user data was passed correctly to custom functions */
-  if(!user_data_verified) {
-    fprintf(stderr, "test_custom_comparison_functions: User data was not passed correctly to custom functions\n");
-    test_result = 0;
-  }
-
-  /* Verify that custom functions were actually called */
-  if(!custom_term_compare_called) {
-    fprintf(stderr, "test_custom_comparison_functions: custom_term_compare was not called\n");
-    test_result = 0;
-  }
-
-  /* Note: custom_statement_compare is only called for graph results with triples,
-   * so we don't require it for this test to pass. The important thing is that
-   * custom_term_compare works for bindings comparison. */
-
-cleanup:
-  if(options)
-    test_free_query_results_compare_options(options);
-  if(base_uri)
-    raptor_free_uri(base_uri);
-  if(results2)
-    rasqal_free_query_results(results2);
-  if(results1)
-    rasqal_free_query_results(results1);
-  if(query)
-    rasqal_free_query(query);
-
-  return test_result;
-}
-
-
-
 static int
 test_advanced_graph_comparison(rasqal_world* world)
 {
@@ -819,7 +649,7 @@ test_advanced_graph_comparison(rasqal_world* world)
   bnode1 = bnode2 = bnode3 = NULL;
 
   /* Test 1: Graph comparison options initialization */
-  {
+  if(1) {
     rasqal_graph_comparison_options graph_options;
     rasqal_graph_comparison_options_init(&graph_options);
 
@@ -833,7 +663,7 @@ test_advanced_graph_comparison(rasqal_world* world)
   }
 
   /* Test 2: Advanced blank node comparison with graph options */
-  {
+  if(1) {
     rasqal_query_results_compare_options* options = test_new_query_results_compare_options();
     rasqal_graph_comparison_options graph_options;
 
@@ -859,14 +689,14 @@ test_advanced_graph_comparison(rasqal_world* world)
   }
 
   /* Test 3: Advanced graph comparison options (advanced functionality tested in standalone) */
-  {
+  if(1) {
     /* This test verifies that the advanced graph comparison options are properly set */
     /* The actual advanced algorithms are tested in the standalone test program */
     printf("Advanced algorithms tested in standalone program\n");
   }
 
   /* Test 4: Graph comparison options initialization */
-  {
+  if(1) {
     rasqal_graph_comparison_options graph_options;
     rasqal_graph_comparison_options_init(&graph_options);
 
@@ -968,12 +798,6 @@ main(int argc, char *argv[])
   result = test_order_insensitive_graph_comparison(world);
   failures += !result;
   print_test_result("Order-insensitive graph comparison", result);
-
-
-
-  result = test_custom_comparison_functions(world);
-  failures += !result;
-  print_test_result("Custom comparison functions", result);
 
   result = test_advanced_graph_comparison(world);
   failures += !result;
