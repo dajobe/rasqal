@@ -616,6 +616,15 @@ rasqal_query_results_formatter_read(rasqal_world *world,
       break;
 
     case RASQAL_QUERY_RESULTS_GRAPH:
+      if(1) {
+        /* Load the graph from the iostream using format guessing */
+        if(rasqal_query_results_load_graph_iostream(results, NULL, iostr,
+                                                    base_uri)) {
+          rc = 1;
+        }
+      }
+      break;
+
     case RASQAL_QUERY_RESULTS_SYNTAX:
     case RASQAL_QUERY_RESULTS_UNKNOWN:
       /* failure */
