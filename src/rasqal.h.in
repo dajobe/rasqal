@@ -1451,6 +1451,8 @@ RASQAL_API
 raptor_statement* rasqal_query_results_get_triple(rasqal_query_results *query_results);
 RASQAL_API
 int rasqal_query_results_next_triple(rasqal_query_results *query_results);
+RASQAL_API
+int rasqal_query_results_load_graph_iostream(rasqal_query_results* query_results, const char* name, raptor_iostream* iostr, raptor_uri* base_uri);
 
 /* Syntax result format */
 RASQAL_API
