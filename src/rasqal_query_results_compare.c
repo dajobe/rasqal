@@ -39,7 +39,7 @@
 #include "rasqal_internal.h"
 #include "rasqal_graph_isomorphism.h"
 
-
+#ifndef STANDALONE
 
 /*
  * rasqal_query_results_compare_s:
@@ -59,24 +59,34 @@ struct rasqal_query_results_compare_s {
   rasqal_query_results* second_results;
   rasqal_query_results_compare_options options;
 
-  char** differences;
+  rasqal_query_results_compare_difference* differences;
   int differences_count;
   int differences_size;
+  rasqal_query_results_compare_triple_difference* triple_differences;
+  int triple_differences_count;
+  int triple_differences_size;
 };
 
 /* Forward declarations */
-static int rasqal_query_results_compare_add_difference(rasqal_query_results_compare* compare, const char* difference, ...);
 static int rasqal_query_results_compare_bindings_internal(rasqal_query_results_compare* compare);
 static int rasqal_query_results_compare_boolean_internal(rasqal_query_results_compare* compare);
 static int rasqal_query_results_compare_graph_internal(rasqal_query_results_compare* compare);
-static int rasqal_query_results_compare_term(raptor_term* first_term, raptor_term* second_term, rasqal_query_results_compare* compare);
 static int rasqal_query_results_compare_blank_node_structure(raptor_term* first_bnode, raptor_term* second_bnode, rasqal_query_results_compare* compare);
+static unsigned char* rasqal_query_results_compare_get_blank_node_signature(raptor_term* bnode, rasqal_query_results_compare* compare);
+static raptor_term* rasqal_query_results_compare_literal_to_term(rasqal_literal* literal, rasqal_world* world);
+static int rasqal_query_results_compare_signature_part_compare(const void* a, const void* b, void* arg);
 
-static int rasqal_query_results_compare_statement_compare(const void* a, const void* b, void* arg);
-static void rasqal_query_results_compare_sort_statements(raptor_sequence* statements, rasqal_query_results_compare* compare);
+/* Phase 2: Row collection optimization helper functions */
 static raptor_sequence* collect_rows_with_ownership(rasqal_query_results* results, rasqal_query_results_compare* compare);
+
 static int compare_row_sequences(raptor_sequence* first_rows, raptor_sequence* second_rows, rasqal_query_results_compare* compare);
+static int compare_single_row(rasqal_row* first_row, rasqal_row* second_row, int var_count, rasqal_query_results_compare* compare);
+
+/* Helper functions for sort_row_sequence */
 static int sort_row_sequence_compare_rows(const void* a, const void* b, void* arg);
+
+/* Helper functions for compare_single_row */
+static int compare_single_row_compare_blank_nodes(rasqal_literal* first, rasqal_literal* second, int column_index, rasqal_query_results_compare* compare);
 
 
 
@@ -114,7 +124,9 @@ rasqal_new_query_results_compare(rasqal_world* world,
   compare->differences = NULL;
   compare->differences_count = 0;
   compare->differences_size = 0;
-
+  compare->triple_differences = NULL;
+  compare->triple_differences_count = 0;
+  compare->triple_differences_size = 0;
 
   return compare;
 }
@@ -134,10 +146,27 @@ rasqal_free_query_results_compare(rasqal_query_results_compare* compare)
   if(compare->differences) {
     int i;
     for(i = 0; i < compare->differences_count; i++) {
-      if(compare->differences[i])
-        RASQAL_FREE(char*, compare->differences[i]);
+      if(compare->differences[i].description)
+        RASQAL_FREE(char*, compare->differences[i].description);
+      if(compare->differences[i].expected)
+        RASQAL_FREE(char*, compare->differences[i].expected);
+      if(compare->differences[i].actual)
+        RASQAL_FREE(char*, compare->differences[i].actual);
     }
-    RASQAL_FREE(char**, compare->differences);
+    RASQAL_FREE(rasqal_query_results_compare_difference*, compare->differences);
+  }
+
+  if(compare->triple_differences) {
+    int i;
+    for(i = 0; i < compare->triple_differences_count; i++) {
+      if(compare->triple_differences[i].description)
+        RASQAL_FREE(char*, compare->triple_differences[i].description);
+      if(compare->triple_differences[i].expected_triple)
+        raptor_free_statement(compare->triple_differences[i].expected_triple);
+      if(compare->triple_differences[i].actual_triple)
+        raptor_free_statement(compare->triple_differences[i].actual_triple);
+    }
+    RASQAL_FREE(rasqal_query_results_compare_triple_difference*, compare->triple_differences);
   }
 
   RASQAL_FREE(rasqal_query_results_compare*, compare);
@@ -187,13 +216,33 @@ rasqal_query_results_compare_execute(rasqal_query_results_compare* compare)
   if(compare->differences) {
     int i;
     for(i = 0; i < compare->differences_count; i++) {
-      if(compare->differences[i])
-        RASQAL_FREE(char*, compare->differences[i]);
+      if(compare->differences[i].description)
+        RASQAL_FREE(char*, compare->differences[i].description);
+      if(compare->differences[i].expected)
+        RASQAL_FREE(char*, compare->differences[i].expected);
+      if(compare->differences[i].actual)
+        RASQAL_FREE(char*, compare->differences[i].actual);
     }
-    RASQAL_FREE(char**, compare->differences);
+    RASQAL_FREE(rasqal_query_results_compare_difference*, compare->differences);
     compare->differences = NULL;
     compare->differences_count = 0;
     compare->differences_size = 0;
+  }
+
+  if(compare->triple_differences) {
+    int i;
+    for(i = 0; i < compare->triple_differences_count; i++) {
+      if(compare->triple_differences[i].description)
+        RASQAL_FREE(char*, compare->triple_differences[i].description);
+      if(compare->triple_differences[i].expected_triple)
+        raptor_free_statement(compare->triple_differences[i].expected_triple);
+      if(compare->triple_differences[i].actual_triple)
+        raptor_free_statement(compare->triple_differences[i].actual_triple);
+    }
+    RASQAL_FREE(rasqal_query_results_compare_triple_difference*, compare->triple_differences);
+    compare->triple_differences = NULL;
+    compare->triple_differences_count = 0;
+    compare->triple_differences_size = 0;
   }
 
   /* Check result types match */
@@ -202,7 +251,7 @@ rasqal_query_results_compare_execute(rasqal_query_results_compare* compare)
 
   if(first_type != second_type) {
     rasqal_query_results_compare_add_difference(compare,
-      "Result types do not match: %s vs %s",
+      "Result types do not match",
       rasqal_query_results_type_label(first_type),
       rasqal_query_results_type_label(second_type));
     goto create_result;
@@ -223,8 +272,9 @@ rasqal_query_results_compare_execute(rasqal_query_results_compare* compare)
     case RASQAL_QUERY_RESULTS_UNKNOWN:
     default:
       rasqal_query_results_compare_add_difference(compare,
-        "Unsupported result type for comparison: %s",
-        rasqal_query_results_type_label(first_type));
+        "Unsupported result type for comparison",
+        rasqal_query_results_type_label(first_type),
+        NULL);
       break;
   }
 
@@ -234,16 +284,22 @@ create_result:
   if(!result)
     return NULL;
 
-  result->equal = equal && (compare->differences_count == 0);
+  result->equal = equal && (compare->differences_count == 0) && (compare->triple_differences_count == 0);
   result->differences_count = compare->differences_count;
+  result->triple_differences_count = compare->triple_differences_count;
   result->differences_size = compare->differences_size;
+  result->triple_differences_size = compare->triple_differences_size;
   result->differences = compare->differences;
+  result->triple_differences = compare->triple_differences;
   result->error_message = NULL;
 
-  /* Transfer ownership of differences array */
+  /* Transfer ownership of differences arrays */
   compare->differences = NULL;
   compare->differences_count = 0;
   compare->differences_size = 0;
+  compare->triple_differences = NULL;
+  compare->triple_differences_count = 0;
+  compare->triple_differences_size = 0;
 
   return result;
 }
@@ -263,10 +319,27 @@ rasqal_free_query_results_compare_result(rasqal_query_results_compare_result* re
   if(result->differences) {
     int i;
     for(i = 0; i < result->differences_count; i++) {
-      if(result->differences[i])
-        RASQAL_FREE(char*, result->differences[i]);
+      if(result->differences[i].description)
+        RASQAL_FREE(char*, result->differences[i].description);
+      if(result->differences[i].expected)
+        RASQAL_FREE(char*, result->differences[i].expected);
+      if(result->differences[i].actual)
+        RASQAL_FREE(char*, result->differences[i].actual);
     }
-    RASQAL_FREE(char**, result->differences);
+    RASQAL_FREE(rasqal_query_results_compare_difference*, result->differences);
+  }
+
+  if(result->triple_differences) {
+    int i;
+    for(i = 0; i < result->triple_differences_count; i++) {
+      if(result->triple_differences[i].description)
+        RASQAL_FREE(char*, result->triple_differences[i].description);
+      if(result->triple_differences[i].expected_triple)
+        raptor_free_statement(result->triple_differences[i].expected_triple);
+      if(result->triple_differences[i].actual_triple)
+        raptor_free_statement(result->triple_differences[i].actual_triple);
+    }
+    RASQAL_FREE(rasqal_query_results_compare_triple_difference*, result->triple_differences);
   }
 
   if(result->error_message)
@@ -292,12 +365,9 @@ rasqal_query_results_compare_options_init(rasqal_query_results_compare_options* 
   options->literal_comparison_flags = RASQAL_COMPARE_XQUERY;
   options->max_differences = 10;
 
-
   options->custom_compare_user_data = NULL;
-  options->custom_term_compare = NULL;
-  options->custom_statement_compare = NULL;
-  options->graph_comparison_options = NULL;
 }
+
 
 void
 rasqal_graph_comparison_options_init(rasqal_graph_comparison_options* options)
@@ -310,10 +380,9 @@ rasqal_graph_comparison_options_init(rasqal_graph_comparison_options* options)
   options->incremental_mode = 0;
   options->signature_cache_size = 1000;
 }
-
+ 
 
 /* Internal helper functions */
-
 /*
  * rasqal_query_results_compare_add_difference:
  * @compare: comparison context
@@ -321,54 +390,143 @@ rasqal_graph_comparison_options_init(rasqal_graph_comparison_options* options)
  * @...: format arguments
  *
  * Add a difference description to the comparison context.
- 
+
  * Returns non-zero on success, 0 on failure.
  */
-static int RASQAL_PRINTF_FORMAT(2, 3)
+int
 rasqal_query_results_compare_add_difference(rasqal_query_results_compare* compare,
-                                            const char* difference, ...)
+                                           const char* description,
+                                           const char* expected,
+                                           const char* actual)
 {
-  char* formatted_difference = NULL;
-  va_list args;
-  int len;
-
-  if(!compare || !difference)
+  if(!compare || !description)
     return 0;
 
   /* Check if we've reached the maximum number of differences */
   if(compare->differences_count >= compare->options.max_differences)
     return 1;
 
-  va_start(args, difference);
-  len = vsnprintf(NULL, 0, difference, args);
-  va_end(args);
-
-  if(len < 0)
-    return 0;
-
-  formatted_difference = RASQAL_MALLOC(char*, len + 1);
-  if(!formatted_difference)
-    return 0;
-
-  va_start(args, difference);
-  vsnprintf(formatted_difference, len + 1, difference, args);
-  va_end(args);
-
   /* Expand differences array if needed */
   if(compare->differences_count >= compare->differences_size) {
     int new_size = compare->differences_size + 10;
-    char** new_differences = RASQAL_REALLOC(char**, compare->differences, new_size * sizeof(char*));
-    if(!new_differences) {
-      RASQAL_FREE(char*, formatted_difference);
+    rasqal_query_results_compare_difference* new_differences = RASQAL_REALLOC(rasqal_query_results_compare_difference*, compare->differences, new_size * sizeof(rasqal_query_results_compare_difference));
+    if(!new_differences)
       return 0;
-    }
     compare->differences = new_differences;
     compare->differences_size = new_size;
   }
 
-  compare->differences[compare->differences_count] = formatted_difference;
-  compare->differences_count++;
+  /* Initialize the new difference */
+  compare->differences[compare->differences_count].description = NULL;
+  compare->differences[compare->differences_count].expected = NULL;
+  compare->differences[compare->differences_count].actual = NULL;
 
+  /* Copy description */
+  {
+    size_t len = strlen(description);
+    compare->differences[compare->differences_count].description = RASQAL_MALLOC(char*, len + 1);
+    if(!compare->differences[compare->differences_count].description)
+      return 0;
+    memcpy(compare->differences[compare->differences_count].description, description, len + 1);
+  }
+
+  /* Copy expected value if provided */
+  if(expected) {
+    size_t len = strlen(expected);
+    compare->differences[compare->differences_count].expected = RASQAL_MALLOC(char*, len + 1);
+    if(!compare->differences[compare->differences_count].expected) {
+      RASQAL_FREE(char*, compare->differences[compare->differences_count].description);
+      return 0;
+    }
+    memcpy(compare->differences[compare->differences_count].expected, expected, len + 1);
+  }
+
+  /* Copy actual value if provided */
+  if(actual) {
+    size_t len = strlen(actual);
+    compare->differences[compare->differences_count].actual = RASQAL_MALLOC(char*, len + 1);
+    if(!compare->differences[compare->differences_count].actual) {
+      RASQAL_FREE(char*, compare->differences[compare->differences_count].description);
+      if(compare->differences[compare->differences_count].expected)
+        RASQAL_FREE(char*, compare->differences[compare->differences_count].expected);
+      return 0;
+    }
+    memcpy(compare->differences[compare->differences_count].actual, actual, len + 1);
+  }
+
+  compare->differences_count++;
+  return 1;
+}
+
+/**
+ * rasqal_query_results_compare_add_triple_difference:
+ * @compare: comparison context
+ * @description: description of the difference
+ * @expected_triple: expected triple (NULL if not applicable)
+ * @actual_triple: actual triple (NULL if not applicable)
+ *
+ * Add a triple difference to the comparison context.
+ *
+ * Returns non-zero on success, 0 on failure.
+ */
+int
+rasqal_query_results_compare_add_triple_difference(rasqal_query_results_compare* compare,
+                                                  const char* description,
+                                                  raptor_statement* expected_triple,
+                                                  raptor_statement* actual_triple)
+{
+  if(!compare || !description)
+    return 0;
+
+  /* Check if we've reached the maximum number of differences */
+  if(compare->triple_differences_count >= compare->options.max_differences)
+    return 1;
+
+  /* Expand triple_differences array if needed */
+  if(compare->triple_differences_count >= compare->triple_differences_size) {
+    int new_size = compare->triple_differences_size + 10;
+    rasqal_query_results_compare_triple_difference* new_triple_differences = RASQAL_REALLOC(rasqal_query_results_compare_triple_difference*, compare->triple_differences, new_size * sizeof(rasqal_query_results_compare_triple_difference));
+    if(!new_triple_differences)
+      return 0;
+    compare->triple_differences = new_triple_differences;
+    compare->triple_differences_size = new_size;
+  }
+
+  /* Initialize the new triple difference */
+  compare->triple_differences[compare->triple_differences_count].description = NULL;
+  compare->triple_differences[compare->triple_differences_count].expected_triple = NULL;
+  compare->triple_differences[compare->triple_differences_count].actual_triple = NULL;
+
+  /* Copy description */
+  {
+    size_t len = strlen(description);
+    compare->triple_differences[compare->triple_differences_count].description = RASQAL_MALLOC(char*, len + 1);
+    if(!compare->triple_differences[compare->triple_differences_count].description)
+      return 0;
+    memcpy(compare->triple_differences[compare->triple_differences_count].description, description, len + 1);
+  }
+
+  /* Copy expected triple if provided */
+  if(expected_triple) {
+    compare->triple_differences[compare->triple_differences_count].expected_triple = raptor_statement_copy(expected_triple);
+    if(!compare->triple_differences[compare->triple_differences_count].expected_triple) {
+      RASQAL_FREE(char*, compare->triple_differences[compare->triple_differences_count].description);
+      return 0;
+    }
+  }
+
+  /* Copy actual triple if provided */
+  if(actual_triple) {
+    compare->triple_differences[compare->triple_differences_count].actual_triple = raptor_statement_copy(actual_triple);
+    if(!compare->triple_differences[compare->triple_differences_count].actual_triple) {
+      RASQAL_FREE(char*, compare->triple_differences[compare->triple_differences_count].description);
+      if(compare->triple_differences[compare->triple_differences_count].expected_triple)
+        raptor_free_statement(compare->triple_differences[compare->triple_differences_count].expected_triple);
+      return 0;
+    }
+  }
+
+  compare->triple_differences_count++;
   return 1;
 }
 
@@ -400,7 +558,7 @@ rasqal_query_results_compare_bindings_internal(rasqal_query_results_compare* com
   second_vt = rasqal_query_results_get_variables_table(compare->second_results);
 
   if(!first_vt || !second_vt) {
-    rasqal_query_results_compare_add_difference(compare, "Cannot get variables table");
+    rasqal_query_results_compare_add_difference(compare, "Cannot get variables table", NULL, NULL);
     return 0;
   }
 
@@ -409,8 +567,11 @@ rasqal_query_results_compare_bindings_internal(rasqal_query_results_compare* com
 
   /* Compare variable counts */
   if(first_count != second_count) {
+    char expected_str[32], actual_str[32];
+    snprintf(expected_str, sizeof(expected_str), "%d", first_count);
+    snprintf(actual_str, sizeof(actual_str), "%d", second_count);
     rasqal_query_results_compare_add_difference(compare,
-      "Variable count mismatch: %d vs %d", first_count, second_count);
+      "Variable count mismatch", expected_str, actual_str);
     equal = 0;
   }
 
@@ -420,16 +581,17 @@ rasqal_query_results_compare_bindings_internal(rasqal_query_results_compare* com
     rasqal_variable* second_var = rasqal_variables_table_get(second_vt, i);
 
     if(!first_var || !second_var) {
+      char index_str[32];
+      snprintf(index_str, sizeof(index_str), "%d", i);
       rasqal_query_results_compare_add_difference(compare,
-        "Cannot get variable at index %d", i);
+        "Cannot get variable at index", index_str, NULL);
       equal = 0;
       continue;
     }
 
     if(strcmp((char*)first_var->name, (char*)second_var->name) != 0) {
       rasqal_query_results_compare_add_difference(compare,
-        "Variable name mismatch at index %d: %s vs %s",
-        i, first_var->name, second_var->name);
+        "Variable name mismatch at index", (char*)first_var->name, (char*)second_var->name);
       equal = 0;
     }
   }
@@ -440,8 +602,11 @@ rasqal_query_results_compare_bindings_internal(rasqal_query_results_compare* com
 
   /* Compare bindings counts */
   if(first_bindings_count != second_bindings_count) {
+    char expected_str[32], actual_str[32];
+    snprintf(expected_str, sizeof(expected_str), "%d", first_bindings_count);
+    snprintf(actual_str, sizeof(actual_str), "%d", second_bindings_count);
     rasqal_query_results_compare_add_difference(compare,
-      "Bindings count mismatch: %d vs %d", first_bindings_count, second_bindings_count);
+      "Bindings count mismatch", expected_str, actual_str);
     equal = 0;
   }
 
@@ -449,6 +614,7 @@ rasqal_query_results_compare_bindings_internal(rasqal_query_results_compare* com
   if(!equal)
     return equal;
 
+  /* Phase 2: Use optimized row collection approach */
   first_rows = collect_rows_with_ownership(compare->first_results, compare);
   second_rows = collect_rows_with_ownership(compare->second_results, compare);
 
@@ -492,7 +658,7 @@ rasqal_query_results_compare_boolean_internal(rasqal_query_results_compare* comp
 
   if(!rasqal_query_results_is_boolean(compare->first_results) ||
      !rasqal_query_results_is_boolean(compare->second_results)) {
-    rasqal_query_results_compare_add_difference(compare, "Results are not boolean type");
+    rasqal_query_results_compare_add_difference(compare, "Results are not boolean type", NULL, NULL);
     return 0;
   }
 
@@ -501,7 +667,7 @@ rasqal_query_results_compare_boolean_internal(rasqal_query_results_compare* comp
 
   if(first_boolean != second_boolean) {
     rasqal_query_results_compare_add_difference(compare,
-      "boolean: %s vs boolean: %s",
+      "Boolean value mismatch",
       first_boolean ? "true" : "false",
       second_boolean ? "true" : "false");
     return 0;
@@ -525,207 +691,17 @@ rasqal_query_results_compare_boolean_internal(rasqal_query_results_compare* comp
 static int
 rasqal_query_results_compare_graph_internal(rasqal_query_results_compare* compare)
 {
-  raptor_sequence* first_triples = NULL;
-  raptor_sequence* second_triples = NULL;
-  int first_triple_count, second_triple_count;
-  int i;
-  int equal = 1;
-
   if(!compare)
     return 0;
 
   if(!rasqal_query_results_is_graph(compare->first_results) ||
      !rasqal_query_results_is_graph(compare->second_results)) {
-    rasqal_query_results_compare_add_difference(compare, "Results are not graph type");
+    rasqal_query_results_compare_add_difference(compare, "Results are not graph type", NULL, NULL);
     return 0;
   }
 
-  /* Get triple counts - for now, just count by iterating */
-  first_triple_count = 0;
-  second_triple_count = 0;
-
-  rasqal_query_results_rewind(compare->first_results);
-  while(rasqal_query_results_get_triple(compare->first_results)) {
-    first_triple_count++;
-  }
-
-  rasqal_query_results_rewind(compare->second_results);
-  while(rasqal_query_results_get_triple(compare->second_results)) {
-    second_triple_count++;
-  }
-
-  /* Compare triple counts */
-  if(first_triple_count != second_triple_count) {
-    rasqal_query_results_compare_add_difference(compare,
-      "Triple count mismatch: %d vs %d", first_triple_count, second_triple_count);
-    equal = 0;
-  }
-
-  /* If counts don't match, stop here */
-  if(!equal)
-    return equal;
-
-  /* Collect all triples for comparison */
-  first_triples = raptor_new_sequence((raptor_data_free_handler)raptor_free_statement,
-                                      (raptor_data_print_handler)NULL);
-  second_triples = raptor_new_sequence((raptor_data_free_handler)raptor_free_statement,
-                                       (raptor_data_print_handler)NULL);
-
-  if(!first_triples || !second_triples) {
-    rasqal_query_results_compare_add_difference(compare, "Failed to create triple sequences");
-    equal = 0;
-    goto cleanup;
-  }
-
-  /* Collect triples from first results */
-  rasqal_query_results_rewind(compare->first_results);
-  while(1) {
-    raptor_statement* triple = rasqal_query_results_get_triple(compare->first_results);
-    raptor_statement* copied_triple;
-    if(!triple)
-      break;
-
-    /* Copy the triple for ownership */
-    copied_triple = raptor_statement_copy(triple);
-    if(copied_triple) {
-      raptor_sequence_push(first_triples, copied_triple);
-    } else {
-      rasqal_query_results_compare_add_difference(compare, "Failed to copy triple from first results");
-      equal = 0;
-      goto cleanup;
-    }
-  }
-
-  /* Collect triples from second results */
-  rasqal_query_results_rewind(compare->second_results);
-  while(1) {
-    raptor_statement* triple = rasqal_query_results_get_triple(compare->second_results);
-    raptor_statement* copied_triple;
-    if(!triple)
-      break;
-
-    /* Copy the triple for ownership */
-    copied_triple = raptor_statement_copy(triple);
-    if(copied_triple) {
-      raptor_sequence_push(second_triples, copied_triple);
-    } else {
-      rasqal_query_results_compare_add_difference(compare, "Failed to copy triple from second results");
-      equal = 0;
-      goto cleanup;
-    }
-  }
-
-  /* Compare triples */
-  if(!compare->options.order_sensitive) {
-    /* For order-insensitive comparison, sort triples before comparing */
-    rasqal_query_results_compare_sort_statements(first_triples, compare);
-    rasqal_query_results_compare_sort_statements(second_triples, compare);
-  }
-
-  /* Compare each triple in order using Raptor's statement comparison */
-  for(i = 0; i < first_triple_count && i < second_triple_count; i++) {
-    raptor_statement* first_triple = (raptor_statement*)raptor_sequence_get_at(first_triples, i);
-    raptor_statement* second_triple = (raptor_statement*)raptor_sequence_get_at(second_triples, i);
-
-    if(!first_triple || !second_triple) {
-      rasqal_query_results_compare_add_difference(compare,
-        "Cannot get triple at index %d", i);
-      equal = 0;
-      continue;
-    }
-
-    /* Check for custom statement comparison function */
-    if(compare->options.custom_statement_compare) {
-      if(!compare->options.custom_statement_compare(compare->options.custom_compare_user_data,
-                                                   first_triple, second_triple)) {
-        rasqal_query_results_compare_add_difference(compare,
-          "Custom triple mismatch at index %d", i);
-        equal = 0;
-      }
-    } else {
-      /* Use Raptor's statement comparison first, then fall back to our custom comparison for blank node handling */
-      if(!raptor_statement_equals(first_triple, second_triple)) {
-        /* If Raptor's comparison fails, try our custom comparison for blank node handling */
-        if(!rasqal_query_results_compare_term(first_triple->subject, second_triple->subject, compare) ||
-           !rasqal_query_results_compare_term(first_triple->predicate, second_triple->predicate, compare) ||
-           !rasqal_query_results_compare_term(first_triple->object, second_triple->object, compare)) {
-          rasqal_query_results_compare_add_difference(compare,
-            "Triple mismatch at index %d", i);
-          equal = 0;
-        }
-      }
-    }
-  }
-
-cleanup:
-  if(first_triples)
-    raptor_free_sequence(first_triples);
-  if(second_triples)
-    raptor_free_sequence(second_triples);
-
-  return equal;
+  return rasqal_graph_isomorphism_compare_graphs_hybrid(compare);
 }
-
-/*
- * rasqal_query_results_compare_term:
- * @first_term: first RDF term to compare
- * @second_term: second RDF term to compare
- * @compare: comparison context
- *
- * Compare two RDF terms with blank node strategy handling.
- *
- * This function is called when order-insensitive graph comparison is requested,
- * ensuring that triples are compared in a canonical order regardless of their
- * original sequence in the results.
- *
- * Returns non-zero if terms are equal, 0 if different.
- */
-static int
-rasqal_query_results_compare_term(raptor_term* first_term,
-                                  raptor_term* second_term,
-                                  rasqal_query_results_compare* compare)
-{
-  int result = 0;
-
-  if(!first_term || !second_term)
-    return (first_term == second_term);
-
-  /* Check if both terms are blank nodes */
-  if(first_term->type == RAPTOR_TERM_TYPE_BLANK &&
-     second_term->type == RAPTOR_TERM_TYPE_BLANK) {
-
-    switch(compare->options.blank_node_strategy) {
-      case RASQAL_COMPARE_BLANK_NODE_MATCH_ANY:
-        /* Blank nodes match any other blank node */
-        result = 1;
-        break;
-
-      case RASQAL_COMPARE_BLANK_NODE_MATCH_ID:
-        /* Blank nodes must have same ID */
-        result = (strcmp((char*)first_term->value.blank.string,
-                        (char*)second_term->value.blank.string) == 0);
-        break;
-
-      case RASQAL_COMPARE_BLANK_NODE_MATCH_STRUCTURE:
-        /* Implement structural matching by comparing blank node signatures */
-        result = rasqal_query_results_compare_blank_node_structure(first_term, second_term, compare);
-        break;
-    }
-  } else {
-    /* Check for custom term comparison function */
-    if(compare->options.custom_term_compare) {
-      result = compare->options.custom_term_compare(compare->options.custom_compare_user_data,
-                                                   first_term, second_term);
-    } else {
-      /* Use Raptor's term comparison */
-      result = raptor_term_equals(first_term, second_term);
-    }
-  }
-
-  return result;
-}
-
-
 
 /*
  * rasqal_query_results_compare_blank_node_structure:
@@ -743,383 +719,204 @@ rasqal_query_results_compare_blank_node_structure(raptor_term* first_bnode,
                                                   raptor_term* second_bnode,
                                                   rasqal_query_results_compare* compare)
 {
-  rasqal_blank_node_signature* first_signature = NULL;
-  rasqal_blank_node_signature* second_signature = NULL;
-  raptor_sequence* triples = NULL;
+  unsigned char* first_signature = NULL;
+  unsigned char* second_signature = NULL;
   int result = 0;
 
   if(!first_bnode || !second_bnode || !compare)
     return 0;
 
-  /* Check if advanced graph comparison options are enabled */
-  if(compare->options.graph_comparison_options) {
-    /* Use occurrence-based signatures for advanced comparison */
-    triples = raptor_new_sequence(NULL, NULL);
-    if(!triples)
-      goto fallback;
+  /* Generate structural signatures for both blank nodes */
+  first_signature = rasqal_query_results_compare_get_blank_node_signature(first_bnode, compare);
+  second_signature = rasqal_query_results_compare_get_blank_node_signature(second_bnode, compare);
 
-    /* Collect all triples from both result sets */
-    rasqal_query_results_rewind(compare->first_results);
-    while(1) {
-      raptor_statement* triple = rasqal_query_results_get_triple(compare->first_results);
-      if(!triple)
-        break;
-      raptor_sequence_push(triples, triple);
-    }
-
-    rasqal_query_results_rewind(compare->second_results);
-    while(1) {
-      raptor_statement* triple = rasqal_query_results_get_triple(compare->second_results);
-      if(!triple)
-        break;
-      raptor_sequence_push(triples, triple);
-    }
-
-    /* Generate occurrence-based signatures using the isomorphism module */
-      first_signature = rasqal_graph_isomorphism_generate_signature(first_bnode, triples, compare->world);
-  second_signature = rasqal_graph_isomorphism_generate_signature(second_bnode, triples, compare->world);
-
-    if(first_signature && second_signature) {
-      /* Compare occurrence-based signatures using the isomorphism module */
-      result = (rasqal_graph_isomorphism_compare_signatures(first_signature, second_signature) == 0);
-    }
+  if(!first_signature || !second_signature) {
+    /* If we can't generate signatures, fall back to ID comparison */
+    result = (strcmp((char*)first_bnode->value.blank.string,
+                    (char*)second_bnode->value.blank.string) == 0);
+  } else {
+    /* Compare the structural signatures */
+    result = (strcmp((char*)first_signature, (char*)second_signature) == 0);
   }
 
   /* Cleanup */
   if(first_signature)
-    RASQAL_FREE(rasqal_blank_node_signature*, first_signature);
+    RASQAL_FREE(unsigned char*, first_signature);
   if(second_signature)
-    RASQAL_FREE(rasqal_blank_node_signature*, second_signature);
+    RASQAL_FREE(unsigned char*, second_signature);
+
+  return result;
+}
+
+/*
+ * rasqal_query_results_compare_get_blank_node_signature:
+ * @bnode: blank node to analyze
+ * @compare: comparison context
+ *
+ * Generate a structural signature for a blank node by analyzing
+ * the triples that contain it. The signature is a canonicalized
+ * representation of the blank node's structural context.
+ * Returns a newly allocated signature string or NULL on failure.
+ */
+static unsigned char*
+rasqal_query_results_compare_get_blank_node_signature(raptor_term* bnode, rasqal_query_results_compare* compare)
+{
+  raptor_sequence* triples = NULL;
+  raptor_sequence* signature_parts = NULL;
+  unsigned char* signature = NULL;
+  int i;
+
+  if(!bnode || !compare)
+    return NULL;
+
+  /* Create sequences to collect data */
+  triples = raptor_new_sequence(NULL, NULL);
+  signature_parts = raptor_new_sequence(NULL, NULL);
+
+  if(!triples || !signature_parts) {
+    if(triples)
+      raptor_free_sequence(triples);
+    if(signature_parts)
+      raptor_free_sequence(signature_parts);
+    return NULL;
+  }
+
+  /* Collect all triples from both result sets that contain this blank node */
+  rasqal_query_results_rewind(compare->first_results);
+  while(1) {
+    raptor_statement* triple = rasqal_query_results_get_triple(compare->first_results);
+    if(!triple)
+      break;
+
+    /* Check if this triple contains our blank node */
+    if((triple->subject && triple->subject->type == RAPTOR_TERM_TYPE_BLANK &&
+        strcmp((char*)triple->subject->value.blank.string, (char*)bnode->value.blank.string) == 0) ||
+       (triple->object && triple->object->type == RAPTOR_TERM_TYPE_BLANK &&
+        strcmp((char*)triple->object->value.blank.string, (char*)bnode->value.blank.string) == 0)) {
+      raptor_sequence_push(triples, triple);
+    }
+  }
+
+  rasqal_query_results_rewind(compare->second_results);
+  while(1) {
+    raptor_statement* triple = rasqal_query_results_get_triple(compare->second_results);
+    if(!triple)
+      break;
+
+    /* Check if this triple contains our blank node */
+    if((triple->subject && triple->subject->type == RAPTOR_TERM_TYPE_BLANK &&
+        strcmp((char*)triple->subject->value.blank.string, (char*)bnode->value.blank.string) == 0) ||
+       (triple->object && triple->object->type == RAPTOR_TERM_TYPE_BLANK &&
+        strcmp((char*)triple->object->value.blank.string, (char*)bnode->value.blank.string) == 0)) {
+      raptor_sequence_push(triples, triple);
+    }
+  }
+
+  /* Generate signature parts from collected triples */
+  for(i = 0; i < raptor_sequence_size(triples); i++) {
+    raptor_statement* triple = (raptor_statement*)raptor_sequence_get_at(triples, i);
+    unsigned char* part = NULL;
+
+    if(!triple)
+      continue;
+
+    /* Create a canonical representation of this triple */
+    if(triple->subject && triple->subject->type == RAPTOR_TERM_TYPE_BLANK &&
+       strcmp((char*)triple->subject->value.blank.string, (char*)bnode->value.blank.string) == 0) {
+      /* Blank node is subject - create signature: "S:predicate:object" */
+      unsigned char* pred_str = raptor_term_to_string(triple->predicate);
+      unsigned char* obj_str = raptor_term_to_string(triple->object);
+
+      if(pred_str && obj_str) {
+        size_t len = strlen("S:") + strlen((char*)pred_str) + 1 + strlen((char*)obj_str) + 1;
+        part = RASQAL_MALLOC(unsigned char*, len);
+        if(part) {
+          snprintf((char*)part, len, "S:%s:%s", pred_str, obj_str);
+        }
+      }
+
+      if(pred_str)
+        raptor_free_memory(pred_str);
+      if(obj_str)
+        raptor_free_memory(obj_str);
+    } else if(triple->object && triple->object->type == RAPTOR_TERM_TYPE_BLANK &&
+              strcmp((char*)triple->object->value.blank.string, (char*)bnode->value.blank.string) == 0) {
+      /* Blank node is object - create signature: "O:subject:predicate" */
+      unsigned char* subj_str = raptor_term_to_string(triple->subject);
+      unsigned char* pred_str = raptor_term_to_string(triple->predicate);
+
+      if(subj_str && pred_str) {
+        size_t len = strlen("O:") + strlen((char*)subj_str) + 1 + strlen((char*)pred_str) + 1;
+        part = RASQAL_MALLOC(unsigned char*, len);
+        if(part) {
+          snprintf((char*)part, len, "O:%s:%s", subj_str, pred_str);
+        }
+      }
+
+      if(subj_str)
+        raptor_free_memory(subj_str);
+      if(pred_str)
+        raptor_free_memory(pred_str);
+    }
+
+    if(part) {
+      raptor_sequence_push(signature_parts, part);
+    }
+  }
+
+  /* Sort signature parts for canonicalization */
+  if(raptor_sequence_size(signature_parts) > 1) {
+    raptor_sequence_sort_r(signature_parts, rasqal_query_results_compare_signature_part_compare, NULL);
+  }
+
+  /* Combine all parts into final signature */
+  if(raptor_sequence_size(signature_parts) > 0) {
+    size_t total_len = 0;
+    int j;
+
+    /* Calculate total length needed */
+    for(j = 0; j < raptor_sequence_size(signature_parts); j++) {
+      unsigned char* part = (unsigned char*)raptor_sequence_get_at(signature_parts, j);
+      if(part) {
+        total_len += strlen((char*)part) + 1; /* +1 for separator */
+      }
+    }
+
+    if(total_len > 0) {
+      signature = RASQAL_MALLOC(unsigned char*, total_len);
+      if(signature) {
+        size_t pos = 0;
+        for(j = 0; j < raptor_sequence_size(signature_parts); j++) {
+          unsigned char* part = (unsigned char*)raptor_sequence_get_at(signature_parts, j);
+          if(part) {
+            size_t part_len = strlen((char*)part);
+            if(pos + part_len < total_len) {
+              memcpy(signature + pos, part, part_len);
+              pos += part_len;
+              if(j < raptor_sequence_size(signature_parts) - 1) {
+                signature[pos++] = '|';
+              }
+            }
+          }
+        }
+        signature[pos] = '\0';
+      }
+    }
+  }
+
+  /* Cleanup */
+  for(i = 0; i < raptor_sequence_size(signature_parts); i++) {
+    unsigned char* part = (unsigned char*)raptor_sequence_get_at(signature_parts, i);
+    if(part)
+      RASQAL_FREE(unsigned char*, part);
+  }
+
   if(triples)
     raptor_free_sequence(triples);
+  if(signature_parts)
+    raptor_free_sequence(signature_parts);
 
-  return result;
-
-fallback:
-  /* Fall back to ID comparison for simple cases */
-  return (strcmp((char*)first_bnode->value.blank.string,
-                 (char*)second_bnode->value.blank.string) == 0);
-}
-
-
-
-/*
- * rasqal_query_results_compare_statement_compare:
- * @a: first statement pointer
- * @b: second statement pointer
- * @arg: comparison context
- *
- * Compare function for sorting raptor statements to ensure canonical ordering.
- *
- * This function is used by raptor_sequence_sort_r() to sort triples before
- * comparison, enabling order-insensitive graph comparison.
- *
- * The comparison uses Raptor's built-in statement comparison as the primary
- * method, but falls back to our custom term comparison for blank node handling
- * when Raptor's comparison is inconclusive (returns 0). This ensures that
- * blank nodes are compared according to the configured strategy (match any,
- * match ID, or structural matching).
- *
- * Returns negative if a < b, 0 if equal, positive if a > b.
- */
-static int
-rasqal_query_results_compare_statement_compare(const void* a, const void* b,
-                                               void* arg)
-{
-  raptor_statement* stmt_a = *(raptor_statement**)a;
-  raptor_statement* stmt_b = *(raptor_statement**)b;
-  rasqal_query_results_compare* compare = (rasqal_query_results_compare*)arg;
-  int result;
-
-  if(!stmt_a || !stmt_b || !compare)
-    return 0;
-
-  /* Use Raptor's statement comparison as primary method */
-  result = raptor_statement_compare(stmt_a, stmt_b);
-  if(result != 0)
-    return result;
-
-  /* If Raptor's comparison is inconclusive (returns 0), use our custom term comparison */
-  if(rasqal_query_results_compare_term(stmt_a->subject, stmt_b->subject, compare) != 0)
-    return rasqal_query_results_compare_term(stmt_a->subject, stmt_b->subject, compare);
-
-  if(rasqal_query_results_compare_term(stmt_a->predicate, stmt_b->predicate, compare) != 0)
-    return rasqal_query_results_compare_term(stmt_a->predicate, stmt_b->predicate, compare);
-
-  return rasqal_query_results_compare_term(stmt_a->object, stmt_b->object, compare);
-}
-
-/*
- * rasqal_query_results_compare_sort_statements:
- * @statements: sequence of raptor statements to sort
- * @compare: comparison context
- *
- * Sort a sequence of raptor statements using our custom comparison function
- * to ensure canonical ordering for graph comparison.
- */
-static void
-rasqal_query_results_compare_sort_statements(raptor_sequence* statements, rasqal_query_results_compare* compare)
-{
-  if(!statements || !compare)
-    return;
-
-  /* Use our custom comparison function for sorting */
-  raptor_sequence_sort_r(statements, rasqal_query_results_compare_statement_compare, compare);
-}
-
-#ifndef STANDALONE
-
-/* Forward declarations for functions used in non-standalone mode */
-static raptor_term* rasqal_query_results_compare_literal_to_term(rasqal_literal* literal, rasqal_world* world);
-static int compare_single_row(rasqal_row* first_row, rasqal_row* second_row, int var_count, rasqal_query_results_compare* compare);
-static int compare_single_row_compare_blank_nodes(rasqal_literal* first, rasqal_literal* second, int column_index, rasqal_query_results_compare* compare);
-
-
-
-/*
- * collect_rows_with_ownership:
- * @results: query results to collect rows from
- * @compare: comparison context
- *
- * Collect all rows from query results with ownership transfer.
- *
- * The returned sequence owns the rows and will free them when destroyed.
- *
- * Returns the sequence of rows or NULL on failure.
- */
-static raptor_sequence*
-collect_rows_with_ownership(rasqal_query_results* results,
-                             rasqal_query_results_compare* compare)
-{
-  raptor_sequence* rows = NULL;
-  int rowi;
-  rasqal_row* row;
-  rasqal_row* row_copy;
-
-  if(!results || !compare)
-    return NULL;
-
-  rows = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
-                              (raptor_data_print_handler)NULL);
-  if(!rows) {
-    rasqal_query_results_compare_add_difference(compare, "Failed to create row sequence");
-    return NULL;
-  }
-
-  /* Collect rows from results */
-
-  rasqal_query_results_rewind(results);
-  for(rowi = 0; 1; rowi++) {
-    row = rasqal_query_results_get_row_by_offset(results, rowi);
-    if(!row)
-      break;
-
-    /* Create a copy of the row that we own */
-    row_copy = rasqal_new_row_from_row(row);
-    if(!row_copy) {
-      rasqal_query_results_compare_add_difference(compare, "Failed to copy row at index %d", rowi);
-      raptor_free_sequence(rows);
-      return NULL;
-    }
-
-    raptor_sequence_push(rows, row_copy);
-  }
-
-  return rows;
-}
-
-/*
- * sort_row_sequence_compare_rows:
- * @a: pointer to first row
- * @b: pointer to second row
- * @arg: comparison context
- *
- * Compare two rows for sorting purposes to ensure canonical ordering.
- * This function is used by raptor_sequence_sort_r() to sort rows before
- * comparison, enabling order-insensitive bindings comparison.
- *
- * The comparison iterates through each value in the row, comparing literals
- * using XQuery comparison rules. NULL values are ordered first. If all values
- * are equal, the comparison uses row offset to ensure stable sorting.
- *
- * Returns <0, 0, or >0 for comparison result.
- */
-static int
-sort_row_sequence_compare_rows(const void* a, const void* b, void* arg)
-{
-  rasqal_row* row_a = (rasqal_row*)a;
-  rasqal_row* row_b = (rasqal_row*)b;
-  rasqal_query_results_compare* compare = (rasqal_query_results_compare*)arg;
-  int result = 0;
-  int i;
-  int var_count;
-  rasqal_variables_table* vars_table;
-  int error;
-
-  if(!row_a || !row_b || !compare)
-    return 0;
-
-  /* Get variable count for comparison */
-  vars_table = rasqal_query_results_get_variables_table(compare->first_results);
-  var_count = vars_table ? rasqal_variables_table_get_total_variables_count(vars_table) : 0;
-
-  /* Compare each value in the row */
-  for(i = 0; i < var_count; i++) {
-    rasqal_literal* first_value = row_a->values[i];
-    rasqal_literal* second_value = row_b->values[i];
-
-    /* NULLs order first */
-    if(!first_value || !second_value) {
-      if(!first_value && !second_value)
-        result = 0;
-      else
-        result = (!first_value) ? -1 : 1;
-      break;
-    }
-
-    /* Use literal comparison with default flags */
-    error = 0;
-    result = rasqal_literal_compare(first_value, second_value,
-                                    RASQAL_COMPARE_XQUERY | RASQAL_COMPARE_URI,
-                                    &error);
-    if(error) {
-      result = 0;
-      break;
-    }
-
-    if(result != 0)
-      break;
-  }
-
-  /* If still equal, make sort stable by using row offset */
-  if(!result)
-    result = row_a->offset - row_b->offset;
-
-  return result;
-}
-
-/*
- * compare_row_sequences:
- * @first_rows: first sequence of rows
- * @second_rows: second sequence of rows
- * @compare: comparison context
- *
- * Compare two sequences of rows for equality by comparing each row in order.
- *
- * Returns non-zero if equal, 0 if different.
- */
-static int
-compare_row_sequences(raptor_sequence* first_rows,
-                       raptor_sequence* second_rows,
-                       rasqal_query_results_compare* compare)
-{
-  int first_count, second_count;
-  int i;
-  int equal = 1;
-  rasqal_variables_table* vars_table;
-  int var_count;
-
-  if(!first_rows || !second_rows || !compare)
-    return 0;
-
-  first_count = raptor_sequence_size(first_rows);
-  second_count = raptor_sequence_size(second_rows);
-
-  /* Check if row counts match */
-  if(first_count != second_count) {
-    rasqal_query_results_compare_add_difference(compare,
-      "Row count mismatch: %d vs %d", first_count, second_count);
-    return 0;
-  }
-
-  /* Get variable count for row comparison */
-  vars_table = rasqal_query_results_get_variables_table(compare->first_results);
-  var_count = vars_table ? rasqal_variables_table_get_total_variables_count(vars_table) : 0;
-
-  /* Compare each row */
-  for(i = 0; i < first_count; i++) {
-    rasqal_row* first_row = (rasqal_row*)raptor_sequence_get_at(first_rows, i);
-    rasqal_row* second_row = (rasqal_row*)raptor_sequence_get_at(second_rows, i);
-
-    if(!first_row || !second_row) {
-      rasqal_query_results_compare_add_difference(compare,
-        "Cannot get row at index %d", i);
-      equal = 0;
-      continue;
-    }
-
-    if(!compare_single_row(first_row, second_row, var_count, compare))
-      equal = 0;
-  }
-
-  return equal;
-}
-
-/*
- * compare_single_row_compare_blank_nodes:
- * @first: first blank node literal
- * @second: second blank node literal
- * @column_index: column index for error reporting
- * @compare: comparison context
- *
- * Compare two blank node literals based on the comparison strategy.
- *
- * Returns non-zero if equal, 0 if different.
- */
-static int
-compare_single_row_compare_blank_nodes(rasqal_literal* first,
-                                        rasqal_literal* second, 
-                                        int column_index,
-                                        rasqal_query_results_compare* compare)
-{
-  switch(compare->options.blank_node_strategy) {
-    case RASQAL_COMPARE_BLANK_NODE_MATCH_ANY:
-      /* Blank nodes match any other blank node */
-      return 1;
-      
-    case RASQAL_COMPARE_BLANK_NODE_MATCH_ID:
-      /* Blank nodes must have same ID */
-      if(strcmp((char*)first->string, (char*)second->string) != 0) {
-        rasqal_variables_table* vars_table = rasqal_query_results_get_variables_table(compare->first_results);
-        const unsigned char** var_names = rasqal_variables_table_get_names(vars_table);
-        const char* var_name = (var_names && column_index < rasqal_variables_table_get_total_variables_count(vars_table)) ?
-          (const char*)var_names[column_index] : "unknown";
-        
-        rasqal_query_results_compare_add_difference(compare,
-          "row %d: %s=%s vs row %d: %s=%s",
-          column_index, var_name, first->string,
-          column_index, var_name, second->string);
-        return 0;
-      }
-      return 1;
-      
-    case RASQAL_COMPARE_BLANK_NODE_MATCH_STRUCTURE: {
-      /* Use structural matching for blank nodes */
-      raptor_term* first_term = rasqal_query_results_compare_literal_to_term(first, compare->world);
-      raptor_term* second_term = rasqal_query_results_compare_literal_to_term(second, compare->world);
-      int equal = 1;
-      
-      if(!first_term || !second_term) {
-        rasqal_query_results_compare_add_difference(compare,
-          "Cannot convert blank node literals to terms at row %d, column %d", column_index, column_index);
-        equal = 0;
-      } else if(!rasqal_query_results_compare_blank_node_structure(first_term, second_term, compare)) {
-        rasqal_query_results_compare_add_difference(compare,
-          "Structural blank node mismatch at row %d, column %d", column_index, column_index);
-        equal = 0;
-      }
-      
-      /* Cleanup terms */
-      if(first_term)
-        raptor_free_term(first_term);
-      if(second_term)
-        raptor_free_term(second_term);
-      
-      return equal;
-    }
-  }
-  
-  return 0;
+  return signature;
 }
 
 /*
@@ -1184,6 +981,285 @@ rasqal_query_results_compare_literal_to_term(rasqal_literal* literal,
 }
 
 /*
+ * collect_rows_with_ownership:
+ * @results: query results to collect rows from
+ * @compare: comparison context
+ *
+ * Collect all rows from query results with ownership transfer.
+ *
+ * The returned sequence owns the rows and will free them when destroyed.
+ *
+ * Returns the sequence of rows or NULL on failure.
+ */
+static raptor_sequence*
+collect_rows_with_ownership(rasqal_query_results* results,
+                            rasqal_query_results_compare* compare)
+{
+  raptor_sequence* rows = NULL;
+  int rowi;
+  rasqal_row* row;
+  rasqal_row* row_copy;
+
+  if(!results || !compare)
+    return NULL;
+
+  rows = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
+                             (raptor_data_print_handler)NULL);
+  if(!rows) {
+    rasqal_query_results_compare_add_difference(compare, "Failed to create row sequence", NULL, NULL);
+    return NULL;
+  }
+
+  /* Collect rows from results */
+
+  rasqal_query_results_rewind(results);
+  for(rowi = 0; 1; rowi++) {
+    row = rasqal_query_results_get_row_by_offset(results, rowi);
+    if(!row)
+      break;
+
+    /* Create a copy of the row that we own */
+    row_copy = rasqal_new_row_from_row(row);
+    if(!row_copy) {
+      char index_str[32];
+      snprintf(index_str, sizeof(index_str), "%d", rowi);
+      rasqal_query_results_compare_add_difference(compare, "Failed to copy row at index", index_str, NULL);
+      raptor_free_sequence(rows);
+      return NULL;
+    }
+
+    raptor_sequence_push(rows, row_copy);
+  }
+
+  return rows;
+}
+
+
+
+/*
+ * sort_row_sequence_compare_rows:
+ * @a: pointer to first row
+ * @b: pointer to second row
+ * @arg: comparison context
+ *
+ * Compare two rows for sorting purposes to ensure canonical ordering.
+ * This function is used by raptor_sequence_sort_r() to sort rows before
+ * comparison, enabling order-insensitive bindings comparison.
+ *
+ * The comparison iterates through each value in the row, comparing literals
+ * using XQuery comparison rules. NULL values are ordered first. If all values
+ * are equal, the comparison uses row offset to ensure stable sorting.
+ *
+ * Returns <0, 0, or >0 for comparison result.
+ */
+static int
+sort_row_sequence_compare_rows(const void* a, const void* b, void* arg)
+{
+  rasqal_row* row_a = (rasqal_row*)a;
+  rasqal_row* row_b = (rasqal_row*)b;
+  rasqal_query_results_compare* compare = (rasqal_query_results_compare*)arg;
+  int result = 0;
+  int i;
+  int var_count;
+  rasqal_variables_table* vars_table;
+  int error;
+  rasqal_literal* first_value;
+  rasqal_literal* second_value;
+
+  if(!row_a || !row_b || !compare)
+    return 0;
+
+  /* Get variable count for comparison */
+  vars_table = rasqal_query_results_get_variables_table(compare->first_results);
+  var_count = vars_table ? rasqal_variables_table_get_total_variables_count(vars_table) : 0;
+
+  /* Compare each value in the row */
+  for(i = 0; i < var_count; i++) {
+    /* Check if values arrays are valid */
+    if(!row_a->values || !row_b->values) {
+      /* If either row has no values array, they are not equal */
+      return row_a->values ? 1 : (row_b->values ? -1 : 0);
+    }
+
+    /* Check bounds to prevent array access violations */
+    if(i >= row_a->size || i >= row_b->size) {
+      /* If we're beyond the bounds of either row, they are not equal */
+      return row_a->size - row_b->size;
+    }
+
+    first_value = row_a->values[i];
+    second_value = row_b->values[i];
+
+    /* NULLs order first */
+    if(!first_value || !second_value) {
+      if(!first_value && !second_value)
+        result = 0;
+      else
+        result = (!first_value) ? -1 : 1;
+      break;
+    }
+
+    /* Use literal comparison with default flags */
+    error = 0;
+    result = rasqal_literal_compare(first_value, second_value,
+                                    RASQAL_COMPARE_XQUERY | RASQAL_COMPARE_URI,
+                                    &error);
+    if(error) {
+      result = 0;
+      break;
+    }
+
+    if(result != 0)
+      break;
+  }
+
+  /* If still equal, make sort stable by using row offset */
+  if(!result)
+    result = row_a->offset - row_b->offset;
+
+  return result;
+}
+
+
+
+/*
+ * compare_row_sequences:
+ * @first_rows: first sequence of rows
+ * @second_rows: second sequence of rows
+ * @compare: comparison context
+ *
+ * Compare two sequences of rows for equality by comparing each row in order.
+ *
+ * Returns non-zero if equal, 0 if different.
+ */
+static int
+compare_row_sequences(raptor_sequence* first_rows,
+                      raptor_sequence* second_rows,
+                      rasqal_query_results_compare* compare)
+{
+  int first_count, second_count;
+  int i;
+  int equal = 1;
+  rasqal_variables_table* vars_table;
+  int var_count;
+
+  if(!first_rows || !second_rows || !compare)
+    return 0;
+
+  first_count = raptor_sequence_size(first_rows);
+  second_count = raptor_sequence_size(second_rows);
+
+  /* Check if row counts match */
+  if(first_count != second_count) {
+    char expected_str[32], actual_str[32];
+    snprintf(expected_str, sizeof(expected_str), "%d", first_count);
+    snprintf(actual_str, sizeof(actual_str), "%d", second_count);
+    rasqal_query_results_compare_add_difference(compare,
+      "Row count mismatch", expected_str, actual_str);
+    return 0;
+  }
+
+  /* Get variable count for row comparison */
+  vars_table = rasqal_query_results_get_variables_table(compare->first_results);
+  var_count = vars_table ? rasqal_variables_table_get_total_variables_count(vars_table) : 0;
+
+  /* Compare each row */
+  for(i = 0; i < first_count; i++) {
+    rasqal_row* first_row = (rasqal_row*)raptor_sequence_get_at(first_rows, i);
+    rasqal_row* second_row = (rasqal_row*)raptor_sequence_get_at(second_rows, i);
+
+    if(!first_row || !second_row) {
+      char index_str[32];
+      snprintf(index_str, sizeof(index_str), "%d", i);
+      rasqal_query_results_compare_add_difference(compare,
+        "Cannot get row at index", index_str, NULL);
+      equal = 0;
+      continue;
+    }
+
+    if(!compare_single_row(first_row, second_row, var_count, compare))
+      equal = 0;
+  }
+
+  return equal;
+}
+
+
+/*
+ * compare_single_row_compare_blank_nodes:
+ * @first: first blank node literal
+ * @second: second blank node literal
+ * @column_index: column index for error reporting
+ * @compare: comparison context
+ *
+ * Compare two blank node literals based on the comparison strategy.
+ *
+ * Returns non-zero if equal, 0 if different.
+ */
+static int
+compare_single_row_compare_blank_nodes(rasqal_literal* first,
+                                       rasqal_literal* second,
+                                       int column_index,
+                                       rasqal_query_results_compare* compare)
+{
+  switch(compare->options.blank_node_strategy) {
+    case RASQAL_COMPARE_BLANK_NODE_MATCH_ANY:
+      /* Blank nodes match any other blank node */
+      return 1;
+
+    case RASQAL_COMPARE_BLANK_NODE_MATCH_ID:
+      /* Blank nodes must have same ID */
+      if(strcmp((char*)first->string, (char*)second->string) != 0) {
+        rasqal_variables_table* vars_table = rasqal_query_results_get_variables_table(compare->first_results);
+        const unsigned char** var_names = rasqal_variables_table_get_names(vars_table);
+        const char* var_name = (var_names && column_index < rasqal_variables_table_get_total_variables_count(vars_table)) ?
+          (const char*)var_names[column_index] : "unknown";
+
+        char expected_str[256], actual_str[256];
+        snprintf(expected_str, sizeof(expected_str), "%s=%s", var_name, first->string);
+        snprintf(actual_str, sizeof(actual_str), "%s=%s", var_name, second->string);
+        rasqal_query_results_compare_add_difference(compare,
+          "Blank node ID mismatch", expected_str, actual_str);
+        return 0;
+      }
+      return 1;
+
+    case RASQAL_COMPARE_BLANK_NODE_MATCH_STRUCTURE: {
+      /* Use structural matching for blank nodes */
+      raptor_term* first_term = rasqal_query_results_compare_literal_to_term(first, compare->world);
+      raptor_term* second_term = rasqal_query_results_compare_literal_to_term(second, compare->world);
+      int equal = 1;
+
+      if(!first_term || !second_term) {
+        char index_str[32];
+        snprintf(index_str, sizeof(index_str), "%d", column_index);
+        rasqal_query_results_compare_add_difference(compare,
+          "Cannot convert blank node literals to terms at column", index_str, NULL);
+        equal = 0;
+      } else if(!rasqal_query_results_compare_blank_node_structure(first_term, second_term, compare)) {
+        char index_str[32];
+        snprintf(index_str, sizeof(index_str), "%d", column_index);
+        rasqal_query_results_compare_add_difference(compare,
+          "Structural blank node mismatch at column", index_str, NULL);
+        equal = 0;
+      }
+
+      /* Cleanup terms */
+      if(first_term)
+        raptor_free_term(first_term);
+      if(second_term)
+        raptor_free_term(second_term);
+
+      return equal;
+    }
+  }
+
+  return 0;
+}
+
+
+
+/*
  * compare_single_row:
  * @first_row: first row to compare
  * @second_row: second row to compare
@@ -1215,42 +1291,24 @@ compare_single_row(rasqal_row* first_row, rasqal_row* second_row, int var_count,
     rasqal_literal* first_value = first_row->values[j];
     rasqal_literal* second_value = second_row->values[j];
 
-    /* Try custom term comparison first if available */
-    if(compare->options.custom_term_compare && first_value && second_value) {
-      raptor_term* first_term;
-      raptor_term* second_term;
-      int custom_result;
-      
-      first_term = rasqal_query_results_compare_literal_to_term(first_value, compare->world);
-      second_term = rasqal_query_results_compare_literal_to_term(second_value, compare->world);
-      
-      if(first_term && second_term) {
-        custom_result = compare->options.custom_term_compare(compare->options.custom_compare_user_data, first_term, second_term);
-        
-        /* Free the temporary terms */
-        if(first_term)
-          raptor_free_term(first_term);
-        if(second_term)
-          raptor_free_term(second_term);
-          
-        if(!custom_result) {
-          rasqal_variables_table* vars_table = rasqal_query_results_get_variables_table(compare->first_results);
-          const unsigned char** var_names = rasqal_variables_table_get_names(vars_table);
-          const char* var_name = (var_names && j < rasqal_variables_table_get_total_variables_count(vars_table)) ?
-            (const char*)var_names[j] : "unknown";
-          
-          rasqal_query_results_compare_add_difference(compare,
-            "Custom term comparison failed for %s at column %d", var_name, j);
-          equal = 0;
-        }
-        continue; /* Skip the default comparison logic */
-      }
-      
-      /* Free terms if conversion failed */
-      if(first_term)
-        raptor_free_term(first_term);
-      if(second_term)
-        raptor_free_term(second_term);
+    /* Handle NULL values explicitly */
+    if(!first_value && !second_value) {
+      /* Both are NULL - they are equal */
+      continue;
+    } else if(!first_value || !second_value) {
+      /* One is NULL, the other is not - they are different */
+      rasqal_variables_table* vars_table = rasqal_query_results_get_variables_table(compare->first_results);
+      const unsigned char** var_names = rasqal_variables_table_get_names(vars_table);
+      const char* var_name = (var_names && j < rasqal_variables_table_get_total_variables_count(vars_table)) ?
+        (const char*)var_names[j] : "unknown";
+
+      char expected_str[256], actual_str[256];
+      snprintf(expected_str, sizeof(expected_str), "%s='%s'", var_name, first_value ? "non-NULL" : "NULL");
+      snprintf(actual_str, sizeof(actual_str), "%s='%s'", var_name, second_value ? "non-NULL" : "NULL");
+      rasqal_query_results_compare_add_difference(compare,
+        "NULL vs non-NULL value", expected_str, actual_str);
+      equal = 0;
+      continue;
     }
 
     if(!rasqal_literal_equals(first_value, second_value)) {
@@ -1258,7 +1316,7 @@ compare_single_row(rasqal_row* first_row, rasqal_row* second_row, int var_count,
       if(first_value && second_value &&
          first_value->type == RASQAL_LITERAL_BLANK &&
          second_value->type == RASQAL_LITERAL_BLANK) {
-        
+
         if(!compare_single_row_compare_blank_nodes(first_value, second_value, j, compare))
           equal = 0;
       } else if(first_value && second_value &&
@@ -1267,39 +1325,41 @@ compare_single_row(rasqal_row* first_row, rasqal_row* second_row, int var_count,
         /* Handle string comparison */
         const unsigned char* first_str = first_value->string;
         const unsigned char* second_str = second_value->string;
-        
+
         if(strcmp((char*)first_str, (char*)second_str) != 0) {
           rasqal_variables_table* vars_table = rasqal_query_results_get_variables_table(compare->first_results);
           const unsigned char** var_names = rasqal_variables_table_get_names(vars_table);
           const char* var_name = (var_names && j < rasqal_variables_table_get_total_variables_count(vars_table)) ?
             (const char*)var_names[j] : "unknown";
-          
+
+          char expected_str[256], actual_str[256];
+          snprintf(expected_str, sizeof(expected_str), "%s='%s'", var_name, (char*)first_str ? (char*)first_str : "NULL");
+          snprintf(actual_str, sizeof(actual_str), "%s='%s'", var_name, (char*)second_str ? (char*)second_str : "NULL");
           rasqal_query_results_compare_add_difference(compare,
-            "row %d: %s='%s' vs row %d: %s='%s'",
-            j, var_name, (char*)first_str ? (char*)first_str : "NULL",
-            j, var_name, (char*)second_str ? (char*)second_str : "NULL");
+            "String value mismatch", expected_str, actual_str);
           equal = 0;
         }
       } else {
         /* Non-blank node values don't match */
-        const char* first_str = first_value ? 
+        const char* first_str = first_value ?
           (first_value->type == RASQAL_LITERAL_URI || first_value->type == RASQAL_LITERAL_STRING) ?
-            (char*)first_value->string : 
+            (char*)first_value->string :
             RASQAL_GOOD_CAST(const char*, rasqal_literal_as_string(first_value)) : NULL;
-        const char* second_str = second_value ? 
+        const char* second_str = second_value ?
           (second_value->type == RASQAL_LITERAL_URI || second_value->type == RASQAL_LITERAL_STRING) ?
-            (char*)second_value->string : 
+            (char*)second_value->string :
             RASQAL_GOOD_CAST(const char*, rasqal_literal_as_string(second_value)) : NULL;
-        
+
         rasqal_variables_table* vars_table = rasqal_query_results_get_variables_table(compare->first_results);
         const unsigned char** var_names = rasqal_variables_table_get_names(vars_table);
         const char* var_name = (var_names && j < rasqal_variables_table_get_total_variables_count(vars_table)) ?
           (const char*)var_names[j] : "unknown";
-        
+
+        char expected_str[256], actual_str[256];
+        snprintf(expected_str, sizeof(expected_str), "%s='%s'", var_name, first_str ? first_str : "NULL");
+        snprintf(actual_str, sizeof(actual_str), "%s='%s'", var_name, second_str ? second_str : "NULL");
         rasqal_query_results_compare_add_difference(compare,
-          "row %d: %s='%s' vs row %d: %s='%s'",
-          j, var_name, first_str ? first_str : "NULL",
-          j, var_name, second_str ? second_str : "NULL");
+          "Value mismatch", expected_str, actual_str);
         equal = 0;
       }
     }
@@ -1308,44 +1368,48 @@ compare_single_row(rasqal_row* first_row, rasqal_row* second_row, int var_count,
   return equal;
 }
 
-#endif /* !STANDALONE */
-
-#ifdef STANDALONE
-
-/* Stub implementations for standalone test */
-
-static raptor_sequence*
-collect_rows_with_ownership(rasqal_query_results* results, rasqal_query_results_compare* compare)
-{
-  /* Simple stub that returns empty sequence */
-  return raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, NULL);
-}
-
+/*
+ * rasqal_query_results_compare_signature_part_compare:
+ * @a: first signature part pointer
+ * @b: second signature part pointer
+ * @arg: unused argument (for compatibility with raptor_sequence_sort_r)
+ *
+ * Compare function for sorting signature parts to ensure canonical ordering
+ * of blank node structural signatures. This function is used by
+ * raptor_sequence_sort_r() when generating structural signatures for blank
+ * node comparison.
+ *
+ * The signature parts represent different aspects of a blank node's structural
+ * context (e.g., "S:predicate:object" for subject position, "O:subject:predicate"
+ * for object position). Sorting these parts ensures that structurally equivalent
+ * blank nodes will have identical signatures regardless of the order in which
+ * their triples were encountered.
+ *
+ * Returns negative if a < b, 0 if equal, positive if a > b.
+ */
 static int
-sort_row_sequence_compare_rows(const void* a, const void* b, void* arg)
+rasqal_query_results_compare_signature_part_compare(const void* a,
+                                                    const void* b, void* arg)
 {
-  /* Simple stub that returns 0 (equal) */
-  return 0;
+  unsigned char* part_a = *(unsigned char**)a;
+  unsigned char* part_b = *(unsigned char**)b;
+
+  if(!part_a && !part_b)
+    return 0;
+  if(!part_a)
+    return -1;
+  if(!part_b)
+    return 1;
+
+  /* Simple string comparison for canonical ordering */
+  return strcmp((char*)part_a, (char*)part_b);
 }
-
-static int
-compare_row_sequences(raptor_sequence* first_rows, raptor_sequence* second_rows, rasqal_query_results_compare* compare)
-{
-  /* Simple stub that returns 1 (equal) */
-  return 1;
-}
-
-
 
 /* Standalone test program for Query Results Compare Module */
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
   char const *program = rasqal_basename(*argv);
-  int failures = 0;
-#define FAIL do { failures++; goto tidy; } while(0)
-  
   rasqal_world *world = NULL;
   rasqal_query* query = NULL;
   rasqal_query_results* results1 = NULL;
@@ -1353,6 +1417,8 @@ main(int argc, char *argv[])
   rasqal_query_results_compare* compare = NULL;
   rasqal_query_results_compare_result* result = NULL;
   rasqal_query_results_compare_options options;
+  int failures = 0;
+#define FAIL do { failures++; goto tidy; } while(0)
 
   printf("%s: Testing Query Results Compare Module\n", program);
 
