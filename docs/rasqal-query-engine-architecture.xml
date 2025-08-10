@@ -15,6 +15,100 @@
 
   </section>
 
+  <section id="memory-ownership">
+    <title>Memory Ownership and Cleanup</title>
+
+    <para>This section summarizes the ownership model used across the query engine. Correct ownership is critical for avoiding leaks and double frees during both normal execution and error paths.</para>
+
+    <section id="ownership-principles">
+      <title>Core Principles</title>
+      <itemizedlist>
+        <listitem><para>Use <literal>raptor_sequence</literal> with appropriate free handlers whenever a sequence owns allocated objects.</para></listitem>
+        <listitem><para>Transfer ownership exactly once; after pushing objects into an owning sequence, do not free them manually.</para></listitem>
+        <listitem><para>On error paths, free either the sequence (if it owns items) or the individual items (if ownership was not transferred).</para></listitem>
+      </itemizedlist>
+    </section>
+
+    <section id="ownership-graph-patterns">
+      <title>Graph Patterns</title>
+      <para>The main query owns graph patterns.</para>
+      <programlisting>
+rasqal_query
+└── graph_patterns (raptor_sequence)
+    └── rasqal_graph_pattern objects
+      </programlisting>
+      <itemizedlist>
+        <listitem><para><emphasis>Owner:</emphasis> <literal>rasqal_query</literal> via a <literal>raptor_sequence</literal>.</para></listitem>
+        <listitem><para><emphasis>Cleanup:</emphasis> patterns are freed when the query is freed.</para></listitem>
+        <listitem><para><emphasis>References:</emphasis> expressions and other components reference patterns; they do not own them.</para></listitem>
+      </itemizedlist>
+    </section>
+
+    <section id="ownership-exists-expressions">
+      <title>EXISTS / NOT EXISTS Expressions</title>
+      <para>For EXISTS expressions, the expression frees only the sequence container; the sequence free handler must free the contained graph patterns.</para>
+      <programlisting>
+/* Inside expression cleanup */
+case RASQAL_EXPR_EXISTS:
+case RASQAL_EXPR_NOT_EXISTS:
+  raptor_free_sequence(e-&gt;args);  /* sequence frees contents via handler */
+  break;
+      </programlisting>
+      <para>When constructing such expressions, create the sequence with an appropriate free handler and transfer ownership before attaching it to the expression.</para>
+    </section>
+
+    <section id="ownership-results">
+      <title>Query Results</title>
+      <para>Avoid creating dummy queries when constructing results from strings. Use a NULL query; results cleanup paths already handle this.</para>
+      <programlisting>
+/* Correct */
+results = rasqal_new_query_results2(world, NULL, type);
+      </programlisting>
+    </section>
+
+    <section id="ownership-sequences">
+      <title>Sequences and Free Handlers</title>
+      <para>Create sequences with free handlers whenever the sequence is the owner of its elements.</para>
+      <programlisting>
+/* Graph patterns */
+raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
+                    (raptor_data_print_handler)rasqal_graph_pattern_print);
+
+/* Rows */
+raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
+                    (raptor_data_print_handler)rasqal_row_print);
+
+/* Statements (triples) */
+raptor_new_sequence((raptor_data_free_handler)raptor_free_statement,
+                    (raptor_data_print_handler)raptor_statement_print);
+      </programlisting>
+    </section>
+
+    <section id="ownership-error-paths">
+      <title>Error Path Cleanup</title>
+      <para>Choose cleanup based on whether ownership was transferred.</para>
+      <programlisting>
+if(sequence_created) {
+  if(object_creation_failed)
+    raptor_free_sequence(seq);   /* seq owns and frees items */
+} else {
+  rasqal_free_object(obj);       /* no transfer, free directly */
+}
+      </programlisting>
+    </section>
+
+    <section id="ownership-pitfalls">
+      <title>Common Pitfalls</title>
+      <itemizedlist>
+        <listitem><para>Creating sequences without free handlers for owned items.</para></listitem>
+        <listitem><para>Double-freeing items after transferring ownership to a sequence.</para></listitem>
+        <listitem><para>Missing error-path cleanup that matches ownership transfer.</para></listitem>
+        <listitem><para>Creating dummy objects (e.g., temporary queries) without proper lifecycle management.</para></listitem>
+      </itemizedlist>
+    </section>
+
+  </section>
+
   <section id="query-execution-pipeline">
     <title>Query Execution Pipeline</title>
 
