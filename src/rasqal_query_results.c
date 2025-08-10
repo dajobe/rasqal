@@ -1339,11 +1339,25 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
   
   if(!rasqal_query_results_is_graph(query_results))
     return NULL;
-  
+
+  /* If this is a loaded graph (no query constructs), read from results_sequence */
+  if(query_results->results_sequence &&
+     (!query_results->query || !query_results->query->constructs)) {
+    int size = raptor_sequence_size(query_results->results_sequence);
+    if(query_results->current_triple_result < 0)
+      query_results->current_triple_result = 0;
+    if(query_results->current_triple_result >= size) {
+      query_results->finished = 1;
+      return NULL;
+    }
+    return (raptor_statement*)raptor_sequence_get_at(query_results->results_sequence,
+                                                    query_results->current_triple_result);
+  }
+
   query = query_results->query;
   if(!query)
     return NULL;
-  
+
   if(query->verb == RASQAL_QUERY_VERB_DESCRIBE)
     return NULL;
 
@@ -1429,7 +1443,18 @@ rasqal_query_results_next_triple(rasqal_query_results* query_results)
   
   if(!rasqal_query_results_is_graph(query_results))
     return 1;
-  
+
+  /* Advance within loaded graph results sequence */
+  if(query_results->results_sequence &&
+     (!query_results->query || !query_results->query->constructs)) {
+    int size = raptor_sequence_size(query_results->results_sequence);
+    if(++query_results->current_triple_result >= size) {
+      query_results->finished = 1;
+      return 1;
+    }
+    return 0;
+  }
+
   query = query_results->query;
   if(!query)
     return 1;
@@ -1610,6 +1635,92 @@ rasqal_query_results_read(raptor_iostream *iostr,
 
   rasqal_free_query_results_formatter(formatter);
   return status;
+}
+
+
+/* Statement handler for loading graphs into query results */
+static void
+rasqal_query_results_statement_handler(void *user_data,
+                                       raptor_statement *statement)
+{
+  rasqal_query_results* query_results = (rasqal_query_results*)user_data;
+
+  if(!query_results || !statement)
+    return;
+
+  /* Only meaningful for graph results */
+  if(!rasqal_query_results_is_graph(query_results))
+    return;
+
+  /* Ensure sequence exists */
+  if(!query_results->results_sequence) {
+    query_results->results_sequence = raptor_new_sequence(
+      (raptor_data_free_handler)raptor_free_statement,
+      (raptor_data_print_handler)raptor_statement_print);
+    if(!query_results->results_sequence)
+      return;
+  }
+
+  /* Copy and store the triple */
+  {
+    raptor_statement* copied = raptor_statement_copy(statement);
+    if(!copied)
+      return;
+    raptor_sequence_push(query_results->results_sequence, copied);
+  }
+}
+
+/**
+ * rasqal_query_results_load_graph_iostream:
+ * @query_results: query results object
+ * @name: rdf graph format name (or NULL to guess)
+ * @iostr: iostream to read from
+ * @base_uri: base URI for reading from stream (or NULL)
+ *
+ * Load an RDF graph format from an iostream into query results
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_query_results_load_graph_iostream(rasqal_query_results* query_results,
+                                         const char* name,
+                                         raptor_iostream* iostr,
+                                         raptor_uri* base_uri)
+{
+  raptor_parser* parser;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, 1);
+
+  if(!rasqal_query_results_is_graph(query_results))
+    return 1;
+
+  if(name) {
+    if(!raptor_world_is_parser_name(query_results->world->raptor_world_ptr, name)) {
+      rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_ERROR,
+                              /* locator */ NULL,
+                              "Invalid rdf syntax name %s ignored",
+                              name);
+      name = NULL;
+    }
+  }
+
+  if(!name)
+    name = "guess";
+
+  parser = raptor_new_parser(query_results->world->raptor_world_ptr, name);
+  if(!parser)
+    return 1;
+
+  raptor_parser_set_statement_handler(parser, query_results,
+                                      rasqal_query_results_statement_handler);
+
+  /* parse and store triples */
+  raptor_parser_parse_iostream(parser, iostr, base_uri);
+
+  raptor_free_parser(parser);
+
+  return 0;
 }
 
 
@@ -2062,10 +2173,78 @@ rasqal_query_results_add_triple(rasqal_query_results* query_results,
 
   return 0;
 }
+
 #endif /* RASQAL_INTERNAL_FUNCTIONS */
 
 
 #ifdef STANDALONE
+
+static int
+test_graph_loading_from_string(rasqal_world* world)
+{
+  raptor_uri* base_uri = NULL;
+  rasqal_query_results* results = NULL;
+  int triple_count = 0;
+  int result = 0;
+  raptor_world* rworld = rasqal_world_get_raptor(world);
+
+  base_uri = raptor_new_uri(rworld,
+                           (const unsigned char*)"http://example.org/");
+
+  /* Create empty graph results and load Turtle from string via iostream */
+  results = rasqal_new_query_results2(world, NULL, RASQAL_QUERY_RESULTS_GRAPH);
+  if(!results) {
+    fprintf(stderr, "Failed to create empty graph query results\n");
+    goto cleanup;
+  }
+
+  {
+    const char* ttl =
+      "@prefix : <http://example.org/> .\n"
+      "_:b1 :p \"o1\" .\n"
+      "_:b2 :p \"o2\" .\n"
+      "_:b1 :q _:b2 .\n";
+    raptor_iostream* iostr = raptor_new_iostream_from_string(rworld,
+                                  RASQAL_GOOD_CAST(void*, ttl), strlen(ttl));
+    if(!iostr) {
+      fprintf(stderr, "Failed to create iostream from string\n");
+      goto cleanup;
+    }
+    if(rasqal_query_results_load_graph_iostream(results, "turtle", iostr, base_uri)) {
+      fprintf(stderr, "Failed to load graph from iostream\n");
+      raptor_free_iostream(iostr);
+      goto cleanup;
+    }
+    raptor_free_iostream(iostr);
+  }
+
+  /* Iterate triples from results_sequence */
+  rasqal_query_results_rewind(results);
+  while(1) {
+    raptor_statement* st = rasqal_query_results_get_triple(results);
+    if(!st)
+      break;
+    triple_count++;
+    if(rasqal_query_results_next_triple(results))
+      break;
+  }
+
+  /* Should have 3 triples */
+  if(triple_count != 3) {
+    fprintf(stderr, "Expected 3 triples, got %d\n", triple_count);
+    goto cleanup;
+  }
+
+  result = 1;
+
+cleanup:
+  if(results)
+    rasqal_free_query_results(results);
+  if(base_uri)
+    raptor_free_uri(base_uri);
+
+  return result;
+}
 
 /* one more prototype */
 int main(int argc, char *argv[]);
@@ -2117,6 +2296,8 @@ print_bindings_results_simple(rasqal_query_results *results, FILE* output)
 }
 #endif
 
+
+
 int
 main(int argc, char *argv[])
 {
@@ -2130,6 +2311,14 @@ main(int argc, char *argv[])
   world = rasqal_new_world(); rasqal_world_open(world);
 
   raptor_world_ptr = rasqal_world_get_raptor(world);
+
+  /* Test graph loading from string */
+  if(!test_graph_loading_from_string(world)) {
+    fprintf(stderr, "%s: FAILED graph loading from string test\n", program);
+    failures++;
+  } else {
+    printf("%s: PASSED graph loading from string test\n", program);
+  }
 
   for(i = 0; i < NTESTS; i++) {
     raptor_uri* base_uri = raptor_new_uri(raptor_world_ptr,
