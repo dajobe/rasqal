@@ -56,7 +56,8 @@ rasqal_xsd_datatypes_test$(EXEEXT) \
 rasqal_query_results_test$(EXEEXT) \
 rasqal_query_results_compare_test$(EXEEXT) \
 rasqal_query_results_compare_public_test$(EXEEXT) \
-rasqal_graph_isomorphism_test$(EXEEXT)
+rasqal_graph_isomorphism_test$(EXEEXT) \
+rasqal_expr_unbound_test$(EXEEXT)
 
 # These 2 test programs are compiled here and run here as 'smoke
 # tests' but mostly used in tests in $(srcdir)/../tests/sparql
@@ -327,6 +328,9 @@ rasqal_literal_test_LDADD = librasqal.la
 rasqal_regex_test_SOURCES = rasqal_regex.c
 rasqal_regex_test_CPPFLAGS = -DSTANDALONE
 rasqal_regex_test_LDADD = librasqal.la
+
+rasqal_expr_unbound_test_SOURCES = rasqal_expr_unbound_test.c
+rasqal_expr_unbound_test_LDADD = librasqal.la
 
 rasqal_random_test_SOURCES = rasqal_random.c
 rasqal_random_test_CPPFLAGS = -DSTANDALONE
