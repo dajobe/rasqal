@@ -44,6 +44,23 @@
 
 #define DEBUG_FH stderr
 
+/* Normalize a literal by converting a variable-literal whose variable is
+ * currently unbound into NULL. Returns the same pointer if not a variable or
+ * if the variable has a bound value. Does not take ownership.
+ */
+static inline rasqal_literal*
+rasqal_normalize_unbound_literal(rasqal_literal* literal)
+{
+  if(!literal)
+    return NULL;
+  if(literal->type == RASQAL_LITERAL_VARIABLE) {
+    rasqal_variable* variable = rasqal_literal_as_variable(literal);
+    if(variable && variable->value == NULL)
+      return NULL;
+  }
+  return literal;
+}
+
 /* Forward declarations for EXISTS evaluation functions */
 static rasqal_literal*
 rasqal_expression_evaluate_exists(rasqal_expression *e,
@@ -1029,13 +1046,29 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
     case RASQAL_EXPR_EQ:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if(error_p && *error_p)
         goto failed;
 
       l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if((error_p && *error_p) || !l2) {
-        rasqal_free_literal(l1);
+      if(error_p && *error_p) {
+        if(l1)
+          rasqal_free_literal(l1);
         goto failed;
+      }
+
+      /* Normalize variables with no binding to NULL */
+      l1 = rasqal_normalize_unbound_literal(l1);
+      l2 = rasqal_normalize_unbound_literal(l2);
+
+      /* SPARQL 1.1 semantics: If either operand is unbound, comparison fails
+       * and the solution should be filtered out (return FALSE) */
+      if(!l1 || !l2) {
+        if(l1)
+          rasqal_free_literal(l1);
+        if(l2)
+          rasqal_free_literal(l2);
+        result = rasqal_new_boolean_literal(world, 0); /* FALSE */
+        break;
       }
 
       /* FIXME - this should probably be checked at literal creation
@@ -1066,13 +1099,29 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
     case RASQAL_EXPR_NEQ:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if(error_p && *error_p)
         goto failed;
 
       l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if((error_p && *error_p) || !l2) {
-        rasqal_free_literal(l1);
+      if(error_p && *error_p) {
+        if(l1)
+          rasqal_free_literal(l1);
         goto failed;
+      }
+
+      /* Normalize variables with no binding to NULL */
+      l1 = rasqal_normalize_unbound_literal(l1);
+      l2 = rasqal_normalize_unbound_literal(l2);
+
+      /* SPARQL 1.1 semantics: If either operand is unbound, comparison fails
+       * and the solution should be filtered out (return FALSE) */
+      if(!l1 || !l2) {
+        if(l1)
+          rasqal_free_literal(l1);
+        if(l2)
+          rasqal_free_literal(l2);
+        result = rasqal_new_boolean_literal(world, 0); /* FALSE */
+        break;
       }
 
       vars.b = (rasqal_literal_not_equals_flags(l1, l2, flags, &errs.e) != 0);
@@ -1092,13 +1141,29 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
     case RASQAL_EXPR_LT:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if(error_p && *error_p)
         goto failed;
 
       l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if((error_p && *error_p) || !l2) {
-        rasqal_free_literal(l1);
+      if(error_p && *error_p) {
+        if(l1)
+          rasqal_free_literal(l1);
         goto failed;
+      }
+
+      /* Normalize variables with no binding to NULL */
+      l1 = rasqal_normalize_unbound_literal(l1);
+      l2 = rasqal_normalize_unbound_literal(l2);
+
+      /* SPARQL 1.1 semantics: If either operand is unbound, comparison fails
+       * and the solution should be filtered out (return FALSE) */
+      if(!l1 || !l2) {
+        if(l1)
+          rasqal_free_literal(l1);
+        if(l2)
+          rasqal_free_literal(l2);
+        result = rasqal_new_boolean_literal(world, 0); /* FALSE */
+        break;
       }
 
       vars.b = (rasqal_literal_compare(l1, l2, flags, &errs.e) < 0);
@@ -1112,13 +1177,29 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
     case RASQAL_EXPR_GT:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if(error_p && *error_p)
         goto failed;
 
       l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if((error_p && *error_p) || !l2) {
-        rasqal_free_literal(l1);
+      if(error_p && *error_p) {
+        if(l1)
+          rasqal_free_literal(l1);
         goto failed;
+      }
+
+      /* Normalize variables with no binding to NULL */
+      l1 = rasqal_normalize_unbound_literal(l1);
+      l2 = rasqal_normalize_unbound_literal(l2);
+
+      /* SPARQL 1.1 semantics: If either operand is unbound, comparison fails
+       * and the solution should be filtered out (return FALSE) */
+      if(!l1 || !l2) {
+        if(l1)
+          rasqal_free_literal(l1);
+        if(l2)
+          rasqal_free_literal(l2);
+        result = rasqal_new_boolean_literal(world, 0); /* FALSE */
+        break;
       }
 
       vars.b = (rasqal_literal_compare(l1, l2, flags, &errs.e) > 0);
@@ -1132,13 +1213,29 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
     case RASQAL_EXPR_LE:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if(error_p && *error_p)
         goto failed;
 
       l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if((error_p && *error_p) || !l2) {
-        rasqal_free_literal(l1);
+      if(error_p && *error_p) {
+        if(l1)
+          rasqal_free_literal(l1);
         goto failed;
+      }
+
+      /* Normalize variables with no binding to NULL */
+      l1 = rasqal_normalize_unbound_literal(l1);
+      l2 = rasqal_normalize_unbound_literal(l2);
+
+      /* SPARQL 1.1 semantics: If either operand is unbound, comparison fails
+       * and the solution should be filtered out (return FALSE) */
+      if(!l1 || !l2) {
+        if(l1)
+          rasqal_free_literal(l1);
+        if(l2)
+          rasqal_free_literal(l2);
+        result = rasqal_new_boolean_literal(world, 0); /* FALSE */
+        break;
       }
 
       vars.b = (rasqal_literal_compare(l1, l2, flags, &errs.e) <= 0);
@@ -1152,13 +1249,29 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
     case RASQAL_EXPR_GE:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if(error_p && *error_p)
         goto failed;
 
       l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if((error_p && *error_p) || !l2) {
-        rasqal_free_literal(l1);
+      if(error_p && *error_p) {
+        if(l1)
+          rasqal_free_literal(l1);
         goto failed;
+      }
+
+      /* Normalize variables with no binding to NULL */
+      l1 = rasqal_normalize_unbound_literal(l1);
+      l2 = rasqal_normalize_unbound_literal(l2);
+
+      /* SPARQL 1.1 semantics: If either operand is unbound, comparison fails
+       * and the solution should be filtered out (return FALSE) */
+      if(!l1 || !l2) {
+        if(l1)
+          rasqal_free_literal(l1);
+        if(l2)
+          rasqal_free_literal(l2);
+        result = rasqal_new_boolean_literal(world, 0); /* FALSE */
+        break;
       }
 
       vars.b = (rasqal_literal_compare(l1, l2, flags, &errs.e) >= 0);
@@ -1172,8 +1285,13 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
     case RASQAL_EXPR_UMINUS:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if((error_p && *error_p))
         goto failed;
+      if(!l1) {
+        /* SPARQL 1.1: unbound operand yields unbound result */
+        result = NULL;
+        break;
+      }
 
       result = rasqal_literal_negate(l1, &errs.e);
       rasqal_free_literal(l1);
@@ -1210,13 +1328,24 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       
     case RASQAL_EXPR_PLUS:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if((error_p && *error_p))
         goto failed;
+      if(!l1) {
+        /* SPARQL 1.1: unbound operand yields unbound result */
+        result = NULL;
+        break;
+      }
 
       l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if((error_p && *error_p) || !l2) {
+      if((error_p && *error_p)) {
         rasqal_free_literal(l1);
         goto failed;
+      }
+      if(!l2) {
+        /* SPARQL 1.1: unbound operand yields unbound result */
+        rasqal_free_literal(l1);
+        result = NULL;
+        break;
       }
 
       result = rasqal_literal_add(l1, l2, &errs.e);
@@ -1229,13 +1358,24 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
     case RASQAL_EXPR_MINUS:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if((error_p && *error_p))
         goto failed;
+      if(!l1) {
+        /* SPARQL 1.1: unbound operand yields unbound result */
+        result = NULL;
+        break;
+      }
 
       l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if((error_p && *error_p) || !l2) {
+      if((error_p && *error_p)) {
         rasqal_free_literal(l1);
         goto failed;
+      }
+      if(!l2) {
+        /* SPARQL 1.1: unbound operand yields unbound result */
+        rasqal_free_literal(l1);
+        result = NULL;
+        break;
       }
 
       result = rasqal_literal_subtract(l1, l2, &errs.e);
@@ -1248,13 +1388,24 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       
     case RASQAL_EXPR_STAR:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if((error_p && *error_p))
         goto failed;
+      if(!l1) {
+        /* SPARQL 1.1: unbound operand yields unbound result */
+        result = NULL;
+        break;
+      }
 
       l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if((error_p && *error_p) || !l2) {
+      if((error_p && *error_p)) {
         rasqal_free_literal(l1);
         goto failed;
+      }
+      if(!l2) {
+        /* SPARQL 1.1: unbound operand yields unbound result */
+        rasqal_free_literal(l1);
+        result = NULL;
+        break;
       }
 
       result = rasqal_literal_multiply(l1, l2, &errs.e);
@@ -1267,13 +1418,24 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       
     case RASQAL_EXPR_SLASH:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if((error_p && *error_p))
         goto failed;
+      if(!l1) {
+        /* SPARQL 1.1: unbound operand yields unbound result */
+        result = NULL;
+        break;
+      }
 
       l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if((error_p && *error_p) || !l2) {
+      if((error_p && *error_p)) {
         rasqal_free_literal(l1);
         goto failed;
+      }
+      if(!l2) {
+        /* SPARQL 1.1: unbound operand yields unbound result */
+        rasqal_free_literal(l1);
+        result = NULL;
+        break;
       }
 
       result = rasqal_literal_divide(l1, l2, &errs.e);
@@ -1286,13 +1448,24 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       
     case RASQAL_EXPR_REM:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if((error_p && *error_p))
         goto failed;
+      if(!l1) {
+        /* SPARQL 1.1: unbound operand yields unbound result */
+        result = NULL;
+        break;
+      }
 
       l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if((error_p && *error_p) || !l2) {
+      if((error_p && *error_p)) {
         rasqal_free_literal(l1);
         goto failed;
+      }
+      if(!l2) {
+        /* SPARQL 1.1: unbound operand yields unbound result */
+        rasqal_free_literal(l1);
+        result = NULL;
+        break;
       }
 
       vars.i = rasqal_literal_as_integer(l2, &errs.errs.e2);
@@ -1312,13 +1485,26 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       
     case RASQAL_EXPR_STR_EQ:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if(error_p && *error_p)
         goto failed;
 
       l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if((error_p && *error_p) || !l2) {
-        rasqal_free_literal(l1);
+      if(error_p && *error_p) {
+        if(l1)
+          rasqal_free_literal(l1);
         goto failed;
+      }
+
+      /* Unify unbound handling: FALSE when any operand is unbound */
+      l1 = rasqal_normalize_unbound_literal(l1);
+      l2 = rasqal_normalize_unbound_literal(l2);
+      if(!l1 || !l2) {
+        if(l1)
+          rasqal_free_literal(l1);
+        if(l2)
+          rasqal_free_literal(l2);
+        result = rasqal_new_boolean_literal(world, 0);
+        break;
       }
 
       vars.b = (rasqal_literal_compare(l1, l2, flags | RASQAL_COMPARE_NOCASE,
@@ -1333,13 +1519,26 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       
     case RASQAL_EXPR_STR_NEQ:
       l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-      if((error_p && *error_p) || !l1)
+      if(error_p && *error_p)
         goto failed;
 
       l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-      if((error_p && *error_p) || !l2) {
-        rasqal_free_literal(l1);
+      if(error_p && *error_p) {
+        if(l1)
+          rasqal_free_literal(l1);
         goto failed;
+      }
+
+      /* Unify unbound handling: FALSE when any operand is unbound */
+      l1 = rasqal_normalize_unbound_literal(l1);
+      l2 = rasqal_normalize_unbound_literal(l2);
+      if(!l1 || !l2) {
+        if(l1)
+          rasqal_free_literal(l1);
+        if(l2)
+          rasqal_free_literal(l2);
+        result = rasqal_new_boolean_literal(world, 0);
+        break;
       }
 
       vars.b = (rasqal_literal_compare(l1, l2, flags | RASQAL_COMPARE_NOCASE, 
@@ -1381,7 +1580,31 @@ rasqal_expression_evaluate2(rasqal_expression* e,
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
     case RASQAL_EXPR_REGEX:
-      result = rasqal_expression_evaluate_strmatch(e, eval_context, error_p);
+      /* Pre-check for unbound operands to unify to FALSE */
+      {
+        int e1 = 0, e2 = 0, e3 = 0;
+        rasqal_literal* t1 = rasqal_expression_evaluate2(e->arg1, eval_context, &e1);
+        if(!e1 && !t1) { result = rasqal_new_boolean_literal(world, 0); break; }
+        if(t1) rasqal_free_literal(t1);
+        if(e->op == RASQAL_EXPR_REGEX) {
+          rasqal_literal* t2 = rasqal_expression_evaluate2(e->arg2, eval_context, &e2);
+          if(!e2 && !t2) { result = rasqal_new_boolean_literal(world, 0); if(t2) rasqal_free_literal(t2); break; }
+          if(t2) rasqal_free_literal(t2);
+          if(e->arg3) {
+            rasqal_literal* t3 = rasqal_expression_evaluate2(e->arg3, eval_context, &e3);
+            if(!e3 && !t3) { result = rasqal_new_boolean_literal(world, 0); if(t3) rasqal_free_literal(t3); break; }
+            if(t3) rasqal_free_literal(t3);
+          }
+        }
+        /* Delegate to strmatch; if it returns NULL without error, map to FALSE */
+        {
+          rasqal_literal* match_result = rasqal_expression_evaluate_strmatch(e, eval_context, error_p);
+          if(!match_result && !(error_p && *error_p))
+            result = rasqal_new_boolean_literal(world, 0);
+          else
+            result = match_result;
+        }
+      }
       break;
 
     case RASQAL_EXPR_LITERAL:
@@ -1389,7 +1612,14 @@ rasqal_expression_evaluate2(rasqal_expression* e,
        * removes variables from expressions the first time they are seen.
        * (FLATTEN_LITERAL)
        */
-      result = rasqal_new_literal_from_literal(rasqal_literal_value(e->literal));
+      {
+        rasqal_literal* flattened = rasqal_literal_value(e->literal);
+        /* If this was an unbound variable, rasqal_literal_value() returns NULL.
+         * Propagate NULL here to represent unbound rather than returning
+         * a variable-literal. This centralizes unbound handling.
+         */
+        result = rasqal_new_literal_from_literal(flattened);
+      }
       break;
 
     case RASQAL_EXPR_FUNCTION:
@@ -1437,6 +1667,24 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
       
     case RASQAL_EXPR_SAMETERM:
+      /* Normalize unbound => FALSE */
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
+      if(error_p && *error_p)
+        goto failed;
+      l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
+      if(error_p && *error_p) {
+        if(l1)
+          rasqal_free_literal(l1);
+        goto failed;
+      }
+      l1 = rasqal_normalize_unbound_literal(l1);
+      l2 = rasqal_normalize_unbound_literal(l2);
+      if(!l1 || !l2) {
+        if(l1) rasqal_free_literal(l1);
+        if(l2) rasqal_free_literal(l2);
+        result = rasqal_new_boolean_literal(world, 0);
+        break;
+      }
       result = rasqal_expression_evaluate_sameterm(e, eval_context, error_p);
       break;
       
@@ -1470,10 +1718,26 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       break;
       
     case RASQAL_EXPR_IN:
+      /* Evaluate LHS early to normalize unbound */
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
+      if(error_p && *error_p)
+        goto failed;
+      if(!l1) {
+        result = rasqal_new_boolean_literal(world, 0);
+        break;
+      }
+      /* Delegate full set evaluation when LHS is bound */
       result = rasqal_expression_evaluate_in_set(e, eval_context, error_p);
       break;
 
     case RASQAL_EXPR_NOT_IN:
+      l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
+      if(error_p && *error_p)
+        goto failed;
+      if(!l1) {
+        result = rasqal_new_boolean_literal(world, 0);
+        break;
+      }
       result = rasqal_expression_evaluate_in_set(e, eval_context, error_p);
       break;
 
