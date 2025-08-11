@@ -17,118 +17,52 @@
 # 
 # See LICENSE.html or LICENSE.txt at the top of this package for the
 # complete terms and further detail along with the license texts for
-# the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
+# licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-EXTRA_DIST= \
-null-both.xml \
-null-vs-value.xml \
-null-vs-different-value.xml \
-multiple-null.xml \
-simple-null.xml \
-two-identical-rows.xml \
-README.md
+# Use Automake test harness with shell test scripts
+TEST_EXTENSIONS = .test
 
-compare_clean_files = \
-compare-test-1.out compare-test-2.out compare-test-3.out compare-test-4.out \
-compare-test-5.out compare-test-6.out compare-test-7.out
+# Export path to rasqal-compare for tests; rely on top-level build order
+AM_TESTS_ENVIRONMENT = \
+  RASQAL_COMPARE='$(top_builddir)/utils/rasqal-compare'; \
+  export RASQAL_COMPARE;
 
-CLEANFILES=diff.out roqet.err roqet.out roqet.tmp \
-$(compare_clean_files)
+# Test programs
+TESTS = \
+  compare-test-1.test \
+  compare-test-2.test \
+  compare-test-3.test \
+  compare-test-4.test \
+  compare-test-5.test \
+  compare-test-6.test \
+  compare-test-7.test \
+  compare-test-8.test
 
-.PHONY: build-core build-rasqal-compare check-local check all \
-  compare-test-1 compare-test-2 compare-test-3 compare-test-4 \
-  compare-test-5 compare-test-6 compare-test-7 compare-test-8 \
-  compare-tests
+# Test data and scripts to distribute
+EXTRA_DIST = \
+  compare-test-1.test \
+  compare-test-2.test \
+  compare-test-3.test \
+  compare-test-4.test \
+  compare-test-5.test \
+  compare-test-6.test \
+  compare-test-7.test \
+  compare-test-8.test \
+  test-common.sh \
+  null-both.xml \
+  null-vs-value.xml \
+  null-vs-different-value.xml \
+  multiple-null.xml \
+  simple-null.xml \
+  two-identical-rows.xml \
+  README.md
 
-# This sequence allows parallel building of build-core and then once
-# that is built, parallel building of the dependent programs
-build-core:
-	@(cd $(top_builddir)/src ; $(MAKE))
-	@(cd $(top_builddir)/utils ; $(MAKE))
-
-build-rasqal-compare: build-core
-	@(cd $(top_builddir)/utils ; $(MAKE) rasqal-compare)
-
-all: build-rasqal-compare
-
-#
-# Individual tests (so failures are easier to diagnose)
-#
-compare-test-1: build-rasqal-compare
-	@echo "Test 1: NULL vs NULL (should be equal)..."
-	@$(top_builddir)/utils/rasqal-compare -R xml -e $(srcdir)/null-both.xml -a $(srcdir)/null-both.xml > $@.out 2>&1 \
-	  && echo "PASS" \
-	  || (echo "FAIL: NULL vs NULL should be equal" && exit 1)
-
-compare-test-2: build-rasqal-compare
-	@echo "Test 2: NULL vs non-NULL (should be different)..."
-	@$(top_builddir)/utils/rasqal-compare -R xml -e $(srcdir)/null-both.xml -a $(srcdir)/null-vs-value.xml > $@.out 2>&1 \
-	  && (echo "FAIL: NULL vs non-NULL should be different" && exit 1) \
-	  || echo "PASS"
-
-compare-test-3: build-rasqal-compare
-	@echo "Test 3: non-NULL vs NULL (should be different)..."
-	@$(top_builddir)/utils/rasqal-compare -R xml -e $(srcdir)/null-vs-value.xml -a $(srcdir)/null-both.xml > $@.out 2>&1 \
-	  && (echo "FAIL: non-NULL vs NULL should be different" && exit 1) \
-	  || echo "PASS"
-
-compare-test-4: build-rasqal-compare
-	@echo "Test 4: different non-NULL values (should be different)..."
-	@$(top_builddir)/utils/rasqal-compare -R xml -e $(srcdir)/null-vs-value.xml -a $(srcdir)/null-vs-different-value.xml > $@.out 2>&1 \
-	  && (echo "FAIL: different non-NULL values should be different" && exit 1) \
-	  || echo "PASS"
-
-compare-test-5: build-rasqal-compare
-	@echo "Test 5: NULL vs non-NULL debug output..."
-	@$(top_builddir)/utils/rasqal-compare -R xml -k -e $(srcdir)/null-both.xml -a $(srcdir)/null-vs-value.xml > $@.out 2>&1 ; \
-	  if grep -E -q "expected: o='NULL'.*actual: o='(non-NULL|[^']+)'" $@.out; then \
-	    echo "PASS"; \
-	  else \
-	    echo "FAIL: Expected debug output to include expected: o='NULL' and actual: value"; \
-	    exit 1; \
-	  fi
-
-compare-test-6: build-rasqal-compare
-	@echo "Test 6: JSON output format..."
-	@$(top_builddir)/utils/rasqal-compare -R xml -j -e $(srcdir)/null-both.xml -a $(srcdir)/null-vs-value.xml > $@.out 2>&1 ; \
-	  if grep -F -q '"expected": "o='\''NULL'\''"' $@.out && \
-	     grep -E -q '"actual": "o='\''(non-NULL|[^'\'']+)'\''"' $@.out; then \
-	    echo "PASS"; \
-	  else \
-	    echo "FAIL: Expected JSON fields with expected o='NULL' and actual value"; \
-	    exit 1; \
-	  fi
-
-compare-test-7: build-rasqal-compare
-	@echo "Test 7: XML output format..."
-	@$(top_builddir)/utils/rasqal-compare -R xml -x -e $(srcdir)/null-both.xml -a $(srcdir)/null-vs-value.xml > $@.out 2>&1 ; \
-	  if grep -F -q "<expected>o='NULL'</expected>" $@.out && \
-	     grep -E -q "<actual>o='(non-NULL|[^']+)'</actual>" $@.out; then \
-	    echo "PASS"; \
-	  else \
-	    echo "FAIL: Expected XML fields with <expected>o='NULL'</expected> and actual value"; \
-	    exit 1; \
-	  fi
-
-compare-test-8: build-rasqal-compare
-	@echo "Test 8: Unified diff output format..."
-	@$(top_builddir)/utils/rasqal-compare -R xml -u -e $(srcdir)/null-both.xml -a $(srcdir)/null-vs-value.xml 2>&1 | grep -q "o='NULL'" \
-	  && echo "PASS" \
-	  || (echo "FAIL: Expected unified diff output with NULL reference" && exit 1)
-
-compare-tests: \
-	compare-test-1 \
-	compare-test-2 \
-	compare-test-3 \
-	compare-test-4 \
-	compare-test-5 \
-	compare-test-6 \
-	compare-test-7 \
-	compare-test-8
-	@echo "All NULL comparison tests passed!"
-
-check-local: build-rasqal-compare
-	@echo "Running NULL comparison tests..."
-	@$(MAKE) $(AM_MAKEFLAGS) compare-tests && \
-	rm -f $(compare_clean_files)
+# Clean up test output files
+CLEANFILES = \
+  diff.out \
+  roqet.err \
+  roqet.out \
+  roqet.tmp \
+  *.log \
+  *.trs

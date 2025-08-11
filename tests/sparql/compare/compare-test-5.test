@@ -1,0 +1,24 @@
+#!/bin/sh
+# Test 5: NULL vs non-NULL debug output
+# This test verifies that debug output includes expected NULL and actual values
+
+set -e
+
+# Source the test environment
+. "${srcdir:-.}/test-common.sh"
+
+# Test description
+echo "1..1"
+echo "# Test 5: NULL vs non-NULL debug output"
+
+# Run the comparison with debug output
+output="$("$RASQAL_COMPARE" -R xml -k -e "$srcdir/null-both.xml" -a "$srcdir/null-vs-value.xml" 2>&1)" || true
+
+# Check for expected debug output
+if echo "$output" | grep -E -q "expected: o='NULL'.*actual: o='(non-NULL|[^']+)'"; then
+  echo "ok 5 - Debug output correctly includes expected: o='NULL' and actual value"
+else
+  echo "not ok 5 - Debug output missing expected: o='NULL' and actual value"
+  echo "# Output: $output"
+  exit 1
+fi

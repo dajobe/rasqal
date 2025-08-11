@@ -1,0 +1,24 @@
+#!/bin/sh
+# Test 8: Unified diff output format
+# This test verifies that unified diff output includes NULL reference
+
+set -e
+
+# Source the test environment
+. "${srcdir:-.}/test-common.sh"
+
+# Test description
+echo "1..1"
+echo "# Test 8: Unified diff output format"
+
+# Run the comparison with unified diff output
+output="$("$RASQAL_COMPARE" -R xml -u -e "$srcdir/null-both.xml" -a "$srcdir/null-vs-value.xml" 2>&1)" || true
+
+# Check for expected unified diff output
+if echo "$output" | grep -q "o='NULL'"; then
+  echo "ok 8 - Unified diff output correctly includes NULL reference"
+else
+  echo "not ok 8 - Unified diff output missing NULL reference"
+  echo "# Output: $output"
+  exit 1
+fi

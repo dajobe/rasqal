@@ -1,0 +1,20 @@
+#!/bin/sh
+# Test 1: NULL vs NULL (should be equal)
+# This test verifies that two NULL values are considered equal
+
+set -e
+
+# Source the test environment
+. "${srcdir:-.}/test-common.sh"
+
+# Test description
+echo "1..1"
+echo "# Test 1: NULL vs NULL (should be equal)"
+
+# Run the comparison
+if "$RASQAL_COMPARE" -R xml -e "$srcdir/null-both.xml" -a "$srcdir/null-both.xml" >/dev/null 2>&1; then
+  echo "ok 1 - NULL vs NULL comparison passed (should be equal)"
+else
+  echo "not ok 1 - NULL vs NULL comparison failed (should be equal)"
+  exit 1
+fi

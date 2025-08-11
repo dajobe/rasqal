@@ -1,0 +1,20 @@
+#!/bin/sh
+# Test 2: NULL vs non-NULL (should be different)
+# This test verifies that NULL and non-NULL values are considered different
+
+set -e
+
+# Source the test environment
+. "${srcdir:-.}/test-common.sh"
+
+# Test description
+echo "1..1"
+echo "# Test 2: NULL vs non-NULL (should be different)"
+
+# Run the comparison - should fail (different)
+if "$RASQAL_COMPARE" -R xml -e "$srcdir/null-both.xml" -a "$srcdir/null-vs-value.xml" >/dev/null 2>&1; then
+  echo "not ok 2 - NULL vs non-NULL comparison should have failed"
+  exit 1
+else
+  echo "ok 2 - NULL vs non-NULL comparison correctly failed (should be different)"
+fi

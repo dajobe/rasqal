@@ -1,0 +1,25 @@
+#!/bin/sh
+# Test 6: JSON output format
+# This test verifies that JSON output includes expected and actual fields
+
+set -e
+
+# Source the test environment
+. "${srcdir:-.}/test-common.sh"
+
+# Test description
+echo "1..1"
+echo "# Test 6: JSON output format"
+
+# Run the comparison with JSON output
+output="$("$RASQAL_COMPARE" -R xml -j -e "$srcdir/null-both.xml" -a "$srcdir/null-vs-value.xml" 2>&1)" || true
+
+# Check for expected JSON fields
+if echo "$output" | grep -F -q '"expected": "o='\''NULL'\''"' && \
+   echo "$output" | grep -E -q '"actual": "o='\''(non-NULL|[^'\'']+)'\''"'; then
+  echo "ok 6 - JSON output correctly includes expected and actual fields"
+else
+  echo "not ok 6 - JSON output missing expected or actual fields"
+  echo "# Output: $output"
+  exit 1
+fi
