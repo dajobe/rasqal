@@ -71,8 +71,12 @@ rasqal_expression_evaluate_abs(rasqal_expression *e,
   rasqal_literal* result = NULL;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if((error_p && *error_p) || !l1)
+  if((error_p && *error_p))
     goto failed;
+  if(!l1) {
+    /* SPARQL 1.1: unbound operand yields unbound result */
+    return NULL;
+  }
   
   if(!rasqal_literal_is_numeric(l1))
     goto failed;
@@ -115,8 +119,12 @@ rasqal_expression_evaluate_round(rasqal_expression *e,
   rasqal_literal* result = NULL;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if((error_p && *error_p) || !l1)
+  if((error_p && *error_p))
     goto failed;
+  if(!l1) {
+    /* SPARQL 1.1: unbound operand yields unbound result */
+    return NULL;
+  }
   
   if(!rasqal_literal_is_numeric(l1))
     goto failed;
@@ -159,8 +167,12 @@ rasqal_expression_evaluate_ceil(rasqal_expression *e,
   rasqal_literal* result = NULL;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if((error_p && *error_p) || !l1)
+  if((error_p && *error_p))
     goto failed;
+  if(!l1) {
+    /* SPARQL 1.1: unbound operand yields unbound result */
+    return NULL;
+  }
   
   if(!rasqal_literal_is_numeric(l1))
     goto failed;
@@ -203,8 +215,12 @@ rasqal_expression_evaluate_floor(rasqal_expression *e,
   rasqal_literal* result = NULL;
 
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if((error_p && *error_p) || !l1)
+  if((error_p && *error_p))
     goto failed;
+  if(!l1) {
+    /* SPARQL 1.1: unbound operand yields unbound result */
+    return NULL;
+  }
   
   if(!rasqal_literal_is_numeric(l1))
     goto failed;
