@@ -65,8 +65,12 @@ rasqal_expression_evaluate_strlen(rasqal_expression *e,
   int len = 0;
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if((error_p && *error_p) || !l1)
+  if((error_p && *error_p))
     goto failed;
+  if(!l1) {
+    /* SPARQL 1.1: unbound operand yields unbound result */
+    return NULL;
+  }
   
   s = rasqal_literal_as_string_flags(l1, eval_context->flags, error_p);
   if(error_p && *error_p)
@@ -222,8 +226,12 @@ rasqal_expression_evaluate_set_case(rasqal_expression *e,
   size_t len = 0;
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if((error_p && *error_p) || !l1)
+  if((error_p && *error_p))
     goto failed;
+  if(!l1) {
+    /* SPARQL 1.1: unbound operand yields unbound result */
+    return NULL;
+  }
   
   s = rasqal_literal_as_counted_string(l1, &len, eval_context->flags, error_p);
   if(error_p && *error_p)
@@ -377,12 +385,21 @@ rasqal_expression_evaluate_str_prefix_suffix(rasqal_expression *e,
   size_t len2 = 0;
   
   l1 = rasqal_expression_evaluate2(e->arg1, eval_context, error_p);
-  if((error_p && *error_p) || !l1)
+  if((error_p && *error_p))
     goto failed;
+  /* Unify unbound handling for comparisons: FALSE when unbound */
+  if(!l1)
+    return rasqal_new_boolean_literal(world, 0);
   
   l2 = rasqal_expression_evaluate2(e->arg2, eval_context, error_p);
-  if((error_p && *error_p) || !l2)
+  if((error_p && *error_p)) {
+    rasqal_free_literal(l1);
     goto failed;
+  }
+  if(!l2) {
+    rasqal_free_literal(l1);
+    return rasqal_new_boolean_literal(world, 0);
+  }
 
   if(!rasqal_literals_sparql11_compatible(l1, l2))
     goto failed;
@@ -571,14 +588,13 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
       break;
 
     arg_literal = rasqal_expression_evaluate2(arg_expr, eval_context, error_p);
-    if(!arg_literal) {
-      /* FIXME - check what to do with a NULL literal */
-#if 0
-      if(error_p)
-        *error_p = 1;
+    if((error_p && *error_p))
       goto failed;
-#endif
-      continue;
+    if(!arg_literal) {
+      /* SPARQL 1.1: unbound operand yields unbound result */
+      if(sb)
+        raptor_free_stringbuffer(sb);
+      return NULL;
     }
 
     if(arg_literal->type != RASQAL_LITERAL_STRING &&
