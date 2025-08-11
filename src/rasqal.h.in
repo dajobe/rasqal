@@ -1530,8 +1530,8 @@ typedef struct {
  */
 typedef struct {
   char* description;
-  char* expected;    // NULL if not applicable
-  char* actual;      // NULL if not applicable
+  char* expected;    /* NULL if not applicable */
+  char* actual;      /* NULL if not applicable */
 } rasqal_query_results_compare_difference;
 
 /**
@@ -1544,8 +1544,8 @@ typedef struct {
  */
 typedef struct {
   char* description;
-  raptor_statement* expected_triple;  // NULL if not applicable
-  raptor_statement* actual_triple;    // NULL if not applicable
+  raptor_statement* expected_triple;  /* NULL if not applicable */
+  raptor_statement* actual_triple;    /* NULL if not applicable */
 } rasqal_query_results_compare_triple_difference;
 
 

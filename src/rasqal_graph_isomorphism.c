@@ -693,6 +693,7 @@ rasqal_graph_isomorphism_vf2_state_init(rasqal_graph_isomorphism_vf2_state* stat
                                        int max_time)
 {
   int node_count;
+  int i;
 
   if(!state || !first_nodes || !second_nodes || !first_triples || !second_triples)
     return 0;
@@ -726,7 +727,7 @@ rasqal_graph_isomorphism_vf2_state_init(rasqal_graph_isomorphism_vf2_state* stat
   }
 
   /* Initialize arrays */
-  for(int i = 0; i < node_count; i++) {
+  for(i = 0; i < node_count; i++) {
     state->mapping[i] = -1;
     state->first_used[i] = 0;
     state->second_used[i] = 0;
@@ -794,14 +795,16 @@ rasqal_graph_isomorphism_vf2_feasible(rasqal_graph_isomorphism_vf2_state* state,
 
   /* For blank nodes, check if they have similar connectivity */
   if(first_node->type == RAPTOR_TERM_TYPE_BLANK) {
+    int i;
+
     /* Count degree (number of triples involving this node) */
-    for(int i = 0; i < raptor_sequence_size(state->first_triples); i++) {
+    for(i = 0; i < raptor_sequence_size(state->first_triples); i++) {
       raptor_statement* triple = (raptor_statement*)raptor_sequence_get_at(state->first_triples, i);
       if(triple && (triple->subject == first_node || triple->predicate == first_node || triple->object == first_node))
         first_degree++;
     }
 
-    for(int i = 0; i < raptor_sequence_size(state->second_triples); i++) {
+    for(i = 0; i < raptor_sequence_size(state->second_triples); i++) {
       raptor_statement* triple = (raptor_statement*)raptor_sequence_get_at(state->second_triples, i);
       if(triple && (triple->subject == second_node || triple->predicate == second_node || triple->object == second_node))
         second_degree++;
@@ -830,6 +833,7 @@ rasqal_graph_isomorphism_vf2_search(rasqal_graph_isomorphism_vf2_state* state)
   int first_node_idx;
   int second_node_idx;
   int result = 0;
+  int i;
 
   if(!state)
     return 0;
@@ -848,7 +852,7 @@ rasqal_graph_isomorphism_vf2_search(rasqal_graph_isomorphism_vf2_state* state)
 
   /* Find next unmapped node in first graph */
   first_node_idx = -1;
-  for(int i = 0; i < state->max_mapping_size; i++) {
+  for(i = 0; i < state->max_mapping_size; i++) {
     if(!state->first_used[i]) {
       first_node_idx = i;
       break;

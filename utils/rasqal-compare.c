@@ -427,9 +427,9 @@ print_diff_output(rasqal_query_results_compare_result* result,
           printf("+%s\n", str_diff->actual);
         } else if(str_diff->expected) {
           printf("-%s\n", str_diff->expected);
-          // No + line - value is missing in actual
+          /* No + line - value is missing in actual */
         } else if(str_diff->actual) {
-          // No - line - value is missing in expected
+          /* No - line - value is missing in expected */
           printf("+%s\n", str_diff->actual);
         } else {
           printf(" %s\n", str_diff->description);
@@ -464,9 +464,9 @@ print_diff_output(rasqal_query_results_compare_result* result,
           raptor_free_memory(subj);
           raptor_free_memory(pred);
           raptor_free_memory(obj);
-          // No + line - triple is missing in actual
+          /* No + line - triple is missing in actual */
         } else if(trip_diff->actual_triple) {
-          // No - line - triple is missing in expected
+          /* No - line - triple is missing in expected */
           unsigned char *subj, *pred, *obj;
           subj = raptor_term_to_string(trip_diff->actual_triple->subject);
           pred = raptor_term_to_string(trip_diff->actual_triple->predicate);
@@ -728,7 +728,7 @@ main(int argc, char *argv[])
   
   /* Initialize graph comparison options */
   if(!options.graph_comparison_options) {
-    options.graph_comparison_options = malloc(sizeof(rasqal_graph_comparison_options));
+    options.graph_comparison_options = (rasqal_graph_comparison_options*)malloc(sizeof(*options.graph_comparison_options));
     if(options.graph_comparison_options)
       rasqal_graph_comparison_options_init(options.graph_comparison_options);
   }
