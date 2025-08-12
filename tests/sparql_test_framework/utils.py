@@ -252,11 +252,13 @@ def run_roqet_with_format(
     if roqet_path is None:
         roqet_path = find_tool("roqet") or "roqet"
 
-    cmd = [roqet_path, "-r", result_format, "-W", "0", "-q", query_file]
-    if data_file:
-        cmd.extend(["-D", data_file])
+    # Build options first, then positional query file last
+    cmd = [roqet_path, "-r", result_format, "-W", "0"]
     if additional_args:
         cmd.extend(additional_args)
+    if data_file:
+        cmd.extend(["-D", data_file])
+    cmd.extend(["-q", query_file])
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
@@ -278,14 +280,28 @@ def filter_format_output(output: str, result_format: str) -> Optional[str]:
     Returns:
         Filtered output or None if format not found
     """
-    if result_format.lower() in ["json", "srj"]:
+    fmt = result_format.lower()
+    if fmt in ["json", "srj"]:
         # Filter out debug output - look for JSON start
         json_start = output.find("{")
         if json_start >= 0:
             return output[json_start:]
         return None
+    elif fmt in ["xml", "srx", "rdfxml"]:
+        # Extract XML payload by locating the XML root
+        # Prefer the SPARQL Results root if present
+        for marker in ["<sparql", "<?xml", "<rdf", "<RDF"]:
+            idx = output.find(marker)
+            if idx >= 0:
+                xml_payload = output[idx:]
+                return xml_payload.strip() if xml_payload.strip() else None
+        # Fallback: strip and return if it looks like XML
+        stripped = output.lstrip()
+        if stripped.startswith("<"):
+            return stripped
+        return None
     else:
-        # For CSV, TSV, XML etc., return output as-is
+        # For CSV, TSV etc., return output as-is
         return output.strip() if output.strip() else None
 
 
@@ -544,40 +560,45 @@ class ManifestTripleExtractor:
         return value
 
 
-def generate_custom_diff(expected_content: str, actual_content: str, expected_file: str = "expected", actual_file: str = "actual") -> str:
+def generate_custom_diff(
+    expected_content: str,
+    actual_content: str,
+    expected_file: str = "expected",
+    actual_file: str = "actual",
+) -> str:
     """
     Generate a custom diff-like output without using the system diff command.
-    
+
     This function creates a diff-like output similar to what roqet -d debug produces,
     showing differences between expected and actual content in a structured format.
-    
+
     Args:
         expected_content: The expected content as a string
         actual_content: The actual content as a string
         expected_file: Name of the expected file (for display purposes)
         actual_file: Name of the actual file (for display purposes)
-        
+
     Returns:
         A string containing the diff-like output
     """
     if expected_content == actual_content:
         return "Files are identical"
-    
+
     expected_lines = expected_content.splitlines()
     actual_lines = actual_content.splitlines()
-    
+
     diff_output = []
     diff_output.append(f"--- {expected_file}")
     diff_output.append(f"+++ {actual_file}")
     diff_output.append("")
-    
+
     # Enhanced comparison with context awareness
     max_lines = max(len(expected_lines), len(actual_lines))
-    
+
     for i in range(max_lines):
         expected_line = expected_lines[i] if i < len(expected_lines) else None
         actual_line = actual_lines[i] if i < len(actual_lines) else None
-        
+
         if expected_line == actual_line:
             diff_output.append(f" {expected_line}")
         else:
@@ -586,45 +607,46 @@ def generate_custom_diff(expected_content: str, actual_content: str, expected_fi
                 diff_output.append(f"-{expected_line}")
             if actual_line is not None:
                 diff_output.append(f"+{actual_line}")
-    
+
     # Add summary information
     diff_output.append("")
-    diff_output.append(f"Summary: {len(expected_lines)} expected lines, {len(actual_lines)} actual lines")
-    
+    diff_output.append(
+        f"Summary: {len(expected_lines)} expected lines, {len(actual_lines)} actual lines"
+    )
+
     return "\n".join(diff_output)
 
 
-def compare_files_custom_diff(file1_path: Path, file2_path: Path, diff_output_path: Path) -> int:
+def compare_files_custom_diff(
+    file1_path: Path, file2_path: Path, diff_output_path: Path
+) -> int:
     """
     Compare two files using custom diff generation instead of system diff command.
-    
+
     Args:
         file1_path: Path to first file (expected)
         file2_path: Path to second file (actual)
         diff_output_path: Path to write diff output to
-        
+
     Returns:
         0 if files are identical, 1 if different, 2 on error
     """
     try:
         # Read file contents
-        content1 = file1_path.read_text(encoding='utf-8', errors='replace')
-        content2 = file2_path.read_text(encoding='utf-8', errors='replace')
-        
+        content1 = file1_path.read_text(encoding="utf-8", errors="replace")
+        content2 = file2_path.read_text(encoding="utf-8", errors="replace")
+
         # Generate custom diff
         diff_content = generate_custom_diff(
-            content1, 
-            content2, 
-            str(file1_path), 
-            str(file2_path)
+            content1, content2, str(file1_path), str(file2_path)
         )
-        
+
         # Write diff output
         diff_output_path.write_text(diff_content)
-        
+
         # Return 0 if identical, 1 if different
         return 0 if content1 == content2 else 1
-        
+
     except Exception as e:
         error_msg = f"Error comparing files: {e}\n"
         diff_output_path.write_text(error_msg)
