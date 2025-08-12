@@ -27,6 +27,7 @@ import shlex
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional
+import os
 
 from ..manifest import ManifestParser, ManifestParsingError, UtilityNotFoundError
 from ..test_types import Namespaces, TestTypeResolver, TestResult
@@ -495,6 +496,19 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # Check for RASQAL_COMPARE_ENABLE environment variable
+    if os.environ.get("RASQAL_COMPARE_ENABLE", "").lower() == "yes":
+        # Automatically append --use-rasqal-compare to action template
+        if (
+            "run-sparql-tests" in args.action_template
+            and "--use-rasqal-compare" not in args.action_template
+        ):
+            args.action_template += " --use-rasqal-compare"
+            print(
+                "WARNING: RASQAL_COMPARE_ENABLE=yes: automatically adding --use-rasqal-compare to action template",
+                file=sys.stderr,
+            )
 
     # Validate required arguments
     if not all([args.suite_name, args.srcdir, args.builddir, args.action_template]):
