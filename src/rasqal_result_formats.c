@@ -551,6 +551,9 @@ rasqal_query_results_formatter_get_boolean(rasqal_world *world,
  *
  * Read the query results using the given formatter from an iostream
  *
+ * After reading if the results is of type binding, the results will be
+ * rewould back to the first row and can be read in the order stored.
+ *
  * See rasqal_world_get_query_results_format_description() for
  * obtaining the supported format URIs at run time.
  *
@@ -598,6 +601,12 @@ rasqal_query_results_formatter_read(rasqal_world *world,
 
         if(rowsource)
           rasqal_free_rowsource(rowsource);
+
+        /* Rewind results so they can be iterated over again */
+        if(rasqal_query_results_rewind(results))
+          /* Failed to rewind - this shouldn't normally happen */
+          return 1;
+
       }
       break;
 
