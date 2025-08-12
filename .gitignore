@@ -38,6 +38,7 @@ config.log
 config.status
 configure
 cov-int
+diff.out
 dmalloc*
 do-*
 example?
@@ -51,3 +52,7 @@ rasqal-src-config
 rasqal.pc
 rasqal.rdf
 rasqal.spec
+result.out
+roqet.err
+roqet.out
+roqet.tmp
