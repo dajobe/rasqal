@@ -468,8 +468,10 @@ rasqal_rowsource_sv_data_callback(sv *t, void *user_data,
         memcpy(lvalue, field, field_len + 1);
 
       l = rasqal_new_string_literal_node(con->world, lvalue, NULL, NULL);
-      if(!l)
+      if(!l) {
+        RASQAL_FREE(char*, lvalue);
         goto fail;
+      }
     }
 
     rasqal_row_set_value_at(row, RASQAL_GOOD_CAST(int, i), l);

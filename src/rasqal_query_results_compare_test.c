@@ -600,8 +600,10 @@ test_advanced_graph_comparison(rasqal_world* world)
   }
 
   /* Create test data */
-  triples = raptor_new_sequence(NULL, NULL);
-  blank_nodes = raptor_new_sequence(NULL, NULL);
+  triples = raptor_new_sequence((raptor_data_free_handler)raptor_free_statement, 
+                                (raptor_data_print_handler)raptor_statement_print);
+  blank_nodes = raptor_new_sequence((raptor_data_free_handler)raptor_free_term, 
+                                   NULL);
 
   if(!triples || !blank_nodes) {
     printf("Failed to create sequences\n");
@@ -688,14 +690,7 @@ test_advanced_graph_comparison(rasqal_world* world)
     test_free_query_results_compare_options(options);
   }
 
-  /* Test 3: Advanced graph comparison options (advanced functionality tested in standalone) */
-  if(1) {
-    /* This test verifies that the advanced graph comparison options are properly set */
-    /* The actual advanced algorithms are tested in the standalone test program */
-    printf("Advanced algorithms tested in standalone program\n");
-  }
-
-  /* Test 4: Graph comparison options initialization */
+  /* Test 3: Graph comparison options initialization */
   if(1) {
     rasqal_graph_comparison_options graph_options;
     rasqal_graph_comparison_options_init(&graph_options);
@@ -742,6 +737,10 @@ cleanup:
     raptor_free_sequence(triples);
   if(blank_nodes)
     raptor_free_sequence(blank_nodes);
+
+  /* Cleanup world */
+  if(world)
+    rasqal_free_world(world);
 
   return result;
 }
