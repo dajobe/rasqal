@@ -57,7 +57,8 @@ rasqal_query_results_test$(EXEEXT) \
 rasqal_query_results_compare_test$(EXEEXT) \
 rasqal_query_results_compare_public_test$(EXEEXT) \
 rasqal_graph_isomorphism_test$(EXEEXT) \
-rasqal_expr_unbound_test$(EXEEXT)
+rasqal_expr_unbound_test$(EXEEXT) \
+rasqal_solutions_compatible_test$(EXEEXT)
 
 # These 2 test programs are compiled here and run here as 'smoke
 # tests' but mostly used in tests in $(srcdir)/../tests/sparql
@@ -320,6 +321,9 @@ rasqal_rowsource_service_test_LDADD = librasqal.la
 rasqal_row_compatible_test_SOURCES = rasqal_row_compatible.c
 rasqal_row_compatible_test_CPPFLAGS = -DSTANDALONE
 rasqal_row_compatible_test_LDADD = librasqal.la
+
+rasqal_solutions_compatible_test_SOURCES = rasqal_solutions_compatible_test.c
+rasqal_solutions_compatible_test_LDADD = librasqal.la
 
 rasqal_literal_test_SOURCES = rasqal_literal.c
 rasqal_literal_test_CPPFLAGS = -DSTANDALONE
