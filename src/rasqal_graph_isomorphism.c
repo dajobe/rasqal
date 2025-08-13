@@ -309,7 +309,7 @@ rasqal_graph_isomorphism_compartmentalize_by_signature(raptor_sequence* blank_no
         compartment->blank_nodes = raptor_new_sequence(NULL, NULL);
         if(compartment->blank_nodes) {
           raptor_sequence_push(compartment->blank_nodes, bnode);
-          compartment->signature = *signature;
+          memcpy(&(compartment->signature), signature, sizeof(*signature));
           compartment->size = 1;
           raptor_sequence_push(compartments, compartment);
         } else {
@@ -1468,23 +1468,20 @@ print_test_result(const char* test_name, int result)
 }
 
 static int
-test_signature_generation(void)
+test_signature_generation(rasqal_world* world)
 {
-  rasqal_world* world = NULL;
   raptor_sequence* triples = NULL;
   raptor_term* bnode1 = NULL;
+  raptor_term* bnode1_copy = NULL;
   raptor_term* bnode2 = NULL;
   raptor_term* uri1 = NULL;
+  raptor_term* uri1_copy = NULL;
   raptor_term* literal1 = NULL;
   raptor_statement* triple1 = NULL;
   raptor_statement* triple2 = NULL;
   rasqal_blank_node_signature* signature1 = NULL;
   rasqal_blank_node_signature* signature2 = NULL;
   int result = 0;
-
-  world = rasqal_new_world();
-  if(!world || rasqal_world_open(world))
-    return 0;
 
   triples = raptor_new_sequence((raptor_data_free_handler)raptor_free_statement, NULL);
   if(!triples)
@@ -1499,9 +1496,12 @@ test_signature_generation(void)
   if(!bnode1 || !bnode2 || !uri1 || !literal1)
     goto cleanup;
 
+  uri1_copy = raptor_term_copy(uri1);
+  bnode1_copy = raptor_term_copy(bnode1);
+
   /* Create test triples */
   triple1 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode1, uri1, literal1, NULL);
-  triple2 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode2, uri1, bnode1, NULL);
+  triple2 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode2, uri1_copy, bnode1_copy, NULL);
 
   if(!triple1 || !triple2)
     goto cleanup;
@@ -1530,14 +1530,12 @@ cleanup:
     RASQAL_FREE(rasqal_blank_node_signature*, signature2);
   if(triples)
     raptor_free_sequence(triples);
-  if(world)
-    rasqal_free_world(world);
 
   return result;
 }
 
 static int
-test_signature_comparison(void)
+test_signature_comparison(rasqal_world* world)
 {
   rasqal_blank_node_signature sig1 = {1, 0, 1, 2};
   rasqal_blank_node_signature sig2 = {1, 0, 0, 1};
@@ -1557,25 +1555,24 @@ test_signature_comparison(void)
 }
 
 static int
-test_compartmentalization(void)
+test_compartmentalization(rasqal_world* world)
 {
-  rasqal_world* world = NULL;
   raptor_sequence* triples = NULL;
   raptor_sequence* blank_nodes = NULL;
   raptor_sequence* compartments = NULL;
   raptor_term* bnode1 = NULL;
+  raptor_term* bnode1_copy = NULL;
   raptor_term* bnode2 = NULL;
   raptor_term* bnode3 = NULL;
   raptor_term* uri1 = NULL;
+  raptor_term* uri1_copy1 = NULL;
+  raptor_term* uri1_copy2 = NULL;
   raptor_term* literal1 = NULL;
+  raptor_term* literal1_copy = NULL;
   raptor_statement* triple1 = NULL;
   raptor_statement* triple2 = NULL;
   raptor_statement* triple3 = NULL;
   int result = 0;
-
-  world = rasqal_new_world();
-  if(!world || rasqal_world_open(world))
-    return 0;
 
   triples = raptor_new_sequence((raptor_data_free_handler)raptor_free_statement, NULL);
   blank_nodes = raptor_new_sequence(NULL, NULL);
@@ -1593,20 +1590,36 @@ test_compartmentalization(void)
   if(!bnode1 || !bnode2 || !bnode3 || !uri1 || !literal1)
     goto cleanup;
 
-  /* Create test triples with same signature for bnode1 and bnode3 */
-  triple1 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode1, uri1, literal1, NULL);
-  triple2 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode2, uri1, bnode1, NULL);
-  triple3 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode3, uri1, literal1, NULL);
-
-  if(!triple1 || !triple2 || !triple3)
-    goto cleanup;
-
-  raptor_sequence_push(triples, triple1);
-  raptor_sequence_push(triples, triple2);
-  raptor_sequence_push(triples, triple3);
+  /* These are shared references */
   raptor_sequence_push(blank_nodes, bnode1);
   raptor_sequence_push(blank_nodes, bnode2);
   raptor_sequence_push(blank_nodes, bnode3);
+
+  bnode1_copy = raptor_term_copy(bnode1);
+  literal1_copy = raptor_term_copy(literal1);
+  uri1_copy1 = raptor_term_copy(uri1);
+  uri1_copy2 = raptor_term_copy(uri1);
+
+  /* Create test triples with same signature for bnode1 and bnode3 */
+  triple1 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode1, uri1, literal1, NULL);
+  bnode1 = NULL; uri1 = NULL; literal1 = NULL;
+  if(!triple1)
+    goto cleanup;
+
+  triple2 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode2, uri1_copy1, bnode1_copy, NULL);
+  bnode2 = NULL; uri1_copy1 = NULL; bnode1_copy = NULL;
+  if(!triple1)
+    goto cleanup;
+
+   
+  triple3 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode3, uri1_copy2, literal1_copy, NULL);
+  bnode3 = NULL; uri1_copy2 = NULL; literal1_copy = NULL;
+  if(!triple1)
+    goto cleanup;
+
+  raptor_sequence_push(triples, triple1); triple1 = NULL;
+  raptor_sequence_push(triples, triple2); triple2 = NULL;
+  raptor_sequence_push(triples, triple3); triple3 = NULL;
 
   /* Test compartmentalization */
   compartments = rasqal_graph_isomorphism_compartmentalize_by_signature(blank_nodes, triples, world);
@@ -1624,30 +1637,24 @@ cleanup:
     raptor_free_sequence(blank_nodes);
   if(triples)
     raptor_free_sequence(triples);
-  if(world)
-    rasqal_free_world(world);
 
   return result;
 }
 
 static int
-test_ordering(void)
+test_ordering(rasqal_world* world)
 {
-  rasqal_world* world = NULL;
   raptor_sequence* compartments = NULL;
   raptor_sequence* ordered = NULL;
   int result = 0;
-
-  world = rasqal_new_world();
-  if(!world || rasqal_world_open(world))
-    return 0;
 
   compartments = raptor_new_sequence(NULL, NULL);
   if(!compartments)
     goto cleanup;
 
   /* Test ordering with empty sequence */
-      ordered = rasqal_graph_isomorphism_order_signatures_by_size(compartments, world);
+  ordered = rasqal_graph_isomorphism_order_signatures_by_size(compartments,
+                                                              world);
   result = (ordered != NULL && raptor_sequence_size(ordered) == 0);
 
 cleanup:
@@ -1655,23 +1662,16 @@ cleanup:
     raptor_free_sequence(ordered);
   if(compartments)
     raptor_free_sequence(compartments);
-  if(world)
-    rasqal_free_world(world);
 
   return result;
 }
 
 static int
-test_null_parameters(void)
+test_null_parameters(rasqal_world* world)
 {
-  rasqal_world* world = NULL;
   raptor_sequence* triples = NULL;
   raptor_term* bnode = NULL;
   int result = 1;
-
-  world = rasqal_new_world();
-  if(!world || rasqal_world_open(world))
-    return 0;
 
   triples = raptor_new_sequence(NULL, NULL);
   bnode = raptor_new_term_from_blank(world->raptor_world_ptr, (unsigned char*)"_:b1");
@@ -1693,16 +1693,13 @@ cleanup:
     raptor_free_term(bnode);
   if(triples)
     raptor_free_sequence(triples);
-  if(world)
-    rasqal_free_world(world);
 
   return result;
 }
 
 static int
-test_memory_management(void)
+test_memory_management(rasqal_world* world)
 {
-  rasqal_world* world = NULL;
   raptor_sequence* triples = NULL;
   raptor_term* bnode = NULL;
   raptor_sequence* blank_nodes = NULL;
@@ -1710,10 +1707,6 @@ test_memory_management(void)
   raptor_sequence* ordered = NULL;
   rasqal_blank_node_signature* signature = NULL;
   int result = 1;
-
-  world = rasqal_new_world();
-  if(!world || rasqal_world_open(world))
-    return 0;
 
   triples = raptor_new_sequence(NULL, NULL);
   blank_nodes = raptor_new_sequence(NULL, NULL);
@@ -1758,25 +1751,18 @@ cleanup:
     raptor_free_sequence(blank_nodes);
   if(triples)
     raptor_free_sequence(triples);
-  if(world)
-    rasqal_free_world(world);
 
   return result;
 }
 
 static int
-test_vf2_detection(void)
+test_vf2_detection(rasqal_world* world)
 {
-  rasqal_world* world = NULL;
   rasqal_query_results* results1 = NULL;
   rasqal_query_results* results2 = NULL;
   rasqal_query_results_compare* compare = NULL;
   raptor_uri* base_uri = NULL;
   int result = 0;
-
-  world = rasqal_new_world();
-  if(!world || rasqal_world_open(world))
-    return 0;
 
   base_uri = raptor_new_uri(world->raptor_world_ptr, (unsigned char*)"http://example.org/");
 
@@ -1841,25 +1827,18 @@ cleanup:
     rasqal_free_query_results(results1);
   if(base_uri)
     raptor_free_uri(base_uri);
-  if(world)
-    rasqal_free_world(world);
 
   return result;
 }
 
 static int
-test_exhaustive_detection(void)
+test_exhaustive_detection(rasqal_world* world)
 {
-  rasqal_world* world = NULL;
   rasqal_query_results* results1 = NULL;
   rasqal_query_results* results2 = NULL;
   rasqal_query_results_compare* compare = NULL;
   raptor_uri* base_uri = NULL;
   int result = 0;
-
-  world = rasqal_new_world();
-  if(!world || rasqal_world_open(world))
-    return 0;
 
   base_uri = raptor_new_uri(world->raptor_world_ptr, (unsigned char*)"http://example.org/");
 
@@ -1921,25 +1900,18 @@ cleanup:
     rasqal_free_query_results(results1);
   if(base_uri)
     raptor_free_uri(base_uri);
-  if(world)
-    rasqal_free_world(world);
 
   return result;
 }
 
 static int
-test_hybrid_detection(void)
+test_hybrid_detection(rasqal_world* world)
 {
-  rasqal_world* world = NULL;
   rasqal_query_results* results1 = NULL;
   rasqal_query_results* results2 = NULL;
   rasqal_query_results_compare* compare = NULL;
   raptor_uri* base_uri = NULL;
   int result = 0;
-
-  world = rasqal_new_world();
-  if(!world || rasqal_world_open(world))
-    return 0;
 
   base_uri = raptor_new_uri(world->raptor_world_ptr, (unsigned char*)"http://example.org/");
 
@@ -2001,8 +1973,6 @@ cleanup:
     rasqal_free_query_results(results1);
   if(base_uri)
     raptor_free_uri(base_uri);
-  if(world)
-    rasqal_free_world(world);
 
   return result;
 }
@@ -2010,43 +1980,57 @@ cleanup:
 int
 main(int argc, char *argv[])
 {
+  rasqal_world* world = NULL;
   char const *program = rasqal_basename(*argv);
   int result;
   int failures = 0;
 
   printf("%s: Testing RDF Graph Isomorphism Detection Module\n", program);
 
-  result = test_signature_generation();
+  world = rasqal_new_world();
+  if(!world || rasqal_world_open(world))
+    return 0;
+
+  result = test_signature_generation(world);
   print_test_result("Signature Generation", result);
   failures += !result;
 
-  result = test_signature_comparison();
+  result = test_signature_comparison(world);
   print_test_result("Signature Comparison", result);
   failures += !result;
 
-  result = test_compartmentalization();
+  result = test_compartmentalization(world);
   print_test_result("Compartmentalization", result);
   failures += !result;
 
-  failures += !test_ordering();
-  print_test_result("Ordering", test_ordering());
+  result = test_ordering(world);
+  failures += !result;
+  print_test_result("Ordering", result);
 
-  failures += !test_null_parameters();
-  print_test_result("Null Parameter Handling", test_null_parameters());
+  result = test_null_parameters(world);
+  failures += !result;
+  print_test_result("Null Parameter Handling", result);
 
-  failures += !test_memory_management();
-  print_test_result("Memory Management", test_memory_management());
+  result = test_memory_management(world);
+  failures += !result;
+  print_test_result("Memory Management", result);
 
-  failures += !test_vf2_detection();
-  print_test_result("VF2 Detection", test_vf2_detection());
+  result = test_vf2_detection(world);
+  failures += !result;
+  print_test_result("VF2 Detection", result);
 
-  failures += !test_exhaustive_detection();
-  print_test_result("Exhaustive Detection", test_exhaustive_detection());
+  result = test_exhaustive_detection(world);
+  failures += !result;
+  print_test_result("Exhaustive Detection", result);
 
-  failures += !test_hybrid_detection();
-  print_test_result("Hybrid Detection", test_hybrid_detection());
+  result = test_hybrid_detection(world);
+  failures += !result;
+  print_test_result("Hybrid Detection", result);
 
   printf("\nTotal failures: %d\n", failures);
+
+  if(world)
+    rasqal_free_world(world);
 
   return failures;
 }
