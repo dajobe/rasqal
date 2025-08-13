@@ -173,6 +173,12 @@ rasqal_join_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   rasqal_join_rowsource_context* con;
   con = (rasqal_join_rowsource_context*)user_data;
 
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG2("join rowsource %p finish handler called\n", rowsource);
+  if(con->left_row)
+    RASQAL_DEBUG1("freeing con->left_row\n");
+#endif
+
   if(con->left_row)
     rasqal_free_row(con->left_row);
   
@@ -449,6 +455,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
         /* consumes right_row */
         row = rasqal_join_rowsource_build_merged_row(rowsource, con, right_row);
+        right_row = NULL; /* consumed by build_merged_row */
         break;
       }
       
@@ -464,6 +471,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
         /* Compute row only now it is known to be needed (consumes right_row) */
         row = rasqal_join_rowsource_build_merged_row(rowsource, con, right_row);
+        right_row = NULL; /* consumed by build_merged_row */
         break;
       }
 
