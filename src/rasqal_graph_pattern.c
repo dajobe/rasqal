@@ -799,6 +799,9 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
       raptor_iostream_write_byte('\n', iostr);
       rasqal_graph_pattern_write_indent(iostr, indent);
       rasqal_row_write(row, iostr);
+
+      /* Free the row reference acquired by rasqal_bindings_get_row */
+      rasqal_free_row(row);
     }
     indent -= 2;
 
