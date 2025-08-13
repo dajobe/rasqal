@@ -854,6 +854,22 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
 }
 
 
+/*
+ * rasqal_graph_pattern_write:
+ * @gp: the #rasqal_graph_pattern object
+ * @fh: the FILE* handle to print to
+ *
+ * INTERNAL - render a #rasqal_graph_pattern in a debug format.
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_graph_pattern_write(rasqal_graph_pattern* gp, raptor_iostream* iostr)
+{
+  return rasqal_graph_pattern_write_internal(gp, iostr, DO_INDENTING);
+}
+
+
 /**
  * rasqal_graph_pattern_print:
  * @gp: the #rasqal_graph_pattern object
@@ -1366,8 +1382,12 @@ rasqal_new_values_graph_pattern(rasqal_query* query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
   gp = rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_VALUES);
-  if(gp)
+  if(gp) {
     gp->bindings = bindings;
+  } else {
+    if(bindings)
+      rasqal_free_bindings(bindings);
+  }
 
   return gp;
 }

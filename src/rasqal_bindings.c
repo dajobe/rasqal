@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_bindings.c - Rasqal result bindings class
+ * rasqal_bindings.c - Rasqal variables bindings (VALUES) class
  *
  * Copyright (C) 2010-2013, David Beckett http://www.dajobe.org/
  * 
@@ -46,7 +46,7 @@
  * @variables: sequence of variables
  * @rows: sequence of #rasqal_row (or NULL)
  *
- * INTERNAL - Create a new bindings object.
+ * INTERNAL - Create a new values bindings object.
  * 
  * The @variables and @rows become owned by the bindings object.
  *
@@ -80,7 +80,7 @@ rasqal_new_bindings(rasqal_query* query,
  * rasqal_new_bindings_from_bindings:
  * @bindings: #rasqal_bindings to copy
  *
- * INTERNAL - Copy Constructor - Create a new Rasqal bindings from an existing one
+ * INTERNAL - Copy Constructor - Create a new variables bindings from an existing one
  *
  * This adds a new reference to the bindings, it does not do a deep copy
  *
@@ -175,7 +175,11 @@ rasqal_new_bindings_from_var_values(rasqal_query* query,
   row = NULL;
 
   bindings = rasqal_new_bindings(query, varlist, rowlist);
-  varlist = NULL; rowlist = NULL;
+  if(bindings) {
+    /* Now owned by bindings */
+    varlist = NULL;
+    rowlist = NULL;
+  }
 
 tidy:
   if(row)

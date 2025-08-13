@@ -971,6 +971,37 @@ rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node,
     raptor_iostream_write_byte('\n', iostr);
   }
 
+  if(node->op == RASQAL_ALGEBRA_OPERATOR_VALUES) {
+    int i = 0;
+    int rows_count;
+
+    if(arg_count) {
+      raptor_iostream_counted_string_write(" ,\n", 3, iostr);
+      rasqal_algebra_write_indent(iostr, indent);
+    }
+    raptor_iostream_counted_string_write("Variables([ ", 12, iostr);
+    rasqal_variables_write(node->bindings->variables, iostr);
+    arg_count += raptor_sequence_size(node->bindings->variables);
+    raptor_iostream_counted_string_write(" ]),\n", 5, iostr);
+    rasqal_algebra_write_indent(iostr, indent);
+    raptor_iostream_counted_string_write("Rows [\n", 7, iostr);
+    indent += 2;
+    rows_count = raptor_sequence_size(node->bindings->rows);
+    for(i = 0; i < rows_count; i++) {
+      rasqal_row* row;
+      row = (rasqal_row*)raptor_sequence_get_at(node->bindings->rows, i);
+      if(i > 0)
+        raptor_iostream_counted_string_write(",\n", 2, iostr);
+      rasqal_algebra_write_indent(iostr, indent);
+      rasqal_row_write(row, iostr);
+      arg_count++;
+    }
+    raptor_iostream_write_byte('\n', iostr);
+    indent -= 2;
+    rasqal_algebra_write_indent(iostr, indent);
+    raptor_iostream_counted_string_write("])\n", 2, iostr);
+  }
+  
   raptor_iostream_write_byte('\n', iostr);
   indent-= indent_delta;
 

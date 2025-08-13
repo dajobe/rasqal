@@ -378,7 +378,7 @@ rasqal_graph_pattern* rasqal_new_values_graph_pattern(rasqal_query* query, rasqa
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
-
+int rasqal_graph_pattern_write(rasqal_graph_pattern* gp, raptor_iostream* iostr);
 
 /**
  * rasqal_var_use_map_flags:

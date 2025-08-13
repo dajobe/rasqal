@@ -1351,7 +1351,15 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_NOT_EXISTS:
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
-      raptor_iostream_counted_string_write("(GP)", 4, iostr);
+      raptor_iostream_counted_string_write("(gp args=", 6, iostr);
+      for(i=0; i<raptor_sequence_size(e->args); i++) {
+        rasqal_graph_pattern* gp;
+        if(i > 0)
+          raptor_iostream_counted_string_write(", ", 2, iostr);
+        gp = (rasqal_graph_pattern*)raptor_sequence_get_at(e->args, i);
+        rasqal_graph_pattern_write(gp, iostr);
+      }
+      raptor_iostream_write_byte(')', iostr);
       break;
       
     case RASQAL_EXPR_COALESCE:
