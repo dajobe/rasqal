@@ -143,7 +143,7 @@ struct rasqal_query_results_s {
   /* constructed triple result - shared and updated for each triple */
   raptor_statement result_triple;
 
-  /* sequence of stored results */
+  /* sequence of either rasqal_row* (bindings results) or raptor_statement* (graphs) */
   raptor_sequence* results_sequence;
 
   /* size of result row fields:
@@ -256,6 +256,34 @@ rasqal_new_query_results(rasqal_world* world,
 }
 
 
+/* Statement handler for loading graphs into query results */
+static void
+rasqal_query_results_statement_handler(void *user_data,
+                                       raptor_statement *statement)
+{
+  rasqal_query_results* query_results = (rasqal_query_results*)user_data;
+  raptor_statement* copied_triple;
+
+  if(!query_results || !statement)
+    return;
+
+  if(query_results->type != RASQAL_QUERY_RESULTS_GRAPH)
+    return;
+
+
+  if(!query_results->results_sequence) {
+    query_results->results_sequence = raptor_new_sequence((raptor_data_free_handler)raptor_free_statement,
+                                                         (raptor_data_print_handler)raptor_statement_print);
+    if(!query_results->results_sequence)
+      return;
+  }
+
+  copied_triple = raptor_statement_copy(statement);
+  if(copied_triple)
+    raptor_sequence_push(query_results->results_sequence, copied_triple);
+}
+
+
 /**
  * rasqal_new_query_results_from_string:
  * @world: rasqal world object
@@ -301,37 +329,55 @@ rasqal_new_query_results_from_string(rasqal_world* world,
   if(!iostr)
     goto failed;
 
-  if(base_uri)
-    id = raptor_uri_as_string(base_uri);
+  if(type == RASQAL_QUERY_RESULTS_GRAPH) {
+    /* For graph results, use RDF parsing instead of query results formatting */
+    raptor_parser* parser;
+    const char* parser_name = "turtle";  /* try turtle explicitly instead of guess */
+    
+    parser = raptor_new_parser(raptor_world_ptr, parser_name);
+    if(!parser)
+      goto failed;
 
-  formatter_name =
-    rasqal_world_guess_query_results_format_name(world,
-                                                 base_uri,
-                                                 NULL /* mime_type */,
-                                                 RASQAL_GOOD_CAST(const unsigned char*, string),
-                                                 string_len,
-                                                 id);
-  
-  formatter = rasqal_new_query_results_formatter(world,
-                                                 formatter_name,
-                                                 NULL /* mime type */,
-                                                 NULL /* uri */);
-  if(!formatter)
-    goto failed;
+    raptor_parser_set_statement_handler(parser, results,
+                                       rasqal_query_results_statement_handler);
+    /* parse and store triples */
+    rc = raptor_parser_parse_iostream(parser, iostr, base_uri);
+    raptor_free_parser(parser);
+    
+    if(rc)
+      goto failed;
+  } else {
+    /* For bindings and other result types, use query results formatters */
+    if(base_uri)
+      id = raptor_uri_as_string(base_uri);
 
-  rc = rasqal_query_results_formatter_read(world, iostr, formatter,
-                                           results, base_uri);
-  if(rc)
-    goto failed;
+    formatter_name =
+      rasqal_world_guess_query_results_format_name(world,
+                                                   base_uri,
+                                                   NULL /* mime_type */,
+                                                   RASQAL_GOOD_CAST(const unsigned char*, string),
+                                                   string_len,
+                                                   id);
+    
+    formatter = rasqal_new_query_results_formatter(world,
+                                                   formatter_name,
+                                                   NULL /* mime type */,
+                                                   NULL /* uri */);
+    if(!formatter)
+      goto failed;
+
+    rc = rasqal_query_results_formatter_read(world, iostr, formatter,
+                                             results, base_uri);
+    if(rc)
+      goto failed;
+  }
 
   /* success */
   goto tidy;
 
   failed:
-  if(results) {
+  if(results)
     rasqal_free_query_results(results);
-    results = NULL;
-  }
 
   tidy:
   if(formatter)
@@ -367,6 +413,11 @@ rasqal_query_results_execute_with_engine(rasqal_query_results* query_results,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, 1);
   
   query = query_results->query;
+  
+  if(!query) {
+    /* No query associated - this can happen for results created from string parsing */
+    return 0;
+  }
   
   if(query->failed)
     return 1;
@@ -1638,38 +1689,6 @@ rasqal_query_results_read(raptor_iostream *iostr,
 }
 
 
-/* Statement handler for loading graphs into query results */
-static void
-rasqal_query_results_statement_handler(void *user_data,
-                                       raptor_statement *statement)
-{
-  rasqal_query_results* query_results = (rasqal_query_results*)user_data;
-
-  if(!query_results || !statement)
-    return;
-
-  /* Only meaningful for graph results */
-  if(!rasqal_query_results_is_graph(query_results))
-    return;
-
-  /* Ensure sequence exists */
-  if(!query_results->results_sequence) {
-    query_results->results_sequence = raptor_new_sequence(
-      (raptor_data_free_handler)raptor_free_statement,
-      (raptor_data_print_handler)raptor_statement_print);
-    if(!query_results->results_sequence)
-      return;
-  }
-
-  /* Copy and store the triple */
-  {
-    raptor_statement* copied = raptor_statement_copy(statement);
-    if(!copied)
-      return;
-    raptor_sequence_push(query_results->results_sequence, copied);
-  }
-}
-
 /**
  * rasqal_query_results_load_graph_iostream:
  * @query_results: query results object
@@ -1750,7 +1769,12 @@ rasqal_query_results_add_row(rasqal_query_results* query_results,
 
   row->offset = raptor_sequence_size(query_results->results_sequence);
 
-  return raptor_sequence_push(query_results->results_sequence, row);
+  if(raptor_sequence_push(query_results->results_sequence, row))
+    return 1;
+  
+  query_results->result_count++;
+  
+  return 0;
 }
 
 
@@ -2160,7 +2184,7 @@ rasqal_query_results_add_triple(rasqal_query_results* query_results,
 
   if(!query_results->results_sequence) {
     query_results->results_sequence = raptor_new_sequence((raptor_data_free_handler)raptor_free_statement,
-                                                         (raptor_data_print_handler)raptor_statement_print);
+                                                          (raptor_data_print_handler)raptor_statement_print);
     if(!query_results->results_sequence)
       return 1;
   }
@@ -2184,8 +2208,8 @@ test_graph_loading_from_string(rasqal_world* world)
 {
   raptor_uri* base_uri = NULL;
   rasqal_query_results* results = NULL;
-  int triple_count = 0;
   int result = 0;
+  int triple_count = 0;
   raptor_world* rworld = rasqal_world_get_raptor(world);
 
   base_uri = raptor_new_uri(rworld,
@@ -2303,14 +2327,10 @@ main(int argc, char *argv[])
 {
   const char *program = rasqal_basename(argv[0]);
   rasqal_world* world = NULL;
-  raptor_world* raptor_world_ptr;
   int failures = 0;
   int i;
-  rasqal_query_results_type type = RASQAL_QUERY_RESULTS_BINDINGS;
 
   world = rasqal_new_world(); rasqal_world_open(world);
-
-  raptor_world_ptr = rasqal_world_get_raptor(world);
 
   /* Test graph loading from string */
   if(!test_graph_loading_from_string(world)) {
@@ -2321,14 +2341,14 @@ main(int argc, char *argv[])
   }
 
   for(i = 0; i < NTESTS; i++) {
-    raptor_uri* base_uri = raptor_new_uri(raptor_world_ptr,
+    raptor_uri* base_uri = raptor_new_uri(world->raptor_world_ptr,
                                           (const unsigned char*)"http://example.org/");
     rasqal_query_results *qr;
     int expected_vars_count = expected_data[i].expected_vars_count;
     int vars_count;
 
     qr = rasqal_new_query_results_from_string(world,
-                                              type,
+                                              RASQAL_QUERY_RESULTS_BINDINGS,
                                               base_uri,
                                               expected_data[i].qr_string,
                                               0);
