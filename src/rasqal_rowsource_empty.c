@@ -111,6 +111,16 @@ rasqal_empty_rowsource_read_all_rows(rasqal_rowsource* rowsource,
   return seq;
 }
 
+static int
+rasqal_empty_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
+{
+  rasqal_empty_rowsource_context* con;
+  con = (rasqal_empty_rowsource_context*)user_data;
+
+  con->count = 0;
+  return 0;
+}
+
 static const rasqal_rowsource_handler rasqal_empty_rowsource_handler = {
   /* .version = */ 1,
   "empty",
@@ -119,7 +129,7 @@ static const rasqal_rowsource_handler rasqal_empty_rowsource_handler = {
   /* .ensure_variables = */ rasqal_empty_rowsource_ensure_variables,
   /* .read_row = */ rasqal_empty_rowsource_read_row,
   /* .read_all_rows = */ rasqal_empty_rowsource_read_all_rows,
-  /* .reset = */ NULL,
+  /* .reset = */ rasqal_empty_rowsource_reset,
   /* .set_requirements = */ NULL,
   /* .get_inner_rowsource = */ NULL,
   /* .set_origin = */ NULL,
