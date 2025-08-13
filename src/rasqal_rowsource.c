@@ -130,10 +130,6 @@ rasqal_new_rowsource_from_rowsource(rasqal_rowsource* rowsource)
     return NULL;
 
   rowsource->usage++;
-#ifdef RASQAL_DEBUG
-  RASQAL_DEBUG4("increment %s rowsource %p usage to %d\n", 
-                rowsource->handler->name, rowsource, rowsource->usage);
-#endif
   return rowsource;
 }
 
@@ -150,20 +146,8 @@ rasqal_free_rowsource(rasqal_rowsource *rowsource)
   if(!rowsource)
     return;
 
-#ifdef RASQAL_DEBUG
-  RASQAL_DEBUG4("decrement %s rowsource %p usage from %d", rowsource->handler->name,
-                rowsource, rowsource->usage);
-#endif
-  if(--rowsource->usage) {
-#ifdef RASQAL_DEBUG
-    RASQAL_DEBUG2(" to %d, still referenced\n", rowsource->usage);
-#endif
+  if(--rowsource->usage)
     return;
-  }
-
-#ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1(" to 0, freeing\n");
-#endif
 
   if(rowsource->handler->finish)
     rowsource->handler->finish(rowsource, rowsource->user_data);
