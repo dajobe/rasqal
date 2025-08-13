@@ -2,16 +2,35 @@
 <chapter id="query-engine-architecture">
   <title>Rasqal Query Engine Architecture</title>
 
-  <para>This chapter provides a comprehensive overview of the Rasqal RDF query engine architecture, covering the complete query execution pipeline, variable binding mechanisms, and architectural patterns that developers need to understand when working with Rasqal internals.</para>
+  <para>This chapter provides a comprehensive overview of the Rasqal
+  RDF query engine architecture, covering the complete query
+  execution pipeline, variable binding mechanisms, and architectural
+  patterns that developers need to understand when working with
+  Rasqal internals.</para>
 
   <section id="query-engine-overview">
     <title>Overview</title>
 
-    <para>Rasqal follows a classic compiler architecture with distinct phases that transform SPARQL queries from text to results. The query engine implements a four-phase pipeline: parsing, transformation, algebra generation, and rowsource execution. Each phase has specific responsibilities and architectural patterns that enable efficient query processing and extensibility.</para>
+    <para>Rasqal follows a classic compiler architecture with
+    distinct phases that transform SPARQL queries from text to
+    results. The query engine implements a four-phase pipeline:
+    parsing, transformation, algebra generation, and rowsource
+    execution. Each phase has specific responsibilities and
+    architectural patterns that enable efficient query processing and
+    extensibility.</para>
 
-    <para>The architecture is designed to support multiple query languages (SPARQL, RDQL) while maintaining a unified internal representation through the algebra system. This design enables query optimization, execution planning, and efficient processing of complex graph patterns and expressions.</para>
+    <para>The architecture is designed to support multiple query
+    languages (SPARQL, RDQL) while maintaining a unified internal
+    representation through the algebra system. This design enables
+    query optimization, execution planning, and efficient processing
+    of complex graph patterns and expressions.</para>
 
-    <para>The architecture provides a robust foundation for RDF query processing with clear separation of concerns, extensible design, and efficient execution patterns. Understanding these architectural patterns is essential for developers working with Rasqal internals, implementing custom extensions, or optimizing query performance.</para>
+    <para>The architecture provides a robust foundation for RDF query
+    processing with clear separation of concerns, extensible design,
+    and efficient execution patterns. Understanding these
+    architectural patterns is essential for developers working with
+    Rasqal internals, implementing custom extensions, or optimizing
+    query performance.</para>
 
   </section>
 
@@ -112,12 +131,18 @@ if(sequence_created) {
   <section id="query-execution-pipeline">
     <title>Query Execution Pipeline</title>
 
-    <para>The Rasqal query execution pipeline consists of four main phases that transform SPARQL queries from text to results:</para>
+    <para>The Rasqal query execution pipeline consists of four main
+    phases that transform SPARQL queries from text to results:</para>
 
     <section id="parsing-phase">
       <title>Parsing Phase</title>
 
-      <para>The parsing phase takes SPARQL query text and produces an Abstract Syntax Tree (AST) in the <literal>rasqal_query</literal> structure. This phase handles lexical analysis, syntax analysis, and AST construction through the <filename>sparql_parser.y</filename> and <filename>sparql_lexer.l</filename> files.</para>
+      <para>The parsing phase takes SPARQL query text and produces an
+      Abstract Syntax Tree (AST) in the
+      <literal>rasqal_query</literal> structure. This phase handles
+      lexical analysis, syntax analysis, and AST construction through
+      the <filename>sparql_parser.y</filename> and
+      <filename>sparql_lexer.l</filename> files.</para>
 
       <para>During parsing, the system:</para>
       <itemizedlist>
@@ -132,7 +157,11 @@ if(sequence_created) {
     <section id="transformation-phase">
       <title>Transformation Phase</title>
 
-      <para>The query transformation phase takes the raw AST from the parser and produces a validated and transformed query structure. This phase performs variable analysis, type checking, and optimization preparation through <filename>rasqal_query_transform.c</filename>.</para>
+      <para>The query transformation phase takes the raw AST from the
+      parser and produces a validated and transformed query
+      structure. This phase performs variable analysis, type
+      checking, and optimization preparation through
+      <filename>rasqal_query_transform.c</filename>.</para>
 
       <para>Key transformation activities include:</para>
       <itemizedlist>
@@ -147,7 +176,11 @@ if(sequence_created) {
     <section id="algebra-generation-phase">
       <title>Algebra Generation Phase</title>
 
-      <para>The algebra generation phase converts the transformed query into a relational algebra representation, mapping graph patterns to algebra operator trees. This phase creates the foundation for query optimization and execution planning.</para>
+      <para>The algebra generation phase converts the transformed
+      query into a relational algebra representation, mapping graph
+      patterns to algebra operator trees. This phase creates the
+      foundation for query optimization and execution
+      planning.</para>
 
       <para>The algebra system provides:</para>
       <itemizedlist>
@@ -162,7 +195,10 @@ if(sequence_created) {
     <section id="rowsource-execution-phase">
       <title>Rowsource Execution Phase</title>
 
-      <para>The rowsource execution phase takes algebra operators and produces query results through iterator-based execution with lazy evaluation. This phase implements the actual data access and result generation.</para>
+      <para>The rowsource execution phase takes algebra operators and
+      produces query results through iterator-based execution with
+      lazy evaluation. This phase implements the actual data access
+      and result generation.</para>
 
       <para>Execution characteristics include:</para>
       <itemizedlist>
@@ -179,22 +215,41 @@ if(sequence_created) {
   <section id="parser-architecture">
     <title>Parser Architecture</title>
 
-    <para>The SPARQL parser is implemented using Bison (yacc) with grammar rules that create AST nodes during parsing. Parser actions create various structures including graph patterns, expressions, and variable registrations.</para>
+    <para>The SPARQL parser is implemented using Bison (yacc) with
+    grammar rules that create AST nodes during parsing. Parser
+    actions create various structures including graph patterns,
+    expressions, and variable registrations.</para>
 
-    <para>Variables are registered during parsing through <function>rasqal_query_add_variable</function>, which creates variables from literals and adds them to the query structure. This registration must happen before variables can be used in expressions, creating challenges for patterns that introduce new variables.</para>
+    <para>Variables are registered during parsing through
+    <function>rasqal_query_add_variable</function>, which creates
+    variables from literals and adds them to the query
+    structure. This registration must happen before variables can be
+    used in expressions, creating challenges for patterns that
+    introduce new variables.</para>
 
-    <para>The parser tightly couples patterns with main query structures, which creates variable scoping challenges that require special handling for complex query features.</para>
+    <para>The parser tightly couples patterns with main query
+    structures, which creates variable scoping challenges that
+    require special handling for complex query features.</para>
 
   </section>
 
   <section id="algebra-system">
     <title>Algebra System</title>
 
-    <para>Rasqal represents graph patterns as a hierarchy with various operator types including basic patterns, optional patterns, union patterns, group patterns, graph patterns, filter patterns, and others. Each pattern type has specific semantics and evaluation requirements.</para>
+    <para>Rasqal represents graph patterns as a hierarchy with
+    various operator types including basic patterns, optional
+    patterns, union patterns, group patterns, graph patterns, filter
+    patterns, and others. Each pattern type has specific semantics
+    and evaluation requirements.</para>
 
-    <para>Basic graph patterns consist of triple patterns, which are the fundamental building blocks containing subject, predicate, object, and optional named graph context.</para>
+    <para>Basic graph patterns consist of triple patterns, which are
+    the fundamental building blocks containing subject, predicate,
+    object, and optional named graph context.</para>
 
-    <para>The algebra system provides the foundation for query optimization and execution planning, with each operator type having specific performance characteristics and optimization opportunities.</para>
+    <para>The algebra system provides the foundation for query
+    optimization and execution planning, with each operator type
+    having specific performance characteristics and optimization
+    opportunities.</para>
 
     <section id="algebra-operators">
       <title>Algebra Operators</title>
@@ -235,11 +290,88 @@ if(sequence_created) {
   <section id="rowsource-architecture">
     <title>Rowsource Architecture</title>
 
-    <para>Rasqal uses the iterator pattern for query execution, with rowsources implementing <function>get_next_row</function>, <function>finished</function>, and <function>reset</function> methods. This architecture enables lazy evaluation, memory efficiency for large result sets, early termination for LIMIT clauses, and streaming results.</para>
+    <para>Rasqal uses the iterator pattern for query execution, with
+    rowsources implementing <function>read_row</function>,
+    <function>finished</function>, and <function>reset</function>
+    methods. This architecture enables lazy evaluation, memory
+    efficiency for large result sets, early termination for LIMIT
+    clauses, and streaming results.</para>
 
-    <para>The execution flow follows a bottom-up approach, generating rows from basic graph patterns and processing them through operators like JOIN, OPTIONAL, and FILTER before collecting results at the top level.</para>
+    <para>The execution flow follows a bottom-up approach, generating
+    rows from basic graph patterns and processing them through
+    operators like JOIN, OPTIONAL, and FILTER before collecting
+    results at the top level.</para>
 
-    <para>The rowsource architecture provides excellent extensibility for new algebra operators through specialized rowsource implementations.</para>
+    <para>The rowsource architecture provides excellent extensibility
+    for new algebra operators through specialized rowsource
+    implementations.</para>
+
+    <section id="rowsource-lifecycle-management">
+      <title>Rowsource Lifecycle Management</title>
+
+      <para>Rowsources use reference counting for memory management,
+      with each rowsource maintaining a usage count that tracks how
+      many references exist to the rowsource. This enables safe
+      sharing of rowsources between different parts of the query
+      execution pipeline while ensuring proper cleanup when
+      rowsources are no longer needed.</para>
+
+      <para>The lifecycle management system implements several key principles:</para>
+
+      <itemizedlist>
+        <listitem><para><emphasis>Reference Counting</emphasis> - Each rowsource has a usage counter that is incremented when new references are created and decremented when references are released</para></listitem>
+        <listitem><para><emphasis>Ownership Transfer</emphasis> - Functions that consume rowsource parameters take ownership and are responsible for cleanup</para></listitem>
+        <listitem><para><emphasis>Reset Capabilities</emphasis> - Rowsources that support reset operations can be reused without requiring row caching, improving memory efficiency</para></listitem>
+        <listitem><para><emphasis>Automatic Row Saving</emphasis> - Rowsources without reset handlers automatically save rows to support multiple iterations</para></listitem>
+      </itemizedlist>
+
+      <para>The reference counting system prevents memory leaks by
+      ensuring that rowsources are freed when their usage count
+      reaches zero. Special care is taken to avoid circular
+      references between rows and rowsources, which could prevent
+      proper cleanup.</para>
+
+    </section>
+
+    <section id="row-ownership-patterns">
+      <title>Row Ownership and Memory Management</title>
+
+      <para>Rows returned from rowsources follow specific ownership
+      patterns to ensure proper memory management throughout the
+      query execution pipeline. Each row maintains its own reference
+      count and holds a reference to its originating
+      rowsource.</para>
+
+      <para>Key ownership principles include:</para>
+
+      <itemizedlist>
+        <listitem><para><emphasis>Caller Ownership</emphasis> -
+        Functions that return rows transfer ownership to the caller,
+        who becomes responsible for freeing the row</para></listitem>
+	
+        <listitem><para><emphasis>Row Reference to
+	Rowsource</emphasis> - Each row holds a reference to its
+	originating rowsource, ensuring the rowsource remains valid
+	while the row exists</para></listitem>
+	
+        <listitem><para><emphasis>Consumption Semantics</emphasis> -
+	Functions that consume rows (such as join merge operations)
+	take ownership and free the consumed rows
+	internally</para></listitem>
+	
+        <listitem><para><emphasis>Copy-on-Reference</emphasis> - When
+	multiple references to a row are needed, the row's reference
+	count is incremented rather than copying the entire row
+	structure</para></listitem>
+	
+      </itemizedlist>
+
+      <para>This ownership model ensures efficient memory usage while
+      preventing both memory leaks and use-after-free conditions. The
+      reference counting system automatically handles cleanup when
+      objects are no longer referenced.</para>
+
+    </section>
 
     <section id="rowsource-types">
       <title>Rowsource Types</title>
@@ -257,7 +389,7 @@ if(sequence_created) {
         </varlistentry>
         <varlistentry>
           <term>Join Rowsource</term>
-          <listitem><para>Implements join operations between multiple rowsources</para></listitem>
+          <listitem><para>Implements join operations between multiple rowsources with proper row consumption semantics</para></listitem>
         </varlistentry>
         <varlistentry>
           <term>Optional Rowsource</term>
@@ -271,6 +403,10 @@ if(sequence_created) {
           <term>Project Rowsource</term>
           <listitem><para>Selects and reorders variables in result rows</para></listitem>
         </varlistentry>
+        <varlistentry>
+          <term>Empty Rowsource</term>
+          <listitem><para>Produces exactly one empty row for empty optional patterns and other degenerate cases, with reset capability to avoid row caching</para></listitem>
+        </varlistentry>
       </variablelist>
 
     </section>
@@ -280,11 +416,24 @@ if(sequence_created) {
   <section id="expression-evaluation-system">
     <title>Expression Evaluation System</title>
 
-    <para>Rasqal supports various expression types including literals, functions, variables, logical operators, comparison operators, and specialized operators. Each expression type has specific evaluation semantics and requirements.</para>
+    <para>Rasqal supports various expression types including
+    literals, functions, variables, logical operators, comparison
+    operators, and specialized operators. Each expression type has
+    specific evaluation semantics and requirements.</para>
 
-    <para>Expressions are evaluated within a <literal>rasqal_evaluation_context</literal> that provides access to the world, query, flags, comparison flags, and current row bindings. However, this context has significant limitations - it doesn't provide access to triples source for data lookup, query execution state, or other rowsources for sub-query execution.</para>
+    <para>Expressions are evaluated within a
+    <literal>rasqal_evaluation_context</literal> that provides access
+    to the world, query, flags, comparison flags, and current row
+    bindings. However, this context has significant limitations - it
+    doesn't provide access to triples source for data lookup, query
+    execution state, or other rowsources for sub-query
+    execution.</para>
 
-    <para>This architectural boundary creates challenges for features that require data access within expression evaluation. The expression evaluation system is intentionally limited to literal operations, not query execution, which forces complex features to rely on heuristics rather than actual data lookup.</para>
+    <para>This architectural boundary creates challenges for features
+    that require data access within expression evaluation. The
+    expression evaluation system is intentionally limited to literal
+    operations, not query execution, which forces complex features to
+    rely on heuristics rather than actual data lookup.</para>
 
     <section id="expression-types">
       <title>Expression Types</title>
@@ -325,23 +474,49 @@ if(sequence_created) {
   <section id="variable-binding-system">
     <title>Variable Binding System</title>
 
-    <para>The variable binding system is one of the most complex aspects of Rasqal's architecture, with variables having a sophisticated lifecycle from parse-time registration through runtime binding and sub-query propagation.</para>
+    <para>The variable binding system is one of the most complex
+    aspects of Rasqal's architecture, with variables having a
+    sophisticated lifecycle from parse-time registration through
+    runtime binding and sub-query propagation.</para>
 
-    <para>Variables are represented with a structure containing name, current binding value, offset position in rows, and usage flags indicating how the variable is used throughout the query.</para>
+    <para>Variables are represented with a structure containing name,
+    current binding value, offset position in rows, and usage flags
+    indicating how the variable is used throughout the query.</para>
 
-    <para>Rasqal has two distinct patterns for accessing variable bindings depending on the execution context. The primary mechanism for expression evaluation uses <function>rasqal_literal_value</function>, which returns bound values when variables are bound or NULL when unbound. For pattern instantiation and sub-query execution, direct access to variable values through the variable structure is required.</para>
+    <para>Rasqal has two distinct patterns for accessing variable
+    bindings depending on the execution context. The primary
+    mechanism for expression evaluation uses
+    <function>rasqal_literal_value</function>, which returns bound
+    values when variables are bound or NULL when unbound. For pattern
+    instantiation and sub-query execution, direct access to variable
+    values through the variable structure is required.</para>
 
     <section id="variable-lifecycle">
       <title>Variable Lifecycle</title>
 
-      <para>Variables follow a specific lifecycle through the query execution process:</para>
+      <para>Variables follow a specific lifecycle through the query
+      execution process:</para>
 
       <orderedlist>
-        <listitem><para><emphasis>Registration</emphasis> - Variables are registered during parsing and added to the query's variable table</para></listitem>
-        <listitem><para><emphasis>Analysis</emphasis> - The query transformer analyzes variable usage and binding patterns</para></listitem>
-        <listitem><para><emphasis>Binding</emphasis> - Variables receive values during query execution</para></listitem>
-        <listitem><para><emphasis>Propagation</emphasis> - Variable bindings are propagated to sub-queries and expressions</para></listitem>
-        <listitem><para><emphasis>Cleanup</emphasis> - Variable bindings are cleaned up after query completion</para></listitem>
+        <listitem><para><emphasis>Registration</emphasis> - Variables
+	are registered during parsing and added to the query's
+	variable table</para></listitem>
+	
+        <listitem><para><emphasis>Analysis</emphasis> - The query
+	transformer analyzes variable usage and binding
+	patterns</para></listitem>
+	
+        <listitem><para><emphasis>Binding</emphasis> - Variables
+	receive values during query execution</para></listitem>
+	
+        <listitem><para><emphasis>Propagation</emphasis> - Variable
+	bindings are propagated to sub-queries and
+	expressions</para></listitem>
+	
+        <listitem><para><emphasis>Cleanup</emphasis> - Variable
+	bindings are cleaned up after query
+	completion</para></listitem>
+	
       </orderedlist>
 
     </section>
@@ -354,11 +529,18 @@ if(sequence_created) {
       <variablelist>
         <varlistentry>
           <term>Expression Context Access</term>
-          <listitem><para>Uses <function>rasqal_literal_value</function> during expression evaluation within an active evaluation context</para></listitem>
+          <listitem><para>Uses
+	  <function>rasqal_literal_value</function> during expression
+	  evaluation within an active evaluation
+	  context</para></listitem>
+	  
         </varlistentry>
         <varlistentry>
           <term>Direct Variable Access</term>
-          <listitem><para>Used for direct access to variable bindings in pattern instantiation and sub-query contexts</para></listitem>
+          <listitem><para>Used for direct access to variable bindings
+	  in pattern instantiation and sub-query
+	  contexts</para></listitem>
+	  
         </varlistentry>
       </variablelist>
 
@@ -369,11 +551,22 @@ if(sequence_created) {
   <section id="graph-pattern-management">
     <title>Graph Pattern Management</title>
 
-    <para>Graph patterns are built during parsing through functions like <function>rasqal_new_basic_graph_pattern_from_formula</function>, which creates patterns from formula structures. The parser automatically adds pattern triples to the main query's triple sequence during pattern construction, which can cause variable scoping issues that require special handling.</para>
+    <para>Graph patterns are built during parsing through functions
+    like
+    <function>rasqal_new_basic_graph_pattern_from_formula</function>,
+    which creates patterns from formula structures. The parser
+    automatically adds pattern triples to the main query's triple
+    sequence during pattern construction, which can cause variable
+    scoping issues that require special handling.</para>
 
-    <para>Filter expressions are attached to graph patterns and evaluated during pattern execution. The integration between graph patterns and filter expressions creates complex evaluation requirements, especially for nested patterns.</para>
+    <para>Filter expressions are attached to graph patterns and
+    evaluated during pattern execution. The integration between graph
+    patterns and filter expressions creates complex evaluation
+    requirements, especially for nested patterns.</para>
 
-    <para>Pattern integration assumes global pattern integration, requiring special handling for scoped sub-patterns that need isolation for proper scoping.</para>
+    <para>Pattern integration assumes global pattern integration,
+    requiring special handling for scoped sub-patterns that need
+    isolation for proper scoping.</para>
 
   </section>
 
@@ -404,11 +597,19 @@ if(sequence_created) {
   <section id="triples-source-interface">
     <title>Triples Source Interface</title>
 
-    <para>Rasqal abstracts data access through the triples source interface, which provides an abstract interface for data store access. This interface includes initialization, next match iteration, and finished state management.</para>
+    <para>Rasqal abstracts data access through the triples source
+    interface, which provides an abstract interface for data store
+    access. This interface includes initialization, next match
+    iteration, and finished state management.</para>
 
-    <para>The triples source pattern involves binding known variables in triple patterns, querying the underlying data store, and iterating through matching triples.</para>
+    <para>The triples source pattern involves binding known variables
+    in triple patterns, querying the underlying data store, and
+    iterating through matching triples.</para>
 
-    <para>A key limitation is that the expression evaluation context doesn't provide direct access to triples source, making complex evaluation architecturally challenging and forcing reliance on heuristics rather than actual data lookup.</para>
+    <para>A key limitation is that the expression evaluation context
+    doesn't provide direct access to triples source, making complex
+    evaluation architecturally challenging and forcing reliance on
+    heuristics rather than actual data lookup.</para>
 
     <section id="triples-source-operations">
       <title>Triples Source Operations</title>
@@ -441,11 +642,52 @@ if(sequence_created) {
   <section id="error-handling-and-validation">
     <title>Error Handling and Validation</title>
 
-    <para>Rasqal implements multi-level validation across parse-time, transform-time, and runtime phases. Parse-time validation handles syntax and basic semantic validation, transform-time validation performs variable binding and scope validation, and runtime validation handles type checking and evaluation errors.</para>
+    <para>Rasqal implements multi-level validation across parse-time,
+    transform-time, and runtime phases. Parse-time validation handles
+    syntax and basic semantic validation, transform-time validation
+    performs variable binding and scope validation, and runtime
+    validation handles type checking and evaluation errors.</para>
 
-    <para>Error propagation uses error flags passed through evaluation chains with early termination on error conditions.</para>
+    <para>Error propagation uses error flags passed through
+    evaluation chains with early termination on error
+    conditions.</para>
 
-    <para>The query validation pipeline ensures queries go through comprehensive validation including lexical, syntactic, semantic, and runtime phases.</para>
+    <para>The query validation pipeline ensures queries go through
+    comprehensive validation including lexical, syntactic, semantic,
+    and runtime phases.</para>
+
+    <section id="resource-management-validation">
+      <title>Resource Management Validation</title>
+
+      <para>The system includes comprehensive resource management
+      validation to prevent memory leaks and corruption:</para>
+
+      <itemizedlist>
+        <listitem><para><emphasis>Reference Count
+	Validation</emphasis> - Debug builds track reference count
+	manipulations to detect leaks and premature
+	frees</para></listitem>
+	
+        <listitem><para><emphasis>Ownership Validation</emphasis> -
+	Functions validate that they properly transfer ownership of
+	consumed parameters</para></listitem>
+	
+        <listitem><para><emphasis>Lifecycle Validation</emphasis> -
+	The system validates that objects follow proper
+	initialization and cleanup sequences</para></listitem>
+	
+        <listitem><para><emphasis>Memory Leak Detection</emphasis> -
+	Integration with tools like AddressSanitizer enables
+	automated detection of memory management
+	issues</para></listitem>
+	
+      </itemizedlist>
+
+      <para>These validation mechanisms have proven essential for
+      maintaining system reliability, particularly in complex query
+      patterns that stress the memory management system.</para>
+
+    </section>
 
     <section id="validation-levels">
       <title>Validation Levels</title>
@@ -480,11 +722,45 @@ if(sequence_created) {
   <section id="performance-considerations">
     <title>Performance Considerations</title>
 
-    <para>Lazy evaluation provides memory efficiency for large datasets, early termination possibilities, and streaming result processing. This architecture enables efficient handling of large result sets and complex queries.</para>
+    <para>Lazy evaluation provides memory efficiency for large
+    datasets, early termination possibilities, and streaming result
+    processing. This architecture enables efficient handling of large
+    result sets and complex queries.</para>
 
-    <para>Optimization opportunities include leveraging RDF store indices, moving filters closer to data through filter pushdown, optimizing join execution order, and evaluating constants at compile time.</para>
+    <para>Optimization opportunities include leveraging RDF store
+    indices, moving filters closer to data through filter pushdown,
+    optimizing join execution order, and evaluating constants at
+    compile time.</para>
 
-    <para>Bottleneck areas include frequent literal value lookups during variable binding, complex expression tree evaluation, triple pattern evaluation, and frequent object creation and destruction during memory allocation.</para>
+    <para>Bottleneck areas include frequent literal value lookups
+    during variable binding, complex expression tree evaluation,
+    triple pattern evaluation, and frequent object creation and
+    destruction during memory allocation.</para>
+
+    <section id="memory-management-performance">
+      <title>Memory Management Performance</title>
+
+      <para>The reference counting system provides memory management
+      with deterministic cleanup, but requires careful attention to
+      avoid memory leaks:</para>
+
+      <itemizedlist>
+        <listitem><para><emphasis>Reference Count Overhead</emphasis>
+        - Each object access requires reference count manipulation,
+        which can become expensive in tight loops.</para></listitem>
+        <listitem><para><emphasis>Circular Reference
+        Prevention</emphasis> - Careful design is needed to avoid
+        circular references that prevent cleanup.</para></listitem>
+        <listitem><para><emphasis>Reset Handler Benefits</emphasis> -
+        Rowsources with reset handlers avoid the overhead of row
+        caching and the associated memory usage.</para></listitem>
+        <listitem><para><emphasis>Consumption Semantics</emphasis> -
+        Proper implementation of consumption semantics in functions
+        like join operations prevents double-free conditions and
+        improves performance.</para></listitem>
+      </itemizedlist>
+
+    </section>
 
     <section id="optimization-strategies">
       <title>Optimization Strategies</title>
@@ -517,29 +793,118 @@ if(sequence_created) {
   <section id="extensibility-and-customization">
     <title>Extensibility and Customization</title>
 
-    <para>Rasqal's architecture provides several extension points for customizing query behavior and adding new functionality:</para>
+    <para>Rasqal's architecture provides several extension points for
+    customizing query behavior and adding new functionality:</para>
 
     <section id="custom-functions">
       <title>Custom Functions</title>
 
-      <para>Developers can add custom functions to the expression system by implementing function registration and evaluation callbacks. This enables domain-specific functionality and integration with external systems.</para>
+      <para>Developers can add custom functions to the expression
+      system by implementing function registration and evaluation
+      callbacks. This enables domain-specific functionality and
+      integration with external systems.</para>
 
     </section>
 
     <section id="custom-triples-sources">
       <title>Custom Triples Sources</title>
 
-      <para>The triples source interface allows implementing custom data access layers for different storage systems. This enables integration with various RDF stores and data sources.</para>
+      <para>The triples source interface allows implementing custom
+      data access layers for different storage systems. This enables
+      integration with various RDF stores and data sources.</para>
 
     </section>
 
     <section id="custom-rowsources">
       <title>Custom Rowsources</title>
 
-      <para>The rowsource architecture supports implementing custom execution operators for specialized query processing requirements. This enables advanced optimization and domain-specific query features.</para>
+      <para>The rowsource architecture supports implementing custom
+      execution operators for specialized query processing
+      requirements. This enables advanced optimization and
+      domain-specific query features.</para>
+
+      <para>When implementing custom rowsources, developers must
+      carefully follow the established memory management
+      patterns:</para>
+
+      <itemizedlist>
+        <listitem><para><emphasis>Reference Counting</emphasis> -
+        Implement proper reference counting in the rowsource handler
+        functions.</para></listitem>
+        <listitem><para><emphasis>Reset Handlers</emphasis> - Provide
+        reset handlers when possible to avoid row caching
+        overhead.</para></listitem>
+        <listitem><para><emphasis>Row Ownership</emphasis> - Follow
+        consumption semantics where functions that take row
+        parameters assume ownership.</para></listitem>
+        <listitem><para><emphasis>Cleanup Handlers</emphasis> -
+        Implement finish handlers to properly release all
+        resources.</para></listitem>
+      </itemizedlist>
+
+      <para>Following these patterns ensures that custom rowsources
+      integrate properly with the query engine's memory management
+      system and don't introduce memory leaks or corruption.</para>
 
     </section>
 
   </section>
 
-</chapter> 
+  <section id="best-practices">
+    <title>Best Practices for Memory Management</title>
+
+    <para>Here are some best practices for memory mamnagement in Rasqal:</para>
+
+    <section id="rowsource-implementation-best-practices">
+      <title>Rowsource Implementation</title>
+
+      <itemizedlist>
+        <listitem><para><emphasis>Always Implement Reset
+	Handlers</emphasis> - Provide reset handlers whenever
+	possible to avoid the SAVE_ROWS flag and associated memory
+	overhead.</para></listitem>
+
+        <listitem><para><emphasis>Follow Consumption
+	Semantics</emphasis> - When functions consume parameters,
+	document this clearly and set consumed pointers to NULL to
+	prevent double-free.</para></listitem>
+	
+        <listitem><para><emphasis>Validate Reference
+	Counts</emphasis> - Use debug builds to validate that
+	reference counts behave as expected.</para></listitem>
+	
+        <listitem><para><emphasis>Test with Memory
+	Debugging</emphasis> - Always test rowsource implementations
+	with AddressSanitizer or similar tools.</para></listitem>
+	
+      </itemizedlist>
+
+    </section>
+
+    <section id="debugging-memory-issues">
+      <title>Debugging Memory Issues</title>
+
+      <itemizedlist>
+        <listitem><para><emphasis>Use AddressSanitizer</emphasis> -
+	Enable AddressSanitizer leak detection for comprehensive
+	memory issue detection.</para></listitem>
+	
+        <listitem><para><emphasis>Enable Debug Logging</emphasis> -
+	Use debug builds with reference count logging to trace object
+	lifecycles.</para></listitem>
+	
+        <listitem><para><emphasis>Test Edge Cases</emphasis> - Pay
+	special attention to empty patterns, optional joins, and
+	other complex query structures.</para></listitem>
+	
+        <listitem><para><emphasis>Validate Cleanup</emphasis> -
+	Ensure all objects reach zero reference count and are
+	properly freed.</para></listitem>
+	
+      </itemizedlist>
+
+    </section>
+
+  </section>
+
+</chapter>

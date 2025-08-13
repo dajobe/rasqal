@@ -626,6 +626,8 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
   
   attr_count=raptor_xml_element_get_attributes_count(xml_element);
   con->name=NULL;
+  if(con->sb)
+    raptor_free_stringbuffer(con->sb);
   con->sb = raptor_new_stringbuffer();
   con->datatype=NULL;
   con->language=NULL;
