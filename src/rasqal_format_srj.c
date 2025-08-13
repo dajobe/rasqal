@@ -440,6 +440,7 @@ rasqal_srj_string_handler(void* ctx, const unsigned char* str, RASQAL_YAJL_LEN_T
 {
   rasqal_srj_context* context = (rasqal_srj_context*)ctx;
   char* string_value;
+  rasqal_variable *v;
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG4("SRJ string '%.*s' in state %d", (int)len, str, context->state);
@@ -455,13 +456,15 @@ rasqal_srj_string_handler(void* ctx, const unsigned char* str, RASQAL_YAJL_LEN_T
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       RASQAL_DEBUG2("SRJ: Adding variable '%s' to vars table\n", string_value);
 #endif
-      if(!rasqal_variables_table_add2(context->vars_table,
+      v = rasqal_variables_table_add2(context->vars_table,
                                       RASQAL_VARIABLE_TYPE_NORMAL,
-                                      (const unsigned char*)string_value,
-                                      strlen(string_value), NULL)) {
+                                      /* name copied */ (const unsigned char*)string_value,
+                                      /* value copied */ strlen(string_value), NULL);
+      if(!v) {
         RASQAL_FREE(char*, string_value);
         return 0;
       }
+      rasqal_free_variable(v);
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
       RASQAL_DEBUG2("SRJ: Successfully added variable '%s' to vars table\n", string_value);
 #endif
@@ -727,6 +730,7 @@ rasqal_srj_end_map_handler(void* ctx)
             RASQAL_DEBUG3("SRJ: Set literal at offset %d, row size %d", 
                           context->current_variable->offset, context->current_row->size);
 #endif
+            rasqal_free_literal(literal); literal = NULL;
           }
         }
       } else {
