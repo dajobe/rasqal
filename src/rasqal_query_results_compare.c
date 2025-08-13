@@ -998,7 +998,6 @@ collect_rows_with_ownership(rasqal_query_results* results,
   raptor_sequence* rows = NULL;
   int rowi;
   rasqal_row* row;
-  rasqal_row* row_copy;
 
   if(!results || !compare)
     return NULL;
@@ -1018,17 +1017,8 @@ collect_rows_with_ownership(rasqal_query_results* results,
     if(!row)
       break;
 
-    /* Create a copy of the row that we own */
-    row_copy = rasqal_new_row_from_row(row);
-    if(!row_copy) {
-      char index_str[32];
-      snprintf(index_str, sizeof(index_str), "%d", rowi);
-      rasqal_query_results_compare_add_difference(compare, "Failed to copy row at index", index_str, NULL);
-      raptor_free_sequence(rows);
-      return NULL;
-    }
-
-    raptor_sequence_push(rows, row_copy);
+    /* rasqal_query_results_get_row_by_offset already returns a copy that we own */
+    raptor_sequence_push(rows, row);
   }
 
   return rows;
