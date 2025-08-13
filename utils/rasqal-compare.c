@@ -1039,6 +1039,8 @@ main(int argc, char *argv[])
     rasqal_free_query_results(expected_results);
   if(data_graphs)
     raptor_free_sequence(data_graphs);
+  if(options.graph_comparison_options)
+    free(options.graph_comparison_options);
   rasqal_free_world(world);
 
   return rc;
