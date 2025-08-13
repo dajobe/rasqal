@@ -179,6 +179,11 @@ rasqal_new_bindings_from_var_values(rasqal_query* query,
     /* Now owned by bindings */
     varlist = NULL;
     rowlist = NULL;
+    /* Free the original values sequence - we've copied the literals into the row */
+    if(values) {
+      raptor_free_sequence(values);
+      values = NULL;
+    }
   }
 
 tidy:
