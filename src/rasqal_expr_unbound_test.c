@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "rasqal.h"
 #include "rasqal_internal.h"
@@ -73,7 +74,11 @@ create_string_expression(rasqal_world* world, const char* str)
   rasqal_expression* ex;
   unsigned char* s;
 
-  s = (unsigned char*)strdup(str);
+  size_t len = strlen(str);
+  s = RASQAL_MALLOC(unsigned char*, len + 1);
+  if(s) {
+    memcpy(s, str, len + 1);
+  }
   lit = rasqal_new_string_literal(world, s, NULL, NULL, NULL);
   ex = rasqal_new_literal_expression(world, lit);
   return ex;
@@ -252,7 +257,7 @@ test_in_expressions_unbound(rasqal_world* world, rasqal_query* query,
 
   print_result_prefix(test_name);
 
-  args = raptor_new_sequence(NULL, NULL);
+  args = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression, NULL);
   raptor_sequence_push(args, rasqal_new_expression_from_expression(const_expr));
 
   in_e = rasqal_new_set_expression(world, RASQAL_EXPR_IN,
@@ -269,7 +274,7 @@ test_in_expressions_unbound(rasqal_world* world, rasqal_query* query,
   rasqal_free_expression(in_e);
 
   /* fresh clones for NOT IN */
-  args2 = raptor_new_sequence(NULL, NULL);
+  args2 = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression, NULL);
   raptor_sequence_push(args2, rasqal_new_expression_from_expression(const_expr));
   notin_e = rasqal_new_set_expression(world, RASQAL_EXPR_NOT_IN,
                                       rasqal_new_expression_from_expression(var_expr), args2);
