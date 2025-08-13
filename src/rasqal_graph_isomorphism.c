@@ -54,14 +54,14 @@ struct rasqal_query_results_compare_s {
 
 /*
  * RDF Graph Isomorphism Detection Module
- * 
+ *
  * This module implements the core isomorphism detection algorithms
  * described in the advanced graph comparison specification.
  */
 
 /*
  * Blank Node with Signature Structure
- * 
+ *
  * Associates a blank node with its computed signature.
  */
 typedef struct {
@@ -71,7 +71,7 @@ typedef struct {
 
 /*
  * Signature Compartment Structure
- * 
+ *
  * Groups blank nodes with identical signatures for efficient comparison.
  */
 typedef struct {
@@ -103,7 +103,7 @@ rasqal_free_graph_isomorphism_signature_compartment(rasqal_graph_isomorphism_sig
 
 /*
  * VF2 Algorithm State Structure
- * 
+ *
  * This structure maintains the state for the VF2 algorithm implementation,
  * which is adapted for RDF graph isomorphism detection.
  */
@@ -402,7 +402,7 @@ rasqal_graph_isomorphism_detect_signature_based(rasqal_query_results_compare* co
     if(!triple)
       break;
     raptor_sequence_push(first_triples, triple);
-    
+
     /* Extract blank nodes */
     if(triple->subject && triple->subject->type == RAPTOR_TERM_TYPE_BLANK)
       raptor_sequence_push(first_blank_nodes, triple->subject);
@@ -423,7 +423,7 @@ rasqal_graph_isomorphism_detect_signature_based(rasqal_query_results_compare* co
     if(!triple)
       break;
     raptor_sequence_push(second_triples, triple);
-    
+
     /* Extract blank nodes */
     if(triple->subject && triple->subject->type == RAPTOR_TERM_TYPE_BLANK)
       raptor_sequence_push(second_blank_nodes, triple->subject);
@@ -504,7 +504,7 @@ rasqal_graph_isomorphism_detect_exhaustive(rasqal_query_results_compare* compare
     if(!triple)
       break;
     raptor_sequence_push(first_triples, triple);
-    
+
     /* Extract blank nodes */
     if(triple->subject && triple->subject->type == RAPTOR_TERM_TYPE_BLANK)
       raptor_sequence_push(first_blank_nodes, triple->subject);
@@ -525,7 +525,7 @@ rasqal_graph_isomorphism_detect_exhaustive(rasqal_query_results_compare* compare
     if(!triple)
       break;
     raptor_sequence_push(second_triples, triple);
-    
+
     /* Extract blank nodes */
     if(triple->subject && triple->subject->type == RAPTOR_TERM_TYPE_BLANK)
       raptor_sequence_push(second_blank_nodes, triple->subject);
@@ -654,7 +654,7 @@ rasqal_graph_isomorphism_test_simple_mapping(raptor_sequence* first_blank_nodes,
   /* Check if we have the same number of blank nodes and triples */
   first_blank_count = raptor_sequence_size(first_blank_nodes);
   second_blank_count = raptor_sequence_size(second_blank_nodes);
-  
+
   if(first_blank_count != second_blank_count)
     return 0;
 
@@ -669,7 +669,7 @@ rasqal_graph_isomorphism_test_simple_mapping(raptor_sequence* first_blank_nodes,
   /* Create mapping sequences for blank nodes */
   first_blank_node_mapping = raptor_new_sequence(NULL, NULL);
   second_blank_node_mapping = raptor_new_sequence(NULL, NULL);
-  
+
   if(!first_blank_node_mapping || !second_blank_node_mapping)
     goto cleanup;
 
@@ -965,7 +965,7 @@ rasqal_graph_isomorphism_detect_vf2(rasqal_query_results_compare* compare)
     if(!triple)
       break;
     raptor_sequence_push(first_triples, triple);
-    
+
     /* Extract nodes */
     if(triple->subject)
       raptor_sequence_push(first_nodes, triple->subject);
@@ -986,7 +986,7 @@ rasqal_graph_isomorphism_detect_vf2(rasqal_query_results_compare* compare)
     if(!triple)
       break;
     raptor_sequence_push(second_triples, triple);
-    
+
     /* Extract nodes */
     if(triple->subject)
       raptor_sequence_push(second_nodes, triple->subject);
@@ -1043,7 +1043,7 @@ cleanup:
  *    - Small graphs (< 1000 triples): signature-based approach (fast)
  *    - Medium graphs (1000-10000 triples): VF2 algorithm (balanced)
  *    - Large graphs (> 10000 triples): incremental approach (scalable)
- * 
+ *
  * 2. If primary algorithm reports "not isomorphic" (result == 0), fall back
  *    to exhaustive search to ensure accuracy. The primary algorithms are fast
  *    approximations that may have false negatives, while exhaustive search is
@@ -1088,13 +1088,13 @@ rasqal_graph_isomorphism_compare_graphs_hybrid(rasqal_query_results_compare* com
   }
 
   /* Fall back to exhaustive search if primary algorithm reports "not isomorphic"
-   * 
+   *
    * Rationale: The primary algorithms (signature-based, VF2, incremental) are
    * fast approximations that may have false negatives - they might report
    * "not isomorphic" when the graphs actually are isomorphic. The exhaustive
    * search is slower but definitive, so we use it as a fallback to ensure
    * accuracy when the primary algorithm cannot find an isomorphism.
-   * 
+   *
    * We only fall back when result == 0 (not isomorphic), not when result < 0
    * (error), since retrying on error conditions would be pointless.
    */
@@ -1451,7 +1451,7 @@ rasqal_graph_isomorphism_compare_graphs_incremental(rasqal_query_results_compare
 {
   /* TODO: Implement incremental graph comparison with chunking for large graphs */
   /* This function is not yet implemented and should not be called */
-  
+
   (void)compare; /* Suppress unused parameter warning */
   return -1; /* Return error - not implemented */
 }
@@ -1517,10 +1517,10 @@ test_signature_generation(rasqal_world* world)
     goto cleanup;
 
   /* Test signature values */
-  result = (signature1->subject_count == 1 && signature1->predicate_count == 0 && 
+  result = (signature1->subject_count == 1 && signature1->predicate_count == 0 &&
             signature1->object_count == 1 && signature1->complexity == 2);
-  
-  result &= (signature2->subject_count == 1 && signature2->predicate_count == 0 && 
+
+  result &= (signature2->subject_count == 1 && signature2->predicate_count == 0 &&
              signature2->object_count == 0 && signature2->complexity == 1);
 
 cleanup:
@@ -1544,10 +1544,10 @@ test_signature_comparison(rasqal_world* world)
 
   /* Test different signatures */
   result = (rasqal_graph_isomorphism_compare_signatures(&sig1, &sig2) > 0);
-  
+
   /* Test identical signatures */
   result &= (rasqal_graph_isomorphism_compare_signatures(&sig1, &sig3) == 0);
-  
+
   /* Test reverse comparison */
   result &= (rasqal_graph_isomorphism_compare_signatures(&sig2, &sig1) < 0);
 
@@ -1576,7 +1576,7 @@ test_compartmentalization(rasqal_world* world)
 
   triples = raptor_new_sequence((raptor_data_free_handler)raptor_free_statement, NULL);
   blank_nodes = raptor_new_sequence(NULL, NULL);
-  
+
   if(!triples || !blank_nodes)
     goto cleanup;
 
@@ -1623,7 +1623,7 @@ test_compartmentalization(rasqal_world* world)
 
   /* Test compartmentalization */
   compartments = rasqal_graph_isomorphism_compartmentalize_by_signature(blank_nodes, triples, world);
-  
+
   if(!compartments)
     goto cleanup;
 
@@ -1806,7 +1806,7 @@ test_vf2_detection(rasqal_world* world)
     }
     raptor_free_iostream(iostr);
   }
-  
+
   compare = RASQAL_CALLOC(rasqal_query_results_compare*, 1, sizeof(rasqal_query_results_compare));
   if(!compare)
     goto cleanup;
@@ -1879,7 +1879,7 @@ test_exhaustive_detection(rasqal_world* world)
     }
     raptor_free_iostream(iostr);
   }
-  
+
   compare = RASQAL_CALLOC(rasqal_query_results_compare*, 1, sizeof(rasqal_query_results_compare));
   if(!compare)
     goto cleanup;
@@ -1952,7 +1952,7 @@ test_hybrid_detection(rasqal_world* world)
     }
     raptor_free_iostream(iostr);
   }
-  
+
   compare = RASQAL_CALLOC(rasqal_query_results_compare*, 1, sizeof(rasqal_query_results_compare));
   if(!compare)
     goto cleanup;
