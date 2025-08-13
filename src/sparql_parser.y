@@ -5216,7 +5216,8 @@ BuiltInCall: STR '(' Expression ')'
   
   /* Put the original graph pattern directly in the expression args
    * The EXISTS evaluation will handle the logic, not a graph pattern wrapper */
-  args = raptor_new_sequence(NULL, NULL);
+  args = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
+                             (raptor_data_print_handler)rasqal_graph_pattern_print);
   if(!args || raptor_sequence_push(args, $2)) {
     if(args)
       raptor_free_sequence(args);
@@ -5234,7 +5235,8 @@ BuiltInCall: STR '(' Expression ')'
   
   /* Put the original graph pattern directly in the expression args
    * The NOT EXISTS evaluation will handle the logic, not a graph pattern wrapper */
-  args = raptor_new_sequence(NULL, NULL);
+  args = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
+                             (raptor_data_print_handler)rasqal_graph_pattern_print);
   if(!args || raptor_sequence_push(args, $3)) {
     if(args)
       raptor_free_sequence(args);

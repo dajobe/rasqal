@@ -150,7 +150,8 @@ int main(int argc, char *argv[])
       test_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0, 1);
       if(test_pattern) {
         /* Create EXISTS expression */
-        raptor_sequence* args = raptor_new_sequence(NULL, NULL);
+        raptor_sequence* args = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern, 
+                                                    (raptor_data_print_handler)rasqal_graph_pattern_print);
         if(args) {
           raptor_sequence_push(args, test_pattern);
           exists_expr = rasqal_new_expr_seq_expression(world, RASQAL_EXPR_EXISTS, args);
@@ -160,10 +161,11 @@ int main(int argc, char *argv[])
             rasqal_free_expression(exists_expr);
           } else {
             fprintf(stderr, "%s: Failed to create EXISTS expression\n", program);
+            raptor_free_sequence(args);  /* This will free test_pattern via free handler */
             failures++;
           }
         } else {
-          rasqal_free_graph_pattern(test_pattern);
+          rasqal_free_graph_pattern(test_pattern);  /* args creation failed, pattern not owned by sequence */
         }
       } else {
         raptor_free_sequence(triples);
@@ -191,7 +193,8 @@ int main(int argc, char *argv[])
       test_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0, 1);
       if(test_pattern) {
         /* Create NOT EXISTS expression */
-        raptor_sequence* args = raptor_new_sequence(NULL, NULL);
+        raptor_sequence* args = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern, 
+                                                    (raptor_data_print_handler)rasqal_graph_pattern_print);
         if(args) {
           raptor_sequence_push(args, test_pattern);
           not_exists_expr = rasqal_new_expr_seq_expression(world, RASQAL_EXPR_NOT_EXISTS, args);
@@ -201,10 +204,11 @@ int main(int argc, char *argv[])
             rasqal_free_expression(not_exists_expr);
           } else {
             fprintf(stderr, "%s: Failed to create NOT EXISTS expression\n", program);
+            raptor_free_sequence(args);  /* This will free test_pattern via free handler */
             failures++;
           }
         } else {
-          rasqal_free_graph_pattern(test_pattern);
+          rasqal_free_graph_pattern(test_pattern);  /* args creation failed, pattern not owned by sequence */
         }
       } else {
         raptor_free_sequence(triples);
@@ -304,7 +308,8 @@ int main(int argc, char *argv[])
         test_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0, 1);
         if(test_pattern) {
           /* Create EXISTS expression */
-          raptor_sequence* args = raptor_new_sequence(NULL, NULL);
+          raptor_sequence* args = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern, 
+                                                    (raptor_data_print_handler)rasqal_graph_pattern_print);
           if(args) {
             raptor_sequence_push(args, test_pattern);
             exists_expr = rasqal_new_expr_seq_expression(world, RASQAL_EXPR_EXISTS, args);
@@ -325,7 +330,7 @@ int main(int argc, char *argv[])
 
               rasqal_free_expression(exists_expr);
             } else {
-              rasqal_free_graph_pattern(test_pattern);
+              raptor_free_sequence(args);  /* This will free test_pattern via free handler */
             }
           } else {
             rasqal_free_graph_pattern(test_pattern);
@@ -363,7 +368,8 @@ int main(int argc, char *argv[])
         exists_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0, 1);
         if(exists_pattern) {
           /* Create EXISTS expression */
-          raptor_sequence* args = raptor_new_sequence(NULL, NULL);
+          raptor_sequence* args = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern, 
+                                                    (raptor_data_print_handler)rasqal_graph_pattern_print);
           if(args) {
             raptor_sequence_push(args, exists_pattern);
             exists_expr = rasqal_new_expr_seq_expression(world, RASQAL_EXPR_EXISTS, args);
@@ -392,9 +398,11 @@ int main(int argc, char *argv[])
                 rasqal_free_literal(result);
 
               rasqal_free_expression(exists_expr);
+            } else {
+              raptor_free_sequence(args);  /* This will free exists_pattern via free handler */
             }
           } else {
-            rasqal_free_graph_pattern(exists_pattern);
+            rasqal_free_graph_pattern(exists_pattern);  /* args creation failed, pattern not owned by sequence */
           }
         } else {
           raptor_free_sequence(triples);
@@ -499,7 +507,8 @@ int main(int argc, char *argv[])
               exists_pattern = rasqal_new_basic_graph_pattern(query, triples, 0, 0, 1);
               if(exists_pattern) {
                 /* Create EXISTS expression */
-                raptor_sequence* args = raptor_new_sequence(NULL, NULL);
+                raptor_sequence* args = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern, 
+                                                    (raptor_data_print_handler)rasqal_graph_pattern_print);
                 if(args) {
                   raptor_sequence_push(args, exists_pattern);
                   exists_expr = rasqal_new_expr_seq_expression(world, RASQAL_EXPR_EXISTS, args);
@@ -524,9 +533,11 @@ int main(int argc, char *argv[])
                     }
 
                     rasqal_free_expression(exists_expr);
+                  } else {
+                    raptor_free_sequence(args);  /* This will free exists_pattern via free handler */
                   }
                 } else {
-                  rasqal_free_graph_pattern(exists_pattern);
+                  rasqal_free_graph_pattern(exists_pattern);  /* args creation failed, pattern not owned by sequence */
                 }
               } else {
                 raptor_free_sequence(triples);
