@@ -656,7 +656,7 @@ test_advanced_graph_comparison(rasqal_world* world)
     rasqal_graph_comparison_options_init(&graph_options);
 
     if(graph_options.signature_threshold != 1000 ||
-       graph_options.max_search_time != 30.0 ||
+       graph_options.max_search_time != 30 ||
        graph_options.incremental_mode != 0 ||
        graph_options.signature_cache_size != 1000) {
       printf("Incorrect default values for graph comparison options\n");
