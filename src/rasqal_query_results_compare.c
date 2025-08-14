@@ -366,6 +366,7 @@ rasqal_query_results_compare_options_init(rasqal_query_results_compare_options* 
   options->max_differences = 10;
 
   options->custom_compare_user_data = NULL;
+  options->graph_comparison_options = NULL;
 }
 
 
