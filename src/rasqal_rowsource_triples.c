@@ -707,69 +707,37 @@ rasqal_triples_rowsource_get_next_constraint_based_row(rasqal_rowsource* rowsour
       RASQAL_DEBUG2("JIT: Created triples match for column %d\n", column);
     }
 
-    /* Check if current column is exhausted */
+    /* Position iterator to first match if needed */
     if(rasqal_triples_match_is_end(m->triples_match)) {
-      RASQAL_DEBUG2("Column %d exhausted, need to backtrack\n", column);
-
-      /* Backtrack to previous successful column */
+      RASQAL_DEBUG2("Column %d iterator exhausted - backtracking\n", column);
+      /* Backtrack: move to previous column and advance it, then retry */
       if(column <= con->start_column) {
-        /* First column exhausted - all combinations done */
-        RASQAL_DEBUG1("First column exhausted - all combinations processed\n");
+        RASQAL_DEBUG1("No more columns to backtrack - finished\n");
         return RASQAL_ENGINE_FINISHED;
       }
-
-      /* Find rightmost column that can still advance */
-      {
-      int backtrack_col;  /* Absolute column number for backtracking */
-      int reset_col;      /* Absolute column number for resetting */
-      for(backtrack_col = column - 1; backtrack_col >= con->start_column; backtrack_col--) {
-        rasqal_triple_meta *back_m = &con->triple_meta[backtrack_col - con->start_column];  /* Convert to array index */
-
-        /* Try to advance this column */
-        rasqal_triples_match_next_match(back_m->triples_match);
-
-        if(!rasqal_triples_match_is_end(back_m->triples_match)) {
-          /* This column can advance */
-          RASQAL_DEBUG2("Backtracked to column %d\n", backtrack_col);
-
-          /* Clean up variables from this column onward */
-          rasqal_triples_rowsource_cleanup_variables_from_column(con, backtrack_col);
-
-          /* Reset all subsequent columns */
-          for(reset_col = backtrack_col + 1; reset_col <= con->end_column; reset_col++) {
-            rasqal_triple_meta *reset_m = &con->triple_meta[reset_col - con->start_column];  /* Convert to array index */
-            if(reset_m->triples_match) {
-              rasqal_free_triples_match(reset_m->triples_match);
-              reset_m->triples_match = NULL;
-            }
-          }
-
-          /* Re-initialize reset columns */
-          for(reset_col = backtrack_col + 1; reset_col <= con->end_column; reset_col++) {
-            rasqal_triple_meta *reset_m = &con->triple_meta[reset_col - con->start_column];  /* Convert to array index */
-            t = (rasqal_triple*)raptor_sequence_get_at(con->triples, reset_col);
-
-            reset_m->triples_match = rasqal_new_triples_match(query, con->triples_source, reset_m, t);
-            if(!reset_m->triples_match) {
-              RASQAL_DEBUG2("Failed to re-initialize triple match for column %d\n", reset_col);
-              return RASQAL_ENGINE_FAILED;
-            }
-          }
-
-          /* Resume processing from the backtracked column */
-          con->current_column = backtrack_col;
-          break;
+      
+      /* Cleanup current column */
+      if(m->triples_match) {
+        rasqal_free_triples_match(m->triples_match);
+        m->triples_match = NULL;
+      }
+      
+      /* Move back and advance previous column */
+      con->current_column--;
+      column = con->current_column;
+      m = &con->triple_meta[column - con->start_column];
+      rasqal_triples_match_next_match(m->triples_match);
+      
+      /* Reset all subsequent columns since they depended on the old binding */
+      for(int reset_col = column + 1; reset_col <= con->end_column; reset_col++) {
+        rasqal_triple_meta *reset_m = &con->triple_meta[reset_col - con->start_column];
+        if(reset_m->triples_match) {
+          rasqal_free_triples_match(reset_m->triples_match);
+          reset_m->triples_match = NULL;
         }
       }
-
-      if(backtrack_col < con->start_column) {
-        /* No column could advance - all combinations exhausted */
-        RASQAL_DEBUG1("All columns exhausted - finished\n");
-        return RASQAL_ENGINE_FINISHED;
-      }
-      }
-
-      continue;  /* Try again with backtracked column */
+      
+      continue;
     }
 
     /* Step 3: Try to bind the current column */
@@ -854,12 +822,12 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
     RASQAL_DEBUG2("made new triples match for column %d\n", column);
   }
 
-  if(rasqal_triples_match_is_end(m->triples_match)) {
-    RASQAL_DEBUG2("end of pattern triples match for column %d\n", column);
+  /* Check if iterator is exhausted before attempting to use it */
+  if(rasqal_triples_match_is_end(m->triples_match))
     return RASQAL_ENGINE_FINISHED;
-  }
 
   if(m->parts) {
+    /* Try to bind first - iterator needs to be positioned */
     rasqal_triple_parts parts = rasqal_triples_match_bind_match(m->triples_match, m->bindings, m->parts);
     RASQAL_DEBUG4("bind_match for column %d returned parts %s (%u)\n",
                   column, rasqal_engine_get_parts_string(parts), parts);
@@ -1348,11 +1316,11 @@ main(int argc, char *argv[])
 
     /* Test 5: Multi-Value Cartesian
    * person2 has 1 name ("Bob") and 2 types ("Student", "Athlete")
-   * Expected: 0 rows (no person has both name and type in test data)
+   * Expected: 2 rows (Bob×Student, Bob×Athlete cartesian product)
    */
   failures += test_query_with_format(world, multi_value_file,
                                      MULTI_VALUE_CARTESIAN_QUERY_FORMAT,
-                                     "Multi-Value Cartesian", 0, 0);
+                                     "Multi-Value Cartesian", 2, 2);
 
   /* Test 6: Complex Multi-Value Join
    * person1 has 2 names, 1 age, 1 city
