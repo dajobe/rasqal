@@ -1,0 +1,9 @@
+<http://example.org/person1> <http://example.org/name> "Alice"@en .
+<http://example.org/person1> <http://example.org/name> "Alicia"@es .
+<http://example.org/person1> <http://example.org/age> "25" .
+<http://example.org/person1> <http://example.org/city> "NYC" .
+
+<http://example.org/person2> <http://example.org/name> "Bob" .
+<http://example.org/person2> <http://example.org/type> "Student" .
+<http://example.org/person2> <http://example.org/type> "Athlete" .
+<http://example.org/person2> <http://example.org/age> "30" .

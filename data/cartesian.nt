@@ -1,0 +1,14 @@
+<http://example.org/person1> <http://example.org/name> "Alice" .
+<http://example.org/person1> <http://example.org/age> "25" .
+<http://example.org/person1> <http://example.org/city> "New York" .
+<http://example.org/person2> <http://example.org/name> "Bob" .
+<http://example.org/person2> <http://example.org/age> "30" .
+<http://example.org/person2> <http://example.org/city> "London" .
+<http://example.org/person3> <http://example.org/name> "Carol" .
+<http://example.org/person3> <http://example.org/age> "28" .
+<http://example.org/person3> <http://example.org/city> "Tokyo" .
+<http://example.org/person1> <http://example.org/knows> <http://example.org/person2> .
+<http://example.org/person2> <http://example.org/knows> <http://example.org/person3> .
+<http://example.org/person1> <http://example.org/likes> "coffee" .
+<http://example.org/person2> <http://example.org/likes> "tea" .
+<http://example.org/person3> <http://example.org/likes> "coffee" .
