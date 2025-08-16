@@ -31,6 +31,8 @@ win32_rasqal_config.h sv_config.h
 man_MANS = rasqal-config.1
 
 TESTS_ENVIRONMENT= \
+  CARTESIAN_DATA_FILE=$(top_srcdir)/data/cartesian.nt \
+  MULTI_VALUE_DATA_FILE=$(top_srcdir)/data/multi-value-test.nt \
   RDF_DATA_FILE=$(top_srcdir)/data/dc.rdf \
   NT_DATA_FILE=$(top_srcdir)/data/one.nt \
   SPARQL_QUERY_FILE=$(top_srcdir)/tests/sparql/examples/ex11_1.rq
