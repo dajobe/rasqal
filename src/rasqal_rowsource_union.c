@@ -68,6 +68,31 @@ typedef struct
 } rasqal_union_rowsource_context;
 
 
+
+
+static void
+rasqal_union_rowsource_clear_variables(rasqal_query* query,
+                                       rasqal_union_rowsource_context* con)
+{
+  int i;
+  int num_variables;
+
+  num_variables = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  if(num_variables <= 0)
+    return;
+
+  /* Clear all variable values for clean start of next UNION branch */
+  for(i = 0; i < num_variables; i++) {
+    rasqal_variable* var = rasqal_query_get_variable_by_offset(query, i);
+    if(var) {
+      if(var->value)
+        rasqal_free_literal(var->value);
+      var->value = NULL;
+    }
+  }
+}
+
+
 static int
 rasqal_union_rowsource_init(rasqal_rowsource* rowsource, void *user_data) 
 {
@@ -101,7 +126,7 @@ rasqal_union_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   
   if(con->right_tmp_values)
     RASQAL_FREE(ptrarray, con->right_tmp_values);
-  
+
   RASQAL_FREE(rasqal_union_rowsource_context, con);
 
   return 0;
@@ -206,8 +231,11 @@ rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     fputs("\n", stderr);
 #endif
 
-    if(!row)
+    if(!row) {
+      /* Transition from left to right branch - clear variables for isolation */
+      rasqal_union_rowsource_clear_variables(rowsource->query, con);
       con->state = 1;
+    }
     else {
       /* otherwise: rows from left are correct order but wrong size */
       if(rasqal_row_expand_size(row, rowsource->size)) {
