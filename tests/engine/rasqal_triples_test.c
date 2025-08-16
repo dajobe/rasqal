@@ -48,12 +48,20 @@ DAWG basic/list-4.rql test flattened to show triple patterns not
 just collections but triples, bnode renamed to be more readable.
 The triple patterns are not reordered so execution should be identical.
 
-Expected answer is 1 row:
-{
-  p = <http://example.org/ns#list2>
-  v = "11"^^<http://www.w3.org/2001/XMLSchema#integer>
-  w = "22"^^<http://www.w3.org/2001/XMLSchema#integer>
-}
+The SPARQL query finds all list patterns where:
+- :x has a predicate ?p that points to a list
+- The list has at least two elements with values ?v and ?w
+- The list structure follows RDF collection pattern (rdf:first, rdf:rest)
+
+Expected answer is 2 rows:
+1. p = <http://example.org/ns#list2>, v = 11, w = 22 (two element list)
+2. p = <http://example.org/ns#list3>, v = 111, w = 222 (first two elements of three element list)  
+
+The query pattern finds lists with at least 2 elements, matching the first pair:
+- :x ?p _:node1 . _:node1 rdf:first ?v . _:node1 rdf:rest _:node2 . _:node2 rdf:first ?w
+
+This only matches from the list head (:x ?p _:node1), so only the first consecutive 
+pair in each list. list1 has only one element so no match.
 
 Original query:
  SELECT ?p ?v ?w
@@ -66,10 +74,9 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \
 SELECT ?p ?v ?w \
 { \
    :x ?p _:node1 . \
-   _:node2 rdf:first ?w . \
-   _:node2 rdf:rest  rdf:nil  . \
    _:node1 rdf:first ?v . \
-   _:node1 rdf:rest  _:node2 \
+   _:node1 rdf:rest  _:node2 . \
+   _:node2 rdf:first ?w . \
 } \
 "
 #else
@@ -85,7 +92,7 @@ SELECT ?p ?v ?w \
 #endif
 #endif
 
-#define EXPECTED_RESULTS_COUNT 1
+#define EXPECTED_RESULTS_COUNT 2  /* Lists with at least 2 elements, starting from the head */
 
 
 #ifdef NO_QUERY_LANGUAGE
@@ -105,7 +112,7 @@ main(int argc, char **argv) {
   raptor_uri *base_uri = NULL;
   unsigned char *data_dir_string = NULL;
   raptor_uri* data_dir_uri = NULL;
-  unsigned char *uri_string = NULL;
+
   const char *query_language_name = QUERY_LANGUAGE;
   const unsigned char *query_string = (const unsigned char*)QUERY_FORMAT;
   int count;
@@ -125,18 +132,28 @@ main(int argc, char **argv) {
     return(1);
   }
 
-  uri_string = raptor_uri_filename_to_uri_string("");
-  base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
-  raptor_free_memory(uri_string);
-
   data_dir_string = raptor_uri_filename_to_uri_string(argv[1]);
   data_dir_uri = raptor_new_uri(world->raptor_world_ptr, data_dir_string);
+
+  /* Ensure the data directory URI ends with a slash for proper
+   * relative URI resolution
+   */
+  if(data_dir_string[strlen((char*)data_dir_string) - 1] != '/') {
+    unsigned char *new_uri_string = malloc(strlen((char*)data_dir_string) + 2);
+    sprintf((char*)new_uri_string, "%s/", data_dir_string);
+    raptor_free_uri(data_dir_uri);
+    data_dir_uri = raptor_new_uri(world->raptor_world_ptr, new_uri_string);
+    raptor_free_memory(new_uri_string);
+  }
   if(!data_dir_uri) {
     fprintf(stderr, "%s: creating data dir uri from '%s' FAILED\n", program,
             data_dir_string);
     rc = 1;
     goto tidy;
   }
+
+  /* Use the data directory as the base URI for the query */
+  base_uri = raptor_uri_copy(data_dir_uri);
 
   query = rasqal_new_query(world, query_language_name, NULL);
   if(!query) {
