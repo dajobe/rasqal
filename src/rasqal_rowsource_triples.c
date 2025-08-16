@@ -43,6 +43,19 @@
 
 #ifndef STANDALONE
 
+/*
+ * Column numbering convention used throughout this module:
+ * 1) "column" or "absolute_col": Absolute column numbers
+ *    e.g., start_column=0, end_column=2 means columns 0,1,2
+ * 2) "col_idx": Zero-based array index (column - start_column),
+ *    used for accessing triple_meta[] and matrix arrays
+ *
+ * Examples: If start_column=5 and end_column=7, then:
+ * - Absolute columns: 5, 6, 7
+ * - Array indices: 0, 1, 2 (for triple_meta[0], triple_meta[1], triple_meta[2])
+ */
+
+
 /* Triple binding position constants */
 #define BINDING_SUBJECT   0
 #define BINDING_PREDICATE 1
@@ -275,64 +288,6 @@ rasqal_triples_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 
 /* Helper functions for constraint-based multi-pattern processing */
 
-/*
- * Column numbering convention used throughout this module:
- * 1) "column" or "absolute_col": Absolute column numbers
- *    e.g., start_column=0, end_column=2 means columns 0,1,2
- * 2) "col_idx": Zero-based array index (column - start_column),
- *    used for accessing triple_meta[] and matrix arrays
- *
- * Examples: If start_column=5 and end_column=7, then:
- * - Absolute columns: 5, 6, 7
- * - Array indices: 0, 1, 2 (for triple_meta[0], triple_meta[1], triple_meta[2])
- */
-
-/*
- * rasqal_triples_rowsource_variable_appears_in_triple:
- * @var: variable to search for
- * @t: triple pattern to examine
- *
- * Check if a variable appears in any position of a triple pattern
- * (subject, predicate, object, or origin). Used during constraint
- * checking and variable cleanup to determine dependencies between
- * columns.
- *
- * Return value: 1 if variable found in triple, 0 otherwise
- */
-static int
-rasqal_triples_rowsource_variable_appears_in_triple(rasqal_variable* var, rasqal_triple* t)
-{
-  rasqal_variable* triple_var;
-
-  if(!var || !t) {
-    RASQAL_DEBUG1("variable_appears_in_triple: NULL input\n");
-    return 0;
-  }
-
-  RASQAL_DEBUG2("Checking if variable %s appears in triple\n",
-                var->name ? (char*)var->name : "?");
-
-  if((triple_var = rasqal_literal_as_variable(t->subject)) && triple_var == var) {
-    RASQAL_DEBUG1("Variable found in subject position\n");
-    return 1;
-  }
-  if((triple_var = rasqal_literal_as_variable(t->predicate)) && triple_var == var) {
-    RASQAL_DEBUG1("Variable found in predicate position\n");
-    return 1;
-  }
-  if((triple_var = rasqal_literal_as_variable(t->object)) && triple_var == var) {
-    RASQAL_DEBUG1("Variable found in object position\n");
-    return 1;
-  }
-  if(t->origin && (triple_var = rasqal_literal_as_variable(t->origin)) && triple_var == var) {
-    RASQAL_DEBUG1("Variable found in origin position\n");
-    return 1;
-  }
-
-  RASQAL_DEBUG1("Variable NOT found in triple\n");
-  return 0;
-}
-
 static int
 rasqal_triples_rowsource_get_variable_index(rasqal_triples_rowsource_context* con, rasqal_variable* var)
 {
@@ -514,70 +469,6 @@ rasqal_triples_rowsource_record_newly_bound_variables(rasqal_triples_rowsource_c
   }
 }
 
-/*
- * rasqal_triples_rowsource_cleanup_variables_from_column:
- * @con: triples rowsource context
- * @from_column: absolute column number to start cleanup from
- *
- * Unbind variables that were bound by the specified column, but preserve
- * those needed by later columns. This is used during backtracking to
- * reset variables that were bound by an earlier column but not needed
- * by the current column.
- *
- * Return value: none
- */
-static void
-rasqal_triples_rowsource_cleanup_variables_from_column(rasqal_triples_rowsource_context* con,
-  int from_column)
-{
-  int absolute_col, var_idx;  /* Renamed from 'col' to clarify this is absolute column number */
-
-  if(!con->column_variable_matrix || !con->variable_index_map)
-    return;
-
-  /* Clean up variables from from_column onwards (absolute column numbers) */
-  for(absolute_col = from_column; absolute_col <= con->end_column; absolute_col++) {
-    int col_idx = absolute_col - con->start_column;  /* Convert to zero-based index for arrays */
-
-    /* Unbind variables that were bound by this column, but preserve those needed by later columns */
-    for(var_idx = 0; var_idx < con->variable_count; var_idx++) {
-      if(column_var_matrix_lookup(con, col_idx, var_idx)) {
-        rasqal_variable* var = con->variable_index_map[var_idx];
-        int needed_by_later_column = 0;
-        int later_col;
-
-        /* Check if this variable is needed by any later column (as constraint) */
-        RASQAL_DEBUG2("Checking if variable %s is needed by later columns\n",
-                      var->name ? (char*)var->name : "?");
-        for(later_col = from_column + 1; later_col <= con->end_column; later_col++) {
-          rasqal_triple *t = (rasqal_triple*)raptor_sequence_get_at(con->triples, later_col);
-
-          RASQAL_DEBUG2("Checking later column %d for variable appearance\n", later_col);
-          if(t && rasqal_triples_rowsource_variable_appears_in_triple(var, t)) {
-            needed_by_later_column = 1;
-            RASQAL_DEBUG2("Variable %s needed by later column, preserving\n",
-                          var->name ? (char*)var->name : "?");
-            break;
-          }
-        }
-
-        if(!needed_by_later_column) {
-          RASQAL_DEBUG3("Cleanup: unbinding variable %s from column %d\n",
-                        var->name ? (char*)var->name : "?", absolute_col);
-          rasqal_variable_set_value(var, NULL);  /* Clear value */
-        } else {
-          RASQAL_DEBUG2("Preserving variable %s value for constraint\n",
-                        var->name ? (char*)var->name : "?");
-        }
-
-        /* Always clear the matrix entry for this column */
-        column_var_matrix_lookup(con, col_idx, var_idx) = 0;
-      }
-    }
-  }
-}
-
-
 #ifdef RASQAL_DEBUG
 static void
 rasqal_triples_rowsource_print_column_variable_matrix(rasqal_triples_rowsource_context* con)
@@ -634,9 +525,9 @@ rasqal_triples_rowsource_print_column_variable_matrix(rasqal_triples_rowsource_c
  * @con: triples rowsource context
  *
  * Core constraint-based multi-pattern join algorithm implementing just-in-time
- * triples_match creation and systematic backtracking. Creates triples_match
+ * triples_match creation and systematic backtracking.  Creates triples_match
  * objects only when processing each column to ensure variables bound by
- * earlier columns are used as constraints. Uses the column-variable binding
+ * earlier columns are used as constraints.  Uses the column-variable binding
  * matrix to track state and implements backtracking when patterns are
  * exhausted or constraints are violated.
  *
@@ -687,7 +578,7 @@ rasqal_triples_rowsource_get_next_constraint_based_row(rasqal_rowsource* rowsour
       t = (rasqal_triple*)raptor_sequence_get_at(con->triples, column);
 
       /* Debug: check variable values before creating triples match */
-      {
+      if(1) {
         rasqal_variable *var = NULL;
         if((var = rasqal_literal_as_variable(t->subject))) {
           RASQAL_DEBUG1("JIT: Before triples_match creation\n");
