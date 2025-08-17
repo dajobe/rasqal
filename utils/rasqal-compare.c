@@ -1022,7 +1022,9 @@ main(int argc, char *argv[])
   }
 
   /* Set exit code */
-  if(result->equal) {
+  if(error_count) {
+    rc = 2;
+  } else if(result->equal) {
     rc = 0;  /* Equal */
   } else {
     rc = 1;  /* Different */
