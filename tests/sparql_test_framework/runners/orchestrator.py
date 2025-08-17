@@ -487,6 +487,18 @@ class Testsuite:
             ):
                 action_cmd += " --use-rasqal-compare"
 
+        # Add debug flags if enabled
+        if hasattr(self.args, "debug") and self.args.debug > 0:
+            # Check if the command is a Python script that supports debug flags
+            if "python" in action_cmd and (
+                "sparql.py" in action_cmd
+                or "test_runner" in action_cmd
+                or "run-sparql-tests" in action_cmd
+            ):
+                # Add -d flags based on debug level
+                for _ in range(self.args.debug):
+                    action_cmd += " -d"
+
         path_prefix = (
             f"PATH={os.environ.get('PATH','(not set)')} " if self.path_for_suite else ""
         )
@@ -495,11 +507,13 @@ class Testsuite:
 
         name_slug = re.sub(r"[^\w\-.]", "-", test_name) if test_name else "unnamed-test"
         log_file_path = self.directory / f"{name_slug}.log"
+        # Use relative path for shell command since we're running with cwd=self.directory
+        log_file_name = f"{name_slug}.log"
 
         actual_run_status: TestResult = TestResult.FAILED
 
         try:
-            full_cmd_for_shell = f'{action_cmd} > "{str(log_file_path)}" 2>&1'
+            full_cmd_for_shell = f'{action_cmd} > "{log_file_name}" 2>&1'
             logger.debug(
                 f"PATH before subprocess.run: {os.environ.get('PATH', '(not set)')}"
             )

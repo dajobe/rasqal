@@ -91,7 +91,7 @@ class TestRasqalCompareIntegration(SparqlTestFrameworkTestBase):
         test_args = [
             "--manifest-file", "test.ttl",
             "--use-rasqal-compare",
-            "--debug", "2",
+            "-d", "-d",
             "--preserve-files"
         ]
         

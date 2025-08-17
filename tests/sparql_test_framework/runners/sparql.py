@@ -1528,11 +1528,11 @@ Examples:
             help="Run specific test case",
         )
         parser.add_argument(
+            "-d",
             "--debug",
-            type=int,
-            choices=[0, 1, 2],
+            action="count",
             default=0,
-            help="Debug level (0=quiet, 1=normal, 2=verbose)",
+            help="Debug level (use multiple -d for more detail: -d=normal, -dd=verbose)",
         )
         parser.add_argument(
             "--earl-report",
