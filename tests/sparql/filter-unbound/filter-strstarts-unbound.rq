@@ -1,0 +1,10 @@
+PREFIX : <http://example.org/>
+
+# Test FILTER with STRSTARTS function and unbound variables
+# Should filter out solutions where string functions with unbound variables return unbound
+SELECT ?x ?name ?nickname WHERE {
+  ?x a :Person .
+  OPTIONAL { ?x :name ?name . }
+  OPTIONAL { ?x :nickname ?nickname . }
+  FILTER(STRSTARTS(?name, "A"))
+}

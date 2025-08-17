@@ -1614,6 +1614,7 @@ tests/sparql/errors/Makefile
 tests/sparql/examples/Makefile
 tests/sparql/exists/Makefile
 tests/sparql/federated/Makefile
+tests/sparql/filter-unbound/Makefile
 tests/sparql/part1/Makefile
 tests/sparql/regex/Makefile
 tests/sparql/simple/Makefile

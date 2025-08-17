@@ -1,0 +1,19 @@
+@prefix : <http://example.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Test data for FILTER + unbound variable tests
+:person1 a :Person ; :name "Alice" ; :age 25 .
+:person2 a :Person ; :name "Bob" ; :age 30 .
+:person3 a :Person ; :age 35 .
+:person4 a :Person ; :name "David" .
+:person5 a :Person .
+
+# Relationship data for MINUS tests
+:person1 :knows :person2 .
+:person2 :knows :person3 .
+
+# Data for comparison tests
+:item1 :value 10 .
+:item2 :value 20 .
+:item3 :value 15 .
+:item4 a :Item .

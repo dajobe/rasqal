@@ -1,0 +1,9 @@
+PREFIX : <http://example.org/>
+
+# Test FILTER with LT operator and unbound variables  
+# Should filter out solutions where variables are unbound
+SELECT ?x ?age WHERE {
+  ?x a :Person .
+  OPTIONAL { ?x :age ?age . }
+  FILTER(?age < 30)
+}

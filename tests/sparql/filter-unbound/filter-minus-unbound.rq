@@ -1,0 +1,10 @@
+PREFIX : <http://example.org/>
+
+# Test FILTER with MINUS (subtraction) operator and unbound variables  
+# Should filter out solutions where arithmetic with unbound variables returns unbound
+SELECT ?x ?age ?bonus WHERE {
+  ?x a :Person .
+  OPTIONAL { ?x :age ?age . }
+  OPTIONAL { ?x :bonus ?bonus . }
+  FILTER(?age - ?bonus < 10)
+}

@@ -1,0 +1,20 @@
+@prefix : <http://example.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Extended test data for expression + unbound variable tests
+:person1 a :Person ; :name "Alice" ; :age 25 ; :bonus 30 ; :score 85 .
+:person2 a :Person ; :name "Bob" ; :age 30 ; :score 92 .
+:person3 a :Person ; :age 35 ; :bonus 15 .
+:person4 a :Person ; :name "David" ; :bonus 25 .
+:person5 a :Person .
+
+# String data for string function tests  
+:person1 :nickname "Al" .
+:person2 :nickname "Bobby" .
+:person4 :nickname "Dave" .
+
+# Numeric data for math function tests
+:item1 a :Item ; :value 10.5 ; :price -5.7 .
+:item2 a :Item ; :value 20.3 ; :price 15.2 .
+:item3 a :Item ; :value -15.8 .
+:item4 a :Item .

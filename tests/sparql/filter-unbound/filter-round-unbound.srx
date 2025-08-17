@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sparql xmlns="http://www.w3.org/2005/sparql-results#">
+  <head>
+    <variable name="x"/>
+    <variable name="value"/>
+    <variable name="price"/>
+  </head>
+  <results>
+    <result>
+      <binding name="x"><uri>http://example.org/item1</uri></binding>
+      <binding name="value"><literal datatype="http://www.w3.org/2001/XMLSchema#decimal">10.5</literal></binding>
+      <binding name="price"><literal datatype="http://www.w3.org/2001/XMLSchema#decimal">-5.7</literal></binding>
+    </result>
+  </results>
+</sparql>

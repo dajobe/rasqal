@@ -1,0 +1,10 @@
+PREFIX : <http://example.org/>
+
+# Test FILTER with NEQ operator and unbound variables
+# Should return solutions where both variables are bound and not equal
+# Solutions with unbound variables should be filtered out (return FALSE)
+SELECT ?x ?y WHERE {
+  ?x a :Person .
+  ?y a :Person .
+  FILTER(?x != ?y)
+}

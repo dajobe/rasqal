@@ -1,0 +1,15 @@
+PREFIX : <http://example.org/>
+
+# Complex FILTER + MINUS test similar to W3C subset-01 pattern
+# This generates partial bindings that would cause FILTER type errors before the fix
+# Tests scenario where BGP produces solutions with unbound variables
+SELECT ?s1 ?s2 WHERE {
+  ?s1 a :Set .
+  ?s2 a :Set .
+  FILTER(?s1 != ?s2)
+  MINUS {
+    ?s1 :member ?x .
+    ?s2 :member ?y .
+    FILTER(?x != ?y)
+  }
+}

@@ -1,0 +1,48 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix : <http://www.dajobe.org/tests/rasqal/filter-unbound/manifest#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+@prefix dawgt:   <http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#> .
+@prefix t:       <http://ns.librdf.org/2009/test-manifest#> .
+
+<> a mf:Manifest ;
+    rdfs:label "SPARQL FILTER expressions with unbound variables regression tests - negative tests" ;
+    rdfs:comment "Expected to fail tests for FILTERs with MINUS" ;
+    mf:entries
+    (
+    :filter-minus-simple
+    :filter-minus-complex
+    :filter-minus-mixed-binding
+    ) .
+
+:filter-minus-simple rdf:type t:XFailTest ;
+    mf:name    "filter-minus-simple - Simple FILTER + MINUS with unbound variables" ;
+    rdfs:comment "Regression test: FILTER + MINUS should not cause type errors with unbound variables" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-minus-simple.rq> ;
+           qt:data   <test-data.ttl> ] ;
+    mf:result  <filter-minus-simple.srx>
+    .
+
+:filter-minus-complex rdf:type t:XFailTest ;
+    mf:name    "filter-minus-complex - Complex FILTER + MINUS with partial bindings" ;
+    rdfs:comment "Regression test: Complex BGP generating partial bindings with FILTER + MINUS" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-minus-complex.rq> ;
+           qt:data   <test-data-complex.ttl> ] ;
+    mf:result  <filter-minus-complex.srx>
+    .
+
+:filter-minus-mixed-binding rdf:type t:XFailTest ;
+    mf:name    "filter-minus-mixed-binding - FILTER + MINUS with mixed bound/unbound scenarios" ;
+    rdfs:comment "Regression test: Mixed scenarios where some solutions have bound variables, others unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-minus-mixed-binding.rq> ;
+           qt:data   <test-data.ttl> ] ;
+    mf:result  <filter-minus-mixed-binding.srx>
+    .
+

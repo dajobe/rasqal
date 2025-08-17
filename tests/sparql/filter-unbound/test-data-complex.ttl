@@ -1,0 +1,8 @@
+@prefix : <http://example.org/> .
+
+# Complex test data with sets and members for advanced FILTER + MINUS tests
+:setA a :Set ; :member 1, 2, 3 .
+:setB a :Set ; :member 2, 3, 4 .
+:setC a :Set ; :member 1, 5 .
+:setD a :Set ; :member 6, 7 .
+:empty a :Set .

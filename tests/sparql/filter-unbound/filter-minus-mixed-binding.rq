@@ -1,0 +1,12 @@
+PREFIX : <http://example.org/>
+
+# Simple regression test for FILTER + MINUS integration
+# Ensures our FILTER unbound variable fix works with MINUS operations
+SELECT ?x WHERE {
+  ?x a :Person .
+  ?y a :Person .
+  FILTER(?x != ?y)
+  MINUS {
+    ?x :knows ?y .
+  }
+}

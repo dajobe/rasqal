@@ -1,0 +1,10 @@
+PREFIX : <http://example.org/>
+
+# Test FILTER with STAR (multiplication) operator and unbound variables
+# Should filter out solutions where arithmetic expressions with unbound variables return unbound
+SELECT ?x ?value ?price WHERE {
+  ?x a :Item .
+  OPTIONAL { ?x :value ?value . }
+  OPTIONAL { ?x :price ?price . }
+  FILTER(?value * ?price < 100)
+}

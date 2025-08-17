@@ -1,0 +1,9 @@
+PREFIX : <http://example.org/>
+
+# Test FILTER with EQ operator and unbound variables
+# Should filter out solutions where variables are unbound
+SELECT ?x ?name WHERE {
+  ?x a :Person .
+  OPTIONAL { ?x :name ?name . }
+  FILTER(?name = "Alice")
+}

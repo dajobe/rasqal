@@ -1,0 +1,13 @@
+PREFIX : <http://example.org/>
+
+# Regression test for FILTER + MINUS with unbound variables
+# This would have caused "filter expression result: type error" before the fix
+# Now should return solutions correctly by filtering out unbound variable solutions
+SELECT ?x ?y WHERE {
+  ?x a :Person .
+  ?y a :Person .
+  FILTER(?x != ?y)
+  MINUS {
+    ?x :knows ?y .
+  }
+}

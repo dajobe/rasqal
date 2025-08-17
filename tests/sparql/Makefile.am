@@ -36,7 +36,8 @@ federated \
 warnings \
 errors \
 csv-tsv \
-compare
+compare \
+filter-unbound
 
 if RASQAL_RESULT_FORMAT_SRJ
 SUBDIRS += srj

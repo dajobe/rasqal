@@ -1,0 +1,178 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix : <http://www.dajobe.org/tests/rasqal/filter-unbound/manifest#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+@prefix dawgt:   <http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#> .
+
+<>  rdf:type mf:Manifest ;
+    rdfs:label "SPARQL FILTER expressions with unbound variables regression tests" ;
+    rdfs:comment "Tests to ensure FILTER expressions handle unbound variables correctly per SPARQL 1.1 semantics" ;
+    mf:entries
+    ( 
+    :filter-eq-unbound
+    :filter-neq-unbound
+    :filter-lt-unbound
+    :filter-gt-unbound
+    :filter-le-unbound
+    :filter-ge-unbound
+    :filter-plus-unbound
+    :filter-minus-unbound
+    :filter-strlen-unbound
+    :filter-abs-unbound
+    :filter-concat-unbound
+    :filter-star-unbound
+    :filter-ucase-unbound
+    :filter-strstarts-unbound
+    :filter-round-unbound
+    ) .
+
+:filter-eq-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-eq-unbound - FILTER with EQ operator and unbound variable" ;
+    rdfs:comment "Test that FILTER with EQ comparison properly filters out solutions when one operand is unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-eq-unbound.rq> ;
+           qt:data   <test-data.ttl> ] ;
+    mf:result  <filter-eq-unbound.srx>
+    .
+
+:filter-neq-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-neq-unbound - FILTER with NEQ operator and unbound variable" ;
+    rdfs:comment "Test that FILTER with NEQ comparison properly filters out solutions when one operand is unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-neq-unbound.rq> ;
+           qt:data   <test-data.ttl> ] ;
+    mf:result  <filter-neq-unbound.srx>
+    .
+
+:filter-lt-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-lt-unbound - FILTER with LT operator and unbound variable" ;
+    rdfs:comment "Test that FILTER with LT comparison properly filters out solutions when one operand is unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-lt-unbound.rq> ;
+           qt:data   <test-data.ttl> ] ;
+    mf:result  <filter-lt-unbound.srx>
+    .
+
+:filter-gt-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-gt-unbound - FILTER with GT operator and unbound variable" ;
+    rdfs:comment "Test that FILTER with GT comparison properly filters out solutions when one operand is unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-gt-unbound.rq> ;
+           qt:data   <test-data.ttl> ] ;
+    mf:result  <filter-gt-unbound.srx>
+    .
+
+:filter-le-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-le-unbound - FILTER with LE operator and unbound variable" ;
+    rdfs:comment "Test that FILTER with LE comparison properly filters out solutions when one operand is unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-le-unbound.rq> ;
+           qt:data   <test-data.ttl> ] ;
+    mf:result  <filter-le-unbound.srx>
+    .
+
+:filter-ge-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-ge-unbound - FILTER with GE operator and unbound variable" ;
+    rdfs:comment "Test that FILTER with GE comparison properly filters out solutions when one operand is unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-ge-unbound.rq> ;
+           qt:data   <test-data.ttl> ] ;
+    mf:result  <filter-ge-unbound.srx>
+    .
+
+:filter-plus-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-plus-unbound - FILTER with PLUS operator and unbound variable" ;
+    rdfs:comment "Test that FILTER with arithmetic PLUS expressions properly filters out solutions when operands are unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-plus-unbound.rq> ;
+           qt:data   <test-data-expressions.ttl> ] ;
+    mf:result  <filter-plus-unbound.srx>
+    .
+
+:filter-minus-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-minus-unbound - FILTER with MINUS operator and unbound variable" ;
+    rdfs:comment "Test that FILTER with arithmetic MINUS expressions properly filters out solutions when operands are unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-minus-unbound.rq> ;
+           qt:data   <test-data-expressions.ttl> ] ;
+    mf:result  <filter-minus-unbound.srx>
+    .
+
+:filter-strlen-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-strlen-unbound - FILTER with STRLEN function and unbound variable" ;
+    rdfs:comment "Test that FILTER with STRLEN function properly filters out solutions when string operand is unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-strlen-unbound.rq> ;
+           qt:data   <test-data-expressions.ttl> ] ;
+    mf:result  <filter-strlen-unbound.srx>
+    .
+
+:filter-abs-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-abs-unbound - FILTER with ABS function and unbound variable" ;
+    rdfs:comment "Test that FILTER with ABS function properly filters out solutions when numeric operand is unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-abs-unbound.rq> ;
+           qt:data   <test-data-expressions.ttl> ] ;
+    mf:result  <filter-abs-unbound.srx>
+    .
+
+:filter-concat-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-concat-unbound - FILTER with CONCAT function and unbound variable" ;
+    rdfs:comment "Test that FILTER with CONCAT function properly filters out solutions when any string operand is unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-concat-unbound.rq> ;
+           qt:data   <test-data-expressions.ttl> ] ;
+    mf:result  <filter-concat-unbound.srx>
+    .
+
+:filter-star-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-star-unbound - FILTER with STAR operator and unbound variable" ;
+    rdfs:comment "Test that FILTER with arithmetic STAR expressions properly filters out solutions when operands are unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-star-unbound.rq> ;
+           qt:data   <test-data-expressions.ttl> ] ;
+    mf:result  <filter-star-unbound.srx>
+    .
+
+:filter-ucase-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-ucase-unbound - FILTER with UCASE function and unbound variable" ;
+    rdfs:comment "Test that FILTER with UCASE function properly filters out solutions when string operand is unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-ucase-unbound.rq> ;
+           qt:data   <test-data-expressions.ttl> ] ;
+    mf:result  <filter-ucase-unbound.srx>
+    .
+
+:filter-strstarts-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-strstarts-unbound - FILTER with STRSTARTS function and unbound variable" ;
+    rdfs:comment "Test that FILTER with STRSTARTS function properly filters out solutions when string operand is unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-strstarts-unbound.rq> ;
+           qt:data   <test-data-expressions.ttl> ] ;
+    mf:result  <filter-strstarts-unbound.srx>
+    .
+
+:filter-round-unbound rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-round-unbound - FILTER with ROUND function and unbound variable" ;
+    rdfs:comment "Test that FILTER with ROUND function properly filters out solutions when numeric operand is unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-round-unbound.rq> ;
+           qt:data   <test-data-expressions.ttl> ] ;
+    mf:result  <filter-round-unbound.srx>
+    .

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sparql xmlns="http://www.w3.org/2005/sparql-results#">
+  <head>
+    <variable name="x"/>
+    <variable name="name"/>
+    <variable name="nickname"/>
+  </head>
+  <results>
+    <result>
+      <binding name="x"><uri>http://example.org/person1</uri></binding>
+      <binding name="name"><literal>Alice</literal></binding>
+      <binding name="nickname"><literal>Al</literal></binding>
+    </result>
+  </results>
+</sparql>
