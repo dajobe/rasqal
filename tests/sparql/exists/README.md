@@ -12,14 +12,14 @@ ensures compatibility with the official SPARQL 1.1 specification.
 ## Test Cases
 
 - **exists01**: Basic EXISTS with one constant - tests EXISTS with
-                variable patterns 
+                variable patterns.
 - **exists02**: EXISTS with ground triple - tests EXISTS with
-                concrete triples 
+                concrete triples.
 - **exists03**: EXISTS within graph pattern - tests EXISTS in named
-                graph contexts 
-- **exists04**: Nested positive EXISTS - tests nested EXISTS expressions
+                graph contexts.
+- **exists04**: Nested positive EXISTS - tests nested EXISTS expressions.
 - **exists05**: Nested negative EXISTS in positive EXISTS - tests
-                complex nested EXISTS/NOT EXISTS 
+                complex nested EXISTS/NOT EXISTS.
 
 ## Running Tests
 
@@ -37,10 +37,10 @@ The implementation includes:
 
 1. **Parser Support**: EXISTS/NOT EXISTS keywords and grammar rules
 2. **Expression System**: RASQAL_EXPR_EXISTS and
-   RASQAL_EXPR_NOT_EXISTS operators 
+   RASQAL_EXPR_NOT_EXISTS operators.
 3. **Variable Scoping**: Fixed parser limitation for variables used
-   only in EXISTS 
+   only in EXISTS.
 4. **Evaluation Engine**: Heuristic-based evaluation returning proper
-   boolean results 
+   boolean results.
 
 For more technical details, see the main project documentation.

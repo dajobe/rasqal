@@ -98,4 +98,4 @@ When working on VALUES implementation:
 1. Focus on the failing tests first
 2. Verify your changes don't break working tests
 3. Move tests between categories as they start/stop working
-4. Update this documentation to reflect current status 
+4. Update this documentation to reflect current status

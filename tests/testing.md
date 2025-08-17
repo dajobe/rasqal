@@ -50,7 +50,7 @@ The testing framework consists of several key components:
 Each module has one clear, focused responsibility:
 
 - `config.py` - Test configuration and suite management
-- `manifest.py` - Manifest parsing and test discovery 
+- `manifest.py` - Manifest parsing and test discovery
 - `types.py` - Type definitions and resolution
 - `execution.py` - Test execution orchestration
 - `utils.py` - Utilities, path resolution, and helpers
@@ -193,7 +193,7 @@ KNOWN_TEST_SUITES = {
 ### SPARQL Test Suites
 
 - **`sparql-lexer`**: Lexical analysis of SPARQL queries
-- **`sparql-parser`**: Syntax parsing of SPARQL queries 
+- **`sparql-parser`**: Syntax parsing of SPARQL queries
 - **`sparql-query`**: Full SPARQL query execution
 - **`sparql-query-negative`**: SPARQL queries that should fail
 - **`sparql-parser-positive`**: Valid SPARQL syntax tests
@@ -331,7 +331,7 @@ discoverability:
 - **One-to-one mapping**: Each module has corresponding test file
 - **Professional structure**: Industry-standard Python package organization
 
-```
+```bash
 tests/sparql_test_framework/
 ├── config.py                    # Test configuration and suite management
 ├── manifest.py                  # Manifest parsing and test discovery
