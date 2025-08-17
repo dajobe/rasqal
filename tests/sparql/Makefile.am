@@ -29,6 +29,7 @@ bugs \
 aggregate \
 bind \
 exists \
+negation \
 values \
 sparql11 \
 sparql11-test-suite \

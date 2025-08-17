@@ -1,6 +1,6 @@
 # -*- Mode: Makefile -*-
 #
-# Makefile.am - automake file for Rasqal FILTER unbound tests
+# Makefile.am - automake file for Rasqal negation (MINUS+) tests
 #
 # Copyright (C) 2025, David Beckett https://www.dajobe.org/
 #
@@ -22,7 +22,8 @@
 SPARQL_MANIFEST_FILES= manifest.ttl manifest-bad.ttl
 
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES)
+$(SPARQL_MANIFEST_FILES) \
+README.md
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out \
 	sparql-query-plan.ttl sparql-query-negative-plan.ttl
@@ -58,7 +59,7 @@ get-testsuite-sparql-query-negative:
 		--suite-name sparql-query-negative \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s $(top_srcdir)/tests/sparql/sparql11-test-suite/negation --manifest-file {srcdir}/manifest-bad.ttl --test-case {test_id} - expected to fail" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s $(top_srcdir)/tests/sparql/sparql11-test-suite/negation --manifest-file {srcdir}/manifest.ttl --test-case {test_id}" \
 		--manifest-file $(srcdir)/manifest-bad.ttl
 
 dist-hook:
@@ -66,4 +67,4 @@ dist-hook:
 		--manifest-file $(srcdir)/manifest.ttl \
 		--manifest-file $(srcdir)/manifest-bad.ttl \
 		--srcdir $(srcdir) \
-		--distdir $(distdir)
+		--distdir $(distdir) 

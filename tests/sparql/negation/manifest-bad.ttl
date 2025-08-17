@@ -1,0 +1,93 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix : <http://www.w3.org/2009/sparql/docs/tests/data-sparql11/negation/manifest#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+@prefix dawgt:   <http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#> .
+@prefix t:       <http://ns.librdf.org/2009/test-manifest#> .
+
+<>  rdf:type mf:Manifest ;
+    rdfs:label "SPARQL 1.1 Negation Tests - expected to fail" ;
+    mf:entries
+    ( 
+    :subset-by-exclusion-minus-1
+    :subset-by-exclusion-nex-1
+    :temporal-proximity-by-exclusion-nex-1
+    :subset-01
+    :subset-02
+    :subset-03
+    :set-equals-1
+    :full-minuend
+    :partial-minuend
+   ) .
+
+:subset-by-exclusion-nex-1 rdf:type t:XFailTest ;
+    mf:name    "Subsets by exclusion (NOT EXISTS)" ;
+    dawgt:approval dawgt:Approved ;
+    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/subsetByExcl01.rq> ;
+           qt:data  <../sparql11-test-suite/negation/subsetByExcl.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/subsetByExcl01.srx> .
+
+:temporal-proximity-by-exclusion-nex-1 rdf:type t:XFailTest ;
+    mf:name    "Medical, temporal proximity by exclusion (NOT EXISTS)" ;
+    dawgt:approval dawgt:Approved ;
+    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/temporalProximity01.rq> ;
+           qt:data  <../sparql11-test-suite/negation/temporalProximity01.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/temporalProximity01.srx> .
+
+:subset-01 rdf:type t:XFailTest ;
+    mf:name    "Calculate which sets are subsets of others (include A subsetOf A)" ;
+    dawgt:approval dawgt:Approved ;
+    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/subset-01.rq> ;
+           qt:data  <../sparql11-test-suite/negation/set-data.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/subset-01.srx> .
+
+:subset-02 rdf:type t:XFailTest ;
+    mf:name    "Calculate which sets are subsets of others (exclude A subsetOf A)" ;
+    dawgt:approval dawgt:Approved ;
+    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/subset-02.rq> ;
+           qt:data  <../sparql11-test-suite/negation/set-data.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/subset-02.srx> .
+
+:set-equals-1 rdf:type t:XFailTest ;
+    mf:name    "Calculate which sets have the same elements" ;
+    dawgt:approval dawgt:Approved ;
+    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/set-equals-1.rq> ;
+           qt:data  <../sparql11-test-suite/negation/set-data.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/set-equals-1.srx> .
+
+:subset-03 rdf:type t:XFailTest ;
+    mf:name    "Calculate proper subset" ;
+    dawgt:approval dawgt:Approved ;
+    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/subset-03.rq> ;
+           qt:data  <../sparql11-test-suite/negation/set-data.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/subset-03.srx> .
+
+:full-minuend rdf:type t:XFailTest ;
+    mf:name    "Subtraction with MINUS from a fully bound minuend" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/full-minuend.rq> ;
+           qt:data  <../sparql11-test-suite/negation/full-minuend.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/full-minuend.srx> .
+
+:partial-minuend rdf:type t:XFailTest ;
+    mf:name    "Subtraction with MINUS from a partially bound minuend" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/part-minuend.rq> ;
+           qt:data  <../sparql11-test-suite/negation/part-minuend.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/part-minuend.srx> .
+
