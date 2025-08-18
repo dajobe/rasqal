@@ -43,24 +43,11 @@
 #define DEBUG_FH stderr
 
 
-typedef struct {
-  rasqal_query* query;
-  rasqal_query_results* query_results;
 
-  /* query algebra representation of query */
-  rasqal_algebra_node* algebra_node;
-
-  /* number of nodes in #algebra_node tree */
-  int nodes_count;
-
-  /* rowsource that provides the result rows */
-  rasqal_rowsource* rowsource;
-
-  rasqal_triples_source* triples_source;
-} rasqal_engine_algebra_data;
 
 
 static rasqal_rowsource* rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data, rasqal_algebra_node* node, rasqal_engine_error *error_p);
+static rasqal_rowsource* rasqal_algebra_diff_to_rowsource(rasqal_engine_algebra_data* execution_data, rasqal_algebra_node* node, rasqal_engine_error *error_p);
 
 
 static int
@@ -153,6 +140,32 @@ rasqal_algebra_union_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
   }
 
   return rasqal_new_union_rowsource(query->world, query, left_rs, right_rs);
+}
+
+
+static rasqal_rowsource*
+rasqal_algebra_diff_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                 rasqal_algebra_node* node,
+                                 rasqal_engine_error *error_p)
+{
+  rasqal_query *query = execution_data->query;
+  rasqal_rowsource *left_rs;
+  rasqal_rowsource *right_rs;
+
+  left_rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1,
+                                             error_p);
+  if((error_p && *error_p) || !left_rs)
+    return NULL;
+
+  /* Create RHS rowsource from the RHS algebra node */
+  right_rs = rasqal_algebra_node_to_rowsource(execution_data, node->node2,
+                                              error_p);
+  if((error_p && *error_p) || !right_rs) {
+    rasqal_free_rowsource(left_rs);
+    return NULL;
+  }
+
+  return rasqal_new_minus_rowsource(query->world, query, left_rs, right_rs);
 }
 
 
@@ -515,8 +528,11 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
                                                             node, error_p);
       break;
 
-    case RASQAL_ALGEBRA_OPERATOR_UNKNOWN:
     case RASQAL_ALGEBRA_OPERATOR_DIFF:
+      rs = rasqal_algebra_diff_to_rowsource(execution_data, node, error_p);
+      break;
+
+    case RASQAL_ALGEBRA_OPERATOR_UNKNOWN:
     case RASQAL_ALGEBRA_OPERATOR_TOLIST:
     case RASQAL_ALGEBRA_OPERATOR_REDUCED:
     default:

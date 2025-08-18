@@ -42,7 +42,8 @@
 
 #ifndef STANDALONE
 
-static rasqal_algebra_node* rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query, rasqal_graph_pattern* gp);
+rasqal_algebra_node* rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query, rasqal_graph_pattern* gp);
+
 
 /*
  * rasqal_new_algebra_node:
@@ -1190,6 +1191,43 @@ rasqal_algebra_union_graph_pattern_to_algebra(rasqal_query* query,
 }
 
 
+static rasqal_algebra_node*
+rasqal_algebra_minus_graph_pattern_to_algebra(rasqal_query* query,
+                                              rasqal_graph_pattern* gp)
+{
+  rasqal_algebra_node* node = NULL;
+  rasqal_graph_pattern* rhs_gp = NULL;
+
+  /* MINUS has exactly 1 sub-pattern: the RHS */
+  if(!gp->graph_patterns || raptor_sequence_size(gp->graph_patterns) != 1) {
+    RASQAL_DEBUG1("MINUS graph pattern must have exactly 1 sub-pattern\n");
+    goto fail;
+  }
+
+  /* Get RHS graph pattern */
+  rhs_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, 0);
+  if(!rhs_gp) {
+    RASQAL_DEBUG1("MINUS graph pattern sub-pattern is NULL\n");
+    goto fail;
+  }
+
+  /* Convert RHS to algebra - the GROUP pattern will handle the DIFF operation */
+  node = rasqal_algebra_graph_pattern_to_algebra(query, rhs_gp);
+  if(!node) {
+    RASQAL_DEBUG1("Failed to convert MINUS RHS to algebra\n");
+    goto fail;
+  }
+
+  return node;
+
+  fail:
+  if(node)
+    rasqal_free_algebra_node(node);
+
+  return NULL;
+}
+
+
 /*
  * Takes a reference to @bindings
  */
@@ -1338,6 +1376,24 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
           true_expr = NULL; /* now owned by gnode */
         }
       } /* end for all optional */
+    } else if(egp->op == RASQAL_GRAPH_PATTERN_OPERATOR_MINUS) {
+      /* If E is of the form MINUS{P} */
+      rasqal_algebra_node* rhs_node;
+
+      /* Let A := Transform(P) - convert the MINUS RHS */
+      rhs_node = rasqal_algebra_graph_pattern_to_algebra(query, egp);
+      if(!rhs_node) {
+        RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed for MINUS RHS\n");
+        goto fail;
+      }
+
+      /* G := Diff(G, A) - MINUS is set difference */
+      gnode = rasqal_new_2op_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_DIFF,
+                                          gnode, rhs_node);
+      if(!gnode) {
+        RASQAL_DEBUG1("rasqal_new_2op_algebra_node() failed for MINUS\n");
+        goto fail;
+      }
     } else {
       /* If E is any other form:*/
       rasqal_algebra_node* anode;
@@ -1566,7 +1622,7 @@ rasqal_algebra_service_graph_pattern_to_algebra(rasqal_query* query,
 
 
 
-static rasqal_algebra_node*
+rasqal_algebra_node*
 rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
                                         rasqal_graph_pattern* gp)
 {
@@ -1623,6 +1679,8 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
+      node = rasqal_algebra_minus_graph_pattern_to_algebra(query, gp);
+      break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
     default:
