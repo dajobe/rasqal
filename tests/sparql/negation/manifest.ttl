@@ -8,20 +8,17 @@
 <>  rdf:type mf:Manifest ;
     rdfs:label "SPARQL 1.1 Negation Tests" ;
     mf:entries
-    ( 
+    (
     :exists-01
     :exists-02
+    :full-minuend
+    :partial-minuend
+    :set-equals-1
+    :subset-02
+    :subset-by-exclusion-minus-1
+    :subset-by-exclusion-nex-1
    ) .
 
-
-:subset-by-exclusion-minus-1 rdf:type mf:QueryEvaluationTest ;
-    mf:name    "Subsets by exclusion (MINUS)" ;
-    dawgt:approval dawgt:Approved ;
-    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
-    mf:action
-         [ qt:query  <../sparql11-test-suite/negation/subsetByExcl02.rq> ;
-           qt:data  <../sparql11-test-suite/negation/subsetByExcl.ttl> ] ;
-    mf:result  <../sparql11-test-suite/negation/subsetByExcl02.srx> .
 
 :exists-01 rdf:type mf:QueryEvaluationTest ;
     mf:name    "Positive EXISTS 1" ;
@@ -40,4 +37,56 @@
          [ qt:query  <../sparql11-test-suite/negation/exists-02.rq> ;
            qt:data  <../sparql11-test-suite/negation/set-data.ttl> ] ;
     mf:result  <../sparql11-test-suite/negation/exists-02.srx> .
+
+:full-minuend rdf:type mf:QueryEvaluationTest ;
+    mf:name    "Subtraction with MINUS from a fully bound minuend" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/full-minuend.rq> ;
+           qt:data  <../sparql11-test-suite/negation/full-minuend.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/full-minuend.srx> .
+
+:partial-minuend rdf:type mf:QueryEvaluationTest ;
+    mf:name    "Subtraction with MINUS from a partially bound minuend" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/part-minuend.rq> ;
+           qt:data  <../sparql11-test-suite/negation/part-minuend.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/part-minuend.srx> .
+
+:set-equals-1 rdf:type mf:QueryEvaluationTest ;
+    mf:name    "Calculate which sets have the same elements" ;
+    dawgt:approval dawgt:Approved ;
+    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/set-equals-1.rq> ;
+           qt:data  <../sparql11-test-suite/negation/set-data.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/set-equals-1.srx> .
+
+:subset-02 rdf:type mf:QueryEvaluationTest ;
+    mf:name    "Calculate which sets are subsets of others (exclude A subsetOf A)" ;
+    dawgt:approval dawgt:Approved ;
+    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/subset-02.rq> ;
+           qt:data  <../sparql11-test-suite/negation/set-data.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/subset-02.srx> .
+
+:subset-by-exclusion-minus-1 rdf:type mf:QueryEvaluationTest ;
+    mf:name    "Subsets by exclusion (MINUS)" ;
+    dawgt:approval dawgt:Approved ;
+    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/subsetByExcl02.rq> ;
+           qt:data  <../sparql11-test-suite/negation/subsetByExcl.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/subsetByExcl02.srx> .
+
+:subset-by-exclusion-nex-1 rdf:type mf:QueryEvaluationTest ;
+    mf:name    "Subsets by exclusion (NOT EXISTS)" ;
+    dawgt:approval dawgt:Approved ;
+    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/negation/subsetByExcl01.rq> ;
+           qt:data  <../sparql11-test-suite/negation/subsetByExcl.ttl> ] ;
+    mf:result  <../sparql11-test-suite/negation/subsetByExcl01.srx> .
 

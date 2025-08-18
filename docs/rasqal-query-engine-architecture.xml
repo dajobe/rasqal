@@ -413,6 +413,55 @@ if(sequence_created) {
 
   </section>
 
+  <section id="minus-semantics-and-internals">
+    <title>MINUS Semantics and Internals</title>
+
+    <para>This section documents the MINUS implementation and supporting internals validated during work on SPARQL 1.1 negation tests.</para>
+
+    <section id="minus-compatibility">
+      <title>Compatibility via Domain Intersection</title>
+      <para>Rasqal implements MINUS compatibility according to SPARQL 1.1 domain-intersection semantics:</para>
+      <itemizedlist>
+        <listitem><para>Only variables bound on both sides (LHS and RHS) are considered shared.</para></listitem>
+        <listitem><para>For shared variables, term equality is required for compatibility.</para></listitem>
+        <listitem><para>If no compatible RHS row exists, the LHS row is emitted.</para></listitem>
+      </itemizedlist>
+      <para>Term equality is evaluated with <function>rasqal_literal_equals_flags</function>.</para>
+    </section>
+
+    <section id="minus-rowsource-lifecycle">
+      <title>Rowsource Lifecycle and Row Ownership</title>
+      <para>Rows returned from MINUS must carry a valid <literal>rowsource</literal> pointer for correct deep-copy behavior. When emitting an LHS row:</para>
+      <itemizedlist>
+        <listitem><para>Set the row's <literal>rowsource</literal> to the MINUS rowsource if not already set.</para></listitem>
+        <listitem><para>Create a deep copy with <function>rasqal_new_row_from_row_deep</function>.</para></listitem>
+        <listitem><para>Attach the new row to the MINUS rowsource and propagate the row offset.</para></listitem>
+      </itemizedlist>
+      <para>This avoids a null <literal>row-&gt;rowsource</literal> dereference during deep copy.</para>
+    </section>
+
+    <section id="filter-ebv-and-unbound">
+      <title>FILTER EBV and Unbound Operands</title>
+      <para>FILTER comparison operators (EQ, NEQ, LT, GT, LE, GE) treat unbound operands as FALSE, filtering the solution rather than raising errors, per SPARQL 1.1. This is implemented in <filename>rasqal_expr_evaluate.c</filename>.</para>
+    </section>
+
+    <section id="exists-variable-usage">
+      <title>EXISTS/NOT EXISTS Variable Usage Analysis</title>
+      <para>Variables referenced solely inside EXISTS/NOT EXISTS must not trigger "not bound and not used" errors at transform time. The transformer supports detection in both FILTER expressions and EXISTS-local BGPs. This analysis is performed in <filename>rasqal_query_transform.c</filename> and is limited to variable mention detection; it does not evaluate sub-queries.</para>
+    </section>
+  </section>
+
+  <section id="variable-scoping-and-rows">
+    <title>Variable Scoping, Rows, and Headers</title>
+
+    <para>Result rows carry values and a back-pointer to the producing rowsource. The rowsource header defines variable ordering for row printing and projection. Key rules:</para>
+    <itemizedlist>
+      <listitem><para>Always attach emitted rows to the producing rowsource via <function>rasqal_row_set_rowsource</function>.</para></listitem>
+      <listitem><para>Preserve <literal>offset</literal> when creating derived rows to maintain stable ordering.</para></listitem>
+      <listitem><para>Use <function>rasqal_rowsource_get_variable_by_offset</function> for header-based name lookup when printing rows.</para></listitem>
+    </itemizedlist>
+  </section>
+
   <section id="expression-evaluation-system">
     <title>Expression Evaluation System</title>
 
