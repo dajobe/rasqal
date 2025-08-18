@@ -43,6 +43,7 @@ rasqal_decimal_test$(EXEEXT) rasqal_datetime_test$(EXEEXT)	\
 rasqal_variable_test$(EXEEXT) rasqal_rowsource_empty_test$(EXEEXT) \
 rasqal_rowsource_exists_test$(EXEEXT) \
 rasqal_rowsource_union_test$(EXEEXT) \
+rasqal_rowsource_minus_test$(EXEEXT) \
 rasqal_rowsource_rowsequence_test$(EXEEXT) \
 rasqal_rowsource_project_test$(EXEEXT) \
 rasqal_rowsource_join_test$(EXEEXT) \
@@ -105,7 +106,7 @@ rasqal_graph_pattern.c rasqal_map.c rasqal_feature.c \
 rasqal_result_formats.c rasqal_xsd_datatypes.c rasqal_decimal.c \
 rasqal_datetime.c rasqal_rowsource.c rasqal_format_sparql_xml.c \
 rasqal_variable.c rasqal_rowsource_empty.c rasqal_rowsource_exists.c \
-rasqal_rowsource_union.c \
+rasqal_rowsource_union.c rasqal_rowsource_minus.c \
 rasqal_rowsource_rowsequence.c rasqal_query_transform.c rasqal_row.c \
 rasqal_engine_algebra.c rasqal_triples_source.c \
 rasqal_rowsource_triples.c rasqal_rowsource_filter.c \
@@ -295,6 +296,10 @@ rasqal_rowsource_exists_test_LDADD = librasqal.la
 rasqal_rowsource_groupby_test_SOURCES = rasqal_rowsource_groupby.c
 rasqal_rowsource_groupby_test_CPPFLAGS = -DSTANDALONE
 rasqal_rowsource_groupby_test_LDADD = librasqal.la
+
+rasqal_rowsource_minus_test_SOURCES = rasqal_rowsource_minus.c
+rasqal_rowsource_minus_test_CPPFLAGS = -DSTANDALONE
+rasqal_rowsource_minus_test_LDADD = librasqal.la
 
 rasqal_rowsource_union_test_SOURCES = rasqal_rowsource_union.c
 rasqal_rowsource_union_test_CPPFLAGS = -DSTANDALONE

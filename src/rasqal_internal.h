@@ -757,6 +757,12 @@ rasqal_rowsource* rasqal_new_triples_rowsource(rasqal_world *world, rasqal_query
 /* rasqal_rowsource_union.c */
 rasqal_rowsource* rasqal_new_union_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right);
 
+/* rasqal_rowsource_minus.c */
+rasqal_rowsource* rasqal_new_minus_rowsource(rasqal_world *world,
+                                             rasqal_query* query,
+                                             rasqal_rowsource* lhs_rowsource,
+                                             rasqal_rowsource* rhs_rowsource);
+
 
 /**
  * rasqal_rowsource_init_func:
@@ -1221,7 +1227,17 @@ int rasqal_init_query_language_sparql11(rasqal_world*);
 int rasqal_init_query_language_laqrs(rasqal_world*);
 
 
+
+rasqal_graph_pattern* rasqal_graph_pattern_copy(rasqal_graph_pattern* gp);
+rasqal_expression* rasqal_expression_copy(rasqal_expression* expr);
+rasqal_projection* rasqal_projection_copy(rasqal_projection* p);
+rasqal_solution_modifier* rasqal_solution_modifier_copy(rasqal_solution_modifier* sm);
+rasqal_variable* rasqal_variable_copy(rasqal_variable* var);
+rasqal_bindings* rasqal_bindings_copy(rasqal_bindings* b);
+void rasqal_triple_substitute_variables(rasqal_triple* t, rasqal_variables_table* vars_table, rasqal_row* row);
+
 /* rasqal_query_transform.c */
+
 int rasqal_query_expand_triple_qnames(rasqal_query* rq);
 int rasqal_sequence_has_qname(raptor_sequence* seq);
 int rasqal_query_constraints_has_qname(rasqal_query* gp);
@@ -1894,10 +1910,28 @@ raptor_sequence* rasqal_engine_rowsort_map_to_sequence(rasqal_map* map, raptor_s
 int rasqal_engine_rowsort_calculate_order_values(rasqal_query* query, raptor_sequence* order_seq, rasqal_row* row);
 
 
+typedef struct {
+  rasqal_query* query;
+  rasqal_query_results* query_results;
+
+  /* query algebra representation of query */
+  rasqal_algebra_node* algebra_node;
+
+  /* number of nodes in #algebra_node tree */
+  int nodes_count;
+
+  /* rowsource that provides the result rows */
+  rasqal_rowsource* rowsource;
+
+  rasqal_triples_source* triples_source;
+} rasqal_engine_algebra_data;
+
+
 /* rasqal_engine_algebra.c */
 
 /* New query engine based on executing over query algebra */
 extern const rasqal_query_execution_factory rasqal_query_engine_algebra;
+
 
 /* rasqal_iostream.c */
 raptor_iostream* rasqal_new_iostream_from_stringbuffer(raptor_world *raptor_world_ptr, raptor_stringbuffer* sb);
