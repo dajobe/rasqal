@@ -1193,6 +1193,23 @@ rasqal_exists_rowsource_read_all_rows(rasqal_rowsource* rowsource,
 }
 
 
+static int
+rasqal_exists_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
+{
+  rasqal_exists_rowsource_context* con;
+
+  con = (rasqal_exists_rowsource_context*)user_data;
+  if(!con)
+    return 1;
+  
+  /* Reset evaluation state to allow re-evaluation with new variable bindings */
+  con->evaluated = 0;
+  con->evaluation_result = 0;
+  
+  return 0;
+}
+
+
 static const rasqal_rowsource_handler rasqal_exists_rowsource_handler = {
   /* .version = */ 1,
   "exists",
@@ -1201,7 +1218,7 @@ static const rasqal_rowsource_handler rasqal_exists_rowsource_handler = {
   /* .ensure_variables = */ rasqal_exists_rowsource_ensure_variables,
   /* .read_row = */ rasqal_exists_rowsource_read_row,
   /* .read_all_rows = */ rasqal_exists_rowsource_read_all_rows,
-  /* .reset = */ NULL,
+  /* .reset = */ rasqal_exists_rowsource_reset,
   /* .set_requirements = */ NULL,
   /* .get_inner_rowsource = */ NULL,
   /* .set_origin = */ NULL,

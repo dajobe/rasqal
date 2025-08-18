@@ -1276,6 +1276,148 @@ rasqal_query_build_variables_use(rasqal_query* query,
 }
 
 
+/* Helpers for rasqal_query_variable_only_in_exists() */
+static int rasqal_helper_gp_tree_uses_variable(rasqal_graph_pattern* gp, rasqal_variable* v);
+typedef struct rasqal_exists_var_search_state_s {
+  rasqal_variable* variable;
+  int found;
+} rasqal_exists_var_search_state;
+
+static int
+rasqal_helper_expr_visit_exists_checker(void *user_data, rasqal_expression *e)
+{
+  rasqal_exists_var_search_state* st = (rasqal_exists_var_search_state*)user_data;
+  if(!e || !st || st->found)
+    return st ? st->found : 0;
+
+  if(e->op == RASQAL_EXPR_EXISTS || e->op == RASQAL_EXPR_NOT_EXISTS) {
+    if(e->args && raptor_sequence_size(e->args) > 0) {
+      rasqal_graph_pattern* exists_gp;
+      exists_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(e->args, 0);
+      /* debug removed */
+      if(rasqal_helper_gp_tree_uses_variable(exists_gp, st->variable)) {
+        /* debug removed */
+        st->found = 1;
+        return 1; /* stop traversal */
+      }
+    }
+    /* Do not descend further through EXISTS args as they are handled */
+    return 0;
+  }
+
+  return 0;
+}
+static int
+rasqal_helper_triple_uses_variable(rasqal_triple* t, rasqal_variable* v)
+{
+  rasqal_variable* gv;
+
+  if(!t || !v)
+    return 0;
+  if(t->subject && t->subject->type == RASQAL_LITERAL_VARIABLE &&
+     (t->subject->value.variable == v || (t->subject->value.variable && v->name && t->subject->value.variable->name && strcmp((const char*)t->subject->value.variable->name, (const char*)v->name) == 0)))
+    return 1;
+  if(t->predicate && t->predicate->type == RASQAL_LITERAL_VARIABLE &&
+     (t->predicate->value.variable == v || (t->predicate->value.variable && v->name && t->predicate->value.variable->name && strcmp((const char*)t->predicate->value.variable->name, (const char*)v->name) == 0)))
+    return 1;
+  if(t->object && t->object->type == RASQAL_LITERAL_VARIABLE &&
+     (t->object->value.variable == v || (t->object->value.variable && v->name && t->object->value.variable->name && strcmp((const char*)t->object->value.variable->name, (const char*)v->name) == 0)))
+    return 1;
+  if(t->origin) {
+    gv = rasqal_literal_as_variable(t->origin);
+    if(gv == v || (gv && v->name && gv->name && strcmp((const char*)gv->name, (const char*)v->name) == 0))
+      return 1;
+  }
+  return 0;
+}
+
+static int
+rasqal_helper_gp_tree_uses_variable(rasqal_graph_pattern* gp, rasqal_variable* v)
+{
+  int col;
+  int sz;
+  int i;
+
+  if(!gp)
+    return 0;
+
+  if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BASIC && gp->triples) {
+    int start;
+    int end;
+    /* debug removed */
+    start = gp->start_column;
+    end = gp->end_column;
+    if(!(start >= 0 && end >= start)) {
+      /* Fallback for patterns (e.g., EXISTS) that have local triples without
+       * global start/end column indices. */
+      start = 0;
+      end = raptor_sequence_size(gp->triples) - 1;
+    }
+    /* debug removed */
+    for(col = start; col <= end; col++) {
+      rasqal_triple* t;
+      t = (rasqal_triple*)raptor_sequence_get_at(gp->triples, col);
+      if(rasqal_helper_triple_uses_variable(t, v)) {
+        /* debug removed */
+        return 1;
+      }
+    }
+  }
+
+  if(gp->graph_patterns) {
+    /* debug removed */
+    sz = raptor_sequence_size(gp->graph_patterns);
+    for(i = 0; i < sz; i++) {
+      rasqal_graph_pattern* sgp;
+      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      if(rasqal_helper_gp_tree_uses_variable(sgp, v))
+        return 1;
+    }
+  }
+
+  return 0;
+}
+
+static int
+rasqal_helper_expr_contains_var_in_exists(rasqal_expression* e, rasqal_variable* v)
+{
+  rasqal_exists_var_search_state st;
+  if(!e)
+    return 0;
+  st.variable = v;
+  st.found = 0;
+  rasqal_expression_visit(e, rasqal_helper_expr_visit_exists_checker, &st);
+  return st.found;
+}
+
+/* Recursively search a GP tree for FILTER expressions that contain
+ * EXISTS/NOT EXISTS mentioning the given variable name. */
+static int
+rasqal_helper_gp_tree_contains_var_in_exists(rasqal_graph_pattern* gp, rasqal_variable* v)
+{
+  int i;
+  int size;
+
+  if(!gp)
+    return 0;
+
+  if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_FILTER && gp->filter_expression) {
+    if(rasqal_helper_expr_contains_var_in_exists(gp->filter_expression, v))
+      return 1;
+  }
+
+  if(gp->graph_patterns) {
+    size = raptor_sequence_size(gp->graph_patterns);
+    for(i = 0; i < size; i++) {
+      rasqal_graph_pattern* sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      if(rasqal_helper_gp_tree_contains_var_in_exists(sgp, v))
+        return 1;
+    }
+  }
+
+  return 0;
+}
+
 /*
  * rasqal_query_variable_only_in_exists:
  * @query: query object
@@ -1288,47 +1430,73 @@ rasqal_query_build_variables_use(rasqal_query* query,
 int
 rasqal_query_variable_only_in_exists(rasqal_query* query, rasqal_variable* var)
 {
-  int i;
-  int used_in_main_query = 0;
   int used_in_exists = 0;
-  
-  if(!query || !var || !query->triples)
+  int gp_index;
+
+  if(!query || !var)
     return 0;
-  
-  /* Check all triples in the query */
-  for(i = 0; i < raptor_sequence_size(query->triples); i++) {
-    rasqal_triple* triple = (rasqal_triple*)raptor_sequence_get_at(query->triples, i);
-    int triple_uses_var = 0;
-    
-    if(!triple)
-      continue;
-    
-    /* Check if this triple uses the variable */
-    if(triple->subject && triple->subject->type == RASQAL_LITERAL_VARIABLE &&
-       triple->subject->value.variable == var) {
-      triple_uses_var = 1;
+
+  /* Traverse enumerated graph patterns and inspect their own triple sequences.
+   * This correctly accounts for EXISTS patterns that use separate triples
+   * sequences and do not contribute to query->triples. */
+  for(gp_index = 0; ; gp_index++) {
+    rasqal_graph_pattern* gp = rasqal_query_get_graph_pattern(query, gp_index);
+    if(!gp)
+      break;
+
+    if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BASIC && gp->triples) {
+      int start = gp->start_column;
+      int end = gp->end_column;
+      int col;
+      if(!(start >= 0 && end >= start)) {
+        start = 0;
+        end = raptor_sequence_size(gp->triples) - 1;
+      }
+      for(col = start; col <= end; col++) {
+        rasqal_triple* triple = (rasqal_triple*)raptor_sequence_get_at(gp->triples, col);
+        if(triple && rasqal_helper_triple_uses_variable(triple, var)) {
+          if(gp->is_exists_pattern)
+            used_in_exists = 1;
+        }
+      }
     }
-    if(triple->predicate && triple->predicate->type == RASQAL_LITERAL_VARIABLE &&
-       triple->predicate->value.variable == var) {
-      triple_uses_var = 1;
-    }
-    if(triple->object && triple->object->type == RASQAL_LITERAL_VARIABLE &&
-       triple->object->value.variable == var) {
-      triple_uses_var = 1;
-    }
-    
-    if(triple_uses_var) {
-      /* Now determine if this triple belongs to an EXISTS pattern */
-      if(rasqal_query_triple_in_exists_pattern(query, i)) {
+
+    /* Additionally, scan FILTER expressions for EXISTS/NOT EXISTS usage */
+    if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_FILTER && gp->filter_expression) {
+      /* debug removed */
+      if(rasqal_helper_expr_contains_var_in_exists(gp->filter_expression, var)) {
+        /* debug removed */
         used_in_exists = 1;
-      } else {
-        used_in_main_query = 1;
       }
     }
   }
-  
-  /* Variable is only in EXISTS if it's used in EXISTS but not in main query */
-  return (used_in_exists && !used_in_main_query);
+
+  /* Fallback: scan global triples list and map columns back to EXISTS patterns */
+  if(!used_in_exists && query->triples) {
+    int tcount = raptor_sequence_size(query->triples);
+    int col;
+    for(col = 0; col < tcount; col++) {
+      rasqal_triple* t = (rasqal_triple*)raptor_sequence_get_at(query->triples, col);
+      if(!t)
+        continue;
+      if(rasqal_helper_triple_uses_variable(t, var) &&
+         rasqal_query_triple_in_exists_pattern(query, col)) {
+        used_in_exists = 1;
+        break;
+      }
+    }
+  }
+
+  /* As a fallback, search the entire GP tree for EXISTS mentions */
+  if(!used_in_exists && query->query_graph_pattern) {
+    if(rasqal_helper_gp_tree_contains_var_in_exists(query->query_graph_pattern, var))
+      used_in_exists = 1;
+  }
+
+  /* Treat variables mentioned inside EXISTS/NOT EXISTS as valid usage,
+   * regardless of whether they also appear elsewhere.
+   */
+  return used_in_exists;
 }
 
 
