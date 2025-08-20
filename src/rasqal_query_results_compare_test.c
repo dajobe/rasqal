@@ -587,23 +587,19 @@ test_advanced_graph_comparison(rasqal_world* world)
   raptor_term* literal1 = NULL;
   int result = 0;
 
-  world = rasqal_new_world();
   if(!world) {
-    printf("Failed to create rasqal world\n");
-    return 0;
-  }
-
-  if(rasqal_world_open(world)) {
-    printf("Failed to open rasqal world\n");
-    rasqal_free_world(world);
+    printf("NULL world parameter\n");
     return 0;
   }
 
   /* Create test data */
   triples = raptor_new_sequence((raptor_data_free_handler)raptor_free_statement, 
                                 (raptor_data_print_handler)raptor_statement_print);
-  blank_nodes = raptor_new_sequence((raptor_data_free_handler)raptor_free_term, 
-                                   NULL);
+  /* The blank nodes (raptor_term*) are owned by the raptor_statement*
+   * in the triples sequence above so we don't need to free them here.
+   * These are weak references.
+   */
+  blank_nodes = raptor_new_sequence(NULL, NULL);
 
   if(!triples || !blank_nodes) {
     printf("Failed to create sequences\n");
@@ -625,30 +621,30 @@ test_advanced_graph_comparison(rasqal_world* world)
     goto cleanup;
   }
 
-  /* Create test triples */
-  triple1 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode1, uri1, literal1, NULL);
-  triple2 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode1, uri2, bnode2, NULL);
-  triple3 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode2, uri1, literal1, NULL);
-  triple4 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode3, uri1, literal1, NULL);
+  /* Add original blank nodes to sequence (weak references) */
+  raptor_sequence_push(blank_nodes, bnode1);
+  raptor_sequence_push(blank_nodes, bnode2);
+  raptor_sequence_push(blank_nodes, bnode3);
+
+  /* Create test triples - statements will take ownership of copied terms */
+  triple1 = raptor_new_statement_from_nodes(world->raptor_world_ptr, raptor_term_copy(bnode1), raptor_term_copy(uri1), raptor_term_copy(literal1), NULL);
+  triple2 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode1, uri2, raptor_term_copy(bnode2), NULL);
+  triple3 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode2, raptor_term_copy(uri1), raptor_term_copy(literal1), NULL);
+  triple4 = raptor_new_statement_from_nodes(world->raptor_world_ptr, raptor_term_copy(bnode3), uri1, literal1, NULL);
+  bnode1 = bnode2 = bnode3 = uri1 = uri2 = literal1 = NULL;
 
   if(!triple1 || !triple2 || !triple3 || !triple4) {
     printf("Failed to create triples\n");
     goto cleanup;
   }
 
-  /* Add triples and blank nodes to sequences */
+  /* Add triples to sequence - statements are now owned by the sequence */
   raptor_sequence_push(triples, triple1);
   raptor_sequence_push(triples, triple2);
   raptor_sequence_push(triples, triple3);
   raptor_sequence_push(triples, triple4);
-  /* triples are now owned by the sequence */
+  /* Statements are now owned by sequence, but original terms still need manual cleanup */
   triple1 = triple2 = triple3 = triple4 = NULL;
-
-  raptor_sequence_push(blank_nodes, bnode1);
-  raptor_sequence_push(blank_nodes, bnode2);
-  raptor_sequence_push(blank_nodes, bnode3);
-  /* blank nodes are now owned by the sequence */
-  bnode1 = bnode2 = bnode3 = NULL;
 
   /* Test 1: Graph comparison options initialization */
   if(1) {
@@ -737,10 +733,6 @@ cleanup:
     raptor_free_sequence(triples);
   if(blank_nodes)
     raptor_free_sequence(blank_nodes);
-
-  /* Cleanup world */
-  if(world)
-    rasqal_free_world(world);
 
   return result;
 }
