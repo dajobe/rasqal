@@ -28,6 +28,7 @@ import re
 import shutil
 import subprocess
 import sys
+import signal
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 
@@ -57,6 +58,74 @@ INDENT_STR = "  "  # Using 2 spaces for indentation
 MAKE_CMD = os.environ.get("MAKE", "make")
 
 
+def is_signal_termination(return_code: int) -> Tuple[bool, Optional[int]]:
+    """
+    Check if a process was terminated by a signal.
+
+    Args:
+        return_code: The process return code
+
+    Returns:
+        Tuple of (is_signal, signal_number)
+    """
+    if return_code < 0:
+        # Negative return code indicates signal termination
+        return True, abs(return_code)
+    elif return_code > 128:
+        # Exit codes > 128 often indicate signal termination
+        signal_num = return_code - 128
+        return True, signal_num
+    else:
+        return False, None
+
+
+def get_signal_description(signal_num: int) -> str:
+    """
+    Get a human-readable description of a signal.
+
+    Args:
+        signal_num: The signal number
+
+    Returns:
+        Human-readable signal description
+    """
+    signal_names = {
+        1: "SIGHUP (Hangup)",
+        2: "SIGINT (Interrupt)",
+        3: "SIGQUIT (Quit)",
+        4: "SIGILL (Illegal instruction)",
+        5: "SIGTRAP (Trace/breakpoint trap)",
+        6: "SIGABRT (Aborted)",
+        7: "SIGBUS (Bus error)",
+        8: "SIGFPE (Floating point exception)",
+        9: "SIGKILL (Killed)",
+        10: "SIGUSR1 (User defined signal 1)",
+        11: "SIGSEGV (Segmentation fault)",
+        12: "SIGUSR2 (User defined signal 2)",
+        13: "SIGPIPE (Broken pipe)",
+        14: "SIGALRM (Alarm clock)",
+        15: "SIGTERM (Terminated)",
+        16: "SIGSTKFLT (Stack fault)",
+        17: "SIGCHLD (Child stopped or exited)",
+        18: "SIGCONT (Continue if stopped)",
+        19: "SIGSTOP (Stop process)",
+        20: "SIGTSTP (Stop typed at terminal)",
+        21: "SIGTTIN (Terminal input for background process)",
+        22: "SIGTTOU (Terminal output for background process)",
+        23: "SIGURG (Urgent condition on socket)",
+        24: "SIGXCPU (CPU time limit exceeded)",
+        25: "SIGXFSZ (File size limit exceeded)",
+        26: "SIGVTALRM (Virtual alarm clock)",
+        27: "SIGPROF (Profiling timer expired)",
+        28: "SIGWINCH (Window size change)",
+        29: "SIGIO (I/O now possible)",
+        30: "SIGPWR (Power failure restart)",
+        31: "SIGSYS (Bad system call)",
+    }
+
+    return signal_names.get(signal_num, f"Signal {signal_num}")
+
+
 def format_testsuite_result(
     file_handle,
     result_summary: Dict[str, List[Dict[str, Any]]],
@@ -74,6 +143,12 @@ def format_testsuite_result(
         for ftest in failed_tests:
             if verbose_format:
                 file_handle.write(f"{indent_prefix}{INDENT_STR}{'=' * BANNER_WIDTH}\n")
+
+            # Check if this is a crash and display prominently
+            is_crash = ftest.get("is_crash", False)
+            if is_crash:
+                file_handle.write(f"{indent_prefix}{INDENT_STR}🚨 CRASH DETECTED 🚨\n")
+
             name_detail = ftest.get("name", "Unknown Test")
             if verbose_format:
                 name_detail += (
@@ -81,6 +156,21 @@ def format_testsuite_result(
                     f"in {ftest.get('dir', 'N/A')}"
                 )
             file_handle.write(f"{indent_prefix}{INDENT_STR}{name_detail}\n")
+
+            # Show crash details prominently
+            if is_crash:
+                exit_code = ftest.get("exit_code")
+                signal = ftest.get("signal")
+                if exit_code is not None:
+                    if signal is not None:
+                        file_handle.write(
+                            f"{indent_prefix}{INDENT_STR}Exit: {exit_code} (signal {signal})\n"
+                        )
+                    else:
+                        file_handle.write(
+                            f"{indent_prefix}{INDENT_STR}Exit: {exit_code}\n"
+                        )
+
             if verbose_format and ftest.get("detail"):
                 file_handle.write(f"{indent_prefix}{INDENT_STR}{ftest['detail']}\n")
             if verbose_format and ftest.get("log"):
@@ -106,9 +196,19 @@ def format_testsuite_result(
     xfailed_count = len(result_summary.get(TestResult.XFAILED.value, []))
     uxpassed_count = len(result_summary.get(TestResult.UXPASSED.value, []))
 
+    # Count crashes separately
+    crash_count = sum(1 for test in failed_tests if test.get("is_crash", False))
+    normal_fail_count = failed_count - crash_count
+
     file_handle.write(
-        f"{indent_prefix}Passed: {passed_count}    Failed: {failed_count}    Skipped: {skipped_count}    Xfailed: {xfailed_count}    Uxpassed: {uxpassed_count}    \n"
+        f"{indent_prefix}Passed: {passed_count}    Failed: {failed_count}    Skipped: {skipped_count}    Xfailed: {xfailed_count}    Uxpassed: {uxpassed_count}\n"
     )
+
+    # Show crash breakdown on separate line if there were crashes
+    if crash_count > 0:
+        file_handle.write(
+            f"{indent_prefix}  Failed breakdown: {crash_count} crashes, {normal_fail_count} normal failures\n"
+        )
 
 
 class Testsuite:
@@ -395,7 +495,14 @@ class Testsuite:
                     if not self.args.verbose:
                         # Show status character
                         status_enum = TestResult(result_type)
-                        print(status_enum.display_char(), end="", flush=True)
+
+                        # Check if this is a crash and show special character
+                        is_crash = test_result.get("is_crash", False)
+                        if is_crash:
+                            print("💥", end="", flush=True)  # Show crash symbol
+                        else:
+                            print(status_enum.display_char(), end="", flush=True)
+
                         column += 1
                         if column >= LINE_WRAP:
                             print(f"\n{indent_prefix}", end="", flush=True)
@@ -403,14 +510,30 @@ class Testsuite:
                     else:
                         # Show verbose output
                         status_enum = TestResult(result_type)
-                        detail_str = (
-                            f" - {test_result.get('detail', '')}"
-                            if test_result.get("detail")
-                            else ""
-                        )
-                        print(
-                            f"{indent_prefix}  {test_result['name']}: {status_enum.display_name()}{detail_str}"
-                        )
+
+                        # Check if this is a crash and display prominently
+                        is_crash = test_result.get("is_crash", False)
+                        if is_crash:
+                            print(f"{indent_prefix}  🚨 {test_result['name']}: CRASH")
+                            # Show crash details
+                            exit_code = test_result.get("exit_code")
+                            signal = test_result.get("signal")
+                            if exit_code is not None:
+                                if signal is not None:
+                                    print(
+                                        f"{indent_prefix}    Exit: {exit_code} (signal {signal})"
+                                    )
+                                else:
+                                    print(f"{indent_prefix}    Exit: {exit_code}")
+                        else:
+                            detail_str = (
+                                f" - {test_result.get('detail', '')}"
+                                if test_result.get("detail")
+                                else ""
+                            )
+                            print(
+                                f"{indent_prefix}  {test_result['name']}: {status_enum.display_name()}{detail_str}"
+                            )
 
                         # Show log tail for failed/unexpectedly passed tests with -vv
                         if (
@@ -475,6 +598,9 @@ class Testsuite:
             "result": TestResult.FAILED.value,
             "detail": "",
             "log": "",
+            "is_crash": False,  # New field to track if test crashed
+            "exit_code": None,  # New field to track exit code
+            "signal": None,  # New field to track signal if crashed
         }
 
         # Add --use-rasqal-compare flag if enabled
@@ -526,8 +652,27 @@ class Testsuite:
                 encoding="utf-8",
             )
             return_code = process.returncode
+            result["exit_code"] = return_code
 
-            if return_code != 0:
+            # Detect crashes and abnormal exits
+            is_signal, signal_num = is_signal_termination(return_code)
+            if is_signal:
+                result["is_crash"] = True
+                result["signal"] = signal_num
+                signal_desc = get_signal_description(signal_num)
+                if signal_num == 11:  # SIGSEGV
+                    result["detail"] = f"CRASH: Segmentation fault ({signal_desc})"
+                elif signal_num == 6:  # SIGABRT
+                    result["detail"] = f"CRASH: Aborted ({signal_desc})"
+                elif signal_num == 9:  # SIGKILL
+                    result["detail"] = f"CRASH: Killed ({signal_desc})"
+                elif signal_num == 15:  # SIGTERM
+                    result["detail"] = f"CRASH: Terminated ({signal_desc})"
+                else:
+                    result["detail"] = f"CRASH: Terminated by {signal_desc}"
+                actual_run_status = TestResult.FAILED
+            elif return_code != 0:
+                # Normal non-zero exit code (not a crash)
                 result["detail"] = (
                     f"Action '{action_cmd}' exited with code {return_code}"
                 )
@@ -537,7 +682,57 @@ class Testsuite:
 
             if log_file_path.exists():
                 result["log"] = log_file_path.read_text(encoding="utf-8")
-                if (
+                # For crashes, show more log context
+                if result["is_crash"]:
+                    log_lines = result["log"].splitlines()
+                    if log_lines:
+                        # Show more log context for crashes when --crash-details is enabled
+                        if (
+                            hasattr(self.args, "crash_details")
+                            and self.args.crash_details
+                        ):
+                            # Show last 20 lines for detailed crash reporting
+                            last_lines = (
+                                log_lines[-20:] if len(log_lines) > 20 else log_lines
+                            )
+                            result["detail"] += (
+                                f"\nDetailed crash output (last {len(last_lines)} lines):\n"
+                                + "\n".join(last_lines)
+                            )
+
+                            # Try to identify potential crash patterns
+                            crash_patterns = []
+                            for line in last_lines:
+                                if any(
+                                    pattern in line.lower()
+                                    for pattern in [
+                                        "segfault",
+                                        "segmentation fault",
+                                        "bus error",
+                                        "abort",
+                                        "core dumped",
+                                        "stack trace",
+                                    ]
+                                ):
+                                    crash_patterns.append(line.strip())
+
+                            if crash_patterns:
+                                result[
+                                    "detail"
+                                ] += f"\nCrash indicators found:\n" + "\n".join(
+                                    crash_patterns
+                                )
+                        else:
+                            # Show last 10 lines for normal crash reporting
+                            last_lines = (
+                                log_lines[-10:] if len(log_lines) > 10 else log_lines
+                            )
+                            result[
+                                "detail"
+                            ] += f"\nLast output before crash:\n" + "\n".join(
+                                last_lines
+                            )
+                elif (
                     actual_run_status == TestResult.FAILED
                     and self.args.verbose
                     and not result["detail"]
@@ -548,6 +743,7 @@ class Testsuite:
 
         except Exception as e:
             result["detail"] = f"Failed to execute action '{action_cmd}': {e}"
+            result["is_crash"] = True  # Execution failure is treated as a crash
             actual_run_status = TestResult.FAILED
         finally:
             try:
@@ -643,6 +839,11 @@ Examples:
             action="store_true",
             help="Use rasqal-compare utility for result comparison (experimental)",
         )
+        parser.add_argument(
+            "--crash-details",
+            action="store_true",
+            help="Show enhanced crash details including stack traces and memory information when available",
+        )
 
         return parser
 
@@ -662,11 +863,15 @@ Examples:
         if os.environ.get("RASQAL_COMPARE_ENABLE", "").lower() == "yes":
             if not args.use_rasqal_compare:
                 args.use_rasqal_compare = True
-                logger.warning("RASQAL_COMPARE_ENABLE=yes: automatically enabling --use-rasqal-compare")
+                logger.warning(
+                    "RASQAL_COMPARE_ENABLE=yes: automatically enabling --use-rasqal-compare"
+                )
 
         # Log when --use-rasqal-compare is enabled (either explicitly or via environment variable)
         if args.use_rasqal_compare:
-            logger.warning("--use-rasqal-compare flag enabled: using rasqal-compare utility for result comparison")
+            logger.warning(
+                "--use-rasqal-compare flag enabled: using rasqal-compare utility for result comparison"
+            )
 
     def get_testsuites_from_dir(self, directory: Path) -> List[str]:
         """Get list of available test suites from directory."""
@@ -847,6 +1052,40 @@ Examples:
         print("---")
         print("Total of all Testsuites (completed):")
         format_testsuite_result(sys.stdout, results, "  ", self.args.verbose)
+
+        # Add crash summary if there were any crashes
+        if results:
+            failed_tests = results.get(TestResult.FAILED.value, [])
+            crash_count = sum(1 for test in failed_tests if test.get("is_crash", False))
+            if crash_count > 0:
+                print("\n🚨 CRASH SUMMARY 🚨")
+                print(f"  Total crashes: {crash_count}")
+
+                # Group crashes by signal type
+                signal_counts = {}
+                for test in failed_tests:
+                    if test.get("is_crash", False):
+                        signal = test.get("signal")
+                        if signal:
+                            signal_desc = get_signal_description(signal)
+                            signal_counts[signal_desc] = (
+                                signal_counts.get(signal_desc, 0) + 1
+                            )
+
+                if signal_counts:
+                    print("  Crashes by signal type:")
+                    for signal_desc, count in sorted(signal_counts.items()):
+                        print(f"    {signal_desc}: {count}")
+
+                print(
+                    "  Note: Crashes indicate serious issues that need immediate attention!"
+                )
+                print(
+                    "  Consider running with --debug flags for more detailed crash information."
+                )
+                print(
+                    "  Use --crash-details for enhanced crash reporting with more context."
+                )
 
         return 1 if failures > 0 else 0
 
