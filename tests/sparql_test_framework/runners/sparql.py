@@ -42,8 +42,7 @@ from ..execution import run_roqet_with_format, filter_format_output
 # Create namespace instance for backward compatibility
 NS = Namespaces()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+# Configure logging - will be set properly in process_arguments
 logger = logging.getLogger(__name__)
 
 CURDIR = Path.cwd()
@@ -96,22 +95,77 @@ ROQET_ERR = Path("roqet.err")
 DIFF_OUT = Path("diff.out")
 TO_NTRIPLES_ERR = Path("to_ntriples.err")
 
+# Global to track temporary file paths when using secure temp files
+_temp_file_paths: List[Path] = []
+_temp_file_cache: Dict[str, Path] = {}
+
 
 def get_temp_file_path(filename: str) -> Path:
-    """Get a temporary file path resolved relative to the current working directory."""
-    return Path.cwd() / filename
+    """Get a temporary file path.
+
+    When --preserve-files is not given, creates secure temporary files in /tmp.
+    When --preserve-files is given, uses local files in current working directory.
+
+    Multiple calls with the same filename return the same path to ensure consistency.
+    """
+    global _temp_file_paths, _temp_file_cache
+
+    if _preserve_debug_files:
+        # Use local files for debugging
+        return Path.cwd() / filename
+    else:
+        # Use secure temporary files for parallel execution
+        # Cache paths by filename to ensure consistency
+        if filename not in _temp_file_cache:
+            import tempfile
+
+            temp_file = tempfile.NamedTemporaryFile(
+                prefix=f"rasqal_test_{filename}_", suffix="", delete=False, dir="/tmp"
+            )
+            temp_path = Path(temp_file.name)
+            temp_file.close()
+            _temp_file_paths.append(temp_path)
+            _temp_file_cache[filename] = temp_path
+
+        return _temp_file_cache[filename]
 
 
 def cleanup_temp_files() -> None:
     """Clean up temporary files if not preserving them."""
+    global _temp_file_paths
+
     if not _preserve_debug_files:
+        # Clean up secure temporary files
+        for temp_file in _temp_file_paths:
+            if temp_file.exists():
+                try:
+                    temp_file.unlink()
+                except OSError:
+                    pass  # Ignore cleanup errors
+        _temp_file_paths.clear()
+        _temp_file_cache.clear()
+
+        # Also clean up any orphaned rasqal test files in /tmp
+        try:
+            import tempfile
+            import glob
+
+            temp_pattern = "/tmp/rasqal_test_*"
+            for orphaned_file in glob.glob(temp_pattern):
+                try:
+                    Path(orphaned_file).unlink()
+                except OSError:
+                    pass  # Ignore cleanup errors
+        except Exception:
+            pass  # Ignore cleanup errors
+    else:
+        # Clean up local files
         temp_files = [
-            get_temp_file_path("roqet.out"),
-            get_temp_file_path("result.out"),
-            get_temp_file_path("roqet.tmp"),
-            get_temp_file_path("roqet.err"),
-            get_temp_file_path("diff.out"),
-            get_temp_file_path("to_ntriples.err"),
+            Path.cwd() / "roqet.out",
+            Path.cwd() / "roqet.tmp",
+            Path.cwd() / "roqet.err",
+            Path.cwd() / "diff.out",
+            Path.cwd() / "to_ntriples.err",
         ]
         for temp_file in temp_files:
             if temp_file.exists():
@@ -279,15 +333,21 @@ def _build_actual_from_srx(
                     normalized_output = normalize_blank_nodes(ntriples_result.stdout)
                     # Prepare sorted unique triples (skip directives)
                     actual_triples = [
-                        line for line in normalized_output.split("\n") if line.strip() and not line.startswith("@")
+                        line
+                        for line in normalized_output.split("\n")
+                        if line.strip() and not line.startswith("@")
                     ]
                     triple_count = len(actual_triples)
-                    sorted_actual_triples = "\n".join(sorted(set(actual_triples))) + ("\n" if actual_triples else "")
+                    sorted_actual_triples = "\n".join(sorted(set(actual_triples))) + (
+                        "\n" if actual_triples else ""
+                    )
                     # Write normalized, sorted N-Triples output
                     try:
                         get_temp_file_path("roqet.tmp").write_text(normalized_output)
                         # Write normalized N-Triples to output path used by comparisons
-                        get_temp_file_path("roqet.out").write_text(sorted_actual_triples)
+                        get_temp_file_path("roqet.out").write_text(
+                            sorted_actual_triples
+                        )
                     except Exception:
                         pass
                 else:
@@ -304,10 +364,16 @@ def _build_actual_from_srx(
                     try:
                         get_temp_file_path("roqet.tmp").write_text(normalized_turtle)
                         actual_triples = [
-                            line for line in normalized_turtle.split("\n") if line.strip() and not line.startswith("@")
+                            line
+                            for line in normalized_turtle.split("\n")
+                            if line.strip() and not line.startswith("@")
                         ]
-                        sorted_actual_triples = "\n".join(sorted(set(actual_triples))) + ("\n" if actual_triples else "")
-                        get_temp_file_path("roqet.out").write_text(sorted_actual_triples)
+                        sorted_actual_triples = "\n".join(
+                            sorted(set(actual_triples))
+                        ) + ("\n" if actual_triples else "")
+                        get_temp_file_path("roqet.out").write_text(
+                            sorted_actual_triples
+                        )
                     except Exception:
                         pass
             finally:
@@ -458,20 +524,9 @@ def _build_actual_from_srx(
         try:
             roqet_tmp_path = get_temp_file_path("roqet.tmp")
             roqet_out_path = get_temp_file_path("roqet.out")
-            logger.debug(f"Writing to ROQET_TMP: {roqet_tmp_path}")
-            logger.debug(f"Writing to ROQET_OUT: {roqet_out_path}")
-            logger.debug(f"Current working directory: {Path.cwd()}")
-            logger.debug(f"ROQET_TMP absolute path: {roqet_tmp_path.absolute()}")
-            logger.debug(f"ROQET_OUT absolute path: {roqet_out_path.absolute()}")
             roqet_tmp_path.write_text(content)
-            logger.debug(
-                f"After writing to ROQET_TMP, file exists: {roqet_tmp_path.exists()}"
-            )
             roqet_out_path.write_text(content)
-            logger.debug(
-                f"After writing to ROQET_OUT, file exists: {roqet_out_path.exists()}"
-            )
-            logger.debug(f"Successfully wrote to both files")
+            # Debug message moved to level 2 - file paths are now unique when not using --preserve
         except Exception as e:
             logger.error(f"Error writing to output files: {e}")
             pass
@@ -709,13 +764,10 @@ def read_query_results_file(
 
         # Always write to file for comparison, cleanup later if not preserving
         result_out_path = get_temp_file_path("result.out")
-        logger.debug(f"About to write to RESULT_OUT: {result_out_path}")
         content_to_write = (
             "\n".join(parsed_rows_for_output) + "\n" if parsed_rows_for_output else ""
         )
-        logger.debug(f"Content to write: {repr(content_to_write)}")
         result_out_path.write_text(content_to_write)
-        logger.debug(f"Successfully wrote to RESULT_OUT")
 
         return {
             "content": (
@@ -947,6 +999,9 @@ def _compare_actual_vs_expected(
     Updates test_result_summary with comparison details.
     """
     name = test_result_summary["name"]
+    logger.debug(
+        f"_compare_actual_vs_expected called for test '{name}' with debug_level={global_debug_level}"
+    )
     actual_result_type = actual_result_info["result_type"]
     actual_results_count = actual_result_info["roqet_results_count"]
     actual_vars_order = actual_result_info["vars_order"]
@@ -975,7 +1030,9 @@ def _compare_actual_vs_expected(
             # Always write to file for comparison, cleanup later if not preserving
             # Write normalized N-Triples to output path used by comparisons
             expected_sorted_nt = (
-                "\n".join(sorted_expected_triples) + "\n" if sorted_expected_triples else ""
+                "\n".join(sorted_expected_triples) + "\n"
+                if sorted_expected_triples
+                else ""
             )
             get_temp_file_path("result.out").write_text(expected_sorted_nt)
         else:
@@ -1024,16 +1081,36 @@ def _compare_actual_vs_expected(
         return
 
     # If processing expected results didn't fail, proceed to comparison
+    logger.debug(
+        f"About to start comparison for test '{name}' (type: {actual_result_type})"
+    )
+    if global_debug_level > 0:
+        logger.debug(
+            f"Starting comparison for test '{name}' (type: {actual_result_type})"
+        )
+        logger.debug(f"Debug level: {global_debug_level}")
+        if not use_rasqal_compare:
+            logger.debug("Using system diff for comparison")
+        else:
+            logger.debug("Using rasqal-compare for comparison")
+
     comparison_rc = -1
     if actual_result_type == "graph":
         # Use rasqal-compare when explicitly enabled, otherwise internal comparator
         if use_rasqal_compare:
             logger.debug("Using rasqal-compare for graph comparison")
+            expected_file = get_temp_file_path("result.out")
+            actual_file = get_temp_file_path("roqet.out")
+            diff_file = get_temp_file_path("diff.out")
+            logger.debug(f"Comparing expected graph: {expected_file}")
+            logger.debug(f"Comparing actual graph: {actual_file}")
+            logger.debug(f"Writing diff to: {diff_file}")
+
             # Use rasqal-compare over normalized N-Triples
             comparison_rc = compare_with_rasqal_compare(
-                get_temp_file_path("result.out"),
-                get_temp_file_path("roqet.out"),
-                get_temp_file_path("diff.out"),
+                expected_file,
+                actual_file,
+                diff_file,
                 "unified",
                 data_input_format="ntriples",
             )
@@ -1041,17 +1118,31 @@ def _compare_actual_vs_expected(
                 logger.debug(
                     "rasqal-compare returned error (rc=2); falling back to internal graph comparison"
                 )
+                expected_file = get_temp_file_path("result.out")
+                actual_file = get_temp_file_path("roqet.out")
+                diff_file = get_temp_file_path("diff.out")
+                logger.debug(f"Fallback: Comparing expected graph: {expected_file}")
+                logger.debug(f"Fallback: Comparing actual graph: {actual_file}")
+                logger.debug(f"Fallback: Writing diff to: {diff_file}")
+
                 comparison_rc = compare_rdf_graphs(
-                    get_temp_file_path("result.out"),
-                    get_temp_file_path("roqet.out"),
-                    get_temp_file_path("diff.out"),
+                    expected_file,
+                    actual_file,
+                    diff_file,
                 )
         else:
             logger.debug("Using internal graph comparison")
+            expected_file = get_temp_file_path("result.out")
+            actual_file = get_temp_file_path("roqet.out")
+            diff_file = get_temp_file_path("diff.out")
+            logger.debug(f"Comparing expected graph: {expected_file}")
+            logger.debug(f"Comparing actual graph: {actual_file}")
+            logger.debug(f"Writing diff to: {diff_file}")
+
             comparison_rc = compare_rdf_graphs(
-                get_temp_file_path("result.out"),
-                get_temp_file_path("roqet.out"),
-                get_temp_file_path("diff.out"),
+                expected_file,
+                actual_file,
+                diff_file,
             )
     elif (
         actual_result_type == "boolean"
@@ -1083,12 +1174,16 @@ def _compare_actual_vs_expected(
 
             # Always use system diff for bindings comparison
             logger.debug("Using system diff for bindings comparison")
+            expected_file = get_temp_file_path("result.out")
+            actual_file = roqet_tmp_path
+            # File path debug messages moved to level 2 - file paths are now unique when not using --preserve
+
             diff_result = run_command(
                 [
                     DIFF_CMD,
                     "-u",
-                    str(get_temp_file_path("result.out")),
-                    str(roqet_tmp_path),
+                    str(expected_file),
+                    str(actual_file),
                 ],
                 CURDIR,
                 "Error generating diff",
@@ -1106,9 +1201,163 @@ def _compare_actual_vs_expected(
     if comparison_rc == 0:
         logger.info(f"Test '{name}': OK (results match)")
         test_result_summary["result"] = "success"
+
+        # Show file contents in debug mode even when they match
+        if global_debug_level > 0:
+            logger.debug(f"Test '{name}' passed - files match exactly")
+            if not use_rasqal_compare:
+                # Show a brief summary of what matched
+                try:
+                    expected_path = get_temp_file_path("result.out")
+                    actual_path = get_temp_file_path("roqet.out")
+
+                    if expected_path.exists() and actual_path.exists():
+                        expected_size = expected_path.stat().st_size
+                        actual_size = actual_path.stat().st_size
+                        logger.debug(
+                            f"Expected file size: {expected_size} bytes, Actual file size: {actual_size} bytes"
+                        )
+
+                        if global_debug_level > 1:  # Only show content in verbose mode
+                            try:
+                                expected_content = expected_path.read_text()
+                                logger.debug(
+                                    f"Expected content (first 200 chars): {expected_content[:200]}{'...' if len(expected_content) > 200 else ''}"
+                                )
+                            except Exception as e:
+                                logger.debug(f"Could not read expected file: {e}")
+                except Exception as e:
+                    logger.debug(f"Could not show file details: {e}")
     else:
         logger.warning(f"Test '{name}': FAILED (results do not match)")
         test_result_summary["result"] = "failure"
+
+        # Show diff output in debug mode
+        if global_debug_level > 0:
+            if not use_rasqal_compare:
+                try:
+                    # Show expected vs actual file contents for debugging
+                    expected_path = get_temp_file_path("result.out")
+                    actual_path = get_temp_file_path("roqet.out")
+
+                    if expected_path.exists() and actual_path.exists():
+                        # File path debug messages moved to level 2 - file paths are now unique when not using --preserve
+                        logger.debug("Expected result file:")
+                        logger.debug("-" * 40)
+                        try:
+                            expected_content = expected_path.read_text()
+                            logger.debug(
+                                expected_content
+                                if expected_content.strip()
+                                else "(empty)"
+                            )
+                        except Exception as e:
+                            logger.debug(f"Could not read expected file: {e}")
+                        logger.debug("-" * 40)
+
+                        logger.debug("Actual result file:")
+                        logger.debug("-" * 40)
+                        try:
+                            actual_content = actual_path.read_text()
+                            logger.debug(
+                                actual_content if actual_content.strip() else "(empty)"
+                            )
+                        except Exception as e:
+                            logger.debug(f"Could not read actual file: {e}")
+                        logger.debug("-" * 40)
+
+                    # Show the diff output
+                    diff_path = get_temp_file_path("diff.out")
+                    if diff_path.exists():
+                        diff_content = diff_path.read_text()
+                        if diff_content.strip():
+                            logger.debug(f"Diff output for test '{name}':")
+                            logger.debug("=" * 60)
+                            logger.debug(diff_content)
+                            logger.debug("=" * 60)
+                        else:
+                            logger.debug(f"No diff content available for test '{name}'")
+                    else:
+                        logger.debug(f"Diff file not found for test '{name}'")
+                except Exception as e:
+                    logger.debug(f"Could not read diff file for test '{name}': {e}")
+            else:
+                # When using rasqal-compare, show the diff output
+                try:
+                    diff_path = get_temp_file_path("diff.out")
+                    if diff_path.exists():
+                        diff_content = diff_path.read_text()
+                        if diff_content.strip():
+                            logger.debug(
+                                f"rasqal-compare diff output for test '{name}':"
+                            )
+                            logger.debug("=" * 60)
+                            logger.debug(diff_content)
+                            logger.debug("=" * 60)
+                        else:
+                            logger.debug(
+                                f"No rasqal-compare diff content available for test '{name}'"
+                            )
+                    else:
+                        logger.debug(
+                            f"rasqal-compare diff file not found for test '{name}'"
+                        )
+                except Exception as e:
+                    logger.debug(
+                        f"Could not read rasqal-compare diff file for test '{name}': {e}"
+                    )
+
+        # Always show a brief summary of differences for failures (even without debug mode)
+        try:
+            expected_path = get_temp_file_path("result.out")
+            actual_path = get_temp_file_path("roqet.out")
+
+            if expected_path.exists() and actual_path.exists():
+                try:
+                    expected_content = expected_path.read_text().strip()
+                    actual_content = actual_path.read_text().strip()
+
+                    # Generate a concise summary
+                    if not expected_content and not actual_content:
+                        logger.warning("  Both expected and actual results are empty")
+                    elif not expected_content:
+                        logger.warning(
+                            f"  Expected: empty, Actual: {len(actual_content)} chars"
+                        )
+                    elif not actual_content:
+                        logger.warning(
+                            f"  Expected: {len(expected_content)} chars, Actual: empty"
+                        )
+                    else:
+                        # Count lines for a quick comparison
+                        expected_lines = len(expected_content.splitlines())
+                        actual_lines = len(actual_content.splitlines())
+                        if expected_lines != actual_lines:
+                            logger.warning(
+                                f"  Expected: {expected_lines} lines, Actual: {actual_lines} lines"
+                            )
+                        else:
+                            logger.warning(
+                                f"  Expected: {len(expected_content)} chars, Actual: {len(actual_content)} chars"
+                            )
+
+                    # Show first few characters of each for quick identification
+                    if expected_content and actual_content:
+                        expected_preview = (
+                            expected_content[:100].replace("\n", " ").strip()
+                        )
+                        actual_preview = actual_content[:100].replace("\n", " ").strip()
+                        if expected_preview != actual_preview:
+                            logger.warning(f"  Expected preview: {expected_preview}...")
+                            logger.warning(f"  Actual preview: {actual_preview}...")
+
+                except Exception as e:
+                    logger.warning(f"  Could not generate difference summary: {e}")
+            else:
+                logger.warning("  Result files not available for comparison")
+        except Exception as e:
+            logger.warning(f"  Error generating difference summary: {e}")
+
         # Try to read diff file, but handle case where it doesn't exist gracefully
         try:
             diff_path = get_temp_file_path("diff.out")
@@ -1193,7 +1442,9 @@ def compare_rdf_graphs(
     """
     try:
         result = run_command(
-            [DIFF_CMD, "-u", str(file1_path), str(file2_path)], CURDIR, "Error running diff"
+            [DIFF_CMD, "-u", str(file1_path), str(file2_path)],
+            CURDIR,
+            "Error running diff",
         )
         diff_output_path.write_text(result.stdout + (result.stderr or ""))
         return result.returncode
@@ -1318,6 +1569,8 @@ def run_single_test(
     Runs a single SPARQL test using roqet and compares results.
     Returns a dictionary summarizing the test outcome.
     """
+    logger.debug(f"run_single_test called with debug_level={global_debug_level}")
+
     test_result_summary: Dict[str, Any] = {
         "name": config.name,
         "uri": config.test_uri,
@@ -1374,7 +1627,144 @@ def run_single_test(
             outcome_msg = f"exited with status {roqet_execution_data['returncode']}"
             if global_debug_level > 0:
                 logger.debug(f"roqet for '{config.name}' {outcome_msg}")
+
             if config.expect == TestResult.FAILED:
+                # For expected failure tests, show debug output even when roqet fails
+                if global_debug_level > 0:
+                    logger.debug(
+                        f"Test '{config.name}' failed as expected, but showing debug output for analysis"
+                    )
+
+                    # Try to build actual results for debug output even though roqet failed
+                    try:
+                        logger.debug(
+                            f"Attempting to build actual results for debug output"
+                        )
+                        actual_result_info = _build_actual_from_srx(
+                            config,
+                            expected_vars_order=[],
+                            sort_output=True,
+                        ) or {
+                            "result_type": "bindings",
+                            "roqet_results_count": 0,
+                            "vars_order": [],
+                            "is_sorted_by_query": False,
+                            "boolean_value": None,
+                            "content": "",
+                            "count": 0,
+                            "format": "bindings",
+                        }
+
+                        if actual_result_info and actual_result_info.get("content"):
+                            logger.debug(
+                                f"Actual results content (from failed execution):"
+                            )
+                            logger.debug("-" * 40)
+                            logger.debug(actual_result_info.get("content", ""))
+                            logger.debug("-" * 40)
+
+                            # Also show expected results if available
+                            if config.result_file and config.result_file.exists():
+                                logger.debug(
+                                    f"Expected results file: {config.result_file}"
+                                )
+                                try:
+                                    expected_content = config.result_file.read_text()
+                                    if expected_content.strip():
+                                        logger.debug(f"Expected results content:")
+                                        logger.debug("-" * 40)
+                                        logger.debug(expected_content)
+                                        logger.debug("-" * 40)
+                                    else:
+                                        logger.debug("Expected results file is empty")
+                                except Exception as e:
+                                    logger.debug(
+                                        f"Could not read expected results: {e}"
+                                    )
+                        else:
+                            logger.debug("No actual results available for debug output")
+
+                            # Still try to show file contents even without structured results
+                            if config.result_file and config.result_file.exists():
+                                logger.debug("Showing expected result file contents:")
+                                try:
+                                    expected_content = config.result_file.read_text()
+                                    logger.debug("=" * 60)
+                                    logger.debug("EXPECTED RESULT FILE:")
+                                    logger.debug("=" * 60)
+                                    logger.debug(
+                                        expected_content
+                                        if expected_content.strip()
+                                        else "(empty)"
+                                    )
+                                    logger.debug("=" * 60)
+                                except Exception as e:
+                                    logger.debug(
+                                        f"Could not read expected result file: {e}"
+                                    )
+
+                            # Show roqet output files if they exist
+                            roqet_tmp_path = get_temp_file_path("roqet.tmp")
+                            roqet_out_path = get_temp_file_path("roqet.out")
+
+                            if roqet_tmp_path.exists():
+                                logger.debug(
+                                    "Showing actual roqet output (from failed execution):"
+                                )
+                                try:
+                                    actual_content = roqet_tmp_path.read_text()
+                                    logger.debug("=" * 60)
+                                    logger.debug("ACTUAL ROQET OUTPUT (FAILED):")
+                                    logger.debug("=" * 60)
+                                    logger.debug(
+                                        actual_content
+                                        if actual_content.strip()
+                                        else "(empty)"
+                                    )
+                                    logger.debug("=" * 60)
+                                except Exception as e:
+                                    logger.debug(f"Could not read roqet output: {e}")
+
+                            # File content debug messages moved to level 2 - file paths are now unique when not using --preserve
+
+                            # Try to generate a diff between expected and actual
+                            if (
+                                config.result_file
+                                and config.result_file.exists()
+                                and roqet_tmp_path.exists()
+                            ):
+                                logger.debug(
+                                    "Generating diff between expected and actual (failed execution):"
+                                )
+                                try:
+                                    diff_result = run_command(
+                                        [
+                                            DIFF_CMD,
+                                            "-u",
+                                            str(config.result_file),
+                                            str(roqet_tmp_path),
+                                        ],
+                                        CURDIR,
+                                        "Error generating diff",
+                                    )
+                                    if diff_result.returncode == 0:
+                                        logger.debug("Files are identical (no diff)")
+                                    else:
+                                        logger.debug("=" * 60)
+                                        logger.debug("DIFF OUTPUT (FAILED EXECUTION):")
+                                        logger.debug("=" * 60)
+                                        logger.debug(
+                                            diff_result.stdout
+                                            if diff_result.stdout
+                                            else "(no diff output)"
+                                        )
+                                        logger.debug("=" * 60)
+                                except Exception as e:
+                                    logger.debug(f"Could not generate diff: {e}")
+
+                    except Exception as e:
+                        logger.debug(f"Error building debug output: {e}")
+
                 logger.info(
                     f"Test '{config.name}': OK (roqet failed as expected: {outcome_msg})"
                 )
@@ -1407,6 +1797,168 @@ def run_single_test(
             final_result, detail = TestTypeResolver.determine_test_result(
                 config.expect, TestResult.PASSED
             )
+
+            # For expected failure tests that succeeded, show debug output to understand why
+            if global_debug_level > 0:
+                logger.debug(
+                    f"Test '{config.name}' was expected to fail but succeeded - showing debug output for analysis"
+                )
+
+                # Try to build actual results for debug output
+                try:
+                    logger.debug(f"Attempting to build actual results for debug output")
+                    actual_result_info = _build_actual_from_srx(
+                        config,
+                        expected_vars_order=[],
+                        sort_output=True,
+                    ) or {
+                        "result_type": "bindings",
+                        "roqet_results_count": 0,
+                        "vars_order": [],
+                        "is_sorted_by_query": False,
+                        "boolean_value": None,
+                        "content": "",
+                        "count": 0,
+                        "format": "bindings",
+                    }
+
+                    if actual_result_info and actual_result_info.get("content"):
+                        logger.debug(
+                            f"Actual results content (from unexpected success):"
+                        )
+                        logger.debug("-" * 40)
+                        logger.debug(actual_result_info.get("content", ""))
+                        logger.debug("-" * 40)
+
+                        # Also show expected results if available
+                        if config.result_file and config.result_file.exists():
+                            logger.debug(f"Expected results file: {config.result_file}")
+                            try:
+                                expected_content = config.result_file.read_text()
+                                if expected_content.strip():
+                                    logger.debug(f"Expected results content:")
+                                    logger.debug("-" * 40)
+                                    logger.debug(expected_content)
+                                    logger.debug("-" * 40)
+                                else:
+                                    logger.debug("Expected results file is empty")
+                            except Exception as e:
+                                logger.debug(f"Could not read expected results: {e}")
+                    else:
+                        logger.debug("No actual results available for debug output")
+
+                        # Still try to show file contents even without structured results
+                        if config.result_file and config.result_file.exists():
+                            logger.debug("Showing expected result file contents:")
+                            try:
+                                expected_content = config.result_file.read_text()
+                                logger.debug("=" * 60)
+                                logger.debug("EXPECTED RESULT FILE:")
+                                logger.debug("=" * 60)
+                                logger.debug(
+                                    expected_content
+                                    if expected_content.strip()
+                                    else "(empty)"
+                                )
+                                logger.debug("=" * 60)
+                            except Exception as e:
+                                logger.debug(
+                                    f"Could not read expected result file: {e}"
+                                )
+
+                        # Show roqet output files
+                        roqet_tmp_path = get_temp_file_path("roqet.tmp")
+                        roqet_out_path = get_temp_file_path("roqet.out")
+
+                        if roqet_tmp_path.exists():
+                            logger.debug("Showing actual roqet output:")
+                            try:
+                                actual_content = roqet_tmp_path.read_text()
+                                logger.debug("=" * 60)
+                                logger.debug("ACTUAL ROQET OUTPUT:")
+                                logger.debug("=" * 60)
+                                logger.debug(
+                                    actual_content
+                                    if actual_content.strip()
+                                    else "(empty)"
+                                )
+                                logger.debug("=" * 60)
+                            except Exception as e:
+                                logger.debug(f"Could not read roqet output: {e}")
+
+                        # File content debug messages moved to level 2 - file paths are now unique when not using --preserve
+
+                        # Try to generate a diff between expected and actual
+                        if (
+                            config.result_file
+                            and config.result_file.exists()
+                            and roqet_tmp_path.exists()
+                        ):
+                            logger.debug("Generating diff between expected and actual:")
+                            try:
+                                diff_result = run_command(
+                                    [
+                                        DIFF_CMD,
+                                        "-u",
+                                        str(config.result_file),
+                                        str(roqet_tmp_path),
+                                    ],
+                                    CURDIR,
+                                    "Error generating diff",
+                                )
+                                if diff_result.returncode == 0:
+                                    logger.debug("Files are identical (no diff)")
+                                else:
+                                    logger.debug("=" * 60)
+                                    logger.debug("DIFF OUTPUT:")
+                                    logger.debug("=" * 60)
+                                    logger.debug(
+                                        diff_result.stdout
+                                        if diff_result.stdout
+                                        else "(no diff output)"
+                                    )
+                                    logger.debug("=" * 60)
+                            except Exception as e:
+                                logger.debug(f"Could not generate diff: {e}")
+
+                except Exception as e:
+                    logger.debug(f"Error building debug output: {e}")
+
+            # Always show a brief summary of what happened (even without debug mode)
+            try:
+                if config.result_file and config.result_file.exists():
+                    expected_content = config.result_file.read_text().strip()
+                    expected_lines = (
+                        len(expected_content.splitlines()) if expected_content else 0
+                    )
+                    logger.warning(
+                        f"  Expected: {len(expected_content)} chars ({expected_lines} lines)"
+                    )
+                else:
+                    logger.warning("  Expected: no result file specified")
+
+                roqet_tmp_path = get_temp_file_path("roqet.tmp")
+                if roqet_tmp_path.exists():
+                    actual_content = roqet_tmp_path.read_text().strip()
+                    actual_lines = (
+                        len(actual_content.splitlines()) if actual_content else 0
+                    )
+                    logger.warning(
+                        f"  Actual: {len(actual_content)} chars ({actual_lines} lines)"
+                    )
+
+                    # Show preview of what was actually produced
+                    if actual_content:
+                        preview = actual_content[:100].replace("\n", " ").strip()
+                        logger.warning(f"  Actual preview: {preview}...")
+                    else:
+                        logger.warning("  Actual: empty output")
+                else:
+                    logger.warning("  Actual: no output file available")
+
+            except Exception as e:
+                logger.warning(f"  Could not generate summary: {e}")
+
             logger.warning(
                 f"Test '{config.name}': FAILED (roqet succeeded, but was expected to fail)"
             )
@@ -1419,6 +1971,25 @@ def run_single_test(
         if not config.execute:  # Syntax test (positive or negative)
             if config.expect == TestResult.FAILED:
                 # Negative syntax test - roqet should have failed
+                if global_debug_level > 0:
+                    logger.debug(
+                        f"Test '{config.name}' was a negative syntax test expected to fail, but roqet succeeded"
+                    )
+                    logger.debug(
+                        "This indicates the query parser is more permissive than expected"
+                    )
+
+                    # Show the query content for analysis
+                    if config.test_file and config.test_file.exists():
+                        try:
+                            query_content = config.test_file.read_text()
+                            logger.debug(f"Query content that should have failed:")
+                            logger.debug("-" * 40)
+                            logger.debug(query_content)
+                            logger.debug("-" * 40)
+                        except Exception as e:
+                            logger.debug(f"Could not read query file: {e}")
+
                 logger.warning(
                     f"Test '{config.name}': FAILED (negative syntax test, but roqet succeeded)"
                 )
@@ -1452,12 +2023,7 @@ def run_single_test(
             }
 
             logger.debug(f"_build_actual_from_srx returned: {actual_result_info}")
-            logger.debug(
-                f"ROQET_TMP exists: {get_temp_file_path('roqet.tmp').exists()}"
-            )
-            logger.debug(
-                f"RESULT_OUT exists: {get_temp_file_path('result.out').exists()}"
-            )
+            # File existence debug messages moved to level 2 - file paths are now unique when not using --preserve
 
             _compare_actual_vs_expected(
                 test_result_summary,
@@ -1577,10 +2143,14 @@ Examples:
             self.args.srcdir = Path(".")
 
         # Setup logging
-        if args.debug >= 2:
+        if args.debug >= 1:
             logging.getLogger().setLevel(logging.DEBUG)
-        elif args.debug >= 1:
+            logging.basicConfig(
+                level=logging.DEBUG, format="%(levelname)s: %(message)s"
+            )
+        else:
             logging.getLogger().setLevel(logging.INFO)
+            logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
         # Set global file preservation flag
         global _preserve_debug_files
@@ -1612,7 +2182,9 @@ Examples:
                 f"Manifest file not found: {self.args.manifest_file}"
             )
 
-        parser = ManifestParser(self.args.manifest_file)
+        parser = ManifestParser(
+            self.args.manifest_file, debug_level=self.global_debug_level
+        )
         test_configs = parser.get_tests(self.args.srcdir)
 
         # Set warning level on all test configurations
@@ -1702,6 +2274,10 @@ Examples:
         parser = self.setup_argument_parser()
         args = parser.parse_args()
         self.process_arguments(args)
+
+        # Debug confirmation
+        logger.debug(f"Debug level set to: {self.global_debug_level}")
+        logger.debug(f"Logging level set to: {logging.getLogger().getEffectiveLevel()}")
 
         try:
             # Discover and filter tests

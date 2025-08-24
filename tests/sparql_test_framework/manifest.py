@@ -61,6 +61,7 @@ class ManifestParser:
         manifest_path: Path,
         to_ntriples_cmd: Optional[str] = None,
         skip_tool_validation: bool = False,
+        debug_level: int = 0,
     ):
         """
         Initialize manifest parser.
@@ -82,6 +83,7 @@ class ManifestParser:
                         "Could not find 'to-ntriples' command. Please ensure it is built and available in PATH."
                     )
         self.to_ntriples_cmd = to_ntriples_cmd
+        self.debug_level = debug_level
         self.triples_by_subject: Dict[str, List[Dict[str, Any]]] = {}
         if not skip_tool_validation:
             self._parse()
@@ -162,7 +164,10 @@ class ManifestParser:
         logger.debug(
             f"ManifestParser._parse: First 200 chars of stdout: {process.stdout[:200]}"
         )
-        logger.debug(f"N-Triples output from {self.to_ntriples_cmd}:\n{process.stdout}")
+        if self.debug_level >= 2:
+            logger.debug(
+                f"N-Triples output from {self.to_ntriples_cmd}:\n{process.stdout}"
+            )
 
         line_count = 0
         for line in process.stdout.splitlines():
@@ -172,12 +177,18 @@ class ManifestParser:
                 self.triples_by_subject.setdefault(s, []).append(
                     {"p": p, "o_full": o_full}
                 )
-                logger.debug(f"Parsed and stored triple: (S: {s}, P: {p}, O: {o_full})")
+                if self.debug_level >= 2:
+                    logger.debug(
+                        f"Parsed and stored triple: (S: {s}, P: {p}, O: {o_full})"
+                    )
 
         logger.debug(
             f"ManifestParser._parse: Processed {line_count} lines, found {len(self.triples_by_subject)} subjects"
         )
-        logger.debug(f"Finished parsing. Triples by subject: {self.triples_by_subject}")
+        if self.debug_level >= 2:
+            logger.debug(
+                f"Finished parsing. Triples by subject: {self.triples_by_subject}"
+            )
 
     def _parse_nt_line(
         self, line: str
@@ -324,7 +335,9 @@ class ManifestParser:
                     logger.debug(f"Processing included manifest: {included_path}")
                     try:
                         nested_parser = ManifestParser(
-                            included_path, self.to_ntriples_cmd
+                            included_path,
+                            self.to_ntriples_cmd,
+                            debug_level=self.debug_level,
                         )
                         nested_tests = nested_parser.get_tests(
                             srcdir, unique_test_filter
