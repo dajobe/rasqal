@@ -969,7 +969,7 @@ handle_execute_sparql_query_tool(const char* id, yajl_val arguments, char* respo
   query_val = yajl_tree_get(arguments, (const char*[]){"query", 0}, yajl_t_any);
   if(!query_val || !YAJL_IS_STRING(query_val))
     return create_error_response(-32602, "Invalid params",
-                                 "Missing query parameter", ctx.id,
+                                 "Missing query parameter", id,
                                  response_buffer, response_len);
 
   query = YAJL_GET_STRING(query_val);
@@ -1061,7 +1061,7 @@ handle_validate_sparql_query_tool(const char* id, yajl_val arguments, char* resp
   if(!query_val || !YAJL_IS_STRING(query_val))
     return create_error_response(-32602, "Invalid params",
                                  "Missing query parameter",
-                                 ctx.id, response_buffer, response_len);
+                                 id, response_buffer, response_len);
 
   query = YAJL_GET_STRING(query_val);
 
