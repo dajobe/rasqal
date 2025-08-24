@@ -22,7 +22,7 @@
 
 bin_PROGRAMS = roqet rasqal-compare
 noinst_PROGRAMS = to-ntriples
-EXTRA_PROGRAMS = srxread srxwrite testrunner
+EXTRA_PROGRAMS = srxread srxwrite testrunner rasqal-mcp-server
 
 CLEANFILES = $(EXTRA_PROGRAMS) *.plist
 
@@ -74,6 +74,17 @@ rasqal_compare_LDADD += $(top_builddir)/getopt/libgetopt.la
 rasqal_compare_DEPENDENCIES += $(top_builddir)/libgetopt/libgetopt.la
 endif
 
+rasqal_mcp_server_SOURCES = rasqal-mcp-server.c
+rasqal_mcp_server_CPPFLAGS = $(AM_CPPFLAGS)
+rasqal_mcp_server_LDADD = $(top_builddir)/src/librasqal.la librasqalcmdline.la
+rasqal_mcp_server_DEPENDENCIES = $(top_builddir)/src/librasqal.la librasqalcmdline.la
+rasqal_mcp_server_LDFLAGS = @RAPTOR2_LIBS@
+if GETOPT
+rasqal_mcp_server_CPPFLAGS += -I$(top_srcdir)/getopt
+rasqal_mcp_server_LDADD += $(top_builddir)/getopt/libgetopt.la
+rasqal_mcp_server_DEPENDENCIES += $(top_builddir)/libgetopt/libgetopt.la
+endif
+
 testrunner_SOURCES = testrunner.c
 testrunner_CPPFLAGS = $(AM_CPPFLAGS)
 testrunner_LDADD = $(top_builddir)/src/librasqal.la librasqalcmdline.la
@@ -102,7 +113,8 @@ srxwrite_LDFLAGS = @RAPTOR2_LIBS@
 EXTRA_DIST= \
 $(man_MANS) \
 roqet.html \
-rasqal-compare.html
+rasqal-compare.html \
+test-mcp-server.py
 
 if MAINTAINER_MODE
 roqet.html: $(srcdir)/roqet.1 $(srcdir)/../scripts/fix-groff-xhtml.py
@@ -138,5 +150,10 @@ analyze: $(SOURCES)
 	done; \
 	set -e; exit $$result
 endif
+
+# Test the MCP server
+test-mcp-server: rasqal-mcp-server
+	@echo "Running MCP server smoke tests..."
+	@$(PYTHON3) $(srcdir)/test-mcp-server.py ./rasqal-mcp-server
 
 all-programs: $(PROGRAMS) $(EXTRA_PROGRAMS)
