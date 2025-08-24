@@ -485,11 +485,7 @@ handle_list_tools(const char* id, char* response_buffer, size_t* response_len)
     raptor_iostream_string_write((const unsigned char*)"\",\"description\":\"", iostr);
     raptor_iostream_string_write((const unsigned char*)mcp_tools[i].description, iostr);
     raptor_iostream_string_write((const unsigned char*)"\",\"inputSchema\":", iostr);
-    raptor_iostream_write_byte('\"', iostr);
-    raptor_string_escaped_write((const unsigned char*)mcp_tools[i].inputSchema,
-                                strlen(mcp_tools[i].inputSchema), '\"',
-                                RAPTOR_ESCAPED_WRITE_JSON_LITERAL, iostr);
-    raptor_iostream_write_byte('\"', iostr);
+    raptor_iostream_string_write((const unsigned char*)mcp_tools[i].inputSchema, iostr);
     raptor_iostream_string_write((const unsigned char*)"}", iostr);
   }
 
