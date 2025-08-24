@@ -204,7 +204,10 @@ class MCPServerTester:
             print("  ❌ Invalid JSON-RPC response structure")
             return False
 
-        result = response["result"]
+        if "structuredContent" not in response["result"]:
+            print("  ❌ Missing structuredContent in result")
+            return False
+        result = response["result"]["structuredContent"]
         required_fields = ["rdf_formats", "result_formats", "query_languages"]
 
         for field in required_fields:
@@ -256,7 +259,10 @@ class MCPServerTester:
             print("  ❌ Invalid JSON-RPC response structure")
             return False
 
-        result = response["result"]
+        if "structuredContent" not in response["result"]:
+            print("  ❌ Missing structuredContent in result")
+            return False
+        result = response["result"]["structuredContent"]
         if "valid" not in result or not result["valid"]:
             print("  ❌ Valid query marked as invalid")
             return False
@@ -304,7 +310,10 @@ class MCPServerTester:
             print("  ❌ Invalid JSON-RPC response structure")
             return False
 
-        result = response["result"]
+        if "structuredContent" not in response["result"]:
+            print("  ❌ Missing structuredContent in result")
+            return False
+        result = response["result"]["structuredContent"]
         if "output" not in result or "format" not in result:
             print("  ❌ Missing output or format in result")
             return False
