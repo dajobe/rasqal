@@ -256,14 +256,23 @@ create_error_response(int code, const char* message, const char* data,
   raptor_free_iostream(iostr);
 
   if(output_string) {
-    strncpy(buffer, (const char*)output_string, *len);
-    *len = strlen((const char*)output_string);
+    size_t output_len = strlen((const char*)output_string);
 
     /* Debug log the error response being created */
     log_message(RAPTOR_LOG_LEVEL_DEBUG, "create_error_response - code: %d, message: '%s', data: '%s'",
                 code, message, data ? data : "null");
-    log_message(RAPTOR_LOG_LEVEL_DEBUG, "Error response buffer content: '%s'", (const char*)output_string);
-    log_message(RAPTOR_LOG_LEVEL_DEBUG, "Error response buffer length: %zu", *len);
+    log_message(RAPTOR_LOG_LEVEL_DEBUG, "Error response buffer content: '%s'",
+                (const char*)output_string);
+    log_message(RAPTOR_LOG_LEVEL_DEBUG, "Error response buffer length: %zu",
+                output_len);
+
+    if(output_len < *len) {
+      memcpy(buffer, (const char*)output_string, output_len + 1); /* +1 for NUL */
+      *len = output_len;
+    } else {
+      log_message(RAPTOR_LOG_LEVEL_ERROR, "Response buffer too small for error message (need %zu, have %zu)", output_len, *len);
+      *len = 0; /* Indicate no response should be sent */
+    }
 
     raptor_free_memory(output_string);
   }
@@ -311,22 +320,21 @@ create_mcp_tool_response(const char* id, const char* tool_result, char* buffer, 
   if(output_string) {
     size_t output_len = strlen((const char*)output_string);
 
-    /* Copy the response to the buffer */
-    if(output_len < *len) {
-      strcpy(buffer, (const char*)output_string);
-      *len = output_len;
-    } else {
-      /* Buffer too small, truncate */
-      strncpy(buffer, (const char*)output_string, *len - 1);
-      buffer[*len - 1] = '\0';
-      *len = strlen(buffer);
-    }
-
     /* Debug log the response being created */
     log_message(RAPTOR_LOG_LEVEL_DEBUG, "create_mcp_tool_response - id: '%s', tool_result: '%s'",
                 id ? id : "null", tool_result ? tool_result : "null");
-    log_message(RAPTOR_LOG_LEVEL_DEBUG, "MCP Response buffer content: '%s'", buffer);
-    log_message(RAPTOR_LOG_LEVEL_DEBUG, "MCP Response buffer length: %zu", *len);
+    log_message(RAPTOR_LOG_LEVEL_DEBUG, "MCP Response buffer content: '%s'", (const char*)output_string);
+    log_message(RAPTOR_LOG_LEVEL_DEBUG, "MCP Response buffer length: %zu", output_len);
+
+    /* Copy the response to the buffer */
+    if(output_len < *len) {
+      memcpy(buffer, (const char*)output_string, output_len + 1); /* +1 for NUL */
+      *len = output_len;
+    } else {
+      /* Buffer too small */
+      log_message(RAPTOR_LOG_LEVEL_ERROR, "Response buffer too small for tool response (need %zu, have %zu)", output_len, *len);
+      *len = 0; /* Indicate no response should be sent */
+    }
 
     raptor_free_memory(output_string);
   }
@@ -392,7 +400,6 @@ handle_initialize(const char* id, char* response_buffer, size_t* response_len)
 {
   unsigned char* output_string = NULL;
   raptor_iostream* iostr;
-  char response_str[1024];
 
   iostr = raptor_new_iostream_to_string(raptor_world_ptr,
                                         (void**)&output_string, NULL, 0);
@@ -404,25 +411,45 @@ handle_initialize(const char* id, char* response_buffer, size_t* response_len)
   /* Build JSON-RPC response with proper MCP structure */
   log_message(RAPTOR_LOG_LEVEL_DEBUG, "Building initialize response with id: '%s'", id ? id : "null");
 
-  /* Build the complete response - only the id field varies */
-  raptor_snprintf(response_str, sizeof(response_str),
-    "{\"jsonrpc\":\"2.0\",\"id\":%s,\"result\":{\"protocolVersion\":\"%s\",\"capabilities\":{\"tools\":{\"listChanged\":true}},\"serverInfo\":{\"name\":\"%s\",\"version\":\"%s\"},\"instructions\":\"%s\"}}\n",
-    id ? id : "null", MCP_PROTOCOL_VERSION_STRING, MCP_SERVER_NAME, rasqal_version_string, MCP_SERVER_INSTRUCTIONS);
+  raptor_iostream_string_write((const unsigned char*)"{\"jsonrpc\":\"2.0\",\"id\":", iostr);
+  if(id) {
+    raptor_iostream_write_byte('"', iostr);
+    raptor_iostream_string_write((const unsigned char*)id, iostr);
+    raptor_iostream_write_byte('"', iostr);
+  } else {
+    raptor_iostream_counted_string_write("null", 4, iostr);
+  }
+  
+  raptor_iostream_string_write((const unsigned char*)",\"result\":{\"protocolVersion\":\"", iostr);
+  raptor_iostream_string_write((const unsigned char*)MCP_PROTOCOL_VERSION_STRING, iostr);
+  raptor_iostream_string_write((const unsigned char*)"\",\"capabilities\":{\"tools\":{\"listChanged\":true}},\"serverInfo\":{\"name\":\"", iostr);
+  raptor_iostream_string_write((const unsigned char*)MCP_SERVER_NAME, iostr);
+  raptor_iostream_string_write((const unsigned char*)"\",\"version\":\"", iostr);
+  raptor_iostream_string_write((const unsigned char*)rasqal_version_string, iostr);
+  raptor_iostream_string_write((const unsigned char*)"\"},\"instructions\":\"", iostr);
+  raptor_iostream_string_write((const unsigned char*)MCP_SERVER_INSTRUCTIONS, iostr);
+  raptor_iostream_string_write((const unsigned char*)"\"}}\n", iostr);
 
-  raptor_iostream_string_write((const unsigned char*)response_str, iostr);
 
   /* Free iostream to get the string */
   raptor_free_iostream(iostr);
 
   /* Copy to response buffer */
   if(output_string) {
-    strncpy(response_buffer, (const char*)output_string, *response_len);
-    *response_len = strlen((const char*)output_string);
+    size_t output_len = strlen((const char*)output_string);
+    if(output_len < *response_len) {
+      memcpy(response_buffer, (const char*)output_string, output_len + 1);
+      *response_len = output_len;
+    } else {
+      log_message(RAPTOR_LOG_LEVEL_ERROR, "Response buffer too small for initialize response (need %zu, have %zu)", output_len, *response_len);
+      *response_len = 0;
+    }
     raptor_free_memory(output_string);
   }
 
   return 0;
 }
+
 
 /* Handle list_tools method */
 static int
@@ -439,35 +466,55 @@ handle_list_tools(const char* id, char* response_buffer, size_t* response_len)
                                  response_buffer, response_len);
 
   /* Build JSON-RPC response */
-  raptor_iostream_string_write((const unsigned char*)"{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[", iostr);
+  raptor_iostream_string_write((const unsigned char*)"{\"jsonrpc\":\"2.0\",\"id\":", iostr);
+  if(id) {
+    raptor_iostream_write_byte('"', iostr);
+    raptor_iostream_string_write((const unsigned char*)id, iostr);
+    raptor_iostream_write_byte('"', iostr);
+  } else {
+    raptor_iostream_counted_string_write("null", 4, iostr);
+  }
+  raptor_iostream_string_write((const unsigned char*)",\"result\":{\"tools\":[", iostr);
 
   for(size_t i = 0; i < sizeof(mcp_tools) / sizeof(mcp_tools[0]); i++) {
     if(i > 0)
-      raptor_iostream_string_write((const unsigned char*)",", iostr);
+      raptor_iostream_string_write((const unsigned char*) ",", iostr);
 
     raptor_iostream_string_write((const unsigned char*)"{\"name\":\"", iostr);
     raptor_iostream_string_write((const unsigned char*)mcp_tools[i].name, iostr);
     raptor_iostream_string_write((const unsigned char*)"\",\"description\":\"", iostr);
     raptor_iostream_string_write((const unsigned char*)mcp_tools[i].description, iostr);
     raptor_iostream_string_write((const unsigned char*)"\",\"inputSchema\":", iostr);
-    raptor_iostream_string_write((const unsigned char*)mcp_tools[i].inputSchema, iostr);
+    raptor_iostream_write_byte('\"', iostr);
+    raptor_string_escaped_write((const unsigned char*)mcp_tools[i].inputSchema,
+                                strlen(mcp_tools[i].inputSchema), '\"',
+                                RAPTOR_ESCAPED_WRITE_JSON_LITERAL, iostr);
+    raptor_iostream_write_byte('\"', iostr);
     raptor_iostream_string_write((const unsigned char*)"}", iostr);
   }
 
-  raptor_iostream_string_write((const unsigned char*)"],\"query_languages\":[\"sparql\"]}}\n", iostr);
+  raptor_iostream_string_write((const unsigned char*) "],\"query_languages\":[\"sparql\"]}}\n", iostr);
 
   /* Free iostream to get the string */
   raptor_free_iostream(iostr);
 
   /* Copy to response buffer */
   if(output_string) {
-    strncpy(response_buffer, (const char*)output_string, *response_len);
-    *response_len = strlen((const char*)output_string);
+    size_t output_len = strlen((const char*)output_string);
+    if(output_len < *response_len) {
+      memcpy(response_buffer, (const char*)output_string, output_len + 1);
+      *response_len = output_len;
+    } else {
+      log_message(RAPTOR_LOG_LEVEL_ERROR, "Response buffer too small for list_tools response (need %zu, have %zu)", output_len, *response_len);
+      *response_len = 0;
+    }
     raptor_free_memory(output_string);
   }
 
   return 0;
 }
+
+
 
 /* Handle execute_sparql_query method */
 static int
