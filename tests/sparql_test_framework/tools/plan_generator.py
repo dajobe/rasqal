@@ -95,10 +95,13 @@ class PlanGenerator:
         # Create manifest parser
         try:
             manifest_parser = ManifestParser.from_manifest_file(
-                manifest_file, srcdir, self.logger
+                manifest_file, srcdir, self.logger, builddir
             )
             manifest_node_uri = manifest_parser.find_manifest_node()
-            self.logger.debug(f"Found manifest node: {manifest_node_uri}")
+
+            if not manifest_node_uri:
+                self.logger.warning("Could not find manifest node in manifest file")
+                return ""
         except (FileNotFoundError, UtilityNotFoundError, RuntimeError) as e:
             raise RuntimeError(f"Error creating manifest parser: {e}")
         except ManifestParsingError as e:

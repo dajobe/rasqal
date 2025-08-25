@@ -1,17 +1,17 @@
 """
-Manifest parsing and test discovery for SPARQL Test Framework
+Manifest parsing and test discovery for SPARQL test suites.
 
-This module contains the manifest parsing logic for extracting test configurations
-from RDF manifest files, supporting both traditional and SPARQL 1.1 nested manifests.
+This module provides classes and functions for parsing test manifest files
+and discovering test cases within them.
 
 Copyright (C) 2025, David Beckett https://www.dajobe.org/
 
 This package is Free Software and part of Redland http://librdf.org/
 
 It is licensed under the following three licenses as alternatives:
-   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
-   2. GNU General Public License (GPL) V2 or any newer version
-   3. Apache License, V2.0 or any newer version
+  1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
+  2. GNU General Public License (GPL) V2 or any newer version
+  3. Apache License, V2.0 or any newer version
 
 You may not use this file except in compliance with at least one of
 the above three licenses.
@@ -21,14 +21,18 @@ complete terms and further detail along with the license texts for
 the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 """
 
+import logging
 import os
 import re
-import logging
+import subprocess
+import sys
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from .test_types import TestResult, Namespaces, TestTypeResolver
 from .config import TestConfig, TestConfigBuilder, get_test_suite_config
+
+# Import utility classes from the utils package
 from .utils import (
     SparqlTestError,
     ManifestTripleExtractor,
@@ -62,6 +66,7 @@ class ManifestParser:
         to_ntriples_cmd: Optional[str] = None,
         skip_tool_validation: bool = False,
         debug_level: int = 0,
+        builddir: Optional[Path] = None,
     ):
         """
         Initialize manifest parser.
@@ -70,14 +75,17 @@ class ManifestParser:
             manifest_path: Path to the manifest file
             to_ntriples_cmd: Optional path to to-ntriples command
             skip_tool_validation: Skip validation of to-ntriples tool (for packaging only)
+            debug_level: Debug level for logging
+            builddir: Build directory for finding tools (optional)
 
         Raises:
             UtilityNotFoundError: If to-ntriples command is not found and skip_tool_validation is False
         """
         self.manifest_path = manifest_path
+        self.builddir = builddir
         if not skip_tool_validation:
             if to_ntriples_cmd is None:
-                to_ntriples_cmd = find_tool("to-ntriples")
+                to_ntriples_cmd = find_tool("to-ntriples", str(builddir) if builddir else None)
                 if not to_ntriples_cmd:
                     raise UtilityNotFoundError(
                         "Could not find 'to-ntriples' command. Please ensure it is built and available in PATH."
@@ -90,7 +98,7 @@ class ManifestParser:
 
     @classmethod
     def from_manifest_file(
-        cls, manifest_file: Path, srcdir: Path, logger: logging.Logger
+        cls, manifest_file: Path, srcdir: Path, logger: logging.Logger, builddir: Optional[Path] = None
     ) -> "ManifestParser":
         """
         Create a ManifestParser for the given manifest file with proper setup.
@@ -99,6 +107,7 @@ class ManifestParser:
             manifest_file: Path to the manifest file
             srcdir: Source directory for resolving relative paths
             logger: Logger instance for debugging
+            builddir: Build directory for finding tools (optional)
 
         Returns:
             ManifestParser instance
@@ -119,7 +128,7 @@ class ManifestParser:
                 os.chdir(srcdir)
                 # Use just the filename for the manifest file when in source directory
                 manifest_filename = Path(os.path.basename(manifest_file))
-                manifest_parser = cls(manifest_filename)
+                manifest_parser = cls(manifest_filename, builddir=builddir)
             finally:
                 os.chdir(original_cwd)
 
@@ -142,35 +151,34 @@ class ManifestParser:
         current_cwd = Path.cwd()
         logger.debug(f"ManifestParser._parse: Current working directory: {current_cwd}")
 
-        process = run_command(
-            cmd, current_cwd, f"Error running '{self.to_ntriples_cmd}'"
-        )
+        process = run_command(cmd, str(current_cwd))
 
-        if process.returncode != 0:
+        # Unpack the tuple returned by run_command
+        returncode, stdout, stderr = process
+
+        if returncode != 0:
             logger.debug(
-                f"ManifestParser._parse: Command failed with return code {process.returncode}"
+                f"ManifestParser._parse: Command failed with return code {returncode}"
             )
-            logger.debug(f"ManifestParser._parse: stderr: {process.stderr}")
+            logger.debug(f"ManifestParser._parse: stderr: {stderr}")
             logger.error(
-                f"'{self.to_ntriples_cmd}' failed for {self.manifest_path} with exit code {process.returncode}.\n{process.stderr}"
+                f"'{self.to_ntriples_cmd}' failed for {self.manifest_path} with exit code {returncode}.\n{stderr}"
             )
             raise RuntimeError(
-                f"'{self.to_ntriples_cmd}' failed for {self.manifest_path} with exit code {process.returncode}.\n{process.stderr}"
+                f"'{self.to_ntriples_cmd}' failed for {self.manifest_path} with exit code {returncode}.\n{stderr}"
             )
 
         logger.debug(
-            f"ManifestParser._parse: Command succeeded, stdout length: {len(process.stdout)}"
+            f"ManifestParser._parse: Command succeeded, stdout length: {len(stdout)}"
         )
         logger.debug(
-            f"ManifestParser._parse: First 200 chars of stdout: {process.stdout[:200]}"
+            f"ManifestParser._parse: First 200 chars of stdout: {stdout[:200]}"
         )
         if self.debug_level >= 2:
-            logger.debug(
-                f"N-Triples output from {self.to_ntriples_cmd}:\n{process.stdout}"
-            )
+            logger.debug(f"N-Triples output from {self.to_ntriples_cmd}:\n{stdout}")
 
         line_count = 0
-        for line in process.stdout.splitlines():
+        for line in stdout.splitlines():
             line_count += 1
             s, p, o_full = self._parse_nt_line(line)
             if s:
