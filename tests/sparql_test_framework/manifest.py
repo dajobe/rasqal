@@ -85,7 +85,9 @@ class ManifestParser:
         self.builddir = builddir
         if not skip_tool_validation:
             if to_ntriples_cmd is None:
-                to_ntriples_cmd = find_tool("to-ntriples", str(builddir) if builddir else None)
+                to_ntriples_cmd = find_tool(
+                    "to-ntriples", str(builddir) if builddir else None
+                )
                 if not to_ntriples_cmd:
                     raise UtilityNotFoundError(
                         "Could not find 'to-ntriples' command. Please ensure it is built and available in PATH."
@@ -98,7 +100,11 @@ class ManifestParser:
 
     @classmethod
     def from_manifest_file(
-        cls, manifest_file: Path, srcdir: Path, logger: logging.Logger, builddir: Optional[Path] = None
+        cls,
+        manifest_file: Path,
+        srcdir: Path,
+        logger: logging.Logger,
+        builddir: Optional[Path] = None,
     ) -> "ManifestParser":
         """
         Create a ManifestParser for the given manifest file with proper setup.

@@ -107,7 +107,11 @@ class TestRasqalCompareIntegration(SparqlTestFrameworkTestBase):
         from sparql_test_framework.runners.sparql import compare_with_rasqal_compare
 
         # Mock successful comparison
-        mock_run_command.return_value = (1, "Found 1 differences:\n  1: row 0: x='25' vs row 0: x='26'", "")
+        mock_run_command.return_value = (
+            1,
+            "Found 1 differences:\n  1: row 0: x='25' vs row 0: x='26'",
+            "",
+        )
 
         # Test the function
         result = compare_with_rasqal_compare(
@@ -147,7 +151,11 @@ class TestRasqalCompareIntegration(SparqlTestFrameworkTestBase):
         from sparql_test_framework.runners.sparql import compare_with_rasqal_compare
 
         # Mock unified format output
-        mock_run_command.return_value = (1, "--- expected\n+++ actual\n@@ Comparison Results @@\n-row 0: x='25'\n+row 0: x='26'", "")
+        mock_run_command.return_value = (
+            1,
+            "--- expected\n+++ actual\n@@ Comparison Results @@\n-row 0: x='25'\n+row 0: x='26'",
+            "",
+        )
 
         # Test the function with unified format
         result = compare_with_rasqal_compare(
@@ -168,7 +176,11 @@ class TestRasqalCompareIntegration(SparqlTestFrameworkTestBase):
         from sparql_test_framework.runners.sparql import compare_with_rasqal_compare
 
         # Mock debug format output
-        mock_run_command.return_value = (1, "comparison result: different\ndifferences count: 1", "")
+        mock_run_command.return_value = (
+            1,
+            "comparison result: different\ndifferences count: 1",
+            "",
+        )
 
         # Test the function with debug format
         result = compare_with_rasqal_compare(
@@ -217,25 +229,32 @@ class TestRasqalCompareIntegration(SparqlTestFrameworkTestBase):
         }
 
         # Mock the temporary file paths that the comparison logic needs
-        with patch("sparql_test_framework.runners.sparql.get_temp_file_path") as mock_temp_path:
+        with patch(
+            "sparql_test_framework.runners.sparql.get_temp_file_path"
+        ) as mock_temp_path:
             # Also mock DIFF_CMD to ensure it's what we expect
             with patch("sparql_test_framework.runners.sparql.DIFF_CMD", "diff"):
                 # Create actual temporary files that the comparison logic needs
                 temp_files = {}
+
                 def temp_path_side_effect(name):
                     if name not in temp_files:
                         temp_files[name] = Path(f"/tmp/{name}")
                         # Create the file with some content
                         if name == "result.out":
-                            temp_files[name].write_text("row: [x=uri<http://example.org/data/x>]\n")
+                            temp_files[name].write_text(
+                                "row: [x=uri<http://example.org/data/x>]\n"
+                            )
                         elif name == "roqet.tmp":
-                            temp_files[name].write_text("row: [x=uri<http://example.org/data/y>]\n")  # Different content to trigger diff
+                            temp_files[name].write_text(
+                                "row: [x=uri<http://example.org/data/y>]\n"
+                            )  # Different content to trigger diff
                         elif name == "diff.out":
                             temp_files[name].write_text("")
                     return temp_files[name]
-                
+
                 mock_temp_path.side_effect = temp_path_side_effect
-                
+
                 # Test the function directly
                 print(f"DEBUG: About to call _compare_bindings_results")
                 print(f"DEBUG: actual_result_info = {actual_result_info}")
@@ -245,13 +264,20 @@ class TestRasqalCompareIntegration(SparqlTestFrameworkTestBase):
                 except Exception as e:
                     print(f"DEBUG: _compare_bindings_results threw exception: {e}")
                     import traceback
+
                     traceback.print_exc()
                     raise
-                
+
                 # Check if the mock was called
-                print(f"DEBUG: mock_run_command.call_count = {mock_run_command.call_count}")
-                print(f"DEBUG: mock_run_command.call_args = {mock_run_command.call_args}")
-                print(f"DEBUG: mock_run_command.call_args_list = {mock_run_command.call_args_list}")
+                print(
+                    f"DEBUG: mock_run_command.call_count = {mock_run_command.call_count}"
+                )
+                print(
+                    f"DEBUG: mock_run_command.call_args = {mock_run_command.call_args}"
+                )
+                print(
+                    f"DEBUG: mock_run_command.call_args_list = {mock_run_command.call_args_list}"
+                )
 
                 # Verify result
                 self.assertEqual(result, 1)
@@ -260,7 +286,9 @@ class TestRasqalCompareIntegration(SparqlTestFrameworkTestBase):
                 mock_run_command.assert_called_once()
                 call_args = mock_run_command.call_args
                 cmd = call_args.kwargs.get("cmd", [])
-                self.assertIn("diff", cmd[0])  # Check that first command contains "diff"
+                self.assertIn(
+                    "diff", cmd[0]
+                )  # Check that first command contains "diff"
 
     @patch("sparql_test_framework.runners.sparql.run_command")
     @patch("sparql_test_framework.runners.sparql.DIFF_OUT")
@@ -297,25 +325,34 @@ class TestRasqalCompareIntegration(SparqlTestFrameworkTestBase):
                         "sparql_test_framework.runners.sparql.read_query_results_file"
                     ) as mock_read:
                         mock_read.return_value = {"count": 1, "type": "bindings"}
-                        
+
                         # Mock the temporary file paths that the comparison logic needs
-                        with patch("sparql_test_framework.runners.sparql.get_temp_file_path") as mock_temp_path:
+                        with patch(
+                            "sparql_test_framework.runners.sparql.get_temp_file_path"
+                        ) as mock_temp_path:
                             # Create actual temporary files that the comparison logic needs
                             temp_files = {}
+
                             def temp_path_side_effect(name):
                                 if name not in temp_files:
                                     temp_files[name] = Path(f"/tmp/{name}")
                                     # Create the file with some content
                                     if name == "result.out":
-                                        temp_files[name].write_text("row: [x=uri<http://example.org/data/x>]\n")
+                                        temp_files[name].write_text(
+                                            "row: [x=uri<http://example.org/data/x>]\n"
+                                        )
                                     elif name == "roqet.tmp":
-                                        temp_files[name].write_text("row: [x=uri<http://example.org/data/y>]\n")  # Different content to trigger diff
+                                        temp_files[name].write_text(
+                                            "row: [x=uri<http://example.org/data/y>]\n"
+                                        )  # Different content to trigger diff
                                     elif name == "diff.out":
-                                        temp_files[name].write_text("--- result.out\n+++ roqet.tmp\n@@ -1 +1 @@\n-row: [x=uri<http://example.org/data/x>]\n+row: [x=uri<http://example.org/data/y>]\n")
+                                        temp_files[name].write_text(
+                                            "--- result.out\n+++ roqet.tmp\n@@ -1 +1 @@\n-row: [x=uri<http://example.org/data/x>]\n+row: [x=uri<http://example.org/data/y>]\n"
+                                        )
                                 return temp_files[name]
-                            
+
                             mock_temp_path.side_effect = temp_path_side_effect
-                            
+
                             # Test the function without rasqal-compare
                             _compare_actual_vs_expected(
                                 test_result_summary,

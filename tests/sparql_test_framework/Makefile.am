@@ -49,8 +49,11 @@ RUNNER_MODULES = \
 	runners/csv_tsv.py \
 	runners/format_base.py \
 	runners/orchestrator.py \
+	runners/query_executor.py \
+	runners/result_processor.py \
 	runners/sparql.py \
-	runners/srj.py
+	runners/srj.py \
+	runners/srj_handler.py
 
 # Tool modules  
 TOOL_MODULES = \

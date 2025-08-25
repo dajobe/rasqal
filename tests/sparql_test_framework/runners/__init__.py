@@ -13,6 +13,10 @@ from .csv_tsv import CsvTsvTestRunner
 from .srj import SrjTestRunner
 from .algebra import AlgebraTestRunner
 
+from .query_executor import QueryExecutor, QueryType, QueryResult
+from .result_processor import ResultProcessor, ProcessedResult
+from .srj_handler import SRJHandler, SRJResult
+
 __all__ = [
     "TestOrchestrator",
     "SparqlTestRunner",
@@ -20,4 +24,11 @@ __all__ = [
     "CsvTsvTestRunner",
     "SrjTestRunner",
     "AlgebraTestRunner",
+    "QueryExecutor",
+    "QueryType",
+    "QueryResult",
+    "ResultProcessor",
+    "ProcessedResult",
+    "SRJHandler",
+    "SRJResult",
 ]
