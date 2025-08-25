@@ -26,7 +26,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 
-from test_base import SparqlTestFrameworkTestBase
+from sparql_test_framework.tests.test_base import SparqlTestFrameworkTestBase
 from sparql_test_framework.runners.algebra import AlgebraTestRunner
 
 

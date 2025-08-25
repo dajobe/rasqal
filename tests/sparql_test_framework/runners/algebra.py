@@ -3,7 +3,7 @@ Algebra Test Runner
 
 This module runs SPARQL algebra graph pattern tests using the convert_graph_pattern utility.
 
-Copyright (C) 2009, David Beckett http://www.dajobe.org/
+Copyright (C) 2009-2025, David Beckett http://www.dajobe.org/
 
 This package is Free Software and part of Redland http://librdf.org/
 
@@ -100,17 +100,7 @@ Examples:
         out_file = str(CONVERT_OUT)
         err_file = str(CONVERT_ERR)
         diff_file = str(DIFF_OUT)
-
-        # Setup paths
-        test_path = Path(test_file)
-        base_name = test_path.stem  # removes .rq extension
-
-        if not test_path.exists():
-            self.logger.error(f"Test file '{test_file}' does not exist")
-            return 1
-
-        srcdir = test_path.parent
-        expected_file = srcdir / f"{base_name}.out"
+        expected_file = Path(test_file).with_suffix(".out")
 
         self.logger.debug(f"Running test {test_file} with base URI {base_uri}")
 
@@ -120,14 +110,14 @@ Examples:
 
         try:
             with open(out_file, "w") as out_f, open(err_file, "w") as err_f:
-                result = run_command(
-                    cmd, Path("."), f"Error running {convert_graph_pattern}"
-                )
-                out_f.write(result.stdout)
-                err_f.write(result.stderr)
+                result = run_command(cmd, str(Path(".")))
+                # Unpack the tuple returned by run_command
+                returncode, stdout, stderr = result
+                out_f.write(stdout)
+                err_f.write(stderr)
 
-            self.logger.debug(f"Result was {result.returncode}")
-            if result.returncode != 0:
+            self.logger.debug(f"Result was {returncode}")
+            if returncode != 0:
                 self.logger.error(
                     f"Graph pattern conversion '{test_file}' FAILED to execute"
                 )
@@ -166,7 +156,9 @@ Examples:
 
                 # Generate diff using custom diff function
                 try:
-                    compare_files_custom_diff(Path(expected_file), Path(out_file), Path(diff_file))
+                    compare_files_custom_diff(
+                        Path(expected_file), Path(out_file), Path(diff_file)
+                    )
                 except Exception as e:
                     self.logger.error(f"Error generating diff: {e}")
                     with open(diff_file, "w") as diff_f:
