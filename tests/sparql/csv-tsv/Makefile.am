@@ -36,9 +36,11 @@ build-core:
 build-roqet: build-core
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
-# Run tests locally through bin/run-test-suites
+# Run tests locally through the new test runner
 check-local: build-roqet
-	@$(top_srcdir)/tests/bin/run-test-suites .
+	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests \
+		--manifest-file $(srcdir)/$(CSV_TSV_MANIFEST_FILE) \
+		--srcdir $(srcdir)
 
 # Register with bin/run-test-suites test discovery
 get-testsuites-list:

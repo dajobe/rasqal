@@ -42,13 +42,14 @@ class TestRasqalCompareIntegration(SparqlTestFrameworkTestBase):
         """Set up test fixtures."""
         super().setUp()
         from sparql_test_framework.runners import sparql
+
         self.runner = sparql.SparqlTestRunner()
 
     def test_use_rasqal_compare_flag_parsing(self):
         """Test that the --use-rasqal-compare flag is properly parsed."""
         parser = self.runner.setup_argument_parser()
         test_args = ["--manifest-file", "test.ttl", "--use-rasqal-compare"]
-        
+
         args = parser.parse_args(test_args)
         self.assertTrue(args.use_rasqal_compare)
 
@@ -56,30 +57,30 @@ class TestRasqalCompareIntegration(SparqlTestFrameworkTestBase):
         """Test that the flag defaults to False when not specified."""
         parser = self.runner.setup_argument_parser()
         test_args = ["--manifest-file", "test.ttl"]
-        
+
         args = parser.parse_args(test_args)
         self.assertFalse(args.use_rasqal_compare)
 
     def test_use_rasqal_compare_help_output(self):
         """Test that the help output includes the new flag."""
         parser = self.runner.setup_argument_parser()
-        
+
         # Capture help output
         help_output = io.StringIO()
         parser.print_help(file=help_output)
         help_text = help_output.getvalue()
-        
+
         self.assertIn("--use-rasqal-compare", help_text)
 
     def test_use_rasqal_compare_flag_description(self):
         """Test that the flag has a proper description in help."""
         parser = self.runner.setup_argument_parser()
-        
+
         # Capture help output
         help_output = io.StringIO()
         parser.print_help(file=help_output)
         help_text = help_output.getvalue()
-        
+
         # Check that the flag appears in the help text with some context
         self.assertIn("--use-rasqal-compare", help_text)
         # The help should mention something about rasqal-compare
@@ -89,12 +90,14 @@ class TestRasqalCompareIntegration(SparqlTestFrameworkTestBase):
         """Test that the flag works correctly with other flags."""
         parser = self.runner.setup_argument_parser()
         test_args = [
-            "--manifest-file", "test.ttl",
+            "--manifest-file",
+            "test.ttl",
             "--use-rasqal-compare",
-            "-d", "-d",
-            "--preserve-files"
+            "-d",
+            "-d",
+            "--preserve-files",
         ]
-        
+
         args = parser.parse_args(test_args)
         self.assertTrue(args.use_rasqal_compare)
         self.assertEqual(args.debug, 2)
@@ -102,4 +105,4 @@ class TestRasqalCompareIntegration(SparqlTestFrameworkTestBase):
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    unittest.main()

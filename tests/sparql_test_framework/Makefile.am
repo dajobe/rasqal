@@ -28,8 +28,19 @@ FRAMEWORK_MODULES = \
 	config.py \
 	execution.py \
 	manifest.py \
-	test_types.py \
-	utils.py
+	test_types.py
+
+# Data package modules
+DATA_MODULES = \
+	data/__init__.py \
+	data/data_models.py
+
+# Utils package modules
+UTILS_MODULES = \
+	utils/__init__.py \
+	utils/core_utils.py \
+	utils/exceptions.py \
+	utils/temp_file_manager.py
 
 # Runner modules
 RUNNER_MODULES = \
@@ -50,6 +61,8 @@ TOOL_MODULES = \
 # All framework files for distribution
 EXTRA_DIST = \
 	$(FRAMEWORK_MODULES) \
+	$(DATA_MODULES) \
+	$(UTILS_MODULES) \
 	$(RUNNER_MODULES) \
 	$(TOOL_MODULES)
 

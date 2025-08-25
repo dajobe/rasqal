@@ -19,11 +19,19 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 #
 
+
+# Files to be cleaned up by automake
+CLEANFILES = \
+diff.out roqet.err roqet.out roqet.tmp result.out
+
+.PHONY: check-framework-unit check-framework-unit-quick
+
 # Core module test files
 CORE_TESTS = \
 	__init__.py \
 	test_base.py \
 	test_config.py \
+	test_data_models.py \
 	test_execution.py \
 	test_manifest.py \
 	test_rasqal_compare_integration.py \
@@ -51,15 +59,12 @@ EXTRA_DIST = \
 check-framework-unit: $(EXTRA_DIST)
 	@echo "Running SPARQL Test Framework unit tests..."
 	@PYTHONPATH=$(top_srcdir)/tests:$(srcdir)/../../..:$$PYTHONPATH python3 -m unittest discover -s $(srcdir) -p "test_*.py" -v
+	-rm -f $(CLEANFILES)
 
 check-framework-unit-quick: $(EXTRA_DIST)
 	@echo "Running SPARQL Test Framework unit tests (quick mode)..."
 	@PYTHONPATH=$(top_srcdir)/tests:$(srcdir)/../../..:$$PYTHONPATH python3 -m unittest discover -s $(srcdir) -p "test_*.py"
+	-rm -f $(CLEANFILES)
 
 # Integration with main test suite
 check-local: check-framework-unit
-
-# Files to be cleaned up by automake
-CLEANFILES = __pycache__ .pytest_cache
-
-.PHONY: check-framework-unit check-framework-unit-quick
