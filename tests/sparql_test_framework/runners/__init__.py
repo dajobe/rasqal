@@ -17,6 +17,10 @@ from .query_executor import QueryExecutor, QueryType, QueryResult
 from .result_processor import ResultProcessor, ProcessedResult
 from .srj_handler import SRJHandler, SRJResult
 
+# Import comparison and debug classes
+# from .result_comparer import ResultComparer, ComparisonResult
+# from .debug_output_manager import DebugOutputManager
+
 __all__ = [
     "TestOrchestrator",
     "SparqlTestRunner",
@@ -31,4 +35,8 @@ __all__ = [
     "ProcessedResult",
     "SRJHandler",
     "SRJResult",
+    # Comparison and debug classes
+    # "ResultComparer",
+    # "ComparisonResult",
+    # "DebugOutputManager",
 ]

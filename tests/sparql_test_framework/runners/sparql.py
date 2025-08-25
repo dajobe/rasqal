@@ -2727,25 +2727,10 @@ Examples:
             )
         else:
             logging.getLogger().setLevel(logging.INFO)
-            logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
         # Set global file preservation flag
         global _preserve_debug_files
         _preserve_debug_files = args.preserve_files
-
-        # Check for RASQAL_COMPARE_ENABLE environment variable
-        if os.environ.get("RASQAL_COMPARE_ENABLE", "").lower() == "yes":
-            if not args.use_rasqal_compare:
-                args.use_rasqal_compare = True
-                logger.warning(
-                    "RASQAL_COMPARE_ENABLE=yes: automatically enabling --use-rasqal-compare"
-                )
-
-        # Log when --use-rasqal-compare is enabled
-        if args.use_rasqal_compare:
-            logger.warning(
-                "--use-rasqal-compare flag enabled: using rasqal-compare utility for result comparison"
-            )
 
     def discover_and_filter_tests(
         self,

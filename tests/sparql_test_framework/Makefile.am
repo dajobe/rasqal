@@ -47,9 +47,11 @@ RUNNER_MODULES = \
 	runners/__init__.py \
 	runners/algebra.py \
 	runners/csv_tsv.py \
+	runners/debug_output_manager.py \
 	runners/format_base.py \
 	runners/orchestrator.py \
 	runners/query_executor.py \
+	runners/result_comparer.py \
 	runners/result_processor.py \
 	runners/sparql.py \
 	runners/srj.py \
