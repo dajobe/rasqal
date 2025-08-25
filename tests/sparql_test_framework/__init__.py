@@ -1,29 +1,27 @@
-"""
-SPARQL Test Framework for Rasqal
-
-A comprehensive framework for running W3C SPARQL test suites against Rasqal.
-Supports SPARQL 1.0, SPARQL 1.1, and custom test formats with multiple runners.
-
-Copyright (C) 2025, David Beckett https://www.dajobe.org/
-
-This package is Free Software and part of Redland http://librdf.org/
-
-It is licensed under the following three licenses as alternatives:
-   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
-   2. GNU General Public License (GPL) V2 or any newer version
-   3. Apache License, V2.0 or any newer version
-
-You may not use this file except in compliance with at least one of
-the above three licenses.
-
-See LICENSE.html or LICENSE.txt at the top of this package for the
-complete terms and further detail along with the license texts for
-the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
-"""
+# -*- Mode: Python -*-
+#
+# __init__.py - SPARQL Test Framework package initialization
+#
+# Copyright (C) 2025, David Beckett https://www.dajobe.org/
+#
+# This package is Free Software and part of Redland http://librdf.org/
+#
+# It is licensed under the following three licenses as alternatives:
+#   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
+#   2. GNU General Public License (GPL) V2 or any newer version
+#   3. Apache License, V2.0 or any newer version
+#
+# You may not use this file except in compliance with at least one of
+# the above three licenses.
+#
+# See LICENSE.html or LICENSE.txt at the top of this package for the
+# complete terms and further detail along with the license texts for
+# the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
+#
 
 # Framework metadata
 __version__ = "2.0.0"
-__author__ = "David Beckett"
+__author__ = "Dave Beckett"
 __email__ = "dave@dajobe.org"
 __license__ = "LGPL/GPL/Apache"
 
