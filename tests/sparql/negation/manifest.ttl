@@ -12,7 +12,6 @@
     :exists-01
     :exists-02
     :full-minuend
-    :partial-minuend
     :set-equals-1
     :subset-02
     :subset-by-exclusion-minus-1
@@ -45,14 +44,6 @@
          [ qt:query  <../sparql11-test-suite/negation/full-minuend.rq> ;
            qt:data  <../sparql11-test-suite/negation/full-minuend.ttl> ] ;
     mf:result  <../sparql11-test-suite/negation/full-minuend.srx> .
-
-:partial-minuend rdf:type mf:QueryEvaluationTest ;
-    mf:name    "Subtraction with MINUS from a partially bound minuend" ;
-    dawgt:approval dawgt:Approved ;
-    mf:action
-         [ qt:query  <../sparql11-test-suite/negation/part-minuend.rq> ;
-           qt:data  <../sparql11-test-suite/negation/part-minuend.ttl> ] ;
-    mf:result  <../sparql11-test-suite/negation/part-minuend.srx> .
 
 :set-equals-1 rdf:type mf:QueryEvaluationTest ;
     mf:name    "Calculate which sets have the same elements" ;

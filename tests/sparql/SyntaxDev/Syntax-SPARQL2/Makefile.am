@@ -73,4 +73,5 @@ dist-hook:
 	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILES) \
 		--srcdir $(srcdir) \
+		--builddir $(top_builddir) \
 		--distdir $(distdir)
