@@ -10,12 +10,11 @@ from .orchestrator import TestOrchestrator
 from .sparql import SparqlTestRunner
 from .format_base import FormatTestRunner
 from .csv_tsv import CsvTsvTestRunner
-from .srj import SrjTestRunner
 from .algebra import AlgebraTestRunner
 
 from .query_executor import QueryExecutor, QueryType, QueryResult
-from .result_processor import ResultProcessor, ProcessedResult
-from .srj_handler import SRJHandler, SRJResult
+from .result_processor import ResultProcessor
+from .srj_processor import SRJProcessor, SRJResult
 
 # Import comparison and debug classes
 # from .result_comparer import ResultComparer, ComparisonResult
@@ -26,14 +25,12 @@ __all__ = [
     "SparqlTestRunner",
     "FormatTestRunner",
     "CsvTsvTestRunner",
-    "SrjTestRunner",
     "AlgebraTestRunner",
     "QueryExecutor",
     "QueryType",
     "QueryResult",
     "ResultProcessor",
-    "ProcessedResult",
-    "SRJHandler",
+    "SRJProcessor",
     "SRJResult",
     # Comparison and debug classes
     # "ResultComparer",

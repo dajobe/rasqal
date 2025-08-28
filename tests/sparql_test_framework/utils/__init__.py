@@ -203,16 +203,12 @@ from .core_utils import (
     compare_files_custom_diff,
 )
 
-# Import utility classes
-from .temp_file_manager import TempFileManager
-
 # Import exception classes
 from .exceptions import (
     QueryExecutionError,
     ResultProcessingError,
     ComparisonError,
     SRJProcessingError,
-    TempFileError,
 )
 
 __all__ = [
@@ -224,7 +220,6 @@ __all__ = [
     "ResultProcessingError",
     "ComparisonError",
     "SRJProcessingError",
-    "TempFileError",
     # Core utility functions
     "setup_logging",
     "add_common_arguments",
@@ -240,6 +235,4 @@ __all__ = [
     "run_manifest_test",
     "generate_custom_diff",
     "compare_files_custom_diff",
-    # Managers
-    "TempFileManager",
 ]

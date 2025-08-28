@@ -339,3 +339,22 @@ class TestTypeResolver:
         # Default case: return actual status
         else:
             return actual_status, ""
+
+
+# Test type URI constants for syntax tests
+SYNTAX_TEST_TYPES = [
+    # W3C standard syntax test types
+    "http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest",
+    "http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest11",
+    "http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest",
+    "http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest11",
+    "http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveUpdateSyntaxTest11",
+    "http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeUpdateSyntaxTest11",
+    # Redland-specific syntax test types
+    "http://ns.librdf.org/2001/sw/DataAccess/tests/test-manifest#TestBadSyntax",
+    "http://ns.librdf.org/2001/sw/DataAccess/tests/test-manifest#TestSyntax",
+    "http://ns.librdf.org/2009/test-manifest#TestBadSyntax",
+    "http://ns.librdf.org/2009/test-manifest#TestSyntax",
+    # Jena HP syntax test types (extensively used in SyntaxDev)
+    "http://jena.hpl.hp.com/2005/05/test-manifest-extra#TestSyntax",
+]

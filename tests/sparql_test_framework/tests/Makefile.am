@@ -32,7 +32,6 @@ CORE_TESTS = \
 	test_base.py \
 	test_config.py \
 	test_comparison_debug_classes.py \
-	test_core_runner_classes.py \
 	test_data_models.py \
 	test_execution.py \
 	test_manifest.py \

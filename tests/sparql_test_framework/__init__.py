@@ -64,7 +64,6 @@ from .runners import (
     SparqlTestRunner,
     FormatTestRunner,
     CsvTsvTestRunner,
-    SrjTestRunner,
     AlgebraTestRunner,
 )
 
@@ -109,7 +108,6 @@ __all__ = [
     "SparqlTestRunner",
     "FormatTestRunner",
     "CsvTsvTestRunner",
-    "SrjTestRunner",
     "AlgebraTestRunner",
     # Tools
     "PlanGenerator",

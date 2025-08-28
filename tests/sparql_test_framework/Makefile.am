@@ -39,8 +39,7 @@ DATA_MODULES = \
 UTILS_MODULES = \
 	utils/__init__.py \
 	utils/core_utils.py \
-	utils/exceptions.py \
-	utils/temp_file_manager.py
+	utils/exceptions.py
 
 # Runner modules
 RUNNER_MODULES = \
@@ -48,14 +47,19 @@ RUNNER_MODULES = \
 	runners/algebra.py \
 	runners/csv_tsv.py \
 	runners/debug_output_manager.py \
+	runners/debug_manager.py \
 	runners/format_base.py \
+	runners/format_handlers.py \
+	runners/roqet_parser.py \
+	runners/test_execution_handlers.py \
 	runners/orchestrator.py \
 	runners/query_executor.py \
 	runners/result_comparer.py \
 	runners/result_processor.py \
 	runners/sparql.py \
-	runners/srj.py \
-	runners/srj_handler.py
+	runners/srj_processor.py \
+	runners/srx_parser.py \
+	runners/xml_processor.py
 
 # Tool modules  
 TOOL_MODULES = \

@@ -10,7 +10,7 @@ import os
 # Add the parent directory to the path to import the framework
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from sparql_test_framework.runners.srj import main
+from sparql_test_framework.runners.srj_processor import main
 
 if __name__ == "__main__":
     sys.exit(main())

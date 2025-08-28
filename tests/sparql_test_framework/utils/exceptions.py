@@ -64,12 +64,3 @@ class SRJProcessingError(SparqlTestError):
     def __init__(self, message: str, json_content: str = None):
         super().__init__(message)
         self.json_content = json_content
-
-
-class TempFileError(SparqlTestError):
-    """Raised when temporary file operations fail."""
-
-    def __init__(self, message: str, file_path: str = None, operation: str = None):
-        super().__init__(message)
-        self.file_path = file_path
-        self.operation = operation
