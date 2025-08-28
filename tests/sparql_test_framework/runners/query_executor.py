@@ -37,6 +37,7 @@ class QueryType:
         self.is_construct = "CONSTRUCT" in query_content.upper()
         self.is_ask = "ASK" in query_content.upper()
         self.is_select = "SELECT" in query_content.upper()
+        self.is_describe = "DESCRIBE" in query_content.upper()
         self.is_update = any(
             keyword in query_content.upper()
             for keyword in ["INSERT", "DELETE", "LOAD", "CLEAR", "CREATE", "DROP"]
@@ -68,8 +69,7 @@ class QueryResult:
 class QueryExecutor:
     """Handles query execution and result processing for different SPARQL query types."""
 
-    def __init__(self, temp_file_manager=None):
-        self.temp_file_manager = temp_file_manager
+    def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.roqet_path = None
 
@@ -83,56 +83,86 @@ class QueryExecutor:
 
     def detect_query_type(self, config: TestConfig) -> QueryType:
         """Detect the type of SPARQL query from the query content."""
-        query_content = config.query
+        try:
+            # First try to get query from direct attribute (for tests)
+            query_content = getattr(config, "query", None)
+            if query_content is None:
+                # Fall back to reading from file
+                query_content = config.test_file.read_text()
+        except (AttributeError, FileNotFoundError):
+            # Fallback for test configs that might not have test_file or file issues
+            query_content = ""
         return QueryType(query_content)
 
-    def build_roqet_args(self, config: TestConfig, query_type: QueryType) -> List[str]:
+    def build_roqet_args(
+        self, config: TestConfig, query_type: QueryType, result_format: str = None
+    ) -> List[str]:
         """Build roqet command line arguments for the given test configuration."""
-        args = [self._ensure_roqet_available()]
+        args = [self._ensure_roqet_available(), "-q", str(config.test_file)]
 
-        # Add query file
-        args.extend(["-q", str(config.query_file)])
+        # Check if this is a syntax test by looking at the actual test type
+        # Don't guess based on test name - use the manifest test type
+        test_type = getattr(config, "test_type", "")
+        is_syntax_test = False
 
-        # Add data files
-        for data_file in config.data_files:
-            args.extend(["-D", str(data_file)])
+        if test_type:
+            # Check if this is actually a syntax test type from the manifest
+            from ..test_types import SYNTAX_TEST_TYPES
 
-        # Add format-specific arguments
-        if query_type.is_construct:
-            args.extend(["-r", "ntriples"])
-        elif query_type.is_select:
-            if config.result_format == "srj":
-                args.extend(["-r", "srj"])
+            is_syntax_test = test_type in SYNTAX_TEST_TYPES
+
+        if is_syntax_test:
+            # For actual syntax tests, only parse, don't execute
+            args.extend(["-n", "-W", "0"])
+        else:
+            # Add data files for regular tests
+            for data_file in config.data_files:
+                args.extend(["-D", str(data_file)])
+
+            # Add result format - use provided format or default based on query type
+            if result_format:
+                args.extend(["-r", result_format])
             else:
-                args.extend(["-r", "csv"])
-        elif query_type.is_ask:
-            args.extend(["-r", "srj"])
-
-        # Add debug level if specified
-        if hasattr(config, "debug_level") and config.debug_level > 0:
-            args.extend(["-d"] * config.debug_level)
+                # Fallback to default formats based on query type
+                if query_type.is_construct or query_type.is_describe:
+                    args.extend(["-r", "turtle"])
+                elif query_type.is_select:
+                    args.extend(["-r", "csv"])
+                elif query_type.is_ask:
+                    args.extend(["-r", "srj"])
 
         return args
 
     def execute_construct_query(self, config: TestConfig) -> QueryResult:
-        """Execute a CONSTRUCT query and return the result."""
+        """Execute a CONSTRUCT or DESCRIBE query and return the result."""
         query_type = self.detect_query_type(config)
-        if not query_type.is_construct:
-            raise ValueError("Query is not a CONSTRUCT query")
+        if not (query_type.is_construct or query_type.is_describe):
+            raise ValueError("Query is not a CONSTRUCT or DESCRIBE query")
 
         args = self.build_roqet_args(config, query_type)
-        self.logger.debug(f"Executing CONSTRUCT query: {' '.join(args)}")
+        self.logger.debug(f"Executing CONSTRUCT/DESCRIBE query: {' '.join(args)}")
 
-        returncode, stdout, stderr = run_command(args)
+        returncode, stdout, stderr = run_command(cmd=args, cwd=str(Path.cwd()))
 
-        if returncode != 0:
+        if returncode not in [0, 2]:
             raise RuntimeError(f"roqet failed with exit code {returncode}: {stderr}")
 
         # Count triples in result
         triple_count = len([line for line in stdout.splitlines() if line.strip()])
 
+        # Add metadata about warnings and exit code
+        metadata = {
+            "exit_code": returncode,
+            "warnings_generated": returncode == 2,
+            "stderr": stderr,
+        }
+
         return QueryResult(
-            content=stdout, result_type="graph", count=triple_count, format="ntriples"
+            content=stdout,
+            result_type="graph",
+            count=triple_count,
+            format="ntriples",
+            metadata=metadata,
         )
 
     def execute_ask_query(self, config: TestConfig) -> QueryResult:
@@ -144,13 +174,20 @@ class QueryExecutor:
         args = self.build_roqet_args(config, query_type)
         self.logger.debug(f"Executing ASK query: {' '.join(args)}")
 
-        returncode, stdout, stderr = run_command(args)
+        returncode, stdout, stderr = run_command(cmd=args, cwd=str(Path.cwd()))
 
-        if returncode != 0:
+        if returncode not in [0, 2]:
             raise RuntimeError(f"roqet failed with exit code {returncode}: {stderr}")
 
         # Parse boolean result from SRJ output
         boolean_value = self._parse_ask_result(stdout)
+
+        # Add metadata about warnings and exit code
+        metadata = {
+            "exit_code": returncode,
+            "warnings_generated": returncode == 2,
+            "stderr": stderr,
+        }
 
         return QueryResult(
             content=stdout,
@@ -158,6 +195,7 @@ class QueryExecutor:
             count=1,
             boolean_value=boolean_value,
             format="srj",
+            metadata=metadata,
         )
 
     def execute_select_query(self, config: TestConfig) -> QueryResult:
@@ -166,25 +204,72 @@ class QueryExecutor:
         if not query_type.is_select:
             raise ValueError("Query is not a SELECT query")
 
-        args = self.build_roqet_args(config, query_type)
+        # Determine output format based on expected result file
+        result_format = self._determine_result_format(config)
+
+        args = self.build_roqet_args(config, query_type, result_format)
         self.logger.debug(f"Executing SELECT query: {' '.join(args)}")
+        self.logger.debug(f"Working directory: {Path.cwd()}")
 
-        returncode, stdout, stderr = run_command(args)
+        returncode, stdout, stderr = run_command(cmd=args, cwd=str(Path.cwd()))
 
-        if returncode != 0:
+        self.logger.debug(f"Roqet return code: {returncode}")
+        self.logger.debug(f"Roqet stdout length: {len(stdout)}")
+        self.logger.debug(f"Roqet stderr length: {len(stderr)}")
+        if stdout:
+            self.logger.debug(f"Roqet stdout (first 500 chars): {repr(stdout[:500])}")
+        if stderr:
+            self.logger.debug(f"Roqet stderr (first 500 chars): {repr(stderr[:500])}")
+
+        if returncode not in [0, 2]:
             raise RuntimeError(f"roqet failed with exit code {returncode}: {stderr}")
 
         # Extract variable order and count bindings
-        vars_order = self._extract_variables_from_query(config.query)
-        binding_count = self._count_bindings(stdout, config.result_format)
+        try:
+            # First try to get query from direct attribute (for tests)
+            query_content = getattr(config, "query", None)
+            if query_content is None:
+                # Fall back to reading from file
+                query_content = config.test_file.read_text()
+        except (AttributeError, FileNotFoundError):
+            query_content = ""
+        vars_order = self._extract_variables_from_query(query_content)
+        binding_count = self._count_bindings(stdout, result_format)
+
+        # Add metadata about warnings and exit code
+        metadata = {
+            "exit_code": returncode,
+            "warnings_generated": returncode == 2,
+            "stderr": stderr,
+        }
 
         return QueryResult(
             content=stdout,
             result_type="bindings",
             count=binding_count,
             vars_order=vars_order,
-            format=config.result_format,
+            format=result_format,
+            metadata=metadata,
         )
+
+    def _determine_result_format(self, config: TestConfig) -> str:
+        """Determine the appropriate result format based on expected result file."""
+        if not config.result_file or not config.result_file.exists():
+            return "csv"  # Default format
+
+        # Read first few lines to detect format
+        try:
+            with open(config.result_file, "r") as f:
+                first_line = f.readline().strip()
+
+            if first_line.startswith("<?xml") or first_line.startswith("<sparql"):
+                return "xml"  # SRX format
+            elif first_line.startswith("{") or '"results"' in first_line:
+                return "srj"  # SRJ/JSON format
+            else:
+                return "csv"  # Default to CSV for other formats
+        except Exception:
+            return "csv"  # Fall back to CSV if detection fails
 
     def execute_srj_query(self, config: TestConfig) -> QueryResult:
         """Execute a query with SRJ output format."""
@@ -196,6 +281,20 @@ class QueryExecutor:
             return self.execute_select_query(config)
         else:
             raise ValueError("SRJ format only supported for ASK and SELECT queries")
+
+    def execute_query(self, config: TestConfig) -> QueryResult:
+        """Execute a query based on its type and return the result."""
+        query_type = self.detect_query_type(config)
+
+        if query_type.is_construct or query_type.is_describe:
+            return self.execute_construct_query(config)
+        elif query_type.is_ask:
+            return self.execute_ask_query(config)
+        elif query_type.is_select:
+            return self.execute_select_query(config)
+        else:
+            # Default to SELECT for unknown query types
+            return self.execute_select_query(config)
 
     def _parse_ask_result(self, srj_output: str) -> bool:
         """Parse boolean result from SRJ output."""
