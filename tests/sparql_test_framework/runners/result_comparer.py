@@ -78,7 +78,13 @@ class ResultComparer:
             if result_type == "graph":
                 return self.compare_graph_results(actual, expected, config)
             elif result_type == "bindings":
-                return self.compare_bindings_results(actual, expected, config)
+                # Check if the content is in SRX format
+                if actual.strip().startswith("<?xml") or expected.strip().startswith(
+                    "<?xml"
+                ):
+                    return self.compare_srx_results(actual, expected, config)
+                else:
+                    return self.compare_bindings_results(actual, expected, config)
             elif result_type == "boolean":
                 return self.compare_boolean_results(actual, expected)
             elif result_type == "srj":
@@ -268,6 +274,67 @@ class ResultComparer:
                 comparison_method="srj",
             )
 
+    def compare_srx_results(
+        self, actual: str, expected: str, config: TestConfig
+    ) -> ComparisonResult:
+        """Compare SRX (SPARQL Results XML) results."""
+        try:
+            self.logger.debug("SRX comparison called")
+            self.logger.debug(f"Actual SRX (first 200 chars): {actual[:200]}")
+            self.logger.debug(f"Expected SRX (first 200 chars): {expected[:200]}")
+
+            # Normalize SRX content by removing formatting differences
+            actual_normalized = self._normalize_srx_content(actual)
+            expected_normalized = self._normalize_srx_content(expected)
+
+            self.logger.debug(
+                f"Actual normalized (first 500 chars): {actual_normalized[:500]}"
+            )
+            self.logger.debug(
+                f"Expected normalized (first 500 chars): {expected_normalized[:500]}"
+            )
+
+            is_match = actual_normalized == expected_normalized
+            self.logger.debug(f"SRX comparison result: {is_match}")
+
+            if not is_match:
+                self.logger.debug(f"Actual normalized length: {len(actual_normalized)}")
+                self.logger.debug(
+                    f"Expected normalized length: {len(expected_normalized)}"
+                )
+
+                # Find first difference
+                for i, (a, e) in enumerate(zip(actual_normalized, expected_normalized)):
+                    if a != e:
+                        self.logger.debug(
+                            f"First difference at position {i}: '{a}' vs '{e}'"
+                        )
+                        self.logger.debug(
+                            f"Actual context: {actual_normalized[max(0, i-20):i+20]}"
+                        )
+                        self.logger.debug(
+                            f"Expected context: {expected_normalized[max(0, i-20):i+20]}"
+                        )
+                        break
+
+            if is_match:
+                return ComparisonResult(is_match=True, comparison_method="srx")
+            else:
+                # Generate diff output
+                diff_output = self._generate_srx_diff(
+                    actual_normalized, expected_normalized
+                )
+                return ComparisonResult(
+                    is_match=False, diff_output=diff_output, comparison_method="srx"
+                )
+
+        except Exception as e:
+            return ComparisonResult(
+                is_match=False,
+                error_message=f"Error comparing SRX results: {e}",
+                comparison_method="srx",
+            )
+
     def _normalize_srj_content(self, content: str) -> str:
         """Normalize SRJ content for comparison."""
         # For SRJ, we'll do a simple text normalization
@@ -276,12 +343,121 @@ class ResultComparer:
         lines.sort()
         return "\n".join(lines)
 
+    def _normalize_srx_content(self, content: str) -> str:
+        """Normalize SRX content for comparison."""
+        # For SRX, we'll normalize XML by:
+        # 1. Removing unnecessary whitespace between tags
+        # 2. Sorting result elements to handle order differences
+        # 3. Normalizing attribute order
+
+        import re
+        import xml.etree.ElementTree as ET
+
+        try:
+            # Parse XML and reformat
+            root = ET.fromstring(content)
+
+            # Remove namespace declarations for comparison
+            for elem in root.iter():
+                if "xmlns" in elem.attrib:
+                    del elem.attrib["xmlns"]
+
+            # Sort variables in the header for consistent comparison
+            head_elem = root.find(".//{http://www.w3.org/2005/sparql-results#}head")
+            if head_elem is not None:
+                variable_elements = head_elem.findall(
+                    ".//{http://www.w3.org/2005/sparql-results#}variable"
+                )
+                # Sort by variable name
+                variable_elements.sort(key=lambda var: var.get("name", ""))
+
+                # Clear and re-add sorted variables
+                head_elem.clear()
+                head_elem.extend(variable_elements)
+
+            # Sort result elements by their binding values for consistent comparison
+            results_elem = root.find(
+                ".//{http://www.w3.org/2005/sparql-results#}results"
+            )
+            if results_elem is not None:
+                result_elements = results_elem.findall(
+                    ".//{http://www.w3.org/2005/sparql-results#}result"
+                )
+
+                # Sort bindings within each result by variable name
+                for result in result_elements:
+                    binding_elements = result.findall(
+                        ".//{http://www.w3.org/2005/sparql-results#}binding"
+                    )
+                    # Sort by variable name
+                    binding_elements.sort(key=lambda binding: binding.get("name", ""))
+                    # Clear and re-add sorted bindings
+                    result.clear()
+                    result.extend(binding_elements)
+
+                # Sort by concatenating all binding values
+                def sort_key(result):
+                    binding_values = []
+                    for binding in result.findall(
+                        ".//{http://www.w3.org/2005/sparql-results#}binding"
+                    ):
+                        # Get the variable name and value
+                        var_name = binding.get("name")
+                        value_elem = binding.find(".//*")
+                        if value_elem is not None:
+                            if value_elem.tag.endswith("literal"):
+                                binding_values.append(f"{var_name}:{value_elem.text}")
+                            elif value_elem.tag.endswith("uri"):
+                                binding_values.append(f"{var_name}:{value_elem.text}")
+                            elif value_elem.tag.endswith("bnode"):
+                                binding_values.append(f"{var_name}:{value_elem.text}")
+                    return "|".join(sorted(binding_values))
+
+                result_elements.sort(key=sort_key)
+
+                # Clear and re-add sorted results
+                results_elem.clear()
+                results_elem.extend(result_elements)
+
+            # Convert back to string with consistent formatting
+            normalized_xml = ET.tostring(root, encoding="unicode", method="xml")
+
+            # Clean up formatting
+            normalized_xml = re.sub(
+                r">\s*<", "><", normalized_xml
+            )  # Remove whitespace between tags
+            normalized_xml = re.sub(r"\s+", " ", normalized_xml)  # Normalize whitespace
+            normalized_xml = normalized_xml.replace(
+                "?>", "?>\n"
+            )  # Add newline after XML declaration
+
+            return normalized_xml.strip()
+
+        except Exception as e:
+            # If XML parsing fails, fall back to simple text normalization
+            self.logger.warning(
+                f"Failed to parse SRX XML: {e}, falling back to text normalization"
+            )
+            lines = [line.strip() for line in content.splitlines() if line.strip()]
+            lines.sort()
+            return "\n".join(lines)
+
     def _generate_srj_diff(self, actual: str, expected: str) -> str:
         """Generate diff output for SRJ comparison."""
         diff_output = []
         diff_output.append("=== ACTUAL SRJ ===")
         diff_output.extend(actual.splitlines())
         diff_output.append("=== EXPECTED SRJ ===")
+        diff_output.extend(expected.splitlines())
+
+        return "\n".join(diff_output)
+
+    def _generate_srx_diff(self, actual: str, expected: str) -> str:
+        """Generate diff output for SRX comparison."""
+        diff_output = []
+        diff_output.append("=== ACTUAL SRX ===")
+        diff_output.extend(actual.splitlines())
+        diff_output.append("=== EXPECTED SRX ===")
         diff_output.extend(expected.splitlines())
 
         return "\n".join(diff_output)
