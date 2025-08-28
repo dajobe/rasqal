@@ -200,9 +200,19 @@ def format_testsuite_result(
     crash_count = sum(1 for test in failed_tests if test.get("is_crash", False))
     normal_fail_count = failed_count - crash_count
 
-    file_handle.write(
-        f"{indent_prefix}Passed: {passed_count}    Failed: {failed_count}    Skipped: {skipped_count}    Xfailed: {xfailed_count}    Uxpassed: {uxpassed_count}\n"
-    )
+    # Build the summary line
+    summary_parts = [
+        f"Passed: {passed_count}",
+        f"Failed: {failed_count}",
+        f"Skipped: {skipped_count}",
+        f"Xfailed: {xfailed_count}",
+    ]
+
+    # Only show UXPASSED if there are any
+    if uxpassed_count > 0:
+        summary_parts.append(f"Uxpassed: {uxpassed_count}")
+
+    file_handle.write(f"{indent_prefix}{'    '.join(summary_parts)}\n")
 
     # Show crash breakdown on separate line if there were crashes
     if crash_count > 0:
@@ -603,156 +613,390 @@ class Testsuite:
             "signal": None,  # New field to track signal if crashed
         }
 
-        # Add --use-rasqal-compare flag if enabled
-        if hasattr(self.args, "use_rasqal_compare") and self.args.use_rasqal_compare:
-            # Check if the command is a Python script that supports the flag
-            if "python" in action_cmd and (
-                "sparql.py" in action_cmd
-                or "test_runner" in action_cmd
-                or "run-sparql-tests" in action_cmd
-            ):
-                action_cmd += " --use-rasqal-compare"
+        # Step 1: Prepare the command with appropriate flags
+        action_cmd = CommandPreparation.prepare_command(action_cmd, self.args, test_details)
 
-        # Add debug flags if enabled
-        if hasattr(self.args, "debug") and self.args.debug > 0:
-            # Check if the command is a Python script that supports debug flags
-            if "python" in action_cmd and (
-                "sparql.py" in action_cmd
-                or "test_runner" in action_cmd
-                or "run-sparql-tests" in action_cmd
-            ):
-                # Add -d flags based on debug level
-                for _ in range(self.args.debug):
-                    action_cmd += " -d"
+        # Step 2: Create log file path
+        log_file_name, log_file_path = LogProcessor.create_log_file_path(test_name, self.directory)
 
+        # Step 3: Debug logging
         path_prefix = (
             f"PATH={os.environ.get('PATH','(not set)')} " if self.path_for_suite else ""
         )
         if self.args.debug:
             logger.debug(f"Running test '{test_name}': {path_prefix}{action_cmd}")
 
-        name_slug = re.sub(r"[^\w\-.]", "-", test_name) if test_name else "unnamed-test"
-        log_file_path = self.directory / f"{name_slug}.log"
-        # Use relative path for shell command since we're running with cwd=self.directory
-        log_file_name = f"{name_slug}.log"
-
-        actual_run_status: TestResult = TestResult.FAILED
-
         try:
-            full_cmd_for_shell = f'{action_cmd} > "{log_file_name}" 2>&1'
-            logger.debug(
-                f"PATH before subprocess.run: {os.environ.get('PATH', '(not set)')}"
+            # Step 4: Execute the command
+            execution_result = ProcessExecutor.execute_command(
+                action_cmd, self.directory, log_file_name
             )
-            process = subprocess.run(
-                full_cmd_for_shell,
-                cwd=self.directory,
-                shell=True,
-                text=True,
-                check=False,
-                encoding="utf-8",
+
+            # Step 5: Parse execution results
+            parsed_result = ResultParser.parse_execution_result(
+                execution_result["return_code"],
+                execution_result["log_content"],
+                action_cmd,
+                test_name,
+                self.args
             )
-            return_code = process.returncode
-            result["exit_code"] = return_code
 
-            # Detect crashes and abnormal exits
-            is_signal, signal_num = is_signal_termination(return_code)
-            if is_signal:
-                result["is_crash"] = True
-                result["signal"] = signal_num
-                signal_desc = get_signal_description(signal_num)
-                if signal_num == 11:  # SIGSEGV
-                    result["detail"] = f"CRASH: Segmentation fault ({signal_desc})"
-                elif signal_num == 6:  # SIGABRT
-                    result["detail"] = f"CRASH: Aborted ({signal_desc})"
-                elif signal_num == 9:  # SIGKILL
-                    result["detail"] = f"CRASH: Killed ({signal_desc})"
-                elif signal_num == 15:  # SIGTERM
-                    result["detail"] = f"CRASH: Terminated ({signal_desc})"
-                else:
-                    result["detail"] = f"CRASH: Terminated by {signal_desc}"
-                actual_run_status = TestResult.FAILED
-            elif return_code != 0:
-                # Normal non-zero exit code (not a crash)
-                result["detail"] = (
-                    f"Action '{action_cmd}' exited with code {return_code}"
-                )
-                actual_run_status = TestResult.FAILED
-            else:
-                actual_run_status = TestResult.PASSED
+            # Step 6: Update result with parsed data
+            result.update({
+                "exit_code": parsed_result["exit_code"],
+                "is_crash": parsed_result["is_crash"],
+                "signal": parsed_result["signal"],
+                "log": execution_result["log_content"]
+            })
 
-            if log_file_path.exists():
-                result["log"] = log_file_path.read_text(encoding="utf-8")
-                # For crashes, show more log context
-                if result["is_crash"]:
-                    log_lines = result["log"].splitlines()
-                    if log_lines:
-                        # Show more log context for crashes when --crash-details is enabled
-                        if (
-                            hasattr(self.args, "crash_details")
-                            and self.args.crash_details
-                        ):
-                            # Show last 20 lines for detailed crash reporting
-                            last_lines = (
-                                log_lines[-20:] if len(log_lines) > 20 else log_lines
-                            )
-                            result["detail"] += (
-                                f"\nDetailed crash output (last {len(last_lines)} lines):\n"
-                                + "\n".join(last_lines)
-                            )
+            # Step 7: Process additional log details
+            result["detail"] = LogProcessor.process_log_content(
+                execution_result["log_content"],
+                parsed_result["actual_run_status"],
+                parsed_result["detail"],
+                self.args
+            )
 
-                            # Try to identify potential crash patterns
-                            crash_patterns = []
-                            for line in last_lines:
-                                if any(
-                                    pattern in line.lower()
-                                    for pattern in [
-                                        "segfault",
-                                        "segmentation fault",
-                                        "bus error",
-                                        "abort",
-                                        "core dumped",
-                                        "stack trace",
-                                    ]
-                                ):
-                                    crash_patterns.append(line.strip())
-
-                            if crash_patterns:
-                                result[
-                                    "detail"
-                                ] += f"\nCrash indicators found:\n" + "\n".join(
-                                    crash_patterns
-                                )
-                        else:
-                            # Show last 10 lines for normal crash reporting
-                            last_lines = (
-                                log_lines[-10:] if len(log_lines) > 10 else log_lines
-                            )
-                            result[
-                                "detail"
-                            ] += f"\nLast output before crash:\n" + "\n".join(
-                                last_lines
-                            )
-                elif (
-                    actual_run_status == TestResult.FAILED
-                    and self.args.verbose
-                    and not result["detail"]
-                ):
-                    log_lines = result["log"].splitlines()
-                    if log_lines:
-                        result["detail"] += "\nLog tail:\n" + "\n".join(log_lines[-5:])
+            actual_run_status = parsed_result["actual_run_status"]
 
         except Exception as e:
             result["detail"] = f"Failed to execute action '{action_cmd}': {e}"
             result["is_crash"] = True  # Execution failure is treated as a crash
             actual_run_status = TestResult.FAILED
         finally:
-            try:
-                if log_file_path.exists():
-                    log_file_path.unlink()
-            except OSError as e_unlink:
-                logger.warning(
-                    f"Could not remove test log file {log_file_path}: {e_unlink}"
-                )
+            # Step 8: Cleanup log file
+            LogProcessor.cleanup_log_file(log_file_path)
+
+        # Step 9: Determine final test result
+        result = TestResultDeterminer.determine_final_result(
+            result, expected_status_enum, actual_run_status, test_details
+        )
+
+        return result
+
+
+class CommandPreparation:
+    """Handles preparation of test commands with appropriate flags and options."""
+
+    @staticmethod
+    def prepare_command(
+        action_cmd: str,
+        args: argparse.Namespace,
+        test_details: Dict[str, Any]
+    ) -> str:
+        """Prepare the test command with appropriate flags based on args and test type."""
+        prepared_cmd = action_cmd
+
+        # Add --use-rasqal-compare flag if enabled
+        prepared_cmd = CommandPreparation._add_rasqal_compare_flag(prepared_cmd, args)
+
+        # Add debug flags if enabled
+        prepared_cmd = CommandPreparation._add_debug_flags(prepared_cmd, args)
+
+        # Add syntax test flags if applicable
+        prepared_cmd = CommandPreparation._add_syntax_test_flags(prepared_cmd, test_details)
+
+        return prepared_cmd
+
+    @staticmethod
+    def _add_rasqal_compare_flag(action_cmd: str, args: argparse.Namespace) -> str:
+        """Add --use-rasqal-compare flag if enabled and supported."""
+        if not (hasattr(args, "use_rasqal_compare") and args.use_rasqal_compare):
+            return action_cmd
+
+        # Check if the command is a Python script that supports the flag
+        if "python" in action_cmd and (
+            "sparql.py" in action_cmd
+            or "test_runner" in action_cmd
+            or "run-sparql-tests" in action_cmd
+        ):
+            return action_cmd + " --use-rasqal-compare"
+
+        return action_cmd
+
+    @staticmethod
+    def _add_debug_flags(action_cmd: str, args: argparse.Namespace) -> str:
+        """Add debug flags if enabled and supported."""
+        if not (hasattr(args, "debug") and args.debug > 0):
+            return action_cmd
+
+        # Check if the command is a Python script that supports debug flags
+        if "python" in action_cmd and (
+            "sparql.py" in action_cmd
+            or "test_runner" in action_cmd
+            or "run-sparql-tests" in action_cmd
+        ):
+            # Add -d flags based on debug level
+            for _ in range(args.debug):
+                action_cmd += " -d"
+
+        return action_cmd
+
+    @staticmethod
+    def _add_syntax_test_flags(action_cmd: str, test_details: Dict[str, Any]) -> str:
+        """Add syntax test flags if this is an actual syntax test."""
+        test_type = test_details.get("test_type", "")
+        if not test_type:
+            return action_cmd
+
+        # Check if this is actually a syntax test type from the manifest
+        from ..test_types import SYNTAX_TEST_TYPES
+        is_actual_syntax_test = test_type in SYNTAX_TEST_TYPES
+
+        if is_actual_syntax_test and action_cmd.startswith("roqet"):
+            # For actual syntax tests, add -n (dryrun) and -W 0 (no warnings) flags
+            return action_cmd + " -n -W 0"
+
+        return action_cmd
+
+
+class ProcessExecutor:
+    """Handles subprocess execution for test commands."""
+
+    @staticmethod
+    def execute_command(
+        action_cmd: str,
+        directory: Path,
+        log_file_name: str,
+        path_prefix: str = ""
+    ) -> Dict[str, Any]:
+        """Execute the test command and return execution results."""
+        import subprocess
+        import os
+        from pathlib import Path
+
+        full_cmd_for_shell = f'{action_cmd} > "{log_file_name}" 2>&1'
+
+        logger.debug(
+            f"PATH before subprocess.run: {os.environ.get('PATH', '(not set)')}"
+        )
+
+        process = subprocess.run(
+            full_cmd_for_shell,
+            cwd=directory,
+            shell=True,
+            text=True,
+            check=False,
+            encoding="utf-8",
+        )
+
+        log_file_path = directory / log_file_name
+
+        execution_result = {
+            "return_code": process.returncode,
+            "log_content": "",
+            "log_exists": log_file_path.exists()
+        }
+
+        if log_file_path.exists():
+            execution_result["log_content"] = log_file_path.read_text(encoding="utf-8")
+
+        return execution_result
+
+
+class ResultParser:
+    """Handles parsing of test execution results and crash detection."""
+
+    @staticmethod
+    def parse_execution_result(
+        return_code: int,
+        log_content: str,
+        action_cmd: str,
+        test_name: str,
+        args: argparse.Namespace
+    ) -> Dict[str, Any]:
+        """Parse execution results and determine test status."""
+
+        result = {
+            "exit_code": return_code,
+            "is_crash": False,
+            "signal": None,
+            "detail": "",
+            "actual_run_status": TestResult.FAILED
+        }
+
+        # Detect crashes and abnormal exits
+        is_signal, signal_num = is_signal_termination(return_code)
+        if is_signal:
+            result.update(ResultParser._handle_signal_termination(signal_num))
+        elif return_code not in [0, 2]:
+            # Normal non-zero exit code (not a crash)
+            # Exit code 2 is treated as success (warnings only)
+            result["detail"] = f"Action '{action_cmd}' exited with code {return_code}"
+            result["actual_run_status"] = TestResult.FAILED
+        else:
+            result["actual_run_status"] = TestResult.PASSED
+
+        # Parse special run-sparql-tests output if applicable
+        if "run-sparql-tests" in action_cmd and return_code == 0:
+            parsed_result = ResultParser._parse_run_sparql_tests_output(
+                log_content, test_name
+            )
+            if parsed_result:
+                result.update(parsed_result)
+
+        # Add crash details if crash occurred
+        if result["is_crash"]:
+            result["detail"] = ResultParser._add_crash_details(
+                result["detail"], log_content, signal_num, args
+            )
+
+        return result
+
+    @staticmethod
+    def _handle_signal_termination(signal_num: int) -> Dict[str, Any]:
+        """Handle signal termination and format crash details."""
+
+        result = {
+            "is_crash": True,
+            "signal": signal_num,
+            "actual_run_status": TestResult.FAILED
+        }
+
+        signal_desc = get_signal_description(signal_num)
+        if signal_num == 11:  # SIGSEGV
+            result["detail"] = f"CRASH: Segmentation fault ({signal_desc})"
+        elif signal_num == 6:  # SIGABRT
+            result["detail"] = f"CRASH: Aborted ({signal_desc})"
+        elif signal_num == 9:  # SIGKILL
+            result["detail"] = f"CRASH: Killed ({signal_desc})"
+        elif signal_num == 15:  # SIGTERM
+            result["detail"] = f"CRASH: Terminated ({signal_desc})"
+        else:
+            result["detail"] = f"CRASH: Terminated by {signal_desc}"
+
+        return result
+
+    @staticmethod
+    def _parse_run_sparql_tests_output(log_content: str, test_name: str) -> Optional[Dict[str, Any]]:
+        """Parse run-sparql-tests output to determine actual test result."""
+
+        logger.debug(f"Parsing run-sparql-tests output for test {test_name}")
+        logger.debug(f"Log content (first 500 chars): {log_content[:500]}")
+
+        if "✓ XFAILED:" in log_content:
+            logger.debug(f"Found XFAILED pattern for test {test_name}")
+            return {
+                "actual_run_status": TestResult.FAILED,  # Use FAILED so TestTypeResolver can identify as XFAILED
+                "detail": "Test failed as expected (XFail test)"
+            }
+        elif "⚠ UXPASSED:" in log_content:
+            logger.debug(f"Found UXPASSED pattern for test {test_name}")
+            return {
+                "actual_run_status": TestResult.PASSED,  # Use PASSED so TestTypeResolver can identify as UXPASSED
+                "detail": "Test passed unexpectedly (XFail test)"
+            }
+        elif "✓ PASSED:" in log_content:
+            logger.debug(f"Found PASSED pattern for test {test_name}")
+            return {
+                "actual_run_status": TestResult.PASSED,
+                "detail": "Test passed as expected"
+            }
+        elif "✗ FAILED:" in log_content:
+            logger.debug(f"Found FAILED pattern for test {test_name}")
+            return {
+                "actual_run_status": TestResult.FAILED,
+                "detail": "Test failed"
+            }
+        else:
+            logger.debug(f"No pattern found for test {test_name}, using fallback")
+            return None
+
+    @staticmethod
+    def _add_crash_details(
+        detail: str,
+        log_content: str,
+        signal_num: int,
+        args: argparse.Namespace
+    ) -> str:
+        """Add detailed crash information to the result detail."""
+        log_lines = log_content.splitlines()
+        if not log_lines:
+            return detail
+
+        # Show more log context for crashes when --crash-details is enabled
+        if hasattr(args, "crash_details") and args.crash_details:
+            # Show last 20 lines for detailed crash reporting
+            last_lines = log_lines[-20:] if len(log_lines) > 20 else log_lines
+            detail += (
+                f"\nDetailed crash output (last {len(last_lines)} lines):\n"
+                + "\n".join(last_lines)
+            )
+
+            # Try to identify potential crash patterns
+            crash_patterns = []
+            for line in last_lines:
+                if any(
+                    pattern in line.lower()
+                    for pattern in [
+                        "segfault",
+                        "segmentation fault",
+                        "bus error",
+                        "abort",
+                        "core dumped",
+                        "stack trace",
+                    ]
+                ):
+                    crash_patterns.append(line.strip())
+
+            if crash_patterns:
+                detail += f"\nCrash indicators found:\n" + "\n".join(crash_patterns)
+        else:
+            # Show last 10 lines for normal crash reporting
+            last_lines = log_lines[-10:] if len(log_lines) > 10 else log_lines
+            detail += f"\nLast output before crash:\n" + "\n".join(last_lines)
+
+        return detail
+
+
+class LogProcessor:
+    """Handles log file processing and cleanup for test execution."""
+
+    @staticmethod
+    def create_log_file_path(test_name: str, directory: Path) -> Tuple[str, Path]:
+        """Create a log file path for the test."""
+        import re
+        name_slug = re.sub(r"[^\w\-.]", "-", test_name) if test_name else "unnamed-test"
+        log_file_name = f"{name_slug}.log"
+        log_file_path = directory / log_file_name
+        return log_file_name, log_file_path
+
+    @staticmethod
+    def cleanup_log_file(log_file_path: Path) -> None:
+        """Clean up the log file after test execution."""
+        try:
+            if log_file_path.exists():
+                log_file_path.unlink()
+        except OSError as e_unlink:
+            logger.warning(f"Could not remove test log file {log_file_path}: {e_unlink}")
+
+    @staticmethod
+    def process_log_content(
+        log_content: str,
+        actual_run_status: TestResult,
+        detail: str,
+        args: argparse.Namespace
+    ) -> str:
+        """Process log content and add additional details if needed."""
+        if actual_run_status == TestResult.FAILED and args.verbose and not detail:
+            log_lines = log_content.splitlines()
+            if log_lines:
+                return detail + "\nLog tail:\n" + "\n".join(log_lines[-5:])
+        return detail
+
+
+class TestResultDeterminer:
+    """Handles determination of final test results based on expected vs actual outcomes."""
+
+    @staticmethod
+    def determine_final_result(
+        result: Dict[str, Any],
+        expected_status_enum: TestResult,
+        actual_run_status: TestResult,
+        test_details: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Determine the final test result and update the result dictionary."""
+        from ..test_types import TestTypeResolver
 
         # Determine the final test status based on actual execution outcome vs. expected outcome
         is_xfail_test = test_details.get("is_xfail_test", False)
@@ -761,6 +1005,7 @@ class Testsuite:
         final_result, detail = TestTypeResolver.determine_test_result(
             expected_status_enum, actual_run_status
         )
+
         result["result"] = final_result.value
         if detail:
             result["detail"] = result.get("detail", "") + " (" + detail + ")"
@@ -1017,7 +1262,7 @@ Examples:
             for result_type in all_results:
                 all_results[result_type].extend(suite_results["summary"][result_type])
 
-            # Check for failures
+            # Check for failures (only count actual FAILED tests)
             failed_count = len(suite_results["summary"][TestResult.FAILED.value])
             if failed_count > 0:
                 total_failures += failed_count
