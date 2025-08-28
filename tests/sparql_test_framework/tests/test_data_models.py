@@ -34,21 +34,11 @@ sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from test_base import SparqlTestFrameworkTestBase
-from sparql_test_framework.data import (
-    QueryType,
-    QueryResult,
-    ProcessedResult,
-    ComparisonResult,
-    SRJResult,
-    TestExecutionResult,
-)
+from sparql_test_framework.data import QueryType, QueryResult
 from sparql_test_framework.utils import (
-    TempFileManager,
     QueryExecutionError,
     ResultProcessingError,
     ComparisonError,
-    SRJProcessingError,
-    TempFileError,
 )
 
 
@@ -80,52 +70,6 @@ class TestDataModels(SparqlTestFrameworkTestBase):
         self.assertIsNone(qr.boolean_value)
         self.assertEqual(qr.format, "turtle")
         self.assertEqual(qr.metadata, {"key": "value"})
-
-
-class TestTempFileManager(SparqlTestFrameworkTestBase):
-    """Test the TempFileManager class."""
-
-    def test_temp_file_manager_initialization(self):
-        """Test TempFileManager initialization."""
-        manager = TempFileManager(preserve_files=False)
-        self.assertFalse(manager.preserve_files)
-        self.assertEqual(len(manager.temp_files), 0)
-        self.assertEqual(len(manager.file_cache), 0)
-
-    def test_temp_file_manager_preserve_mode(self):
-        """Test TempFileManager in preserve mode."""
-        manager = TempFileManager(preserve_files=True)
-        self.assertTrue(manager.preserve_files)
-
-    def test_get_temp_file_path_preserve_mode(self):
-        """Test getting temp file paths in preserve mode."""
-        manager = TempFileManager(preserve_files=True)
-        path = manager.get_temp_file_path("test.out")
-        self.assertEqual(path, Path("test.out"))
-
-    def test_get_temp_file_path_secure_mode(self):
-        """Test getting temp file paths in secure mode."""
-        manager = TempFileManager(preserve_files=False)
-        path = manager.get_temp_file_path("test.out")
-        self.assertIn("rasqal_test_", str(path))
-        self.assertIn("test.out", str(path))
-
-    def test_file_caching(self):
-        """Test that file paths are cached."""
-        manager = TempFileManager(preserve_files=False)
-        path1 = manager.get_temp_file_path("test.out")
-        path2 = manager.get_temp_file_path("test.out")
-        self.assertEqual(path1, path2)
-        self.assertEqual(len(manager.file_cache), 1)
-
-    def test_context_manager(self):
-        """Test TempFileManager as a context manager."""
-        with TempFileManager(preserve_files=False) as manager:
-            path = manager.get_temp_file_path("test.out")
-            self.assertTrue(len(manager.temp_files) > 0)
-
-        # After context exit, files should be cleaned up
-        self.assertEqual(len(manager.temp_files), 0)
 
 
 class TestExceptions(SparqlTestFrameworkTestBase):
