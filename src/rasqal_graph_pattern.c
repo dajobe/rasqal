@@ -1560,11 +1560,11 @@ rasqal_graph_pattern_get_triples(rasqal_query* query,
   
     for(i = graph_pattern->start_column; i <= graph_pattern->end_column; i++) {
       rasqal_triple *t = (rasqal_triple*)raptor_sequence_get_at(graph_pattern->triples, i);
-      t = rasqal_new_triple_from_triple(t);
       if(!t) {
         raptor_free_sequence(triples);
         return NULL;
       }
+      t = rasqal_new_triple_from_triple(t);
       raptor_sequence_push(triples, t);  
     }
   }
