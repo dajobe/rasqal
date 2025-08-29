@@ -941,7 +941,7 @@ PKG_CHECK_MODULES(UUID, uuid, [
   #if defined(UUID_LEN_BIN) && defined(UUID_VERSION)
   FAIL
   #endif
-  uuid_t data; uuid_clear(&data); ]])],[have_uuid_libuuid=yes],[have_uuid_libuuid=no])
+  uuid_t data; uuid_clear(data); ]])],[have_uuid_libuuid=yes],[have_uuid_libuuid=no])
 
   CPPFLAGS="$oCPPFLAGS"
   LIBS="$oLIBS"
