@@ -600,6 +600,8 @@ rasqal_triples_rowsource_get_next_constraint_based_row(rasqal_rowsource* rowsour
 
     /* Position iterator to first match if needed */
     if(rasqal_triples_match_is_end(m->triples_match)) {
+      int reset_col;
+
       RASQAL_DEBUG2("Column %d iterator exhausted - backtracking\n", column);
       /* Backtrack: move to previous column and advance it, then retry */
       if(column <= con->start_column) {
@@ -620,7 +622,7 @@ rasqal_triples_rowsource_get_next_constraint_based_row(rasqal_rowsource* rowsour
       rasqal_triples_match_next_match(m->triples_match);
       
       /* Reset all subsequent columns since they depended on the old binding */
-      for(int reset_col = column + 1; reset_col <= con->end_column; reset_col++) {
+      for(reset_col = column + 1; reset_col <= con->end_column; reset_col++) {
         rasqal_triple_meta *reset_m = &con->triple_meta[reset_col - con->start_column];
         if(reset_m->triples_match) {
           rasqal_free_triples_match(reset_m->triples_match);
@@ -799,13 +801,14 @@ static int
 rasqal_triples_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_triples_rowsource_context *con;
+  int column;
 
   con = (rasqal_triples_rowsource_context*)user_data;
 
   /* Reset algorithm state for next iteration */
   con->cartesian_initialized = 0;
 
-  for(int column = con->start_column; column <= con->end_column; column++) {
+  for(column = con->start_column; column <= con->end_column; column++) {
     rasqal_triple_meta *m;
 
     m = &con->triple_meta[column - con->start_column];
@@ -822,13 +825,14 @@ rasqal_triples_rowsource_set_origin(rasqal_rowsource *rowsource,
                                     rasqal_literal *origin)
 {
   rasqal_triples_rowsource_context *con;
+  int column;
 
   con = (rasqal_triples_rowsource_context*)user_data;
   if(con->origin)
     rasqal_free_literal(con->origin);
   con->origin = rasqal_new_literal_from_literal(origin);
 
-  for(int column = con->start_column; column <= con->end_column; column++) {
+  for(column = con->start_column; column <= con->end_column; column++) {
     rasqal_triple *t;
     t = (rasqal_triple*)raptor_sequence_get_at(con->triples, column);
     if(t->origin)
@@ -908,6 +912,8 @@ rasqal_new_triples_rowsource(rasqal_world *world,
 
   /* Allocate fixed-size 2D matrix */
   if(con->variable_count > 0) {
+    int i;
+
     con->column_variable_matrix = RASQAL_CALLOC(char*,
                                                con->triples_count * con->variable_count,
                                                sizeof(char));
@@ -924,9 +930,8 @@ rasqal_new_triples_rowsource(rasqal_world *world,
       return NULL;
     }
 
-    for(int i = 0; i < con->variable_count; i++) {
+    for(i = 0; i < con->variable_count; i++)
       con->variable_index_map[i] = rasqal_variables_table_get(query->vars_table, i);
-    }
 
     RASQAL_DEBUG3("Initialized matrix: %d columns × %d variables\n", con->triples_count, con->variable_count);
   }
