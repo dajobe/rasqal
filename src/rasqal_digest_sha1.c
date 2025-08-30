@@ -151,8 +151,11 @@ SHA1Transform(u32 state[5], const unsigned char buffer[64])
     unsigned char c[64];
     u32 l[16];
   } CHAR64LONG16;
-  CHAR64LONG16* block;
-  block = (CHAR64LONG16*)buffer;
+  CHAR64LONG16 block_data;
+  CHAR64LONG16* block = &block_data;
+
+  /* Copy buffer to local block to avoid alignment issues */
+  memcpy(&block_data, buffer, 64);
 
   /* Copy context->state[] to working vars */
   a = state[0];
