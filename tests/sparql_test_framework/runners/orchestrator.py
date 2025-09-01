@@ -872,28 +872,23 @@ class ResultParser:
         """Parse run-sparql-tests output to determine actual test result."""
 
         logger.debug(f"Parsing run-sparql-tests output for test {test_name}")
-        logger.debug(f"Log content (first 500 chars): {log_content[:500]}")
 
-        if "✓ XFAILED:" in log_content:
-            logger.debug(f"Found XFAILED pattern for test {test_name}")
+        if "INFO: ✓ XFAILED:" in log_content:
             return {
-                "actual_run_status": TestResult.FAILED,  # Use FAILED so TestTypeResolver can identify as XFAILED
+                "actual_run_status": TestResult.XFAILED,
                 "detail": "Test failed as expected (XFail test)"
             }
-        elif "⚠ UXPASSED:" in log_content:
-            logger.debug(f"Found UXPASSED pattern for test {test_name}")
+        elif "INFO: ⚠ UXPASSED:" in log_content:
             return {
-                "actual_run_status": TestResult.PASSED,  # Use PASSED so TestTypeResolver can identify as UXPASSED
+                "actual_run_status": TestResult.UXPASSED,
                 "detail": "Test passed unexpectedly (XFail test)"
             }
-        elif "✓ PASSED:" in log_content:
-            logger.debug(f"Found PASSED pattern for test {test_name}")
+        elif "INFO: ✓ PASSED:" in log_content:
             return {
                 "actual_run_status": TestResult.PASSED,
                 "detail": "Test passed as expected"
             }
-        elif "✗ FAILED:" in log_content:
-            logger.debug(f"Found FAILED pattern for test {test_name}")
+        elif "INFO: ✗ FAILED:" in log_content:
             return {
                 "actual_run_status": TestResult.FAILED,
                 "detail": "Test failed"
