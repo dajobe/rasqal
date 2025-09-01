@@ -11,10 +11,11 @@
     mf:entries
     (
     :bind07
+    :bind10
     ) .
 
 :bind07 rdf:type t:XFailTest ;
-    mf:name    "bind07 - BIND (expected to fail)" ;
+    mf:name    "bind07 - BIND" ;
     rdfs:comment "Expected to fail until BIND implementation complete" ;
     dawgt:approval dawgt:Approved ;
     mf:action
@@ -23,6 +24,12 @@
     mf:result  <../sparql11-test-suite/bind/bind07.srx>
     .
 
-
-
+:bind10 rdf:type t:XFailTest ;
+    mf:name    "bind10 - BIND" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <../sparql11-test-suite/bind/bind10.rq> ;
+           qt:data   <../sparql11-test-suite/bind/data.ttl> ] ;
+    mf:result  <../sparql11-test-suite/bind/bind10.srx>
+    .
 
