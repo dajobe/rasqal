@@ -58,6 +58,9 @@ typedef struct
   /* graph origin for GRAPH pattern context (or NULL) */
   rasqal_literal* graph_origin;
 
+  /* Scope context for variable resolution */
+  rasqal_query_scope* evaluation_scope;
+
 } rasqal_filter_rowsource_context;
 
 
@@ -131,8 +134,30 @@ rasqal_filter_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       rasqal_evaluation_context_set_graph_origin(query->eval_context, con->graph_origin);
     }
 
-    result = rasqal_expression_evaluate2(con->expr, query->eval_context,
-                                         &error);
+    /* Use scope-aware expression evaluation if scope is available */
+    if(con->evaluation_scope) {
+      rasqal_variable_lookup_context scope_context;
+      memset(&scope_context, 0, sizeof(scope_context));
+      scope_context.current_scope = con->evaluation_scope;
+      scope_context.search_scope = con->evaluation_scope;
+      scope_context.rowsource = rowsource;
+      scope_context.query = query;
+      
+      /* Check if this is an isolated GROUP scope */
+      if(con->evaluation_scope->scope_type == RASQAL_QUERY_SCOPE_TYPE_GROUP) {
+        /* GROUP scopes are isolated - do not inherit from parent */
+        scope_context.search_flags = RASQAL_VAR_SEARCH_LOCAL_ONLY;
+      } else {
+        /* Other scopes can inherit from parent */
+        scope_context.search_flags = RASQAL_VAR_SEARCH_INHERIT_PARENT | RASQAL_VAR_SEARCH_LOCAL_FIRST;
+      }
+      scope_context.binding_precedence = RASQAL_VAR_PRECEDENCE_LOCAL_FIRST;
+      
+      result = rasqal_expression_evaluate_with_scope(con->expr, query->eval_context, &scope_context);
+    } else {
+      /* Fall back to standard evaluation for backward compatibility */
+      result = rasqal_expression_evaluate2(con->expr, query->eval_context, &error);
+    }
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("filter expression result: ");
     if(error)
@@ -254,6 +279,7 @@ static const rasqal_rowsource_handler rasqal_filter_rowsource_handler = {
  * @query: query object
  * @rowsource: input rowsource
  * @expr: filter expression
+ * @evaluation_scope: scope for variable resolution (may be NULL)
  *
  * INTERNAL - create a new FILTER rowsource
  *
@@ -265,7 +291,8 @@ rasqal_rowsource*
 rasqal_new_filter_rowsource(rasqal_world *world,
                             rasqal_query *query,
                             rasqal_rowsource* rowsource,
-                            rasqal_expression* expr)
+                            rasqal_expression* expr,
+                            rasqal_query_scope* evaluation_scope)
 {
   rasqal_filter_rowsource_context *con;
   int flags = 0;
@@ -279,6 +306,9 @@ rasqal_new_filter_rowsource(rasqal_world *world,
 
   con->rowsource = rowsource;
   con->expr = rasqal_new_expression_from_expression(expr);
+  con->evaluation_scope = evaluation_scope;
+
+
 
   return rasqal_new_rowsource_from_handler(world, query,
                                            con,

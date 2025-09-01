@@ -49,17 +49,24 @@
     </section>
 
     <section id="ownership-graph-patterns">
-      <title>Graph Patterns</title>
-      <para>The main query owns graph patterns.</para>
+      <title>Graph Patterns and Scopes</title>
+      <para>The main query owns graph patterns and maintains a hierarchy of graph pattern scopes for SPARQL 1.1 semantic isolation.</para>
       <programlisting>
 rasqal_query
-└── graph_patterns (raptor_sequence)
-    └── rasqal_graph_pattern objects
+├── graph_patterns (raptor_sequence)     // Pattern structure hierarchy
+│   └── rasqal_graph_pattern objects
+│       └── execution_scope (reference)  // Points to appropriate scope
+└── root_scope (rasqal_query_scope)      // Root scope with children
+    ├── owned_triples (raptor_sequence)      // Triples owned by this scope
+    ├── local_vars (rasqal_variables_table)  // Local variables
+    └── child_scopes (raptor_sequence)       // Nested scopes
+        └── rasqal_query_scope objects
       </programlisting>
       <itemizedlist>
-        <listitem><para><emphasis>Owner:</emphasis> <literal>rasqal_query</literal> via a <literal>raptor_sequence</literal>.</para></listitem>
-        <listitem><para><emphasis>Cleanup:</emphasis> patterns are freed when the query is freed.</para></listitem>
-        <listitem><para><emphasis>References:</emphasis> expressions and other components reference patterns; they do not own them.</para></listitem>
+        <listitem><para><emphasis>Pattern Owner:</emphasis> <literal>rasqal_query</literal> owns the pattern structure hierarchy.</para></listitem>
+        <listitem><para><emphasis>Scope Owner:</emphasis> <literal>rasqal_query</literal> owns the root scope, which owns child scopes.</para></listitem>
+        <listitem><para><emphasis>Triple Owner:</emphasis> Each scope exclusively owns its triples, preventing contamination.</para></listitem>
+        <listitem><para><emphasis>Cleanup:</emphasis> Patterns and scopes are freed when the query is freed via proper reference counting.</para></listitem>
       </itemizedlist>
     </section>
 
@@ -218,18 +225,37 @@ if(sequence_created) {
     <para>The SPARQL parser is implemented using Bison (yacc) with
     grammar rules that create AST nodes during parsing. Parser
     actions create various structures including graph patterns,
-    expressions, and variable registrations.</para>
+    expressions, variable registrations, and scope hierarchies for
+    SPARQL 1.1 compliance.</para>
 
     <para>Variables are registered during parsing through
     <function>rasqal_query_add_variable</function>, which creates
-    variables from literals and adds them to the query
-    structure. This registration must happen before variables can be
-    used in expressions, creating challenges for patterns that
-    introduce new variables.</para>
+    variables from literals and adds them to appropriate scopes
+    within the variable scope hierarchy. The hierarchical scope system
+    ensures proper SPARQL 1.1 variable isolation and inheritance.</para>
 
-    <para>The parser tightly couples patterns with main query
-    structures, which creates variable scoping challenges that
-    require special handling for complex query features.</para>
+    <section id="scope-creation-during-parsing">
+      <title>Scope Creation During Parsing</title>
+
+      <para>The parser creates scope hierarchies as it encounters
+      different graph pattern operators:</para>
+
+      <itemizedlist>
+        <listitem><para><emphasis>Root Scope Creation</emphasis> - The parser creates a root scope for the main query to contain outer query triples and variables</para></listitem>
+        <listitem><para><emphasis>EXISTS Scope Creation</emphasis> - EXISTS/NOT EXISTS patterns trigger creation of isolated child scopes with proper parent references for variable inheritance</para></listitem>
+        <listitem><para><emphasis>Triple Assignment</emphasis> - Triples are assigned to their appropriate scope during parsing, preventing later contamination</para></listitem>
+        <listitem><para><emphasis>Scope Assignment</emphasis> - Graph patterns receive references to their evaluation scopes, establishing the pattern-scope relationship</para></listitem>
+      </itemizedlist>
+
+      <para>This scope creation during parsing ensures semantic isolation
+      is established from the beginning of query processing, eliminating
+      the need for runtime decontamination.</para>
+    </section>
+
+    <para>The modern parser architecture supports both traditional SPARQL 1.0
+    patterns and SPARQL 1.1 scoped patterns through the unified scope
+    management system, providing backwards compatibility while enabling
+    advanced semantic features.</para>
 
   </section>
 
@@ -348,22 +374,22 @@ if(sequence_created) {
         <listitem><para><emphasis>Caller Ownership</emphasis> -
         Functions that return rows transfer ownership to the caller,
         who becomes responsible for freeing the row</para></listitem>
-	
+
         <listitem><para><emphasis>Row Reference to
 	Rowsource</emphasis> - Each row holds a reference to its
 	originating rowsource, ensuring the rowsource remains valid
 	while the row exists</para></listitem>
-	
+
         <listitem><para><emphasis>Consumption Semantics</emphasis> -
 	Functions that consume rows (such as join merge operations)
 	take ownership and free the consumed rows
 	internally</para></listitem>
-	
+
         <listitem><para><emphasis>Copy-on-Reference</emphasis> - When
 	multiple references to a row are needed, the row's reference
 	count is incremented rather than copying the entire row
 	structure</para></listitem>
-	
+
       </itemizedlist>
 
       <para>This ownership model ensures efficient memory usage while
@@ -371,6 +397,27 @@ if(sequence_created) {
       reference counting system automatically handles cleanup when
       objects are no longer referenced.</para>
 
+    </section>
+
+    <section id="rowsource-scope-integration">
+      <title>Rowsource Scope Integration</title>
+
+      <para>All rowsources now use scope-aware variable resolution to ensure proper
+      variable scoping throughout the query execution pipeline.</para>
+
+      <section id="filter-rowsource-scoping">
+        <title>Filter Rowsource Scope Integration</title>
+
+        <para>The filter rowsource uses scope-aware variable resolution to ensure
+        that filter expressions respect proper variable scoping boundaries. When
+        evaluating filter expressions, the rowsource creates a scope-aware lookup
+        context that includes the current execution scope and appropriate search
+        flags for variable inheritance.</para>
+
+        <para>This ensures that variables referenced in filter expressions are
+        resolved according to SPARQL 1.1 scoping rules, preventing access to
+        out-of-scope variables and maintaining proper semantic isolation.</para>
+      </section>
     </section>
 
     <section id="rowsource-types">
@@ -385,7 +432,7 @@ if(sequence_created) {
         </varlistentry>
         <varlistentry>
           <term>Filter Rowsource</term>
-          <listitem><para>Applies filter expressions to rows from other rowsources</para></listitem>
+          <listitem><para>Applies filter expressions to rows from other rowsources with scope-aware variable resolution</para></listitem>
         </varlistentry>
         <varlistentry>
           <term>Join Rowsource</term>
@@ -473,16 +520,14 @@ if(sequence_created) {
     <para>Expressions are evaluated within a
     <literal>rasqal_evaluation_context</literal> that provides access
     to the world, query, flags, comparison flags, and current row
-    bindings. However, this context has significant limitations - it
-    doesn't provide access to triples source for data lookup, query
-    execution state, or other rowsources for sub-query
-    execution.</para>
+    bindings. The expression evaluation system has been enhanced with
+    scope-aware variable resolution to support proper SPARQL 1.1
+    variable scoping semantics.</para>
 
-    <para>This architectural boundary creates challenges for features
-    that require data access within expression evaluation. The
-    expression evaluation system is intentionally limited to literal
-    operations, not query execution, which forces complex features to
-    rely on heuristics rather than actual data lookup.</para>
+    <para>The scope-aware expression evaluation system ensures that
+    variable lookups during expression evaluation respect the proper
+    scope boundaries and inheritance rules, enabling complex SPARQL 1.1
+    features like nested EXISTS patterns and variable isolation.</para>
 
     <section id="expression-types">
       <title>Expression Types</title>
@@ -523,22 +568,49 @@ if(sequence_created) {
   <section id="variable-binding-system">
     <title>Variable Binding System</title>
 
-    <para>The variable binding system is one of the most complex
-    aspects of Rasqal's architecture, with variables having a
-    sophisticated lifecycle from parse-time registration through
-    runtime binding and sub-query propagation.</para>
+    <para>The variable binding system includes a query scope
+    architecture that ensures proper SPARQL 1.1 variable isolation and inheritance
+    semantics. </para>
 
-    <para>Variables are represented with a structure containing name,
-    current binding value, offset position in rows, and usage flags
-    indicating how the variable is used throughout the query.</para>
+    <section id="query-scope-architecture">
+      <title>Query Scope Architecture</title>
 
-    <para>Rasqal has two distinct patterns for accessing variable
-    bindings depending on the execution context. The primary
-    mechanism for expression evaluation uses
-    <function>rasqal_literal_value</function>, which returns bound
-    values when variables are bound or NULL when unbound. For pattern
-    instantiation and sub-query execution, direct access to variable
-    values through the variable structure is required.</para>
+      <para>The query scope architecture implements hierarchical scope management
+      to ensure proper SPARQL 1.1 variable isolation and inheritance semantics.
+      Each query pattern operator creates an isolated scope with its own triple
+      ownership and variable visibility rules.</para>
+
+      <para><emphasis>Scope Types Supported:</emphasis></para>
+      <itemizedlist>
+        <listitem><para><literal>ROOT</literal> - Main query scope for outer query patterns</para></listitem>
+        <listitem><para><literal>EXISTS</literal> - EXISTS pattern scope with variable inheritance</para></listitem>
+        <listitem><para><literal>NOT_EXISTS</literal> - NOT EXISTS pattern scope for negation</para></listitem>
+        <listitem><para><literal>MINUS</literal> - MINUS pattern scope for set difference</para></listitem>
+        <listitem><para><literal>UNION</literal> - UNION pattern scope for disjunctive patterns</para></listitem>
+        <listitem><para><literal>SUBQUERY</literal> - Subquery scope with complete isolation</para></listitem>
+        <listitem><para><literal>GROUP</literal> - Nested group pattern scope for isolation</para></listitem>
+      </itemizedlist>
+    </section>
+
+    <section id="scope-aware-variable-resolution">
+      <title>Scope-Aware Variable Resolution</title>
+
+      <para>The variable resolution system uses hierarchical scope-aware lookup
+      that respects SPARQL 1.1 semantic boundaries. Variables are resolved
+      through a scope hierarchy with proper inheritance and isolation rules.</para>
+
+      <para><emphasis>Resolution Algorithm:</emphasis></para>
+      <orderedlist>
+        <listitem><para>Start with current execution scope</para></listitem>
+        <listitem><para>Search local variables in current scope</para></listitem>
+        <listitem><para>If not found and inheritance allowed, search parent scope</para></listitem>
+        <listitem><para>Continue up hierarchy until root scope</para></listitem>
+        <listitem><para>Return first match with proper precedence rules</para></listitem>
+      </orderedlist>
+
+      <para>This ensures that variable lookups respect SPARQL 1.1 scoping
+      requirements while maintaining efficient resolution performance.</para>
+    </section>
 
     <section id="variable-lifecycle">
       <title>Variable Lifecycle</title>
@@ -550,22 +622,22 @@ if(sequence_created) {
         <listitem><para><emphasis>Registration</emphasis> - Variables
 	are registered during parsing and added to the query's
 	variable table</para></listitem>
-	
+
         <listitem><para><emphasis>Analysis</emphasis> - The query
 	transformer analyzes variable usage and binding
 	patterns</para></listitem>
-	
+
         <listitem><para><emphasis>Binding</emphasis> - Variables
 	receive values during query execution</para></listitem>
-	
+
         <listitem><para><emphasis>Propagation</emphasis> - Variable
 	bindings are propagated to sub-queries and
 	expressions</para></listitem>
-	
+
         <listitem><para><emphasis>Cleanup</emphasis> - Variable
 	bindings are cleaned up after query
 	completion</para></listitem>
-	
+
       </orderedlist>
 
     </section>
@@ -573,25 +645,36 @@ if(sequence_created) {
     <section id="variable-access-patterns">
       <title>Variable Access Patterns</title>
 
-      <para>Rasqal provides two distinct patterns for accessing variable bindings:</para>
+      <para>Rasqal provides multiple patterns for accessing variable bindings
+      with scope awareness:</para>
 
       <variablelist>
         <varlistentry>
           <term>Expression Context Access</term>
           <listitem><para>Uses
 	  <function>rasqal_literal_value</function> during expression
-	  evaluation within an active evaluation
-	  context</para></listitem>
-	  
+	  evaluation within an active evaluation context, with scope-aware
+	  variable resolution</para></listitem>
+
+        </varlistentry>
+        <varlistentry>
+          <term>Scope-Aware Variable Lookup</term>
+          <listitem><para>Uses scope-aware variable resolution functions
+          for hierarchical variable resolution that respects scope boundaries</para></listitem>
+
         </varlistentry>
         <varlistentry>
           <term>Direct Variable Access</term>
           <listitem><para>Used for direct access to variable bindings
-	  in pattern instantiation and sub-query
-	  contexts</para></listitem>
-	  
+	  in pattern instantiation, with scope context passed to ensure
+	  proper variable resolution</para></listitem>
+
         </varlistentry>
       </variablelist>
+
+      <para>The scope-aware access patterns ensure that variable lookups
+      respect SPARQL 1.1 semantic boundaries while maintaining backwards
+      compatibility with existing code.</para>
 
     </section>
 
@@ -619,6 +702,8 @@ if(sequence_created) {
 
   </section>
 
+
+
   <section id="query-transformation-system">
     <title>Query Transformation System</title>
 
@@ -629,15 +714,21 @@ if(sequence_created) {
     <section id="transformation-phases">
       <title>Transformation Phases</title>
 
-      <para>The query transformation system performs several key phases:</para>
+      <para>The query transformation system performs several key phases,
+      enhanced with scope-aware validation for SPARQL 1.1 compliance:</para>
 
       <orderedlist>
-        <listitem><para><emphasis>Variable Analysis</emphasis> - Analyzes variable usage patterns and binding requirements</para></listitem>
-        <listitem><para><emphasis>Scope Validation</emphasis> - Validates variable scoping and identifies unbound variables</para></listitem>
-        <listitem><para><emphasis>Type Checking</emphasis> - Validates expression types and literal compatibility</para></listitem>
-        <listitem><para><emphasis>Constant Folding</emphasis> - Evaluates constant expressions at compile time</para></listitem>
-        <listitem><para><emphasis>Optimization Preparation</emphasis> - Prepares query structures for optimization</para></listitem>
+        <listitem><para><emphasis>Variable Analysis</emphasis> - Analyzes variable usage patterns and binding requirements across scope hierarchies</para></listitem>
+        <listitem><para><emphasis>Scope Validation</emphasis> - Validates hierarchical variable scoping, ensures proper scope boundaries, and identifies unbound variables within appropriate scope contexts</para></listitem>
+        <listitem><para><emphasis>Type Checking</emphasis> - Validates expression types and literal compatibility with scope-aware variable resolution</para></listitem>
+        <listitem><para><emphasis>Constant Folding</emphasis> - Evaluates constant expressions at compile time while respecting scope isolation</para></listitem>
+        <listitem><para><emphasis>Scope Optimization</emphasis> - Optimizes scope hierarchies and validates scope relationships for efficient evaluation</para></listitem>
+        <listitem><para><emphasis>Optimization Preparation</emphasis> - Prepares query structures for optimization with scope-aware analysis</para></listitem>
       </orderedlist>
+
+      <para>The scope-enhanced transformation phases ensure that SPARQL 1.1
+      semantic isolation requirements are validated and maintained throughout
+      the query processing pipeline.</para>
 
     </section>
 
@@ -716,20 +807,20 @@ if(sequence_created) {
 	Validation</emphasis> - Debug builds track reference count
 	manipulations to detect leaks and premature
 	frees</para></listitem>
-	
+
         <listitem><para><emphasis>Ownership Validation</emphasis> -
 	Functions validate that they properly transfer ownership of
 	consumed parameters</para></listitem>
-	
+
         <listitem><para><emphasis>Lifecycle Validation</emphasis> -
 	The system validates that objects follow proper
 	initialization and cleanup sequences</para></listitem>
-	
+
         <listitem><para><emphasis>Memory Leak Detection</emphasis> -
 	Integration with tools like AddressSanitizer enables
 	automated detection of memory management
 	issues</para></listitem>
-	
+
       </itemizedlist>
 
       <para>These validation mechanisms have proven essential for
@@ -839,6 +930,66 @@ if(sequence_created) {
 
   </section>
 
+  <section id="module-architecture">
+    <title>Module Architecture and Organization</title>
+
+    <para>Rasqal's module architecture has been enhanced to support
+    the hierarchical scope system while maintaining clean separation
+    of concerns and extensible design patterns.</para>
+
+    <section id="scope-management-modules">
+      <title>Scope Management Modules</title>
+
+      <para>The scope architecture is implemented across dedicated modules that
+      provide the foundation for SPARQL 1.1 semantic isolation:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>rasqal_query_scope.c</term>
+          <listitem><para>Core scope management functions including creation,
+          destruction, hierarchy management, and variable visibility computation.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>rasqal_query_transform.c</term>
+          <listitem><para>Enhanced query transformation with scope hierarchy
+          building and scope-aware variable analysis.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>rasqal_rowsource_filter.c</term>
+          <listitem><para>Filter rowsource implementation with scope-aware
+          variable resolution and proper variable scoping boundaries.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>rasqal_expression.c</term>
+          <listitem><para>Enhanced expression evaluation with scope-aware
+          variable resolution and scope context propagation.</para></listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+    <section id="module-integration-patterns">
+      <title>Module Integration Patterns</title>
+
+      <para>The scope architecture follows established Rasqal patterns
+      for module integration:</para>
+
+      <itemizedlist>
+        <listitem><para><emphasis>Reference Counting</emphasis> - Scope
+        objects use proper reference counting for memory management</para></listitem>
+        <listitem><para><emphasis>C89 Compatibility</emphasis> - All scope
+        functions maintain C89 compatibility for broad system support</para></listitem>
+        <listitem><para><emphasis>Consistent Naming</emphasis> - Scope
+        functions follow Rasqal naming conventions with appropriate
+        prefixes</para></listitem>
+        <listitem><para><emphasis>Error Handling</emphasis> - Scope modules
+        implement consistent error reporting and cleanup patterns</para></listitem>
+      </itemizedlist>
+
+    </section>
+
+  </section>
+
   <section id="extensibility-and-customization">
     <title>Extensibility and Customization</title>
 
@@ -917,15 +1068,15 @@ if(sequence_created) {
 	Semantics</emphasis> - When functions consume parameters,
 	document this clearly and set consumed pointers to NULL to
 	prevent double-free.</para></listitem>
-	
+
         <listitem><para><emphasis>Validate Reference
 	Counts</emphasis> - Use debug builds to validate that
 	reference counts behave as expected.</para></listitem>
-	
+
         <listitem><para><emphasis>Test with Memory
 	Debugging</emphasis> - Always test rowsource implementations
 	with AddressSanitizer or similar tools.</para></listitem>
-	
+
       </itemizedlist>
 
     </section>
@@ -937,19 +1088,19 @@ if(sequence_created) {
         <listitem><para><emphasis>Use AddressSanitizer</emphasis> -
 	Enable AddressSanitizer leak detection for comprehensive
 	memory issue detection.</para></listitem>
-	
+
         <listitem><para><emphasis>Enable Debug Logging</emphasis> -
 	Use debug builds with reference count logging to trace object
 	lifecycles.</para></listitem>
-	
+
         <listitem><para><emphasis>Test Edge Cases</emphasis> - Pay
 	special attention to empty patterns, optional joins, and
 	other complex query structures.</para></listitem>
-	
+
         <listitem><para><emphasis>Validate Cleanup</emphasis> -
 	Ensure all objects reach zero reference count and are
 	properly freed.</para></listitem>
-	
+
       </itemizedlist>
 
     </section>

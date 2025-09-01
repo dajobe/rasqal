@@ -97,7 +97,7 @@ rasqal_algebra_filter_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
   if(!rs)
     return NULL;
 
-  return rasqal_new_filter_rowsource(query->world, query, rs, node->expr);
+  return rasqal_new_filter_rowsource(query->world, query, rs, node->expr, node->execution_scope);
 }
 
 
@@ -244,7 +244,7 @@ rasqal_algebra_assignment_algebra_node_to_rowsource(rasqal_engine_algebra_data* 
   rasqal_query *query = execution_data->query;
 
   return rasqal_new_assignment_rowsource(query->world, query, node->var, 
-                                         node->expr);
+                                         node->expr, node->execution_scope);
 }
 
 
@@ -581,6 +581,12 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
 
   projection = rasqal_query_get_projection(query);
   modifier = query->modifier;
+
+  /* Create scope hierarchy before algebra conversion */
+  if(rasqal_query_build_scope_hierarchy(query)) {
+    RASQAL_DEBUG1("Failed to build scope hierarchy\n");
+    return 1;
+  }
 
   node = rasqal_algebra_query_to_algebra(query);
   if(!node)

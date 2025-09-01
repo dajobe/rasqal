@@ -50,6 +50,8 @@
 
 /* prototype for later */
 static int rasqal_query_build_variables_use_map(rasqal_query* query, rasqal_projection* projection);
+
+static int rasqal_query_build_scope_hierarchy_recursive(rasqal_query* query, rasqal_graph_pattern* gp, rasqal_query_scope* parent_scope);
 static int rasqal_query_graph_build_variables_use_map_binds(rasqal_graph_pattern* gp, unsigned short* vars_scope);
 static void rasqal_query_expression_build_variables_use_map(unsigned short *use_map, rasqal_expression* e);
 static void rasqal_query_let_build_variables_use_map(rasqal_query* query, unsigned short *use_map, rasqal_expression* e);
@@ -917,107 +919,6 @@ rasqal_query_merge_graph_patterns(rasqal_query* query,
 }
 
 
-/**
- * rasqal_query_filter_variable_scope:
- * @query: query
- * @gp: current graph pattern
- * @data: pointer to int modified flag
- *
- * Replace a FILTER in a GROUP refering to out-of-scope var with FALSE
- *
- * For each variable in a FILTER expression, if there is one defined
- * outside the GROUP, the FILTER is always FALSE - so set it thus and
- * the tree of GP is modified
- *
- * Return value: 0
- */
-static int
-rasqal_query_filter_variable_scope(rasqal_query* query,
-                                   rasqal_graph_pattern* gp,
-                                   void* data)
-{
-  int vari;
-  int* modified = (int*)data;
-  rasqal_graph_pattern *qgp;
-  int size;
-  
-  /* Scan up from FILTER GPs */
-  if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_FILTER)
-    return 0;
-
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("Checking FILTER graph pattern #%d:\n  ", gp->gp_index);
-  rasqal_graph_pattern_print(gp, stderr);
-  fputs("\n", stderr);
-#endif
-
-  qgp = rasqal_query_get_query_graph_pattern(query);
-
-  size = rasqal_variables_table_get_named_variables_count(query->vars_table);
-
-  for(vari = 0; vari < size; vari++) { 
-    rasqal_variable* v = rasqal_variables_table_get(query->vars_table, vari);
-    int var_in_scope = 2;
-    rasqal_graph_pattern *sgp;
-
-    if(!rasqal_expression_mentions_variable(gp->filter_expression, v))
-      continue;
-    RASQAL_DEBUG3("FILTER GP #%d expression mentions %s\n",
-                  gp->gp_index, v->name);
-    
-    sgp = gp;
-    while(1) {
-      int bound_here;
-
-      sgp = rasqal_graph_pattern_get_parent(query, sgp, qgp);
-      if(!sgp)
-        break;
-
-      bound_here = rasqal_graph_pattern_variable_bound_below(sgp, v);
-      RASQAL_DEBUG4("Checking parent GP #%d op %s - bound below: %d\n",
-                    sgp->gp_index,
-                    rasqal_graph_pattern_operator_as_string(sgp->op),
-                    bound_here);
-
-      if(sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) {
-        /* Collapse OPTIONAL { GROUP } */
-        var_in_scope++;
-      }
-      
-      if(sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
-        var_in_scope--;
-        if(bound_here) {
-          /* It was defined in first GROUP so life is good - done */
-          if(var_in_scope == 1)
-            break;
-        
-          /* It was defined in an outer GROUP so this is bad */
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-          RASQAL_DEBUG3("FILTER Variable %s defined in GROUP GP #%d and now out of scope\n", v->name, sgp->gp_index);
-#endif
-          var_in_scope = 0;
-          break;
-        }
-      }
-    }
-    
-    if(!var_in_scope) {
-      rasqal_literal* l;
-      
-      l = rasqal_new_boolean_literal(query->world, 0);
-      /* In-situ conversion of filter_expression to a literal expression */
-      rasqal_expression_convert_to_literal(gp->filter_expression, l);
-      *modified = 1;
-
-      RASQAL_DEBUG2("FILTER Variable %s was defined outside FILTER's parent group\n", v->name);
-      break;
-    }
-    
-  }
-  
-  return 0;
-}
-
 
 struct folding_state {
   rasqal_query* query;
@@ -1667,10 +1568,6 @@ rasqal_query_prepare_common(rasqal_query *query)
       }
     }
 
-    /* Turn FILTERs that refer to out-of-scope variables into FALSE */
-    (void)rasqal_query_graph_pattern_visit2(query,
-                                            rasqal_query_filter_variable_scope,
-                                            &modified);
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     fprintf(DEBUG_FH, "modified=%d  after filter variable scope, query graph pattern now:\n  ", modified);
     rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
@@ -3162,4 +3059,131 @@ rasqal_query_variable_is_bound(rasqal_query* query, rasqal_variable* v)
   }
   
   return 0;
+}
+
+
+/*
+ * rasqal_query_build_scope_hierarchy:
+ * @query: query object
+ *
+ * INTERNAL - Create scope hierarchy for graph patterns
+ *
+ * This function creates a hierarchical scope structure for the query's
+ * graph patterns, ensuring proper variable isolation and inheritance.
+ * Each graph pattern gets assigned an execution scope that defines
+ * its variable visibility boundaries.
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_query_build_scope_hierarchy(rasqal_query* query)
+{
+  rasqal_query_scope* root_scope;
+  int rc = 0;
+
+
+
+  if(!query || !query->query_graph_pattern)
+    return 0;
+
+  /* Create root scope for the entire query */
+  root_scope = rasqal_new_query_scope(query, RASQAL_QUERY_SCOPE_TYPE_ROOT, NULL);
+  if(!root_scope) {
+    RASQAL_DEBUG1("Failed to create root scope\n");
+    return 1;
+  }
+
+  fprintf(stderr, "DEBUG: Created root scope: %s\n", root_scope->scope_name);
+
+  /* Assign root scope to the main query graph pattern */
+  query->query_graph_pattern->execution_scope = root_scope;
+
+  /* Create scopes for all graph patterns in the query */
+  if(rasqal_query_build_scope_hierarchy_recursive(query, query->query_graph_pattern, root_scope)) {
+    RASQAL_DEBUG1("Failed to build scope hierarchy recursively\n");
+    return 1;
+  }
+
+  RASQAL_DEBUG1("Created complete scope hierarchy\n");
+
+  return rc;
+}
+
+
+/**
+ * rasqal_query_build_scope_hierarchy_recursive:
+ * @query: query object
+ * @gp: current graph pattern
+ * @parent_scope: parent scope (or NULL for root)
+ *
+ * INTERNAL - Recursively build scope hierarchy for graph patterns
+ *
+ * This function walks through the graph pattern tree and creates
+ * appropriate scopes for each pattern, establishing parent-child
+ * relationships for proper variable isolation.
+ *
+ * Return value: non-0 on failure
+ */
+static int
+rasqal_query_build_scope_hierarchy_recursive(rasqal_query* query,
+                                            rasqal_graph_pattern* gp,
+                                            rasqal_query_scope* parent_scope)
+{
+  rasqal_query_scope* current_scope;
+  int rc = 0;
+  int i;
+
+  if(!gp)
+    return 0;
+
+  /* Create scope for this graph pattern */
+  if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
+    if(!parent_scope) {
+      /* Root group pattern - create root scope */
+      current_scope = rasqal_new_query_scope(query, RASQAL_QUERY_SCOPE_TYPE_ROOT, NULL);
+      if(!current_scope) {
+        RASQAL_DEBUG1("Failed to create root scope\n");
+        return 1;
+      }
+
+    } else {
+      /* Nested group pattern - create isolated scope */
+      current_scope = rasqal_new_query_scope(query, RASQAL_QUERY_SCOPE_TYPE_GROUP, NULL);
+      if(!current_scope) {
+        RASQAL_DEBUG1("Failed to create group scope\n");
+        return 1;
+      }
+      
+
+      
+      /* Group scopes do NOT inherit from parent - they are isolated */
+      /* This is the key for bind10: nested patterns can't see outer variables */
+    }
+  } else {
+    /* Other patterns inherit from parent scope */
+    current_scope = parent_scope;
+    RASQAL_DEBUG3("Using parent scope: %s for graph pattern %d\n", 
+                  parent_scope ? parent_scope->scope_name : "NULL", gp->gp_index);
+  }
+
+  /* Assign scope to this graph pattern */
+  gp->execution_scope = current_scope;
+  
+
+
+  /* Recursively process sub-graph patterns */
+  if(gp->graph_patterns) {
+    for(i = 0; i < raptor_sequence_size(gp->graph_patterns); i++) {
+      rasqal_graph_pattern* sub_gp;
+      
+      sub_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      if(sub_gp) {
+        rc = rasqal_query_build_scope_hierarchy_recursive(query, sub_gp, current_scope);
+        if(rc)
+          return rc;
+      }
+    }
+  }
+
+  return rc;
 }

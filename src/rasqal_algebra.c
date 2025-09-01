@@ -77,6 +77,7 @@ rasqal_new_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op)
  * @query: #rasqal_query query object
  * @expr: FILTER expression
  * @node: algebra node being filtered (or NULL)
+ * @execution_scope: scope for variable resolution (may be NULL)
  *
  * INTERNAL - Create a new algebra node for an expression over a node
  *
@@ -88,17 +89,21 @@ rasqal_new_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op)
 rasqal_algebra_node*
 rasqal_new_filter_algebra_node(rasqal_query* query,
                                rasqal_expression* expr,
-                               rasqal_algebra_node* node)
+                               rasqal_algebra_node* node,
+                               rasqal_query_scope* execution_scope)
 {
   rasqal_algebra_node* new_node;
 
   if(!query || !expr)
     goto fail;
   
+
+  
   new_node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_FILTER);
   if(new_node) {
     new_node->expr = expr;
     new_node->node1 = node;
+    new_node->execution_scope = execution_scope;
     return new_node;
   }
   
@@ -466,6 +471,7 @@ rasqal_new_graph_algebra_node(rasqal_query* query,
  * @query: #rasqal_query query object
  * @var: variable
  * @expr: expression
+ * @execution_scope: scope for variable resolution (may be NULL)
  *
  * INTERNAL - Create a new LET algebra node over a variable and expression
  * 
@@ -476,7 +482,8 @@ rasqal_new_graph_algebra_node(rasqal_query* query,
 rasqal_algebra_node*
 rasqal_new_assignment_algebra_node(rasqal_query* query,
                                    rasqal_variable *var,
-                                   rasqal_expression *expr)
+                                   rasqal_expression *expr,
+                                   rasqal_query_scope* execution_scope)
 {
   rasqal_algebra_node* node;
 
@@ -487,6 +494,7 @@ rasqal_new_assignment_algebra_node(rasqal_query* query,
   if(node) {
     node->var = var;
     node->expr = expr;
+    node->execution_scope = execution_scope;
     
     return node;
   }
@@ -1105,7 +1113,9 @@ rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
       goto fail;
     }
 
-    node = rasqal_new_filter_algebra_node(query, fs, node);
+
+    
+    node = rasqal_new_filter_algebra_node(query, fs, node, gp->execution_scope);
     fs = NULL; /* now owned by node */
     if(!node) {
       RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed\n");
@@ -1136,7 +1146,7 @@ rasqal_algebra_filter_graph_pattern_to_algebra(rasqal_query* query,
     return NULL;
   }
 
-  node = rasqal_new_filter_algebra_node(query, e, NULL);
+      node = rasqal_new_filter_algebra_node(query, e, NULL, gp->execution_scope);
   e = NULL; /* now owned by node */
   if(!node) {
     RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed\n");
@@ -1424,7 +1434,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
     The result is G.
   */
   if(fs) {
-    gnode = rasqal_new_filter_algebra_node(query, fs, gnode);
+    gnode = rasqal_new_filter_algebra_node(query, fs, gnode, gp->execution_scope);
     fs = NULL; /* now owned by gnode */
     if(!gnode) {
       RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed\n");
@@ -1484,7 +1494,7 @@ rasqal_algebra_bind_graph_pattern_to_algebra(rasqal_query* query,
     
   expr = rasqal_new_expression_from_expression(gp->filter_expression);
   if(expr)
-    return rasqal_new_assignment_algebra_node(query, gp->var, expr);
+    return rasqal_new_assignment_algebra_node(query, gp->var, expr, gp->execution_scope);
   
   return NULL;
 }
@@ -2735,7 +2745,7 @@ main(int argc, char *argv[]) {
   if(!node0)
     FAIL;
 
-  node1 = rasqal_new_filter_algebra_node(query, expr, node0);
+      node1 = rasqal_new_filter_algebra_node(query, expr, node0, NULL);
   if(!node1) {
     fprintf(stderr, "%s: rasqal_new_filter_algebra_node() failed\n", program);
     FAIL;
@@ -2774,7 +2784,7 @@ main(int argc, char *argv[]) {
   node8 = rasqal_new_empty_algebra_node(query);
   if(!node8)
     FAIL;
-  node1 = rasqal_new_filter_algebra_node(query, expr, node8);
+      node1 = rasqal_new_filter_algebra_node(query, expr, node8, NULL);
   if(!node1) {
     fprintf(stderr, "%s: rasqal_new_filter_algebra_node() failed\n", program);
     FAIL;
