@@ -61,7 +61,8 @@ rasqal_query_results_compare_test$(EXEEXT) \
 rasqal_query_results_compare_public_test$(EXEEXT) \
 rasqal_graph_isomorphism_test$(EXEEXT) \
 rasqal_expr_unbound_test$(EXEEXT) \
-rasqal_solutions_compatible_test$(EXEEXT)
+rasqal_solutions_compatible_test$(EXEEXT) \
+rasqal_variable_resolution_test$(EXEEXT)
 
 # These 2 test programs are compiled here and run here as 'smoke
 # tests' but mostly used in tests in $(srcdir)/../tests/sparql
@@ -105,7 +106,7 @@ rasqal_engine.c rasqal_raptor.c rasqal_literal.c rasqal_formula.c \
 rasqal_graph_pattern.c rasqal_map.c rasqal_feature.c \
 rasqal_result_formats.c rasqal_xsd_datatypes.c rasqal_decimal.c \
 rasqal_datetime.c rasqal_rowsource.c rasqal_format_sparql_xml.c \
-rasqal_variable.c rasqal_rowsource_empty.c rasqal_rowsource_exists.c \
+rasqal_variable.c rasqal_query_scope.c rasqal_variable_resolution.c rasqal_rowsource_empty.c rasqal_rowsource_exists.c \
 rasqal_rowsource_union.c rasqal_rowsource_minus.c \
 rasqal_rowsource_rowsequence.c rasqal_query_transform.c rasqal_row.c \
 rasqal_engine_algebra.c rasqal_triples_source.c \
@@ -280,6 +281,10 @@ rasqal_algebra_test_LDADD = librasqal.la
 rasqal_variable_test_SOURCES = rasqal_variable.c
 rasqal_variable_test_CPPFLAGS = -DSTANDALONE
 rasqal_variable_test_LDADD = librasqal.la
+
+rasqal_variable_resolution_test_SOURCES = rasqal_variable_resolution.c
+rasqal_variable_resolution_test_CPPFLAGS = -DSTANDALONE
+rasqal_variable_resolution_test_LDADD = librasqal.la
 
 rasqal_rowsource_aggregation_test_SOURCES = rasqal_rowsource_aggregation.c
 rasqal_rowsource_aggregation_test_CPPFLAGS = -DSTANDALONE

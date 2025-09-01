@@ -79,6 +79,11 @@ rasqal_new_graph_pattern(rasqal_query* query,
    */
   gp->gp_index = -1;
 
+  /* Initialize execution scope - default to no scope
+   * Will be set when creating scoped patterns
+   */
+  gp->execution_scope = NULL;
+
   return gp;
 }
 

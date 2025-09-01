@@ -155,6 +155,9 @@ rasqal_new_query(rasqal_world *world, const char *name,
   /* Set query reference for complex expressions like EXISTS */
   query->eval_context->query = query;
 
+  /* Initialize scope ID counter */
+  query->scope_id_counter = 0;
+
   if(factory->init(query, name))
     goto tidy;
   

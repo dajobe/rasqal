@@ -321,6 +321,149 @@ typedef struct {
 } rasqal_bindings;  
 
 
+/* Forward declarations */
+struct rasqal_query_scope_s;
+typedef struct rasqal_query_scope_s rasqal_query_scope;
+struct rasqal_rowsource_s;
+typedef struct rasqal_rowsource_s rasqal_rowsource;
+
+/*
+ * Graph Pattern Scope for hierarchical triple and variable management
+ * Implements the scope model from rasqal-graph-pattern-scopes.md
+ */
+
+/* Scope type constants for query scopes */
+#define RASQAL_QUERY_SCOPE_TYPE_ROOT      0
+#define RASQAL_QUERY_SCOPE_TYPE_EXISTS    1
+#define RASQAL_QUERY_SCOPE_TYPE_NOT_EXISTS 2
+#define RASQAL_QUERY_SCOPE_TYPE_MINUS     3
+#define RASQAL_QUERY_SCOPE_TYPE_UNION     4
+#define RASQAL_QUERY_SCOPE_TYPE_SUBQUERY  5
+#define RASQAL_QUERY_SCOPE_TYPE_GROUP     6
+
+/* Variable search flags for scope-aware lookup */
+#define RASQAL_VAR_SEARCH_LOCAL_ONLY      0x01
+#define RASQAL_VAR_SEARCH_INHERIT_PARENT  0x02
+#define RASQAL_VAR_SEARCH_CROSS_SCOPE     0x04
+#define RASQAL_VAR_SEARCH_LOCAL_FIRST     0x08
+#define RASQAL_VAR_SEARCH_PARENT_FIRST    0x10
+
+/* Variable precedence constants */
+#define RASQAL_VAR_PRECEDENCE_LOCAL_FIRST    0  // Local variables take precedence
+#define RASQAL_VAR_PRECEDENCE_NEWEST_FIRST   1  // Most recent binding wins
+#define RASQAL_VAR_PRECEDENCE_OLDEST_FIRST   2  // First binding wins (legacy)
+
+/**
+ * rasqal_query_scope:
+ * @usage: reference count
+ * @scope_id: unique identifier for this scope
+ * @scope_name: descriptive name (e.g., "ROOT", "EXISTS_1", "MINUS_2")
+ * @scope_type: scope type (RASQAL_QUERY_SCOPE_TYPE_*)
+ *
+ * @owned_triples: triples belonging exclusively to this scope
+ *
+ * @local_vars: variables introduced in this scope
+ * @visible_vars: computed: parent + local variables (cached)
+ *
+ * @parent_scope: parent scope for hierarchy (read-only access)
+ * @child_scopes: nested scopes owned by this scope
+ *
+ * @triples_source: data source for this scope's evaluation
+ *
+ * Hierarchical scope for query execution that ensures proper triple ownership
+ * and variable visibility throughout the query processing pipeline.
+ */
+struct rasqal_query_scope_s {
+  /* usage/reference count */
+  int usage;
+
+  /* Identity */
+  int scope_id;                                /* unique identifier */
+  char* scope_name;                           /* "ROOT", "EXISTS_1", "MINUS_2" */
+  int scope_type;                             /* RASQAL_QUERY_SCOPE_TYPE_* */
+
+  /* Triple Ownership - CRITICAL */
+  raptor_sequence* owned_triples;             /* triples belonging ONLY to this scope */
+
+  /* Variable Management */
+  rasqal_variables_table* local_vars;         /* variables introduced in this scope */
+  rasqal_variables_table* visible_vars;       /* computed: parent + local (cached) */
+
+  /* Scope Hierarchy */
+  rasqal_query_scope* parent_scope;           /* parent context (read-only access) */
+  raptor_sequence* child_scopes;              /* nested scopes (owned) */
+
+  /* Evaluation Context */
+  rasqal_triples_source* triples_source;      /* data source for this scope */
+};
+
+/**
+ * rasqal_variable_lookup_context:
+ * @current_scope: current execution scope
+ * @search_scope: scope to search in
+ * @rowsource: current rowsource context
+ * @query: query context
+ * @search_flags: search configuration flags
+ * @binding_precedence: variable precedence rules
+ * @resolved_variable: result of variable resolution
+ * @defining_scope: scope where variable was defined
+ * @resolution_path: scope traversal path for debugging
+ *
+ * Context structure for scope-aware variable resolution that respects
+ * hierarchical scope boundaries and variable precedence rules.
+ */
+typedef struct rasqal_variable_lookup_context {
+  /* Scope Context */
+  rasqal_query_scope* current_scope;
+  rasqal_query_scope* search_scope;
+  
+  /* Rowsource Context */
+  rasqal_rowsource* rowsource;
+  rasqal_query* query;
+  
+  /* Search Configuration */
+  int search_flags;  // RASQAL_VAR_SEARCH_* constants
+  int binding_precedence; // RASQAL_VAR_PRECEDENCE_* constants
+  
+  /* Result Context */
+  rasqal_variable* resolved_variable;
+  rasqal_query_scope* defining_scope;
+  int resolution_path[16]; // Scope traversal path for debugging
+} rasqal_variable_lookup_context;
+
+/**
+ * rasqal_variable_usage_info:
+ * @variable: the variable instance
+ * @name: variable name
+ * @defining_scope: scope where variable was introduced
+ * @visible_from_scope: scope where variable is visible
+ * @usage_flags: usage tracking flags
+ * @binding_order: order for precedence resolution
+ * @scope_depth: depth in scope hierarchy
+ * @last_resolution_context: last resolution context used
+ *
+ * Enhanced variable information that tracks scope relationships
+ * and usage patterns for proper variable resolution.
+ */
+typedef struct rasqal_variable_usage_info {
+  /* Variable Identity */
+  rasqal_variable* variable;
+  const char* name;
+  
+  /* Scope Information */
+  rasqal_query_scope* defining_scope;
+  rasqal_query_scope* visible_from_scope;
+  
+  /* Usage Tracking */
+  int usage_flags;  // BOUND, USED, PROJECTED, SHADOWED, etc.
+  int binding_order; // For precedence resolution
+  int scope_depth;   // Depth in scope hierarchy
+  
+  /* Resolution Context */
+  rasqal_variable_lookup_context* last_resolution_context;
+} rasqal_variable_usage_info;
+
+
 /*
  * Graph Pattern
  */
@@ -368,6 +511,9 @@ struct rasqal_graph_pattern_s {
 
   /* VALUES bindings for VALUES and sub-SELECT graph patterns */
   rasqal_bindings* bindings;
+
+  /* Variable scope for this graph pattern - REFERENCE to execution contextv*/
+  rasqal_query_scope* execution_scope;
 };
 
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column, int owns_triples);
@@ -383,6 +529,36 @@ void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
 int rasqal_graph_pattern_write(rasqal_graph_pattern* gp, raptor_iostream* iostr);
+
+
+
+/* Query Scope Functions - Phase 1 Implementation */
+rasqal_query_scope* rasqal_new_query_scope(rasqal_query* query, int scope_type, rasqal_query_scope* parent_scope);
+void rasqal_free_query_scope(rasqal_query_scope* scope);
+int rasqal_query_scope_compute_visible_variables(rasqal_query_scope* scope);
+int rasqal_query_scope_add_child_scope(rasqal_query_scope* parent, rasqal_query_scope* child);
+int rasqal_query_scope_add_triple(rasqal_query_scope* scope, rasqal_triple* triple);
+rasqal_query_scope* rasqal_query_scope_get_root(rasqal_query_scope* scope);
+
+
+
+/* Scope-Aware Variable Resolution Functions - Phase 2 Implementation */
+rasqal_variable* rasqal_resolve_variable_with_scope(const char* var_name, rasqal_variable_lookup_context* context);
+rasqal_variable* rasqal_rowsource_get_variable_by_name_with_scope(rasqal_rowsource* rowsource, const char* name, rasqal_query_scope* scope);
+int rasqal_rowsource_get_variable_offset_by_name_with_scope(rasqal_rowsource* rowsource, const char* name, rasqal_query_scope* scope);
+
+/* Expression Variable Resolution with Scope */
+int rasqal_expression_resolve_variables_with_scope(rasqal_expression* expr, rasqal_variable_lookup_context* context);
+rasqal_literal* rasqal_expression_evaluate_with_scope(rasqal_expression* expr, rasqal_evaluation_context* eval_context, rasqal_variable_lookup_context* scope_context);
+
+/* Scope Boundary and Access Control Functions */
+int rasqal_validate_scope_boundaries(rasqal_query_scope* scope, rasqal_variable* variable);
+int rasqal_check_cross_scope_access(rasqal_query_scope* from_scope, rasqal_query_scope* to_scope, rasqal_variable* variable);
+
+/* Migration Interface Functions */
+rasqal_variable* rasqal_get_variable_usage_static(const char* name, int scope_id);
+rasqal_variable* rasqal_get_variable_usage_dynamic(const char* name, rasqal_variable_lookup_context* ctx);
+rasqal_variable* rasqal_get_variable_usage_hybrid(const char* name, rasqal_variable_lookup_context* ctx, int fallback_to_static);
 
 /**
  * rasqal_var_use_map_flags:
@@ -538,6 +714,9 @@ struct rasqal_query_s {
 
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
+
+  /* incrementing counter for generating unique scope IDs within this query */
+  int scope_id_counter;
 
   /* WAS: sequence of order condition expressions */
   void* unused6;
@@ -710,7 +889,7 @@ rasqal_rowsource* rasqal_new_exists_rowsource(rasqal_world *world, rasqal_query*
 rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_results);
 
 /* rasqal_rowsource_assignment.c */
-rasqal_rowsource* rasqal_new_assignment_rowsource(rasqal_world *world, rasqal_query *query, rasqal_variable* var, rasqal_expression* expr);
+rasqal_rowsource* rasqal_new_assignment_rowsource(rasqal_world *world, rasqal_query *query, rasqal_variable* var, rasqal_expression* expr, rasqal_query_scope* execution_scope);
 
 /* rasqal_rowsource_bindings.c */
 rasqal_rowsource* rasqal_new_bindings_rowsource(rasqal_world *world, rasqal_query *query, rasqal_bindings* bindings);
@@ -722,7 +901,7 @@ rasqal_rowsource* rasqal_new_values_rowsource(rasqal_world *world, rasqal_query 
 rasqal_rowsource* rasqal_new_distinct_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rs);
 
 /* rasqal_rowsource_filter.c */
-rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rs, rasqal_expression* expr);
+rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rs, rasqal_expression* expr, rasqal_query_scope* evaluation_scope);
 
 /* rasqal_rowsource_graph.c */
 rasqal_rowsource* rasqal_new_graph_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, rasqal_variable *var);
@@ -753,6 +932,10 @@ rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_world *world, rasqal_query *q
 
 /* rasqal_rowsource_triples.c */
 rasqal_rowsource* rasqal_new_triples_rowsource(rasqal_world *world, rasqal_query* query, rasqal_triples_source* triples_source, raptor_sequence* triples, int start_column, int end_column);
+rasqal_rowsource* rasqal_new_triples_rowsource_with_vars(rasqal_world *world, rasqal_variables_table* vars_table, rasqal_triples_source* triples_source, raptor_sequence* triples, int start_column, int end_column);
+
+/* Enhanced BGP constructor with scope support - Phase 3 */
+rasqal_rowsource* rasqal_new_triples_rowsource_with_scope(rasqal_world *world, rasqal_variables_table* vars_table, rasqal_triples_source* triples_source, rasqal_query_scope* scope, int start_column, int end_column);
 
 /* rasqal_rowsource_union.c */
 rasqal_rowsource* rasqal_new_union_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right);
@@ -1320,6 +1503,9 @@ rasqal_literal* rasqal_expression_evaluate_strbefore(rasqal_expression *e, rasqa
 rasqal_literal* rasqal_expression_evaluate_strafter(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 rasqal_literal* rasqal_expression_evaluate_replace(rasqal_expression *e, rasqal_evaluation_context *eval_context, int *error_p);
 
+/* EXISTS/NOT EXISTS Expression Helper Function */
+rasqal_expression* rasqal_new_exists_expression(rasqal_query* rq, rasqal_graph_pattern* pattern, int is_negated);
+
 
 /* strcasecmp.c */
 #ifdef HAVE_STRCASECMP
@@ -1531,6 +1717,7 @@ int rasqal_triples_source_triple_present(rasqal_triples_source *rts, rasqal_trip
 int rasqal_triples_source_support_feature(rasqal_triples_source *rts, rasqal_triples_source_feature feature);
 
 rasqal_triples_match* rasqal_new_triples_match(rasqal_query* query, rasqal_triples_source* triples_source, rasqal_triple_meta *m, rasqal_triple *t);
+
 void rasqal_free_triples_match(rasqal_triples_match* rtm);
 rasqal_triple_parts rasqal_triples_match_bind_match(struct rasqal_triples_match_s* rtm, rasqal_variable *bindings[4],rasqal_triple_parts parts);
 void rasqal_triples_match_next_match(struct rasqal_triples_match_s* rtm);
@@ -1717,6 +1904,9 @@ struct rasqal_algebra_node_s {
 
   /* flags */
   unsigned int flags;
+
+  /* Scope context for variable resolution */
+  rasqal_query_scope* execution_scope;
 };
 typedef struct rasqal_algebra_node_s rasqal_algebra_node;
 
@@ -1771,9 +1961,9 @@ typedef struct
 
 /* rasqal_algebra.c */
 
-rasqal_algebra_node* rasqal_new_assignment_algebra_node(rasqal_query* query, rasqal_variable *var, rasqal_expression *expr);
+rasqal_algebra_node* rasqal_new_assignment_algebra_node(rasqal_query* query, rasqal_variable *var, rasqal_expression *expr, rasqal_query_scope* execution_scope);
 rasqal_algebra_node* rasqal_new_distinct_algebra_node(rasqal_query* query, rasqal_algebra_node* node1);
-rasqal_algebra_node* rasqal_new_filter_algebra_node(rasqal_query* query, rasqal_expression* expr, rasqal_algebra_node* node);
+rasqal_algebra_node* rasqal_new_filter_algebra_node(rasqal_query* query, rasqal_expression* expr, rasqal_algebra_node* node, rasqal_query_scope* execution_scope);
 rasqal_algebra_node* rasqal_new_empty_algebra_node(rasqal_query* query);
 rasqal_algebra_node* rasqal_new_triples_algebra_node(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
 rasqal_algebra_node* rasqal_new_2op_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op, rasqal_algebra_node* node1, rasqal_algebra_node* node2);
@@ -2081,6 +2271,9 @@ size_t rasqal_format_integer(char* buffer, size_t bufsize, int integer, int widt
 
 /* IEEE 32 bit double ~ 1E-07 and 64 bit double  ~ 2E-16 */
 #define RASQAL_DOUBLE_EPSILON (DBL_EPSILON)
+
+/* Query scope functions */
+int rasqal_query_build_scope_hierarchy(rasqal_query* query);
 
 /* end of RASQAL_INTERNAL */
 #endif
