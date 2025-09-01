@@ -58,7 +58,7 @@ get-testsuite-sparql-query-negative:
 		--suite-name sparql-query-negative \
 		--srcdir $(srcdir) \
 		--builddir $(top_builddir) \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s $(top_srcdir)/tests/sparql/sparql11-test-suite/negation --manifest-file {srcdir}/manifest-bad.ttl --test-case {test_id} - expected to fail" \
+		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s $(top_srcdir)/tests/sparql/sparql11-test-suite/negation --manifest-file {srcdir}/manifest-bad.ttl --test-case {test_id}" \
 		--manifest-file $(srcdir)/manifest-bad.ttl
 
 dist-hook:
