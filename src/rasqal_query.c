@@ -220,12 +220,6 @@ rasqal_free_query(rasqal_query* query)
   if(query->results)
     raptor_free_sequence(query->results);
 
-  if(query->triples_use_map)
-    RASQAL_FREE(shortarray, query->triples_use_map);
-
-  if(query->variables_use_map)
-    RASQAL_FREE(shortarray, query->variables_use_map);
-
   if(query->query_graph_pattern)
     rasqal_free_graph_pattern(query->query_graph_pattern);
 
@@ -2216,7 +2210,7 @@ rasqal_query_get_bindings_row(rasqal_query* query, int idx)
  * @query: #rasqal_query query object
  * @variable: variable
  * @column: triple column
- * 
+ *
  * INTERNAL - Test if variable is bound in given triple
  *
  * Return value: part of triple the variable is bound in
@@ -2226,15 +2220,36 @@ rasqal_query_variable_bound_in_triple(rasqal_query* query,
                                       rasqal_variable* v,
                                       int column)
 {
-  int width;
-  unsigned short *triple_row;
-  
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, (rasqal_triple_parts)0);
-  
-  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
-  triple_row = &query->triples_use_map[column * width];
+  rasqal_triple* triple;
+  rasqal_triple_parts parts = (rasqal_triple_parts)0;
 
-  return (rasqal_triple_parts)((triple_row[v->offset] & RASQAL_TRIPLES_BOUND_MASK) >> 4);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, (rasqal_triple_parts)0);
+
+  /* Get the triple at the specified column */
+  if(!query->triples || column >= raptor_sequence_size(query->triples))
+    return (rasqal_triple_parts)0;
+
+  triple = (rasqal_triple*)raptor_sequence_get_at(query->triples, column);
+  if(!triple)
+    return (rasqal_triple_parts)0;
+
+  /* Check if variable appears in subject */
+  if(triple->subject && rasqal_literal_as_variable(triple->subject) == v)
+    parts = (rasqal_triple_parts)(parts | RASQAL_TRIPLE_SUBJECT);
+
+  /* Check if variable appears in predicate */
+  if(triple->predicate && rasqal_literal_as_variable(triple->predicate) == v)
+    parts = (rasqal_triple_parts)(parts | RASQAL_TRIPLE_PREDICATE);
+
+  /* Check if variable appears in object */
+  if(triple->object && rasqal_literal_as_variable(triple->object) == v)
+    parts = (rasqal_triple_parts)(parts | RASQAL_TRIPLE_OBJECT);
+
+  /* Check if variable appears in origin/graph */
+  if(triple->origin && rasqal_literal_as_variable(triple->origin) == v)
+    parts = (rasqal_triple_parts)(parts | RASQAL_TRIPLE_ORIGIN);
+
+  return parts;
 }
 
 

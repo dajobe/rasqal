@@ -1542,6 +1542,18 @@ rasqal_algebra_select_graph_pattern_to_algebra(rasqal_query* query,
   if(!node)
     goto fail;
 
+  /* Expand SELECT * for subqueries before adding projection */
+  if(projection && projection->wildcard) {
+    int var_count = rasqal_variables_table_get_named_variables_count(query->vars_table);
+    int j;
+    for(j = 0; j < var_count; j++) {
+      rasqal_variable* v = rasqal_variables_table_get(query->vars_table, j);
+      rasqal_projection_add_variable(projection, rasqal_new_variable_from_variable(v));
+    }
+    /* Clear the wildcard flag since we've expanded it */
+    projection->wildcard = 0;
+  }
+
   node = rasqal_algebra_query_add_projection(query, node, projection);
   if(!node)
     goto fail;
@@ -1832,26 +1844,30 @@ rasqal_algebra_get_variables_mentioned_in(rasqal_query* query,
                                           int row_index)
 {
   raptor_sequence* seq; /* sequence of rasqal_variable* */
-  int width;
-  unsigned short *row;
   int i;
+  int size;
   
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                             (raptor_data_print_handler)rasqal_variable_print);
   if(!seq)
     return NULL;
 
-  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
-  row = &query->variables_use_map[row_index * width];
+  /* For CONSTRUCT queries, get all variables from the query's variables table */
+  /* This replaces the old variables_use_map approach */
+  size = rasqal_variables_table_get_total_variables_count(query->vars_table);
 
-  for(i = 0; i < width; i++) {
+  for(i = 0; i < size; i++) {
     rasqal_variable* v;
 
-    if(!(row[i] & RASQAL_VAR_USE_MENTIONED_HERE))
+    v = rasqal_variables_table_get(query->vars_table, i);
+    if(!v)
       continue;
 
-    v = rasqal_variables_table_get(query->vars_table, i);
-    raptor_sequence_push(seq, rasqal_new_variable_from_variable(v));
+    /* For CONSTRUCT queries, include all variables that are bound in
+     * the query */
+    if(rasqal_query_variable_is_bound(query, v)) {
+      raptor_sequence_push(seq, rasqal_new_variable_from_variable(v));
+    }
   }
 
   return seq;

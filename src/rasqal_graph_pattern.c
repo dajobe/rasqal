@@ -1273,19 +1273,37 @@ int
 rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp,
                                        rasqal_variable *v)
 {
-  rasqal_query* query;
-  int width;
-  int gp_offset;
-  unsigned short *row;
-
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, 0);
-  
-  query = gp->query;
-  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
-  gp_offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
-  row = &query->variables_use_map[gp_offset];
 
-  return ((row[v->offset] & RASQAL_VAR_USE_BOUND_HERE) != 0);
+  /* Check if variable is bound in this graph pattern's scope */
+  if(gp->execution_scope) {
+    /* Check if variable is in the scope's local variables */
+    if(gp->execution_scope->local_vars &&
+       rasqal_variables_table_get_by_name(gp->execution_scope->local_vars,
+                                        RASQAL_VARIABLE_TYPE_NORMAL,
+                                        (const unsigned char*)v->name)) {
+      return 1;
+    }
+  }
+
+  /* Check if variable is bound in this graph pattern's triples */
+  if(gp->triples) {
+    int i;
+    int size = raptor_sequence_size(gp->triples);
+    for(i = 0; i < size; i++) {
+      rasqal_triple* t = (rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
+      if(t) {
+        /* Check if variable appears in any part of the triple */
+        if((t->subject && t->subject->type == RASQAL_LITERAL_VARIABLE && t->subject->value.variable == v) ||
+           (t->predicate && t->predicate->type == RASQAL_LITERAL_VARIABLE && t->predicate->value.variable == v) ||
+           (t->object && t->object->type == RASQAL_LITERAL_VARIABLE && t->object->value.variable == v)) {
+          return 1;
+        }
+      }
+    }
+  }
+
+  return 0;
 }
 
 

@@ -751,18 +751,6 @@ struct rasqal_query_s {
   /* INTERNAL flag for now: non-0 to store results otherwise lazy eval results */
   int store_results;
 
-  /* INTERNAL 2D array of:
-   *   width (number of total variables)
-   *   height (number of graph patterns)
-   * marking how a variable is mentioned/used in a GP
-   * Each graph pattern has a row and the short values are per-variable
-   * with flags:
-   *   1  RASQAL_USE_IN_SCOPE
-   *   2  RASQAL_USE_MENTIONED_HERE
-   *   4  RASQAL_USE_BOUND_HERE
-   */
-  unsigned short* variables_use_map;
-
   /* sequence of #rasqal_update_operation when @verb is
    * INSERT (deprecated), DELETE (deprecated) or UPDATE
    */
@@ -1622,6 +1610,8 @@ void rasqal_query_set_base_uri(rasqal_query* rq, raptor_uri* base_uri);
 rasqal_variable* rasqal_query_get_variable_by_offset(rasqal_query* query, int idx);
 const rasqal_query_execution_factory* rasqal_query_get_engine_by_name(const char* name);
 int rasqal_query_variable_is_bound(rasqal_query* query, rasqal_variable* v);
+int rasqal_query_variable_is_bound_in_scope(rasqal_query* query, rasqal_variable* v, rasqal_query_scope* scope);
+rasqal_variable* rasqal_query_get_variable_in_graph_pattern(rasqal_query* query, const char* name, rasqal_graph_pattern* gp);
 rasqal_triple_parts rasqal_query_variable_bound_in_triple(rasqal_query* query, rasqal_variable* v, int column);
 int rasqal_query_store_select_query(rasqal_query* query, rasqal_projection* projection, raptor_sequence* data_graphs, rasqal_graph_pattern* where_gp, rasqal_solution_modifier* modifier);
 int rasqal_query_reset_select_query(rasqal_query* query);
