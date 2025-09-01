@@ -1107,4 +1107,322 @@ if(sequence_created) {
 
   </section>
 
+  <section id="execution-class-relationships">
+    <title>Execution Class Relationships and Interactions</title>
+
+    <para>This section documents the relationships between the major query engine
+    execution classes, their ownership patterns, and interaction mechanisms. Understanding
+    these relationships is crucial for developers working with Rasqal internals,
+    implementing extensions, or debugging execution issues.</para>
+
+    <section id="class-hierarchy-overview">
+      <title>Class Hierarchy Overview</title>
+
+      <para>The Rasqal query engine execution architecture centers around six major
+      classes that work together to process SPARQL queries:</para>
+
+      <programlisting>
+Query Execution Class Hierarchy and Relationships
+
+                    rasqal_query (Central Orchestrator)
+                         |
+        ┌────────────────┼─────────────────────┐
+        │                │                     │
+rasqal_query_scope   rasqal_graph_pattern   Execution Pipeline
+   (Scoping)          (Structure)              │
+        │                │                     │
+        │                │               rasqal_rowsource
+        │                │              (Iterator Execution)
+        │                │                     │
+        │                │               rasqal_row
+        │                │              (Result Container)
+        │                │                     │
+        └────────────────┼─────────────────────┘
+                         │
+                 rasqal_expression
+                 (Expression Evaluation)
+      </programlisting>
+
+    </section>
+
+    <section id="ownership-relationships">
+      <title>Ownership Relationships</title>
+
+      <para>The ownership model follows strict hierarchical patterns with clear
+      responsibilities for memory management:</para>
+
+      <programlisting>
+Ownership Hierarchy (OWNS relationship):
+
+rasqal_query (ROOT OWNER)
+├── OWNS graph_patterns → rasqal_graph_pattern objects
+│   ├── OWNS triples → rasqal_triple objects
+│   ├── OWNS filter_expression → rasqal_expression objects
+│   ├── OWNS graph_patterns → nested rasqal_graph_pattern objects
+│   └── REFERS execution_scope → rasqal_query_scope (borrowed reference)
+├── OWNS root_scope → rasqal_query_scope objects
+│   ├── OWNS owned_triples → rasqal_triple objects (scope-isolated)
+│   ├── OWNS local_vars → rasqal_variables_table
+│   └── OWNS child_scopes → nested rasqal_query_scope objects
+├── OWNS variables_table → rasqal_variables_table (global)
+└── OWNS query_results → rasqal_query_results objects
+
+Execution Context Ownership:
+
+rasqal_rowsource (Execution Owner)
+├── OWNS variables_sequence → rasqal_variable* references
+├── OWNS vars_table → rasqal_variables_table (local copy)
+├── OWNS rows_sequence → rasqal_row objects (when caching)
+├── OWNS user_data → specialized context structures
+└── REFERS query → rasqal_query (borrowed reference)
+
+rasqal_row (Result Owner)
+├── OWNS values → rasqal_literal* array
+├── OWNS order_values → rasqal_literal* array (for ORDER BY)
+└── REFERS rowsource → rasqal_rowsource (producing rowsource)
+      </programlisting>
+
+      <variablelist>
+        <varlistentry>
+          <term>Primary Ownership (OWNS)</term>
+          <listitem><para>The owner is responsible for freeing the owned object.
+          Transfer of ownership typically occurs through sequence insertion with
+          appropriate free handlers.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Reference Relationships (REFERS)</term>
+          <listitem><para>Borrowed references that must remain valid for the
+          lifetime of the referring object. No cleanup responsibility.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Conditional Ownership</term>
+          <listitem><para>Some objects (like triples in graph patterns) may be
+          owned conditionally based on flags like <literal>owns_triples</literal>.</para></listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+    <section id="usage-relationships">
+      <title>Usage and Interaction Patterns</title>
+
+      <para>The execution classes interact through well-defined usage patterns
+      that respect the ownership model:</para>
+
+      <programlisting>
+Usage Relationships (USES relationship):
+
+rasqal_query
+├── USES rasqal_graph_pattern (hierarchy traversal during execution)
+├── USES rasqal_query_scope (variable resolution and scoping)
+├── USES rasqal_rowsource (query execution via rasqal_query_execute())
+└── USES rasqal_expression (evaluation in various contexts)
+
+rasqal_rowsource (Iterator Composition)
+├── USES rasqal_query (execution context, variable tables)
+├── USES rasqal_row (produces and consumes during iteration)
+├── USES rasqal_query_scope (scope-aware variable resolution)
+├── USES other rasqal_rowsource (composition - filter, join, union)
+└── USES rasqal_expression (filter conditions, join predicates)
+
+rasqal_expression (Evaluation Context)
+├── USES rasqal_query_scope (scope-aware variable resolution)
+├── USES rasqal_evaluation_context (runtime evaluation environment)
+├── USES rasqal_row (current variable bindings during evaluation)
+└── USES nested rasqal_expression (recursive evaluation)
+
+rasqal_graph_pattern (Structural Relationships)
+├── USES rasqal_query_scope (execution scope assignment)
+├── USES rasqal_expression (filter expressions)
+├── USES rasqal_triple (basic graph patterns)
+└── USES nested rasqal_graph_pattern (complex pattern structures)
+      </programlisting>
+
+    </section>
+
+    <section id="reference-counting-patterns">
+      <title>Reference Counting and Memory Management</title>
+
+      <para>Most execution classes use reference counting for safe memory management
+      with specific patterns for different object types:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>rasqal_rowsource Reference Counting</term>
+          <listitem><para>Uses <literal>usage</literal> field for reference counting.
+          Ownership transfer semantics apply - functions that consume rowsource
+          parameters take ownership and are responsible for cleanup. Found in
+          <filename>src/rasqal_rowsource.c:84</filename>.</para></listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>rasqal_row Reference Counting</term>
+          <listitem><para>Reference counted with back-reference to producing rowsource.
+          Follows caller ownership - functions returning rows transfer ownership to
+          the caller. Found in <filename>src/rasqal_internal.h</filename> around line 1180.</para></listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>rasqal_query_scope Reference Counting</term>
+          <listitem><para>Reference counted with parent-child hierarchy management.
+          Parent scopes own child scopes, but child scopes hold borrowed references
+          to parents. Found in <filename>src/rasqal_query_scope.c:96</filename>.</para></listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Consumption Semantics</term>
+          <listitem><para>Functions like join operations consume input rows and
+          take ownership, preventing double-free conditions. This pattern is used
+          throughout rowsource implementations.</para></listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+    <section id="scope-integration-patterns">
+      <title>Scope Integration in Execution Classes</title>
+
+      <para>The SPARQL 1.1 scope system integrates across all execution classes
+      to ensure proper variable isolation and inheritance:</para>
+
+      <itemizedlist>
+        <listitem><para><emphasis>Graph Pattern Scope Assignment</emphasis> -
+        Each <literal>rasqal_graph_pattern</literal> maintains an
+        <literal>execution_scope</literal> reference that determines its variable
+        scoping context during execution.</para></listitem>
+
+        <listitem><para><emphasis>Rowsource Scope Awareness</emphasis> -
+        Filter rowsources maintain <literal>evaluation_scope</literal> for proper
+        variable scoping (found in <filename>src/rasqal_rowsource_filter.c:62</filename>).
+        This ensures filter expressions respect SPARQL 1.1 scoping rules.</para></listitem>
+
+        <listitem><para><emphasis>Expression Scope Context</emphasis> -
+        Expression evaluation uses <literal>rasqal_variable_lookup_context</literal>
+        to traverse scope hierarchies for variable resolution, ensuring proper
+        inheritance and isolation.</para></listitem>
+
+        <listitem><para><emphasis>Variable Resolution Integration</emphasis> -
+        The scope-aware variable resolution system (documented in
+        <filename>src/rasqal_internal.h:415-432</filename>) provides consistent
+        variable lookup across all execution contexts.</para></listitem>
+      </itemizedlist>
+
+    </section>
+
+    <section id="iterator-composition-architecture">
+      <title>Iterator Composition Architecture</title>
+
+      <para>Rowsources compose through delegation to create execution trees that
+      mirror the algebraic query structure:</para>
+
+      <programlisting>
+Iterator Composition Examples:
+
+Filter Rowsource (rasqal_rowsource_filter.c):
+  context.rowsource → inner rasqal_rowsource (data source)
+  context.expr → rasqal_expression (filter condition)
+  context.evaluation_scope → rasqal_query_scope (variable context)
+
+Join Rowsource (rasqal_rowsource_join.c):
+  context.left → rasqal_rowsource (left input stream)
+  context.right → rasqal_rowsource (right input stream)
+  context.expr → rasqal_expression (join condition, optional)
+  context.rc_map → rasqal_row_compatible (compatibility checking)
+
+Union Rowsource:
+  context.left → rasqal_rowsource (first alternative)
+  context.right → rasqal_rowsource (second alternative)
+      </programlisting>
+
+      <para>This composition pattern enables:</para>
+      <itemizedlist>
+        <listitem><para><emphasis>Lazy Evaluation</emphasis> - Each rowsource
+        produces results on demand, enabling memory-efficient processing of
+        large result sets.</para></listitem>
+
+        <listitem><para><emphasis>Early Termination</emphasis> - LIMIT clauses
+        can stop processing as soon as sufficient results are produced.</para></listitem>
+
+        <listitem><para><emphasis>Streaming Results</emphasis> - Results can be
+        consumed as they are produced, enabling interactive applications.</para></listitem>
+
+        <listitem><para><emphasis>Algebraic Transparency</emphasis> - The rowsource
+        composition directly mirrors the algebraic structure, making optimization
+        and debugging easier.</para></listitem>
+      </itemizedlist>
+
+    </section>
+
+    <section id="execution-lifecycle-integration">
+      <title>Execution Lifecycle Integration</title>
+
+      <para>The execution classes work together through a coordinated lifecycle:</para>
+
+      <orderedlist>
+        <listitem><para><emphasis>Query Construction</emphasis> -
+        <literal>rasqal_query</literal> owns the complete query structure including
+        graph patterns, scopes, and variable tables.</para></listitem>
+
+        <listitem><para><emphasis>Scope Hierarchy Building</emphasis> -
+        <literal>rasqal_query_scope</literal> objects are created during parsing
+        and transformation to establish variable isolation boundaries.</para></listitem>
+
+        <listitem><para><emphasis>Execution Tree Construction</emphasis> -
+        <literal>rasqal_rowsource</literal> objects are composed into execution
+        trees that mirror the algebraic structure.</para></listitem>
+
+        <listitem><para><emphasis>Iterator Execution</emphasis> -
+        <literal>rasqal_row</literal> objects flow through the execution tree
+        carrying variable bindings between rowsources.</para></listitem>
+
+        <listitem><para><emphasis>Expression Evaluation</emphasis> -
+        <literal>rasqal_expression</literal> objects evaluate conditions and
+        computations within the proper scope context.</para></listitem>
+
+        <listitem><para><emphasis>Result Collection</emphasis> - Final results
+        are collected and formatted for output while maintaining proper object
+        lifecycle management.</para></listitem>
+      </orderedlist>
+
+    </section>
+
+    <section id="debugging-class-interactions">
+      <title>Debugging Class Interactions</title>
+
+      <para>When debugging issues in the query engine execution, understanding
+      these class relationships helps identify common problems:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>Memory Management Issues</term>
+          <listitem><para>Check reference counting patterns, ownership transfer
+          points, and consumption semantics. Use AddressSanitizer to detect
+          leaks and use-after-free conditions.</para></listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Variable Scoping Problems</term>
+          <listitem><para>Verify that <literal>execution_scope</literal> references
+          are properly set on graph patterns and that rowsources use scope-aware
+          variable resolution.</para></listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Execution Pipeline Issues</term>
+          <listitem><para>Trace rowsource composition and verify that each rowsource
+          properly implements the iterator interface with correct row ownership
+          patterns.</para></listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Expression Evaluation Problems</term>
+          <listitem><para>Ensure expression evaluation contexts include proper
+          scope information and that variable lookups respect scope boundaries.</para></listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+  </section>
+
 </chapter>
