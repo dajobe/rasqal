@@ -71,10 +71,39 @@ class AlgebraTestRunner:
             epilog="""
 Examples:
   %(prog)s test-01.rq http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#
+  %(prog)s --preserve-files --debug test-01.rq http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#
             """,
         )
         parser.add_argument(
-            "--debug", "-d", action="store_true", help="Enable extra debugging output"
+            "-d",
+            "--debug",
+            action="count",
+            default=0,
+            help="Debug level (use multiple -d for more detail: -d=normal, -dd=verbose)",
+        )
+        parser.add_argument(
+            "--preserve-files",
+            action="store_true",
+            help="Preserve temporary files for debugging",
+        )
+
+
+        parser.add_argument(
+            "--timeout",
+            type=int,
+            default=30,
+            help="Timeout in seconds for test execution (default: 30)",
+        )
+        parser.add_argument(
+            "--version",
+            action="version",
+            version="%(prog)s (Rasqal SPARQL Algebra Test Runner)",
+        )
+        parser.add_argument(
+            "-q",
+            "--quiet",
+            action="store_true",
+            help="Reduce output verbosity",
         )
         parser.add_argument("test", help="Test file (.rq)")
         parser.add_argument("base_uri", help="Base URI for the test")
@@ -83,10 +112,16 @@ Examples:
 
     def process_arguments(self, args: argparse.Namespace) -> None:
         """Process arguments and setup runner state."""
-        self.debug_level = 1 if args.debug else 0
-        self.logger = setup_logging(args.debug)
+        self.debug_level = args.debug
+        self.quiet = args.quiet
+        self.logger = setup_logging(args.debug > 0)
         self.test_file = args.test
         self.base_uri = args.base_uri
+        self.timeout = args.timeout
+        
+        # Set global file preservation flag
+        global _preserve_debug_files
+        _preserve_debug_files = args.preserve_files
 
     def run_single_test(self, test_file: str, base_uri: str) -> int:
         """Run a single algebra test."""
@@ -110,7 +145,7 @@ Examples:
 
         try:
             with open(out_file, "w") as out_f, open(err_file, "w") as err_f:
-                result = run_command(cmd, str(Path(".")))
+                result = run_command(cmd, str(Path(".")), timeout=self.timeout)
                 # Unpack the tuple returned by run_command
                 returncode, stdout, stderr = result
                 out_f.write(stdout)
@@ -128,17 +163,20 @@ Examples:
                 return 1
         except FileNotFoundError:
             self.logger.error(f"{convert_graph_pattern} not found in PATH")
-            cleanup_temp_files()
+            if not _preserve_debug_files:
+                cleanup_temp_files()
             return 1
         except Exception as e:
             self.logger.error(f"Error running {convert_graph_pattern}: {e}")
-            cleanup_temp_files()
+            if not _preserve_debug_files:
+                cleanup_temp_files()
             return 1
 
         # Check if expected output file exists
         if not expected_file.exists():
             self.logger.error(f"Expected output file '{expected_file}' does not exist")
-            cleanup_temp_files()
+            if not _preserve_debug_files:
+                cleanup_temp_files()
             return 1
 
         # Compare output with expected
@@ -166,11 +204,14 @@ Examples:
 
                 self.logger.error(f"Diff saved to {diff_file}")
                 # Don't cleanup on failure to preserve debug files
+                if not _preserve_debug_files:
+                    cleanup_temp_files()
                 return 1
 
         except Exception as e:
             self.logger.error(f"Error comparing output: {e}")
-            cleanup_temp_files()
+            if not _preserve_debug_files:
+                cleanup_temp_files()
             return 1
 
     def run_format_test(

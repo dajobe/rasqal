@@ -166,6 +166,7 @@ def run_command(
     cwd: Optional[str] = None,
     env: Optional[dict] = None,
     error_msg: Optional[str] = None,
+    timeout: Optional[int] = None,
 ) -> tuple[int, str, str]:
     """Run a command and return (returncode, stdout, stderr).
 
@@ -174,6 +175,7 @@ def run_command(
         cwd: Working directory (optional)
         env: Environment variables (optional)
         error_msg: Error message for backward compatibility (ignored)
+        timeout: Timeout in seconds (optional, defaults to 30)
     """
     import subprocess
 
@@ -181,13 +183,17 @@ def run_command(
     if env is None:
         env = {}
 
+    # Use default timeout if none specified
+    if timeout is None:
+        timeout = 30
+
     try:
         result = subprocess.run(
-            cmd, cwd=cwd, env=env, capture_output=True, text=True, timeout=30
+            cmd, cwd=cwd, env=env, capture_output=True, text=True, timeout=timeout
         )
         return result.returncode, result.stdout, result.stderr
     except subprocess.TimeoutExpired:
-        return -1, "", "Command timed out after 30 seconds"
+        return -1, "", f"Command timed out after {timeout} seconds"
 
 
 # Import utility classes from core_utils
