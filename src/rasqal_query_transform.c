@@ -57,6 +57,7 @@ static int rasqal_query_triple_in_exists_pattern(rasqal_query* query, int triple
 static void rasqal_query_print_scope_variable_usage(FILE* fh, rasqal_query* query);
 static void rasqal_query_scope_print_variable_analysis(FILE* fh, rasqal_query_scope* scope, int depth);
 static int rasqal_helper_gp_tree_uses_variable(rasqal_graph_pattern* gp, rasqal_variable* v);
+static int rasqal_helper_gp_tree_uses_variable_excluding_basic(rasqal_graph_pattern* gp, rasqal_variable* v);
 
 
 int
@@ -1073,7 +1074,6 @@ rasqal_query_build_variables_use(rasqal_query* query,
 {
   /* Simple validation using scope system */
   int i;
-  int errors = 0;
 
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("query scope:");
@@ -1091,8 +1091,8 @@ rasqal_query_build_variables_use(rasqal_query* query,
       /* Check if variable is in projection */
       int in_projection = 0;
       if(projection && projection->variables) {
-        int j;
         int proj_size = raptor_sequence_size(projection->variables);
+        int j;
         for(j = 0; j < proj_size; j++) {
           rasqal_variable* proj_var = (rasqal_variable*)raptor_sequence_get_at(projection->variables, j);
           if(proj_var && !strcmp((const char*)v->name, (const char*)proj_var->name)) {
@@ -1106,9 +1106,10 @@ rasqal_query_build_variables_use(rasqal_query* query,
         /* SCOPE-AWARE VALIDATION: Check if variable is used in other query parts */
         int used_elsewhere = 0;
 
-        /* Check if variable is used in FILTER expressions */
+        /* Check if variable is used in FILTER expressions or complex graph patterns */
         if(query->query_graph_pattern) {
-          used_elsewhere = rasqal_helper_gp_tree_uses_variable(query->query_graph_pattern, v);
+          /* Only check non-basic graph patterns (FILTER, EXISTS, etc.) for "used elsewhere" */
+          used_elsewhere = rasqal_helper_gp_tree_uses_variable_excluding_basic(query->query_graph_pattern, v);
         }
 
         /* Check if variable is used in ORDER BY, GROUP BY, HAVING clauses */
@@ -1133,15 +1134,52 @@ rasqal_query_build_variables_use(rasqal_query* query,
                                     &query->locator,
                                     "Variable %s was bound but is unused in the query",
                                     v->name);
-          errors++;
+        }
+      }
+    }
+
+    /* Check if variable is selected but never bound */
+    if(!rasqal_query_variable_is_bound(query, v)) {
+      /* Check if variable is in projection */
+      int in_projection = 0;
+      if(projection && projection->variables) {
+        int proj_size = raptor_sequence_size(projection->variables);
+        int j;
+        for(j = 0; j < proj_size; j++) {
+          rasqal_variable* proj_var;
+          proj_var = (rasqal_variable*)raptor_sequence_get_at(projection->variables, j);
+          if(proj_var && !strcmp((const char*)v->name,
+                                 (const char*)proj_var->name)) {
+            in_projection = 1;
+            break;
+          }
+        }
+      }
+
+      if(in_projection) {
+        /* SCOPE-AWARE VALIDATION: Check if variable is bound elsewhere */
+        int bound_elsewhere = 0;
+
+        /* Check if variable is bound in graph patterns (triples, etc.) */
+        if(query->query_graph_pattern) {
+          bound_elsewhere = rasqal_graph_pattern_variable_bound_below(query->query_graph_pattern, v);
+        }
+
+        /* ORDER BY, GROUP BY, HAVING clauses typically don't bind variables,
+         * they use existing variables. The main binding happens in graph patterns. */
+
+        /* Only warn if variable is truly unbound */
+        if(!bound_elsewhere) {
+          rasqal_log_warning_simple(query->world,
+                                    RASQAL_WARNING_LEVEL_SELECTED_NEVER_BOUND,
+                                    &query->locator,
+                                    "Variable %s was selected but is never bound in the query",
+                                    v->name);
         }
       }
     }
   }
 
-  if(errors)
-    return 1;
-  
   return 0;
 }
 
@@ -1242,6 +1280,37 @@ rasqal_helper_gp_tree_uses_variable(rasqal_graph_pattern* gp, rasqal_variable* v
       sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
       if(rasqal_helper_gp_tree_uses_variable(sgp, v))
         return 1;
+    }
+  }
+
+  return 0;
+}
+
+/* Same as rasqal_helper_gp_tree_uses_variable but excludes BASIC graph patterns (WHERE clause) */
+static int
+rasqal_helper_gp_tree_uses_variable_excluding_basic(rasqal_graph_pattern* gp, rasqal_variable* v)
+{
+  int sz;
+  int i;
+
+  if(!gp)
+    return 0;
+
+  /* Check FILTER expression */
+  if(gp->filter_expression && rasqal_expression_mentions_variable(gp->filter_expression, v))
+    return 1;
+
+  /* Check child graph patterns */
+  if(gp->graph_patterns) {
+    sz = raptor_sequence_size(gp->graph_patterns);
+    for(i = 0; i < sz; i++) {
+      rasqal_graph_pattern* sgp;
+      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      /* Recursively check child patterns, but skip BASIC patterns */
+      if(sgp->op != RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
+        if(rasqal_helper_gp_tree_uses_variable_excluding_basic(sgp, v))
+          return 1;
+      }
     }
   }
 
@@ -1515,6 +1584,11 @@ rasqal_query_prepare_common(rasqal_query *query)
     if(rc)
       goto done;
 
+    /* Build scope hierarchy before variable analysis for warning detection */
+    rc = rasqal_query_build_scope_hierarchy(query);
+    if(rc)
+      goto done;
+
     rc = rasqal_query_build_variables_use(query, projection);
     if(rc)
       goto done;
@@ -1691,11 +1765,13 @@ rasqal_graph_pattern_promote_variable_mention_to_bind(rasqal_graph_pattern* gp,
   /* If variable is mentioned in this scope, promote it to bound */
   if(vars_scope[v->offset] & RASQAL_VAR_USE_MENTIONED_HERE) {
     vars_scope[v->offset] |= RASQAL_VAR_USE_BOUND_HERE;
-    return 0;
-  }
+  return 0;
+}
 
-  /* Variable not mentioned in this scope yet - mark it as both mentioned and bound */
-  vars_scope[v->offset] |= (RASQAL_VAR_USE_MENTIONED_HERE | RASQAL_VAR_USE_BOUND_HERE);
+  /* Variable not mentioned in this scope yet - mark it as both
+   * mentioned and bound */
+  vars_scope[v->offset] |= (RASQAL_VAR_USE_MENTIONED_HERE |
+                            RASQAL_VAR_USE_BOUND_HERE);
 
   return 0;
 }
@@ -1749,7 +1825,8 @@ rasqal_query_graph_pattern_build_variables_use_map_binds(rasqal_query* query,
 
   switch(gp->op) {
     case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC:
-      /* BASIC graph pattern - no additional processing needed with scope system */
+      /* BASIC graph pattern - no additional processing needed with
+       * scope system */
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
