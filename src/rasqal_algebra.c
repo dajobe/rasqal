@@ -1853,7 +1853,6 @@ rasqal_algebra_get_variables_mentioned_in(rasqal_query* query,
     return NULL;
 
   /* For CONSTRUCT queries, get all variables from the query's variables table */
-  /* This replaces the old variables_use_map approach */
   size = rasqal_variables_table_get_total_variables_count(query->vars_table);
 
   for(i = 0; i < size; i++) {
