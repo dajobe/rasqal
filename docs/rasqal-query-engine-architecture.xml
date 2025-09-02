@@ -565,12 +565,14 @@ if(sequence_created) {
 
   </section>
 
-  <section id="variable-binding-system">
+      <section id="variable-binding-system">
     <title>Variable Binding System</title>
 
-    <para>The variable binding system includes a query scope
+    <para>The variable binding system is built on a comprehensive query scope
     architecture that ensures proper SPARQL 1.1 variable isolation and inheritance
-    semantics. </para>
+    semantics. This system has completely eliminated the previous matrix-based approach
+    in favor of dynamic, scope-aware variable resolution that provides true SPARQL 1.1
+    semantic compliance while maintaining excellent performance.</para>
 
     <section id="query-scope-architecture">
       <title>Query Scope Architecture</title>
@@ -610,6 +612,40 @@ if(sequence_created) {
 
       <para>This ensures that variable lookups respect SPARQL 1.1 scoping
       requirements while maintaining efficient resolution performance.</para>
+
+      <para><emphasis>Implementation Status:</emphasis> The scope-aware variable
+      resolution system is fully implemented and operational across all query execution
+      components. Core functions like <function>rasqal_resolve_variable_with_scope</function>,
+      <function>rasqal_query_variable_is_bound</function>, and all rowsource variable
+      resolution use dynamic scope queries instead of static matrix lookups. This provides
+      true SPARQL 1.1 semantic compliance while maintaining backward compatibility and
+      excellent performance. The system supports all SPARQL 1.1 scope types including
+      EXISTS, NOT EXISTS, MINUS, UNION, GROUP, and subquery patterns.</para>
+
+      <section id="matrix-elimination">
+        <title>Variable Use Map Elimination</title>
+
+        <para>The previous implementation used a matrix-based approach for tracking
+        variable usage across graph patterns. This system has been completely eliminated
+        in favor of the dynamic scope architecture:</para>
+
+        <itemizedlist>
+          <listitem><para><emphasis>Previous System:</emphasis> Static 2D matrix
+          (<literal>variables_use_map</literal>) tracking variable usage across all
+          graph patterns - required pre-computation and significant memory allocation</para></listitem>
+          <listitem><para><emphasis>New System:</emphasis> Dynamic scope hierarchy
+          with runtime variable resolution - zero matrix overhead and true SPARQL 1.1
+          semantic compliance</para></listitem>
+        </itemizedlist>
+
+        <para><emphasis>Benefits:</emphasis></para>
+        <itemizedlist>
+          <listitem><para>Significant memory savings - no large matrix allocations</para></listitem>
+          <listitem><para>True SPARQL 1.1 scoping semantics with proper variable isolation</para></listitem>
+          <listitem><para>Dynamic resolution eliminates static analysis limitations</para></listitem>
+          <listitem><para>Simplified architecture with single scope system instead of parallel systems</para></listitem>
+        </itemizedlist>
+      </section>
     </section>
 
     <section id="variable-lifecycle">
@@ -691,13 +727,14 @@ if(sequence_created) {
 
         <para>The <function>rasqal_query_print_scope_variable_usage</function>
         function provides detailed analysis of variable usage within query
-        scopes. This is an internal debugging function used during development:</para>
+        scopes. This is an internal debugging function used during development
+        and is not part of the public API:</para>
 
         <programlisting>
-/* Internal debugging function */
+/* Internal debugging function - NOT in public API */
 static void rasqal_query_print_scope_variable_usage(FILE* fh, rasqal_query* query);
 
-/* Usage within Rasqal codebase for debugging */
+/* Usage within Rasqal codebase for debugging only */
 rasqal_query_print_scope_variable_usage(RASQAL_DEBUG_FH, query);
         </programlisting>
 
