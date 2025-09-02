@@ -293,7 +293,7 @@ class Testsuite:
                 logger.debug(f"Process stderr: {process.stderr}")
                 logger.debug(f"Filtered output length: {len(filtered_output)}")
                 logger.debug(
-                    f"Filtered output first 200 chars: {filtered_output[:200]}"
+                    f"Filtered output 200 chars: {filtered_output[:200]}"
                 )
 
                 # Write filtered output to plan file

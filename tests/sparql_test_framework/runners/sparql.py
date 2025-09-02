@@ -190,12 +190,12 @@ def finalize_test_result(
 
     if expect_status == TestResult.FAILED:
         # Expected to fail
-        if actual_result == "failure":
+        if actual_result == "failed":
             test_result_summary["is_success"] = True
-            test_result_summary["result"] = "success"
+            test_result_summary["result"] = "passed"
         else:
             test_result_summary["is_success"] = False
-            test_result_summary["result"] = "failure"
+            test_result_summary["result"] = "failed"
     else:
         # Expected to pass
         if actual_result == "success":
@@ -751,9 +751,9 @@ def _compare_actual_vs_expected(
 
     # Update test result summary
     if comparison_success:
-        test_result_summary["result"] = "success"
+        test_result_summary["result"] = "passed"
     else:
-        test_result_summary["result"] = "failure"
+        test_result_summary["result"] = "failed"
 
 
 def _perform_comparison(
@@ -825,13 +825,13 @@ def _handle_comparison_result(
     """Handle the comparison result and update test summary."""
     if comparison_rc == 0:
         logger.info(f"Test '{name}': OK (results match)")
-        test_result_summary["result"] = "success"
+        test_result_summary["result"] = "passed"
         from .debug_manager import show_success_debug_info
 
         show_success_debug_info(name, {}, global_debug_level)
     else:
         logger.warning(f"Test '{name}': FAILED (results do not match)")
-        test_result_summary["result"] = "failure"
+        test_result_summary["result"] = "failed"
         from .debug_manager import show_failure_debug_info, show_failure_summary
 
         show_failure_debug_info(name, {}, {}, global_debug_level)
@@ -982,7 +982,7 @@ def run_single_test(
     test_result_summary: Dict[str, Any] = {
         "name": config.name,
         "uri": config.test_uri,
-        "result": "failure",
+        "result": "failed",
         "is_success": False,
         "stdout": "",
         "stderr": "",
@@ -1037,10 +1037,10 @@ def run_single_test(
             )
 
             if comparison_result.is_match:
-                test_result_summary["result"] = "success"
+                test_result_summary["result"] = "passed"
                 test_result_summary["is_success"] = True
             else:
-                test_result_summary["result"] = "failure"
+                test_result_summary["result"] = "failed"
                 test_result_summary["is_success"] = False
                 test_result_summary["diff"] = comparison_result.diff_output or ""
         elif config.test_type == TestType.WARNING_TEST.value:
@@ -1049,21 +1049,21 @@ def run_single_test(
             warnings_generated = query_result.metadata.get("warnings_generated", False)
             if warnings_generated:
                 # Warnings were generated - test passes
-                test_result_summary["result"] = "success"
+                test_result_summary["result"] = "passed"
                 test_result_summary["is_success"] = True
                 test_result_summary["stderr"] = (
                     "Warning test succeeded (warnings generated)"
                 )
             else:
                 # No warnings generated - test fails
-                test_result_summary["result"] = "failure"
+                test_result_summary["result"] = "failed"
                 test_result_summary["is_success"] = False
                 test_result_summary["stderr"] = (
                     "Warning test got exit code 0, expected warnings"
                 )
         else:
             # For other non-evaluation tests (syntax), success is based on query execution
-            test_result_summary["result"] = "success"
+            test_result_summary["result"] = "passed"
             test_result_summary["is_success"] = True
 
         return test_result_summary
@@ -1073,7 +1073,7 @@ def run_single_test(
 
         logger.error(f"Unexpected error in run_single_test for '{config.name}': {e}")
         traceback.print_exc()
-        test_result_summary["result"] = "failure"
+        test_result_summary["result"] = "failed"
         test_result_summary["stderr"] = str(e)
         finalize_test_result(test_result_summary, config.expect)
         return test_result_summary
@@ -1166,7 +1166,7 @@ def _compare_test_results(
 
     if not actual_result_info:
         logger.warning(f"Test '{config.name}': FAILED (could not build actual results)")
-        test_result_summary["result"] = "failure"
+        test_result_summary["result"] = "failed"
         finalize_test_result(test_result_summary, config.expect)
         return test_result_summary
 
@@ -1321,7 +1321,7 @@ Examples:
         test_result_summary: Dict[str, Any] = {
             "name": config.name,
             "uri": config.test_uri,
-            "result": "failure",
+            "result": "failed",
             "is_success": False,
             "stdout": "",
             "stderr": "",
@@ -1377,13 +1377,13 @@ Examples:
                     expected_content = config.result_file.read_text()
                     logger.debug(f"Expected result file: {config.result_file}")
                     logger.debug(
-                        f"Expected content (first 200 chars): {expected_content[:200]}"
+                        f"Expected content: {expected_content}"
                     )
                 else:
                     logger.debug(f"No expected result file found for {config.name}")
 
                 logger.debug(
-                    f"Actual result content (first 200 chars): {query_result.content[:200]}"
+                    f"Actual result content: {query_result.content}"
                 )
                 logger.debug(f"Query result format: {query_result.format}")
                 logger.debug(f"Query result type: {query_result.result_type}")
@@ -1395,10 +1395,6 @@ Examples:
 
                 expected_content = normalize_expected_variables(
                     expected_content, query_result.content
-                )
-
-                logger.debug(
-                    f"Expected content after normalization (first 200 chars): {expected_content[:200]}"
                 )
 
                 # Compare results
@@ -1450,7 +1446,7 @@ Examples:
                     )  # Keep the specific result type
                     test_result_summary["is_success"] = True
                 else:
-                    test_result_summary["result"] = "failure"
+                    test_result_summary["result"] = "failed"
                     test_result_summary["is_success"] = False
 
                 test_result_summary["detail_message"] = detail_message
@@ -1468,21 +1464,21 @@ Examples:
                 )
                 if warnings_generated:
                     # Warnings were generated - test passes
-                    test_result_summary["result"] = "success"
+                    test_result_summary["result"] = "passed"
                     test_result_summary["is_success"] = True
                     test_result_summary["stderr"] = (
                         "Warning test succeeded (warnings generated)"
                     )
                 else:
                     # No warnings generated - test fails
-                    test_result_summary["result"] = "failure"
+                    test_result_summary["result"] = "failed"
                     test_result_summary["is_success"] = False
                     test_result_summary["stderr"] = (
                         "Warning test got exit code 0, expected warnings"
                     )
             else:
                 # For other non-evaluation tests (syntax), success is based on query execution
-                test_result_summary["result"] = "success"
+                test_result_summary["result"] = "passed"
                 test_result_summary["is_success"] = True
 
             return test_result_summary
@@ -1547,10 +1543,10 @@ Examples:
             )
 
             # Print summary with proper result type counting
-            passed = sum(1 for r in results if r.get("result") == "success")
+            passed = sum(1 for r in results if r.get("result") == "passed")
             xfailed = sum(1 for r in results if r.get("result") == "xfailed")
             uxpassed = sum(1 for r in results if r.get("result") == "uxpassed")
-            failed = sum(1 for r in results if r.get("result") == "failure")
+            failed = sum(1 for r in results if r.get("result") == "failed")
 
             print(f"\nTest Results Summary:")
             print(f"  Total: {len(results)}")
@@ -1563,7 +1559,7 @@ Examples:
             if failed > 0:
                 print(f"\nFailed tests:")
                 for result in results:
-                    if result.get("result") == "failure":
+                    if result.get("result") == "failed":
                         print(f"  {result['name']}")
 
             # Return 0 (success) if no tests actually failed

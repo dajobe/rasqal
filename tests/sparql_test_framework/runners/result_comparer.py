@@ -280,18 +280,16 @@ class ResultComparer:
         """Compare SRX (SPARQL Results XML) results."""
         try:
             self.logger.debug("SRX comparison called")
-            self.logger.debug(f"Actual SRX (first 200 chars): {actual[:200]}")
-            self.logger.debug(f"Expected SRX (first 200 chars): {expected[:200]}")
 
             # Normalize SRX content by removing formatting differences
             actual_normalized = self._normalize_srx_content(actual)
             expected_normalized = self._normalize_srx_content(expected)
 
             self.logger.debug(
-                f"Actual normalized (first 500 chars): {actual_normalized[:500]}"
+                f"Actual normalized: {actual_normalized}"
             )
             self.logger.debug(
-                f"Expected normalized (first 500 chars): {expected_normalized[:500]}"
+                f"Expected normalized: {expected_normalized}"
             )
 
             is_match = actual_normalized == expected_normalized
@@ -427,6 +425,9 @@ class ResultComparer:
                 r">\s*<", "><", normalized_xml
             )  # Remove whitespace between tags
             normalized_xml = re.sub(r"\s+", " ", normalized_xml)  # Normalize whitespace
+            normalized_xml = normalized_xml.replace(
+                "><", ">\n<"
+            )  # Add newline between tags
             normalized_xml = normalized_xml.replace(
                 "?>", "?>\n"
             )  # Add newline after XML declaration
