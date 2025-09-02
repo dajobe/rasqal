@@ -1094,7 +1094,7 @@ rasqal_query_build_variables_use(rasqal_query* query,
           }
         }
       }
-
+      
       if(!in_projection) {
         /* SCOPE-AWARE VALIDATION: Check if variable is used in other
          * query parts */
@@ -1734,70 +1734,142 @@ rasqal_query_print_scope_variable_usage(FILE* fh, rasqal_query* query)
 {
   int i;
   int size;
+  int bound_count = 0, unbound_count = 0;
   
-  fprintf(fh, "Query Variable Scope Analysis:\n");
+  fprintf(fh, "========================================\n");
+  fprintf(fh, "Rasqal Query Scope Variable Analysis\n");
+  fprintf(fh, "========================================\n\n");
   
   /* Print all variables and their binding status */
   size = rasqal_variables_table_get_total_variables_count(query->vars_table);
-  fprintf(fh, "Variables (%d total):\n", size);
+  fprintf(fh, "Variable Binding Analysis (%d total variables):\n", size);
+  fprintf(fh, "----------------------------------------\n");
   
   for(i = 0; i < size; i++) {
     rasqal_variable* v = rasqal_variables_table_get(query->vars_table, i);
     if(v) {
       int is_bound = rasqal_query_variable_is_bound(query, v);
-      fprintf(fh, "  %s: %s\n", v->name, is_bound ? "BOUND" : "UNBOUND");
+      fprintf(fh, "  %-20s : %-6s (offset=%d)\n",
+              v->name ? (const char*)v->name : "NULL",
+              is_bound ? "BOUND" : "UNBOUND", v->offset);
+      if(is_bound) bound_count++;
+      else unbound_count++;
     }
   }
+
+  fprintf(fh, "\nSummary: %d bound, %d unbound\n\n", bound_count, unbound_count);
   
   /* Print scope hierarchy if available */
   if(query->query_graph_pattern && query->query_graph_pattern->execution_scope) {
-    fprintf(fh, "\nScope Hierarchy:\n");
+    fprintf(fh, "Scope Hierarchy Analysis:\n");
+    fprintf(fh, "========================\n");
     rasqal_query_scope_print_variable_analysis(fh, query->query_graph_pattern->execution_scope, 0);
   } else {
-    fprintf(fh, "\nNo scope hierarchy available.\n");
+    fprintf(fh, "No scope hierarchy available for analysis.\n");
   }
+
+  fprintf(fh, "\n========================================\n");
 }
 
 static void
 rasqal_query_scope_print_variable_analysis(FILE* fh, rasqal_query_scope* scope, int depth)
 {
   int i;
-  char indent[32];
+  char indent[64];
+  const char* scope_type_name = "UNKNOWN";
   
   if(!scope) return;
   
-  /* Create indentation */
-  for(i = 0; i < depth && i < 31; i++)
-    indent[i] = ' ';
-  indent[i] = '\0';
-  
-  fprintf(fh, "%s┌─ %s (scope_id=%d, type=%d)\n", indent, 
-          scope->scope_name ? scope->scope_name : "UNNAMED", 
-          scope->scope_id, scope->scope_type);
-  
-  /* Print local variables */
+  /* Create indentation with tree-like structure */
+  memset(indent, ' ', sizeof(indent));
+  for(i = 0; i < depth * 4 && i < 60; i += 4) {
+    indent[i] = '|';
+    indent[i+1] = ' ';
+    indent[i+2] = ' ';
+    indent[i+3] = ' ';
+  }
+  if(depth > 0) {
+    indent[(depth-1) * 4] = (depth == 1) ? '+' : '|';
+    indent[(depth-1) * 4 + 1] = '-';
+    indent[(depth-1) * 4 + 2] = ' ';
+  }
+  indent[depth * 4] = '\0';
+
+  /* Get scope type name */
+  switch(scope->scope_type) {
+    case RASQAL_QUERY_SCOPE_TYPE_ROOT: scope_type_name = "ROOT"; break;
+    case RASQAL_QUERY_SCOPE_TYPE_EXISTS: scope_type_name = "EXISTS"; break;
+    case RASQAL_QUERY_SCOPE_TYPE_NOT_EXISTS: scope_type_name = "NOT_EXISTS"; break;
+    case RASQAL_QUERY_SCOPE_TYPE_MINUS: scope_type_name = "MINUS"; break;
+    case RASQAL_QUERY_SCOPE_TYPE_UNION: scope_type_name = "UNION"; break;
+    case RASQAL_QUERY_SCOPE_TYPE_SUBQUERY: scope_type_name = "SUBQUERY"; break;
+    case RASQAL_QUERY_SCOPE_TYPE_GROUP: scope_type_name = "GROUP"; break;
+    default: break;
+  }
+
+  fprintf(fh, "%s%s_%d (%s, id=%d)\n",
+          indent,
+          scope->scope_name ? scope->scope_name : "SCOPE",
+          scope->scope_id,
+          scope_type_name,
+          scope->scope_id);
+
+  /* Print local variables with details */
   if(scope->local_vars) {
     int var_count = rasqal_variables_table_get_total_variables_count(scope->local_vars);
-    fprintf(fh, "%s│  ├─ Local Variables: %d\n", indent, var_count);
+    fprintf(fh, "%s|  +- Local Variables: %d\n", depth > 0 ? indent : "", var_count);
+    if(var_count > 0) {
+      for(i = 0; i < var_count; i++) {
+        rasqal_variable* v = rasqal_variables_table_get(scope->local_vars, i);
+        if(v) {
+          fprintf(fh, "%s|  |  \\- %s (offset=%d)\n",
+                  depth > 0 ? indent : "",
+                  v->name ? (const char*)v->name : "NULL", v->offset);
+        }
+      }
+    }
+  } else {
+    fprintf(fh, "%s|  +- Local Variables: 0\n", depth > 0 ? indent : "");
   }
-  
-  /* Print owned triples */
+
+  /* Print owned triples with more detail */
   if(scope->owned_triples) {
     int triple_count = raptor_sequence_size(scope->owned_triples);
-    fprintf(fh, "%s│  ├─ Owned Triples: %d\n", indent, triple_count);
+    fprintf(fh, "%s|  +- Owned Triples: %d\n", depth > 0 ? indent : "", triple_count);
+    if(triple_count > 0 && triple_count <= 5) { /* Show details for small numbers */
+      for(i = 0; i < triple_count; i++) {
+        rasqal_triple* t = (rasqal_triple*)raptor_sequence_get_at(scope->owned_triples, i);
+        if(t) {
+          fprintf(fh, "%s|  |  \\- [%d] %s %s %s\n",
+                  depth > 0 ? indent : "", i,
+                  t->subject ? (t->subject->string ? (const char*)t->subject->string : "?var") : "NULL",
+                  t->predicate ? (t->predicate->string ? (const char*)t->predicate->string : "?var") : "NULL",
+                  t->object ? (t->object->string ? (const char*)t->object->string : "?var") : "NULL");
+        }
+      }
+    }
+  } else {
+    fprintf(fh, "%s|  +- Owned Triples: 0\n", depth > 0 ? indent : "");
   }
-  
-  /* Print child scopes */
+
+  /* Print visible variables (computed) */
+  if(scope->visible_vars) {
+    int visible_count = rasqal_variables_table_get_total_variables_count(scope->visible_vars);
+    fprintf(fh, "%s|  +- Visible Variables: %d (local + inherited)\n",
+            depth > 0 ? indent : "", visible_count);
+  }
+
+  /* Print child scopes with better formatting */
   if(scope->child_scopes) {
     int child_count = raptor_sequence_size(scope->child_scopes);
-    fprintf(fh, "%s│  └─ Child Scopes: %d\n", indent, child_count);
-    
+    fprintf(fh, "%s|  \\- Child Scopes: %d\n", depth > 0 ? indent : "", child_count);
+
     for(i = 0; i < child_count; i++) {
       rasqal_query_scope* child_scope = (rasqal_query_scope*)raptor_sequence_get_at(scope->child_scopes, i);
       rasqal_query_scope_print_variable_analysis(fh, child_scope, depth + 1);
     }
   } else {
-    fprintf(fh, "%s└─ No child scopes\n", indent);
+    fprintf(fh, "%s\\- No child scopes\n", depth > 0 ? indent : "");
   }
 }
 
@@ -1835,8 +1907,8 @@ rasqal_query_variable_is_bound(rasqal_query* query, rasqal_variable* v)
  */
 int
 rasqal_query_variable_is_bound_in_scope(rasqal_query* query,
-                                        rasqal_variable* v,
-                                        rasqal_query_scope* scope)
+                                       rasqal_variable* v,
+                                       rasqal_query_scope* scope)
 {
   if(!query || !v || !scope)
     return 0;
