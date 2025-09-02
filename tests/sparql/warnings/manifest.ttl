@@ -8,7 +8,11 @@
 <>  rdf:type mf:Manifest ;
     rdfs:comment "Syntax tests Syntax SPARQL 1.1" ;
     mf:entries
-    ( 
+    (
+
+:test_1
+
+:test_2
 
 :test_3
 
