@@ -9,10 +9,9 @@
 <>  rdf:type mf:Manifest ;
     rdfs:label "SPARQL 1.1 Negation Tests - expected to fail" ;
     mf:entries
-    ( 
+    (
     :temporal-proximity-by-exclusion-nex-1
     :subset-01
-    :subset-02
     :subset-03
     :partial-minuend
    ) .
@@ -35,14 +34,7 @@
            qt:data  <../sparql11-test-suite/negation/temporalProximity01.ttl> ] ;
     mf:result  <../sparql11-test-suite/negation/temporalProximity01.srx> .
 
-:subset-02 rdf:type t:XFailTest ;
-    mf:name    "Calculate which sets are subsets of others (exclude A subsetOf A)" ;
-    dawgt:approval dawgt:Approved ;
-    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
-    mf:action
-         [ qt:query  <../sparql11-test-suite/negation/subset-02.rq> ;
-           qt:data  <../sparql11-test-suite/negation/set-data.ttl> ] ;
-    mf:result  <../sparql11-test-suite/negation/subset-02.srx> .
+# :subset-02 was moved to manifest.ttl as it now passes
 
 :subset-03 rdf:type t:XFailTest ;
     mf:name    "Calculate proper subset" ;
