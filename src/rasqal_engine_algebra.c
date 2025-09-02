@@ -68,7 +68,7 @@ rasqal_algebra_basic_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
                                                rasqal_engine_error *error_p)
 {
   rasqal_query *query = execution_data->query;
-  
+
   return rasqal_new_triples_rowsource(query->world, query,
                                       execution_data->triples_source,
                                       node->triples,

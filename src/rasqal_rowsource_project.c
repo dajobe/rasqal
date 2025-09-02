@@ -99,9 +99,19 @@ rasqal_project_rowsource_ensure_variables(rasqal_rowsource* rowsource,
     v = (rasqal_variable*)raptor_sequence_get_at(con->projection_variables, i);
     if(!v)
       break;
-    offset = rasqal_rowsource_get_variable_offset_by_name_with_scope(con->rowsource,
-                                                                     RASQAL_GOOD_CAST(const char*, v->name),
-                                                                     con->evaluation_scope);
+    /* Try scope-aware lookup first, fall back to regular lookup if scope is not available */
+    offset = -1; /* Initialize to indicate not found */
+    if(con->evaluation_scope) {
+      offset = rasqal_rowsource_get_variable_offset_by_name_with_scope(con->rowsource,
+                                                                       RASQAL_GOOD_CAST(const char*, v->name),
+                                                                       con->evaluation_scope);
+    }
+
+    /* If scope-aware lookup failed or no scope available, try regular lookup */
+    if(offset < 0) {
+      offset = rasqal_rowsource_get_variable_offset_by_name(con->rowsource, v->name);
+    }
+
 #ifdef RASQAL_DEBUG
     if(offset < 0)
       RASQAL_DEBUG2("Variable %s is in projection but not in input rowsource\n",
@@ -161,9 +171,9 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
     for(i = 0; i < rowsource->size; i++) {
       int offset = con->projection[i];
-      if(offset >= 0)
+      if(offset >= 0) {
         nrow->values[i] = rasqal_new_literal_from_literal(row->values[offset]);
-      else {
+      } else {
         rasqal_variable* v;
         rasqal_query *query = rowsource->query;
         

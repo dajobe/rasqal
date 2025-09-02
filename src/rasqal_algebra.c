@@ -378,7 +378,11 @@ rasqal_new_project_algebra_node(rasqal_query* query,
   if(node) {
     node->node1 = node1;
     node->vars_seq = vars_seq;
-    
+
+    /* Inherit execution scope from input node so project rowsource can find variables */
+    if(node1->execution_scope)
+      node->execution_scope = node1->execution_scope;
+
     return node;
   }
 
