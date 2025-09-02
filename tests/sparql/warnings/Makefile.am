@@ -21,13 +21,16 @@
 
 SPARQL_MANIFEST_FILES= manifest.ttl
 
+# Include failing tests in distribution but don't run them until scope-aware warning detection is implemented
 EXTRA_DIST= \
-$(SPARQL_MANIFEST_FILES)
+$(SPARQL_MANIFEST_FILES) \
+warning-1.rq warning-1.out warning-2.rq warning-2.out \
+README.md
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out \
 	sparql-warnings-plan.ttl
 
-.PHONY: build-core build-roqet check-lcoal
+.PHONY: build-core build-roqet check-local
 
 # This sequence allows parallel building of build-core and then once
 # that is built, parallel building of the dependent programs: roqet
@@ -39,7 +42,7 @@ build-roqet: build-core
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
 check-local: build-roqet
-	@$(top_srcdir)/tests/bin/run-test-suites .
+	@$(PYTHON3) $(top_srcdir)/tests/bin/run-test-suites .
 
 get-testsuites-list:
 	@echo "sparql-warnings"
@@ -56,6 +59,6 @@ get-testsuite-sparql-warnings:
 
 dist-hook:
 	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
-		--manifest-file $(srcdir)/$(SPARQL_MANIFEST_FILES) \
+		--manifest-file $(srcdir)/manifest.ttl \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)
