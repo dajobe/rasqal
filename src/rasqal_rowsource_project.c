@@ -46,7 +46,7 @@
 
 #ifndef STANDALONE
 
-typedef struct 
+typedef struct
 {
   /* inner rowsource to project */
   rasqal_rowsource *rowsource;
@@ -56,6 +56,9 @@ typedef struct
 
   /* variables projection array: [output row var index]=input row var index */
   int* projection;
+
+  /* Scope context for variable resolution */
+  rasqal_query_scope* evaluation_scope;
 
 } rasqal_project_rowsource_context;
 
@@ -96,8 +99,9 @@ rasqal_project_rowsource_ensure_variables(rasqal_rowsource* rowsource,
     v = (rasqal_variable*)raptor_sequence_get_at(con->projection_variables, i);
     if(!v)
       break;
-    offset = rasqal_rowsource_get_variable_offset_by_name(con->rowsource, 
-                                                          v->name);
+    offset = rasqal_rowsource_get_variable_offset_by_name_with_scope(con->rowsource,
+                                                                     RASQAL_GOOD_CAST(const char*, v->name),
+                                                                     con->evaluation_scope);
 #ifdef RASQAL_DEBUG
     if(offset < 0)
       RASQAL_DEBUG2("Variable %s is in projection but not in input rowsource\n",
@@ -247,6 +251,7 @@ static const rasqal_rowsource_handler rasqal_project_rowsource_handler = {
  * @query: query results object
  * @rowsource: input rowsource
  * @projection_variables: input sequence of #rasqal_variable
+ * @scope: scope context for variable resolution
  *
  * INTERNAL - create a PROJECTion over input rowsource
  *
@@ -258,7 +263,8 @@ rasqal_rowsource*
 rasqal_new_project_rowsource(rasqal_world *world,
                              rasqal_query *query,
                              rasqal_rowsource* rowsource,
-                             raptor_sequence* projection_variables)
+                             raptor_sequence* projection_variables,
+                             rasqal_query_scope* scope)
 {
   rasqal_project_rowsource_context *con;
   int flags = 0;
@@ -272,6 +278,7 @@ rasqal_new_project_rowsource(rasqal_world *world,
 
   con->rowsource = rowsource;
   con->projection_variables = rasqal_variable_copy_variable_sequence(projection_variables);
+  con->evaluation_scope = scope;
 
   return rasqal_new_rowsource_from_handler(world, query,
                                            con,
@@ -336,10 +343,15 @@ main(int argc, char *argv[])
   raptor_sequence* vars_seq = NULL;
   raptor_sequence* projection_seq = NULL;
   
+  rasqal_query_scope* scope = NULL;
+
   world = rasqal_new_world(); rasqal_world_open(world);
-  
+
   query = rasqal_new_query(world, "sparql", NULL);
-  
+
+  /* Create a root scope for the test */
+  scope = rasqal_new_query_scope(query, RASQAL_QUERY_SCOPE_TYPE_ROOT, NULL);
+
   vt = query->vars_table;
 
   /* 4 variables and 2 rows */
@@ -377,7 +389,7 @@ main(int argc, char *argv[])
     }
   }
 
-  rowsource = rasqal_new_project_rowsource(world, query, input_rs, projection_seq);
+  rowsource = rasqal_new_project_rowsource(world, query, input_rs, projection_seq, scope);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create project rowsource\n", program);
     failures++;
@@ -448,6 +460,8 @@ main(int argc, char *argv[])
     rasqal_free_rowsource(input_rs);
   if(rowsource)
     rasqal_free_rowsource(rowsource);
+  if(scope)
+    rasqal_free_query_scope(scope);
   if(query)
     rasqal_free_query(query);
   if(world)

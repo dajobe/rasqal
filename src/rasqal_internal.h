@@ -676,15 +676,6 @@ struct rasqal_query_s {
    */
   int unused11;
 
-  /* INTERNAL 2D array of:
-   *   width (number of total variables)
-   *   height (number of triples)
-   * marking how a variable is mentioned/used in a TRIPLE PATTERN
-   * Each triple pattern has a row and the short values are per-variable
-   * with flags from #rasqal_triples_use_map_flags
-   */
-  unsigned short* triples_use_map;
-
   /* can be filled with error location information */
   raptor_locator locator;
 
@@ -902,7 +893,7 @@ rasqal_rowsource* rasqal_new_having_rowsource(rasqal_world *world, rasqal_query 
 rasqal_rowsource* rasqal_new_join_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, rasqal_join_type join_type, rasqal_expression *expr);
 
 /* rasqal_rowsource_project.c */
-rasqal_rowsource* rasqal_new_project_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, raptor_sequence* projection_variables);
+rasqal_rowsource* rasqal_new_project_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, raptor_sequence* projection_variables, rasqal_query_scope* scope);
 
 /* rasqal_rowsource_rowsequence.c */
 rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_world *world, rasqal_query* query, rasqal_variables_table* vt, raptor_sequence* rows_seq, raptor_sequence* vars_seq);

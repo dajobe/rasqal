@@ -182,7 +182,7 @@ rasqal_algebra_project_algebra_node_to_rowsource(rasqal_engine_algebra_data* exe
   if((error_p && *error_p) || !rs)
     return NULL;
 
-  return rasqal_new_project_rowsource(query->world, query, rs, node->vars_seq);
+  return rasqal_new_project_rowsource(query->world, query, rs, node->vars_seq, node->execution_scope);
 }
 
 
