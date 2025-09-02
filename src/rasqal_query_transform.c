@@ -1185,7 +1185,7 @@ rasqal_query_build_variables_use(rasqal_query* query,
 
 
 /* Helpers for rasqal_query_variable_only_in_exists() */
-static int rasqal_helper_gp_tree_uses_variable(rasqal_graph_pattern* gp, rasqal_variable* v);
+
 typedef struct rasqal_exists_var_search_state_s {
   rasqal_variable* variable;
   int found;

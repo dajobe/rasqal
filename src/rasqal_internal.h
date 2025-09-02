@@ -349,9 +349,9 @@ typedef struct rasqal_rowsource_s rasqal_rowsource;
 #define RASQAL_VAR_SEARCH_PARENT_FIRST    0x10
 
 /* Variable precedence constants */
-#define RASQAL_VAR_PRECEDENCE_LOCAL_FIRST    0  // Local variables take precedence
-#define RASQAL_VAR_PRECEDENCE_NEWEST_FIRST   1  // Most recent binding wins
-#define RASQAL_VAR_PRECEDENCE_OLDEST_FIRST   2  // First binding wins (legacy)
+#define RASQAL_VAR_PRECEDENCE_LOCAL_FIRST    0  /* Local variables take precedence */
+#define RASQAL_VAR_PRECEDENCE_NEWEST_FIRST   1  /* Most recent binding wins */
+#define RASQAL_VAR_PRECEDENCE_OLDEST_FIRST   2  /* First binding wins (legacy) */
 
 /**
  * rasqal_query_scope:
@@ -422,13 +422,13 @@ typedef struct rasqal_variable_lookup_context {
   rasqal_query* query;
   
   /* Search Configuration */
-  int search_flags;  // RASQAL_VAR_SEARCH_* constants
-  int binding_precedence; // RASQAL_VAR_PRECEDENCE_* constants
+  int search_flags;  /* RASQAL_VAR_SEARCH_* constants */
+  int binding_precedence; /* RASQAL_VAR_PRECEDENCE_* constants */
   
   /* Result Context */
   rasqal_variable* resolved_variable;
   rasqal_query_scope* defining_scope;
-  int resolution_path[16]; // Scope traversal path for debugging
+  int resolution_path[16]; /* Scope traversal path for debugging */
 } rasqal_variable_lookup_context;
 
 /**
@@ -455,9 +455,9 @@ typedef struct rasqal_variable_usage_info {
   rasqal_query_scope* visible_from_scope;
   
   /* Usage Tracking */
-  int usage_flags;  // BOUND, USED, PROJECTED, SHADOWED, etc.
-  int binding_order; // For precedence resolution
-  int scope_depth;   // Depth in scope hierarchy
+  int usage_flags;  /* BOUND, USED, PROJECTED, SHADOWED, etc. */
+  int binding_order; /* For precedence resolution */
+  int scope_depth;   /* Depth in scope hierarchy */
   
   /* Resolution Context */
   rasqal_variable_lookup_context* last_resolution_context;
@@ -811,8 +811,6 @@ struct rasqal_query_language_factory_s {
   int (*iostream_write_escaped_counted_string)(rasqal_query* rq, raptor_iostream* iostr, const unsigned char* string, size_t len);
 };
 
-
-typedef struct rasqal_rowsource_s rasqal_rowsource;
 
 #define RASQAL_ROW_FLAG_WEAK_ROWSOURCE 0x01
 
