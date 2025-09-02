@@ -678,6 +678,112 @@ if(sequence_created) {
 
     </section>
 
+    <section id="scope-debugging-tools">
+      <title>Internal Scope Debugging Tools</title>
+
+      <para>Rasqal provides internal debugging tools for analyzing
+      query scope hierarchies and variable resolution patterns during development.
+      These tools are primarily used by Rasqal developers for debugging
+      complex SPARQL queries and scope-related issues.</para>
+
+      <section id="scope-variable-usage-analysis">
+        <title>Scope Variable Usage Analysis</title>
+
+        <para>The <function>rasqal_query_print_scope_variable_usage</function>
+        function provides detailed analysis of variable usage within query
+        scopes. This is an internal debugging function used during development:</para>
+
+        <programlisting>
+/* Internal debugging function */
+static void rasqal_query_print_scope_variable_usage(FILE* fh, rasqal_query* query);
+
+/* Usage within Rasqal codebase for debugging */
+rasqal_query_print_scope_variable_usage(RASQAL_DEBUG_FH, query);
+        </programlisting>
+
+        <para><emphasis>Output Format:</emphasis></para>
+        <programlisting>
+Query Variable Scope Analysis:
+Variables (3 total):
+  ?s: BOUND
+  ?p: BOUND
+  ?o: BOUND
+
+Scope Hierarchy:
+┌─ ROOT_0 (scope_id=0, type=0)
+│  ├─ Local Variables: 0
+│  ├─ Owned Triples: 2
+│  └─ Child Scopes: 1
+│     └─ EXISTS_1 (scope_id=1, type=1, parent=ROOT_0)
+│        ├─ Local Variables: 0
+│        ├─ Owned Triples: 1
+│        └─ Child Scopes: 0
+        </programlisting>
+
+        <para>This function displays:</para>
+        <itemizedlist>
+          <listitem><para>Variable binding status for all query variables</para></listitem>
+          <listitem><para>Complete scope hierarchy with parent-child relationships</para></listitem>
+          <listitem><para>Triple ownership information for each scope</para></listitem>
+          <listitem><para>Local variable counts and scope isolation details</para></listitem>
+        </itemizedlist>
+      </section>
+
+      <section id="scope-hierarchy-visualization">
+        <title>Scope Hierarchy Visualization</title>
+
+        <para>The scope hierarchy visualization uses Unicode box-drawing
+        characters to create a tree-like representation of the query's
+        scope structure:</para>
+
+        <programlisting>
+/* Internal function for hierarchical scope display */
+static void rasqal_query_scope_print_variable_analysis(
+    FILE* fh,
+    rasqal_query_scope* scope,
+    int depth
+);
+        </programlisting>
+
+        <para>The visualization shows:</para>
+        <itemizedlist>
+          <listitem><para>Scope type and unique identifier</para></listitem>
+          <listitem><para>Parent-child relationships with proper indentation</para></listitem>
+          <listitem><para>Resource ownership (triples, variables)</para></listitem>
+          <listitem><para>Scope isolation boundaries</para></listitem>
+        </itemizedlist>
+
+        <para>This debugging tool is invaluable for:</para>
+        <itemizedlist>
+          <listitem><para>Understanding complex query scope hierarchies</para></listitem>
+          <listitem><para>Debugging variable resolution issues</para></listitem>
+          <listitem><para>Verifying scope isolation correctness</para></listitem>
+          <listitem><para>Analyzing triple ownership patterns</para></listitem>
+        </itemizedlist>
+      </section>
+
+      <section id="debugging-integration">
+        <title>Internal Debugging Integration</title>
+
+        <para>The scope debugging tools are integrated throughout the
+        query processing pipeline for internal development use:</para>
+
+        <itemizedlist>
+          <listitem><para><emphasis>Parser Integration:</emphasis> Scope creation
+          can be traced during parsing with detailed hierarchy information</para></listitem>
+          <listitem><para><emphasis>Transformation Integration:</emphasis> Variable
+          analysis and scope validation during query transformation</para></listitem>
+          <listitem><para><emphasis>Execution Integration:</emphasis> Scope-aware
+          variable resolution tracing during query execution</para></listitem>
+        </itemizedlist>
+
+        <para>These internal tools provide comprehensive visibility into the scope
+        architecture, making it easier for Rasqal developers to debug complex SPARQL queries and
+        understand variable scoping behavior.</para>
+      </section>
+
+    </section>
+
   </section>
 
   <section id="graph-pattern-management">
