@@ -527,17 +527,24 @@ rasqal_expression_evaluate_with_scope(rasqal_expression* expr,
 {
   rasqal_literal* result = NULL;
   int error = 0;
+  rasqal_expression* scope_expr;
 
   if(!expr || !eval_context || !scope_context)
     return NULL;
 
   RASQAL_DEBUG2("Evaluating expression with scope-aware variable resolution (type: %d)\n", expr->op);
 
+  /* Special handling for EXISTS expressions to avoid recursion */
+  if(expr->op == RASQAL_EXPR_EXISTS || expr->op == RASQAL_EXPR_NOT_EXISTS) {
+    RASQAL_DEBUG1("EXISTS expression detected, skipping scope-aware evaluation to avoid recursion\n");
+    /* For EXISTS expressions, skip scope-aware preprocessing and evaluate directly */
+    return rasqal_expression_evaluate2(expr, eval_context, &error);
+  }
+
   /* For scope-aware evaluation, we need to pre-resolve variables in the expression
      according to scope rules before evaluation */
 
   /* Copy the expression to avoid modifying the original */
-  rasqal_expression* scope_expr;
   scope_expr = rasqal_new_expression_from_expression(expr);
   if(!scope_expr) {
     RASQAL_DEBUG1("Failed to copy expression for scope-aware evaluation\n");
