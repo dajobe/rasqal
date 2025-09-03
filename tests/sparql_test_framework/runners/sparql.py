@@ -110,8 +110,8 @@ _temp_file_cache: Dict[str, Path] = {}
 def get_temp_file_path(filename: str) -> Path:
     """Get a temporary file path.
 
-    When --preserve-files is not given, creates secure temporary files in /tmp.
-    When --preserve-files is given, uses local files in current working directory.
+    When --preserve is not given, creates secure temporary files in /tmp.
+    When --preserve is given, uses local files in current working directory.
 
     Multiple calls with the same filename return the same path to ensure consistency.
     """
@@ -1250,7 +1250,7 @@ Examples:
             help="Generate JUnit XML report to specified file",
         )
         parser.add_argument(
-            "--preserve-files",
+            "--preserve",
             action="store_true",
             help="Preserve temporary files for debugging",
         )
@@ -1295,7 +1295,7 @@ Examples:
 
         # Set global file preservation flag
         global _preserve_debug_files
-        _preserve_debug_files = args.preserve_files
+        _preserve_debug_files = args.preserve
 
     def setup_components(self):
         """Initialize all component classes."""

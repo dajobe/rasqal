@@ -24,7 +24,7 @@ import os
 import sys
 import argparse
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 from ..config import TestConfig
 
@@ -34,26 +34,58 @@ from ..utils import run_command, setup_logging, find_tool, compare_files_custom_
 # Global flag for file preservation
 _preserve_debug_files = False
 
-# Temporary file names
-CONVERT_OUT = Path("convert.out")
-CONVERT_ERR = Path("convert.err")
-DIFF_OUT = Path("diff.out")
+# Global to track temporary file paths when using secure temp files
+_temp_file_paths: List[Path] = []
+_temp_file_cache: Dict[str, Path] = {}
+
+
+def get_temp_file_path(filename: str) -> Path:
+    """Get a temporary file path.
+
+    When --preserve is not given, creates secure temporary files in /tmp.
+    When --preserve is given, uses local files in current working directory.
+
+    Multiple calls with the same filename return the same path to ensure consistency.
+    """
+    global _temp_file_paths, _temp_file_cache
+
+    if _preserve_debug_files:
+        # Use local files for debugging
+        return Path.cwd() / filename
+    else:
+        # Use secure temporary files for parallel execution
+        # Cache paths by filename to ensure consistency
+        if filename not in _temp_file_cache:
+            import tempfile
+
+            temp_file = tempfile.NamedTemporaryFile(
+                prefix=f"rasqal_algebra_test_{filename}_",
+                suffix="",
+                delete=False,
+                dir="/tmp",
+            )
+            temp_path = Path(temp_file.name)
+            temp_file.close()
+            _temp_file_paths.append(temp_path)
+            _temp_file_cache[filename] = temp_path
+
+        return _temp_file_cache[filename]
 
 
 def cleanup_temp_files() -> None:
     """Clean up temporary files if not preserving them."""
+    global _temp_file_paths, _temp_file_cache
+
     if not _preserve_debug_files:
-        temp_files = [
-            CONVERT_OUT,
-            CONVERT_ERR,
-            DIFF_OUT,
-        ]
-        for temp_file in temp_files:
+        # Clean up secure temporary files
+        for temp_file in _temp_file_paths:
             if temp_file.exists():
                 try:
                     temp_file.unlink()
                 except OSError:
                     pass  # Ignore cleanup errors
+        _temp_file_paths.clear()
+        _temp_file_cache.clear()
 
 
 class AlgebraTestRunner:
@@ -82,7 +114,7 @@ Examples:
             help="Debug level (use multiple -d for more detail: -d=normal, -dd=verbose)",
         )
         parser.add_argument(
-            "--preserve-files",
+            "--preserve",
             action="store_true",
             help="Preserve temporary files for debugging",
         )
@@ -121,7 +153,7 @@ Examples:
         
         # Set global file preservation flag
         global _preserve_debug_files
-        _preserve_debug_files = args.preserve_files
+        _preserve_debug_files = args.preserve
 
     def run_single_test(self, test_file: str, base_uri: str) -> int:
         """Run a single algebra test."""
@@ -132,9 +164,9 @@ Examples:
             self.logger.error("convert_graph_pattern not found in PATH")
             return 1
 
-        out_file = str(CONVERT_OUT)
-        err_file = str(CONVERT_ERR)
-        diff_file = str(DIFF_OUT)
+        out_file = get_temp_file_path("convert.out")
+        err_file = get_temp_file_path("convert.err")
+        diff_file = get_temp_file_path("diff.out")
         expected_file = Path(test_file).with_suffix(".out")
 
         self.logger.debug(f"Running test {test_file} with base URI {base_uri}")

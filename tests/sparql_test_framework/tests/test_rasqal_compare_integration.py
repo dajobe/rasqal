@@ -95,13 +95,13 @@ class TestRasqalCompareIntegration(SparqlTestFrameworkTestBase):
             "--use-rasqal-compare",
             "-d",
             "-d",
-            "--preserve-files",
+            "--preserve",
         ]
 
         args = parser.parse_args(test_args)
         self.assertTrue(args.use_rasqal_compare)
         self.assertEqual(args.debug, 2)
-        self.assertTrue(args.preserve_files)
+        self.assertTrue(args.preserve)
 
 
 if __name__ == "__main__":
