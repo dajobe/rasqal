@@ -49,7 +49,7 @@
 
 static int rasqal_query_build_scope_hierarchy_recursive(rasqal_query* query, rasqal_graph_pattern* gp, rasqal_query_scope* parent_scope);
 static int rasqal_query_triple_in_exists_pattern(rasqal_query* query, int triple_index);
-static void rasqal_query_print_scope_variable_usage(FILE* fh, rasqal_query* query);
+static void rasqal_query_scope_print_scope_variable_usage(FILE* fh, rasqal_query* query);
 static void rasqal_query_scope_print_variable_analysis(FILE* fh, rasqal_query_scope* scope, int depth);
 static int rasqal_helper_gp_tree_uses_variable(rasqal_graph_pattern* gp, rasqal_variable* v);
 static int rasqal_helper_gp_tree_uses_variable_excluding_basic(rasqal_graph_pattern* gp, rasqal_variable* v);
@@ -1070,7 +1070,7 @@ rasqal_query_build_variables_use(rasqal_query* query,
 
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("query scope:");
-  rasqal_query_print_scope_variable_usage(RASQAL_DEBUG_FH, query);
+  rasqal_query_scope_print_scope_variable_usage(RASQAL_DEBUG_FH, query);
   fputs("\n", RASQAL_DEBUG_FH);
 #endif
 
@@ -1730,7 +1730,7 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
 
 
 static void
-rasqal_query_print_scope_variable_usage(FILE* fh, rasqal_query* query)
+rasqal_query_scope_print_scope_variable_usage(FILE* fh, rasqal_query* query)
 {
   int i;
   int size;

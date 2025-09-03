@@ -725,17 +725,17 @@ if(sequence_created) {
       <section id="scope-variable-usage-analysis">
         <title>Scope Variable Usage Analysis</title>
 
-        <para>The <function>rasqal_query_print_scope_variable_usage</function>
+        <para>The <function>rasqal_query_scope_print_scope_variable_usage</function>
         function provides detailed analysis of variable usage within query
         scopes. This is an internal debugging function used during development
         and is not part of the public API:</para>
 
         <programlisting>
 /* Internal debugging function - NOT in public API */
-static void rasqal_query_print_scope_variable_usage(FILE* fh, rasqal_query* query);
+static void rasqal_query_scope_print_scope_variable_usage(FILE* fh, rasqal_query* query);
 
 /* Usage within Rasqal codebase for debugging only */
-rasqal_query_print_scope_variable_usage(RASQAL_DEBUG_FH, query);
+rasqal_query_scope_print_scope_variable_usage(RASQAL_DEBUG_FH, query);
         </programlisting>
 
         <para><emphasis>Output Format:</emphasis></para>
