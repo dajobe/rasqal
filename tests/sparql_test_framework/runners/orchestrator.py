@@ -617,7 +617,7 @@ class Testsuite:
         action_cmd = CommandPreparation.prepare_command(action_cmd, self.args, test_details)
 
         # Step 2: Create log file path
-        log_file_name, log_file_path = LogProcessor.create_log_file_path(test_name, self.directory)
+        log_file_name, log_file_path = LogProcessor.create_log_file_path(test_name, self.directory, self.args)
 
         # Step 3: Debug logging
         path_prefix = (
@@ -665,7 +665,7 @@ class Testsuite:
             actual_run_status = TestResult.FAILED
         finally:
             # Step 8: Cleanup log file
-            LogProcessor.cleanup_log_file(log_file_path)
+            LogProcessor.cleanup_log_file(log_file_path, self.args)
 
         # Step 9: Determine final test result
         result = TestResultDeterminer.determine_final_result(
@@ -695,6 +695,9 @@ class CommandPreparation:
 
         # Add syntax test flags if applicable
         prepared_cmd = CommandPreparation._add_syntax_test_flags(prepared_cmd, test_details)
+
+        # Add --preserve-files flag if enabled
+        prepared_cmd = CommandPreparation._add_preserve_flag(prepared_cmd, args)
 
         return prepared_cmd
 
@@ -746,6 +749,22 @@ class CommandPreparation:
         if is_actual_syntax_test and action_cmd.startswith("roqet"):
             # For actual syntax tests, add -n (dryrun) and -W 0 (no warnings) flags
             return action_cmd + " -n -W 0"
+
+        return action_cmd
+
+    @staticmethod
+    def _add_preserve_flag(action_cmd: str, args: argparse.Namespace) -> str:
+        """Add --preserve-files flag if enabled and supported."""
+        if not (hasattr(args, "preserve") and args.preserve):
+            return action_cmd
+
+        # Check if the command is a Python script that supports the flag
+        if "python" in action_cmd and (
+            "sparql.py" in action_cmd
+            or "test_runner" in action_cmd
+            or "run-sparql-tests" in action_cmd
+        ):
+            return action_cmd + " --preserve"
 
         return action_cmd
 
@@ -948,17 +967,33 @@ class LogProcessor:
     """Handles log file processing and cleanup for test execution."""
 
     @staticmethod
-    def create_log_file_path(test_name: str, directory: Path) -> Tuple[str, Path]:
+    def create_log_file_path(test_name: str, directory: Path, args: argparse.Namespace) -> Tuple[str, Path]:
         """Create a log file path for the test."""
         import re
-        name_slug = re.sub(r"[^\w\-.]", "-", test_name) if test_name else "unnamed-test"
-        log_file_name = f"{name_slug}.log"
-        log_file_path = directory / log_file_name
-        return log_file_name, log_file_path
+        import tempfile
+        import os
+        from pathlib import Path
+
+        name_slug = re.sub(r"[^\w.-]", "-", test_name) if test_name else "unnamed-test"
+
+        if hasattr(args, 'preserve') and args.preserve:
+            log_file_name = f"{name_slug}.log"
+            log_file_path = directory / log_file_name
+            return log_file_name, log_file_path
+        else:
+            # Create a temporary file in /tmp
+            fd, path_str = tempfile.mkstemp(prefix=f"{name_slug}-", suffix=".log", dir="/tmp")
+            os.close(fd)
+            log_file_path = Path(path_str)
+            # log_file_name should be the full path for redirection
+            return str(log_file_path), log_file_path
 
     @staticmethod
-    def cleanup_log_file(log_file_path: Path) -> None:
+    def cleanup_log_file(log_file_path: Path, args: argparse.Namespace) -> None:
         """Clean up the log file after test execution."""
+        if hasattr(args, 'preserve') and args.preserve:
+            return
+            
         try:
             if log_file_path.exists():
                 log_file_path.unlink()
@@ -978,6 +1013,7 @@ class LogProcessor:
             if log_lines:
                 return detail + "\nLog tail:\n" + "\n".join(log_lines[-5:])
         return detail
+
 
 
 class TestResultDeterminer:
@@ -1083,6 +1119,11 @@ Examples:
             "--crash-details",
             action="store_true",
             help="Show enhanced crash details including stack traces and memory information when available",
+        )
+        parser.add_argument(
+            "--preserve",
+            action="store_true",
+            help="Preserve temporary files in the current working directory.",
         )
 
         return parser
