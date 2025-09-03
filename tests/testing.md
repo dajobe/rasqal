@@ -587,8 +587,11 @@ Most SPARQL test directories use: `sparql-lexer sparql-parser sparql-query`
 
 - **Real-world Validation**: Unit tests alone insufficient;
     integration testing crucial
-- **Error Investigation**: Preserving intermediate files essential
-    for debugging
+- **Error Investigation**: Preserving intermediate files is essential
+    for debugging. Use the `--preserve` flag with the main test runners
+    (`run-test-suites`, `run-sparql-tests`, `test-algebra`) to save
+    temporary output and log files in the test's working directory instead
+    of deleting them.
 - **Systematic Approach**: Methodical comparison of old vs new
     implementations reveals missing functionality
 - **Cross-Platform Compatibility**: Test fixes work across different
@@ -607,6 +610,8 @@ Most SPARQL test directories use: `sparql-lexer sparql-parser sparql-query`
 
 - **Verbose Logging**: Use `--verbose` flags for detailed output
 - **Dry Run**: Use `--dry-run` to see commands without execution
+- **Preserve Files**: Use `--preserve` to keep temporary log and output
+    files for inspection.
 - **Single Test**: Run individual tests for isolation
 - **Manual Execution**: Run roqet commands manually for verification
 
