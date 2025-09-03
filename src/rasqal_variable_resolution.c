@@ -192,15 +192,247 @@ int
 rasqal_expression_resolve_variables_with_scope(rasqal_expression* expr,
                                               rasqal_variable_lookup_context* context)
 {
+  int rc = 0;
+
   if(!expr || !context)
     return 1;
 
-  /* TODO: Implement recursive expression variable resolution */
-  /* This will traverse the expression tree and resolve all variables */
-  /* For now, return success */
+  RASQAL_DEBUG2("Resolving variables in expression type %d with scope\n", expr->op);
 
-  RASQAL_DEBUG1("Expression variable resolution with scope not yet implemented\n");
-  return 0;
+  /* Handle different expression types */
+  switch(expr->op) {
+    case RASQAL_EXPR_LITERAL:
+      /* Check if this is a variable literal */
+      if(expr->literal && expr->literal->type == RASQAL_LITERAL_VARIABLE) {
+        rasqal_variable* var = rasqal_resolve_variable_with_scope(
+          (const char*)expr->literal->value.variable->name, context);
+        if(!var) {
+          RASQAL_DEBUG2("Variable %s not found in current scope\n",
+                        (const char*)expr->literal->value.variable->name);
+          /* Note: We don't fail here - unbound variables are allowed in some contexts */
+        }
+      }
+      /* Literals don't have variables to resolve */
+      break;
+
+    case RASQAL_EXPR_FUNCTION:
+      /* Function calls - resolve variables in arguments */
+      if(expr->args) {
+        raptor_sequence* args = expr->args;
+        int i, size = raptor_sequence_size(args);
+        for(i = 0; i < size; i++) {
+          rasqal_expression* arg = (rasqal_expression*)raptor_sequence_get_at(args, i);
+          if(arg) {
+            rc = rasqal_expression_resolve_variables_with_scope(arg, context);
+            if(rc)
+              break;
+          }
+        }
+      }
+      break;
+
+    case RASQAL_EXPR_BOUND:
+    case RASQAL_EXPR_ISBLANK:
+    case RASQAL_EXPR_ISLITERAL:
+    case RASQAL_EXPR_ISURI:
+      /* Unary operators - resolve variables in single argument */
+      if(expr->arg1) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg1, context);
+      }
+      break;
+
+    case RASQAL_EXPR_AND:
+    case RASQAL_EXPR_OR:
+    case RASQAL_EXPR_EQ:
+    case RASQAL_EXPR_NEQ:
+    case RASQAL_EXPR_LT:
+    case RASQAL_EXPR_GT:
+    case RASQAL_EXPR_LE:
+    case RASQAL_EXPR_GE:
+    case RASQAL_EXPR_PLUS:
+    case RASQAL_EXPR_MINUS:
+    case RASQAL_EXPR_STAR:
+    case RASQAL_EXPR_SLASH:
+      /* Binary operators - resolve variables in both arguments */
+      if(expr->arg1) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg1, context);
+        if(rc)
+          break;
+      }
+      if(expr->arg2) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg2, context);
+      }
+      break;
+
+    case RASQAL_EXPR_STR:
+    case RASQAL_EXPR_LANG:
+    case RASQAL_EXPR_DATATYPE:
+    case RASQAL_EXPR_ISNUMERIC:
+      /* Unary operators that may reference variables */
+      if(expr->arg1) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg1, context);
+      }
+      break;
+
+    case RASQAL_EXPR_IN:
+      /* IN operator - resolve variables in left side and list */
+      if(expr->arg1) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg1, context);
+        if(rc)
+          break;
+      }
+      if(expr->args) {
+        raptor_sequence* args = expr->args;
+        int i, size = raptor_sequence_size(args);
+        for(i = 0; i < size; i++) {
+          rasqal_expression* arg = (rasqal_expression*)raptor_sequence_get_at(args, i);
+          if(arg) {
+            rc = rasqal_expression_resolve_variables_with_scope(arg, context);
+            if(rc)
+              break;
+          }
+        }
+      }
+      break;
+
+    case RASQAL_EXPR_NOT_IN:
+      /* NOT IN operator - same as IN */
+      if(expr->arg1) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg1, context);
+        if(rc)
+          break;
+      }
+      if(expr->args) {
+        raptor_sequence* args = expr->args;
+        int i, size = raptor_sequence_size(args);
+        for(i = 0; i < size; i++) {
+          rasqal_expression* arg = (rasqal_expression*)raptor_sequence_get_at(args, i);
+          if(arg) {
+            rc = rasqal_expression_resolve_variables_with_scope(arg, context);
+            if(rc)
+              break;
+          }
+        }
+      }
+      break;
+
+    case RASQAL_EXPR_REGEX:
+      /* REGEX operator - resolve variables in text, pattern, flags */
+      if(expr->arg1) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg1, context);
+        if(rc)
+          break;
+      }
+      if(expr->arg2) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg2, context);
+        if(rc)
+          break;
+      }
+      if(expr->arg3) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg3, context);
+      }
+      break;
+
+    case RASQAL_EXPR_SAMETERM:
+    case RASQAL_EXPR_LANGMATCHES:
+      /* Binary operators */
+      if(expr->arg1) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg1, context);
+        if(rc)
+          break;
+      }
+      if(expr->arg2) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg2, context);
+      }
+      break;
+
+    case RASQAL_EXPR_IF:
+      /* IF(condition, true_expr, false_expr) */
+      if(expr->arg1) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg1, context);
+        if(rc)
+          break;
+      }
+      if(expr->arg2) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg2, context);
+        if(rc)
+          break;
+      }
+      if(expr->arg3) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg3, context);
+      }
+      break;
+
+    case RASQAL_EXPR_COALESCE:
+      /* COALESCE - resolve variables in all arguments */
+      if(expr->args) {
+        raptor_sequence* args = expr->args;
+        int i, size = raptor_sequence_size(args);
+        for(i = 0; i < size; i++) {
+          rasqal_expression* arg = (rasqal_expression*)raptor_sequence_get_at(args, i);
+          if(arg) {
+            rc = rasqal_expression_resolve_variables_with_scope(arg, context);
+            if(rc)
+              break;
+          }
+        }
+      }
+      break;
+
+    case RASQAL_EXPR_CONCAT:
+      /* CONCAT - resolve variables in all arguments */
+      if(expr->args) {
+        raptor_sequence* args = expr->args;
+        int i, size = raptor_sequence_size(args);
+        for(i = 0; i < size; i++) {
+          rasqal_expression* arg = (rasqal_expression*)raptor_sequence_get_at(args, i);
+          if(arg) {
+            rc = rasqal_expression_resolve_variables_with_scope(arg, context);
+            if(rc)
+              break;
+          }
+        }
+      }
+      break;
+
+    default:
+      /* For unsupported expression types, check if they have arguments that might contain variables */
+      if(expr->arg1) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg1, context);
+        if(rc)
+          break;
+      }
+      if(expr->arg2) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg2, context);
+        if(rc)
+          break;
+      }
+      if(expr->arg3) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg3, context);
+        if(rc)
+          break;
+      }
+      if(expr->arg4) {
+        rc = rasqal_expression_resolve_variables_with_scope(expr->arg4, context);
+        if(rc)
+          break;
+      }
+      if(expr->args) {
+        raptor_sequence* args = expr->args;
+        int i, size = raptor_sequence_size(args);
+        for(i = 0; i < size; i++) {
+          rasqal_expression* arg = (rasqal_expression*)raptor_sequence_get_at(args, i);
+          if(arg) {
+            rc = rasqal_expression_resolve_variables_with_scope(arg, context);
+            if(rc)
+              break;
+          }
+        }
+      }
+      break;
+  }
+
+  return rc;
 }
 
 /**
@@ -292,15 +524,82 @@ int
 rasqal_validate_scope_boundaries(rasqal_query_scope* scope,
                                  rasqal_variable* variable)
 {
+  rasqal_query_scope* current_scope;
+  int scope_depth = 0;
+
   if(!scope || !variable)
     return 1;
 
-  /* TODO: Implement scope boundary validation */
-  /* This will check if variable access is allowed within the scope */
-  /* For now, return success */
+  RASQAL_DEBUG3("Validating scope boundaries for variable %s in scope %s\n",
+                variable->name ? (const char*)variable->name : "NULL",
+                scope->scope_name ? (const char*)scope->scope_name : "NULL");
 
-  RASQAL_DEBUG1("Scope boundary validation not yet implemented\n");
+  /* Check if variable belongs to the given scope or its ancestors */
+  current_scope = scope;
+  while(current_scope) {
+    /* Check if variable is defined in current scope */
+    if(current_scope->local_vars) {
+      int i, var_count = rasqal_variables_table_get_total_variables_count(current_scope->local_vars);
+      for(i = 0; i < var_count; i++) {
+        rasqal_variable* local_var = rasqal_variables_table_get(current_scope->local_vars, i);
+        if(local_var && local_var == variable) {
+          /* Variable found in this scope - access allowed */
+          RASQAL_DEBUG4("Variable %s found in scope %s (depth %d)\n",
+                        variable->name ? (const char*)variable->name : "NULL",
+                        current_scope->scope_name ? (const char*)current_scope->scope_name : "NULL",
+                        scope_depth);
   return 0;
+        }
+      }
+    }
+
+    /* Check scope isolation rules based on scope type */
+    switch(current_scope->scope_type) {
+      case RASQAL_QUERY_SCOPE_TYPE_GROUP:
+        /* GROUP scopes are isolated - variables from parent scopes should not be accessible */
+        if(scope_depth > 0) {
+          RASQAL_DEBUG3("Variable %s blocked by GROUP scope isolation (depth %d)\n",
+                        variable->name ? (const char*)variable->name : "NULL", scope_depth);
+          return 1; /* Access denied */
+        }
+        break;
+
+      case RASQAL_QUERY_SCOPE_TYPE_EXISTS:
+      case RASQAL_QUERY_SCOPE_TYPE_NOT_EXISTS:
+        /* EXISTS/NOT EXISTS scopes can access parent variables but have special semantics */
+        /* Allow access but log for debugging */
+        if(scope_depth > 0) {
+          RASQAL_DEBUG4("Variable %s accessed in EXISTS/NOT_EXISTS scope %s (depth %d)\n",
+                        variable->name ? (const char*)variable->name : "NULL",
+                        current_scope->scope_name ? (const char*)current_scope->scope_name : "NULL",
+                        scope_depth);
+        }
+        break;
+
+      case RASQAL_QUERY_SCOPE_TYPE_SUBQUERY:
+        /* Subquery scopes can access parent variables */
+        break;
+
+      case RASQAL_QUERY_SCOPE_TYPE_ROOT:
+        /* Root scope - all variables should be accessible */
+        break;
+
+      default:
+        /* Unknown scope type - allow access but log */
+        RASQAL_DEBUG2("Unknown scope type %d for scope\n",
+                      current_scope->scope_type);
+        break;
+    }
+
+    /* Move to parent scope */
+    current_scope = current_scope->parent_scope;
+    scope_depth++;
+  }
+
+  /* Variable not found in scope hierarchy */
+  RASQAL_DEBUG2("Variable %s not found in scope hierarchy - access denied\n",
+                variable->name ? (const char*)variable->name : "NULL");
+  return 1; /* Access denied */
 }
 
 /**
@@ -318,15 +617,116 @@ rasqal_check_cross_scope_access(rasqal_query_scope* from_scope,
                                 rasqal_query_scope* to_scope,
                                 rasqal_variable* variable)
 {
+  int from_depth = 0, to_depth = 0;
+  rasqal_query_scope* temp_scope;
+
   if(!from_scope || !to_scope || !variable)
     return 1;
 
-  /* TODO: Implement cross-scope access control */
-  /* This will check if variable access between scopes is allowed */
-  /* For now, return success (allow access) */
+  RASQAL_DEBUG4("Checking cross-scope access for variable %s from scope %s to scope %s\n",
+                variable->name ? (const char*)variable->name : "NULL",
+                from_scope->scope_name ? (const char*)from_scope->scope_name : "NULL",
+                to_scope->scope_name ? (const char*)to_scope->scope_name : "NULL");
 
-  RASQAL_DEBUG1("Cross-scope access control not yet implemented\n");
-  return 0;
+  /* Calculate depths in scope hierarchy */
+  temp_scope = from_scope;
+  while(temp_scope) {
+    from_depth++;
+    temp_scope = temp_scope->parent_scope;
+  }
+
+  temp_scope = to_scope;
+  while(temp_scope) {
+    to_depth++;
+    temp_scope = temp_scope->parent_scope;
+  }
+
+  /* Check if scopes are related (one is ancestor of the other) */
+  temp_scope = from_scope;
+  while(temp_scope && temp_scope != to_scope) {
+    temp_scope = temp_scope->parent_scope;
+  }
+
+  if(temp_scope == to_scope) {
+    /* to_scope is ancestor of from_scope */
+    RASQAL_DEBUG3("Access from child scope %s to ancestor scope %s\n",
+                  from_scope->scope_name ? (const char*)from_scope->scope_name : "NULL",
+                  to_scope->scope_name ? (const char*)to_scope->scope_name : "NULL");
+
+    /* Check variable visibility based on scope types */
+    switch(to_scope->scope_type) {
+      case RASQAL_QUERY_SCOPE_TYPE_GROUP:
+        /* GROUP scopes are isolated - child scopes cannot access parent GROUP variables */
+        RASQAL_DEBUG1("Access denied: GROUP scope isolation\n");
+        return 1; /* Access denied */
+
+      case RASQAL_QUERY_SCOPE_TYPE_EXISTS:
+      case RASQAL_QUERY_SCOPE_TYPE_NOT_EXISTS:
+        /* EXISTS/NOT EXISTS can access parent variables but with restrictions */
+        RASQAL_DEBUG1("Access allowed with EXISTS/NOT_EXISTS restrictions\n");
+        return 0; /* Access allowed */
+
+      case RASQAL_QUERY_SCOPE_TYPE_SUBQUERY:
+        /* Subqueries can access parent scope variables */
+        RASQAL_DEBUG1("Access allowed: subquery parent access\n");
+        return 0; /* Access allowed */
+
+      case RASQAL_QUERY_SCOPE_TYPE_ROOT:
+        /* Root scope variables are always accessible */
+        RASQAL_DEBUG1("Access allowed: root scope access\n");
+        return 0; /* Access allowed */
+
+      default:
+        RASQAL_DEBUG2("Access allowed: unknown scope type %d\n", to_scope->scope_type);
+        return 0; /* Allow by default */
+    }
+  }
+
+  /* Check reverse direction */
+  temp_scope = to_scope;
+  while(temp_scope && temp_scope != from_scope) {
+    temp_scope = temp_scope->parent_scope;
+  }
+
+  if(temp_scope == from_scope) {
+    /* from_scope is ancestor of to_scope */
+    RASQAL_DEBUG3("Access from ancestor scope %s to child scope %s\n",
+                  from_scope->scope_name ? (const char*)from_scope->scope_name : "NULL",
+                  to_scope->scope_name ? (const char*)to_scope->scope_name : "NULL");
+
+    /* Parent scopes can generally access child scope variables */
+    /* This is less restrictive than child-to-parent access */
+    switch(from_scope->scope_type) {
+      case RASQAL_QUERY_SCOPE_TYPE_GROUP:
+        /* GROUP scopes cannot access child variables if they are isolated */
+        RASQAL_DEBUG1("Access denied: GROUP scope child access blocked\n");
+        return 1; /* Access denied */
+
+      default:
+        RASQAL_DEBUG1("Access allowed: parent to child scope access\n");
+        return 0; /* Access allowed */
+    }
+  }
+
+  /* Scopes are not directly related - check if they share a common ancestor */
+  temp_scope = from_scope;
+  while(temp_scope) {
+    rasqal_query_scope* temp_to = to_scope;
+    while(temp_to) {
+      if(temp_scope == temp_to) {
+        /* Found common ancestor */
+        RASQAL_DEBUG2("Scopes share common ancestor at depth %d\n",
+                      from_depth - to_depth);
+        return 0; /* Access allowed through common ancestor */
+      }
+      temp_to = temp_to->parent_scope;
+    }
+    temp_scope = temp_scope->parent_scope;
+  }
+
+  /* No relationship found - deny access */
+  RASQAL_DEBUG1("Access denied: scopes not related\n");
+  return 1; /* Access denied */
 }
 
 /**
@@ -341,10 +741,21 @@ rasqal_check_cross_scope_access(rasqal_query_scope* from_scope,
 rasqal_variable*
 rasqal_get_variable_usage_static(const char* name, int scope_id)
 {
-  /* TODO: Implement static variable lookup */
-  /* This will maintain backward compatibility during migration */
+  /* This function provides backward compatibility during the migration
+   * from the old matrix-based variable resolution system to the new
+   * scope-aware system.
+   *
+   * For now, we return NULL to indicate that static lookup is not
+   * supported. The dynamic scope-aware system should be used instead.
+   *
+   * In the future, this could be implemented to provide a compatibility
+   * layer for code that still relies on the old static variable lookup.
+   */
 
-  RASQAL_DEBUG1("Static variable usage lookup not yet implemented\n");
+  RASQAL_DEBUG3("Static variable lookup requested for '%s' in scope %d - not supported\n",
+                name ? name : "NULL", scope_id);
+
+  /* Return NULL to force callers to use the new dynamic system */
   return NULL;
 }
 
@@ -393,8 +804,24 @@ rasqal_get_variable_usage_hybrid(const char* name,
 
   /* Fall back to static lookup if requested */
   if(fallback_to_static) {
-    /* TODO: Implement static fallback */
-    RASQAL_DEBUG1("Static fallback not yet implemented\n");
+    /* For now, we don't have a full static fallback implementation
+     * since the old matrix system has been largely removed.
+     *
+     * In a complete implementation, this would:
+     * 1. Check if the query still has a variables_use_map
+     * 2. Use the old matrix-based lookup as fallback
+     * 3. Convert matrix indices to scope-aware variables
+     *
+     * For now, we just log and return NULL to encourage migration
+     * to the new scope-aware system.
+     */
+    RASQAL_DEBUG1("Hybrid lookup fallback requested - static system not available\n");
+
+    /* In the future, this could implement:
+     * - Check ctx->query->variables_use_map if it still exists
+     * - Use matrix-based lookup as fallback
+     * - Map matrix indices back to variables
+     */
   }
 
   return NULL;
@@ -615,27 +1042,28 @@ static int test_scope_boundary_validation(rasqal_world* world, rasqal_query_scop
 {
   int failures = 0;
   int result;
-  rasqal_variables_table* test_vt;
+  rasqal_variable* test_var;
 
-  /* TODO: Test validation function - this is a stub that returns 0 for now */
   printf("Testing scope boundary validation...\n");
 
-  /* Test with a dummy variable since the function requires one */
-  test_vt = rasqal_new_variables_table(world);
-  if(test_vt) {
-    rasqal_variable* test_var;
-    test_var = rasqal_variables_table_add2(test_vt, RASQAL_VARIABLE_TYPE_NORMAL,
-                                           (unsigned char*)"?test", 0, NULL);
+  /* Test with an existing variable from the root scope */
+  if(root_scope && root_scope->local_vars) {
+    test_var = rasqal_variables_table_get(root_scope->local_vars, 0); /* Get first variable (?x) */
     if(test_var) {
       result = rasqal_validate_scope_boundaries(root_scope, test_var);
       if(result == 0) {
-        printf("PASS: Scope boundary validation (stub implementation)\n");
+        printf("PASS: Scope boundary validation\n");
       } else {
         fprintf(stderr, "FAIL: Scope boundary validation failed (expected 0, got %d)\n", result);
         failures++;
       }
+    } else {
+      fprintf(stderr, "FAIL: Could not get test variable from root scope\n");
+      failures++;
     }
-    rasqal_free_variables_table(test_vt);
+  } else {
+    fprintf(stderr, "FAIL: Root scope or local variables not available\n");
+    failures++;
   }
 
   return failures;
