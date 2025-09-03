@@ -139,7 +139,7 @@ rasqal_algebra_union_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
     return NULL;
   }
 
-  return rasqal_new_union_rowsource(query->world, query, left_rs, right_rs);
+  return rasqal_new_union_rowsource(query->world, query, left_rs, right_rs, node->execution_scope);
 }
 
 
@@ -207,7 +207,7 @@ rasqal_algebra_leftjoin_algebra_node_to_rowsource(rasqal_engine_algebra_data* ex
     return NULL;
   }
 
-  return rasqal_new_join_rowsource(query->world, query, left_rs, right_rs, RASQAL_JOIN_TYPE_LEFT, node->expr);
+  return rasqal_new_join_rowsource(query->world, query, left_rs, right_rs, RASQAL_JOIN_TYPE_LEFT, node->expr, node->execution_scope);
 }
 
 
@@ -232,7 +232,7 @@ rasqal_algebra_join_algebra_node_to_rowsource(rasqal_engine_algebra_data* execut
     return NULL;
   }
 
-  return rasqal_new_join_rowsource(query->world, query, left_rs, right_rs, RASQAL_JOIN_TYPE_NATURAL, node->expr);
+  return rasqal_new_join_rowsource(query->world, query, left_rs, right_rs, RASQAL_JOIN_TYPE_NATURAL, node->expr, node->execution_scope);
 }
 
 

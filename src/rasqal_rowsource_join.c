@@ -86,6 +86,9 @@ typedef struct
 
   /* join expression constant boolean value or < 0 if not valid */
   int constant_join_condition;
+
+  /* Scope context for variable resolution */
+  rasqal_query_scope* evaluation_scope;
 } rasqal_join_rowsource_context;
 
 
@@ -107,9 +110,28 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     rasqal_literal* result;
     int bresult;
     int error = 0;
-    
-    result = rasqal_expression_evaluate2(con->expr, query->eval_context,
-                                         &error);
+
+    /* Use scope-aware evaluation if scope is available */
+    if(con->evaluation_scope) {
+      rasqal_variable_lookup_context scope_context;
+      memset(&scope_context, 0, sizeof(scope_context));
+      scope_context.current_scope = con->evaluation_scope;
+      scope_context.search_scope = con->evaluation_scope;
+      scope_context.rowsource = rowsource;
+      scope_context.query = query;
+
+      /* Check if this is an isolated GROUP scope */
+      if(con->evaluation_scope->scope_type == RASQAL_QUERY_SCOPE_TYPE_GROUP) {
+        scope_context.search_flags = RASQAL_VAR_SEARCH_LOCAL_ONLY;
+      } else {
+        scope_context.search_flags = RASQAL_VAR_SEARCH_INHERIT_PARENT | RASQAL_VAR_SEARCH_LOCAL_FIRST;
+      }
+      scope_context.binding_precedence = RASQAL_VAR_PRECEDENCE_LOCAL_FIRST;
+
+      result = rasqal_expression_evaluate_with_scope(con->expr, query->eval_context, &scope_context);
+    } else {
+      result = rasqal_expression_evaluate2(con->expr, query->eval_context, &error);
+    }
 
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("join expression condition is constant: ");
@@ -413,9 +435,28 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       /* Check join expression if present */
       rasqal_literal *result;
       int error = 0;
-      
-      result = rasqal_expression_evaluate2(con->expr, query->eval_context,
-                                           &error);
+
+      /* Use scope-aware evaluation if scope is available */
+      if(con->evaluation_scope) {
+        rasqal_variable_lookup_context scope_context;
+        memset(&scope_context, 0, sizeof(scope_context));
+        scope_context.current_scope = con->evaluation_scope;
+        scope_context.search_scope = con->evaluation_scope;
+        scope_context.rowsource = rowsource;
+        scope_context.query = query;
+
+        /* Check if this is an isolated GROUP scope */
+        if(con->evaluation_scope->scope_type == RASQAL_QUERY_SCOPE_TYPE_GROUP) {
+          scope_context.search_flags = RASQAL_VAR_SEARCH_LOCAL_ONLY;
+        } else {
+          scope_context.search_flags = RASQAL_VAR_SEARCH_INHERIT_PARENT | RASQAL_VAR_SEARCH_LOCAL_FIRST;
+        }
+        scope_context.binding_precedence = RASQAL_VAR_PRECEDENCE_LOCAL_FIRST;
+
+        result = rasqal_expression_evaluate_with_scope(con->expr, query->eval_context, &scope_context);
+      } else {
+        result = rasqal_expression_evaluate2(con->expr, query->eval_context, &error);
+      }
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG1("join expression result: ");
       if(error)
@@ -582,6 +623,7 @@ static const rasqal_rowsource_handler rasqal_join_rowsource_handler = {
  * @right: input right (second) rowsource
  * @join_type: join type
  * @expr: join expression to filter result rows
+ * @scope: scope context for variable resolution
  *
  * INTERNAL - create a new JOIN over two rowsources
  *
@@ -600,7 +642,8 @@ rasqal_new_join_rowsource(rasqal_world *world,
                           rasqal_rowsource* left,
                           rasqal_rowsource* right,
                           rasqal_join_type join_type,
-                          rasqal_expression *expr)
+                          rasqal_expression *expr,
+                          rasqal_query_scope *scope)
 {
   rasqal_join_rowsource_context* con;
   int flags = 0;
@@ -621,6 +664,7 @@ rasqal_new_join_rowsource(rasqal_world *world,
   con->right = right;
   con->join_type = join_type;
   con->expr = rasqal_new_expression_from_expression(expr);
+  con->evaluation_scope = scope;
   
   return rasqal_new_rowsource_from_handler(world, query,
                                            con,
@@ -770,7 +814,7 @@ main(int argc, char *argv[])
     vars_seq = seq = NULL;
 
     rowsource = rasqal_new_join_rowsource(world, query, left_rs, right_rs,
-                                          join_type, NULL);
+                                          join_type, NULL, NULL);
     if(!rowsource) {
       fprintf(stderr, "%s: failed to create join rowsource\n", program);
       failures++;

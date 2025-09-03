@@ -890,7 +890,7 @@ rasqal_rowsource* rasqal_new_groupby_rowsource(rasqal_world *world, rasqal_query
 rasqal_rowsource* rasqal_new_having_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, raptor_sequence* exprs_seq);
 
 /* rasqal_rowsource_join.c */
-rasqal_rowsource* rasqal_new_join_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, rasqal_join_type join_type, rasqal_expression *expr);
+rasqal_rowsource* rasqal_new_join_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, rasqal_join_type join_type, rasqal_expression *expr, rasqal_query_scope *scope);
 
 /* rasqal_rowsource_project.c */
 rasqal_rowsource* rasqal_new_project_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, raptor_sequence* projection_variables, rasqal_query_scope* scope);
@@ -915,7 +915,7 @@ rasqal_rowsource* rasqal_new_triples_rowsource_with_vars(rasqal_world *world, ra
 rasqal_rowsource* rasqal_new_triples_rowsource_with_scope(rasqal_world *world, rasqal_variables_table* vars_table, rasqal_triples_source* triples_source, rasqal_query_scope* scope, int start_column, int end_column);
 
 /* rasqal_rowsource_union.c */
-rasqal_rowsource* rasqal_new_union_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right);
+rasqal_rowsource* rasqal_new_union_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, rasqal_query_scope *scope);
 
 /* rasqal_rowsource_minus.c */
 rasqal_rowsource* rasqal_new_minus_rowsource(rasqal_world *world,

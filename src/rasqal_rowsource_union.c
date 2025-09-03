@@ -65,6 +65,9 @@ typedef struct
 
   /* row offset for read_row() */
   int offset;
+
+  /* Scope context for variable resolution */
+  rasqal_query_scope* evaluation_scope;
 } rasqal_union_rowsource_context;
 
 
@@ -402,6 +405,7 @@ static const rasqal_rowsource_handler rasqal_union_rowsource_handler = {
  * @query: query object
  * @left: left (first) rowsource
  * @right: right (second) rowsource
+ * @scope: scope context for variable resolution
  *
  * INTERNAL - create a new UNION over two rowsources
  *
@@ -418,7 +422,8 @@ rasqal_rowsource*
 rasqal_new_union_rowsource(rasqal_world *world,
                            rasqal_query* query,
                            rasqal_rowsource* left,
-                           rasqal_rowsource* right)
+                           rasqal_rowsource* right,
+                           rasqal_query_scope *scope)
 {
   rasqal_union_rowsource_context* con;
   int flags = 0;
@@ -432,6 +437,7 @@ rasqal_new_union_rowsource(rasqal_world *world,
 
   con->left = left;
   con->right = right;
+  con->evaluation_scope = scope;
   
   return rasqal_new_rowsource_from_handler(world, query,
                                            con,
@@ -565,7 +571,7 @@ main(int argc, char *argv[])
   /* vars_seq and seq are now owned by right_rs */
   vars_seq = seq = NULL;
 
-  rowsource = rasqal_new_union_rowsource(world, query, left_rs, right_rs);
+  rowsource = rasqal_new_union_rowsource(world, query, left_rs, right_rs, NULL);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create union rowsource\n", program);
     failures++;
