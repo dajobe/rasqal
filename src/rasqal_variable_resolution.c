@@ -91,15 +91,19 @@ rasqal_resolve_variable_with_scope(const char* var_name,
 
       for(i = 0; i < var_count; i++) {
         rasqal_variable* var = rasqal_variables_table_get(vars_table, i);
-        if(var && var->name && !strcmp((const char*)var->name, var_name)) {
-          /* Found variable in current scope */
-          resolved_var = var;
-          context->defining_scope = current_scope;
-          context->resolved_variable = var;
+        if(var && var->name && var_name) {
+          /* Ensure both strings are valid before comparing */
+          const char* var_name_str = (const char*)var->name;
+          if(var_name_str && !strcmp(var_name_str, var_name)) {
+            /* Found variable in current scope */
+            resolved_var = var;
+            context->defining_scope = current_scope;
+            context->resolved_variable = var;
 
-          RASQAL_DEBUG4("Variable %s resolved in scope %s (search depth %d)\n",
-                        var_name, current_scope->scope_name, search_depth);
-          goto found;
+            RASQAL_DEBUG4("Variable %s resolved in scope %s (search depth %d)\n",
+                          var_name, current_scope->scope_name ? (const char*)current_scope->scope_name : "NULL", search_depth);
+            goto found;
+          }
         }
       }
     }
@@ -197,7 +201,7 @@ rasqal_expression_resolve_variables_with_scope(rasqal_expression* expr,
   if(!expr || !context)
     return 1;
 
-  RASQAL_DEBUG2("Resolving variables in expression type %d with scope\n", expr->op);
+  RASQAL_DEBUG3("Resolving variables in expression type %d with scope (RASQAL_EXPR_LITERAL=%d)\n", expr->op, RASQAL_EXPR_LITERAL);
 
   /* Handle different expression types */
   switch(expr->op) {
@@ -395,8 +399,79 @@ rasqal_expression_resolve_variables_with_scope(rasqal_expression* expr,
       }
       break;
 
+    /* Explicit cases for commonly used expression types mentioned in compiler warnings */
+    case RASQAL_EXPR_UNKNOWN:
+    case RASQAL_EXPR_UMINUS:
+    case RASQAL_EXPR_REM:
+    case RASQAL_EXPR_STR_EQ:
+    case RASQAL_EXPR_STR_NEQ:
+    case RASQAL_EXPR_STR_MATCH:
+    case RASQAL_EXPR_STR_NMATCH:
+    case RASQAL_EXPR_TILDE:
+    case RASQAL_EXPR_BANG:
+    case RASQAL_EXPR_CAST:
+    case RASQAL_EXPR_VARSTAR:
+    case RASQAL_EXPR_URI:
+    case RASQAL_EXPR_IRI:
+    case RASQAL_EXPR_STRLANG:
+    case RASQAL_EXPR_STRDT:
+    case RASQAL_EXPR_BNODE:
+    case RASQAL_EXPR_STRLEN:
+    case RASQAL_EXPR_SUBSTR:
+    case RASQAL_EXPR_UCASE:
+    case RASQAL_EXPR_LCASE:
+    case RASQAL_EXPR_STRSTARTS:
+    case RASQAL_EXPR_STRENDS:
+    case RASQAL_EXPR_CONTAINS:
+    case RASQAL_EXPR_ENCODE_FOR_URI:
+    case RASQAL_EXPR_TZ:
+    case RASQAL_EXPR_RAND:
+    case RASQAL_EXPR_ABS:
+    case RASQAL_EXPR_ROUND:
+    case RASQAL_EXPR_CEIL:
+    case RASQAL_EXPR_FLOOR:
+    case RASQAL_EXPR_MD5:
+    case RASQAL_EXPR_SHA1:
+    case RASQAL_EXPR_SHA224:
+    case RASQAL_EXPR_SHA256:
+    case RASQAL_EXPR_SHA384:
+    case RASQAL_EXPR_SHA512:
+    case RASQAL_EXPR_STRBEFORE:
+    case RASQAL_EXPR_STRAFTER:
+    case RASQAL_EXPR_REPLACE:
+    case RASQAL_EXPR_UUID:
+    case RASQAL_EXPR_STRUUID:
+    case RASQAL_EXPR_EXISTS:
+    case RASQAL_EXPR_NOT_EXISTS:
+    case RASQAL_EXPR_YEAR:
+    case RASQAL_EXPR_MONTH:
+    case RASQAL_EXPR_DAY:
+    case RASQAL_EXPR_HOURS:
+    case RASQAL_EXPR_MINUTES:
+    case RASQAL_EXPR_SECONDS:
+    case RASQAL_EXPR_TIMEZONE:
+    case RASQAL_EXPR_CURRENT_DATETIME:
+    case RASQAL_EXPR_NOW:
+    case RASQAL_EXPR_FROM_UNIXTIME:
+    case RASQAL_EXPR_TO_UNIXTIME:
+    case RASQAL_EXPR_GROUP_CONCAT:
+    case RASQAL_EXPR_SAMPLE:
+    case RASQAL_EXPR_COUNT:
+    case RASQAL_EXPR_SUM:
+    case RASQAL_EXPR_AVG:
+    case RASQAL_EXPR_MIN:
+    case RASQAL_EXPR_MAX:
+    case RASQAL_EXPR_ORDER_COND_ASC:
+    case RASQAL_EXPR_ORDER_COND_DESC:
+    case RASQAL_EXPR_GROUP_COND_ASC:
+    case RASQAL_EXPR_GROUP_COND_DESC:
+      /* These expression types fall through to the default case */
+      /* FALLTHROUGH */
+
     default:
-      /* For unsupported expression types, check if they have arguments that might contain variables */
+      /* Default case handles any remaining expression types that may contain variables.
+         We recursively resolve variables in all possible arguments to ensure
+         scope-aware variable resolution works for all expression types. */
       if(expr->arg1) {
         rc = rasqal_expression_resolve_variables_with_scope(expr->arg1, context);
         if(rc)
@@ -458,49 +533,39 @@ rasqal_expression_evaluate_with_scope(rasqal_expression* expr,
 
   RASQAL_DEBUG2("Evaluating expression with scope-aware variable resolution (type: %d)\n", expr->op);
 
-  if(scope_context->current_scope) {
-    /* Create a copy of the expression for scope-aware evaluation */
-    rasqal_expression* scope_expr = rasqal_new_expression_from_expression(expr);
-    if(!scope_expr) {
-      RASQAL_DEBUG1("Failed to copy expression for scope-aware evaluation\n");
-      return NULL;
-    }
+  /* For scope-aware evaluation, we need to pre-resolve variables in the expression
+     according to scope rules before evaluation */
 
-    /* Resolve variables in the expression tree using scope-aware lookup */
-    if(!rasqal_expression_resolve_variables_with_scope(scope_expr, scope_context)) {
-      /* Variables resolved successfully, now evaluate the expression */
-      RASQAL_DEBUG1("Variables resolved, evaluating expression\n");
-      result = rasqal_expression_evaluate2(scope_expr, eval_context, &error);
+  /* Copy the expression to avoid modifying the original */
+  rasqal_expression* scope_expr;
+  scope_expr = rasqal_new_expression_from_expression(expr);
+  if(!scope_expr) {
+    RASQAL_DEBUG1("Failed to copy expression for scope-aware evaluation\n");
+    return NULL;
+  }
 
-      if(error) {
-        RASQAL_DEBUG2("Expression evaluation failed with error: %d\n", error);
-        if(result)
-          rasqal_free_literal(result);
-        result = NULL;
-      }
-    } else {
-      RASQAL_DEBUG1("Variable resolution failed in expression\n");
-      /* Variable resolution failed - this could be due to scope isolation */
-      /* For bind10 test compatibility, we need to handle GROUP scope isolation */
-      if(scope_context->current_scope->scope_type == RASQAL_QUERY_SCOPE_TYPE_GROUP ||
-         (scope_context->current_scope->scope_type == RASQAL_QUERY_SCOPE_TYPE_ROOT &&
-          scope_context->current_scope->scope_name &&
-          strcmp(scope_context->current_scope->scope_name, "GROUP") == 0)) {
-        RASQAL_DEBUG1("Evaluating in isolated GROUP scope - variable resolution failed as expected\n");
-        /* This is expected for GROUP scope isolation - return NULL to indicate failure */
-      }
+  /* Resolve variables in the copied expression using scope-aware lookup */
+  if(!rasqal_expression_resolve_variables_with_scope(scope_expr, scope_context)) {
+    RASQAL_DEBUG1("Variables resolved successfully, evaluating expression\n");
+
+    /* Evaluate the expression with resolved variables */
+    result = rasqal_expression_evaluate2(scope_expr, eval_context, &error);
+
+    if(error) {
+      RASQAL_DEBUG2("Expression evaluation failed with error: %d\n", error);
+      if(result)
+        rasqal_free_literal(result);
       result = NULL;
     }
-
-    /* Clean up the copied expression */
-    rasqal_free_expression(scope_expr);
-
-    return result;
   } else {
-    /* No scope available, use standard evaluation */
-    RASQAL_DEBUG1("No scope available, using standard expression evaluation\n");
-    return rasqal_expression_evaluate2(expr, eval_context, &error);
+    RASQAL_DEBUG1("Variable resolution failed - cannot evaluate expression\n");
+    result = NULL;
   }
+
+  /* Clean up the copied expression */
+  rasqal_free_expression(scope_expr);
+
+  return result;
 }
 
 /**
@@ -923,13 +988,25 @@ static rasqal_query_scope* find_scope_by_name(rasqal_query_scope* root, const ch
 {
   rasqal_query_scope* current = root;
 
-  /* Search through all scopes in the hierarchy */
+  if(!root || !name)
+    return NULL;
+
+  /* Check if this is the root scope itself */
+  if(current->scope_name && !strcmp((const char*)current->scope_name, name)) {
+    return current;
+  }
+
+  /* If looking for "ROOT" and root scope has no name set, return root */
+  if(!strcmp(name, "ROOT") && (!current->scope_name || !current->scope_name[0])) {
+    return current;
+  }
+
+  /* Search up the parent chain */
+  current = current->parent_scope;
   while(current) {
     if(current->scope_name && !strcmp((const char*)current->scope_name, name)) {
       return current;
     }
-
-    /* Search up the parent chain */
     current = current->parent_scope;
   }
 
@@ -952,11 +1029,14 @@ static int test_variable_resolution(rasqal_world* world, rasqal_query_scope* roo
   rasqal_variable_lookup_context context;
   rasqal_variable* resolved;
 
-  /* Test basic variable resolution in root scope */
   printf("Testing variable resolution...\n");
 
+  /* Test 1: Basic variable resolution in root scope */
   memset(&context, 0, sizeof(context));
   context.current_scope = root_scope;
+  context.search_scope = root_scope;
+  context.search_flags = RASQAL_VAR_SEARCH_INHERIT_PARENT | RASQAL_VAR_SEARCH_LOCAL_FIRST;
+  context.binding_precedence = RASQAL_VAR_PRECEDENCE_LOCAL_FIRST;
 
   resolved = rasqal_resolve_variable_with_scope("?x", &context);
   if(resolved) {
@@ -966,13 +1046,147 @@ static int test_variable_resolution(rasqal_world* world, rasqal_query_scope* roo
     failures++;
   }
 
-  /* Test non-existent variable */
+  /* Test 2: Non-existent variable */
   resolved = rasqal_resolve_variable_with_scope("?nonexistent", &context);
   if(!resolved) {
     printf("PASS: Non-existent variable lookup\n");
   } else {
     fprintf(stderr, "FAIL: Non-existent variable should not be found\n");
     failures++;
+  }
+
+  /* Test 3: Variable resolution with local-only search flags */
+  context.search_flags = RASQAL_VAR_SEARCH_LOCAL_ONLY;
+  resolved = rasqal_resolve_variable_with_scope("?x", &context);
+  if(resolved) {
+    printf("PASS: Local-only variable resolution\n");
+  } else {
+    fprintf(stderr, "FAIL: Local-only variable resolution failed\n");
+    failures++;
+  }
+
+  /* Test 4: NULL parameter handling */
+  resolved = rasqal_resolve_variable_with_scope(NULL, &context);
+  if(!resolved) {
+    printf("PASS: NULL variable name handled correctly\n");
+  } else {
+    fprintf(stderr, "FAIL: NULL variable name should return NULL\n");
+    failures++;
+  }
+
+  resolved = rasqal_resolve_variable_with_scope("?x", NULL);
+  if(!resolved) {
+    printf("PASS: NULL context handled correctly\n");
+  } else {
+    fprintf(stderr, "FAIL: NULL context should return NULL\n");
+    failures++;
+  }
+
+  return failures;
+}
+
+/* Test scope hierarchy and different scope types */
+static int test_scope_hierarchy(rasqal_world* world, rasqal_query_scope* root_scope)
+{
+  int failures = 0;
+  rasqal_variable_lookup_context context;
+  rasqal_variable* resolved;
+  rasqal_query_scope* child_scope;
+  rasqal_variables_table* child_vars;
+  rasqal_variable* child_var;
+  rasqal_query* test_query;
+
+  printf("Testing scope hierarchy and scope types...\n");
+
+  /* Create a test query for scope creation */
+  test_query = rasqal_new_query(world, "sparql", NULL);
+  if(!test_query) {
+    fprintf(stderr, "FAIL: Could not create test query for scope hierarchy\n");
+    return 1;
+  }
+
+  /* Create a child scope for testing hierarchy */
+  child_scope = rasqal_new_query_scope(test_query, RASQAL_QUERY_SCOPE_TYPE_EXISTS, NULL);
+  if(!child_scope) {
+    fprintf(stderr, "FAIL: Could not create child scope\n");
+    rasqal_free_query(test_query);
+    return 1;
+  }
+  
+  child_scope->parent_scope = root_scope;
+  child_scope->scope_name = RASQAL_GOOD_CAST(char*, "CHILD_EXISTS");
+  child_scope->scope_id = 99;
+
+  /* Add a variable to the child scope */
+  child_vars = rasqal_new_variables_table(world);
+  if(!child_vars) {
+    fprintf(stderr, "FAIL: Could not create child variables table\n");
+    failures++;
+    goto cleanup;
+  }
+  child_scope->local_vars = child_vars;
+
+  child_var = rasqal_variables_table_add2(child_vars, RASQAL_VARIABLE_TYPE_NORMAL,
+                                         (unsigned char*)"?child_var", 0, NULL);
+  if(!child_var) {
+    fprintf(stderr, "FAIL: Could not add variable to child scope\n");
+    failures++;
+    goto cleanup;
+  }
+
+  /* Test 1: Child scope can access parent variables */
+  memset(&context, 0, sizeof(context));
+  context.current_scope = child_scope;
+  context.search_scope = child_scope;
+  context.search_flags = RASQAL_VAR_SEARCH_INHERIT_PARENT | RASQAL_VAR_SEARCH_LOCAL_FIRST;
+  context.binding_precedence = RASQAL_VAR_PRECEDENCE_LOCAL_FIRST;
+
+  resolved = rasqal_resolve_variable_with_scope("?x", &context);
+  if(resolved) {
+    printf("PASS: Child scope can access parent variables\n");
+  } else {
+    fprintf(stderr, "FAIL: Child scope should access parent variables\n");
+    failures++;
+  }
+
+  /* Test 2: Child scope can access its own variables */
+  resolved = rasqal_resolve_variable_with_scope("?child_var", &context);
+  if(resolved) {
+    printf("PASS: Child scope can access local variables\n");
+  } else {
+    fprintf(stderr, "FAIL: Child scope should access local variables\n");
+    failures++;
+  }
+
+  /* Test 3: Local-only search doesn't access parent */
+  context.search_flags = RASQAL_VAR_SEARCH_LOCAL_ONLY;
+  resolved = rasqal_resolve_variable_with_scope("?x", &context);
+  if(!resolved) {
+    printf("PASS: Local-only search blocks parent access\n");
+  } else {
+    fprintf(stderr, "FAIL: Local-only search should not access parent variables\n");
+    failures++;
+  }
+
+  /* Test 4: Local-only search still finds local variables */
+  resolved = rasqal_resolve_variable_with_scope("?child_var", &context);
+  if(resolved) {
+    printf("PASS: Local-only search finds local variables\n");
+  } else {
+    fprintf(stderr, "FAIL: Local-only search should find local variables\n");
+    failures++;
+  }
+
+cleanup:
+  if(child_scope) {
+    if(child_scope->local_vars) {
+      rasqal_free_variables_table(child_scope->local_vars);
+      child_scope->local_vars = NULL; /* Prevent double-free */
+    }
+    /* Note: We don't free child_scope directly as it will be freed with the query */
+  }
+  if(test_query) {
+    rasqal_free_query(test_query);
   }
 
   return failures;
@@ -1124,9 +1338,17 @@ static int test_migration_interface(rasqal_world* world, rasqal_query_scope* roo
 
   /* Test dynamic lookup */
   test_scope = find_scope_by_name(root_scope, "ROOT");
+  if(!test_scope) {
+    /* If can't find by name, use root_scope directly */
+    test_scope = root_scope;
+  }
+  
   if(test_scope) {
     memset(&context, 0, sizeof(context));
     context.current_scope = test_scope;
+    context.search_scope = test_scope;
+    context.search_flags = RASQAL_VAR_SEARCH_INHERIT_PARENT | RASQAL_VAR_SEARCH_LOCAL_FIRST;
+    context.binding_precedence = RASQAL_VAR_PRECEDENCE_LOCAL_FIRST;
 
     dynamic_var = rasqal_get_variable_usage_dynamic("?x", &context);
     if(dynamic_var) {
@@ -1135,12 +1357,18 @@ static int test_migration_interface(rasqal_world* world, rasqal_query_scope* roo
       fprintf(stderr, "FAIL: Dynamic variable lookup failed\n");
       failures++;
     }
+  } else {
+    fprintf(stderr, "FAIL: Could not find test scope for dynamic lookup\n");
+    failures++;
   }
 
   /* Test hybrid lookup */
   if(test_scope) {
     memset(&context, 0, sizeof(context));
     context.current_scope = test_scope;
+    context.search_scope = test_scope;
+    context.search_flags = RASQAL_VAR_SEARCH_INHERIT_PARENT | RASQAL_VAR_SEARCH_LOCAL_FIRST;
+    context.binding_precedence = RASQAL_VAR_PRECEDENCE_LOCAL_FIRST;
 
     hybrid_var = rasqal_get_variable_usage_hybrid("?x", &context, 1);
     if(hybrid_var) {
@@ -1155,81 +1383,6 @@ static int test_migration_interface(rasqal_world* world, rasqal_query_scope* roo
 }
 
 /* Main test function */
-/* Demonstration of scope-aware expression evaluation */
-static void demo_scope_aware_expression_evaluation(rasqal_world* world, rasqal_query_scope* root_scope)
-{
-  rasqal_variable_lookup_context scope_context;
-  rasqal_evaluation_context* eval_context;
-  rasqal_variable* test_var;
-  rasqal_literal* var_literal;
-  rasqal_expression* expr;
-  rasqal_literal* result;
-
-  printf("\n=== Scope-Aware Expression Evaluation Demo ===\n");
-
-  /* Get a test variable */
-  if(!root_scope || !root_scope->local_vars) {
-    printf("No root scope or variables available for demo\n");
-    return;
-  }
-
-  test_var = rasqal_variables_table_get(root_scope->local_vars, 0);
-  if(!test_var) {
-    printf("No test variable available for demo\n");
-    return;
-  }
-
-  printf("Using variable: %s\n", test_var->name ? (const char*)test_var->name : "NULL");
-
-  /* Create evaluation context */
-  eval_context = rasqal_new_evaluation_context(world, NULL, 0);
-  if(!eval_context) {
-    printf("Failed to create evaluation context\n");
-    return;
-  }
-
-  /* Set up scope context */
-  memset(&scope_context, 0, sizeof(scope_context));
-  scope_context.current_scope = root_scope;
-  scope_context.search_scope = root_scope;
-  scope_context.query = NULL;
-  scope_context.rowsource = NULL;
-
-  if(root_scope->scope_type == RASQAL_QUERY_SCOPE_TYPE_GROUP) {
-    scope_context.search_flags = RASQAL_VAR_SEARCH_LOCAL_ONLY;
-    printf("Scope type: GROUP (isolated)\n");
-  } else {
-    scope_context.search_flags = RASQAL_VAR_SEARCH_INHERIT_PARENT | RASQAL_VAR_SEARCH_LOCAL_FIRST;
-    printf("Scope type: ROOT (hierarchical)\n");
-  }
-  scope_context.binding_precedence = RASQAL_VAR_PRECEDENCE_LOCAL_FIRST;
-
-  /* Create variable expression */
-  var_literal = rasqal_new_variable_literal(world, test_var);
-  if(var_literal) {
-    expr = rasqal_new_literal_expression(world, var_literal);
-    if(expr) {
-      printf("Evaluating expression with scope-aware resolution...\n");
-
-      /* Use scope-aware evaluation */
-      result = rasqal_expression_evaluate_with_scope(expr, eval_context, &scope_context);
-
-      if(result) {
-        printf("✅ Expression evaluated successfully!\n");
-        printf("   Result type: %d\n", result->type);
-        rasqal_free_literal(result);
-      } else {
-        printf("ℹ️  Expression evaluation returned NULL (expected for isolated scopes)\n");
-      }
-
-      rasqal_free_expression(expr);
-    }
-    rasqal_free_literal(var_literal);
-  }
-
-  rasqal_free_evaluation_context(eval_context);
-  printf("=== Demo Complete ===\n\n");
-}
 
 int main(int argc, char *argv[])
 {
@@ -1257,11 +1410,9 @@ int main(int argc, char *argv[])
 
   printf("Created test scope hierarchy with %d scopes\n", 5);
 
-  /* Demonstrate scope-aware expression evaluation */
-  demo_scope_aware_expression_evaluation(world, root_scope);
-
   /* Run comprehensive tests */
   total_failures += test_variable_resolution(world, root_scope);
+  total_failures += test_scope_hierarchy(world, root_scope);
   total_failures += test_rowsource_variable_lookup(world, root_scope);
   total_failures += test_scope_boundary_validation(world, root_scope);
   total_failures += test_cross_scope_access_control(world, root_scope);
@@ -1334,9 +1485,11 @@ static int test_scope_aware_expression_evaluation(rasqal_world* world, rasqal_qu
           } else {
             printf("PASS: Scope-aware expression evaluation returned NULL (expected for GROUP scope)\n");
           }
-          rasqal_free_expression(expr);
+          rasqal_free_expression(expr); /* This will also free var_literal */
+        } else {
+          /* Expression creation failed, need to free the literal */
+          rasqal_free_literal(var_literal);
         }
-        rasqal_free_literal(var_literal);
       }
     }
   }
