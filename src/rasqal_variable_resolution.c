@@ -120,6 +120,18 @@ rasqal_resolve_variable_with_scope(const char* var_name,
 found:
   if(!resolved_var) {
     RASQAL_DEBUG2("Variable %s not found in any scope\n", var_name);
+
+    /* CRITICAL FIX: Fallback to query's vars_table for Extend-bound variables
+     * This handles the case where Extend operations add variables at runtime
+     * that aren't known to the scope system at compilation time */
+    if(context && context->query && context->query->vars_table) {
+      resolved_var = rasqal_variables_table_get_by_name(context->query->vars_table,
+                                                         RASQAL_VARIABLE_TYPE_NORMAL,
+                                                         (const unsigned char*)var_name);
+      if(resolved_var) {
+        RASQAL_DEBUG2("Variable %s found in query vars_table (fallback)\n", var_name);
+      }
+    }
   }
 
   return resolved_var;
@@ -150,6 +162,8 @@ rasqal_rowsource_get_variable_by_name_with_scope(rasqal_rowsource* rowsource,
   lookup_ctx.current_scope = scope;
   lookup_ctx.search_scope = scope;
   lookup_ctx.rowsource = rowsource;
+  lookup_ctx.query = rowsource->query;  /* CRITICAL: Add query for vars_table fallback */
+  lookup_ctx.current_row = NULL;  /* Will be set by caller if available */
   lookup_ctx.search_flags = RASQAL_VAR_SEARCH_INHERIT_PARENT | RASQAL_VAR_SEARCH_LOCAL_FIRST;
   lookup_ctx.binding_precedence = RASQAL_VAR_PRECEDENCE_LOCAL_FIRST;
 
@@ -210,7 +224,33 @@ rasqal_expression_resolve_variables_with_scope(rasqal_expression* expr,
       if(expr->literal && expr->literal->type == RASQAL_LITERAL_VARIABLE) {
         rasqal_variable* var = rasqal_resolve_variable_with_scope(
           (const char*)expr->literal->value.variable->name, context);
-        if(!var) {
+        if(var) {
+          /* Variable found - substitute it with its literal value from the current row */
+          if(context->current_row) {
+            RASQAL_DEBUG3("VAR_RESOLVE: current_row=%p, row size: %d\n",
+                    context->current_row, context->current_row->size);
+            int var_offset = rasqal_rowsource_get_variable_offset_by_name(context->rowsource,
+                                                                         expr->literal->value.variable->name);
+            RASQAL_DEBUG5("Variable %s offset: %d, row size: %d, rowsource=%p\n",
+                    expr->literal->value.variable->name, var_offset, context->current_row->size, context->rowsource);
+            if(var_offset >= 0 && var_offset < context->current_row->size && context->current_row->values[var_offset]) {
+              RASQAL_DEBUG3("Variable %s value at offset %d: ", expr->literal->value.variable->name, var_offset);
+              if(RASQAL_DEBUG_FH) rasqal_literal_print(context->current_row->values[var_offset], RASQAL_DEBUG_FH);
+              if(RASQAL_DEBUG_FH) fputc('\n', RASQAL_DEBUG_FH);
+              /* Replace the variable literal with the actual literal value */
+              rasqal_literal* resolved_literal = rasqal_new_literal_from_literal(context->current_row->values[var_offset]);
+              if(resolved_literal) {
+                rasqal_free_literal(expr->literal);
+                expr->literal = resolved_literal;
+                RASQAL_DEBUG2("Substituted variable %s with literal value\n",
+                             (const char*)var->name);
+              }
+            } else {
+              RASQAL_DEBUG3("Variable %s offset %d out of bounds or NULL value\n",
+                      (const char*)expr->literal->value.variable->name, var_offset);
+            }
+          }
+        } else {
           RASQAL_DEBUG2("Variable %s not found in current scope\n",
                         (const char*)expr->literal->value.variable->name);
           /* Note: We don't fail here - unbound variables are allowed in some contexts */

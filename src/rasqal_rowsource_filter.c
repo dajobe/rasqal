@@ -134,30 +134,23 @@ rasqal_filter_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       rasqal_evaluation_context_set_graph_origin(query->eval_context, con->graph_origin);
     }
 
-    /* Use scope-aware expression evaluation if scope is available */
+    /* Bind row variables with scope awareness for SPARQL 1.2 compliance */
     if(con->evaluation_scope) {
-      rasqal_variable_lookup_context scope_context;
-      memset(&scope_context, 0, sizeof(scope_context));
-      scope_context.current_scope = con->evaluation_scope;
-      scope_context.search_scope = con->evaluation_scope;
-      scope_context.rowsource = rowsource;
-      scope_context.query = query;
+      /* Try scope-aware binding first */
+      int scope_result = rasqal_query_scope_bind_row_variables(con->evaluation_scope, row, rowsource);
       
-      /* Check if this is an isolated GROUP scope */
-      if(con->evaluation_scope->scope_type == RASQAL_QUERY_SCOPE_TYPE_GROUP) {
-        /* GROUP scopes are isolated - do not inherit from parent */
-        scope_context.search_flags = RASQAL_VAR_SEARCH_LOCAL_ONLY;
-      } else {
-        /* Other scopes can inherit from parent */
-        scope_context.search_flags = RASQAL_VAR_SEARCH_INHERIT_PARENT | RASQAL_VAR_SEARCH_LOCAL_FIRST;
+      /* If scope binding didn't work (e.g., no visible variables), 
+       * fall back to direct row binding for variables in the current row */
+      if(scope_result != 0 || rasqal_variables_table_get_total_variables_count(con->evaluation_scope->visible_vars) == 0) {
+        rasqal_row_bind_variables(row, query->vars_table);
       }
-      scope_context.binding_precedence = RASQAL_VAR_PRECEDENCE_LOCAL_FIRST;
-      
-      result = rasqal_expression_evaluate_with_scope(con->expr, query->eval_context, &scope_context);
     } else {
-      /* Fall back to standard evaluation for backward compatibility */
-      result = rasqal_expression_evaluate2(con->expr, query->eval_context, &error);
+      /* Fallback to global binding for backward compatibility */
+      rasqal_row_bind_variables(row, query->vars_table);
     }
+    
+    /* Use standard evaluation for compatibility with Extend operations */
+    result = rasqal_expression_evaluate2(con->expr, query->eval_context, &error);
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("filter expression result: ");
     if(error)
@@ -165,6 +158,26 @@ rasqal_filter_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     else
       rasqal_literal_print(result, DEBUG_FH);
     fputc('\n', DEBUG_FH);
+
+    /* Debug: Print the comparison details */
+    if(con->expr->op == RASQAL_EXPR_EQ && con->expr->arg1 && con->expr->arg2) {
+      RASQAL_DEBUG1("COMPARISON DEBUG:\n");
+      RASQAL_DEBUG1("  Left operand: ");
+      if(con->expr->arg1->op == RASQAL_EXPR_LITERAL && con->expr->arg1->literal) {
+        rasqal_literal_print(con->expr->arg1->literal, DEBUG_FH);
+      } else {
+        fputs("non-literal", DEBUG_FH);
+      }
+      fputc('\n', DEBUG_FH);
+
+      RASQAL_DEBUG1("  Right operand: ");
+      if(con->expr->arg2->op == RASQAL_EXPR_LITERAL && con->expr->arg2->literal) {
+        rasqal_literal_print(con->expr->arg2->literal, DEBUG_FH);
+      } else {
+        fputs("non-literal", DEBUG_FH);
+      }
+      fputc('\n', DEBUG_FH);
+    }
 #endif
     if(error) {
       bresult = 0;

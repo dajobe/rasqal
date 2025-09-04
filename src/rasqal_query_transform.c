@@ -2003,7 +2003,7 @@ rasqal_query_build_scope_hierarchy(rasqal_query* query)
     return 1;
   }
 
-  fprintf(stderr, "DEBUG: Created root scope: %s\n", root_scope->scope_name);
+  RASQAL_DEBUG2("Created root scope: %s\n", root_scope->scope_name);
 
   /* Assign root scope to the main query graph pattern */
   query->query_graph_pattern->execution_scope = root_scope;

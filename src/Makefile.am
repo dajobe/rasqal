@@ -107,6 +107,7 @@ rasqal_graph_pattern.c rasqal_map.c rasqal_feature.c \
 rasqal_result_formats.c rasqal_xsd_datatypes.c rasqal_decimal.c \
 rasqal_datetime.c rasqal_rowsource.c rasqal_format_sparql_xml.c \
 rasqal_variable.c rasqal_query_scope.c rasqal_variable_resolution.c rasqal_rowsource_empty.c rasqal_rowsource_exists.c \
+rasqal_rowsource_extend.c \
 rasqal_rowsource_union.c rasqal_rowsource_minus.c \
 rasqal_rowsource_rowsequence.c rasqal_query_transform.c rasqal_row.c \
 rasqal_engine_algebra.c rasqal_triples_source.c \
@@ -120,7 +121,7 @@ rasqal_rowsource_bindings.c rasqal_rowsource_values.c rasqal_rowsource_service.c
 rasqal_row_compatible.c rasqal_format_table.c rasqal_query_write.c \
 rasqal_format_json.c rasqal_format_sv.c rasqal_format_html.c \
 rasqal_format_rdf.c \
-rasqal_rowsource_assignment.c rasqal_update.c \
+rasqal_update.c \
 rasqal_triple.c rasqal_data_graph.c rasqal_prefix.c \
 rasqal_solution_modifier.c rasqal_projection.c rasqal_bindings.c \
 rasqal_service.c \

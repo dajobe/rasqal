@@ -416,15 +416,18 @@ typedef struct rasqal_variable_lookup_context {
   /* Scope Context */
   rasqal_query_scope* current_scope;
   rasqal_query_scope* search_scope;
-  
+
   /* Rowsource Context */
   rasqal_rowsource* rowsource;
   rasqal_query* query;
-  
+
+  /* Current Row Context */
+  rasqal_row* current_row;  /* Current row for variable value lookup */
+
   /* Search Configuration */
   int search_flags;  /* RASQAL_VAR_SEARCH_* constants */
   int binding_precedence; /* RASQAL_VAR_PRECEDENCE_* constants */
-  
+
   /* Result Context */
   rasqal_variable* resolved_variable;
   rasqal_query_scope* defining_scope;
@@ -538,6 +541,7 @@ void rasqal_free_query_scope(rasqal_query_scope* scope);
 int rasqal_query_scope_compute_visible_variables(rasqal_query_scope* scope);
 int rasqal_query_scope_add_child_scope(rasqal_query_scope* parent, rasqal_query_scope* child);
 int rasqal_query_scope_add_triple(rasqal_query_scope* scope, rasqal_triple* triple);
+int rasqal_query_scope_bind_row_variables(rasqal_query_scope* scope, rasqal_row* row, rasqal_rowsource* rowsource);
 rasqal_query_scope* rasqal_query_scope_get_root(rasqal_query_scope* scope);
 
 
@@ -862,11 +866,11 @@ rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* 
 /* rasqal_rowsource_exists.c */
 rasqal_rowsource* rasqal_new_exists_rowsource(rasqal_world *world, rasqal_query* query, rasqal_triples_source* triples_source, rasqal_graph_pattern* exists_pattern, rasqal_row* outer_row, rasqal_literal* graph_origin, int is_negated);
 
+/* rasqal_rowsource_extend.c */
+rasqal_rowsource* rasqal_new_extend_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* input_rs, rasqal_variable* var, rasqal_expression* expr);
+
 /* rasqal_rowsource_engine.c */
 rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_results);
-
-/* rasqal_rowsource_assignment.c */
-rasqal_rowsource* rasqal_new_assignment_rowsource(rasqal_world *world, rasqal_query *query, rasqal_variable* var, rasqal_expression* expr, rasqal_query_scope* execution_scope);
 
 /* rasqal_rowsource_bindings.c */
 rasqal_rowsource* rasqal_new_bindings_rowsource(rasqal_world *world, rasqal_query *query, rasqal_bindings* bindings);
@@ -1801,7 +1805,7 @@ typedef enum {
   RASQAL_ALGEBRA_OPERATOR_REDUCED  = 11,
   RASQAL_ALGEBRA_OPERATOR_SLICE    = 12,
   RASQAL_ALGEBRA_OPERATOR_GRAPH    = 13,
-  RASQAL_ALGEBRA_OPERATOR_ASSIGN   = 14,
+  RASQAL_ALGEBRA_OPERATOR_EXTEND = 14,
   RASQAL_ALGEBRA_OPERATOR_GROUP    = 15,
   RASQAL_ALGEBRA_OPERATOR_AGGREGATION = 16,
   RASQAL_ALGEBRA_OPERATOR_HAVING   = 17,
@@ -1940,7 +1944,6 @@ typedef struct
 
 /* rasqal_algebra.c */
 
-rasqal_algebra_node* rasqal_new_assignment_algebra_node(rasqal_query* query, rasqal_variable *var, rasqal_expression *expr, rasqal_query_scope* execution_scope);
 rasqal_algebra_node* rasqal_new_distinct_algebra_node(rasqal_query* query, rasqal_algebra_node* node1);
 rasqal_algebra_node* rasqal_new_filter_algebra_node(rasqal_query* query, rasqal_expression* expr, rasqal_algebra_node* node, rasqal_query_scope* execution_scope);
 rasqal_algebra_node* rasqal_new_empty_algebra_node(rasqal_query* query);
@@ -1958,6 +1961,7 @@ rasqal_algebra_node* rasqal_new_aggregation_algebra_node(rasqal_query* query, ra
 rasqal_algebra_node* rasqal_new_having_algebra_node(rasqal_query* query,rasqal_algebra_node* node1, raptor_sequence* exprs_seq);
 rasqal_algebra_node* rasqal_new_values_algebra_node(rasqal_query* query, rasqal_bindings* bindings);
 rasqal_algebra_node* rasqal_new_service_algebra_node(rasqal_query* query, raptor_uri* service_uri, const unsigned char* query_string, raptor_sequence* data_graphs, int silent);
+rasqal_algebra_node* rasqal_new_extend_algebra_node(rasqal_query* query, rasqal_algebra_node* input, rasqal_variable* var, rasqal_expression* expr);
 
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);

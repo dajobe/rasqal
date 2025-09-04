@@ -308,4 +308,56 @@ rasqal_query_scope_get_root(rasqal_query_scope* scope)
   return scope;
 }
 
+
+/**
+ * rasqal_query_scope_bind_row_variables:
+ * @scope: query scope context
+ * @row: row containing variable values
+ * @rowsource: rowsource providing variable definitions
+ *
+ * INTERNAL - Bind variables from a row to their values, respecting scope visibility rules.
+ *
+ * This function implements SPARQL 1.2 compliant variable binding that:
+ * - Only binds variables visible in the given scope
+ * - Respects scope isolation rules
+ * - Enables proper variable resolution during expression evaluation
+ *
+ * Return value: non-zero on failure
+ */
+int
+rasqal_query_scope_bind_row_variables(rasqal_query_scope* scope,
+                                      rasqal_row* row,
+                                      rasqal_rowsource* rowsource)
+{
+  int i;
+
+  if(!scope || !row || !rowsource)
+    return 1;
+
+  /* If no visible variables computed yet, use fallback */
+  if(!scope->visible_vars) {
+    /* Use global binding as fallback */
+    return rasqal_row_bind_variables(row, rowsource->query->vars_table);
+  }
+
+  /* Scope-aware binding: only bind variables visible in current scope */
+  for(i = 0; i < row->size; i++) {
+    rasqal_variable* var = rasqal_rowsource_get_variable_by_offset(rowsource, i);
+    if(var && row->values[i]) {
+      /* Check if variable is visible in current scope */
+      if(rasqal_variables_table_contains(scope->visible_vars, var->type, var->name)) {
+        /* Get the scope's version of the variable and bind its value */
+        rasqal_variable* scope_var = rasqal_variables_table_get_by_name(scope->visible_vars,
+                                                                        var->type, var->name);
+        if(scope_var) {
+          /* Bind the variable value for expression evaluation */
+          rasqal_variable_set_value(scope_var, rasqal_new_literal_from_literal(row->values[i]));
+        }
+      }
+    }
+  }
+
+  return 0;
+}
+
 #endif /* not STANDALONE */

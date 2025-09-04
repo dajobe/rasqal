@@ -470,45 +470,7 @@ rasqal_new_graph_algebra_node(rasqal_query* query,
 }
 
 
-/*
- * rasqal_new_assignment_algebra_node:
- * @query: #rasqal_query query object
- * @var: variable
- * @expr: expression
- * @execution_scope: scope for variable resolution (may be NULL)
- *
- * INTERNAL - Create a new LET algebra node over a variable and expression
- * 
- * The input @expr becomes owned by the new node
- *
- * Return value: a new #rasqal_algebra_node object or NULL on failure
- **/
-rasqal_algebra_node*
-rasqal_new_assignment_algebra_node(rasqal_query* query,
-                                   rasqal_variable *var,
-                                   rasqal_expression *expr,
-                                   rasqal_query_scope* execution_scope)
-{
-  rasqal_algebra_node* node;
-
-  if(!query || !var || !expr)
-    goto fail;
-
-  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_ASSIGN);
-  if(node) {
-    node->var = var;
-    node->expr = expr;
-    node->execution_scope = execution_scope;
-    
-    return node;
-  }
-
-  fail:
-  if(expr)
-    rasqal_free_expression(expr);
-
-  return NULL;
-}
+/* Assignment algebra node removed - replaced by Extend */
 
 
 /*
@@ -719,6 +681,49 @@ rasqal_new_service_algebra_node(rasqal_query* query,
 
 
 /*
+ * rasqal_new_extend_algebra_node:
+ * @query: #rasqal_query query object
+ * @input: input algebra node
+ * @var: variable to bind
+ * @expr: expression to evaluate
+ *
+ * INTERNAL - Create a new Extend algebra node for variable binding
+ *
+ * This implements SPARQL 1.2 Extend operator semantics:
+ * Extend(μ, var, expr) = μ ∪ {(var, value) | var not in dom(μ) and value = expr(μ)}
+ * Extend(μ, var, expr) = μ if var in dom(μ) or expr(μ) is an error
+ *
+ * The inputs @var and @expr become owned by the new node
+ *
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
+ **/
+rasqal_algebra_node*
+rasqal_new_extend_algebra_node(rasqal_query* query,
+                               rasqal_algebra_node* input,
+                               rasqal_variable* var,
+                               rasqal_expression* expr)
+{
+  rasqal_algebra_node* node;
+
+  if(!query || !input || !var || !expr)
+    goto fail;
+
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_EXTEND);
+  if(node) {
+    node->node1 = input;
+    node->var = var;
+    node->expr = expr;
+
+    return node;
+  }
+
+  fail:
+  return NULL;
+}
+
+
+
+/*
  * rasqal_free_algebra_node:
  * @gp: #rasqal_algebra_node object
  *
@@ -804,7 +809,7 @@ static struct {
   { "Reduced", 7 },
   { "Slice", 5 },
   { "Graph", 5 },
-  { "Assignment", 10 },
+  { "Extend", 6 },
   { "Group", 5 },
   { "Aggregate", 9 },
   { "Having", 6 },
@@ -1408,6 +1413,23 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
         RASQAL_DEBUG1("rasqal_new_2op_algebra_node() failed for MINUS\n");
         goto fail;
       }
+    } else if(egp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BIND) {
+      /* SPARQL 1.2 BIND processing: G := Extend(G, var, expr) */
+      rasqal_expression* expr;
+
+      expr = rasqal_new_expression_from_expression(egp->filter_expression);
+      if(!expr) {
+        RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed for BIND\n");
+        goto fail;
+      }
+
+      /* G := Extend(G, var, expr) */
+      gnode = rasqal_new_extend_algebra_node(query, gnode, egp->var, expr);
+      if(!gnode) {
+        RASQAL_DEBUG1("rasqal_new_extend_algebra_node() failed\n");
+        rasqal_free_expression(expr);
+        goto fail;
+      }
     } else {
       /* If E is any other form:*/
       rasqal_algebra_node* anode;
@@ -1495,12 +1517,29 @@ rasqal_algebra_bind_graph_pattern_to_algebra(rasqal_query* query,
                                              rasqal_graph_pattern* gp)
 {
   rasqal_expression *expr;
-    
+  rasqal_algebra_node *empty_node;
+  rasqal_algebra_node *extend_node;
+
   expr = rasqal_new_expression_from_expression(gp->filter_expression);
-  if(expr)
-    return rasqal_new_assignment_algebra_node(query, gp->var, expr, gp->execution_scope);
-  
-  return NULL;
+  if(!expr)
+    return NULL;
+
+  /* Create empty algebra node as input to Extend per SPARQL 1.2 semantics */
+  empty_node = rasqal_new_empty_algebra_node(query);
+  if(!empty_node) {
+    rasqal_free_expression(expr);
+    return NULL;
+  }
+
+  /* Create Extend node: Extend(Empty, var, expr) */
+  extend_node = rasqal_new_extend_algebra_node(query, empty_node, gp->var, expr);
+  if(!extend_node) {
+    rasqal_free_expression(expr);
+    rasqal_free_algebra_node(empty_node);
+    return NULL;
+  }
+
+  return extend_node;
 }
 
 

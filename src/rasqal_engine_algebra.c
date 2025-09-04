@@ -237,14 +237,33 @@ rasqal_algebra_join_algebra_node_to_rowsource(rasqal_engine_algebra_data* execut
 
 
 static rasqal_rowsource*
-rasqal_algebra_assignment_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
-                                                    rasqal_algebra_node* node,
-                                                    rasqal_engine_error *error_p)
+rasqal_algebra_extend_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                                rasqal_algebra_node* node,
+                                                rasqal_engine_error *error_p)
 {
   rasqal_query *query = execution_data->query;
 
-  return rasqal_new_assignment_rowsource(query->world, query, node->var, 
-                                         node->expr, node->execution_scope);
+  fprintf(stderr, "ENGINE_EXTEND: Creating Extend rowsource, node=%p, node1=%p, var=%p, expr=%p\n",
+          node, node->node1, node->var, node->expr);
+
+  /* Get the input rowsource from the node's child */
+  rasqal_rowsource* input_rs = NULL;
+  if(node->node1) {
+    fprintf(stderr, "ENGINE_EXTEND: Creating input rowsource from node1\n");
+    input_rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
+    fprintf(stderr, "ENGINE_EXTEND: Input rowsource created: %p\n", input_rs);
+    if(!input_rs)
+      return NULL;
+  } else {
+    /* If no input node, this is an error */
+    fprintf(stderr, "ENGINE_EXTEND: ERROR - no input node!\n");
+    return NULL;
+  }
+
+  /* Create the Extend rowsource with scope integration */
+  fprintf(stderr, "ENGINE_EXTEND: Creating Extend rowsource\n");
+  return rasqal_new_extend_rowsource(query->world, query, input_rs,
+                                     node->var, node->expr);
 }
 
 
@@ -493,11 +512,6 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
                                                          node, error_p);
       break;
 
-    case RASQAL_ALGEBRA_OPERATOR_ASSIGN:
-      rs = rasqal_algebra_assignment_algebra_node_to_rowsource(execution_data,
-                                                               node, error_p);
-      break;
-
     case RASQAL_ALGEBRA_OPERATOR_GROUP:
       rs = rasqal_algebra_group_algebra_node_to_rowsource(execution_data,
                                                           node, error_p);
@@ -526,6 +540,11 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
     case RASQAL_ALGEBRA_OPERATOR_SERVICE:
       rs = rasqal_algebra_service_algebra_node_to_rowsource(execution_data,
                                                             node, error_p);
+      break;
+
+    case RASQAL_ALGEBRA_OPERATOR_EXTEND:
+      rs = rasqal_algebra_extend_algebra_node_to_rowsource(execution_data,
+                                                           node, error_p);
       break;
 
     case RASQAL_ALGEBRA_OPERATOR_DIFF:

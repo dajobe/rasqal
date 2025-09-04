@@ -99,18 +99,8 @@ rasqal_project_rowsource_ensure_variables(rasqal_rowsource* rowsource,
     v = (rasqal_variable*)raptor_sequence_get_at(con->projection_variables, i);
     if(!v)
       break;
-    /* Try scope-aware lookup first, fall back to regular lookup if scope is not available */
-    offset = -1; /* Initialize to indicate not found */
-    if(con->evaluation_scope) {
-      offset = rasqal_rowsource_get_variable_offset_by_name_with_scope(con->rowsource,
-                                                                       RASQAL_GOOD_CAST(const char*, v->name),
-                                                                       con->evaluation_scope);
-    }
-
-    /* If scope-aware lookup failed or no scope available, try regular lookup */
-    if(offset < 0) {
-      offset = rasqal_rowsource_get_variable_offset_by_name(con->rowsource, v->name);
-    }
+    /* Use regular lookup for now - scope-aware lookup may have ordering issues */
+    offset = rasqal_rowsource_get_variable_offset_by_name(con->rowsource, v->name);
 
 #ifdef RASQAL_DEBUG
     if(offset < 0)
