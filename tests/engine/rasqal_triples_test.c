@@ -139,7 +139,7 @@ main(int argc, char **argv) {
    * relative URI resolution
    */
   if(data_dir_string[strlen((char*)data_dir_string) - 1] != '/') {
-    unsigned char *new_uri_string = malloc(strlen((char*)data_dir_string) + 2);
+    unsigned char *new_uri_string = RASQAL_MALLOC(unsigned char*, strlen((char*)data_dir_string) + 2);
     sprintf((char*)new_uri_string, "%s/", data_dir_string);
     raptor_free_uri(data_dir_uri);
     data_dir_uri = raptor_new_uri(world->raptor_world_ptr, new_uri_string);
