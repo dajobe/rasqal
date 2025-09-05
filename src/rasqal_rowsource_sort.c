@@ -41,7 +41,7 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
+
 
 
 typedef struct 
@@ -137,9 +137,9 @@ rasqal_sort_rowsource_process(rasqal_rowsource* rowsource,
   }
   
 #ifdef RASQAL_DEBUG
-  fputs("resulting ", DEBUG_FH);
-  rasqal_map_print(con->map, DEBUG_FH);
-  fputs("\n", DEBUG_FH);
+  fputs("resulting ", RASQAL_DEBUG_FH);
+  rasqal_map_print(con->map, RASQAL_DEBUG_FH);
+  fputs("\n", RASQAL_DEBUG_FH);
 #endif
   
   /* do sort/distinct: walk map in order, adding rows to sequence */

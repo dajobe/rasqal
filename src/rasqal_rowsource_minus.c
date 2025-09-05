@@ -41,7 +41,6 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
 
 #ifndef STANDALONE
 
@@ -603,11 +602,11 @@ main(int argc, char *argv[])
   query = rasqal_new_query(world, "sparql", NULL);
   vt = query->vars_table;
 
-  fprintf(DEBUG_FH, "%s: Testing MINUS rowsource\n", program);
+  fprintf(RASQAL_DEBUG_FH, "%s: Testing MINUS rowsource\n", program);
 
   /* Test 1: Basic MINUS with same variables */
   test_count++;
-  fprintf(DEBUG_FH, "%s: Test %d: Basic MINUS with same variables\n", program,
+  fprintf(RASQAL_DEBUG_FH, "%s: Test %d: Basic MINUS with same variables\n", program,
           test_count);
   
   /* Create LHS rowsource with 2 variables and 3 rows */
@@ -615,7 +614,7 @@ main(int argc, char *argv[])
   seq = rasqal_new_row_sequence(world, vt, minus_1_data_lhs_2x3_rows,
                                 vars_count, &vars_seq);
   if(!seq) {
-    fprintf(DEBUG_FH, "%s: failed to create LHS sequence of %d vars\n",
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create LHS sequence of %d vars\n",
             program, vars_count);
     failures++;
     goto test1_fail;
@@ -623,7 +622,7 @@ main(int argc, char *argv[])
   
   lhs_rs = rasqal_new_rowsequence_rowsource(world, query, vt, seq, vars_seq);
   if(!lhs_rs) {
-    fprintf(DEBUG_FH, "%s: failed to create LHS rowsource\n", program);
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create LHS rowsource\n", program);
     failures++;
     goto test1_fail;
   }
@@ -635,7 +634,7 @@ main(int argc, char *argv[])
   seq = rasqal_new_row_sequence(world, vt, minus_1_data_rhs_2x2_rows,
                                 vars_count, &vars_seq);
   if(!seq) {
-    fprintf(DEBUG_FH, "%s: failed to create RHS sequence of %d vars\n",
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create RHS sequence of %d vars\n",
             program, vars_count);
     failures++;
     goto test1_fail;
@@ -643,7 +642,7 @@ main(int argc, char *argv[])
   
   rhs_rs = rasqal_new_rowsequence_rowsource(world, query, vt, seq, vars_seq);
   if(!rhs_rs) {
-    fprintf(DEBUG_FH, "%s: failed to create RHS rowsource\n", program);
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create RHS rowsource\n", program);
     failures++;
     goto test1_fail;
   }
@@ -654,7 +653,7 @@ main(int argc, char *argv[])
   
   minus_rs = rasqal_new_minus_rowsource(world, query, lhs_rs, rhs_rs);
   if(!minus_rs) {
-    fprintf(DEBUG_FH, "%s: failed to create MINUS rowsource\n", program);
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create MINUS rowsource\n", program);
     failures++;
     goto test1_fail;
   }
@@ -664,7 +663,7 @@ main(int argc, char *argv[])
   /* Read all rows and check count */
   seq = rasqal_rowsource_read_all_rows(minus_rs);
   if(!seq) {
-    fprintf(DEBUG_FH, "%s: read_rows returned a NULL seq for MINUS rowsource\n",
+    fprintf(RASQAL_DEBUG_FH, "%s: read_rows returned a NULL seq for MINUS rowsource\n",
             program);
     failures++;
     goto test1_fail;
@@ -672,14 +671,14 @@ main(int argc, char *argv[])
   
   count = raptor_sequence_size(seq);
   if(count != 1) {
-    fprintf(DEBUG_FH,
+    fprintf(RASQAL_DEBUG_FH,
             "%s: read_rows returned %d rows for MINUS rowsource, expected 1\n",
             program, count);
     failures++;
     goto test1_fail;
   }
   
-  fprintf(DEBUG_FH, "%s: Test %d passed\n", program, test_count);
+  fprintf(RASQAL_DEBUG_FH, "%s: Test %d passed\n", program, test_count);
 
   test1_fail:
   if(seq)
@@ -693,7 +692,7 @@ main(int argc, char *argv[])
 
   /* Test 2: MINUS with different variable sets */
   test_count++;
-  fprintf(DEBUG_FH, "%s: Test %d: MINUS with different variable sets\n",
+  fprintf(RASQAL_DEBUG_FH, "%s: Test %d: MINUS with different variable sets\n",
           program, test_count);
   
   /* Create LHS rowsource with 3 variables and 2 rows */
@@ -701,7 +700,7 @@ main(int argc, char *argv[])
   seq = rasqal_new_row_sequence(world, vt, minus_2_data_lhs_3x2_rows,
                                 vars_count, &vars_seq);
   if(!seq) {
-    fprintf(DEBUG_FH, "%s: failed to create LHS sequence of %d vars\n", program,
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create LHS sequence of %d vars\n", program,
             vars_count);
     failures++;
     goto test2_fail;
@@ -709,7 +708,7 @@ main(int argc, char *argv[])
   
   lhs_rs = rasqal_new_rowsequence_rowsource(world, query, vt, seq, vars_seq);
   if(!lhs_rs) {
-    fprintf(DEBUG_FH, "%s: failed to create LHS rowsource\n", program);
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create LHS rowsource\n", program);
     failures++;
     goto test2_fail;
   }
@@ -721,7 +720,7 @@ main(int argc, char *argv[])
   seq = rasqal_new_row_sequence(world, vt, minus_2_data_rhs_2x1_rows,
                                 vars_count, &vars_seq);
   if(!seq) {
-    fprintf(DEBUG_FH, "%s: failed to create RHS sequence of %d vars\n",
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create RHS sequence of %d vars\n",
             program, vars_count);
     failures++;
     goto test2_fail;
@@ -729,7 +728,7 @@ main(int argc, char *argv[])
   
   rhs_rs = rasqal_new_rowsequence_rowsource(world, query, vt, seq, vars_seq);
   if(!rhs_rs) {
-    fprintf(DEBUG_FH, "%s: failed to create RHS rowsource\n", program);
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create RHS rowsource\n", program);
     failures++;
     goto test2_fail;
   }
@@ -740,7 +739,7 @@ main(int argc, char *argv[])
   
   minus_rs = rasqal_new_minus_rowsource(world, query, lhs_rs, rhs_rs);
   if(!minus_rs) {
-    fprintf(DEBUG_FH, "%s: failed to create MINUS rowsource\n", program);
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create MINUS rowsource\n", program);
     failures++;
     goto test2_fail;
   }
@@ -750,7 +749,7 @@ main(int argc, char *argv[])
   /* Read all rows and check count */
   seq = rasqal_rowsource_read_all_rows(minus_rs);
   if(!seq) {
-    fprintf(DEBUG_FH,
+    fprintf(RASQAL_DEBUG_FH,
             "%s: read_rows returned a NULL seq for MINUS rowsource\n", program);
     failures++;
     goto test2_fail;
@@ -758,14 +757,14 @@ main(int argc, char *argv[])
   
   count = raptor_sequence_size(seq);
   if(count != 1) {
-    fprintf(DEBUG_FH,
+    fprintf(RASQAL_DEBUG_FH,
             "%s: read_rows returned %d rows for MINUS rowsource, expected 1\n",
             program, count);
     failures++;
     goto test2_fail;
   }
   
-  fprintf(DEBUG_FH, "%s: Test %d passed\n", program, test_count);
+  fprintf(RASQAL_DEBUG_FH, "%s: Test %d passed\n", program, test_count);
 
   test2_fail:
   if(seq)
@@ -779,7 +778,7 @@ main(int argc, char *argv[])
 
   /* Test 3: MINUS with partial variable match */
   test_count++;
-  fprintf(DEBUG_FH, "%s: Test %d: MINUS with partial variable match\n",
+  fprintf(RASQAL_DEBUG_FH, "%s: Test %d: MINUS with partial variable match\n",
           program, test_count);
   
   /* Create LHS rowsource with 2 variables and 2 rows */
@@ -787,7 +786,7 @@ main(int argc, char *argv[])
   seq = rasqal_new_row_sequence(world, vt, minus_3_data_lhs_2x2_rows,
                                 vars_count, &vars_seq);
   if(!seq) {
-    fprintf(DEBUG_FH, "%s: failed to create LHS sequence of %d vars\n",
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create LHS sequence of %d vars\n",
             program, vars_count);
     failures++;
     goto test3_fail;
@@ -795,7 +794,7 @@ main(int argc, char *argv[])
   
   lhs_rs = rasqal_new_rowsequence_rowsource(world, query, vt, seq, vars_seq);
   if(!lhs_rs) {
-    fprintf(DEBUG_FH, "%s: failed to create LHS rowsource\n", program);
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create LHS rowsource\n", program);
     failures++;
     goto test3_fail;
   }
@@ -807,7 +806,7 @@ main(int argc, char *argv[])
   seq = rasqal_new_row_sequence(world, vt, minus_3_data_rhs_1x1_rows,
                                 vars_count, &vars_seq);
   if(!seq) {
-    fprintf(DEBUG_FH, "%s: failed to create RHS sequence of %d vars\n",
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create RHS sequence of %d vars\n",
             program, vars_count);
     failures++;
     goto test3_fail;
@@ -815,7 +814,7 @@ main(int argc, char *argv[])
   
   rhs_rs = rasqal_new_rowsequence_rowsource(world, query, vt, seq, vars_seq);
   if(!rhs_rs) {
-    fprintf(DEBUG_FH, "%s: failed to create RHS rowsource\n", program);
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create RHS rowsource\n", program);
     failures++;
     goto test3_fail;
   }
@@ -826,7 +825,7 @@ main(int argc, char *argv[])
   
   minus_rs = rasqal_new_minus_rowsource(world, query, lhs_rs, rhs_rs);
   if(!minus_rs) {
-    fprintf(DEBUG_FH, "%s: failed to create MINUS rowsource\n", program);
+    fprintf(RASQAL_DEBUG_FH, "%s: failed to create MINUS rowsource\n", program);
     failures++;
     goto test3_fail;
   }
@@ -836,7 +835,7 @@ main(int argc, char *argv[])
   /* Read all rows and check count */
   seq = rasqal_rowsource_read_all_rows(minus_rs);
   if(!seq) {
-    fprintf(DEBUG_FH,
+    fprintf(RASQAL_DEBUG_FH,
             "%s: read_rows returned a NULL seq for MINUS rowsource\n", program);
     failures++;
     goto test3_fail;
@@ -844,14 +843,14 @@ main(int argc, char *argv[])
   
   count = raptor_sequence_size(seq);
   if(count != 1) {
-    fprintf(DEBUG_FH,
+    fprintf(RASQAL_DEBUG_FH,
             "%s: read_rows returned %d rows for MINUS rowsource, expected 1\n",
             program, count);
     failures++;
     goto test3_fail;
   }
   
-  fprintf(DEBUG_FH, "%s: Test %d passed\n", program, test_count);
+  fprintf(RASQAL_DEBUG_FH, "%s: Test %d passed\n", program, test_count);
 
   test3_fail:
   if(seq)
@@ -866,7 +865,7 @@ main(int argc, char *argv[])
   rasqal_free_query(query);
   rasqal_free_world(world);
 
-  fprintf(DEBUG_FH, "%s: Completed %d tests with %d failures\n", program,
+  fprintf(RASQAL_DEBUG_FH, "%s: Completed %d tests with %d failures\n", program,
           test_count, failures);
 
   return failures;

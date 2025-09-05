@@ -41,7 +41,6 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
 
 #ifndef STANDALONE
 
@@ -136,10 +135,10 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("join expression condition is constant: ");
     if(error)
-      fputs("type error", DEBUG_FH);
+      fputs("type error", RASQAL_DEBUG_FH);
     else
-      rasqal_literal_print(result, DEBUG_FH);
-    fputc('\n', DEBUG_FH);
+      rasqal_literal_print(result, RASQAL_DEBUG_FH);
+    fputc('\n', RASQAL_DEBUG_FH);
 #endif
 
     if(error) {
@@ -460,10 +459,10 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG1("join expression result: ");
       if(error)
-        fputs("type error", DEBUG_FH);
+        fputs("type error", RASQAL_DEBUG_FH);
       else
-        rasqal_literal_print(result, DEBUG_FH);
-      fputc('\n', DEBUG_FH);
+        rasqal_literal_print(result, RASQAL_DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
 #endif
 
       if(error) {
@@ -872,7 +871,7 @@ main(int argc, char *argv[])
     }
 
 #ifdef RASQAL_DEBUG
-    rasqal_rowsource_print_row_sequence(rowsource, seq, DEBUG_FH);
+    rasqal_rowsource_print_row_sequence(rowsource, seq, RASQAL_DEBUG_FH);
 #endif
 
     raptor_free_sequence(seq); seq = NULL;

@@ -42,7 +42,6 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
 
 
 #ifndef STANDALONE
@@ -1840,8 +1839,8 @@ rasqal_expression_is_constant(rasqal_expression* e)
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG2("expression %p: ", e);
-  rasqal_expression_print(e, DEBUG_FH);
-  fprintf(DEBUG_FH, " %s constant\n", (result ? "is" : "is not"));
+  rasqal_expression_print(e, RASQAL_DEBUG_FH);
+  fprintf(RASQAL_DEBUG_FH, " %s constant\n", (result ? "is" : "is not"));
 #endif
   
   return result;

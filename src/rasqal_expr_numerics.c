@@ -50,7 +50,7 @@
 #include <uuid/uuid.h>
 #endif
 
-#define DEBUG_FH stderr
+
 
 
 /* 

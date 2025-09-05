@@ -41,7 +41,6 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
 
 
 #ifndef STANDALONE
@@ -447,8 +446,8 @@ main(int argc, char *argv[])
   }
   
 #ifdef RASQAL_DEBUG
-  fprintf(DEBUG_FH, "result of projection:\n");
-  rasqal_rowsource_print_row_sequence(rowsource, seq, DEBUG_FH);
+  fprintf(RASQAL_DEBUG_FH, "result of projection:\n");
+  rasqal_rowsource_print_row_sequence(rowsource, seq, RASQAL_DEBUG_FH);
 #endif
 
   tidy:

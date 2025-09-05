@@ -41,7 +41,7 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
+
 
 
 /* 

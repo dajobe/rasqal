@@ -44,7 +44,7 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
+
 
 
 struct rasqal_dataset_triple_s {
@@ -420,8 +420,8 @@ rasqal_dataset_term_iterator_next(rasqal_dataset_term_iterator* iter)
     
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
     RASQAL_DEBUG1("Matching against triple: ");
-    rasqal_triple_print(iter->cursor->triple, DEBUG_FH);
-    fputc('\n', DEBUG_FH);
+    rasqal_triple_print(iter->cursor->triple, RASQAL_DEBUG_FH);
+    fputc('\n', RASQAL_DEBUG_FH);
 #endif
 
     if(rasqal_raptor_triple_match(iter->dataset->world,

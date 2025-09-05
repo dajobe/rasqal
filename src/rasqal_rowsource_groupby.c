@@ -41,7 +41,7 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
+
 
 
 #ifndef STANDALONE
@@ -332,9 +332,9 @@ rasqal_groupby_rowsource_process(rasqal_rowsource* rowsource,
   }
 
 #ifdef RASQAL_DEBUG
-  fputs("Grouping ", DEBUG_FH);
-  raptor_avltree_print(con->tree, DEBUG_FH);
-  fputs("\n", DEBUG_FH);
+  fputs("Grouping ", RASQAL_DEBUG_FH);
+  raptor_avltree_print(con->tree, RASQAL_DEBUG_FH);
+  fputs("\n", RASQAL_DEBUG_FH);
 #endif
 
   if(raptor_avltree_size(con->tree))

@@ -41,7 +41,7 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
+
 
 
 typedef struct 
@@ -135,10 +135,10 @@ rasqal_having_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("having expression list result: ");
     if(!literal_seq)
-      fputs("NULL", DEBUG_FH);
+      fputs("NULL", RASQAL_DEBUG_FH);
     else
-      raptor_sequence_print(literal_seq, DEBUG_FH);
-    fputc('\n', DEBUG_FH);
+      raptor_sequence_print(literal_seq, RASQAL_DEBUG_FH);
+    fputc('\n', RASQAL_DEBUG_FH);
 #endif
 
     if(!literal_seq) {

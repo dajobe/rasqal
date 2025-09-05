@@ -44,7 +44,7 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
+
 
 
 #ifndef STANDALONE
@@ -554,7 +554,7 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
         row = NULL;
 #ifdef RASQAL_DEBUG
         RASQAL_DEBUG2("Aggregation ending group %d", con->last_group_id);
-        fputc('\n', DEBUG_FH);
+        fputc('\n', RASQAL_DEBUG_FH);
 #endif
 
         /* Empty distinct maps */
@@ -575,7 +575,7 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG2("Aggregation starting group %d", row->group_id);
-      fputc('\n', DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
 #endif
 
 
@@ -661,8 +661,8 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
 
 #ifdef RASQAL_DEBUG
         RASQAL_DEBUG2("Aggregation expr %d step over literals: ", i);
-        raptor_sequence_print(seq, DEBUG_FH);
-        fputc('\n', DEBUG_FH);
+        raptor_sequence_print(seq, RASQAL_DEBUG_FH);
+        fputc('\n', RASQAL_DEBUG_FH);
 #endif
 
         error = rasqal_builtin_agg_expression_execute_step(expr_data->agg_user_data,
@@ -748,8 +748,8 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
   
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG2("Aggregation %d ending group with result: ", i);
-      rasqal_literal_print(result, DEBUG_FH);
-      fputc('\n', DEBUG_FH);
+      rasqal_literal_print(result, RASQAL_DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
 #endif
       
       v = rasqal_rowsource_get_variable_by_offset(rowsource, offset);

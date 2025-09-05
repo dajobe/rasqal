@@ -42,7 +42,6 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
 
 /* Normalize a literal by converting a variable-literal whose variable is
  * currently unbound into NULL. Returns the same pointer if not a variable or

@@ -65,7 +65,6 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
-#define DEBUG_FH stderr
 
 
 #ifndef STANDALONE
@@ -4280,10 +4279,10 @@ rasqal_literal_sequence_compare(int compare_flags,
     
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("Comparing ");
-    rasqal_literal_print(literal_a, DEBUG_FH);
-    fputs(" to ", DEBUG_FH);
-    rasqal_literal_print(literal_b, DEBUG_FH);
-    fputs("\n", DEBUG_FH);
+    rasqal_literal_print(literal_a, RASQAL_DEBUG_FH);
+    fputs(" to ", RASQAL_DEBUG_FH);
+    rasqal_literal_print(literal_b, RASQAL_DEBUG_FH);
+    fputs("\n", RASQAL_DEBUG_FH);
 #endif
 
     if(!literal_a || !literal_b) {
@@ -4428,10 +4427,10 @@ rasqal_literal_array_compare(rasqal_literal** values_a,
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("Comparing ");
-    rasqal_literal_print(literal_a, DEBUG_FH);
-    fputs(" to ", DEBUG_FH);
-    rasqal_literal_print(literal_b, DEBUG_FH);
-    fputs("\n", DEBUG_FH);
+    rasqal_literal_print(literal_a, RASQAL_DEBUG_FH);
+    fputs(" to ", RASQAL_DEBUG_FH);
+    rasqal_literal_print(literal_b, RASQAL_DEBUG_FH);
+    fputs("\n", RASQAL_DEBUG_FH);
 #endif
 
     /* NULLs order first */
@@ -4557,10 +4556,10 @@ rasqal_literal_array_equals(rasqal_literal** values_a,
                                          RASQAL_COMPARE_RDF, &error);
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("Comparing ");
-    rasqal_literal_print(literal_a, DEBUG_FH);
-    fputs(" to ", DEBUG_FH);
-    rasqal_literal_print(literal_b, DEBUG_FH);
-    fprintf(DEBUG_FH, " gave %s\n", (result ? "equality" : "not equal"));
+    rasqal_literal_print(literal_a, RASQAL_DEBUG_FH);
+    fputs(" to ", RASQAL_DEBUG_FH);
+    rasqal_literal_print(literal_b, RASQAL_DEBUG_FH);
+    fprintf(RASQAL_DEBUG_FH, " gave %s\n", (result ? "equality" : "not equal"));
 #endif
 
     if(error)
@@ -4601,10 +4600,10 @@ rasqal_literal_sequence_equals(raptor_sequence* values_a,
                                          RASQAL_COMPARE_RDF, &error);
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
     RASQAL_DEBUG1("Comparing ");
-    rasqal_literal_print(literal_a, DEBUG_FH);
-    fputs(" to ", DEBUG_FH);
-    rasqal_literal_print(literal_b, DEBUG_FH);
-    fprintf(DEBUG_FH, " gave %s\n", (result ? "equality" : "not equal"));
+    rasqal_literal_print(literal_a, RASQAL_DEBUG_FH);
+    fputs(" to ", RASQAL_DEBUG_FH);
+    rasqal_literal_print(literal_b, RASQAL_DEBUG_FH);
+    fprintf(RASQAL_DEBUG_FH, " gave %s\n", (result ? "equality" : "not equal"));
 #endif
 
     if(error)
@@ -4749,8 +4748,8 @@ rasqal_literal_sequence_sort_map_add_literal_sequence(rasqal_map* map,
   /* duplicate, and not added so delete it */
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("Got duplicate array of literals ");
-  raptor_sequence_print(literals_seq, DEBUG_FH);
-  fputc('\n', DEBUG_FH);
+  raptor_sequence_print(literals_seq, RASQAL_DEBUG_FH);
+  fputc('\n', RASQAL_DEBUG_FH);
 #endif
   raptor_free_sequence(literals_seq);
 
@@ -5063,15 +5062,15 @@ main(int argc, char *argv[])
       goto tidy;
     }
 
-    fprintf(DEBUG_FH, "%s: Test %d data (seq of seq of literals) is: ", program,
+    fprintf(RASQAL_DEBUG_FH, "%s: Test %d data (seq of seq of literals) is: ", program,
             test_id);
-    raptor_sequence_print(seq, DEBUG_FH);
-    fputc('\n', DEBUG_FH);
+    raptor_sequence_print(seq, RASQAL_DEBUG_FH);
+    fputc('\n', RASQAL_DEBUG_FH);
     
     map = rasqal_new_literal_sequence_sort_map(1 /* is_distinct */,
                                                0 /* compare_flags */);
     if(!map) {
-      fprintf(DEBUG_FH, "%s: Test %d failed to create map\n",
+      fprintf(RASQAL_DEBUG_FH, "%s: Test %d failed to create map\n",
               program, test_id);
       failures++;
       raptor_free_sequence(seq);
@@ -5089,7 +5088,7 @@ main(int argc, char *argv[])
       
       rc = rasqal_literal_sequence_sort_map_add_literal_sequence(map, seq2);
       if(rc) {
-        fprintf(DEBUG_FH, "%s: Test %d literal seq %d is a duplicate\n", 
+        fprintf(RASQAL_DEBUG_FH, "%s: Test %d literal seq %d is a duplicate\n", 
                 program, test_id, i);
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
         duplicates++;
@@ -5100,14 +5099,14 @@ main(int argc, char *argv[])
     rasqal_free_map(map);
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    fprintf(DEBUG_FH, "%s: Test %d had %d duplicates\n", program, test_id, 
+    fprintf(RASQAL_DEBUG_FH, "%s: Test %d had %d duplicates\n", program, test_id, 
             duplicates);
 #endif
 
     raptor_free_sequence(seq);
 
     if(count != expected_rows) {
-      fprintf(DEBUG_FH, "%s: Test %d returned %d rows expected %d\n", program,
+      fprintf(RASQAL_DEBUG_FH, "%s: Test %d returned %d rows expected %d\n", program,
               test_id, count, expected_rows);
       failures++;
     }

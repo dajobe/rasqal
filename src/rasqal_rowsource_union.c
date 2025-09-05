@@ -41,7 +41,6 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
 
 #ifndef STANDALONE
 
@@ -310,13 +309,13 @@ rasqal_union_rowsource_read_all_rows(rasqal_rowsource* rowsource,
   }
 
 #ifdef RASQAL_DEBUG
-  fprintf(DEBUG_FH, "left rowsource (%d vars):\n",
+  fprintf(RASQAL_DEBUG_FH, "left rowsource (%d vars):\n",
           rasqal_rowsource_get_size(con->left));
-  rasqal_rowsource_print_row_sequence(con->left, seq1, DEBUG_FH);
+  rasqal_rowsource_print_row_sequence(con->left, seq1, RASQAL_DEBUG_FH);
 
-  fprintf(DEBUG_FH, "right rowsource (%d vars):\n",
+  fprintf(RASQAL_DEBUG_FH, "right rowsource (%d vars):\n",
           rasqal_rowsource_get_size(con->right));
-  rasqal_rowsource_print_row_sequence(con->right, seq2, DEBUG_FH);
+  rasqal_rowsource_print_row_sequence(con->right, seq2, RASQAL_DEBUG_FH);
 #endif
 
   /* transform rows from left to match new projection */
@@ -629,7 +628,7 @@ main(int argc, char *argv[])
   }
   
 #ifdef RASQAL_DEBUG
-  rasqal_rowsource_print_row_sequence(rowsource, seq, DEBUG_FH);
+  rasqal_rowsource_print_row_sequence(rowsource, seq, RASQAL_DEBUG_FH);
 #endif
 
   tidy:

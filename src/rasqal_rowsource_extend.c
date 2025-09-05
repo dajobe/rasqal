@@ -62,7 +62,6 @@ Evaluation Semantics:
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
 
 
 typedef struct
@@ -224,21 +223,21 @@ rasqal_extend_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 #ifdef RASQAL_DEBUG
       /* Debug: Verify the variable binding */
       RASQAL_DEBUG2("EXTEND: Bound variable %s to value: ", con->var->name);
-      rasqal_literal_print(result, DEBUG_FH);
-      fputc('\n', DEBUG_FH);
+      rasqal_literal_print(result, RASQAL_DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
 
       /* Debug: Print the full row */
       RASQAL_DEBUG1("EXTEND: Output row values:\n");
       for(j = 0; j < output_row->size; j++) {
         rasqal_variable* var = rasqal_rowsource_get_variable_by_offset(rowsource, j);
         if(var) {
-          fprintf(DEBUG_FH, "  %s = ", var->name);
+          fprintf(RASQAL_DEBUG_FH, "  %s = ", var->name);
           if(output_row->values[j]) {
-            rasqal_literal_print(output_row->values[j], DEBUG_FH);
+            rasqal_literal_print(output_row->values[j], RASQAL_DEBUG_FH);
           } else {
-            fputs("NULL", DEBUG_FH);
+            fputs("NULL", RASQAL_DEBUG_FH);
           }
-          fputc('\n', DEBUG_FH);
+          fputc('\n', RASQAL_DEBUG_FH);
         }
       }
 #endif

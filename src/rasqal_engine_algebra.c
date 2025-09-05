@@ -40,7 +40,6 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
 
 
 
@@ -244,24 +243,24 @@ rasqal_algebra_extend_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
   rasqal_query *query = execution_data->query;
   rasqal_rowsource* input_rs = NULL;
 
-  fprintf(stderr, "ENGINE_EXTEND: Creating Extend rowsource, node=%p, node1=%p, var=%p, expr=%p\n",
-          node, node->node1, node->var, node->expr);
+  RASQAL_DEBUG5("ENGINE_EXTEND: Creating Extend rowsource, node=%p, node1=%p, var=%p, expr=%p\n",
+                node, node->node1, node->var, node->expr);
 
   /* Get the input rowsource from the node's child */
   if(node->node1) {
-    fprintf(stderr, "ENGINE_EXTEND: Creating input rowsource from node1\n");
+    RASQAL_DEBUG1("Creating input rowsource from node1\n");
     input_rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
-    fprintf(stderr, "ENGINE_EXTEND: Input rowsource created: %p\n", input_rs);
+    RASQAL_DEBUG2("Input rowsource created: %p\n", input_rs);
     if(!input_rs)
       return NULL;
   } else {
     /* If no input node, this is an error */
-    fprintf(stderr, "ENGINE_EXTEND: ERROR - no input node!\n");
+    RASQAL_DEBUG1("ERROR - no input node!\n");
     return NULL;
   }
 
   /* Create the Extend rowsource with scope integration */
-  fprintf(stderr, "ENGINE_EXTEND: Creating Extend rowsource\n");
+  RASQAL_DEBUG1("Creating Extend rowsource\n");
   return rasqal_new_extend_rowsource(query->world, query, input_rs,
                                      node->var, node->expr);
 }
@@ -662,8 +661,8 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("algebra result: \n");
-  rasqal_algebra_node_print(node, DEBUG_FH);
-  fputc('\n', DEBUG_FH);
+  rasqal_algebra_node_print(node, RASQAL_DEBUG_FH);
+  fputc('\n', RASQAL_DEBUG_FH);
 #endif
   RASQAL_DEBUG2("algebra nodes: %d\n", execution_data->nodes_count);
 
@@ -674,10 +673,10 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("rowsource (query plan) result: \n");
   if(execution_data->rowsource)
-    rasqal_rowsource_print(execution_data->rowsource, DEBUG_FH);
+    rasqal_rowsource_print(execution_data->rowsource, RASQAL_DEBUG_FH);
   else
-    fputs("NULL", DEBUG_FH);
-  fputc('\n', DEBUG_FH);
+    fputs("NULL", RASQAL_DEBUG_FH);
+  fputc('\n', RASQAL_DEBUG_FH);
 #endif
   if(error != RASQAL_ENGINE_OK)
     rc = 1;

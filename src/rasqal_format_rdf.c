@@ -44,7 +44,7 @@
 #include <rasqal_internal.h>
 
 
-#define DEBUG_FH stderr
+
 
 #ifndef FILE_READ_BUF_SIZE
 #ifdef BUFSIZ
@@ -550,8 +550,8 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
   
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
   RASQAL_DEBUG1("Got result set node ");
-  rasqal_literal_print(resultSet_node, DEBUG_FH);
-  fputc('\n', DEBUG_FH);
+  rasqal_literal_print(resultSet_node, RASQAL_DEBUG_FH);
+  fputc('\n', RASQAL_DEBUG_FH);
 #endif    
 
 
@@ -572,8 +572,8 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
     RASQAL_DEBUG1("Got variable node ");
-    rasqal_literal_print(solution_node, DEBUG_FH);
-    fputc('\n', DEBUG_FH);
+    rasqal_literal_print(solution_node, RASQAL_DEBUG_FH);
+    fputc('\n', RASQAL_DEBUG_FH);
 #endif
     
     if(1) {
@@ -626,8 +626,8 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
     RASQAL_DEBUG1("Got solution node (row) ");
-    rasqal_literal_print(solution_node, DEBUG_FH);
-    fputc('\n', DEBUG_FH);
+    rasqal_literal_print(solution_node, RASQAL_DEBUG_FH);
+    fputc('\n', RASQAL_DEBUG_FH);
 #endif
 
     row = rasqal_new_row(con->rowsource);
@@ -647,8 +647,8 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
       RASQAL_DEBUG1("  Got binding node ");
-      rasqal_literal_print(binding_node, DEBUG_FH);
-      fputc('\n', DEBUG_FH);
+      rasqal_literal_print(binding_node, RASQAL_DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
 #endif
 
       /* variable ?var := getTarget(?bn, rs:variable) */
@@ -663,10 +663,10 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
       RASQAL_DEBUG1("    Variable: ");
-      rasqal_literal_print(var_literal, DEBUG_FH);
-      fputs(" Value: ", DEBUG_FH);
-      rasqal_literal_print(value_literal, DEBUG_FH);
-      fputc('\n', DEBUG_FH);
+      rasqal_literal_print(var_literal, RASQAL_DEBUG_FH);
+      fputs(" Value: ", RASQAL_DEBUG_FH);
+      rasqal_literal_print(value_literal, RASQAL_DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
 #endif
 
       /* save row[?var] = ?val */

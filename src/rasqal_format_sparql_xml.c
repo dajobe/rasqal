@@ -619,8 +619,7 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
 #ifdef TRACE_XML
   if(con->trace) {
     pad(stderr, con->depth);
-    fprintf(stderr, "Element %s (%d)\n", raptor_qname_get_local_name(name),
-            state);
+    fprintf(RASQAL_DEBUG_FH, "Element %s (%d)\n", raptor_qname_get_local_name(name), state);
   }
 #endif
   
@@ -639,7 +638,7 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
 #ifdef TRACE_XML
       if(con->trace) {
         pad(stderr, con->depth+1);
-        fprintf(stderr, "Attribute %s='%s'\n",
+        fprintf(RASQAL_DEBUG_FH, "Attribute %s='%s'\n",
                 local_name, raptor_qname_get_value(attrs[i]));
       }
 #endif
@@ -655,7 +654,7 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
 #ifdef TRACE_XML
     if(con->trace) {
       pad(stderr, con->depth+1);
-      fprintf(stderr, "xml:lang '%s'\n", con->language);
+      fprintf(RASQAL_DEBUG_FH, "xml:lang '%s'\n", con->language);
     }
 #endif
   }
@@ -717,7 +716,7 @@ rasqal_sparql_xml_sax2_characters_handler(void *user_data,
     pad(stderr, con->depth);
     fputs("Text '", stderr);
     fwrite(s, sizeof(char), len, stderr);
-    fprintf(stderr, "' (%d bytes)\n", len);
+    fprintf(RASQAL_DEBUG_FH, "' (%d bytes)\n", len);
   }
 #endif
 
@@ -767,7 +766,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
 #ifdef TRACE_XML
   if(con->trace) {
     pad(stderr, con->depth);
-    fprintf(stderr, "End Element %s (%d)\n", raptor_qname_get_local_name(name),
+    fprintf(RASQAL_DEBUG_FH, "End Element %s (%d)\n", raptor_qname_get_local_name(name),
             con->state);
   }
 #endif
@@ -909,14 +908,14 @@ rasqal_rowsource_sparql_xml_process(rasqal_rowsource_sparql_xml_context* con)
   /* do some parsing - need some results */
   while(!raptor_iostream_read_eof(con->iostr)) {
     size_t read_len;
-    
+
     read_len = RASQAL_BAD_CAST(size_t,
                                raptor_iostream_read_bytes(RASQAL_GOOD_CAST(char*, con->buffer), 1,
                                                           FILE_READ_BUF_SIZE,
                                                           con->iostr));
     if(read_len > 0) {
 #ifdef TRACE_XML
-      RASQAL_DEBUG2("processing %d bytes\n", RASQAL_GOOD_CAST(int, read_len));
+      fprintf(RASQAL_DEBUG_FH, "processing %d bytes\n", RASQAL_GOOD_CAST(int, read_len));
 #endif
       raptor_sax2_parse_chunk(con->sax2, con->buffer, read_len, 0);
     }
@@ -1078,7 +1077,7 @@ rasqal_rowsource_sparql_xml_get_boolean(rasqal_query_results_formatter *formatte
                                                           con->iostr));
     if(read_len > 0) {
 #ifdef TRACE_XML
-      RASQAL_DEBUG2("processing %d bytes\n", RASQAL_GOOD_CAST(int, read_len));
+      fprintf(RASQAL_DEBUG_FH, "processing %d bytes\n", RASQAL_GOOD_CAST(int, read_len));
 #endif
       raptor_sax2_parse_chunk(con->sax2, con->buffer, read_len, 0);
     }

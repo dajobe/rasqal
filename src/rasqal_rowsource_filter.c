@@ -41,7 +41,6 @@
 #include "rasqal_internal.h"
 
 
-#define DEBUG_FH stderr
 
 
 typedef struct
@@ -154,29 +153,29 @@ rasqal_filter_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("filter expression result: ");
     if(error)
-      fputs("type error", DEBUG_FH);
+      fputs("type error", RASQAL_DEBUG_FH);
     else
-      rasqal_literal_print(result, DEBUG_FH);
-    fputc('\n', DEBUG_FH);
+      rasqal_literal_print(result, RASQAL_DEBUG_FH);
+    fputc('\n', RASQAL_DEBUG_FH);
 
     /* Debug: Print the comparison details */
     if(con->expr->op == RASQAL_EXPR_EQ && con->expr->arg1 && con->expr->arg2) {
       RASQAL_DEBUG1("COMPARISON DEBUG:\n");
       RASQAL_DEBUG1("  Left operand: ");
       if(con->expr->arg1->op == RASQAL_EXPR_LITERAL && con->expr->arg1->literal) {
-        rasqal_literal_print(con->expr->arg1->literal, DEBUG_FH);
+        rasqal_literal_print(con->expr->arg1->literal, RASQAL_DEBUG_FH);
       } else {
-        fputs("non-literal", DEBUG_FH);
+        fputs("non-literal", RASQAL_DEBUG_FH);
       }
-      fputc('\n', DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
 
       RASQAL_DEBUG1("  Right operand: ");
       if(con->expr->arg2->op == RASQAL_EXPR_LITERAL && con->expr->arg2->literal) {
-        rasqal_literal_print(con->expr->arg2->literal, DEBUG_FH);
+        rasqal_literal_print(con->expr->arg2->literal, RASQAL_DEBUG_FH);
       } else {
-        fputs("non-literal", DEBUG_FH);
+        fputs("non-literal", RASQAL_DEBUG_FH);
       }
-      fputc('\n', DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
     }
 #endif
     if(error) {

@@ -71,7 +71,6 @@
  *
  */
 
-#define DEBUG_FH stderr
 
 static int rasqal_query_add_query_result(rasqal_query* query, rasqal_query_results* query_results);
 
