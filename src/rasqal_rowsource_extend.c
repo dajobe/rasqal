@@ -174,6 +174,7 @@ rasqal_extend_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   rasqal_row* input_row = NULL;
   rasqal_row* output_row = NULL;
   rasqal_literal* result = NULL;
+  int extend_var_offset;
 
   con = (rasqal_extend_rowsource_context*)user_data;
 
@@ -184,8 +185,8 @@ rasqal_extend_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
   /* SPARQL 1.2 Extend semantics: Check for variable conflict
    * "Extend is undefined when var in dom(μ)" */
-  int extend_var_offset = rasqal_rowsource_get_variable_offset_by_name(con->input_rs, 
-                                                                       con->var->name);
+  extend_var_offset = rasqal_rowsource_get_variable_offset_by_name(con->input_rs, 
+                                                                   con->var->name);
   if(extend_var_offset >= 0 && extend_var_offset < input_row->size && 
      input_row->values[extend_var_offset] != NULL) {
     /* Variable already bound in input solution - Extend is undefined */
@@ -206,6 +207,7 @@ rasqal_extend_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     output_row = rasqal_new_row_for_size(con->input_rs->world, output_size);
     if(output_row) {
       int i;
+      int j;
 
       /* Set the rowsource for proper variable resolution */
       rasqal_row_set_rowsource(output_row, rowsource);
@@ -227,7 +229,7 @@ rasqal_extend_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
       /* Debug: Print the full row */
       RASQAL_DEBUG1("EXTEND: Output row values:\n");
-      for(int j = 0; j < output_row->size; j++) {
+      for(j = 0; j < output_row->size; j++) {
         rasqal_variable* var = rasqal_rowsource_get_variable_by_offset(rowsource, j);
         if(var) {
           fprintf(DEBUG_FH, "  %s = ", var->name);

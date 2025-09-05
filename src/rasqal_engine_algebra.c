@@ -242,12 +242,12 @@ rasqal_algebra_extend_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
                                                 rasqal_engine_error *error_p)
 {
   rasqal_query *query = execution_data->query;
+  rasqal_rowsource* input_rs = NULL;
 
   fprintf(stderr, "ENGINE_EXTEND: Creating Extend rowsource, node=%p, node1=%p, var=%p, expr=%p\n",
           node, node->node1, node->var, node->expr);
 
   /* Get the input rowsource from the node's child */
-  rasqal_rowsource* input_rs = NULL;
   if(node->node1) {
     fprintf(stderr, "ENGINE_EXTEND: Creating input rowsource from node1\n");
     input_rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);

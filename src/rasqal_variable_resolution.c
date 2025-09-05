@@ -227,23 +227,28 @@ rasqal_expression_resolve_variables_with_scope(rasqal_expression* expr,
         if(var) {
           /* Variable found - substitute it with its literal value from the current row */
           if(context->current_row) {
+            int var_offset;
             RASQAL_DEBUG3("VAR_RESOLVE: current_row=%p, row size: %d\n",
                     context->current_row, context->current_row->size);
-            int var_offset = rasqal_rowsource_get_variable_offset_by_name(context->rowsource,
-                                                                         expr->literal->value.variable->name);
+            var_offset = rasqal_rowsource_get_variable_offset_by_name(context->rowsource,
+                                                                      expr->literal->value.variable->name);
             RASQAL_DEBUG5("Variable %s offset: %d, row size: %d, rowsource=%p\n",
                     expr->literal->value.variable->name, var_offset, context->current_row->size, context->rowsource);
             if(var_offset >= 0 && var_offset < context->current_row->size && context->current_row->values[var_offset]) {
+              rasqal_literal* resolved_literal;
+
               RASQAL_DEBUG3("Variable %s value at offset %d: ", expr->literal->value.variable->name, var_offset);
-              if(RASQAL_DEBUG_FH) rasqal_literal_print(context->current_row->values[var_offset], RASQAL_DEBUG_FH);
-              if(RASQAL_DEBUG_FH) fputc('\n', RASQAL_DEBUG_FH);
+              if(RASQAL_DEBUG_FH)
+                rasqal_literal_print(context->current_row->values[var_offset], RASQAL_DEBUG_FH);
+              if(RASQAL_DEBUG_FH)
+                fputc('\n', RASQAL_DEBUG_FH);
               /* Replace the variable literal with the actual literal value */
-              rasqal_literal* resolved_literal = rasqal_new_literal_from_literal(context->current_row->values[var_offset]);
+              resolved_literal = rasqal_new_literal_from_literal(context->current_row->values[var_offset]);
               if(resolved_literal) {
                 rasqal_free_literal(expr->literal);
                 expr->literal = resolved_literal;
                 RASQAL_DEBUG2("Substituted variable %s with literal value\n",
-                             (const char*)var->name);
+                              (const char*)var->name);
               }
             } else {
               RASQAL_DEBUG3("Variable %s offset %d out of bounds or NULL value\n",
