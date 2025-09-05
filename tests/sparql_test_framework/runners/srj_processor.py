@@ -480,7 +480,7 @@ class SrjTestRunner:
     ) -> Optional[str]:
         """Run roqet with SRJ output format"""
         from ..utils import run_roqet_with_format, filter_format_output
-        
+
         stdout, stderr, returncode = run_roqet_with_format(
             query_file, data_file, "srj", roqet_path, timeout=timeout
         )
@@ -515,9 +515,7 @@ class SrjTestRunner:
             print(f"Expected:  {json.dumps(exp_json, indent=2)}")
             return False
 
-    def run_srj_writer_test(
-        self, test_config, srcdir: Path, timeout: int = 30
-    ) -> int:
+    def run_srj_writer_test(self, test_config, srcdir: Path, timeout: int = 30) -> int:
         """Run SRJ writer test from manifest configuration."""
         query_file = test_config.test_file
         data_file = test_config.data_files[0] if test_config.data_files else None
@@ -570,7 +568,7 @@ class SrjTestRunner:
     def main(self, description: str, epilog: str = ""):
         """Main method for running SRJ tests."""
         import argparse
-        
+
         parser = argparse.ArgumentParser(
             description=description,
             formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -670,4 +668,5 @@ Examples:
 if __name__ == "__main__":
     import sys
     import os
+
     sys.exit(main())

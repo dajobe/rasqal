@@ -56,6 +56,9 @@ from .utils import (
     decode_literal,
     escape_turtle_literal,
     SparqlTestError,
+    set_preserve_files,
+    get_temp_file_path,
+    cleanup_temp_files,
 )
 
 # Re-export runners for direct access
@@ -96,6 +99,9 @@ __all__ = [
     "decode_literal",
     "escape_turtle_literal",
     "SparqlTestError",
+    "set_preserve_files",
+    "get_temp_file_path",
+    "cleanup_temp_files",
     # Configuration functions
     "KNOWN_TEST_SUITES",
     "get_test_suite_config",

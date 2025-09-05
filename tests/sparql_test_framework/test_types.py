@@ -307,7 +307,10 @@ class TestTypeResolver:
         """
         # Handle XFailTests (expected to fail)
         if expected_status == TestResult.XFAILED:
-            if actual_status == TestResult.FAILED or actual_status == TestResult.XFAILED:
+            if (
+                actual_status == TestResult.FAILED
+                or actual_status == TestResult.XFAILED
+            ):
                 return TestResult.XFAILED, "Test failed as expected"
             else:
                 return (

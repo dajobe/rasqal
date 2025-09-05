@@ -35,7 +35,15 @@ from enum import Enum
 
 from ..test_types import TestResult, TestType, Namespaces, TestTypeResolver
 from ..config import TestConfig
-from ..utils import find_tool, run_command, SparqlTestError, compare_files_custom_diff
+from ..utils import (
+    find_tool,
+    run_command,
+    SparqlTestError,
+    compare_files_custom_diff,
+    set_preserve_files,
+    get_temp_file_path,
+    cleanup_temp_files,
+)
 from ..manifest import ManifestParser, UtilityNotFoundError
 from ..execution import run_roqet_with_format, filter_format_output
 
@@ -87,99 +95,10 @@ DIFF_CMD = find_tool("diff") or "diff"
 
 
 # --- Constants and Enums ---
-# Global flag for file preservation
-_preserve_debug_files = False
-
 # Global to hold variable order across calls if needed
 _projected_vars_order: List[str] = []
 
-# Temporary file names (using Path for consistency)
-# These will be resolved relative to the current working directory when used
-ROQET_OUT = Path("roqet.out")
-RESULT_OUT = Path("result.out")
-ROQET_TMP = Path("roqet.tmp")
-ROQET_ERR = Path("roqet.err")
-DIFF_OUT = Path("diff.out")
-TO_NTRIPLES_ERR = Path("to_ntriples.err")
-
-# Global to track temporary file paths when using secure temp files
-_temp_file_paths: List[Path] = []
-_temp_file_cache: Dict[str, Path] = {}
-
-
-def get_temp_file_path(filename: str) -> Path:
-    """Get a temporary file path.
-
-    When --preserve is not given, creates secure temporary files in /tmp.
-    When --preserve is given, uses local files in current working directory.
-
-    Multiple calls with the same filename return the same path to ensure consistency.
-    """
-    global _temp_file_paths, _temp_file_cache
-
-    if _preserve_debug_files:
-        # Use local files for debugging
-        return Path.cwd() / filename
-    else:
-        # Use secure temporary files for parallel execution
-        # Cache paths by filename to ensure consistency
-        if filename not in _temp_file_cache:
-            import tempfile
-
-            temp_file = tempfile.NamedTemporaryFile(
-                prefix=f"rasqal_test_{filename}_", suffix="", delete=False, dir="/tmp"
-            )
-            temp_path = Path(temp_file.name)
-            temp_file.close()
-            _temp_file_paths.append(temp_path)
-            _temp_file_cache[filename] = temp_path
-
-        return _temp_file_cache[filename]
-
-
-def cleanup_temp_files() -> None:
-    """Clean up temporary files if not preserving them."""
-    global _temp_file_paths
-
-    if not _preserve_debug_files:
-        # Clean up secure temporary files
-        for temp_file in _temp_file_paths:
-            if temp_file.exists():
-                try:
-                    temp_file.unlink()
-                except OSError:
-                    pass  # Ignore cleanup errors
-        _temp_file_paths.clear()
-        _temp_file_cache.clear()
-
-        # Also clean up any orphaned rasqal test files in /tmp
-        try:
-            import tempfile
-            import glob
-
-            temp_pattern = "/tmp/rasqal_test_*"
-            for orphaned_file in glob.glob(temp_pattern):
-                try:
-                    Path(orphaned_file).unlink()
-                except OSError:
-                    pass  # Ignore cleanup errors
-        except Exception:
-            pass  # Ignore cleanup errors
-    else:
-        # Clean up local files
-        temp_files = [
-            Path.cwd() / "roqet.out",
-            Path.cwd() / "roqet.tmp",
-            Path.cwd() / "roqet.err",
-            Path.cwd() / "diff.out",
-            Path.cwd() / "to_ntriples.err",
-        ]
-        for temp_file in temp_files:
-            if temp_file.exists():
-                try:
-                    temp_file.unlink()
-                except OSError:
-                    pass  # Ignore cleanup errors
+# Use shared temp file system from utils
 
 
 def finalize_test_result(
@@ -1293,9 +1212,8 @@ Examples:
         # Initialize component classes
         self.setup_components()
 
-        # Set global file preservation flag
-        global _preserve_debug_files
-        _preserve_debug_files = args.preserve
+        # Set global file preservation flag using shared system
+        set_preserve_files(args.preserve)
 
     def setup_components(self):
         """Initialize all component classes."""
@@ -1376,15 +1294,11 @@ Examples:
                 if config.result_file and config.result_file.exists():
                     expected_content = config.result_file.read_text()
                     logger.debug(f"Expected result file: {config.result_file}")
-                    logger.debug(
-                        f"Expected content: {expected_content}"
-                    )
+                    logger.debug(f"Expected content: {expected_content}")
                 else:
                     logger.debug(f"No expected result file found for {config.name}")
 
-                logger.debug(
-                    f"Actual result content: {query_result.content}"
-                )
+                logger.debug(f"Actual result content: {query_result.content}")
                 logger.debug(f"Query result format: {query_result.format}")
                 logger.debug(f"Query result type: {query_result.result_type}")
 
@@ -1561,6 +1475,9 @@ Examples:
                 for result in results:
                     if result.get("result") == "failed":
                         print(f"  {result['name']}")
+
+            # Clean up temporary files
+            cleanup_temp_files()
 
             # Return 0 (success) if no tests actually failed
             # XFAILED and UXPASSED are considered successful outcomes

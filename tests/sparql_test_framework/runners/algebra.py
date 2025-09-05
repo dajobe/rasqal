@@ -28,64 +28,18 @@ from typing import Dict, Optional, List
 
 from ..config import TestConfig
 
-from ..utils import run_command, setup_logging, find_tool, compare_files_custom_diff
+from ..utils import (
+    run_command,
+    setup_logging,
+    find_tool,
+    compare_files_custom_diff,
+    set_preserve_files,
+    get_temp_file_path,
+    cleanup_temp_files,
+)
 
 
-# Global flag for file preservation
-_preserve_debug_files = False
-
-# Global to track temporary file paths when using secure temp files
-_temp_file_paths: List[Path] = []
-_temp_file_cache: Dict[str, Path] = {}
-
-
-def get_temp_file_path(filename: str) -> Path:
-    """Get a temporary file path.
-
-    When --preserve is not given, creates secure temporary files in /tmp.
-    When --preserve is given, uses local files in current working directory.
-
-    Multiple calls with the same filename return the same path to ensure consistency.
-    """
-    global _temp_file_paths, _temp_file_cache
-
-    if _preserve_debug_files:
-        # Use local files for debugging
-        return Path.cwd() / filename
-    else:
-        # Use secure temporary files for parallel execution
-        # Cache paths by filename to ensure consistency
-        if filename not in _temp_file_cache:
-            import tempfile
-
-            temp_file = tempfile.NamedTemporaryFile(
-                prefix=f"rasqal_algebra_test_{filename}_",
-                suffix="",
-                delete=False,
-                dir="/tmp",
-            )
-            temp_path = Path(temp_file.name)
-            temp_file.close()
-            _temp_file_paths.append(temp_path)
-            _temp_file_cache[filename] = temp_path
-
-        return _temp_file_cache[filename]
-
-
-def cleanup_temp_files() -> None:
-    """Clean up temporary files if not preserving them."""
-    global _temp_file_paths, _temp_file_cache
-
-    if not _preserve_debug_files:
-        # Clean up secure temporary files
-        for temp_file in _temp_file_paths:
-            if temp_file.exists():
-                try:
-                    temp_file.unlink()
-                except OSError:
-                    pass  # Ignore cleanup errors
-        _temp_file_paths.clear()
-        _temp_file_cache.clear()
+# Use shared temp file system from utils
 
 
 class AlgebraTestRunner:
@@ -119,7 +73,6 @@ Examples:
             help="Preserve temporary files for debugging",
         )
 
-
         parser.add_argument(
             "--timeout",
             type=int,
@@ -150,10 +103,9 @@ Examples:
         self.test_file = args.test
         self.base_uri = args.base_uri
         self.timeout = args.timeout
-        
-        # Set global file preservation flag
-        global _preserve_debug_files
-        _preserve_debug_files = args.preserve
+
+        # Set global file preservation flag using shared system
+        set_preserve_files(args.preserve)
 
     def run_single_test(self, test_file: str, base_uri: str) -> int:
         """Run a single algebra test."""
@@ -275,7 +227,12 @@ Examples:
         parser = self.setup_argument_parser()
         args = parser.parse_args()
         self.process_arguments(args)
-        return self.run_single_test(args.test, args.base_uri)
+
+        try:
+            return self.run_single_test(args.test, args.base_uri)
+        finally:
+            # Clean up temporary files
+            cleanup_temp_files()
 
 
 def main():

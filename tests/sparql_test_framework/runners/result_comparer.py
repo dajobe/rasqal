@@ -285,12 +285,8 @@ class ResultComparer:
             actual_normalized = self._normalize_srx_content(actual)
             expected_normalized = self._normalize_srx_content(expected)
 
-            self.logger.debug(
-                f"Actual normalized: {actual_normalized}"
-            )
-            self.logger.debug(
-                f"Expected normalized: {expected_normalized}"
-            )
+            self.logger.debug(f"Actual normalized: {actual_normalized}")
+            self.logger.debug(f"Expected normalized: {expected_normalized}")
 
             is_match = actual_normalized == expected_normalized
             self.logger.debug(f"SRX comparison result: {is_match}")

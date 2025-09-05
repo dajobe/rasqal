@@ -447,3 +447,94 @@ class ManifestTripleExtractor:
             return decode_literal(value)
 
         return value
+
+
+# --- Shared Temporary File Management ---
+# Global flag for file preservation (shared across all runners)
+_preserve_debug_files = False
+
+# Global to track temporary file paths when using secure temp files
+_temp_file_paths: List[Path] = []
+_temp_file_cache: Dict[str, Path] = {}
+
+
+def set_preserve_files(preserve: bool) -> None:
+    """Set the global preserve files flag.
+
+    Args:
+        preserve: Whether to preserve temporary files instead of using /tmp
+    """
+    global _preserve_debug_files
+    _preserve_debug_files = preserve
+
+
+def get_temp_file_path(filename: str, prefix: str = "rasqal_test") -> Path:
+    """Get a temporary file path for any type of output file.
+
+    When --preserve is not given, creates secure temporary files in /tmp.
+    When --preserve is given, uses local files in current working directory.
+
+    Multiple calls with the same filename return the same path to ensure consistency.
+
+    Args:
+        filename: Base filename (e.g., "roqet.out", "plan.ttl")
+        prefix: Prefix for temp file naming (default: "rasqal_test")
+
+    Returns:
+        Path to the file (temp or local)
+    """
+    global _temp_file_paths, _temp_file_cache
+
+    if _preserve_debug_files:
+        # Use local files for debugging
+        return Path.cwd() / filename
+    else:
+        # Use secure temporary files for parallel execution
+        # Cache paths by filename to ensure consistency
+        if filename not in _temp_file_cache:
+            import tempfile
+            import os
+            from pathlib import Path
+
+            # Use mkstemp for better security - it creates the file atomically
+            # and returns a file descriptor that we can use to set permissions
+            fd, temp_path_str = tempfile.mkstemp(
+                prefix=f"{prefix}_{filename}_",
+                suffix="",
+                dir="/tmp",
+            )
+
+            temp_path = Path(temp_path_str)
+
+            # Set restrictive permissions (owner read/write only)
+            # This prevents other users from reading our temp files
+            os.chmod(temp_path, 0o600)
+
+            # Close the file descriptor since we'll reopen it as needed
+            os.close(fd)
+
+            _temp_file_paths.append(temp_path)
+            _temp_file_cache[filename] = temp_path
+
+        return _temp_file_cache[filename]
+
+
+def cleanup_temp_files() -> None:
+    """Clean up temporary files if not preserving them."""
+    global _temp_file_paths, _temp_file_cache
+
+    if not _preserve_debug_files:
+        # Clean up only the files we created (tracked in _temp_file_paths)
+        # This is much safer than globbing and deleting arbitrary files
+        for temp_file in _temp_file_paths:
+            if temp_file.exists():
+                try:
+                    temp_file.unlink()
+                except OSError:
+                    pass  # Ignore cleanup errors
+        _temp_file_paths.clear()
+        _temp_file_cache.clear()
+    else:
+        # When preserving files, we don't clean them up
+        # This allows users to inspect the files for debugging
+        pass

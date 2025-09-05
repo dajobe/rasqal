@@ -207,6 +207,9 @@ from .core_utils import (
     run_manifest_test,
     generate_custom_diff,
     compare_files_custom_diff,
+    set_preserve_files,
+    get_temp_file_path,
+    cleanup_temp_files,
 )
 
 # Import exception classes
@@ -241,4 +244,7 @@ __all__ = [
     "run_manifest_test",
     "generate_custom_diff",
     "compare_files_custom_diff",
+    "set_preserve_files",
+    "get_temp_file_path",
+    "cleanup_temp_files",
 ]

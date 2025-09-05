@@ -33,7 +33,14 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 
 from ..test_types import TestResult, Namespaces, TestTypeResolver
-from ..utils import find_tool, run_command, decode_literal
+from ..utils import (
+    find_tool,
+    run_command,
+    decode_literal,
+    set_preserve_files,
+    get_temp_file_path,
+    cleanup_temp_files,
+)
 from ..manifest import ManifestParser
 
 
@@ -242,7 +249,10 @@ class Testsuite:
         Prepares the test suite by generating its plan file using 'make' and
         then parsing that plan file.
         """
-        self.plan_file = self.directory / f"{self.name}-plan.ttl"
+        # Use shared temp file system for plan files
+        self.plan_file = get_temp_file_path(
+            f"{self.name}-plan.ttl", prefix="rasqal_plan"
+        )
 
         if not self.args.prepared:
             # Original logic: Generate plan file by calling make
@@ -292,9 +302,7 @@ class Testsuite:
                 )
                 logger.debug(f"Process stderr: {process.stderr}")
                 logger.debug(f"Filtered output length: {len(filtered_output)}")
-                logger.debug(
-                    f"Filtered output 200 chars: {filtered_output[:200]}"
-                )
+                logger.debug(f"Filtered output 200 chars: {filtered_output[:200]}")
 
                 # Write filtered output to plan file
                 with self.plan_file.open("w", encoding="utf-8") as f_out:
@@ -566,12 +574,8 @@ class Testsuite:
             if not self.args.verbose:
                 print()
 
-        # Clean up the generated plan file
-        if self.plan_file:
-            try:
-                self.plan_file.unlink(missing_ok=True)
-            except OSError as e:
-                logger.warning(f"Could not remove plan file {self.plan_file}: {e}")
+        # Clean up the generated plan file using shared cleanup system
+        # The shared cleanup_temp_files() will handle this automatically
 
         # Determine the overall status of this test suite (like original improve.py)
         # Only FAILED and UXPASSED count as failures
@@ -614,10 +618,14 @@ class Testsuite:
         }
 
         # Step 1: Prepare the command with appropriate flags
-        action_cmd = CommandPreparation.prepare_command(action_cmd, self.args, test_details)
+        action_cmd = CommandPreparation.prepare_command(
+            action_cmd, self.args, test_details
+        )
 
         # Step 2: Create log file path
-        log_file_name, log_file_path = LogProcessor.create_log_file_path(test_name, self.directory, self.args)
+        log_file_name, log_file_path = LogProcessor.create_log_file_path(
+            test_name, self.directory, self.args
+        )
 
         # Step 3: Debug logging
         path_prefix = (
@@ -638,23 +646,25 @@ class Testsuite:
                 execution_result["log_content"],
                 action_cmd,
                 test_name,
-                self.args
+                self.args,
             )
 
             # Step 6: Update result with parsed data
-            result.update({
-                "exit_code": parsed_result["exit_code"],
-                "is_crash": parsed_result["is_crash"],
-                "signal": parsed_result["signal"],
-                "log": execution_result["log_content"]
-            })
+            result.update(
+                {
+                    "exit_code": parsed_result["exit_code"],
+                    "is_crash": parsed_result["is_crash"],
+                    "signal": parsed_result["signal"],
+                    "log": execution_result["log_content"],
+                }
+            )
 
             # Step 7: Process additional log details
             result["detail"] = LogProcessor.process_log_content(
                 execution_result["log_content"],
                 parsed_result["actual_run_status"],
                 parsed_result["detail"],
-                self.args
+                self.args,
             )
 
             actual_run_status = parsed_result["actual_run_status"]
@@ -680,9 +690,7 @@ class CommandPreparation:
 
     @staticmethod
     def prepare_command(
-        action_cmd: str,
-        args: argparse.Namespace,
-        test_details: Dict[str, Any]
+        action_cmd: str, args: argparse.Namespace, test_details: Dict[str, Any]
     ) -> str:
         """Prepare the test command with appropriate flags based on args and test type."""
         prepared_cmd = action_cmd
@@ -694,7 +702,9 @@ class CommandPreparation:
         prepared_cmd = CommandPreparation._add_debug_flags(prepared_cmd, args)
 
         # Add syntax test flags if applicable
-        prepared_cmd = CommandPreparation._add_syntax_test_flags(prepared_cmd, test_details)
+        prepared_cmd = CommandPreparation._add_syntax_test_flags(
+            prepared_cmd, test_details
+        )
 
         # Add --preserve-files flag if enabled
         prepared_cmd = CommandPreparation._add_preserve_flag(prepared_cmd, args)
@@ -744,6 +754,7 @@ class CommandPreparation:
 
         # Check if this is actually a syntax test type from the manifest
         from ..test_types import SYNTAX_TEST_TYPES
+
         is_actual_syntax_test = test_type in SYNTAX_TEST_TYPES
 
         if is_actual_syntax_test and action_cmd.startswith("roqet"):
@@ -774,10 +785,7 @@ class ProcessExecutor:
 
     @staticmethod
     def execute_command(
-        action_cmd: str,
-        directory: Path,
-        log_file_name: str,
-        path_prefix: str = ""
+        action_cmd: str, directory: Path, log_file_name: str, path_prefix: str = ""
     ) -> Dict[str, Any]:
         """Execute the test command and return execution results."""
         import subprocess
@@ -804,7 +812,7 @@ class ProcessExecutor:
         execution_result = {
             "return_code": process.returncode,
             "log_content": "",
-            "log_exists": log_file_path.exists()
+            "log_exists": log_file_path.exists(),
         }
 
         if log_file_path.exists():
@@ -822,7 +830,7 @@ class ResultParser:
         log_content: str,
         action_cmd: str,
         test_name: str,
-        args: argparse.Namespace
+        args: argparse.Namespace,
     ) -> Dict[str, Any]:
         """Parse execution results and determine test status."""
 
@@ -831,7 +839,7 @@ class ResultParser:
             "is_crash": False,
             "signal": None,
             "detail": "",
-            "actual_run_status": TestResult.FAILED
+            "actual_run_status": TestResult.FAILED,
         }
 
         # Detect crashes and abnormal exits
@@ -869,7 +877,7 @@ class ResultParser:
         result = {
             "is_crash": True,
             "signal": signal_num,
-            "actual_run_status": TestResult.FAILED
+            "actual_run_status": TestResult.FAILED,
         }
 
         signal_desc = get_signal_description(signal_num)
@@ -887,7 +895,9 @@ class ResultParser:
         return result
 
     @staticmethod
-    def _parse_run_sparql_tests_output(log_content: str, test_name: str) -> Optional[Dict[str, Any]]:
+    def _parse_run_sparql_tests_output(
+        log_content: str, test_name: str
+    ) -> Optional[Dict[str, Any]]:
         """Parse run-sparql-tests output to determine actual test result."""
 
         logger.debug(f"Parsing run-sparql-tests output for test {test_name}")
@@ -895,33 +905,27 @@ class ResultParser:
         if "INFO: ✓ XFAILED:" in log_content:
             return {
                 "actual_run_status": TestResult.XFAILED,
-                "detail": "Test failed as expected (XFail test)"
+                "detail": "Test failed as expected (XFail test)",
             }
         elif "INFO: ⚠ UXPASSED:" in log_content:
             return {
                 "actual_run_status": TestResult.UXPASSED,
-                "detail": "Test passed unexpectedly (XFail test)"
+                "detail": "Test passed unexpectedly (XFail test)",
             }
         elif "INFO: ✓ PASSED:" in log_content:
             return {
                 "actual_run_status": TestResult.PASSED,
-                "detail": "Test passed as expected"
+                "detail": "Test passed as expected",
             }
         elif "INFO: ✗ FAILED:" in log_content:
-            return {
-                "actual_run_status": TestResult.FAILED,
-                "detail": "Test failed"
-            }
+            return {"actual_run_status": TestResult.FAILED, "detail": "Test failed"}
         else:
             logger.debug(f"No pattern found for test {test_name}, using fallback")
             return None
 
     @staticmethod
     def _add_crash_details(
-        detail: str,
-        log_content: str,
-        signal_num: int,
-        args: argparse.Namespace
+        detail: str, log_content: str, signal_num: int, args: argparse.Namespace
     ) -> str:
         """Add detailed crash information to the result detail."""
         log_lines = log_content.splitlines()
@@ -967,7 +971,9 @@ class LogProcessor:
     """Handles log file processing and cleanup for test execution."""
 
     @staticmethod
-    def create_log_file_path(test_name: str, directory: Path, args: argparse.Namespace) -> Tuple[str, Path]:
+    def create_log_file_path(
+        test_name: str, directory: Path, args: argparse.Namespace
+    ) -> Tuple[str, Path]:
         """Create a log file path for the test."""
         import re
         import tempfile
@@ -976,13 +982,15 @@ class LogProcessor:
 
         name_slug = re.sub(r"[^\w.-]", "-", test_name) if test_name else "unnamed-test"
 
-        if hasattr(args, 'preserve') and args.preserve:
+        if hasattr(args, "preserve") and args.preserve:
             log_file_name = f"{name_slug}.log"
             log_file_path = directory / log_file_name
             return log_file_name, log_file_path
         else:
             # Create a temporary file in /tmp
-            fd, path_str = tempfile.mkstemp(prefix=f"{name_slug}-", suffix=".log", dir="/tmp")
+            fd, path_str = tempfile.mkstemp(
+                prefix=f"{name_slug}-", suffix=".log", dir="/tmp"
+            )
             os.close(fd)
             log_file_path = Path(path_str)
             # log_file_name should be the full path for redirection
@@ -991,21 +999,23 @@ class LogProcessor:
     @staticmethod
     def cleanup_log_file(log_file_path: Path, args: argparse.Namespace) -> None:
         """Clean up the log file after test execution."""
-        if hasattr(args, 'preserve') and args.preserve:
+        if hasattr(args, "preserve") and args.preserve:
             return
-            
+
         try:
             if log_file_path.exists():
                 log_file_path.unlink()
         except OSError as e_unlink:
-            logger.warning(f"Could not remove test log file {log_file_path}: {e_unlink}")
+            logger.warning(
+                f"Could not remove test log file {log_file_path}: {e_unlink}"
+            )
 
     @staticmethod
     def process_log_content(
         log_content: str,
         actual_run_status: TestResult,
         detail: str,
-        args: argparse.Namespace
+        args: argparse.Namespace,
     ) -> str:
         """Process log content and add additional details if needed."""
         if actual_run_status == TestResult.FAILED and args.verbose and not detail:
@@ -1013,7 +1023,6 @@ class LogProcessor:
             if log_lines:
                 return detail + "\nLog tail:\n" + "\n".join(log_lines[-5:])
         return detail
-
 
 
 class TestResultDeterminer:
@@ -1024,7 +1033,7 @@ class TestResultDeterminer:
         result: Dict[str, Any],
         expected_status_enum: TestResult,
         actual_run_status: TestResult,
-        test_details: Dict[str, Any]
+        test_details: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Determine the final test result and update the result dictionary."""
         from ..test_types import TestTypeResolver
@@ -1139,6 +1148,9 @@ Examples:
             logging.getLogger().setLevel(logging.INFO)
         else:
             logging.getLogger().setLevel(logging.WARNING)
+
+        # Set global preserve files flag for shared temp file system
+        set_preserve_files(getattr(args, "preserve", False))
 
         # Check for RASQAL_COMPARE_ENABLE environment variable
         if os.environ.get("RASQAL_COMPARE_ENABLE", "").lower() == "yes":
@@ -1367,6 +1379,9 @@ Examples:
                 print(
                     "  Use --crash-details for enhanced crash reporting with more context."
                 )
+
+        # Clean up temporary files
+        cleanup_temp_files()
 
         return 1 if failures > 0 else 0
 
