@@ -494,7 +494,6 @@ def get_temp_file_path(filename: str, prefix: str = "rasqal_test") -> Path:
         if filename not in _temp_file_cache:
             import tempfile
             import os
-            from pathlib import Path
 
             # Use mkstemp for better security - it creates the file atomically
             # and returns a file descriptor that we can use to set permissions
