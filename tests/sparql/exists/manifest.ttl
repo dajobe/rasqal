@@ -14,6 +14,9 @@
     :exists03
     :exists04
     :exists05
+    :multi_triple_exists
+    :multi_triple_not_exists
+    :multi_triple_mixed
     ) .
 
 :exists01 rdf:type mf:QueryEvaluationTest ;
@@ -60,4 +63,31 @@
          [ qt:query  <../sparql11-test-suite/exists/exists05.rq> ;
            qt:data   <../sparql11-test-suite/exists/exists01.ttl> ] ;
     mf:result  <../sparql11-test-suite/exists/exists05.srx>
+    .
+
+:multi_triple_exists rdf:type mf:QueryEvaluationTest ;
+    mf:name    "multi-triple-exists - Multi-triple conjunctive EXISTS" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <multi-triple-comprehensive.rq> ;
+           qt:data   <multi-triple-test.ttl> ] ;
+    mf:result  <multi-triple-expected.srx>
+    .
+
+:multi_triple_not_exists rdf:type mf:QueryEvaluationTest ;
+    mf:name    "multi-triple-not-exists - Multi-triple NOT EXISTS" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <multi-triple-not-exists.rq> ;
+           qt:data   <multi-triple-test.ttl> ] ;
+    mf:result  <multi-triple-not-exists-expected.srx>
+    .
+
+:multi_triple_mixed rdf:type mf:QueryEvaluationTest ;
+    mf:name    "multi-triple-mixed - Mixed ground and variable triples in EXISTS" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <multi-triple-mixed.rq> ;
+           qt:data   <multi-triple-test.ttl> ] ;
+    mf:result  <multi-triple-mixed-expected.srx>
     .

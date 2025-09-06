@@ -1,0 +1,12 @@
+PREFIX ex: <http://example.org/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+# Find persons who are missing ANY of the three required properties
+SELECT ?person WHERE {
+    ?person a foaf:Person .
+    FILTER NOT EXISTS { 
+        ?person foaf:name ?name .
+        ?person foaf:age ?age .
+        ?person foaf:email ?email 
+    }
+}

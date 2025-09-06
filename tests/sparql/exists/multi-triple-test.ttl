@@ -1,0 +1,27 @@
+@prefix ex: <http://example.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+# Test data for multi-triple EXISTS bug reproduction
+
+# Person with complete information (all three properties)
+ex:alice a foaf:Person ;
+    foaf:name "Alice Smith" ;
+    foaf:age 30 ;
+    foaf:email "alice@example.org" .
+
+# Person with partial information (only name, missing age and email)  
+ex:bob a foaf:Person ;
+    foaf:name "Bob Jones" .
+
+# Person with no foaf properties
+ex:charlie a foaf:Person .
+
+# Additional test data for edge cases
+ex:david a foaf:Person ;
+    foaf:name "David Wilson" ;
+    foaf:age 25 .
+
+# Non-person entity
+ex:company a ex:Organization ;
+    ex:name "ACME Corp" ;
+    ex:founded 1990 .

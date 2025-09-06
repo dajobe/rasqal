@@ -1,0 +1,10 @@
+PREFIX ex: <http://example.org/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+SELECT ?person WHERE {
+    ?person a foaf:Person .
+    FILTER EXISTS { 
+        ?person foaf:name "Alice Smith" .
+        ?person foaf:age ?age 
+    }
+}

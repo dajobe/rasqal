@@ -1,0 +1,16 @@
+# SPARQL query to reproduce multi-triple EXISTS bug
+# This query should only return ex:alice (who has all three properties)
+# But due to the bug, it will incorrectly return ex:alice, ex:bob, and ex:david
+# because it only checks the first triple (foaf:name) in the EXISTS pattern
+
+PREFIX ex: <http://example.org/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+SELECT ?person WHERE {
+    ?person a foaf:Person .
+    FILTER EXISTS { 
+        ?person foaf:name ?name .
+        ?person foaf:age ?age .
+        ?person foaf:email ?email
+    }
+}

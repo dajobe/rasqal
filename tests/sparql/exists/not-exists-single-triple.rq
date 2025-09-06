@@ -1,0 +1,10 @@
+PREFIX ex: <http://example.org/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+# Find persons who DON'T have an email (single triple NOT EXISTS)
+SELECT ?person WHERE {
+    ?person a foaf:Person .
+    FILTER NOT EXISTS { 
+        ?person foaf:email ?email 
+    }
+}
