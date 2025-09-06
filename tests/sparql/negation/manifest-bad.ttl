@@ -13,7 +13,6 @@
     :temporal-proximity-by-exclusion-nex-1
     :subset-01
     :subset-02
-    :subset-03
     :partial-minuend
    ) .
 
@@ -43,15 +42,6 @@
          [ qt:query  <../sparql11-test-suite/negation/subset-02.rq> ;
            qt:data  <../sparql11-test-suite/negation/set-data.ttl> ] ;
     mf:result  <../sparql11-test-suite/negation/subset-02.srx> .
-
-:subset-03 rdf:type t:XFailTest ;
-    mf:name    "Calculate proper subset" ;
-    dawgt:approval dawgt:Approved ;
-    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
-    mf:action
-         [ qt:query  <../sparql11-test-suite/negation/subset-03.rq> ;
-           qt:data  <../sparql11-test-suite/negation/set-data.ttl> ] ;
-    mf:result  <../sparql11-test-suite/negation/subset-03.srx> .
 
 :partial-minuend rdf:type t:XFailTest ;
     mf:name    "Subtraction with MINUS from a partially bound minuend" ;
