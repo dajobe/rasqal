@@ -71,6 +71,13 @@ rasqal_expression_evaluate_not_exists(rasqal_expression *e,
                                       rasqal_evaluation_context *eval_context,
                                       int *error_p);
 
+/* Forward declaration for optimized NOT EXISTS evaluation */
+int rasqal_evaluate_not_exists_pattern_with_origin(rasqal_graph_pattern* gp,
+                                                   rasqal_triples_source* triples_source,
+                                                   rasqal_query* query,
+                                                   rasqal_row* outer_row,
+                                                   rasqal_literal* graph_origin);
+
 /* Enable evaluation debugging by defining RASQAL_DEBUG_EVAL */
 /* #define RASQAL_DEBUG_EVAL 1 */
 
@@ -2078,37 +2085,112 @@ rasqal_expression_evaluate_not_exists(rasqal_expression *e,
                                       int *error_p)
 {
   rasqal_world* world = eval_context->world;
-  rasqal_literal* exists_result;
-  int exists_value;
-  int error = 0;
+  rasqal_graph_pattern* gp;
+  rasqal_query* query = NULL;
+  rasqal_triples_source* triples_source = NULL;
+  rasqal_row* outer_row = NULL;
+  int not_exists_result = 1; /* Default to true (pattern does not exist) */
+  rasqal_literal** saved_var_values = NULL;
+  int num_variables = 0;
+  rasqal_literal* graph_origin;
   
-  /* NOT EXISTS is simply the logical negation of EXISTS
-   * Use the same evaluation logic and negate the result */
-  
-  exists_result = rasqal_expression_evaluate_exists(e, eval_context, &error);
-  
-  if(error || !exists_result) {
-    if(error_p)
-      *error_p = 1;
-    if(exists_result)
-      rasqal_free_literal(exists_result);
-    return NULL;
-  }
-  
-  /* Get the boolean value from EXISTS result */
-  exists_value = rasqal_literal_as_boolean(exists_result, &error);
-  rasqal_free_literal(exists_result);
-  
-  if(error) {
+  /* Validate expression structure */
+  if(!e || !e->args || !raptor_sequence_size(e->args)) {
     if(error_p)
       *error_p = 1;
     return NULL;
   }
   
-  /* Return the negation of EXISTS result */
+  /* Extract the graph pattern from args sequence */
+  gp = (rasqal_graph_pattern*)raptor_sequence_get_at(e->args, 0);
+  if(!gp) {
+    if(error_p)
+      *error_p = 1;
+    return NULL;
+  }
+  
+  /* Get query context for triples_source access */
+  query = eval_context->query;
+  if(!query) {
+    /* FAIL if no query context available */
+    if(error_p)
+      *error_p = 1;
+    return NULL;
+  }
+  
+  /* Create triples_source for data access */
+  triples_source = rasqal_new_triples_source(query);
+  if(!triples_source) {
+    if(error_p)
+      *error_p = 1;
+    return NULL;
+  }
+  
+  /* Create outer row with current variable bindings from query context */
+  outer_row = rasqal_new_row_for_size(world,
+                                      rasqal_variables_table_get_named_variables_count(query->vars_table));
+  if(outer_row) {
+    /* Copy current variable values into the outer row */
+    rasqal_row_set_values_from_variables_table(outer_row, query->vars_table);
+
+    /* Set variable values in query context for nested expression evaluation */
+    num_variables = outer_row->size;
+    if(num_variables > 0) {
+      saved_var_values = (rasqal_literal**)RASQAL_CALLOC(rasqal_literal**, num_variables, sizeof(rasqal_literal*));
+      if(saved_var_values) {
+        int i;
+        for(i = 0; i < num_variables; i++) {
+          rasqal_variable* var = rasqal_query_get_variable_by_offset(query, i);
+          rasqal_literal* value = outer_row->values[i];
+
+          if(var) {
+            /* Save current variable value for restoration */
+            saved_var_values[i] = var->value;
+            /* Set current binding for nested expression evaluation */
+            if(value)
+              var->value = rasqal_new_literal_from_literal(value);
+            else
+              var->value = NULL;
+          }
+        }
+      }
+    }
+  }
+
+  /* Get graph context from evaluation context */
+  graph_origin = rasqal_evaluation_context_get_graph_origin(eval_context);
+
+  /* Use optimized NOT EXISTS evaluation directly */
+  not_exists_result = rasqal_evaluate_not_exists_pattern_with_origin(gp, triples_source, query, outer_row, graph_origin);
+
+  /* Cleanup */
+  if(triples_source)
+    rasqal_free_triples_source(triples_source);
+  if(outer_row)
+    rasqal_free_row(outer_row);
+
+  /* Restore original variable values */
+  if(saved_var_values && num_variables > 0) {
+    int i;
+
+    for(i = 0; i < num_variables; i++) {
+      rasqal_variable* var = rasqal_query_get_variable_by_offset(query, i);
+      if(var) {
+        /* Free the temporary value we set */
+        if(var->value)
+          rasqal_free_literal(var->value);
+        /* Restore the original value */
+        var->value = saved_var_values[i];
+      }
+    }
+    RASQAL_FREE(rasqal_literal**, saved_var_values);
+  }
+
+  /* Return boolean result */
   if(error_p)
     *error_p = 0;
-  return rasqal_new_boolean_literal(world, !exists_value);
+
+  return rasqal_new_boolean_literal(world, not_exists_result);
 }
 
 #endif

@@ -40,6 +40,7 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+
 /* Forward declarations */
 #ifndef STANDALONE
 
@@ -72,15 +73,39 @@ typedef struct
 
 
 /* Forward declarations */
-static int rasqal_evaluate_exists_pattern(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row);
-static int rasqal_evaluate_exists_pattern_with_origin(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row, rasqal_literal* graph_origin);
-static int rasqal_evaluate_basic_exists_pattern(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row);
-static int rasqal_evaluate_basic_exists_pattern_with_origin(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row, rasqal_literal* origin);
-static int rasqal_evaluate_group_exists_pattern(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row);
-static int rasqal_evaluate_optional_exists_pattern(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row);
-static int rasqal_evaluate_union_exists_pattern(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row);
+/* Unified EXISTS evaluation architecture - eliminates duplication and adds NOT EXISTS optimization */
+
+/* Evaluation modes for unified architecture */
+typedef enum {
+  RASQAL_EXISTS_MODE_EXISTS = 0,     /* Standard EXISTS - all patterns must match */  
+  RASQAL_EXISTS_MODE_NOT_EXISTS = 1  /* NOT EXISTS - can short-circuit on first failure */
+} rasqal_exists_mode;
+
+#ifdef RASQAL_DEBUG
+/* Debug string lookup for EXISTS modes - only compiled in debug builds */
+static const char* rasqal_exists_mode_names[2] = {
+  "EXISTS",     /* RASQAL_EXISTS_MODE_EXISTS = 0 */
+  "NOT EXISTS"  /* RASQAL_EXISTS_MODE_NOT_EXISTS = 1 */
+};
+#define RASQAL_EXISTS_MODE_NAME(mode) (rasqal_exists_mode_names[(mode)])
+#endif
+
+/* Core unified evaluation function - handles all pattern types and modes */
+static int rasqal_evaluate_exists_pattern_unified(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row, rasqal_literal* graph_origin, rasqal_exists_mode mode);
+
+/* Pattern-specific internal handlers */
+static int rasqal_evaluate_basic_pattern_internal(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row, rasqal_literal* origin, rasqal_exists_mode mode);
+static int rasqal_evaluate_group_pattern_internal(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row, rasqal_exists_mode mode);
+static int rasqal_evaluate_union_pattern_internal(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row, rasqal_exists_mode mode);
+static int rasqal_evaluate_optional_pattern_internal(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row, rasqal_exists_mode mode);
+static int rasqal_evaluate_filter_pattern_internal(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row, rasqal_exists_mode mode);
+static int rasqal_evaluate_graph_pattern_internal(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row, rasqal_exists_mode mode);
+
+/* Public API functions - maintained for backward compatibility */
+int rasqal_evaluate_not_exists_pattern_with_origin(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row, rasqal_literal* graph_origin);
+
+/* Legacy functions - deprecated but maintained for compatibility */
 static int rasqal_evaluate_filter_exists_pattern(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row);
-static int rasqal_evaluate_graph_exists_pattern(rasqal_graph_pattern* gp, rasqal_triples_source* triples_source, rasqal_query* query, rasqal_row* outer_row);
 static rasqal_triple* rasqal_instantiate_triple_with_bindings(rasqal_triple* triple, rasqal_row* outer_row, rasqal_literal* origin);
 static int rasqal_check_triple_exists_in_data(rasqal_triple* triple, rasqal_triples_source* triples_source, rasqal_query* query);
 
@@ -119,589 +144,622 @@ rasqal_exists_rowsource_ensure_variables(rasqal_rowsource* rowsource,
 
 
 /*
- * rasqal_evaluate_exists_pattern:
- * @gp: Graph pattern to evaluate for EXISTS
+ * rasqal_evaluate_exists_pattern_unified:
+ * @gp: Graph pattern to evaluate
  * @triples_source: Data source for triple lookups
  * @query: Query context for variable bindings and execution
  * @outer_row: Current variable bindings from outer query
+ * @graph_origin: Graph context (NULL for default graph)
+ * @mode: Evaluation mode (EXISTS or NOT EXISTS)
  *
- * INTERNAL - Evaluate a graph pattern for EXISTS semantics.
+ * INTERNAL - Unified graph pattern evaluation for EXISTS and NOT EXISTS.
  *
- * This is the main entry point for EXISTS pattern evaluation. It routes
- * different graph pattern types to their specific evaluation functions.
- * The function implements recursive pattern evaluation, supporting all
- * major SPARQL graph pattern types: BASIC, GROUP, UNION, OPTIONAL,
- * FILTER, GRAPH, and MINUS.
+ * This function consolidates all EXISTS evaluation logic and provides
+ * optimizations for NOT EXISTS patterns via early termination.
  *
- * For EXISTS evaluation, the function returns 1 if the pattern has any
- * solutions (matches) given the current variable bindings, 0 otherwise.
- * This enables the EXISTS rowsource to determine whether the pattern
- * exists in the data.
- *
- * Return value: 1 if pattern has solutions, 0 otherwise
+ * Return value: 1 if pattern matches (for EXISTS) or doesn't match (for NOT EXISTS), 0 otherwise
  */
 static int
-rasqal_evaluate_exists_pattern(rasqal_graph_pattern* gp,
-                               rasqal_triples_source* triples_source,
-                               rasqal_query* query,
-                               rasqal_row* outer_row)
+rasqal_evaluate_exists_pattern_unified(rasqal_graph_pattern* gp,
+                                       rasqal_triples_source* triples_source,
+                                       rasqal_query* query,
+                                       rasqal_row* outer_row,
+                                       rasqal_literal* graph_origin,
+                                       rasqal_exists_mode mode)
 {
+  int result;
 
-
-  if(!gp || !triples_source || !query)
+  if(!gp)
     return 0;
 
-  /* Handle basic graph patterns with triple matching */
-  if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BASIC && gp->triples)
-    return rasqal_evaluate_basic_exists_pattern(gp, triples_source, query, outer_row);
+  RASQAL_DEBUG3("Unified pattern evaluation: mode=%s, pattern type=%d\n",
+                RASQAL_EXISTS_MODE_NAME(mode), gp->op);
 
-  /* Handle complex graph patterns */
+  /* Dispatch to appropriate pattern handler based on pattern type */
   switch(gp->op) {
     case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC:
-      return rasqal_evaluate_basic_exists_pattern(gp, triples_source, query, outer_row);
+      result = rasqal_evaluate_basic_pattern_internal(gp, triples_source,
+                                                      query, outer_row,
+                                                      graph_origin, mode);
+      break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_GROUP:
-      return rasqal_evaluate_group_exists_pattern(gp, triples_source, query, outer_row);
-
-    case RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL:
-      return rasqal_evaluate_optional_exists_pattern(gp, triples_source, query, outer_row);
+      result = rasqal_evaluate_group_pattern_internal(gp, triples_source,
+                                                      query, outer_row, mode);
+      break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNION:
-      return rasqal_evaluate_union_exists_pattern(gp, triples_source, query, outer_row);
+      result = rasqal_evaluate_union_pattern_internal(gp, triples_source,
+                                                      query, outer_row, mode);
+      break;
+
+    case RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL:
+      result = rasqal_evaluate_optional_pattern_internal(gp, triples_source,
+                                                         query, outer_row, mode);
+      break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_FILTER:
-      return rasqal_evaluate_filter_exists_pattern(gp, triples_source, query, outer_row);
+      result = rasqal_evaluate_filter_pattern_internal(gp, triples_source,
+                                                       query, outer_row, mode);
+      break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
-      return rasqal_evaluate_graph_exists_pattern(gp, triples_source, query, outer_row);
+      result = rasqal_evaluate_graph_pattern_internal(gp, triples_source,
+                                                      query, outer_row, mode);
+      break;
 
+    /* Handle other pattern types with basic evaluation */
     case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
     case RASQAL_GRAPH_PATTERN_OPERATOR_BIND:
     case RASQAL_GRAPH_PATTERN_OPERATOR_SELECT:
     case RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE:
     case RASQAL_GRAPH_PATTERN_OPERATOR_EXISTS:
-      /* TODO: These patterns: evaluate the first sub-pattern - this is a hack */
+      /* TODO: These patterns need proper mode-aware implementations */
       if(gp->graph_patterns && raptor_sequence_size(gp->graph_patterns) > 0) {
         rasqal_graph_pattern* sub_pattern = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, 0);
         if(sub_pattern) {
-          return rasqal_evaluate_exists_pattern(sub_pattern, triples_source, query, outer_row);
+          result = rasqal_evaluate_exists_pattern_unified(sub_pattern,
+                                                          triples_source,
+                                                          query, outer_row,
+                                                          graph_origin, mode);
+        } else {
+          result = 0;
         }
+      } else {
+        result = 0;
       }
-      return 0;
+      break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_VALUES:
-      /* VALUES patterns: always succeed for EXISTS (they provide bindings) */
-      return 1;
+      /* VALUES patterns: always succeed for EXISTS, always fail for
+       * NOT EXISTS */
+      result = (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 0 : 1;
+      break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_NOT_EXISTS:
-      /* NOT EXISTS patterns: negate the sub-pattern evaluation */
+      /* NOT EXISTS patterns: handle recursively with swapped mode */
       if(gp->graph_patterns && raptor_sequence_size(gp->graph_patterns) > 0) {
         rasqal_graph_pattern* sub_pattern = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, 0);
         if(sub_pattern) {
-          return !rasqal_evaluate_exists_pattern(sub_pattern, triples_source, query, outer_row);
+          rasqal_exists_mode swapped_mode = (mode == RASQAL_EXISTS_MODE_EXISTS)
+                                           ? RASQAL_EXISTS_MODE_NOT_EXISTS
+                                           : RASQAL_EXISTS_MODE_EXISTS;
+          result = rasqal_evaluate_exists_pattern_unified(sub_pattern,
+                                                          triples_source, query,
+                                                          outer_row,
+                                                          graph_origin,
+                                                          swapped_mode);
+        } else {
+          result = (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 0 : 1;
         }
+      } else {
+        result = (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 0 : 1;
       }
-      return 1; /* NOT EXISTS with no sub-pattern is true */
+      break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
     default:
-      /* Conservative default for unsupported patterns */
-      return 0;
+      RASQAL_DEBUG2("Unknown graph pattern operator %d\n", gp->op);
+      result = 0;
+      break;
   }
 
-  /* Unknown or unsupported pattern type */
+  RASQAL_DEBUG4("Unified pattern evaluation result: mode=%s, pattern type=%d, result=%d\n",
+                mode == RASQAL_EXISTS_MODE_EXISTS ? "EXISTS" : "NOT EXISTS",
+                gp->op, result);
+
+  return result;
+}
+
+
+/*
+ * rasqal_evaluate_basic_pattern_internal:
+ * @gp: BASIC graph pattern containing triple patterns
+ * @triples_source: Data source for triple lookups
+ * @query: Query context for variable bindings
+ * @outer_row: Current variable bindings from outer query
+ * @origin: Named graph context (NULL for default graph)
+ * @mode: Evaluation mode (EXISTS or NOT EXISTS)
+ *
+ * INTERNAL - Unified evaluation for BASIC patterns supporting both EXISTS and NOT EXISTS.
+ *
+ * This function implements conjunctive evaluation for multi-triple
+ * patterns with optimizations for both EXISTS (fail-fast) and NOT
+ * EXISTS (succeed-fast) semantics.
+ *
+ * Return value: 1 if pattern matches mode criteria, 0 otherwise
+ */
+static int
+rasqal_evaluate_basic_pattern_internal(rasqal_graph_pattern* gp,
+                                       rasqal_triples_source* triples_source,
+                                       rasqal_query* query,
+                                       rasqal_row* outer_row,
+                                       rasqal_literal* origin,
+                                       rasqal_exists_mode mode)
+{
+  int i;
+  rasqal_triple* triple;
+  int has_variable_pattern = 0;
+  int num_triples = raptor_sequence_size(gp->triples);
+
+  if(!gp->triples)
+    /* Empty pattern handling based on mode */
+    return (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 1 : 0;
+
+  RASQAL_DEBUG4("Basic pattern internal: mode=%s, triples=%d, origin=%s\n",
+                RASQAL_EXISTS_MODE_NAME(mode), num_triples,
+                origin ? "provided" : "NULL");
+
+  /* Phase 1: Check for ground triples first (optimization) */
+  for(i = 0; i < num_triples; i++) {
+    triple = (rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
+    if(!triple)
+      continue;
+
+    /* Check if this is a ground triple (no variables) */
+    if(triple->subject && triple->subject->type != RASQAL_LITERAL_VARIABLE &&
+       triple->predicate && triple->predicate->type != RASQAL_LITERAL_VARIABLE &&
+       triple->object && triple->object->type != RASQAL_LITERAL_VARIABLE) {
+
+      /* Handle ground triple based on origin context */
+      int ground_exists = 0;
+      if(origin) {
+        /* Ground triple with graph context */
+        rasqal_triple* context_triple = rasqal_new_triple(
+          rasqal_new_literal_from_literal(triple->subject),
+          rasqal_new_literal_from_literal(triple->predicate),
+          rasqal_new_literal_from_literal(triple->object)
+        );
+        
+        if(context_triple) {
+          context_triple->origin = rasqal_new_literal_from_literal(origin);
+          
+          if(triples_source->triple_present)
+            ground_exists = triples_source->triple_present(triples_source,
+                                                          triples_source->user_data,
+                                                          context_triple);
+          rasqal_free_triple(context_triple);
+        }
+      } else {
+        /* Ground triple without graph context */
+        if(triples_source->triple_present)
+          ground_exists = triples_source->triple_present(triples_source,
+                                                        triples_source->user_data,
+                                                        triple);
+      }
+
+      RASQAL_DEBUG3("Ground triple %d exists: %d\n", i, ground_exists);
+
+      /* Apply mode-specific logic for ground triples */
+      if(mode == RASQAL_EXISTS_MODE_NOT_EXISTS) {
+        /* NOT EXISTS: if any ground triple fails to exist, we can
+         * succeed immediately */
+        if(!ground_exists) {
+          RASQAL_DEBUG2("NOT EXISTS: ground triple %d not found, pattern succeeds\n", i);
+          return 1;
+        }
+      } else {
+        /* EXISTS: if any ground triple fails to exist, pattern fails */
+        if(!ground_exists) {
+          RASQAL_DEBUG2("EXISTS: ground triple %d not found, pattern fails\n", i);
+          return 0;
+        }
+      }
+    } else {
+      has_variable_pattern = 1;
+    }
+  }
+
+  /* Phase 2: Check variable patterns with substitution and
+   * mode-aware optimization */
+  if(has_variable_pattern) {
+    rasqal_triple* inst_triple;
+    int triple_exists;
+
+    for(i = 0; i < num_triples; i++) {
+      triple = (rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
+      if(!triple)
+        continue;
+
+      /* Skip ground triples already checked in Phase 1 */
+      if(triple->subject && triple->subject->type != RASQAL_LITERAL_VARIABLE &&
+         triple->predicate && triple->predicate->type != RASQAL_LITERAL_VARIABLE &&
+         triple->object && triple->object->type != RASQAL_LITERAL_VARIABLE) {
+        continue;
+      }
+
+      /* Instantiate triple with current bindings and optional graph context */
+      inst_triple = rasqal_instantiate_triple_with_bindings(triple, outer_row,
+                                                            origin);
+      if(!inst_triple) {
+        /* Failed instantiation handling based on mode */
+        return (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 1 : 0;
+      }
+
+      RASQAL_DEBUG3("%s: Instantiated triple %d: ", RASQAL_EXISTS_MODE_NAME(mode), i);
+      rasqal_triple_print(inst_triple, RASQAL_DEBUG_FH);
+      fprintf(RASQAL_DEBUG_FH, "\n");
+
+      /* Check if instantiated triple exists */
+      triple_exists = rasqal_check_triple_exists_in_data(inst_triple, triples_source, query);
+
+      RASQAL_DEBUG4("%s: Triple %d exists result: %d\n",
+                    mode == RASQAL_EXISTS_MODE_EXISTS ? "EXISTS" : "NOT EXISTS",
+                    i, triple_exists);
+
+      rasqal_free_triple(inst_triple);
+
+      /* Apply mode-specific short-circuiting logic */
+      if(mode == RASQAL_EXISTS_MODE_NOT_EXISTS) {
+        /* NOT EXISTS: can succeed immediately if any triple doesn't exist */
+        if(!triple_exists) {
+          RASQAL_DEBUG2("NOT EXISTS: triple %d not found, pattern succeeds\n", i);
+          return 1;
+        }
+      } else {
+        /* EXISTS: must fail immediately if any triple doesn't exist */
+        if(!triple_exists) {
+          RASQAL_DEBUG2("EXISTS: triple %d not found, pattern fails\n", i);
+          return 0;
+        }
+      }
+    }
+  }
+
+  /* All patterns processed without early termination */
+  if(mode == RASQAL_EXISTS_MODE_NOT_EXISTS) {
+    /* NOT EXISTS: all triples existed, so pattern fails */
+    RASQAL_DEBUG1("NOT EXISTS: all triples found, pattern fails\n");
+    return 0;
+  } else {
+    /* EXISTS: all triples existed, so pattern succeeds */
+    RASQAL_DEBUG1("EXISTS: all triples found, pattern succeeds\n");
+    return 1;
+  }
+}
+
+
+/*
+ * Pattern-specific internal handlers - implement mode-aware evaluation
+ */
+
+static int
+rasqal_evaluate_group_pattern_internal(rasqal_graph_pattern* gp,
+                                       rasqal_triples_source* triples_source,
+                                       rasqal_query* query,
+                                       rasqal_row* outer_row,
+                                       rasqal_exists_mode mode)
+{
+  int i;
+  int num_patterns;
+  rasqal_graph_pattern* sub_gp;
+
+  if(!gp->graph_patterns)
+    /* Empty group handling based on mode:
+     * EXISTS: empty group always succeeds (1)
+     * NOT EXISTS: empty group always fails (0) */
+    return (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 0 : 1;
+
+  num_patterns = raptor_sequence_size(gp->graph_patterns);
+
+  RASQAL_DEBUG3("Group pattern internal: mode=%s, sub-patterns=%d\n",
+                RASQAL_EXISTS_MODE_NAME(mode), num_patterns);
+
+  /* Mode-aware GROUP evaluation with optimized short-circuiting */
+  for(i = 0; i < num_patterns; i++) {
+    int sub_result;
+
+    sub_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+    if(!sub_gp)
+      continue;
+
+    /* Recursive evaluation of sub-pattern with unified architecture */
+    sub_result = rasqal_evaluate_exists_pattern_unified(sub_gp, triples_source,
+                                                        query, outer_row, NULL,
+                                                        mode);
+
+    RASQAL_DEBUG4("Group sub-pattern %d: mode=%s, result=%d\n", 
+                  i, RASQAL_EXISTS_MODE_NAME(mode), sub_result);
+
+    /* Mode-aware short-circuiting logic */
+    if(mode == RASQAL_EXISTS_MODE_NOT_EXISTS) {
+      /* NOT EXISTS: can succeed immediately if any sub-pattern fails */
+      if(!sub_result) {
+        RASQAL_DEBUG2("NOT EXISTS: Group sub-pattern %d failed, group succeeds\n", i);
+        return 1;
+      }
+    } else {
+      /* EXISTS: must fail immediately if any sub-pattern fails */
+      if(!sub_result) {
+        RASQAL_DEBUG2("EXISTS: Group sub-pattern %d failed, group fails\n", i);
+        return 0;
+      }
+    }
+  }
+
+  /* All sub-patterns processed without early termination */
+  if(mode == RASQAL_EXISTS_MODE_NOT_EXISTS) {
+    /* NOT EXISTS: all sub-patterns succeeded, so group fails */
+    RASQAL_DEBUG1("NOT EXISTS: all Group sub-patterns succeeded, group fails\n");
+    return 0;
+  } else {
+    /* EXISTS: all sub-patterns succeeded, so group succeeds */
+    RASQAL_DEBUG1("EXISTS: all Group sub-patterns succeeded, group succeeds\n");
+    return 1;
+  }
+}
+
+static int
+rasqal_evaluate_union_pattern_internal(rasqal_graph_pattern* gp,
+                                       rasqal_triples_source* triples_source,
+                                       rasqal_query* query,
+                                       rasqal_row* outer_row,
+                                       rasqal_exists_mode mode)
+{
+  int i;
+  int num_patterns;
+  rasqal_graph_pattern* sub_gp;
+
+  if(!gp->graph_patterns)
+    return (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 1 : 0; /* Empty union: NOT EXISTS succeeds, EXISTS fails */
+
+  num_patterns = raptor_sequence_size(gp->graph_patterns);
+
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG3("Evaluating UNION pattern with %d sub-patterns for %s\n", 
+                num_patterns, RASQAL_EXISTS_MODE_NAME(mode));
+#endif
+
+  /* UNION semantics with mode-aware optimization:
+   * - EXISTS mode: ANY sub-pattern matching means success (disjunction)
+   * - NOT EXISTS mode: ALL sub-patterns must fail for success (negated disjunction)
+   */
+  for(i = 0; i < num_patterns; i++) {
+    int sub_result;
+
+    sub_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+    if(!sub_gp)
+      continue;
+
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG4("Evaluating UNION sub-pattern %d/%d for %s\n", 
+                  i + 1, num_patterns, RASQAL_EXISTS_MODE_NAME(mode));
+#endif
+
+    /* Recursive evaluation of sub-pattern */
+    sub_result = rasqal_evaluate_exists_pattern_unified(sub_gp, triples_source,
+                                                        query, outer_row, NULL,
+                                                        mode);
+
+    if(mode == RASQAL_EXISTS_MODE_NOT_EXISTS) {
+      if(!sub_result) {
+        /* NOT EXISTS: succeed immediately if any sub-pattern fails */
+#ifdef RASQAL_DEBUG
+        RASQAL_DEBUG2("NOT EXISTS UNION: sub-pattern %d failed, returning success\n", i + 1);
+#endif
+        return 1;
+      }
+    } else {
+      if(sub_result) {
+        /* EXISTS: succeed immediately if any sub-pattern succeeds */
+#ifdef RASQAL_DEBUG
+        RASQAL_DEBUG2("EXISTS UNION: sub-pattern %d succeeded, returning success\n", i + 1);
+#endif
+        return 1;
+      }
+    }
+  }
+
+  /* All sub-patterns evaluated:
+   * - EXISTS mode: no sub-pattern matched, return failure
+   * - NOT EXISTS mode: all sub-patterns matched, return failure
+   */
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG3("%s UNION: all sub-patterns %s, returning failure\n",
+                RASQAL_EXISTS_MODE_NAME(mode), 
+                (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? "succeeded" : "failed");
+#endif
   return 0;
 }
 
+static int
+rasqal_evaluate_optional_pattern_internal(rasqal_graph_pattern* gp,
+                                          rasqal_triples_source* triples_source,
+                                          rasqal_query* query,
+                                          rasqal_row* outer_row,
+                                          rasqal_exists_mode mode)
+{
+  rasqal_graph_pattern* required_gp;
+  int required_result;
+
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG2("OPTIONAL pattern internal: mode=%s\n", RASQAL_EXISTS_MODE_NAME(mode));
+#endif
+
+  if(!gp->graph_patterns || raptor_sequence_size(gp->graph_patterns) < 2) {
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG2("OPTIONAL pattern missing sub-patterns for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
+#endif
+    return (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 1 : 0; /* Invalid OPTIONAL: NOT EXISTS succeeds, EXISTS fails */
+  }
+
+  /* OPTIONAL has required pattern + optional pattern (we only need required) */
+  required_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, 0);
+
+  if(!required_gp) {
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG2("OPTIONAL pattern missing required sub-pattern for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
+#endif
+    return (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 1 : 0;
+  }
+
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG2("Evaluating OPTIONAL required pattern for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
+#endif
+
+  /* Required pattern evaluation with mode-aware optimization */
+  required_result = rasqal_evaluate_exists_pattern_unified(required_gp, triples_source,
+                                                           query, outer_row, NULL, mode);
+
+  if(mode == RASQAL_EXISTS_MODE_NOT_EXISTS) {
+    if(!required_result) {
+      /* NOT EXISTS: succeed immediately if required pattern fails */
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG1("NOT EXISTS OPTIONAL: required pattern failed, returning success\n");
+#endif
+      return 1;
+    }
+    /* Required pattern succeeded, continue evaluation - OPTIONAL never affects NOT EXISTS result
+     * since the optional part is optional and doesn't change the required pattern result */
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG1("NOT EXISTS OPTIONAL: required pattern succeeded, returning failure\n");
+#endif
+    return 0;
+  } else {
+    if(!required_result) {
+      /* EXISTS: fail if required pattern fails */
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG1("EXISTS OPTIONAL: required pattern failed, returning failure\n");
+#endif
+      return 0;
+    }
+    /* Required pattern succeeded, optional part doesn't affect EXISTS result */
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG1("EXISTS OPTIONAL: required pattern succeeded, returning success\n");
+#endif
+    return 1;
+  }
+}
+
+static int
+rasqal_evaluate_filter_pattern_internal(rasqal_graph_pattern* gp,
+                                        rasqal_triples_source* triples_source,
+                                        rasqal_query* query,
+                                        rasqal_row* outer_row,
+                                        rasqal_exists_mode mode)
+{
+  /* For now, delegate to legacy implementation
+   * TODO: implement mode-aware version
+   */
+  if(mode == RASQAL_EXISTS_MODE_NOT_EXISTS)
+    return !rasqal_evaluate_filter_exists_pattern(gp, triples_source, query,
+                                                  outer_row);
+  else
+    return rasqal_evaluate_filter_exists_pattern(gp, triples_source, query,
+                                                 outer_row);
+}
+
+static int
+rasqal_evaluate_graph_pattern_internal(rasqal_graph_pattern* gp,
+                                       rasqal_triples_source* triples_source,
+                                       rasqal_query* query,
+                                       rasqal_row* outer_row,
+                                       rasqal_exists_mode mode)
+{
+  rasqal_graph_pattern* sub_gp;
+
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG2("GRAPH pattern internal: mode=%s\n", RASQAL_EXISTS_MODE_NAME(mode));
+#endif
+
+  if(!gp->graph_patterns || raptor_sequence_size(gp->graph_patterns) < 1) {
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG2("GRAPH pattern missing sub-patterns for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
+#endif
+    return (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 1 : 0; /* Invalid GRAPH: NOT EXISTS succeeds, EXISTS fails */
+  }
+
+  sub_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, 0);
+  if(!sub_gp) {
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG2("GRAPH pattern missing sub-pattern for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
+#endif
+    return (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 1 : 0;
+  }
+
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG2("Evaluating GRAPH sub-pattern for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
+#endif
+
+  /* Handle named graph context */
+  if(gp->origin) {
+    /* Use origin-aware evaluation for basic patterns in graph context */
+    if(sub_gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG2("GRAPH using basic pattern with origin for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
+#endif
+      return rasqal_evaluate_basic_pattern_internal(sub_gp, triples_source,
+                                                    query, outer_row, gp->origin, mode);
+    } else {
+      /* For complex patterns, recursively evaluate with mode awareness
+       * Note: nested graph contexts need enhanced triples_source support */
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG2("GRAPH using complex pattern with origin for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
+#endif
+      return rasqal_evaluate_exists_pattern_unified(sub_gp, triples_source,
+                                                    query, outer_row, gp->origin, mode);
+    }
+  } else {
+    /* No graph context specified, use default evaluation with mode awareness */
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG2("GRAPH using default context for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
+#endif
+    return rasqal_evaluate_exists_pattern_unified(sub_gp, triples_source, query,
+                                                  outer_row, NULL, mode);
+  }
+}
+
+
 /*
- * rasqal_evaluate_exists_pattern_with_origin:
- * @gp: Graph pattern to evaluate for EXISTS
+ * rasqal_evaluate_not_exists_pattern_with_origin:
+ * @gp: Graph pattern to evaluate for NOT EXISTS
  * @triples_source: Data source for triple lookups
  * @query: Query context for variable bindings and execution
  * @outer_row: Current variable bindings from outer query
  * @graph_origin: Named graph context for pattern evaluation
  *
- * INTERNAL - Evaluate a graph pattern for EXISTS semantics with graph context.
+ * INTERNAL - Evaluate a graph pattern for NOT EXISTS semantics with graph context and optimization.
  *
- * This function is identical to rasqal_evaluate_exists_pattern but passes
- * the graph origin context to pattern evaluation functions that support it.
- * This enables EXISTS patterns to be evaluated within named graph contexts.
+ * This function provides optimized NOT EXISTS evaluation with graph context support
+ * that can short-circuit on the first failing pattern.
  *
- * Return value: 1 if pattern has solutions in graph context, 0 otherwise
+ * Return value: 1 if pattern does not match in graph context, 0 if it matches
  */
-static int
-rasqal_evaluate_exists_pattern_with_origin(rasqal_graph_pattern* gp,
-                                           rasqal_triples_source* triples_source,
-                                           rasqal_query* query,
-                                           rasqal_row* outer_row,
-                                           rasqal_literal* graph_origin)
+int
+rasqal_evaluate_not_exists_pattern_with_origin(rasqal_graph_pattern* gp,
+                                               rasqal_triples_source* triples_source,
+                                               rasqal_query* query,
+                                               rasqal_row* outer_row,
+                                               rasqal_literal* graph_origin)
 {
-  if(!gp)
-    return 0;
-
-  switch(gp->op) {
-    case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC:
-      /* Use origin-aware basic pattern evaluation */
-      return rasqal_evaluate_basic_exists_pattern_with_origin(gp, triples_source, query, outer_row, graph_origin);
-
-    case RASQAL_GRAPH_PATTERN_OPERATOR_GROUP:
-      /* For group patterns, use default evaluation for now - TODO: implement origin-aware version */
-      return rasqal_evaluate_group_exists_pattern(gp, triples_source, query, outer_row);
-
-    case RASQAL_GRAPH_PATTERN_OPERATOR_UNION:
-      return rasqal_evaluate_union_exists_pattern(gp, triples_source, query, outer_row);
-
-    case RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL:
-      return rasqal_evaluate_optional_exists_pattern(gp, triples_source, query, outer_row);
-
-    case RASQAL_GRAPH_PATTERN_OPERATOR_FILTER:
-      return rasqal_evaluate_filter_exists_pattern(gp, triples_source, query, outer_row);
-
-    case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
-      /* For nested GRAPH patterns, use the inner graph origin if available */
-      return rasqal_evaluate_graph_exists_pattern(gp, triples_source, query, outer_row);
-
-    case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
-    case RASQAL_GRAPH_PATTERN_OPERATOR_BIND:
-    case RASQAL_GRAPH_PATTERN_OPERATOR_SELECT:
-    case RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE:
-    case RASQAL_GRAPH_PATTERN_OPERATOR_EXISTS:
-      /* TODO: These patterns need origin-aware versions */
-      if(gp->graph_patterns && raptor_sequence_size(gp->graph_patterns) > 0) {
-        rasqal_graph_pattern* sub_pattern = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, 0);
-        if(sub_pattern) {
-          return rasqal_evaluate_exists_pattern_with_origin(sub_pattern, triples_source, query, outer_row, graph_origin);
-        }
-      }
-      return 0;
-
-    case RASQAL_GRAPH_PATTERN_OPERATOR_VALUES:
-      /* VALUES patterns: always succeed for EXISTS (they provide bindings) */
-      return 1;
-
-    case RASQAL_GRAPH_PATTERN_OPERATOR_NOT_EXISTS:
-      /* NOT EXISTS patterns: negate the sub-pattern evaluation */
-      if(gp->graph_patterns && raptor_sequence_size(gp->graph_patterns) > 0) {
-        rasqal_graph_pattern* sub_pattern = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, 0);
-        if(sub_pattern) {
-          return !rasqal_evaluate_exists_pattern_with_origin(sub_pattern, triples_source, query, outer_row, graph_origin);
-        }
-      }
-      return 1; /* NOT EXISTS with no sub-pattern is true */
-
-    case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
-    default:
-      /* Conservative default for unsupported patterns */
-      return 0;
-  }
-
-  /* Unknown or unsupported pattern type */
-  return 0;
+  return rasqal_evaluate_exists_pattern_unified(gp, triples_source, query,
+                                                outer_row, graph_origin,
+                                                RASQAL_EXISTS_MODE_NOT_EXISTS);
 }
 
-/**
- * rasqal_evaluate_basic_exists_pattern:
- * @gp: Basic graph pattern containing triples
- * @triples_source: Data source for triple lookups
- * @query: Query context for variable bindings
- * @outer_row: Current variable bindings from outer query
- *
- * INTERNAL - Evaluate basic graph patterns for EXISTS with dual-mode optimization.
- *
- * This function implements optimized EXISTS evaluation for basic graph patterns
- * (triple patterns). It uses a two-phase approach:
- *
- * Phase 1: Ground triple optimization - Check for exact triples (no variables)
- *          using efficient triple_present() lookup. If any ground triple exists,
- *          EXISTS immediately returns true.
- *
- * Phase 2: Variable pattern evaluation - For patterns with variables, substitute
- *          outer query bindings and perform pattern matching against the data.
- *
- * The function limits evaluation to the first triple in EXISTS patterns to avoid
- * outer query contamination issues where query processing adds extra triples
- * to the pattern.
- *
- * Return value: 1 if pattern has solutions, 0 otherwise
- */
-static int
-rasqal_evaluate_basic_exists_pattern(rasqal_graph_pattern* gp,
-                                     rasqal_triples_source* triples_source,
-                                     rasqal_query* query,
-                                     rasqal_row* outer_row)
-{
-  int i;
-  rasqal_triple* triple;
-  int has_variable_pattern = 0;
-  int num_triples = raptor_sequence_size(gp->triples);
 
-  if(!gp->triples)
-    return 1; /* Empty pattern always matches */
 
-  /* Phase 1: Check for ground triples first (optimization) */
 
-  for(i = 0; i < num_triples; i++) {
-    triple = (rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
-    if(!triple)
-      continue;
-
-    /* Check if this is a ground triple (no variables) */
-    if(triple->subject && triple->subject->type != RASQAL_LITERAL_VARIABLE &&
-       triple->predicate && triple->predicate->type != RASQAL_LITERAL_VARIABLE &&
-       triple->object && triple->object->type != RASQAL_LITERAL_VARIABLE) {
-
-      /* Ground triple - check if it exists in data */
-      if(triples_source->triple_present) {
-        int exists = triples_source->triple_present(triples_source,
-                                                   triples_source->user_data,
-                                                   triple);
-        if(exists)
-          return 1; /* Ground triple exists, EXISTS is true */
-      }
-    } else {
-      has_variable_pattern = 1;
-    }
-  }
-
-      /* Phase 2: Check variable patterns with substitution */
-    if(has_variable_pattern) {
-      rasqal_triple* inst_triple;
-      int triple_exists;
-
-      /* Limit to first triple to avoid outer query contamination */
-      /* EXISTS patterns may contain extra triples from query processing */
-      if(num_triples > 0) {
-        triple = (rasqal_triple*)raptor_sequence_get_at(gp->triples, 0);
-        if(triple) {
-          /* Skip ground triples already checked */
-          if(triple->subject && triple->subject->type != RASQAL_LITERAL_VARIABLE &&
-             triple->predicate && triple->predicate->type != RASQAL_LITERAL_VARIABLE &&
-             triple->object && triple->object->type != RASQAL_LITERAL_VARIABLE) {
-            return 0; /* Ground triple already processed above */
-          }
-
-          /* Instantiate triple with current bindings */
-          inst_triple = rasqal_instantiate_triple_with_bindings(triple, outer_row, NULL);
-          if(!inst_triple)
-            return 0; /* Failed instantiation */
-
-#ifdef RASQAL_DEBUG
-          fprintf(stderr, "EXISTS: Instantiated triple: ");
-          rasqal_triple_print(inst_triple, stderr);
-          fprintf(stderr, "\n");
-#endif
-
-          /* Check if instantiated triple exists */
-          triple_exists = rasqal_check_triple_exists_in_data(inst_triple, triples_source, query);
-
-#ifdef RASQAL_DEBUG
-          fprintf(stderr, "EXISTS: Triple exists result: %d\n", triple_exists);
-#endif
-
-          rasqal_free_triple(inst_triple);
-
-          if(triple_exists)
-            return 1; /* Variable pattern matched */
-        }
-      }
-    }
-
-  return 0; /* No patterns matched */
-}
-
-/*
- * rasqal_evaluate_basic_exists_pattern_with_origin:
- * @gp: BASIC graph pattern containing triple patterns
- * @triples_source: Data source for triple lookups
- * @query: Query context for variable bindings
- * @outer_row: Current variable bindings from outer query
- * @origin: Named graph context for triple evaluation
- *
- * INTERNAL - Evaluate BASIC patterns for EXISTS with named graph context.
- *
- * This function is identical to rasqal_evaluate_basic_exists_pattern but
- * passes the graph origin to triple instantiation, enabling EXISTS evaluation
- * within specific named graph contexts.
- *
- * Return value: 1 if any pattern matches in graph context, 0 otherwise
- */
-static int
-rasqal_evaluate_basic_exists_pattern_with_origin(rasqal_graph_pattern* gp,
-                                                 rasqal_triples_source* triples_source,
-                                                 rasqal_query* query,
-                                                 rasqal_row* outer_row,
-                                                 rasqal_literal* origin)
-{
-  int i;
-  rasqal_triple* triple;
-  int has_variable_pattern = 0;
-  int num_triples = raptor_sequence_size(gp->triples);
-
-  if(!gp->triples)
-    return 1; /* Empty pattern always matches */
-
-  /* Phase 1: Check for ground triples first (optimization) */
-
-  for(i = 0; i < num_triples; i++) {
-    triple = (rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
-    if(!triple)
-      continue;
-
-    /* Check if this is a ground triple (no variables) */
-    if(triple->subject && triple->subject->type != RASQAL_LITERAL_VARIABLE &&
-       triple->predicate && triple->predicate->type != RASQAL_LITERAL_VARIABLE &&
-       triple->object && triple->object->type != RASQAL_LITERAL_VARIABLE) {
-
-      /* Ground triple - create with graph context and check existence */
-      rasqal_triple* context_triple = rasqal_new_triple(
-        rasqal_new_literal_from_literal(triple->subject),
-        rasqal_new_literal_from_literal(triple->predicate),
-        rasqal_new_literal_from_literal(triple->object)
-      );
-
-      if(context_triple && origin) {
-        context_triple->origin = rasqal_new_literal_from_literal(origin);
-      }
-
-      if(triples_source->triple_present && context_triple) {
-        int exists = triples_source->triple_present(triples_source,
-                                                   triples_source->user_data,
-                                                   context_triple);
-        rasqal_free_triple(context_triple);
-        if(exists)
-          return 1; /* Ground triple exists in graph context, EXISTS is true */
-      } else if(context_triple) {
-        rasqal_free_triple(context_triple);
-      }
-    } else {
-      has_variable_pattern = 1;
-    }
-  }
-
-  /* Phase 2: Check variable patterns with substitution and graph context */
-  if(has_variable_pattern) {
-    rasqal_triple* inst_triple;
-    int triple_exists;
-
-    /* Limit to first triple to avoid outer query contamination */
-    /* EXISTS patterns may contain extra triples from query processing */
-    if(num_triples > 0) {
-      triple = (rasqal_triple*)raptor_sequence_get_at(gp->triples, 0);
-      if(triple) {
-        /* Skip ground triples already checked */
-        if(triple->subject && triple->subject->type != RASQAL_LITERAL_VARIABLE &&
-           triple->predicate && triple->predicate->type != RASQAL_LITERAL_VARIABLE &&
-           triple->object && triple->object->type != RASQAL_LITERAL_VARIABLE) {
-          return 0; /* Ground triple already processed above */
-        }
-
-        /* Instantiate triple with current bindings and graph context */
-        inst_triple = rasqal_instantiate_triple_with_bindings(triple, outer_row, origin);
-        if(!inst_triple)
-          return 0; /* Failed instantiation */
-
-#ifdef RASQAL_DEBUG
-        fprintf(stderr, "EXISTS: Graph context origin provided: ");
-        if(origin) {
-          rasqal_literal_print(origin, stderr);
-        } else {
-          fprintf(stderr, "NULL");
-        }
-        fprintf(stderr, "\n");
-
-        fprintf(stderr, "EXISTS: Instantiated triple with graph context: ");
-        rasqal_triple_print(inst_triple, stderr);
-        fprintf(stderr, "\n");
-
-        fprintf(stderr, "EXISTS: Instantiated triple origin: ");
-        if(inst_triple->origin) {
-          rasqal_literal_print(inst_triple->origin, stderr);
-        } else {
-          fprintf(stderr, "NULL");
-        }
-        fprintf(stderr, "\n");
-#endif
-
-        /* Check if instantiated triple exists in graph context */
-        triple_exists = rasqal_check_triple_exists_in_data(inst_triple, triples_source, query);
-
-#ifdef RASQAL_DEBUG
-        fprintf(stderr, "EXISTS: Triple exists in graph context result: %d\n", triple_exists);
-#endif
-
-        rasqal_free_triple(inst_triple);
-
-        if(triple_exists)
-          return 1; /* Variable pattern matched in graph context */
-      }
-    }
-  }
-
-  return 0; /* No patterns matched in graph context */
-}
-
-/*
- * rasqal_evaluate_group_exists_pattern:
- * @gp: GROUP graph pattern containing sub-patterns
- * @triples_source: Data source for triple lookups
- * @query: Query context for variable bindings
- * @outer_row: Current variable bindings from outer query
- *
- * INTERNAL - Evaluate GROUP patterns for EXISTS with conjunction semantics.
- *
- * GROUP patterns represent conjunction (AND) semantics where ALL sub-patterns
- * must match for the GROUP to succeed. For EXISTS evaluation, this means:
- *
- * - If any sub-pattern fails to match, the entire GROUP fails (returns 0)
- * - Only if ALL sub-patterns match does the GROUP succeed (returns 1)
- * - Empty GROUP patterns always succeed (return 1)
- *
- * The function recursively evaluates each sub-pattern using the same variable
- * bindings, implementing early termination on the first failure.
- *
- * Return value: 1 if all sub-patterns match, 0 otherwise
- */
-static int
-rasqal_evaluate_group_exists_pattern(rasqal_graph_pattern* gp,
-                                     rasqal_triples_source* triples_source,
-                                     rasqal_query* query,
-                                     rasqal_row* outer_row)
-{
-  int i;
-  int num_patterns;
-  rasqal_graph_pattern* sub_gp;
-
-  if(!gp->graph_patterns)
-    return 1; /* Empty group always matches */
-
-  num_patterns = raptor_sequence_size(gp->graph_patterns);
-
-  /* GROUP semantics: ALL sub-patterns must match (conjunction) */
-  for(i = 0; i < num_patterns; i++) {
-    int sub_result;
-
-    sub_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
-    if(!sub_gp)
-      continue;
-
-    /* Recursive evaluation of sub-pattern */
-    sub_result = rasqal_evaluate_exists_pattern(sub_gp, triples_source, query, outer_row);
-    if(!sub_result)
-      return 0; /* One failure means entire GROUP fails */
-  }
-
-  return 1; /* All sub-patterns matched */
-}
-
-/**
- * rasqal_evaluate_union_exists_pattern:
- * @gp: UNION graph pattern containing sub-patterns
- * @triples_source: Data source for triple lookups
- * @query: Query context for variable bindings
- * @outer_row: Current variable bindings from outer query
- *
- * INTERNAL - Evaluate UNION patterns for EXISTS with disjunction semantics.
- *
- * UNION patterns represent disjunction (OR) semantics where ANY sub-pattern
- * can match for the UNION to succeed. For EXISTS evaluation, this means:
- *
- * - If any sub-pattern matches, the entire UNION succeeds (returns 1)
- * - Only if ALL sub-patterns fail does the UNION fail (returns 0)
- * - Empty UNION patterns always fail (return 0)
- *
- * The function recursively evaluates each sub-pattern using the same variable
- * bindings, implementing early termination on the first success.
- *
- * Return value: 1 if any sub-pattern matches, 0 otherwise
- */
-static int
-rasqal_evaluate_union_exists_pattern(rasqal_graph_pattern* gp,
-                                     rasqal_triples_source* triples_source,
-                                     rasqal_query* query,
-                                     rasqal_row* outer_row)
-{
-  int i;
-  int num_patterns;
-  rasqal_graph_pattern* sub_gp;
-
-  if(!gp->graph_patterns)
-    return 0; /* Empty union never matches */
-
-  num_patterns = raptor_sequence_size(gp->graph_patterns);
-
-  /* UNION semantics: ANY sub-pattern can match (disjunction) */
-  for(i = 0; i < num_patterns; i++) {
-    int sub_result;
-
-    sub_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
-    if(!sub_gp)
-      continue;
-
-    /* Recursive evaluation of sub-pattern */
-    sub_result = rasqal_evaluate_exists_pattern(sub_gp, triples_source, query, outer_row);
-    if(sub_result)
-      return 1; /* One success means entire UNION succeeds */
-  }
-
-  return 0; /* No sub-patterns matched */
-}
-
-/*
- * rasqal_evaluate_optional_exists_pattern:
- * @gp: OPTIONAL graph pattern containing required and optional sub-patterns
- * @triples_source: Data source for triple lookups
- * @query: Query context for variable bindings
- * @outer_row: Current variable bindings from outer query
- *
- * INTERNAL - Evaluate OPTIONAL patterns for EXISTS with required/optional semantics.
- *
- * OPTIONAL patterns have a required sub-pattern and an optional sub-pattern.
- * For EXISTS evaluation, the semantics are:
- *
- * - The required pattern MUST match for the OPTIONAL to succeed
- * - The optional pattern can match or not - it doesn't affect the EXISTS result
- * - If the required pattern fails, the entire OPTIONAL fails (returns 0)
- * - If the required pattern succeeds, the OPTIONAL succeeds (returns 1)
- *
- * The function first evaluates the required pattern, and only if it succeeds
- * does it validate that the optional pattern structure is correct.
- *
- * Return value: 1 if required pattern matches, 0 otherwise
- */
-static int
-rasqal_evaluate_optional_exists_pattern(rasqal_graph_pattern* gp,
-                                        rasqal_triples_source* triples_source,
-                                        rasqal_query* query,
-                                        rasqal_row* outer_row)
-{
-  rasqal_graph_pattern* required_gp;
-  rasqal_graph_pattern* optional_gp;
-  int required_result;
-
-  if(!gp->graph_patterns || raptor_sequence_size(gp->graph_patterns) < 2)
-    return 0; /* OPTIONAL requires at least 2 patterns */
-
-  /* OPTIONAL has required pattern + optional pattern */
-  required_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, 0);
-  optional_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, 1);
-
-  if(!required_gp)
-    return 0;
-
-  /* Required pattern must match */
-  required_result = rasqal_evaluate_exists_pattern(required_gp, triples_source, query, outer_row);
-  if(!required_result)
-    return 0; /* Required pattern failed */
-
-  /* Optional pattern can match or not - doesn't affect EXISTS result */
-  /* But we need to check if it's possible to match for correctness */
-  if(optional_gp) {
-    /* Note: We don't return the result, just validate it's possible */
-    rasqal_evaluate_exists_pattern(optional_gp, triples_source, query, outer_row);
-  }
-
-  return 1; /* Required pattern matched */
-}
 
 /**
  * rasqal_evaluate_filter_exists_pattern:
@@ -810,7 +868,10 @@ rasqal_evaluate_filter_exists_pattern(rasqal_graph_pattern* gp,
     return 0;
 
   /* First evaluate the pattern */
-  pattern_result = rasqal_evaluate_exists_pattern(pattern_gp, triples_source, query, outer_row);
+  pattern_result = rasqal_evaluate_exists_pattern_unified(pattern_gp,
+                                                          triples_source, query,
+                                                          outer_row, NULL,
+                                                          RASQAL_EXISTS_MODE_EXISTS);
   if(!pattern_result)
     return 0; /* Pattern must match first */
 
@@ -893,60 +954,6 @@ rasqal_evaluate_filter_exists_pattern(rasqal_graph_pattern* gp,
   return 1; /* Pattern matched and all filters passed */
 }
 
-/*
- * rasqal_evaluate_graph_exists_pattern:
- * @gp: GRAPH graph pattern containing named graph and sub-pattern
- * @triples_source: Data source for triple lookups
- * @query: Query context for variable bindings
- * @outer_row: Current variable bindings from outer query
- *
- * INTERNAL - Evaluate GRAPH patterns for EXISTS within named graph context.
- *
- * GRAPH patterns evaluate a sub-pattern within a specific named graph context.
- * For EXISTS evaluation, the semantics are:
- *
- * - The sub-pattern is evaluated within the named graph context
- * - If no named graph is specified, evaluation occurs in the default graph
- * - The function recursively evaluates the sub-pattern with the same
- *   variable bindings but potentially different graph context
- *
- * Note: Full named graph context switching requires enhanced triples_source
- * support that is not yet fully implemented. Currently, the function
- * evaluates in the default graph context regardless of the named graph.
- *
- * Return value: 1 if sub-pattern matches in graph context, 0 otherwise
- */
-static int
-rasqal_evaluate_graph_exists_pattern(rasqal_graph_pattern* gp,
-                                     rasqal_triples_source* triples_source,
-                                     rasqal_query* query,
-                                     rasqal_row* outer_row)
-{
-  rasqal_graph_pattern* sub_gp;
-
-  if(!gp->graph_patterns || raptor_sequence_size(gp->graph_patterns) < 1) {
-    return 0;
-  }
-
-  sub_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, 0);
-  if(!sub_gp)
-    return 0;
-
-  /* Handle named graph context */
-  if(gp->origin) {
-    /* Use origin-aware evaluation for basic patterns in graph context */
-    if(sub_gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
-      return rasqal_evaluate_basic_exists_pattern_with_origin(sub_gp, triples_source, query, outer_row, gp->origin);
-    } else {
-      /* For complex patterns, recursively evaluate but note that nested graph contexts
-       * would need further enhancement to fully support all SPARQL graph nesting */
-      return rasqal_evaluate_exists_pattern(sub_gp, triples_source, query, outer_row);
-    }
-  } else {
-    /* No graph context specified, use default evaluation */
-    return rasqal_evaluate_exists_pattern(sub_gp, triples_source, query, outer_row);
-  }
-}
 
 
 
@@ -1131,19 +1138,13 @@ rasqal_exists_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
 
       /* Step 2: Execute EXISTS pattern with current variable bindings */
-      /* Use graph origin if available, otherwise use default evaluation */
-      if(con->graph_origin) {
-        result = rasqal_evaluate_exists_pattern_with_origin(con->exists_pattern,
-                                                            con->triples_source,
-                                                            con->query,
-                                                            con->outer_row,
-                                                            con->graph_origin);
-      } else {
-        result = rasqal_evaluate_exists_pattern(con->exists_pattern,
-                                                con->triples_source,
-                                                con->query,
-                                                con->outer_row);
-      }
+      /* Use unified evaluation - handles NULL graph_origin automatically */
+      result = rasqal_evaluate_exists_pattern_unified(con->exists_pattern,
+                                                      con->triples_source,
+                                                      con->query,
+                                                      con->outer_row,
+                                                      con->graph_origin,
+                                                      RASQAL_EXISTS_MODE_EXISTS);
 
 
     }

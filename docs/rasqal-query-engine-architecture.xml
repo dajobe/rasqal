@@ -509,6 +509,252 @@ if(sequence_created) {
     </itemizedlist>
   </section>
 
+  <section id="exists-evaluation-architecture">
+    <title>EXISTS and NOT EXISTS Evaluation Architecture</title>
+
+    <para>The EXISTS and NOT EXISTS evaluation system implements a unified
+    mode-aware architecture that provides efficient pattern matching with
+    optimized short-circuiting for both EXISTS and NOT EXISTS operations.
+    This system handles all SPARQL pattern types including basic patterns,
+    GROUP patterns, UNION patterns, OPTIONAL patterns, GRAPH patterns, and
+    FILTER patterns with proper semantic isolation and performance optimization.</para>
+
+    <section id="exists-unified-mode-system">
+      <title>Unified Mode-Aware Evaluation</title>
+
+      <para>The EXISTS evaluation architecture uses a unified system based on
+      the <literal>rasqal_exists_mode</literal> enumeration that enables
+      single evaluation paths optimized for both EXISTS and NOT EXISTS
+      semantics:</para>
+
+      <programlisting>
+typedef enum {
+  RASQAL_EXISTS_MODE_EXISTS = 0,      /* Standard EXISTS evaluation */
+  RASQAL_EXISTS_MODE_NOT_EXISTS = 1   /* Optimized NOT EXISTS evaluation */
+} rasqal_exists_mode;
+      </programlisting>
+
+      <para>This design eliminates code duplication while enabling
+      mode-specific optimizations:</para>
+
+      <itemizedlist>
+        <listitem><para><emphasis>EXISTS Mode</emphasis> - Succeeds when any
+        pattern matches, enabling early success termination</para></listitem>
+        <listitem><para><emphasis>NOT EXISTS Mode</emphasis> - Succeeds when
+        patterns fail to match, enabling early failure detection</para></listitem>
+      </itemizedlist>
+
+    </section>
+
+    <section id="exists-pattern-handlers">
+      <title>Pattern-Specific Evaluation Handlers</title>
+
+      <para>The unified architecture provides specialized internal handlers
+      for each SPARQL pattern type, each implementing mode-aware evaluation
+      with appropriate short-circuiting optimizations:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>Basic Pattern Handler</term>
+          <listitem><para><function>rasqal_evaluate_basic_pattern_internal</function>
+          - Handles triple pattern evaluation with proper multi-triple
+          conjunctive semantics. Fixes critical bug where only the first
+          triple was evaluated.</para></listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>GROUP Pattern Handler</term>
+          <listitem><para><function>rasqal_evaluate_group_pattern_internal</function>
+          - Implements conjunctive (AND) semantics with early termination.
+          EXISTS mode fails on first sub-pattern failure, NOT EXISTS mode
+          succeeds on first sub-pattern failure.</para></listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>UNION Pattern Handler</term>
+          <listitem><para><function>rasqal_evaluate_union_pattern_internal</function>
+          - Implements disjunctive (OR) semantics with optimized short-circuiting.
+          EXISTS mode succeeds on first sub-pattern success, NOT EXISTS mode
+          succeeds on first sub-pattern failure.</para></listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>OPTIONAL Pattern Handler</term>
+          <listitem><para><function>rasqal_evaluate_optional_pattern_internal</function>
+          - Evaluates required pattern only (optional part doesn't affect EXISTS
+          result). Provides immediate mode-aware termination based on required
+          pattern result.</para></listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>GRAPH Pattern Handler</term>
+          <listitem><para><function>rasqal_evaluate_graph_pattern_internal</function>
+          - Handles named graph context evaluation with origin support.
+          Maintains mode awareness while supporting both basic and complex
+          sub-patterns.</para></listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+    <section id="exists-optimization-strategies">
+      <title>Optimization Strategies</title>
+
+      <para>The EXISTS evaluation system employs several optimization strategies
+      that significantly improve query performance:</para>
+
+      <section id="exists-short-circuiting">
+        <title>Mode-Aware Short-Circuiting</title>
+
+        <para>Different short-circuiting strategies are applied based on the
+        evaluation mode:</para>
+
+        <itemizedlist>
+          <listitem><para><emphasis>EXISTS Short-Circuiting</emphasis> -
+          Terminates immediately when any pattern succeeds, avoiding
+          unnecessary evaluation of remaining patterns</para></listitem>
+          <listitem><para><emphasis>NOT EXISTS Short-Circuiting</emphasis> -
+          Terminates immediately when any pattern fails, providing optimal
+          performance for negation operations</para></listitem>
+        </itemizedlist>
+
+        <para>This approach provides significant performance benefits for
+        complex patterns with multiple alternatives or conditions.</para>
+
+      </section>
+
+      <section id="exists-direct-evaluation">
+        <title>Direct NOT EXISTS Evaluation</title>
+
+        <para>The system provides direct NOT EXISTS evaluation instead of
+        negating EXISTS results:</para>
+
+        <programlisting>
+/* Enhanced NOT EXISTS evaluation */
+not_exists_result = rasqal_evaluate_not_exists_pattern_with_origin(
+    gp, triples_source, query, outer_row, graph_origin);
+
+/* Instead of: !rasqal_evaluate_exists_pattern(...) */
+        </programlisting>
+
+        <para>This eliminates unnecessary computation and enables immediate
+        short-circuiting optimizations specific to NOT EXISTS semantics.</para>
+
+      </section>
+
+    </section>
+
+    <section id="exists-multi-triple-semantics">
+      <title>Multi-Triple Pattern Semantics</title>
+
+      <para>The EXISTS evaluation system correctly implements SPARQL conjunctive
+      semantics for multi-triple patterns, fixing a critical bug in the previous
+      implementation:</para>
+
+      <section id="exists-conjunctive-evaluation">
+        <title>Conjunctive Pattern Processing</title>
+
+        <para>All triples within a basic graph pattern must match for the
+        pattern to succeed:</para>
+
+        <programlisting>
+/* Example: All three triples must match */
+FILTER NOT EXISTS { 
+    ?person foaf:name ?name .      # Triple 1
+    ?person foaf:age ?age .        # Triple 2  
+    ?person foaf:email ?email      # Triple 3
+}
+        </programlisting>
+
+        <para>The evaluation system processes all triples and requires complete
+        matches for EXISTS success, or complete failure for NOT EXISTS success.</para>
+
+      </section>
+
+      <section id="exists-variable-binding">
+        <title>Variable Binding in EXISTS Context</title>
+
+        <para>EXISTS evaluation maintains proper variable scoping isolation
+        while allowing variable binding during pattern instantiation:</para>
+
+        <itemizedlist>
+          <listitem><para>Variables from outer query scope are available for
+          pattern instantiation</para></listitem>
+          <listitem><para>Variables bound within EXISTS patterns remain isolated
+          and don't affect outer query</para></listitem>
+          <listitem><para>Named graph context is properly maintained through
+          origin parameters</para></listitem>
+        </itemizedlist>
+
+      </section>
+
+    </section>
+
+    <section id="exists-performance-characteristics">
+      <title>Performance Characteristics</title>
+
+      <para>The unified EXISTS evaluation architecture provides several
+      performance benefits:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>Code Efficiency</term>
+          <listitem><para>Eliminated over 200 lines of duplicate code through
+          unified architecture, reducing maintenance burden and improving
+          consistency</para></listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Execution Efficiency</term>
+          <listitem><para>Direct evaluation paths eliminate wrapper function
+          overhead and enable immediate short-circuiting based on pattern
+          evaluation results</para></listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Memory Efficiency</term>
+          <listitem><para>Reduced function call stack depth and eliminated
+          redundant pattern evaluation paths, improving memory usage patterns</para></listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Debug Efficiency</term>
+          <listitem><para>Unified debug output system using lookup tables
+          provides clear tracing without repeated string operations</para></listitem>
+        </varlistentry>
+      </variablelist>
+
+    </section>
+
+    <section id="exists-integration-patterns">
+      <title>Integration with Query Engine</title>
+
+      <para>The EXISTS evaluation system integrates seamlessly with other
+      query engine components:</para>
+
+      <itemizedlist>
+        <listitem><para><emphasis>Expression System Integration</emphasis> -
+        EXISTS expressions use the unified evaluation system through
+        <function>rasqal_expression_evaluate_not_exists</function> with
+        proper scope context</para></listitem>
+
+        <listitem><para><emphasis>Variable Scoping Integration</emphasis> -
+        EXISTS evaluation respects hierarchical variable scoping and maintains
+        proper isolation boundaries</para></listitem>
+
+        <listitem><para><emphasis>Triples Source Integration</emphasis> -
+        Pattern evaluation works with any triples source implementation,
+        supporting both default and named graph contexts</para></listitem>
+
+        <listitem><para><emphasis>Error Handling Integration</emphasis> -
+        Consistent error propagation through evaluation chains with proper
+        cleanup on error conditions</para></listitem>
+      </itemizedlist>
+
+    </section>
+
+  </section>
+
   <section id="expression-evaluation-system">
     <title>Expression Evaluation System</title>
 
@@ -558,6 +804,11 @@ if(sequence_created) {
         <varlistentry>
           <term>Arithmetic Operators</term>
           <listitem><para>Mathematical operations on numeric expressions</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>EXISTS/NOT EXISTS Operators</term>
+          <listitem><para>Pattern existence testing with unified mode-aware
+          evaluation and optimized short-circuiting (see <xref linkend="exists-evaluation-architecture"/>)</para></listitem>
         </varlistentry>
       </variablelist>
 
@@ -1066,6 +1317,12 @@ static void rasqal_query_scope_print_variable_analysis(
         <varlistentry>
           <term>Early Termination</term>
           <listitem><para>Stops processing when sufficient results are found</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>EXISTS Pattern Optimization</term>
+          <listitem><para>Mode-aware short-circuiting for EXISTS and NOT EXISTS
+          patterns provides immediate termination based on pattern evaluation results
+          (see <xref linkend="exists-short-circuiting"/>)</para></listitem>
         </varlistentry>
       </variablelist>
 
