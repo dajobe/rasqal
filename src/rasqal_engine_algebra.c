@@ -164,7 +164,8 @@ rasqal_algebra_diff_to_rowsource(rasqal_engine_algebra_data* execution_data,
     return NULL;
   }
 
-  return rasqal_new_minus_rowsource(query->world, query, left_rs, right_rs);
+  return rasqal_new_minus_rowsource(query->world, query, left_rs, right_rs, 
+                                    node->flags & RASQAL_ALGEBRA_DIFF_NEEDS_CORRELATION);
 }
 
 

@@ -1935,6 +1935,7 @@ rasqal_expression_evaluate_exists(rasqal_expression *e,
 {
   rasqal_world* world = eval_context->world;
   rasqal_graph_pattern* gp;
+  rasqal_graph_pattern* isolated_gp = NULL;
   rasqal_query* query = NULL;
   rasqal_triples_source* triples_source = NULL;
   rasqal_rowsource* exists_rs = NULL;
@@ -1960,6 +1961,83 @@ rasqal_expression_evaluate_exists(rasqal_expression *e,
     return NULL;
   }
   
+  /* CRITICAL FIX: Create isolated graph pattern for EXISTS evaluation
+   * The parser puts the original graph pattern directly into args, but this
+   * graph pattern shares the main query's triples sequence. We need to create
+   * an isolated pattern that only contains the triples from the EXISTS clause.
+   * 
+   * ALWAYS create isolated pattern for EXISTS expressions to ensure proper
+   * scope isolation, regardless of frees_triples flag.
+   */
+  RASQAL_DEBUG1("EXISTS expression evaluation\n");
+  if(gp)
+    RASQAL_DEBUG4("  gp->op=%d, gp->triples=%p, gp->frees_triples=%d\n", gp->op, gp->triples, gp->frees_triples);
+    
+  if(gp && gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BASIC && gp->triples) {
+    raptor_sequence* exists_triples;
+    
+    RASQAL_DEBUG1("EXISTS: Creating isolated pattern for expression evaluation\n");
+    /* Extract triples from the basic pattern's start/end range */
+    exists_triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
+                                         (raptor_data_print_handler)rasqal_triple_print);
+    if(!exists_triples) {
+      if(error_p)
+        *error_p = 1;
+      return NULL;
+    }
+    
+    /* Copy triples within the pattern's range */
+    if(gp->start_column >= 0 && gp->end_column >= gp->start_column) {
+      int i;
+      for(i = gp->start_column; i <= gp->end_column; i++) {
+        rasqal_triple* triple = (rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
+        if(triple) {
+          rasqal_triple* triple_copy = rasqal_new_triple_from_triple(triple);
+          if(!triple_copy || raptor_sequence_push(exists_triples, triple_copy)) {
+            if(triple_copy)
+              rasqal_free_triple(triple_copy);
+            raptor_free_sequence(exists_triples);
+            if(error_p)
+              *error_p = 1;
+            return NULL;
+          }
+        }
+      }
+    }
+    
+    /* Create isolated graph pattern */
+    isolated_gp = rasqal_new_basic_graph_pattern(eval_context->query, exists_triples, 
+                                                 0, raptor_sequence_size(exists_triples) - 1, 0);
+    if(!isolated_gp) {
+      raptor_free_sequence(exists_triples);
+      if(error_p)
+        *error_p = 1;
+      return NULL;
+    }
+    
+    /* Mark as sub-pattern and ensure it frees its triples */
+    isolated_gp->is_subpattern = 1;
+    isolated_gp->frees_triples = 1;
+    
+    /* Populate scope owned_triples if scope exists */
+    if(gp->execution_scope) {
+      /* Copy triples to scope's owned_triples for proper scope isolation */
+      int i;
+      for(i = 0; i < raptor_sequence_size(exists_triples); i++) {
+        rasqal_triple* triple = (rasqal_triple*)raptor_sequence_get_at(exists_triples, i);
+        if(triple) {
+          rasqal_triple* scope_triple = rasqal_new_triple_from_triple(triple);
+          if(scope_triple) {
+            rasqal_query_scope_add_triple(gp->execution_scope, scope_triple);
+          }
+        }
+      }
+    }
+    
+    /* Use the isolated pattern for EXISTS evaluation */
+    gp = isolated_gp;
+  }
+  
   /* Get query context for triples_source access */
   query = eval_context->query;
   if(!query) {
@@ -1977,16 +2055,37 @@ rasqal_expression_evaluate_exists(rasqal_expression *e,
     return NULL;
   }
   
-  /* Create outer row with current variable bindings from query context */
+  /* SPARQL 1.2 Section 8.1.1: "NOT EXISTS filter expression tests whether a graph 
+   * pattern does not match the dataset, given the values of variables in the group 
+   * graph pattern in which the filter occurs"
+   *
+   * SPARQL 1.2 Definition: Substitute
+   * substitute(pattern, μ) = the pattern formed by replacing every occurrence of 
+   * a variable v in pattern by μ(v) for each v in dom(μ)
+   *
+   * SPARQL 1.2 Definition: Evaluation of Exists  
+   * The value exists(P), given D(G) is true if and only if 
+   * eval(D(G), substitute(P, μ)) is a non-empty sequence
+   *
+   * Implementation: Create outer row with current variable bindings to provide
+   * solution mapping μ for the substitute operation during pattern evaluation.
+   */
   outer_row = rasqal_new_row_for_size(world, 
                                       rasqal_variables_table_get_named_variables_count(query->vars_table));
   if(outer_row) {
-    /* Copy current variable values into the outer row */
+    /* SPARQL 1.2 substitute(pattern, μ): Copy current variable values into the outer row
+     * This provides the solution mapping μ that will be used for variable substitution
+     * during pattern evaluation per SPARQL 1.2 specification. */
     rasqal_row_set_values_from_variables_table(outer_row, query->vars_table);
     
-    /* CRITICAL FIX: Set variable values in query context for nested expression evaluation
-     * This ensures that nested EXISTS expressions within filter patterns can access
-     * the current variable bindings from the outer EXISTS evaluation */
+    /* SPARQL 1.2 Implementation Note: Variable Context for Nested Patterns
+     * Set variable values in query context to ensure nested EXISTS expressions 
+     * can access current variable bindings. This implements the substitute operation
+     * by making outer variables available during inner pattern evaluation.
+     *
+     * Per SPARQL 1.2: "variables from the group are in scope... the FILTER inside 
+     * the NOT EXISTS has access to the value of [outer variables]"
+     */
     num_variables = outer_row->size;
     if(num_variables > 0) {
       saved_var_values = (rasqal_literal**)RASQAL_CALLOC(rasqal_literal**, num_variables, sizeof(rasqal_literal*));
@@ -1997,9 +2096,11 @@ rasqal_expression_evaluate_exists(rasqal_expression *e,
           rasqal_literal* value = outer_row->values[i];
           
           if(var) {
-            /* Save current variable value for restoration */
+            /* Save current variable value for restoration after substitute operation */
             saved_var_values[i] = var->value;
-            /* Set current binding for nested expression evaluation */
+            
+            /* SPARQL 1.2 substitute(pattern, μ): Apply variable substitution
+             * Replace variable v with μ(v) for variables in dom(μ) */
             if(value) {
               var->value = rasqal_new_literal_from_literal(value);
             } else {
@@ -2021,6 +2122,8 @@ rasqal_expression_evaluate_exists(rasqal_expression *e,
       rasqal_free_triples_source(triples_source);
     if(outer_row)
       rasqal_free_row(outer_row);
+    if(isolated_gp)
+      rasqal_free_graph_pattern(isolated_gp);
     
     /* Restore variable values on error */
     if(saved_var_values && num_variables > 0) {
@@ -2054,6 +2157,8 @@ rasqal_expression_evaluate_exists(rasqal_expression *e,
     rasqal_free_triples_source(triples_source);
   if(outer_row)
     rasqal_free_row(outer_row);
+  if(isolated_gp)
+    rasqal_free_graph_pattern(isolated_gp);
   
   /* Restore original variable values */
   if(saved_var_values && num_variables > 0) {
@@ -2086,6 +2191,7 @@ rasqal_expression_evaluate_not_exists(rasqal_expression *e,
 {
   rasqal_world* world = eval_context->world;
   rasqal_graph_pattern* gp;
+  rasqal_graph_pattern* isolated_gp = NULL;
   rasqal_query* query = NULL;
   rasqal_triples_source* triples_source = NULL;
   rasqal_row* outer_row = NULL;
@@ -2107,6 +2213,84 @@ rasqal_expression_evaluate_not_exists(rasqal_expression *e,
     if(error_p)
       *error_p = 1;
     return NULL;
+  }
+  
+  /* CRITICAL FIX: Create isolated graph pattern for NOT EXISTS evaluation
+   * The parser puts the original graph pattern directly into args, but this
+   * graph pattern shares the main query's triples sequence. We need to create
+   * an isolated pattern that only contains the triples from the NOT EXISTS clause.
+   * 
+   * ALWAYS create isolated pattern for NOT EXISTS expressions to ensure proper
+   * scope isolation, regardless of frees_triples flag.
+   */
+  RASQAL_DEBUG1("NOT EXISTS expression evaluation\n");
+  if(gp) {
+    RASQAL_DEBUG4("  gp->op=%d, gp->triples=%p, gp->frees_triples=%d\n", gp->op, gp->triples, gp->frees_triples);
+  }
+  
+  if(gp && gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BASIC && gp->triples) {
+    raptor_sequence* exists_triples;
+    
+    RASQAL_DEBUG1("NOT EXISTS: Creating isolated pattern for expression evaluation\n");
+    /* Extract triples from the basic pattern's start/end range */
+    exists_triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
+                                         (raptor_data_print_handler)rasqal_triple_print);
+    if(!exists_triples) {
+      if(error_p)
+        *error_p = 1;
+      return NULL;
+    }
+    
+    /* Copy triples within the pattern's range */
+    if(gp->start_column >= 0 && gp->end_column >= gp->start_column) {
+      int i;
+      for(i = gp->start_column; i <= gp->end_column; i++) {
+        rasqal_triple* triple = (rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
+        if(triple) {
+          rasqal_triple* triple_copy = rasqal_new_triple_from_triple(triple);
+          if(!triple_copy || raptor_sequence_push(exists_triples, triple_copy)) {
+            if(triple_copy)
+              rasqal_free_triple(triple_copy);
+            raptor_free_sequence(exists_triples);
+            if(error_p)
+              *error_p = 1;
+            return NULL;
+          }
+        }
+      }
+    }
+    
+    /* Create isolated graph pattern */
+    isolated_gp = rasqal_new_basic_graph_pattern(eval_context->query, exists_triples, 
+                                                 0, raptor_sequence_size(exists_triples) - 1, 0);
+    if(!isolated_gp) {
+      raptor_free_sequence(exists_triples);
+      if(error_p)
+        *error_p = 1;
+      return NULL;
+    }
+    
+    /* Mark as sub-pattern and ensure it frees its triples */
+    isolated_gp->is_subpattern = 1;
+    isolated_gp->frees_triples = 1;
+    
+    /* Populate scope owned_triples if scope exists */
+    if(gp->execution_scope) {
+      /* Copy triples to scope's owned_triples for proper scope isolation */
+      int i;
+      for(i = 0; i < raptor_sequence_size(exists_triples); i++) {
+        rasqal_triple* triple = (rasqal_triple*)raptor_sequence_get_at(exists_triples, i);
+        if(triple) {
+          rasqal_triple* scope_triple = rasqal_new_triple_from_triple(triple);
+          if(scope_triple) {
+            rasqal_query_scope_add_triple(gp->execution_scope, scope_triple);
+          }
+        }
+      }
+    }
+    
+    /* Use the isolated pattern for NOT EXISTS evaluation */
+    gp = isolated_gp;
   }
   
   /* Get query context for triples_source access */
@@ -2168,6 +2352,8 @@ rasqal_expression_evaluate_not_exists(rasqal_expression *e,
     rasqal_free_triples_source(triples_source);
   if(outer_row)
     rasqal_free_row(outer_row);
+  if(isolated_gp)
+    rasqal_free_graph_pattern(isolated_gp);
 
   /* Restore original variable values */
   if(saved_var_values && num_variables > 0) {

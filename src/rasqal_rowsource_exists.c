@@ -373,50 +373,85 @@ rasqal_evaluate_basic_pattern_internal(rasqal_graph_pattern* gp,
   /* Phase 2: Check variable patterns with substitution and
    * mode-aware optimization */
   if(has_variable_pattern) {
-    rasqal_triple* inst_triple;
-    int triple_exists;
-
-    for(i = 0; i < num_triples; i++) {
-      triple = (rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
-      if(!triple)
-        continue;
-
-      /* Skip ground triples already checked in Phase 1 */
-      if(triple->subject && triple->subject->type != RASQAL_LITERAL_VARIABLE &&
-         triple->predicate && triple->predicate->type != RASQAL_LITERAL_VARIABLE &&
-         triple->object && triple->object->type != RASQAL_LITERAL_VARIABLE) {
-        continue;
-      }
-
-      /* Instantiate triple with current bindings and optional graph context */
-      inst_triple = rasqal_instantiate_triple_with_bindings(triple, outer_row,
-                                                            origin);
-      if(!inst_triple) {
-        /* Failed instantiation handling based on mode */
-        return (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 1 : 0;
-      }
-
-      RASQAL_DEBUG3("%s: Instantiated triple %d: ", RASQAL_EXISTS_MODE_NAME(mode), i);
-      rasqal_triple_print(inst_triple, RASQAL_DEBUG_FH);
-      fprintf(RASQAL_DEBUG_FH, "\n");
-
-      /* Check if instantiated triple exists */
-      triple_exists = rasqal_check_triple_exists_in_data(inst_triple, triples_source, query);
-
-      RASQAL_DEBUG4("%s: Triple %d exists result: %d\n",
-                    mode == RASQAL_EXISTS_MODE_EXISTS ? "EXISTS" : "NOT EXISTS",
-                    i, triple_exists);
-
-      rasqal_free_triple(inst_triple);
-
-      /* Apply mode-specific short-circuiting logic */
-      if(mode == RASQAL_EXISTS_MODE_NOT_EXISTS) {
-        /* NOT EXISTS: can succeed immediately if any triple doesn't exist */
-        if(!triple_exists) {
-          RASQAL_DEBUG2("NOT EXISTS: triple %d not found, pattern succeeds\n", i);
-          return 1;
+    /* For NOT EXISTS, we need to find a complete solution that satisfies
+     * ALL triples together, not check each triple individually */
+    if(mode == RASQAL_EXISTS_MODE_NOT_EXISTS) {
+      /* Create instantiated triples with outer row bindings applied */
+      raptor_sequence* inst_triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple, NULL);
+      rasqal_rowsource* temp_rowsource;
+      rasqal_triple* inst_triple;
+      int has_complete_solution = 0;
+      
+      if(inst_triples) {
+        /* Apply outer row bindings to each triple in the pattern */
+        for(i = 0; i < num_triples; i++) {
+          triple = (rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
+          if(triple) {
+            /* Instantiate triple with current bindings */
+            inst_triple = rasqal_instantiate_triple_with_bindings(triple, outer_row, origin);
+            if(inst_triple) {
+              raptor_sequence_push(inst_triples, inst_triple);
+            }
+          }
         }
-      } else {
+        
+        /* Create a temporary rowsource with the instantiated triples */
+        temp_rowsource = rasqal_new_triples_rowsource(query->world, query, triples_source, inst_triples, 0, raptor_sequence_size(inst_triples) - 1);
+        if(temp_rowsource) {
+          /* Check if there are any solutions */
+          rasqal_row* temp_row = rasqal_rowsource_read_row(temp_rowsource);
+          has_complete_solution = (temp_row != NULL);
+          if(temp_row) {
+            rasqal_free_row(temp_row);
+          }
+          rasqal_free_rowsource(temp_rowsource);
+        }
+        
+        raptor_free_sequence(inst_triples);
+      }
+      
+      RASQAL_DEBUG2("NOT EXISTS: Complete solution found: %d\n", has_complete_solution);
+      
+      /* NOT EXISTS succeeds if no complete solution exists */
+      return !has_complete_solution;
+    } else {
+      /* EXISTS mode: check each triple individually (existing logic) */
+      rasqal_triple* inst_triple;
+      int triple_exists;
+
+      for(i = 0; i < num_triples; i++) {
+        triple = (rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
+        if(!triple)
+          continue;
+
+        /* Skip ground triples already checked in Phase 1 */
+        if(triple->subject && triple->subject->type != RASQAL_LITERAL_VARIABLE &&
+           triple->predicate && triple->predicate->type != RASQAL_LITERAL_VARIABLE &&
+           triple->object && triple->object->type != RASQAL_LITERAL_VARIABLE) {
+          continue;
+        }
+
+        /* Instantiate triple with current bindings and optional graph context */
+        inst_triple = rasqal_instantiate_triple_with_bindings(triple, outer_row,
+                                                              origin);
+        if(!inst_triple) {
+          /* Failed instantiation handling based on mode */
+          return 0;
+        }
+
+        RASQAL_DEBUG3("%s: Instantiated triple %d: ", RASQAL_EXISTS_MODE_NAME(mode), i);
+        rasqal_triple_print(inst_triple, RASQAL_DEBUG_FH);
+        fprintf(RASQAL_DEBUG_FH, "\n");
+
+        /* Check if instantiated triple exists */
+        triple_exists = rasqal_check_triple_exists_in_data(inst_triple, triples_source, query);
+
+        RASQAL_DEBUG4("%s: Triple %d exists result: %d\n",
+                      mode == RASQAL_EXISTS_MODE_EXISTS ? "EXISTS" : "NOT EXISTS",
+                      i, triple_exists);
+
+        rasqal_free_triple(inst_triple);
+
         /* EXISTS: must fail immediately if any triple doesn't exist */
         if(!triple_exists) {
           RASQAL_DEBUG2("EXISTS: triple %d not found, pattern fails\n", i);
@@ -427,15 +462,14 @@ rasqal_evaluate_basic_pattern_internal(rasqal_graph_pattern* gp,
   }
 
   /* All patterns processed without early termination */
-  if(mode == RASQAL_EXISTS_MODE_NOT_EXISTS) {
-    /* NOT EXISTS: all triples existed, so pattern fails */
-    RASQAL_DEBUG1("NOT EXISTS: all triples found, pattern fails\n");
-    return 0;
-  } else {
+  if(mode == RASQAL_EXISTS_MODE_EXISTS) {
     /* EXISTS: all triples existed, so pattern succeeds */
     RASQAL_DEBUG1("EXISTS: all triples found, pattern succeeds\n");
     return 1;
   }
+  
+  /* NOT EXISTS case is handled above with complete solution checking */
+  return 0;
 }
 
 
@@ -958,6 +992,65 @@ rasqal_evaluate_filter_exists_pattern(rasqal_graph_pattern* gp,
 
 
 /*
+ * Function to get a literal value with proper variable binding from outer row
+ *
+ * This function takes a literal (which may be a variable) and returns either:
+ * - The bound value from outer_row if the literal is a variable with a binding
+ * - The literal itself if it's not a variable or has no binding
+ *
+ * @param literal The literal to resolve
+ * @param outer_row The outer row to use for variable bindings
+ *
+ * Return value: The resolved literal or NULL on failure
+ */
+static rasqal_literal*
+rasqal_get_literal_with_bindings(rasqal_literal* literal, rasqal_row* outer_row)
+{
+  rasqal_variable* var;
+  rasqal_literal* bound_value = NULL;
+  
+  if(!literal)
+    return NULL;
+  
+  /* If not a variable, return as-is */
+  var = rasqal_literal_as_variable(literal);
+  if(!var) {
+    return rasqal_new_literal_from_literal(literal);
+  }
+  
+  /* Variable case: look up bound value in outer_row by searching for variable by name
+   * This is more reliable than using var->offset which may not correspond to the 
+   * outer row's variable ordering */
+  if(outer_row && outer_row->rowsource && var->name) {
+    /* Find the variable in the outer rowsource by name */
+    int outer_offset = rasqal_rowsource_get_variable_offset_by_name(outer_row->rowsource, var->name);
+    if(outer_offset >= 0 && outer_offset < outer_row->size) {
+      bound_value = outer_row->values[outer_offset];
+      if(bound_value) {
+        RASQAL_DEBUG3("Variable %s bound to value in outer row at offset %d (by name lookup)\n", 
+                      var->name ? (char*)var->name : "?", outer_offset);
+        return rasqal_new_literal_from_literal(bound_value);
+      }
+    }
+  }
+  
+  /* Fallback: try the original offset-based lookup */
+  if(!bound_value && outer_row && var->offset >= 0 && var->offset < outer_row->size) {
+    bound_value = outer_row->values[var->offset];
+    if(bound_value) {
+      RASQAL_DEBUG3("Variable %s bound to value in outer row at offset %d (by offset)\n", 
+                    var->name ? (char*)var->name : "?", var->offset);
+      return rasqal_new_literal_from_literal(bound_value);
+    }
+  }
+  
+  /* No binding found, return the variable itself */
+  RASQAL_DEBUG2("Variable %s not bound in outer row, keeping as variable\n", 
+                var->name ? (char*)var->name : "?");
+  return rasqal_new_literal_from_literal(literal);
+}
+
+/*
  * Function to instantiate a triple with variable bindings from outer row
  *
  * This function takes a triple pattern (which may contain variables) and
@@ -970,6 +1063,8 @@ rasqal_evaluate_filter_exists_pattern(rasqal_graph_pattern* gp,
  *
  * Return value: The instantiated triple or NULL on failure
  */
+
+
 /**
  * rasqal_instantiate_triple_with_bindings:
  * @triple: Triple pattern that may contain variables
@@ -982,10 +1077,10 @@ rasqal_evaluate_filter_exists_pattern(rasqal_graph_pattern* gp,
  * query context, creating a new "instantiated" triple that can be evaluated
  * against the data.
  *
- * The function uses rasqal_literal_bound_value() to handle variable substitution:
- * - If a component is a variable with a bound value → substitute with actual value
- * - If a component is a variable without a bound value → keep as variable for pattern matching
- * - If a component is already a constant → keep as is
+ * The function now uses outer row bindings to handle variable substitution:
+ * - If a component is a variable with a bound value in outer row -> substitute with actual value
+ * - If a component is a variable without a bound value -> keep as variable for pattern matching
+ * - If a component is already a constant -> keep as is
  *
  * This is essential for EXISTS evaluation as it enables patterns like
  * EXISTS { ?s :p :o } to use the current binding of ?s from the outer query.
@@ -1004,11 +1099,13 @@ rasqal_instantiate_triple_with_bindings(rasqal_triple* triple, rasqal_row* outer
 
   if(!triple)
     return NULL;
+    
+  RASQAL_DEBUG2("rasqal_instantiate_triple_with_bindings: starting with outer_row=%p\n", (void*)outer_row);
 
-  /* Substitute variables with values using rasqal_literal_bound_value() */
-  subj = rasqal_literal_bound_value(triple->subject);
-  pred = rasqal_literal_bound_value(triple->predicate);
-  obj = rasqal_literal_bound_value(triple->object);
+  /* Substitute variables with values from outer_row */
+  subj = rasqal_get_literal_with_bindings(triple->subject, outer_row);
+  pred = rasqal_get_literal_with_bindings(triple->predicate, outer_row);  
+  obj = rasqal_get_literal_with_bindings(triple->object, outer_row);
 
   /* Use provided graph origin, or preserve original triple's origin */
   if(origin) {
