@@ -20,10 +20,12 @@
     extensibility.</para>
 
     <para>The architecture is designed to support multiple query
-    languages (SPARQL, RDQL) while maintaining a unified internal
-    representation through the algebra system. This design enables
-    query optimization, execution planning, and efficient processing
-    of complex graph patterns and expressions.</para>
+    languages while maintaining a unified internal representation
+    through the algebra system. The query engine implements SPARQL
+    1.2 semantics including advanced negation handling with variable
+    correlation analysis. This design enables query optimization,
+    execution planning, and efficient processing of complex graph
+    patterns and expressions.</para>
 
     <para>The architecture provides a robust foundation for RDF query
     processing with clear separation of concerns, extensible design,
@@ -31,107 +33,6 @@
     architectural patterns is essential for developers working with
     Rasqal internals, implementing custom extensions, or optimizing
     query performance.</para>
-
-  </section>
-
-  <section id="memory-ownership">
-    <title>Memory Ownership and Cleanup</title>
-
-    <para>This section summarizes the ownership model used across the query engine. Correct ownership is critical for avoiding leaks and double frees during both normal execution and error paths.</para>
-
-    <section id="ownership-principles">
-      <title>Core Principles</title>
-      <itemizedlist>
-        <listitem><para>Use <literal>raptor_sequence</literal> with appropriate free handlers whenever a sequence owns allocated objects.</para></listitem>
-        <listitem><para>Transfer ownership exactly once; after pushing objects into an owning sequence, do not free them manually.</para></listitem>
-        <listitem><para>On error paths, free either the sequence (if it owns items) or the individual items (if ownership was not transferred).</para></listitem>
-      </itemizedlist>
-    </section>
-
-    <section id="ownership-graph-patterns">
-      <title>Graph Patterns and Scopes</title>
-      <para>The main query owns graph patterns and maintains a hierarchy of graph pattern scopes for SPARQL 1.1 semantic isolation.</para>
-      <programlisting>
-rasqal_query
-├── graph_patterns (raptor_sequence)     // Pattern structure hierarchy
-│   └── rasqal_graph_pattern objects
-│       └── execution_scope (reference)  // Points to appropriate scope
-└── root_scope (rasqal_query_scope)      // Root scope with children
-    ├── owned_triples (raptor_sequence)      // Triples owned by this scope
-    ├── local_vars (rasqal_variables_table)  // Local variables
-    └── child_scopes (raptor_sequence)       // Nested scopes
-        └── rasqal_query_scope objects
-      </programlisting>
-      <itemizedlist>
-        <listitem><para><emphasis>Pattern Owner:</emphasis> <literal>rasqal_query</literal> owns the pattern structure hierarchy.</para></listitem>
-        <listitem><para><emphasis>Scope Owner:</emphasis> <literal>rasqal_query</literal> owns the root scope, which owns child scopes.</para></listitem>
-        <listitem><para><emphasis>Triple Owner:</emphasis> Each scope exclusively owns its triples, preventing contamination.</para></listitem>
-        <listitem><para><emphasis>Cleanup:</emphasis> Patterns and scopes are freed when the query is freed via proper reference counting.</para></listitem>
-      </itemizedlist>
-    </section>
-
-    <section id="ownership-exists-expressions">
-      <title>EXISTS / NOT EXISTS Expressions</title>
-      <para>For EXISTS expressions, the expression frees only the sequence container; the sequence free handler must free the contained graph patterns.</para>
-      <programlisting>
-/* Inside expression cleanup */
-case RASQAL_EXPR_EXISTS:
-case RASQAL_EXPR_NOT_EXISTS:
-  raptor_free_sequence(e-&gt;args);  /* sequence frees contents via handler */
-  break;
-      </programlisting>
-      <para>When constructing such expressions, create the sequence with an appropriate free handler and transfer ownership before attaching it to the expression.</para>
-    </section>
-
-    <section id="ownership-results">
-      <title>Query Results</title>
-      <para>Avoid creating dummy queries when constructing results from strings. Use a NULL query; results cleanup paths already handle this.</para>
-      <programlisting>
-/* Correct */
-results = rasqal_new_query_results2(world, NULL, type);
-      </programlisting>
-    </section>
-
-    <section id="ownership-sequences">
-      <title>Sequences and Free Handlers</title>
-      <para>Create sequences with free handlers whenever the sequence is the owner of its elements.</para>
-      <programlisting>
-/* Graph patterns */
-raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
-                    (raptor_data_print_handler)rasqal_graph_pattern_print);
-
-/* Rows */
-raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
-                    (raptor_data_print_handler)rasqal_row_print);
-
-/* Statements (triples) */
-raptor_new_sequence((raptor_data_free_handler)raptor_free_statement,
-                    (raptor_data_print_handler)raptor_statement_print);
-      </programlisting>
-    </section>
-
-    <section id="ownership-error-paths">
-      <title>Error Path Cleanup</title>
-      <para>Choose cleanup based on whether ownership was transferred.</para>
-      <programlisting>
-if(sequence_created) {
-  if(object_creation_failed)
-    raptor_free_sequence(seq);   /* seq owns and frees items */
-} else {
-  rasqal_free_object(obj);       /* no transfer, free directly */
-}
-      </programlisting>
-    </section>
-
-    <section id="ownership-pitfalls">
-      <title>Common Pitfalls</title>
-      <itemizedlist>
-        <listitem><para>Creating sequences without free handlers for owned items.</para></listitem>
-        <listitem><para>Double-freeing items after transferring ownership to a sequence.</para></listitem>
-        <listitem><para>Missing error-path cleanup that matches ownership transfer.</para></listitem>
-        <listitem><para>Creating dummy objects (e.g., temporary queries) without proper lifecycle management.</para></listitem>
-      </itemizedlist>
-    </section>
 
   </section>
 
@@ -172,10 +73,11 @@ if(sequence_created) {
 
       <para>Key transformation activities include:</para>
       <itemizedlist>
-        <listitem><para>Variable scope analysis and binding validation</para></listitem>
+        <listitem><para>Variable scope analysis and binding validation with SPARQL 1.2 correlation detection</para></listitem>
+        <listitem><para>Sub-pattern identification for scope isolation requirements</para></listitem>
         <listitem><para>Type checking for expressions and literals</para></listitem>
         <listitem><para>Constant folding and expression simplification</para></listitem>
-        <listitem><para>Preparation for algebra generation</para></listitem>
+        <listitem><para>Preparation for algebra generation with negation optimization flags</para></listitem>
       </itemizedlist>
 
     </section>
@@ -192,9 +94,9 @@ if(sequence_created) {
       <para>The algebra system provides:</para>
       <itemizedlist>
         <listitem><para>Unified representation for different query languages</para></listitem>
-        <listitem><para>Foundation for query optimization</para></listitem>
-        <listitem><para>Execution planning capabilities</para></listitem>
-        <listitem><para>Extensibility for new query features</para></listitem>
+        <listitem><para>Foundation for query optimization with SPARQL 1.2 correlation analysis</para></listitem>
+        <listitem><para>Execution planning capabilities with intelligent evaluation mode detection</para></listitem>
+        <listitem><para>Extensibility for new query features and advanced negation semantics</para></listitem>
       </itemizedlist>
 
     </section>
@@ -232,7 +134,8 @@ if(sequence_created) {
     <function>rasqal_query_add_variable</function>, which creates
     variables from literals and adds them to appropriate scopes
     within the variable scope hierarchy. The hierarchical scope system
-    ensures proper SPARQL 1.1 variable isolation and inheritance.</para>
+    ensures proper SPARQL 1.2 variable isolation and inheritance with
+    support for advanced correlation analysis between query patterns.</para>
 
     <section id="scope-creation-during-parsing">
       <title>Scope Creation During Parsing</title>
@@ -242,9 +145,9 @@ if(sequence_created) {
 
       <itemizedlist>
         <listitem><para><emphasis>Root Scope Creation</emphasis> - The parser creates a root scope for the main query to contain outer query triples and variables</para></listitem>
-        <listitem><para><emphasis>EXISTS Scope Creation</emphasis> - EXISTS/NOT EXISTS patterns trigger creation of isolated child scopes with proper parent references for variable inheritance</para></listitem>
-        <listitem><para><emphasis>Triple Assignment</emphasis> - Triples are assigned to their appropriate scope during parsing, preventing later contamination</para></listitem>
-        <listitem><para><emphasis>Scope Assignment</emphasis> - Graph patterns receive references to their evaluation scopes, establishing the pattern-scope relationship</para></listitem>
+        <listitem><para><emphasis>Sub-pattern Scope Creation</emphasis> - All sub-patterns (EXISTS, NOT EXISTS, GRAPH, OPTIONAL, SERVICE, MINUS) trigger creation of isolated child scopes with proper parent references for variable inheritance</para></listitem>
+        <listitem><para><emphasis>Triple Assignment</emphasis> - Triples are assigned to their appropriate scope during parsing, preventing later contamination and enabling SPARQL 1.2 correlation analysis</para></listitem>
+        <listitem><para><emphasis>Scope Assignment</emphasis> - Graph patterns receive references to their evaluation scopes, establishing the pattern-scope relationship for proper variable correlation</para></listitem>
       </itemizedlist>
 
       <para>This scope creation during parsing ensures semantic isolation
@@ -252,10 +155,10 @@ if(sequence_created) {
       the need for runtime decontamination.</para>
     </section>
 
-    <para>The modern parser architecture supports both traditional SPARQL 1.0
-    patterns and SPARQL 1.1 scoped patterns through the unified scope
-    management system, providing backwards compatibility while enabling
-    advanced semantic features.</para>
+    <para>The modern parser architecture supports SPARQL 1.0 through SPARQL 1.2
+    patterns through the unified scope management system, providing backwards
+    compatibility while enabling advanced semantic features including variable
+    correlation analysis for complex negation operations.</para>
 
   </section>
 
@@ -328,7 +231,7 @@ if(sequence_created) {
     operators like JOIN, OPTIONAL, and FILTER before collecting
     results at the top level.</para>
 
-    <para>The rowsource architecture provides excellent extensibility
+    <para>The rowsource architecture provides extensibility
     for new algebra operators through specialized rowsource
     implementations.</para>
 
@@ -460,57 +363,226 @@ if(sequence_created) {
 
   </section>
 
-  <section id="minus-semantics-and-internals">
-    <title>MINUS Semantics and Internals</title>
+  <section id="advanced-query-features">
+    <title>Advanced Query Features</title>
 
-    <para>This section documents the MINUS implementation and supporting internals validated during work on SPARQL 1.1 negation tests.</para>
+    <para>This section covers the advanced SPARQL 1.2 features that require
+    sophisticated architectural support including variable scoping, correlation
+    analysis, and complex negation patterns. These features work together to
+    provide complete SPARQL 1.2 semantic compliance.</para>
 
-    <section id="minus-compatibility">
-      <title>Compatibility via Domain Intersection</title>
-      <para>Rasqal implements MINUS compatibility according to SPARQL 1.1 domain-intersection semantics:</para>
-      <itemizedlist>
-        <listitem><para>Only variables bound on both sides (LHS and RHS) are considered shared.</para></listitem>
-        <listitem><para>For shared variables, term equality is required for compatibility.</para></listitem>
-        <listitem><para>If no compatible RHS row exists, the LHS row is emitted.</para></listitem>
-      </itemizedlist>
-      <para>Term equality is evaluated with <function>rasqal_literal_equals_flags</function>.</para>
+    <section id="variable-binding-and-scoping">
+      <title>Variable Binding and Scoping System</title>
+
+      <para>The variable binding system is built on a comprehensive query scope
+      architecture that ensures proper SPARQL 1.2 variable isolation and inheritance
+      semantics with advanced correlation analysis. This system has completely eliminated
+      the previous matrix-based approach in favor of dynamic, scope-aware variable
+      resolution that provides true SPARQL 1.2 semantic compliance while maintaining
+      performance.</para>
+
+      <section id="query-scope-architecture">
+        <title>Query Scope Architecture</title>
+
+        <para>The query scope architecture implements hierarchical scope management
+        to ensure proper SPARQL 1.2 variable isolation and inheritance semantics
+        with support for variable correlation analysis. Each query pattern operator
+        creates an isolated scope with its own triple ownership and variable
+        visibility rules, enabling intelligent detection of when LHS context
+        propagation is needed for complex negation patterns.</para>
+
+        <para><emphasis>Scope Types Supported:</emphasis></para>
+        <itemizedlist>
+          <listitem><para><literal>ROOT</literal> - Main query scope for outer query patterns</para></listitem>
+          <listitem><para><literal>EXISTS</literal> - EXISTS pattern scope with variable inheritance</para></listitem>
+          <listitem><para><literal>NOT_EXISTS</literal> - NOT EXISTS pattern scope for negation</para></listitem>
+          <listitem><para><literal>MINUS</literal> - MINUS pattern scope for set difference</para></listitem>
+          <listitem><para><literal>UNION</literal> - UNION pattern scope for disjunctive patterns</para></listitem>
+          <listitem><para><literal>SUBQUERY</literal> - Subquery scope with complete isolation</para></listitem>
+          <listitem><para><literal>GROUP</literal> - Nested group pattern scope for isolation</para></listitem>
+        </itemizedlist>
+      </section>
+
+      <section id="scope-aware-variable-resolution">
+        <title>Scope-Aware Variable Resolution</title>
+
+        <para>The variable resolution system uses hierarchical scope-aware lookup
+        that respects SPARQL 1.2 semantic boundaries with correlation analysis.
+        Variables are resolved through a scope hierarchy with proper inheritance
+        and isolation rules, supporting both simple resolution and complex
+        correlation scenarios for advanced negation patterns.</para>
+
+        <para><emphasis>Resolution Algorithm:</emphasis></para>
+        <orderedlist>
+          <listitem><para>Start with current execution scope</para></listitem>
+          <listitem><para>Search local variables in current scope</para></listitem>
+          <listitem><para>If not found and inheritance allowed, search parent scope</para></listitem>
+          <listitem><para>Continue up hierarchy until root scope</para></listitem>
+          <listitem><para>Return first match with proper precedence rules</para></listitem>
+        </orderedlist>
+
+        <para>This ensures that variable lookups respect SPARQL 1.2 scoping
+        requirements while maintaining efficient resolution performance and
+        supporting variable correlation analysis for complex query patterns.</para>
+      </section>
+
     </section>
 
-    <section id="minus-rowsource-lifecycle">
-      <title>Rowsource Lifecycle and Row Ownership</title>
-      <para>Rows returned from MINUS must carry a valid <literal>rowsource</literal> pointer for correct deep-copy behavior. When emitting an LHS row:</para>
-      <itemizedlist>
-        <listitem><para>Set the row's <literal>rowsource</literal> to the MINUS rowsource if not already set.</para></listitem>
-        <listitem><para>Create a deep copy with <function>rasqal_new_row_from_row_deep</function>.</para></listitem>
-        <listitem><para>Attach the new row to the MINUS rowsource and propagate the row offset.</para></listitem>
-      </itemizedlist>
-      <para>This avoids a null <literal>row-&gt;rowsource</literal> dereference during deep copy.</para>
+    <section id="sparql12-correlation-architecture">
+      <title>SPARQL 1.2 Variable Correlation Architecture</title>
+
+      <para>The query engine implements advanced variable correlation analysis to handle
+      complex SPARQL 1.2 negation patterns where RHS evaluation requires LHS variable
+      context. This architecture ensures correct semantics while maintaining optimal
+      performance for simple cases.</para>
+
+      <section id="correlation-detection">
+        <title>Intelligent Correlation Detection</title>
+
+        <para>The system automatically detects when correlation is needed during query
+        planning rather than applying it universally:</para>
+
+        <itemizedlist>
+          <listitem><para><emphasis>Pattern Analysis</emphasis> - Examines MINUS and NOT EXISTS
+          patterns to identify variable dependencies between LHS and RHS</para></listitem>
+          <listitem><para><emphasis>Scope Analysis</emphasis> - Uses hierarchical scope
+          information to determine when outer context propagation is required</para></listitem>
+          <listitem><para><emphasis>Performance Optimization</emphasis> - Only enables
+          correlation for patterns that actually require it, maintaining efficiency</para></listitem>
+        </itemizedlist>
+
+        <para>This intelligent approach ensures SPARQL 1.2 compliance without performance
+        penalties for queries that don't require advanced correlation features.</para>
+      </section>
+
+      <section id="correlation-implementation">
+        <title>Correlation Implementation Patterns</title>
+
+        <para>The correlation system implements several architectural patterns:</para>
+
+        <itemizedlist>
+          <listitem><para><emphasis>Dual Evaluation Modes</emphasis> - MINUS rowsources
+          support both simple caching and correlated evaluation modes</para></listitem>
+          <listitem><para><emphasis>Variable Substitution</emphasis> - Implements formal
+          SPARQL 1.2 substitute operation for pattern instantiation with outer bindings</para></listitem>
+          <listitem><para><emphasis>Complete Solution Evaluation</emphasis> - NOT EXISTS
+          patterns evaluate complete solutions rather than individual triple matches</para></listitem>
+          <listitem><para><emphasis>Context Preservation</emphasis> - Maintains proper
+          variable binding context throughout correlation operations</para></listitem>
+        </itemizedlist>
+      </section>
+
     </section>
 
-    <section id="filter-ebv-and-unbound">
-      <title>FILTER EBV and Unbound Operands</title>
-      <para>FILTER comparison operators (EQ, NEQ, LT, GT, LE, GE) treat unbound operands as FALSE, filtering the solution rather than raising errors, per SPARQL 1.1. This is implemented in <filename>rasqal_expr_evaluate.c</filename>.</para>
+    <section id="exists-evaluation-architecture">
+      <title>EXISTS and NOT EXISTS Evaluation Architecture</title>
+
+      <para>The EXISTS and NOT EXISTS evaluation system implements a unified
+      mode-aware architecture that provides efficient pattern matching with
+      optimized short-circuiting for both EXISTS and NOT EXISTS operations.
+      This system handles all SPARQL pattern types including basic patterns,
+      GROUP patterns, UNION patterns, OPTIONAL patterns, GRAPH patterns, and
+      FILTER patterns with proper semantic isolation and performance optimization.</para>
+
+      <section id="exists-unified-mode-system">
+        <title>Unified Mode-Aware Evaluation</title>
+
+        <para>The EXISTS evaluation architecture uses a unified system that enables
+        single evaluation paths optimized for both EXISTS and NOT EXISTS semantics
+        with mode-specific optimizations for early termination and efficient
+        pattern matching.</para>
+
+      </section>
+
+      <section id="exists-multi-triple-semantics">
+        <title>Multi-Triple Pattern Semantics and Variable Correlation</title>
+
+        <para>The EXISTS evaluation system correctly implements SPARQL 1.2 conjunctive
+        semantics for multi-triple patterns and variable correlation requirements:</para>
+
+        <section id="exists-conjunctive-evaluation">
+          <title>Complete Solution Evaluation</title>
+
+          <para>The evaluation system now properly handles complete pattern matching
+          rather than individual triple evaluation. For NOT EXISTS patterns, the system
+          creates a temporary rowsource with all instantiated triples and checks for
+          complete solutions rather than evaluating each triple individually. This ensures
+          correct SPARQL 1.2 semantics where the entire pattern must be evaluated as a unit.</para>
+
+        </section>
+
+        <section id="exists-variable-substitution">
+          <title>Variable Substitution and Binding Context</title>
+
+          <para>EXISTS evaluation implements proper SPARQL 1.2 variable substitution
+          semantics using outer query context:</para>
+
+          <itemizedlist>
+            <listitem><para>Variables from outer query scope are substituted into
+            patterns using name-based resolution for reliability</para></listitem>
+            <listitem><para>Variable binding uses outer row context to provide
+            proper substitute operation implementation</para></listitem>
+            <listitem><para>Variables bound within EXISTS patterns remain isolated
+            and don't affect outer query evaluation</para></listitem>
+            <listitem><para>Named graph context is properly maintained through
+            origin parameters during pattern instantiation</para></listitem>
+          </itemizedlist>
+
+          <para>This implements the formal SPARQL 1.2 substitute operation where
+          patterns are instantiated with current variable bindings from the
+          containing scope before evaluation.</para>
+
+        </section>
+
+      </section>
+
     </section>
 
-    <section id="exists-variable-usage">
-      <title>EXISTS/NOT EXISTS Variable Usage Analysis</title>
-      <para>Variables referenced solely inside EXISTS/NOT EXISTS must not trigger "not bound and not used" errors at transform time. The transformer supports detection in both FILTER expressions and EXISTS-local BGPs. This analysis is performed in <filename>rasqal_query_transform.c</filename> and is limited to variable mention detection; it does not evaluate sub-queries.</para>
+    <section id="minus-semantics-and-internals">
+      <title>MINUS Semantics and Internals</title>
+
+      <para>This section documents the MINUS implementation and supporting internals,
+      including the SPARQL 1.2 variable correlation enhancements for complex negation patterns.</para>
+
+      <section id="minus-compatibility">
+        <title>Compatibility via Domain Intersection</title>
+        <para>Rasqal implements MINUS compatibility according to SPARQL 1.2 domain-intersection semantics:</para>
+        <itemizedlist>
+          <listitem><para>Only variables bound on both sides (LHS and RHS) are considered shared.</para></listitem>
+          <listitem><para>For shared variables, term equality is required for compatibility.</para></listitem>
+          <listitem><para>If no compatible RHS row exists, the LHS row is emitted.</para></listitem>
+        </itemizedlist>
+        <para>Term equality is evaluated with <function>rasqal_literal_equals_flags</function>.</para>
+      </section>
+
+      <section id="minus-intelligent-evaluation">
+        <title>Intelligent Evaluation Modes</title>
+        <para>The MINUS rowsource implements intelligent evaluation mode detection to optimize performance while maintaining SPARQL 1.2 compliance:</para>
+        <itemizedlist>
+          <listitem><para><emphasis>Simple Mode</emphasis> - Uses traditional RHS caching for normal MINUS operations where no variable correlation is needed</para></listitem>
+          <listitem><para><emphasis>Correlated Mode</emphasis> - Uses dynamic LHS context propagation for complex NOT EXISTS patterns that require outer variable bindings</para></listitem>
+          <listitem><para><emphasis>Smart Detection</emphasis> - Automatically selects the appropriate mode based on variable correlation analysis during query planning</para></listitem>
+        </itemizedlist>
+        <para>This approach maintains optimal performance for simple cases while providing correct SPARQL 1.2 semantics for complex negation patterns involving variable dependencies between LHS and RHS patterns.</para>
+      </section>
+
     </section>
+
+    <section id="expression-evaluation-system">
+      <title>Expression Evaluation System</title>
+
+      <para>Rasqal supports various expression types including literals, functions,
+      variables, logical operators, comparison operators, and specialized operators.
+      Each expression type has specific evaluation semantics and requirements with
+      scope-aware variable resolution to support proper SPARQL 1.2 variable scoping
+      semantics.</para>
+
+    </section>
+
   </section>
 
-  <section id="variable-scoping-and-rows">
-    <title>Variable Scoping, Rows, and Headers</title>
-
-    <para>Result rows carry values and a back-pointer to the producing rowsource. The rowsource header defines variable ordering for row printing and projection. Key rules:</para>
-    <itemizedlist>
-      <listitem><para>Always attach emitted rows to the producing rowsource via <function>rasqal_row_set_rowsource</function>.</para></listitem>
-      <listitem><para>Preserve <literal>offset</literal> when creating derived rows to maintain stable ordering.</para></listitem>
-      <listitem><para>Use <function>rasqal_rowsource_get_variable_by_offset</function> for header-based name lookup when printing rows.</para></listitem>
-    </itemizedlist>
-  </section>
-
-  <section id="exists-evaluation-architecture">
-    <title>EXISTS and NOT EXISTS Evaluation Architecture</title>
+  <section id="query-transformation-system">
+    <title>Query Transformation System</title>
 
     <para>The EXISTS and NOT EXISTS evaluation system implements a unified
     mode-aware architecture that provides efficient pattern matching with
@@ -645,20 +717,19 @@ not_exists_result = rasqal_evaluate_not_exists_pattern_with_origin(
     </section>
 
     <section id="exists-multi-triple-semantics">
-      <title>Multi-Triple Pattern Semantics</title>
+      <title>Multi-Triple Pattern Semantics and Variable Correlation</title>
 
-      <para>The EXISTS evaluation system correctly implements SPARQL conjunctive
-      semantics for multi-triple patterns, fixing a critical bug in the previous
-      implementation:</para>
+      <para>The EXISTS evaluation system correctly implements SPARQL 1.2 conjunctive
+      semantics for multi-triple patterns and variable correlation requirements:</para>
 
       <section id="exists-conjunctive-evaluation">
-        <title>Conjunctive Pattern Processing</title>
+        <title>Complete Solution Evaluation</title>
 
-        <para>All triples within a basic graph pattern must match for the
-        pattern to succeed:</para>
+        <para>The evaluation system now properly handles complete pattern matching
+        rather than individual triple evaluation:</para>
 
         <programlisting>
-/* Example: All three triples must match */
+/* Example: All three triples must match as a complete solution */
 FILTER NOT EXISTS { 
     ?person foaf:name ?name .      # Triple 1
     ?person foaf:age ?age .        # Triple 2  
@@ -666,25 +737,33 @@ FILTER NOT EXISTS {
 }
         </programlisting>
 
-        <para>The evaluation system processes all triples and requires complete
-        matches for EXISTS success, or complete failure for NOT EXISTS success.</para>
+        <para>For NOT EXISTS patterns, the system creates a temporary rowsource
+        with all instantiated triples and checks for complete solutions rather
+        than evaluating each triple individually. This ensures correct SPARQL 1.2
+        semantics where the entire pattern must be evaluated as a unit.</para>
 
       </section>
 
-      <section id="exists-variable-binding">
-        <title>Variable Binding in EXISTS Context</title>
+      <section id="exists-variable-substitution">
+        <title>Variable Substitution and Binding Context</title>
 
-        <para>EXISTS evaluation maintains proper variable scoping isolation
-        while allowing variable binding during pattern instantiation:</para>
+        <para>EXISTS evaluation implements proper SPARQL 1.2 variable substitution
+        semantics using outer query context:</para>
 
         <itemizedlist>
-          <listitem><para>Variables from outer query scope are available for
-          pattern instantiation</para></listitem>
+          <listitem><para>Variables from outer query scope are substituted into
+          patterns using name-based resolution for reliability</para></listitem>
+          <listitem><para>Variable binding uses outer row context to provide
+          proper substitute operation implementation</para></listitem>
           <listitem><para>Variables bound within EXISTS patterns remain isolated
-          and don't affect outer query</para></listitem>
+          and don't affect outer query evaluation</para></listitem>
           <listitem><para>Named graph context is properly maintained through
-          origin parameters</para></listitem>
+          origin parameters during pattern instantiation</para></listitem>
         </itemizedlist>
+
+        <para>This implements the formal SPARQL 1.2 substitute operation where
+        patterns are instantiated with current variable bindings from the
+        containing scope before evaluation.</para>
 
       </section>
 
@@ -820,18 +899,21 @@ FILTER NOT EXISTS {
     <title>Variable Binding System</title>
 
     <para>The variable binding system is built on a comprehensive query scope
-    architecture that ensures proper SPARQL 1.1 variable isolation and inheritance
-    semantics. This system has completely eliminated the previous matrix-based approach
-    in favor of dynamic, scope-aware variable resolution that provides true SPARQL 1.1
-    semantic compliance while maintaining excellent performance.</para>
+    architecture that ensures proper SPARQL 1.2 variable isolation and inheritance
+    semantics with advanced correlation analysis. This system has completely eliminated
+    the previous matrix-based approach in favor of dynamic, scope-aware variable
+    resolution that provides true SPARQL 1.2 semantic compliance while maintaining
+    performance.</para>
 
     <section id="query-scope-architecture">
       <title>Query Scope Architecture</title>
 
       <para>The query scope architecture implements hierarchical scope management
-      to ensure proper SPARQL 1.1 variable isolation and inheritance semantics.
-      Each query pattern operator creates an isolated scope with its own triple
-      ownership and variable visibility rules.</para>
+      to ensure proper SPARQL 1.2 variable isolation and inheritance semantics
+      with support for variable correlation analysis. Each query pattern operator
+      creates an isolated scope with its own triple ownership and variable
+      visibility rules, enabling intelligent detection of when LHS context
+      propagation is needed for complex negation patterns.</para>
 
       <para><emphasis>Scope Types Supported:</emphasis></para>
       <itemizedlist>
@@ -849,8 +931,10 @@ FILTER NOT EXISTS {
       <title>Scope-Aware Variable Resolution</title>
 
       <para>The variable resolution system uses hierarchical scope-aware lookup
-      that respects SPARQL 1.1 semantic boundaries. Variables are resolved
-      through a scope hierarchy with proper inheritance and isolation rules.</para>
+      that respects SPARQL 1.2 semantic boundaries with correlation analysis.
+      Variables are resolved through a scope hierarchy with proper inheritance
+      and isolation rules, supporting both simple resolution and complex
+      correlation scenarios for advanced negation patterns.</para>
 
       <para><emphasis>Resolution Algorithm:</emphasis></para>
       <orderedlist>
@@ -861,17 +945,19 @@ FILTER NOT EXISTS {
         <listitem><para>Return first match with proper precedence rules</para></listitem>
       </orderedlist>
 
-      <para>This ensures that variable lookups respect SPARQL 1.1 scoping
-      requirements while maintaining efficient resolution performance.</para>
+      <para>This ensures that variable lookups respect SPARQL 1.2 scoping
+      requirements while maintaining efficient resolution performance and
+      supporting variable correlation analysis for complex query patterns.</para>
 
       <para><emphasis>Implementation Status:</emphasis> The scope-aware variable
       resolution system is fully implemented and operational across all query execution
       components. Core functions like <function>rasqal_resolve_variable_with_scope</function>,
       <function>rasqal_query_variable_is_bound</function>, and all rowsource variable
       resolution use dynamic scope queries instead of static matrix lookups. This provides
-      true SPARQL 1.1 semantic compliance while maintaining backward compatibility and
-      excellent performance. The system supports all SPARQL 1.1 scope types including
-      EXISTS, NOT EXISTS, MINUS, UNION, GROUP, and subquery patterns.</para>
+      true SPARQL 1.2 semantic compliance while maintaining backward compatibility.
+      The system supports all SPARQL 1.2 scope types including
+      EXISTS, NOT EXISTS, MINUS, UNION, GROUP, and subquery patterns with advanced
+      variable correlation analysis for complex negation scenarios.</para>
 
       <section id="matrix-elimination">
         <title>Variable Use Map Elimination</title>
@@ -892,7 +978,7 @@ FILTER NOT EXISTS {
         <para><emphasis>Benefits:</emphasis></para>
         <itemizedlist>
           <listitem><para>Significant memory savings - no large matrix allocations</para></listitem>
-          <listitem><para>True SPARQL 1.1 scoping semantics with proper variable isolation</para></listitem>
+          <listitem><para>True SPARQL 1.2 scoping semantics with proper variable isolation and correlation analysis</para></listitem>
           <listitem><para>Dynamic resolution eliminates static analysis limitations</para></listitem>
           <listitem><para>Simplified architecture with single scope system instead of parallel systems</para></listitem>
         </itemizedlist>
@@ -1109,20 +1195,22 @@ static void rasqal_query_scope_print_variable_analysis(
       <title>Transformation Phases</title>
 
       <para>The query transformation system performs several key phases,
-      enhanced with scope-aware validation for SPARQL 1.1 compliance:</para>
+      enhanced with scope-aware validation and correlation analysis for SPARQL 1.2 compliance:</para>
 
       <orderedlist>
-        <listitem><para><emphasis>Variable Analysis</emphasis> - Analyzes variable usage patterns and binding requirements across scope hierarchies</para></listitem>
+        <listitem><para><emphasis>Variable Analysis</emphasis> - Analyzes variable usage patterns and binding requirements across scope hierarchies with correlation detection</para></listitem>
         <listitem><para><emphasis>Scope Validation</emphasis> - Validates hierarchical variable scoping, ensures proper scope boundaries, and identifies unbound variables within appropriate scope contexts</para></listitem>
+        <listitem><para><emphasis>Correlation Analysis</emphasis> - Examines MINUS and NOT EXISTS patterns to detect when LHS context propagation is required for correct evaluation</para></listitem>
+        <listitem><para><emphasis>Sub-pattern Classification</emphasis> - Identifies and marks patterns requiring scope isolation (EXISTS, NOT EXISTS, GRAPH, OPTIONAL, SERVICE, MINUS)</para></listitem>
         <listitem><para><emphasis>Type Checking</emphasis> - Validates expression types and literal compatibility with scope-aware variable resolution</para></listitem>
         <listitem><para><emphasis>Constant Folding</emphasis> - Evaluates constant expressions at compile time while respecting scope isolation</para></listitem>
         <listitem><para><emphasis>Scope Optimization</emphasis> - Optimizes scope hierarchies and validates scope relationships for efficient evaluation</para></listitem>
-        <listitem><para><emphasis>Optimization Preparation</emphasis> - Prepares query structures for optimization with scope-aware analysis</para></listitem>
+        <listitem><para><emphasis>Optimization Preparation</emphasis> - Prepares query structures for optimization with scope-aware analysis and correlation flags</para></listitem>
       </orderedlist>
 
-      <para>The scope-enhanced transformation phases ensure that SPARQL 1.1
-      semantic isolation requirements are validated and maintained throughout
-      the query processing pipeline.</para>
+      <para>The scope-enhanced transformation phases ensure that SPARQL 1.2
+      semantic isolation and correlation requirements are validated and maintained
+      throughout the query processing pipeline.</para>
 
     </section>
 
