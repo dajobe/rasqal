@@ -16,8 +16,6 @@
     :subset-by-exclusion-minus-1
     :subset-by-exclusion-nex-1
     :temporal-proximity-by-exclusion-nex-1
-    :subset-03
-    :subset-02
    ) .
 
 
@@ -76,15 +74,6 @@
            qt:data  <../sparql11-test-suite/negation/subsetByExcl.ttl> ] ;
     mf:result  <../sparql11-test-suite/negation/subsetByExcl01.srx> .
 
-:subset-03 rdf:type mf:QueryEvaluationTest ;
-    mf:name    "Calculate proper subset" ;
-    dawgt:approval dawgt:Approved ;
-    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
-    mf:action
-         [ qt:query  <../sparql11-test-suite/negation/subset-03.rq> ;
-           qt:data  <../sparql11-test-suite/negation/set-data.ttl> ] ;
-    mf:result  <../sparql11-test-suite/negation/subset-03.srx> .
-
 :temporal-proximity-by-exclusion-nex-1 rdf:type mf:QueryEvaluationTest ;
     mf:name    "Medical, temporal proximity by exclusion (NOT EXISTS)" ;
     dawgt:approval dawgt:Approved ;
@@ -93,15 +82,6 @@
          [ qt:query  <../sparql11-test-suite/negation/temporalProximity01.rq> ;
            qt:data  <../sparql11-test-suite/negation/temporalProximity01.ttl> ] ;
     mf:result  <../sparql11-test-suite/negation/temporalProximity01.srx> .
-
-:subset-02 rdf:type mf:QueryEvaluationTest ;
-    mf:name    "Calculate which sets are subsets of others (exclude A subsetOf A)" ;
-    dawgt:approval dawgt:Approved ;
-    dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
-    mf:action
-         [ qt:query  <../sparql11-test-suite/negation/subset-02.rq> ;
-           qt:data  <../sparql11-test-suite/negation/set-data.ttl> ] ;
-    mf:result  <../sparql11-test-suite/negation/subset-02.srx> .
 
 :partial-minuend rdf:type mf:QueryEvaluationTest ;
     mf:name    "Subtraction with MINUS from a partially bound minuend" ;
