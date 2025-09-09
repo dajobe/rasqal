@@ -359,4 +359,62 @@ rasqal_query_scope_bind_row_variables(rasqal_query_scope* scope,
   return 0;
 }
 
+
+/**
+ * rasqal_scope_provides_variable:
+ * @scope: query scope to check
+ * @var_name: variable name to check
+ *
+ * INTERNAL - Check if a scope provides (defines) a specific variable.
+ *
+ * This function checks if the given scope has the variable in its local
+ * variables table, indicating that the scope provides/defines this variable.
+ * This is used for SPARQL 1.2 correlation analysis to determine variable
+ * dependencies between query patterns.
+ *
+ * Per SPARQL 1.2 Section 8.1.1, Definition: Substitute:
+ * - A variable is "provided" by a scope if it appears in the scope's
+ *   solution mappings (i.e., it's in the local variables)
+ *
+ * Return value: non-zero if scope provides the variable, zero otherwise
+ */
+int
+rasqal_scope_provides_variable(rasqal_query_scope* scope, const char* var_name)
+{
+  if(!scope || !var_name || !scope->local_vars)
+    return 0;
+
+  /* Check if variable exists in local variables table */
+  return rasqal_variables_table_contains(scope->local_vars, RASQAL_VARIABLE_TYPE_NORMAL, RASQAL_GOOD_CAST(const unsigned char*, var_name));
+}
+
+
+/**
+ * rasqal_scope_defines_variable:
+ * @scope: query scope to check  
+ * @var_name: variable name to check
+ *
+ * INTERNAL - Check if a scope defines a specific variable in its visible context.
+ *
+ * This function checks if the given scope has the variable in its visible
+ * variables table, indicating that the variable is accessible within this
+ * scope's execution context. This is used for SPARQL 1.2 correlation analysis
+ * to determine which variables are available for substitution operations.
+ *
+ * Per SPARQL 1.2 Section 8.1.1, Definition: Substitute:
+ * - A variable is "defined" in a scope if it's visible (available for use)
+ *   within that scope's evaluation context
+ *
+ * Return value: non-zero if scope defines the variable, zero otherwise
+ */
+int
+rasqal_scope_defines_variable(rasqal_query_scope* scope, const char* var_name)
+{
+  if(!scope || !var_name || !scope->visible_vars)
+    return 0;
+
+  /* Check if variable exists in visible variables table */
+  return rasqal_variables_table_contains(scope->visible_vars, RASQAL_VARIABLE_TYPE_NORMAL, RASQAL_GOOD_CAST(const unsigned char*, var_name));
+}
+
 #endif /* not STANDALONE */

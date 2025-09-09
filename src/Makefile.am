@@ -37,7 +37,8 @@ TESTS_ENVIRONMENT= \
   NT_DATA_FILE=$(top_srcdir)/data/one.nt \
   SPARQL_QUERY_FILE=$(top_srcdir)/tests/sparql/examples/ex11_1.rq
 
-TESTS=rasqal_algebra_test$(EXEEXT) rasqal_expr_test$(EXEEXT)	\
+TESTS=rasqal_algebra_test$(EXEEXT) \
+rasqal_expr_test$(EXEEXT)	\
 rasqal_expr_exists_test$(EXEEXT) strcasecmp_test$(EXEEXT) \
 rasqal_decimal_test$(EXEEXT) rasqal_datetime_test$(EXEEXT)	\
 rasqal_variable_test$(EXEEXT) rasqal_rowsource_empty_test$(EXEEXT) \
@@ -62,7 +63,8 @@ rasqal_query_results_compare_public_test$(EXEEXT) \
 rasqal_graph_isomorphism_test$(EXEEXT) \
 rasqal_expr_unbound_test$(EXEEXT) \
 rasqal_solutions_compatible_test$(EXEEXT) \
-rasqal_variable_resolution_test$(EXEEXT)
+rasqal_variable_resolution_test$(EXEEXT) \
+rasqal_variable_correlation_map_test$(EXEEXT)
 
 # These 2 test programs are compiled here and run here as 'smoke
 # tests' but mostly used in tests in $(srcdir)/../tests/sparql
@@ -106,7 +108,9 @@ rasqal_engine.c rasqal_raptor.c rasqal_literal.c rasqal_formula.c \
 rasqal_graph_pattern.c rasqal_map.c rasqal_feature.c \
 rasqal_result_formats.c rasqal_xsd_datatypes.c rasqal_decimal.c \
 rasqal_datetime.c rasqal_rowsource.c rasqal_format_sparql_xml.c \
-rasqal_variable.c rasqal_query_scope.c rasqal_variable_resolution.c rasqal_rowsource_empty.c rasqal_rowsource_exists.c \
+rasqal_variable.c rasqal_variable_correlation_map.c \
+rasqal_query_scope.c rasqal_variable_resolution.c \
+rasqal_rowsource_empty.c rasqal_rowsource_exists.c \
 rasqal_rowsource_extend.c \
 rasqal_rowsource_union.c rasqal_rowsource_minus.c \
 rasqal_rowsource_rowsequence.c rasqal_query_transform.c rasqal_row.c \
@@ -278,6 +282,10 @@ rasqal_datetime_test_LDADD = librasqal.la
 rasqal_algebra_test_SOURCES = rasqal_algebra.c
 rasqal_algebra_test_CPPFLAGS = -DSTANDALONE
 rasqal_algebra_test_LDADD = librasqal.la
+
+rasqal_variable_correlation_map_test_SOURCES = rasqal_variable_correlation_map.c
+rasqal_variable_correlation_map_test_CPPFLAGS = -DSTANDALONE
+rasqal_variable_correlation_map_test_LDADD = librasqal.la
 
 rasqal_variable_test_SOURCES = rasqal_variable.c
 rasqal_variable_test_CPPFLAGS = -DSTANDALONE

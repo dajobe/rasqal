@@ -503,11 +503,11 @@ struct rasqal_graph_pattern_s {
   /* SILENT flag for SERVICE graph pattern */
   unsigned int silent : 1;
 
-  /* EXISTS pattern flag - marks patterns that are part of EXISTS expressions */
-  unsigned int is_exists_pattern : 1;
+  /* Sub-pattern flag - marks patterns that are sub-patterns (EXISTS, GRAPH, etc.) */
+  unsigned int is_subpattern : 1;
 
-  /* OWNED_TRIPLES flag - marks patterns that own their triples sequence */
-  unsigned int owns_triples : 1;
+  /* Memory management flag - marks patterns that free their triples sequence */
+  unsigned int frees_triples : 1;
 
   /* SELECT graph pattern: sequence of #rasqal_data_graph */
   raptor_sequence* data_graphs;
@@ -519,7 +519,7 @@ struct rasqal_graph_pattern_s {
   rasqal_query_scope* execution_scope;
 };
 
-rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column, int owns_triples);
+rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column, int frees_triples);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, rasqal_graph_pattern_operator op);
 rasqal_graph_pattern* rasqal_new_filter_graph_pattern(rasqal_query* query, rasqal_expression* expr);
 rasqal_graph_pattern* rasqal_new_bind_graph_pattern(rasqal_query *query, rasqal_variable *var, rasqal_expression *expr);  
@@ -543,6 +543,10 @@ int rasqal_query_scope_add_child_scope(rasqal_query_scope* parent, rasqal_query_
 int rasqal_query_scope_add_triple(rasqal_query_scope* scope, rasqal_triple* triple);
 int rasqal_query_scope_bind_row_variables(rasqal_query_scope* scope, rasqal_row* row, rasqal_rowsource* rowsource);
 rasqal_query_scope* rasqal_query_scope_get_root(rasqal_query_scope* scope);
+
+/* Scope helper functions for variable correlation analysis */
+int rasqal_scope_provides_variable(rasqal_query_scope* scope, const char* var_name);
+int rasqal_scope_defines_variable(rasqal_query_scope* scope, const char* var_name);
 
 
 
@@ -925,7 +929,8 @@ rasqal_rowsource* rasqal_new_union_rowsource(rasqal_world *world, rasqal_query* 
 rasqal_rowsource* rasqal_new_minus_rowsource(rasqal_world *world,
                                              rasqal_query* query,
                                              rasqal_rowsource* lhs_rowsource,
-                                             rasqal_rowsource* rhs_rowsource);
+                                             rasqal_rowsource* rhs_rowsource,
+                                             int needs_correlation);
 
 
 /**
@@ -1368,8 +1373,10 @@ rasqal_graph_pattern* rasqal_new_2_group_graph_pattern(rasqal_query* query, rasq
 
 rasqal_graph_pattern* rasqal_graph_pattern_get_parent(rasqal_query *query, rasqal_graph_pattern* gp, rasqal_graph_pattern* tree_gp);
 
-/* EXISTS pattern support */
-void rasqal_graph_pattern_mark_as_exists(rasqal_graph_pattern* gp);
+/* Sub-pattern support (EXISTS, NOT EXISTS, GRAPH, subgraphs) */
+int rasqal_graph_pattern_needs_scope_isolation(rasqal_graph_pattern* gp);
+void rasqal_graph_pattern_mark_as_subpattern(rasqal_graph_pattern* gp);
+int rasqal_graph_pattern_copy_triples_to_scope(rasqal_graph_pattern* graph_pattern);
 int rasqal_query_variable_only_in_exists(rasqal_query* query, rasqal_variable* var);
 
 
@@ -1819,9 +1826,31 @@ typedef enum {
 /* bitflags used by rasqal_algebra_node and rasqal_rowsource */
 typedef enum {
   /* used by */
-  RASQAL_ENGINE_BITFLAG_SILENT = 1
+  RASQAL_ENGINE_BITFLAG_SILENT = 1,
+  /* DIFF algebra needs correlated evaluation (NOT EXISTS with LHS variable dependencies) */
+  RASQAL_ALGEBRA_DIFF_NEEDS_CORRELATION = 2
 } rasqal_engine_bitflags;
 
+
+/*
+ * SPARQL 1.2 Variable Correlation Map
+ *
+ * Pre-computed correlation analysis for MINUS operations to determine
+ * which variables need LHS→RHS correlation per SPARQL 1.2 specification.
+ */
+typedef struct {
+  int requires_lhs_context;              /* Does RHS need LHS variable values? */
+  raptor_sequence* lhs_variables;        /* Variables available from LHS scope */
+  raptor_sequence* rhs_not_exists_vars;  /* Variables used in RHS NOT EXISTS */
+  raptor_sequence* correlation_pairs;    /* LHS→RHS variable mapping pairs */
+  raptor_sequence* saved_bindings;       /* Backup for variable restoration */
+} rasqal_variable_correlation_map;
+
+/* Variable binding backup structure for correlation operations */
+typedef struct {
+  rasqal_variable* var;                  /* Variable being backed up */
+  rasqal_literal* original_value;        /* Original value for restoration */
+} rasqal_variable_binding_backup;
 
 /*
  * Algebra Node
@@ -1890,6 +1919,9 @@ struct rasqal_algebra_node_s {
 
   /* Scope context for variable resolution */
   rasqal_query_scope* execution_scope;
+
+  /* SPARQL 1.2: Variable correlation metadata for MINUS operations */
+  rasqal_variable_correlation_map* correlation_map;
 };
 typedef struct rasqal_algebra_node_s rasqal_algebra_node;
 
@@ -1964,6 +1996,12 @@ rasqal_algebra_node* rasqal_new_service_algebra_node(rasqal_query* query, raptor
 rasqal_algebra_node* rasqal_new_extend_algebra_node(rasqal_query* query, rasqal_algebra_node* input, rasqal_variable* var, rasqal_expression* expr);
 
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
+
+/* SPARQL 1.2 Variable Correlation Map Functions */
+rasqal_variable_correlation_map* rasqal_new_variable_correlation_map(void);
+void rasqal_free_variable_correlation_map(rasqal_variable_correlation_map* map);
+rasqal_variable_correlation_map* rasqal_analyze_scope_variable_correlation(rasqal_algebra_node* lhs_node, rasqal_algebra_node* rhs_node, raptor_sequence* rhs_not_exists_vars);
+rasqal_variable_correlation_map* rasqal_algebra_analyze_direct_minus_correlation(rasqal_algebra_node* lhs_node, rasqal_algebra_node* rhs_node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);
 const char* rasqal_algebra_node_operator_as_counted_string(rasqal_algebra_node_operator op, size_t* length_p);
 int rasqal_algebra_algebra_node_write(rasqal_algebra_node *node, raptor_iostream* iostr);
