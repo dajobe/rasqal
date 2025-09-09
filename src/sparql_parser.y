@@ -3214,6 +3214,9 @@ OptionalGraphPattern: OPTIONAL GroupGraphPattern
   if($2) {
     raptor_sequence *seq;
 
+    /* Mark the graph pattern as a sub-pattern for proper scope handling */
+    rasqal_graph_pattern_mark_as_subpattern($2);
+
     seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
                               (raptor_data_print_handler)rasqal_graph_pattern_print);
     if(!seq) {
@@ -3253,6 +3256,9 @@ GraphGraphPattern: GRAPH VarOrIRIref GroupGraphPattern
   if($3) {
     raptor_sequence *seq;
 
+    /* Mark the graph pattern as a sub-pattern for proper scope handling */
+    rasqal_graph_pattern_mark_as_subpattern($3);
+
     seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
                               (raptor_data_print_handler)rasqal_graph_pattern_print);
     if(!seq) {
@@ -3289,6 +3295,9 @@ GraphGraphPattern: GRAPH VarOrIRIref GroupGraphPattern
 /* SPARQL Grammar: ServiceGraphPattern */
 ServiceGraphPattern: SERVICE SilentOpt VarOrIRIref GroupGraphPattern
 {
+  /* Mark the graph pattern as a sub-pattern for proper scope handling */
+  rasqal_graph_pattern_mark_as_subpattern($4);
+
   $$ = rasqal_new_single_graph_pattern(rq,
                                        RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE,
                                        $4);
@@ -3401,6 +3410,9 @@ InlineDataGraphPattern: InlineData
 /* SPARQL Grammar: MinusGraphPattern */
 MinusGraphPattern: MINUS GroupGraphPattern
 {
+  /* Mark the graph pattern as a sub-pattern for proper scope handling */
+  rasqal_graph_pattern_mark_as_subpattern($2);
+
   $$ = rasqal_new_single_graph_pattern(rq,
                                        RASQAL_GRAPH_PATTERN_OPERATOR_MINUS,
                                        $2);
@@ -5214,6 +5226,9 @@ BuiltInCall: STR '(' Expression ')'
 {
   raptor_sequence* args;
   
+  /* Mark the graph pattern as a sub-pattern for proper scope handling */
+  rasqal_graph_pattern_mark_as_subpattern($2);
+
   /* Put the original graph pattern directly in the expression args
    * The EXISTS evaluation will handle the logic, not a graph pattern wrapper */
   args = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
@@ -5233,6 +5248,9 @@ BuiltInCall: STR '(' Expression ')'
 {
   raptor_sequence* args;
   
+  /* Mark the graph pattern as a sub-pattern for proper scope handling */
+  rasqal_graph_pattern_mark_as_subpattern($3);
+
   /* Put the original graph pattern directly in the expression args
    * The NOT EXISTS evaluation will handle the logic, not a graph pattern wrapper */
   args = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,

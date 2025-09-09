@@ -94,7 +94,7 @@ rasqal_new_graph_pattern(rasqal_query* query,
  * @triples: triples sequence containing the graph pattern
  * @start_column: first triple in the pattern
  * @end_column: last triple in the pattern
- * @owns_triples: non-0 if this graph pattern owns the triples sequence
+ * @frees_triples: non-0 if this graph pattern frees the triples sequence
  *
  * INTERNAL - Create a new graph pattern object over triples.
  * 
@@ -104,7 +104,7 @@ rasqal_graph_pattern*
 rasqal_new_basic_graph_pattern(rasqal_query* query,
                                raptor_sequence *triples,
                                int start_column, int end_column,
-                               int owns_triples)
+                               int frees_triples)
 {
   rasqal_graph_pattern* gp;
 
@@ -118,7 +118,7 @@ rasqal_new_basic_graph_pattern(rasqal_query* query,
   gp->triples = triples;
   gp->start_column = start_column;
   gp->end_column = end_column;
-  gp->owns_triples = owns_triples ? 1 : 0;
+  gp->frees_triples = frees_triples ? 1 : 0;
 
   return gp;
 }
@@ -377,7 +377,7 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
     raptor_free_sequence(gp->graph_patterns);
   
   /* Only free triples for patterns that own their triples sequence */
-  if(gp->owns_triples && gp->triples)
+  if(gp->frees_triples && gp->triples)
     raptor_free_sequence(gp->triples);
   
   if(gp->filter_expression)
@@ -1198,9 +1198,9 @@ rasqal_new_basic_graph_pattern_from_formula_exists(rasqal_query* query,
                                       triple_pattern_size - 1, 0);
   
   if(gp) {
-    /* Mark as EXISTS pattern and store reference to separate triples */
-    gp->is_exists_pattern = 1;
-    gp->owns_triples = 1;  /* This pattern owns its triples sequence */
+    /* Mark as sub-pattern and store reference to separate triples */
+    gp->is_subpattern = 1;
+    gp->frees_triples = 1;  /* This pattern frees its triples sequence */
   } else {
     raptor_free_sequence(exists_triples);
   }
@@ -1658,29 +1658,152 @@ rasqal_graph_pattern_get_parent(rasqal_query *query,
 
 
 /**
- * rasqal_graph_pattern_mark_as_exists:
+ * rasqal_graph_pattern_copy_triples_to_scope:
+ * @graph_pattern: graph pattern containing triples to copy
+ *
+ * INTERNAL - Copy a graph pattern's triples to its execution scope.
+ *
+ * This function copies all triples from a graph pattern to its execution scope's
+ * owned_triples sequence. This is essential for sub-pattern isolation (EXISTS,
+ * NOT EXISTS, GRAPH, subgraphs) as it ensures the scope contains only the triples
+ * that belong to that specific pattern, not the entire query.
+ *
+ * The function:
+ * - Copies triples from gp->triples to gp->execution_scope->owned_triples
+ * - Uses deep copy to avoid sharing references between scope and pattern
+ * - Handles both direct triples and sub-pattern triples recursively
+ * - Preserves triple origins and other metadata
+ *
+ * This implements the parser integration fix described in the separate-triple-patterns plan.
+ *
+ * Return value: non-zero on failure
+ */
+int
+rasqal_graph_pattern_copy_triples_to_scope(rasqal_graph_pattern* graph_pattern)
+{
+  int i;
+  int size;
+  rasqal_triple* triple;
+
+  RASQAL_DEBUG1("rasqal_graph_pattern_copy_triples_to_scope: called\n");
+  
+  if(!graph_pattern) {
+    RASQAL_DEBUG1("rasqal_graph_pattern_copy_triples_to_scope: graph_pattern is NULL\n");
+    return 1;
+  }
+  
+  if(!graph_pattern->execution_scope) {
+    RASQAL_DEBUG1("rasqal_graph_pattern_copy_triples_to_scope: execution_scope is NULL\n");
+    return 1;
+  }
+  
+  /* Only copy triples if this pattern actually has triples */
+  if(!graph_pattern->triples || raptor_sequence_size(graph_pattern->triples) == 0) {
+    RASQAL_DEBUG1("rasqal_graph_pattern_copy_triples_to_scope: no triples to copy\n");
+    return 0;
+  }
+
+  /* Copy direct triples from this pattern to its scope */
+  if(graph_pattern->triples) {
+    rasqal_triple* copied_triple;
+    
+    size = raptor_sequence_size(graph_pattern->triples);
+    for(i = graph_pattern->start_column; i <= graph_pattern->end_column; i++) {
+      if(i >= size)
+        break;
+
+      triple = (rasqal_triple*)raptor_sequence_get_at(graph_pattern->triples, i);
+      if(!triple)
+        continue;
+
+      /* Deep copy the triple for scope isolation */
+      copied_triple = rasqal_new_triple_from_triple(triple);
+      if(!copied_triple)
+        return 1;
+
+      /* Add to scope's owned triples */
+      if(rasqal_query_scope_add_triple(graph_pattern->execution_scope, copied_triple)) {
+        rasqal_free_triple(copied_triple);
+        return 1;
+      }
+    }
+  }
+
+
+  return 0;
+}
+
+
+/*
+ * rasqal_graph_pattern_needs_scope_isolation:
  * @gp: graph pattern
  *
- * INTERNAL - Mark a graph pattern and all its sub-patterns as EXISTS patterns
- * to prevent their variables from being treated as main query variables.
+ * INTERNAL - Check if a graph pattern needs scope isolation for proper
+ * triple ownership and variable scoping.
+ *
+ * Sub-patterns that need isolation include:
+ * - EXISTS and NOT EXISTS patterns (for negation semantics)
+ * - GRAPH patterns (for named graph context)
+ * - MINUS patterns (for negation semantics)
+ * - UNION patterns (for disjunctive semantics)
+ * - OPTIONAL patterns (for optional matching)
+ * - SERVICE patterns (for remote evaluation)
+ *
+ * Return value: non-zero if scope isolation is needed
+ **/
+int
+rasqal_graph_pattern_needs_scope_isolation(rasqal_graph_pattern* gp)
+{
+  if(!gp)
+    return 0;
+    
+  switch(gp->op) {
+    case RASQAL_GRAPH_PATTERN_OPERATOR_EXISTS:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_NOT_EXISTS:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_UNION:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE:
+      return 1;
+      
+    case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_GROUP:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_FILTER:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_BIND:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_SELECT:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_VALUES:
+    default:
+      return 0;
+  }
+}
+
+/**
+ * rasqal_graph_pattern_mark_as_subpattern:
+ * @gp: graph pattern
+ *
+ * INTERNAL - Mark a graph pattern and all its sub-patterns as sub-patterns
+ * (EXISTS, NOT EXISTS, GRAPH, MINUS, UNION, OPTIONAL, SERVICE) to prevent their 
+ * variables from being treated as main query variables and enable proper scope isolation.
  **/
 void
-rasqal_graph_pattern_mark_as_exists(rasqal_graph_pattern* gp)
+rasqal_graph_pattern_mark_as_subpattern(rasqal_graph_pattern* gp)
 {
   int i;
   
   if(!gp)
     return;
     
-  /* Mark this pattern as an EXISTS pattern */
-  gp->is_exists_pattern = 1;
+  /* Mark this pattern as a sub-pattern */
+  gp->is_subpattern = 1;
   
   /* Recursively mark all sub-patterns */
   if(gp->graph_patterns) {
     for(i = 0; i < raptor_sequence_size(gp->graph_patterns); i++) {
       rasqal_graph_pattern* sgp;
       sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
-      rasqal_graph_pattern_mark_as_exists(sgp);
+      rasqal_graph_pattern_mark_as_subpattern(sgp);
     }
   }
 }

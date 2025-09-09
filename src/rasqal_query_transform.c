@@ -48,7 +48,7 @@
 
 
 static int rasqal_query_build_scope_hierarchy_recursive(rasqal_query* query, rasqal_graph_pattern* gp, rasqal_query_scope* parent_scope);
-static int rasqal_query_triple_in_exists_pattern(rasqal_query* query, int triple_index);
+static int rasqal_query_triple_in_subpattern(rasqal_query* query, int triple_index);
 static void rasqal_query_scope_print_scope_variable_usage(FILE* fh, rasqal_query* query);
 static void rasqal_query_scope_print_variable_analysis(FILE* fh, rasqal_query_scope* scope, int depth);
 static int rasqal_helper_gp_tree_uses_variable(rasqal_graph_pattern* gp, rasqal_variable* v);
@@ -1387,7 +1387,7 @@ rasqal_query_variable_only_in_exists(rasqal_query* query, rasqal_variable* var)
       for(col = start; col <= end; col++) {
         rasqal_triple* triple = (rasqal_triple*)raptor_sequence_get_at(gp->triples, col);
         if(triple && rasqal_helper_triple_uses_variable(triple, var)) {
-          if(gp->is_exists_pattern)
+          if(gp->is_subpattern)
             used_in_exists = 1;
         }
       }
@@ -1410,7 +1410,7 @@ rasqal_query_variable_only_in_exists(rasqal_query* query, rasqal_variable* var)
       if(!t)
         continue;
       if(rasqal_helper_triple_uses_variable(t, var) &&
-         rasqal_query_triple_in_exists_pattern(query, col)) {
+         rasqal_query_triple_in_subpattern(query, col)) {
         used_in_exists = 1;
         break;
       }
@@ -1431,16 +1431,16 @@ rasqal_query_variable_only_in_exists(rasqal_query* query, rasqal_variable* var)
 
 
 /*
- * rasqal_query_triple_in_exists_pattern:
+ * rasqal_query_triple_in_subpattern:
  * @query: query object
  * @triple_index: index of triple in query->triples sequence
  *
- * INTERNAL - Check if a triple belongs to an EXISTS pattern
+ * INTERNAL - Check if a triple belongs to a sub-pattern
  * 
- * Returns: 1 if triple is part of an EXISTS pattern, 0 otherwise
+ * Returns: 1 if triple is part of a sub-pattern, 0 otherwise
  */
 static int
-rasqal_query_triple_in_exists_pattern(rasqal_query* query, int triple_index)
+rasqal_query_triple_in_subpattern(rasqal_query* query, int triple_index)
 {
   rasqal_graph_pattern* gp;
   int i;
@@ -1448,7 +1448,7 @@ rasqal_query_triple_in_exists_pattern(rasqal_query* query, int triple_index)
   if(!query || !query->query_graph_pattern)
     return 0;
   
-  /* Look through all graph patterns to find one marked as EXISTS
+  /* Look through all graph patterns to find one marked as sub-pattern
    * that covers this triple index.  100 is an arbitrary limit to
    * prevent infinite loops */  
   for(i = 0; i < 100; i++) {
@@ -1456,7 +1456,7 @@ rasqal_query_triple_in_exists_pattern(rasqal_query* query, int triple_index)
     if(!gp)
       break;
     
-    if(gp->is_exists_pattern && 
+    if(gp->is_subpattern && 
        gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BASIC &&
        triple_index >= gp->start_column && 
        triple_index <= gp->end_column) {
@@ -2079,7 +2079,14 @@ rasqal_query_build_scope_hierarchy_recursive(rasqal_query* query,
   /* Assign scope to this graph pattern */
   gp->execution_scope = current_scope;
   
-
+  /* Copy triples to scope for sub-patterns that need isolation */
+  if(current_scope && rasqal_graph_pattern_needs_scope_isolation(gp) &&
+     gp->triples && raptor_sequence_size(gp->triples) > 0) {
+    if(rasqal_graph_pattern_copy_triples_to_scope(gp)) {
+      RASQAL_DEBUG1("Failed to copy triples to scope for sub-pattern\n");
+      return 1;
+    }
+  }
 
   /* Recursively process sub-graph patterns */
   if(gp->graph_patterns) {
