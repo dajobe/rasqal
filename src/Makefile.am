@@ -138,8 +138,7 @@ snprintf.c \
 rasqal_double.c \
 rasqal_ntriples.c \
 rasqal_query_results_compare.c \
-rasqal_graph_isomorphism.c \
-ssort.h
+rasqal_graph_isomorphism.c
 
 if RASQAL_QUERY_SPARQL
 librasqal_la_SOURCES += sparql_lexer.c sparql_lexer.h \

@@ -78,7 +78,7 @@ rasqal_sequence_as_sorted(raptor_sequence* seq,
     for(i = 0; i < size; i++)
       array[i] = raptor_sequence_get_at(seq, RASQAL_GOOD_CAST(int, i));
 
-    rasqal_ssort_r(array, size, sizeof(void*), compare, user_data);
+    raptor_sort_r(array, size, sizeof(void*), compare, user_data);
   }
 
   return array;
