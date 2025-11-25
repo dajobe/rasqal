@@ -990,6 +990,16 @@ rasqal_expression_evaluate2(rasqal_expression* e,
         rasqal_free_literal(l1);
       }
 
+      /* Short-circuit evaluation: if first arg is false (not error), result is false
+       * This is critical for FILTER expressions like FILTER(?x != ?y) combined with
+       * FILTER NOT EXISTS {...} - we don't want to evaluate NOT EXISTS when the
+       * first condition is already false.
+       * Per SPARQL semantics: F && anything = F */
+      if(!errs.errs.e1 && !vars.bools.b1) {
+        vars.b = 0;
+        break;
+      }
+
       errs.errs.e2 = 0;
       l1 = rasqal_expression_evaluate2(e->arg2, eval_context, &errs.errs.e2);
       if(errs.errs.e2) {
