@@ -13,6 +13,9 @@ engine limits). The framework is built around W3C test suite
 standards and provides both automated and manual testing
 capabilities.
 
+**Current Test State**: See [state.md](state.md) for the current test
+results, feature implementation status, and known limitations.
+
 ## Test Framework Architecture
 
 ### Core Components
