@@ -997,6 +997,7 @@ rasqal_expression_evaluate2(rasqal_expression* e,
        * Per SPARQL semantics: F && anything = F */
       if(!errs.errs.e1 && !vars.bools.b1) {
         vars.b = 0;
+        result = rasqal_new_boolean_literal(world, vars.b);
         break;
       }
 
@@ -1141,12 +1142,6 @@ rasqal_expression_evaluate2(rasqal_expression* e,
       }
 
       vars.b = (rasqal_literal_not_equals_flags(l1, l2, flags, &errs.e) != 0);
-#ifdef RASQAL_DEBUG_EVAL
-      if(errs.e)
-        RASQAL_DEBUG1("rasqal_literal_not_equals_flags returned: FAILURE\n");
-      else
-        RASQAL_DEBUG2("rasqal_literal_not_equals_flags returned: %d\n", vars.b);
-#endif
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
@@ -2065,29 +2060,29 @@ rasqal_expression_evaluate_exists(rasqal_expression *e,
     return NULL;
   }
   
-  /* SPARQL 1.2 Section 8.1.1: "NOT EXISTS filter expression tests whether a graph 
-   * pattern does not match the dataset, given the values of variables in the group 
+  /* SPARQL 1.2 Section 8.1.1: "NOT EXISTS filter expression tests whether a graph
+   * pattern does not match the dataset, given the values of variables in the group
    * graph pattern in which the filter occurs"
    *
    * SPARQL 1.2 Definition: Substitute
-   * substitute(pattern, μ) = the pattern formed by replacing every occurrence of 
+   * substitute(pattern, μ) = the pattern formed by replacing every occurrence of
    * a variable v in pattern by μ(v) for each v in dom(μ)
    *
-   * SPARQL 1.2 Definition: Evaluation of Exists  
-   * The value exists(P), given D(G) is true if and only if 
+   * SPARQL 1.2 Definition: Evaluation of Exists
+   * The value exists(P), given D(G) is true if and only if
    * eval(D(G), substitute(P, μ)) is a non-empty sequence
    *
    * Implementation: Create outer row with current variable bindings to provide
    * solution mapping μ for the substitute operation during pattern evaluation.
    */
-  outer_row = rasqal_new_row_for_size(world, 
+  outer_row = rasqal_new_row_for_size(world,
                                       rasqal_variables_table_get_named_variables_count(query->vars_table));
   if(outer_row) {
     /* SPARQL 1.2 substitute(pattern, μ): Copy current variable values into the outer row
      * This provides the solution mapping μ that will be used for variable substitution
      * during pattern evaluation per SPARQL 1.2 specification. */
     rasqal_row_set_values_from_variables_table(outer_row, query->vars_table);
-    
+
     /* SPARQL 1.2 Implementation Note: Variable Context for Nested Patterns
      * Set variable values in query context to ensure nested EXISTS expressions 
      * can access current variable bindings. This implements the substitute operation
@@ -2108,7 +2103,7 @@ rasqal_expression_evaluate_exists(rasqal_expression *e,
           if(var) {
             /* Save current variable value for restoration after substitute operation */
             saved_var_values[i] = var->value;
-            
+
             /* SPARQL 1.2 substitute(pattern, μ): Apply variable substitution
              * Replace variable v with μ(v) for variables in dom(μ) */
             if(value) {
