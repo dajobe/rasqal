@@ -1,6 +1,6 @@
 # Rasqal Test Suite State
 
-Last updated: 2025-11-24
+Last updated: 2025-11-26
 
 This document describes the current state of the Rasqal test suite,
 including test results, known limitations, and expected failures.
@@ -67,15 +67,21 @@ Location: `tests/sparql/negation/manifest-bad.ttl`
 | `subset-02`  | Calculate subsets (exclude A⊆A)  |
 | `subset-03`  | Calculate proper subset          |
 
-**Root cause**: Variable scoping corruption in FILTER NOT EXISTS within MINUS RHS.
+**Root cause**: MINUS not correctly removing rows when RHS contains FILTER NOT EXISTS.
 
-- **Bug location**: `src/rasqal_rowsource_exists.c` lines 1195-1218
-- **Problem**: When evaluating FILTER NOT EXISTS within MINUS RHS, the
-  `outer_row` parameter contains LHS bindings instead of RHS evaluation context
-- **Effect**: NOT EXISTS evaluates with wrong variable bindings, causing
-  incorrect true/false results
+- **Recent fix**: AND expression short-circuit now returns boolean literal
+  instead of NULL (commit ddc1a905, 2025-11-26)
+- **Current behavior**: subset-01 returns 25 results instead of expected 11
+- **Problem**: MINUS removes only 5 rows instead of 19. The RHS pattern
+  `FILTER(?s1 != ?s2) ?s1 :member ?x . FILTER NOT EXISTS { ?s2 :member ?x }`
+  should match 19 LHS rows for removal but only matches 5
+- **Investigation status**: The AND expression bug masked the underlying issue.
+  Now that filters receive proper boolean values, the MINUS correlation problem
+  is clearer: RHS evaluation needs access to LHS row variables for correlated
+  subqueries, but the mechanism for this correlation is not working correctly
 - **Note**: The MINUS algorithm itself works correctly (proven by unit tests).
-  The issue is specifically the variable context passed to nested EXISTS evaluation.
+  The issue is specifically about how LHS variable bindings are made available
+  during RHS pattern evaluation for correlation.
 
 #### 3. ExprEquals Tests (3 tests)
 
