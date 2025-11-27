@@ -408,14 +408,37 @@ rasqal_minus_read_row_correlated(rasqal_rowsource* rowsource,
     /* Check if current LHS row is compatible with any RHS row in this context */
     {
       rasqal_row* rhs_row;
+      int rhs_count = 0;
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG1("=== MINUS: Processing LHS row ===\n");
+      RASQAL_DEBUG1("  LHS: ");
+      rasqal_row_print(lhs_row, RASQAL_DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
+#endif
       while((rhs_row = rasqal_rowsource_read_row(con->rhs_rowsource)) != NULL) {
+        rhs_count++;
+#ifdef RASQAL_DEBUG
+        RASQAL_DEBUG2("  RHS[%d]: ", rhs_count);
+        rasqal_row_print(rhs_row, RASQAL_DEBUG_FH);
+#endif
         if(rasqal_minus_compatible_check(con->rc_map, lhs_row, rhs_row)) {
+#ifdef RASQAL_DEBUG
+          RASQAL_DEBUG1(" - COMPATIBLE (removing LHS row)\n");
+#endif
           compatible_found = 1;
           rasqal_free_row(rhs_row);
           break;
         }
+#ifdef RASQAL_DEBUG
+        RASQAL_DEBUG1(" - not compatible\n");
+#endif
         rasqal_free_row(rhs_row);
       }
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG2("  Total RHS rows: %d\n", rhs_count);
+      if(!compatible_found)
+        RASQAL_DEBUG1("  Result: LHS row KEPT (no compatible RHS row)\n");
+#endif
     }
     
     /* Enhanced correlation analysis handles nested patterns through normal mechanisms */

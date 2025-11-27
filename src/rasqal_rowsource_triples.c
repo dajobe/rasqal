@@ -561,6 +561,25 @@ rasqal_triples_rowsource_get_next_constraint_based_row(rasqal_rowsource* rowsour
       /* All columns processed - we have a complete solution */
       RASQAL_DEBUG1("All columns bound successfully - solution found\n");
 
+      /* CRITICAL FIX: Re-bind all columns to ensure variables have correct values.
+       *
+       * When this rowsource is used in a join operation, other rowsources may
+       * modify shared variables between calls. For example, in a query like:
+       *   { ?a rdf:type :T . ?b rdf:type :T } JOIN { ?a :p ?x }
+       * the right rowsource will rebind variable ?a while iterating, corrupting
+       * the value set by this (left) rowsource. We must restore all variable
+       * values from the current iterator positions before the row is created.
+       *
+       * Without this fix, rows can be created with incorrect variable values,
+       * leading to wrong query results (e.g., [s3,s2] instead of [s1,s2]).
+       */
+      for(column = con->start_column; column <= con->end_column; column++) {
+        rasqal_triple_meta *rebind_m = &con->triple_meta[column - con->start_column];
+        if(rebind_m->triples_match && rebind_m->parts) {
+          rasqal_triples_match_bind_match(rebind_m->triples_match, rebind_m->bindings, rebind_m->parts);
+        }
+      }
+
       /* Advance rightmost column for next iteration */
       m = &con->triple_meta[con->end_column - con->start_column];
       rasqal_triples_match_next_match(m->triples_match);
@@ -604,23 +623,46 @@ rasqal_triples_rowsource_get_next_constraint_based_row(rasqal_rowsource* rowsour
 
       RASQAL_DEBUG2("Column %d iterator exhausted - backtracking\n", column);
       /* Backtrack: move to previous column and advance it, then retry */
-      if(column <= con->start_column) {
-        RASQAL_DEBUG1("No more columns to backtrack - finished\n");
+      if(column < con->start_column) {
+        /* This shouldn't happen - we've gone before the first column */
+        RASQAL_DEBUG1("Backtracked before start column - finished\n");
         return RASQAL_ENGINE_FINISHED;
       }
-      
+
+      if(column == con->start_column) {
+        /* First column exhausted - try to advance it */
+        rasqal_triples_match_next_match(m->triples_match);
+
+        /* Check if first column has more matches */
+        if(rasqal_triples_match_is_end(m->triples_match)) {
+          RASQAL_DEBUG1("No more matches in first column - finished\n");
+          return RASQAL_ENGINE_FINISHED;
+        }
+
+        /* First column advanced successfully - reset all subsequent columns */
+        for(reset_col = column + 1; reset_col <= con->end_column; reset_col++) {
+          rasqal_triple_meta *reset_m = &con->triple_meta[reset_col - con->start_column];
+          if(reset_m->triples_match) {
+            rasqal_free_triples_match(reset_m->triples_match);
+            reset_m->triples_match = NULL;
+          }
+        }
+
+        continue;
+      }
+
       /* Cleanup current column */
       if(m->triples_match) {
         rasqal_free_triples_match(m->triples_match);
         m->triples_match = NULL;
       }
-      
+
       /* Move back and advance previous column */
       con->current_column--;
       column = con->current_column;
       m = &con->triple_meta[column - con->start_column];
       rasqal_triples_match_next_match(m->triples_match);
-      
+
       /* Reset all subsequent columns since they depended on the old binding */
       for(reset_col = column + 1; reset_col <= con->end_column; reset_col++) {
         rasqal_triple_meta *reset_m = &con->triple_meta[reset_col - con->start_column];
@@ -629,7 +671,7 @@ rasqal_triples_rowsource_get_next_constraint_based_row(rasqal_rowsource* rowsour
           reset_m->triples_match = NULL;
         }
       }
-      
+
       continue;
     }
 
