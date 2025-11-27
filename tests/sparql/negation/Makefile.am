@@ -19,7 +19,7 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 #
 
-SPARQL_MANIFEST_FILES= manifest.ttl manifest-bad.ttl
+SPARQL_MANIFEST_FILES= manifest.ttl
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
@@ -43,7 +43,7 @@ check-local: build-roqet
 	@$(PYTHON3) $(top_srcdir)/tests/bin/run-test-suites .
 
 get-testsuites-list:
-	@echo "sparql-query sparql-query-negative"
+	@echo "sparql-query"
 
 get-testsuite-sparql-query:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
@@ -54,18 +54,8 @@ get-testsuite-sparql-query:
 		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s $(top_srcdir)/tests/sparql/sparql11-test-suite/negation --manifest-file {srcdir}/manifest.ttl --test-case {test_id}" \
 		--manifest-file $(srcdir)/manifest.ttl
 
-get-testsuite-sparql-query-negative:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
-		--suite-name sparql-query-negative \
-		--srcdir $(srcdir) \
-		--builddir $(top_builddir) \
-		--test-type XFailTest \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s $(top_srcdir)/tests/sparql/sparql11-test-suite/negation --manifest-file {srcdir}/manifest-bad.ttl --test-case {test_id}" \
-		--manifest-file $(srcdir)/manifest-bad.ttl
-
 dist-hook:
 	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(srcdir)/manifest.ttl \
-		--manifest-file $(srcdir)/manifest-bad.ttl \
 		--srcdir $(srcdir) \
 		--distdir $(distdir) 

@@ -67,21 +67,34 @@ Location: `tests/sparql/negation/manifest-bad.ttl`
 | `subset-02`  | Calculate subsets (exclude A⊆A)  |
 | `subset-03`  | Calculate proper subset          |
 
-**Root cause**: MINUS not correctly removing rows when RHS contains FILTER NOT EXISTS.
+**Status**: ✅ FIXED (2025-11-27)
 
-- **Recent fix**: AND expression short-circuit now returns boolean literal
-  instead of NULL (commit ddc1a905, 2025-11-26)
-- **Current behavior**: subset-01 returns 25 results instead of expected 11
-- **Problem**: MINUS removes only 5 rows instead of 19. The RHS pattern
-  `FILTER(?s1 != ?s2) ?s1 :member ?x . FILTER NOT EXISTS { ?s2 :member ?x }`
-  should match 19 LHS rows for removal but only matches 5
-- **Investigation status**: The AND expression bug masked the underlying issue.
-  Now that filters receive proper boolean values, the MINUS correlation problem
-  is clearer: RHS evaluation needs access to LHS row variables for correlated
-  subqueries, but the mechanism for this correlation is not working correctly
-- **Note**: The MINUS algorithm itself works correctly (proven by unit tests).
-  The issue is specifically about how LHS variable bindings are made available
-  during RHS pattern evaluation for correlation.
+**Root cause**: Variable table corruption in constraint-based multi-pattern processing
+when used within join operations.
+
+- **Fix #1**: AND expression short-circuit now returns boolean literal instead of NULL
+  (commit ddc1a905, 2025-11-26)
+- **Fix #2**: Constraint-based algorithm now re-binds all columns before returning
+  solutions to prevent variable corruption from other rowsources in join pipelines
+  (2025-11-27)
+
+**Bug details**: When a BGP is split into multiple rowsources by the query optimizer
+(e.g., for join operations), the constraint-based triple matching algorithm assumed
+variable values would persist between calls. However, when used in a join like:
+  `{ ?a rdf:type :T . ?b rdf:type :T } JOIN { ?a :p ?x }`
+the right rowsource would overwrite shared variable values while iterating, corrupting
+the left rowsource's state. This caused rows to be created with incorrect values.
+
+**Solution**: Before returning each solution, the algorithm now re-binds all columns
+from their current iterator positions, ensuring variables always reflect the correct
+values regardless of modifications by other rowsources. This fix is in
+`src/rasqal_rowsource_triples.c` at lines 564-581.
+
+**Test results**: All three negation subset tests now return correct results:
+
+- subset-01: 11 results ✓ (was 25)
+- subset-02: 11 results ✓
+- subset-03: 7 results ✓
 
 #### 3. ExprEquals Tests (3 tests)
 
