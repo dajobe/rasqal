@@ -40,6 +40,10 @@ These tests are explicitly marked with `t:XFailTest` in manifest files.
 
 Location: `tests/sparql/ValueTesting/manifest-negative.n3`
 
+**Complexity**: HIGH (8/10) - Requires core type system changes
+**Risk**: Medium - Changes affect type promotion, boolean handling, extended types
+**Priority**: DEFER - High complexity, edge cases, low real-world impact
+
 | Test                                 | Description              |
 |--------------------------------------|--------------------------|
 | `typePromotion-decimal-decimal-pass` | Type promotion           |
@@ -52,14 +56,20 @@ Location: `tests/sparql/ValueTesting/manifest-negative.n3`
 
 **Root causes**:
 
-- **Type promotion tests**: Engine type promotion bug within xsd:decimal type tree
-- **Boolean tests**: Engine boolean handling bug with lexical forms (TRUE/FALSE/EBV)
-- **Extended type tests**: Engine extended type comparison bug - opaque types like
+- **Type promotion tests** (2 tests, MEDIUM-HIGH complexity): Engine type promotion bug within xsd:decimal type tree
+- **Boolean tests** (3 tests, MEDIUM complexity): Engine boolean handling bug with lexical forms (TRUE/FALSE/EBV)
+- **Extended type tests** (2 tests, MEDIUM complexity): Engine extended type comparison bug - opaque types like
   `loc:latitude` and `loc:ECEF_X` should fail with type error but don't
+
+**Code Locations**: `src/rasqal_literal.c` (type promotion, boolean handling, comparison)
 
 #### 2. ExprEquals Tests (3 tests)
 
 Location: `tests/sparql/ExprEquals/manifest-failures.n3`
+
+**Complexity**: MEDIUM (5/10) - Localized integer canonicalization fix
+**Risk**: Low - Changes localized to comparison logic
+**Priority**: MEDIUM-TERM TARGET - Well-defined problem, clear solution
 
 | Test                                      | Description                |
 |-------------------------------------------|----------------------------|
@@ -71,9 +81,15 @@ Location: `tests/sparql/ExprEquals/manifest-failures.n3`
 as equal to `1`. The engine should canonicalize integer lexical forms before
 comparison.
 
+**Code Locations**: `src/rasqal_literal.c:rasqal_literal_equals()` (lines 2924-2928)
+
 #### 3. Error API Tests (4 tests) - TEST FRAMEWORK ISSUE
 
 Location: `tests/sparql/errors/manifest-failing.ttl`
+
+**Complexity**: LOW (2/10) - Test framework fix only, NOT an engine bug
+**Risk**: Very Low - No engine changes required
+**Priority**: QUICK WIN - Easy fix, cleans up test suite
 
 | Test          | Description                 |
 |---------------|-----------------------------|
@@ -90,9 +106,15 @@ Location: `tests/sparql/errors/manifest-failing.ttl`
 - **Fix needed**: Test framework should filter debug output before comparison,
   or expected result files should be updated
 
+**Code Locations**: Test framework comparison logic in `tests/sparql_test_framework/`
+
 #### 4. FILTER + MINUS + Unbound Tests (3 tests)
 
 Location: `tests/sparql/filter-unbound/manifest-bad.ttl`
+
+**Complexity**: MEDIUM-HIGH (6/10) - Multi-component interaction bug
+**Risk**: Medium - Changes affect expression evaluation with MINUS
+**Priority**: HIGH PRIORITY - Similar pattern to recently fixed negation bug
 
 | Test                         | Description                                  |
 |------------------------------|----------------------------------------------|
@@ -106,10 +128,21 @@ Location: `tests/sparql/filter-unbound/manifest-bad.ttl`
 - Complex BGP generating partial bindings with FILTER + MINUS fails
 - Mixed scenarios where some solutions have bound variables, others unbound
 - Related to expression unbound handling work, but MINUS interaction not complete
+- **Pattern similarity**: Likely shares variable corruption pattern with recently fixed negation tests
+
+**Code Locations**:
+
+- `src/rasqal_rowsource_filter.c` (FILTER rowsource)
+- `src/rasqal_rowsource_minus.c` (MINUS rowsource)
+- `src/rasqal_expr.c` (expression evaluation with unbound values)
 
 #### 5. BIND Test (1 test)
 
 Location: `tests/sparql/bind/manifest-failing.ttl`
+
+**Complexity**: MEDIUM (5/10) - Scope validation logic fix
+**Risk**: Low-Medium - Scoping logic change
+**Priority**: LOW - Very specific edge case
 
 | Test     | Description            |
 |----------|------------------------|
@@ -124,6 +157,8 @@ Location: `tests/sparql/bind/manifest-failing.ttl`
 - **Expected**: Each UNION branch should have independent variable scope,
   allowing the same variable to be bound in each branch
 - **Affected function**: `rasqal_query_graph_pattern_build_variables_use_map_binds()`
+
+**Code Locations**: `src/rasqal_query_transform.c` (BIND variable validation)
 
 ### Negative Syntax Test Failures (23 tests)
 
