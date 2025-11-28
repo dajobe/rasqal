@@ -1,38 +1,38 @@
 # Rasqal Test Suite State
 
-Last updated: 2025-11-26
+Last updated: 2025-11-27
 
 This document describes the current state of the Rasqal test suite,
 including test results, known limitations, and expected failures.
 
 ## Current Test Results
 
-**Overall**: 994 SPARQL tests passed, 0 failed, 44 expected failures
+**Overall**: 997 SPARQL tests passed, 0 failed, 41 expected failures
 
 ### Test Categories
 
 | Category                 | Pass | Xfail | Notes                           |
 |--------------------------|------|-------|---------------------------------|
 | C unit tests (`src/`)    |   33 |     0 | Core library component tests    |
-| SPARQL test directories  |  994 |    44 | 32 directories, multiple suites |
+| SPARQL test directories  |  997 |    41 | 32 directories, multiple suites |
 | Compare tests (`utils/`) |    8 |     0 | Result comparison tests         |
 
-The 994 SPARQL tests run across 32 test directories, each running multiple
+The 997 SPARQL tests run across 32 test directories, each running multiple
 test suites (sparql-lexer, sparql-parser, sparql-query, etc.).
 
 ### XFailed Breakdown
 
-The 44 xfailed tests come from two sources:
+The 41 xfailed tests come from two sources:
 
 | Source                 | Unique | Xfails | Notes                                 |
 |------------------------|--------|--------|---------------------------------------|
-| XFailTest in manifests |     21 |     21 | Explicitly marked expected failures   |
+| XFailTest in manifests |     18 |     18 | Explicitly marked expected failures   |
 | Negative syntax tests  |     23 |     23 | Parser expected to reject but doesn't |
-| **Total**              | **44** | **44** |                                       |
+| **Total**              | **41** | **41** |                                       |
 
 ## XFailed Tests (Expected Failures)
 
-### XFailTest-based Failures (21 tests)
+### XFailTest-based Failures (18 tests)
 
 These tests are explicitly marked with `t:XFailTest` in manifest files.
 
@@ -57,9 +57,9 @@ Location: `tests/sparql/ValueTesting/manifest-negative.n3`
 - **Extended type tests**: Engine extended type comparison bug - opaque types like
   `loc:latitude` and `loc:ECEF_X` should fail with type error but don't
 
-#### 2. Negation Subset Tests (3 tests)
+#### 2. Negation Subset Tests (3 tests) - REMOVED FROM XFAIL
 
-Location: `tests/sparql/negation/manifest-bad.ttl`
+Location: Previously `tests/sparql/negation/manifest-bad.ttl`, now in `manifest.ttl`
 
 | Test         | Description                      |
 |--------------|----------------------------------|
@@ -69,32 +69,38 @@ Location: `tests/sparql/negation/manifest-bad.ttl`
 
 **Status**: ✅ FIXED (2025-11-27)
 
-**Root cause**: Variable table corruption in constraint-based multi-pattern processing
-when used within join operations.
+**Root cause**: Variable table corruption in PROJECT rowsource when evaluating
+projection expressions like `(?s1 AS ?subset)`.
 
-- **Fix #1**: AND expression short-circuit now returns boolean literal instead of NULL
-  (commit ddc1a905, 2025-11-26)
-- **Fix #2**: Constraint-based algorithm now re-binds all columns before returning
-  solutions to prevent variable corruption from other rowsources in join pipelines
-  (2025-11-27)
+**Investigation summary**:
 
-**Bug details**: When a BGP is split into multiple rowsources by the query optimizer
-(e.g., for join operations), the constraint-based triple matching algorithm assumed
-variable values would persist between calls. However, when used in a join like:
-  `{ ?a rdf:type :T . ?b rdf:type :T } JOIN { ?a :p ?x }`
-the right rowsource would overwrite shared variable values while iterating, corrupting
-the left rowsource's state. This caused rows to be created with incorrect values.
+- subset-01 worked correctly, but subset-02 and subset-03 returned all (empty, empty)
+- Initially suspected MINUS or BGP evaluation bugs
+- Debug tracing showed MINUS received and returned correct row values
+- But PROJECT rowsource output showed (empty, empty) for all results
+- Discovery: PROJECT evaluates expressions by reading from shared variables table
+- Other rowsources had modified shared variables after input row creation
 
-**Solution**: Before returning each solution, the algorithm now re-binds all columns
-from their current iterator positions, ensuring variables always reflect the correct
-values regardless of modifications by other rowsources. This fix is in
-`src/rasqal_rowsource_triples.c` at lines 564-581.
+**Fix**: Bind input row variables before evaluating projection expressions
+(`src/rasqal_rowsource_project.c` lines 162-171). This ensures projection expressions
+like `variable(s1)` read values from the current row rather than from the potentially
+corrupted shared variables table.
 
-**Test results**: All three negation subset tests now return correct results:
+**Additional fix**: Constraint-based BGP evaluation also fixed to re-bind columns
+before returning solutions (`src/rasqal_rowsource_triples.c` lines 564-581). This
+prevents variable corruption when BGPs are used in join operations.
 
-- subset-01: 11 results ✓ (was 25)
-- subset-02: 11 results ✓
-- subset-03: 7 results ✓
+**Test results**: All 10 negation tests now pass:
+
+- subset-01: 11 results ✓
+- subset-02: 11 results ✓ (was returning all empty,empty)
+- subset-03: 7 results ✓ (was returning 0 results)
+- Plus 7 other negation tests: all passing
+
+**Verification**: Full test suite run (2025-11-27) confirms no regressions:
+
+- Total: 997 tests passed, 0 failed, 41 xfailed
+- All 10 negation tests passing in production test suite
 
 #### 3. ExprEquals Tests (3 tests)
 
@@ -192,16 +198,15 @@ but currently accepts it. They run in `sparql-parser-negative` or
 - **4 Error API tests**: Test framework debug output comparison issue
 - **23 Negative syntax tests**: Parser validation, not query execution
 
-### Actual Query Engine Failures (17 tests)
+### Actual Query Engine Failures (14 tests)
 
 | Category       | Count | Bug Type                              |
 |----------------|-------|---------------------------------------|
 | ValueTesting   |     7 | Type promotion, boolean, extended type|
-| Negation       |     3 | MINUS+NOT EXISTS variable scoping     |
 | ExprEquals     |     3 | Integer equality canonicalization     |
 | FILTER+MINUS   |     3 | Unbound variable handling in MINUS    |
 | BIND           |     1 | UNION variable scope isolation        |
-| **Total**      |**17** |                                       |
+| **Total**      |**14** | (3 negation tests fixed 2025-11-27)  |
 
 ## Technical Architecture
 

@@ -148,7 +148,8 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   row = rasqal_rowsource_read_row(con->rowsource);
   if(row) {
     int i;
-    
+    rasqal_query *query = rowsource->query;
+
     nrow = rasqal_new_row_for_size(rowsource->world, rowsource->size);
     if(!nrow) {
       /* Memory allocation failed - ensure proper cleanup */
@@ -157,6 +158,17 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
     rasqal_row_set_rowsource(nrow, rowsource);
     nrow->offset = row->offset;
+
+    /* CRITICAL FIX: Bind input row variables before evaluating projection expressions.
+     *
+     * Projection expressions like (?s1 AS ?subset) evaluate variable(s1) which reads
+     * from the shared variables table. Other rowsources may have modified these shared
+     * variables since the input row was created, leading to incorrect projection values.
+     *
+     * By binding the input row's values to variables before expression evaluation,
+     * we ensure expressions read the correct values from this specific row.
+     */
+    rasqal_row_bind_variables(row, query->vars_table);
 
     for(i = 0; i < rowsource->size; i++) {
       int offset = con->projection[i];
