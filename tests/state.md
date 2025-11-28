@@ -57,52 +57,7 @@ Location: `tests/sparql/ValueTesting/manifest-negative.n3`
 - **Extended type tests**: Engine extended type comparison bug - opaque types like
   `loc:latitude` and `loc:ECEF_X` should fail with type error but don't
 
-#### 2. Negation Subset Tests (3 tests) - REMOVED FROM XFAIL
-
-Location: Previously `tests/sparql/negation/manifest-bad.ttl`, now in `manifest.ttl`
-
-| Test         | Description                      |
-|--------------|----------------------------------|
-| `subset-01`  | Calculate subsets (include A⊆A)  |
-| `subset-02`  | Calculate subsets (exclude A⊆A)  |
-| `subset-03`  | Calculate proper subset          |
-
-**Status**: ✅ FIXED (2025-11-27)
-
-**Root cause**: Variable table corruption in PROJECT rowsource when evaluating
-projection expressions like `(?s1 AS ?subset)`.
-
-**Investigation summary**:
-
-- subset-01 worked correctly, but subset-02 and subset-03 returned all (empty, empty)
-- Initially suspected MINUS or BGP evaluation bugs
-- Debug tracing showed MINUS received and returned correct row values
-- But PROJECT rowsource output showed (empty, empty) for all results
-- Discovery: PROJECT evaluates expressions by reading from shared variables table
-- Other rowsources had modified shared variables after input row creation
-
-**Fix**: Bind input row variables before evaluating projection expressions
-(`src/rasqal_rowsource_project.c` lines 162-171). This ensures projection expressions
-like `variable(s1)` read values from the current row rather than from the potentially
-corrupted shared variables table.
-
-**Additional fix**: Constraint-based BGP evaluation also fixed to re-bind columns
-before returning solutions (`src/rasqal_rowsource_triples.c` lines 564-581). This
-prevents variable corruption when BGPs are used in join operations.
-
-**Test results**: All 10 negation tests now pass:
-
-- subset-01: 11 results ✓
-- subset-02: 11 results ✓ (was returning all empty,empty)
-- subset-03: 7 results ✓ (was returning 0 results)
-- Plus 7 other negation tests: all passing
-
-**Verification**: Full test suite run (2025-11-27) confirms no regressions:
-
-- Total: 997 tests passed, 0 failed, 41 xfailed
-- All 10 negation tests passing in production test suite
-
-#### 3. ExprEquals Tests (3 tests)
+#### 2. ExprEquals Tests (3 tests)
 
 Location: `tests/sparql/ExprEquals/manifest-failures.n3`
 
@@ -116,7 +71,7 @@ Location: `tests/sparql/ExprEquals/manifest-failures.n3`
 as equal to `1`. The engine should canonicalize integer lexical forms before
 comparison.
 
-#### 4. Error API Tests (4 tests) - TEST FRAMEWORK ISSUE
+#### 3. Error API Tests (4 tests) - TEST FRAMEWORK ISSUE
 
 Location: `tests/sparql/errors/manifest-failing.ttl`
 
@@ -135,7 +90,7 @@ Location: `tests/sparql/errors/manifest-failing.ttl`
 - **Fix needed**: Test framework should filter debug output before comparison,
   or expected result files should be updated
 
-#### 5. FILTER + MINUS + Unbound Tests (3 tests)
+#### 4. FILTER + MINUS + Unbound Tests (3 tests)
 
 Location: `tests/sparql/filter-unbound/manifest-bad.ttl`
 
@@ -152,7 +107,7 @@ Location: `tests/sparql/filter-unbound/manifest-bad.ttl`
 - Mixed scenarios where some solutions have bound variables, others unbound
 - Related to expression unbound handling work, but MINUS interaction not complete
 
-#### 6. BIND Test (1 test)
+#### 5. BIND Test (1 test)
 
 Location: `tests/sparql/bind/manifest-failing.ttl`
 
@@ -239,5 +194,4 @@ ROOT Scope
 - Fix Error API test framework debug output issue (4 tests)
 - Fix UNION variable scoping for BIND (1 test)
 - Fix FILTER+MINUS+unbound interaction (3 tests)
-- Complete MINUS+NOT EXISTS variable scoping (3 tests)
 - Property Paths implementation
