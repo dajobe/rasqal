@@ -5,5 +5,77 @@
     <variable name="y"/>
   </head>
   <results>
+    <result>
+      <binding name="x"><uri>http://example.org/person1</uri></binding>
+      <binding name="y"><uri>http://example.org/person3</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person1</uri></binding>
+      <binding name="y"><uri>http://example.org/person4</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person1</uri></binding>
+      <binding name="y"><uri>http://example.org/person5</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person2</uri></binding>
+      <binding name="y"><uri>http://example.org/person1</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person2</uri></binding>
+      <binding name="y"><uri>http://example.org/person4</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person2</uri></binding>
+      <binding name="y"><uri>http://example.org/person5</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person3</uri></binding>
+      <binding name="y"><uri>http://example.org/person1</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person3</uri></binding>
+      <binding name="y"><uri>http://example.org/person2</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person3</uri></binding>
+      <binding name="y"><uri>http://example.org/person4</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person3</uri></binding>
+      <binding name="y"><uri>http://example.org/person5</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person4</uri></binding>
+      <binding name="y"><uri>http://example.org/person1</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person4</uri></binding>
+      <binding name="y"><uri>http://example.org/person2</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person4</uri></binding>
+      <binding name="y"><uri>http://example.org/person3</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person4</uri></binding>
+      <binding name="y"><uri>http://example.org/person5</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person5</uri></binding>
+      <binding name="y"><uri>http://example.org/person1</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person5</uri></binding>
+      <binding name="y"><uri>http://example.org/person2</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person5</uri></binding>
+      <binding name="y"><uri>http://example.org/person3</uri></binding>
+    </result>
+    <result>
+      <binding name="x"><uri>http://example.org/person5</uri></binding>
+      <binding name="y"><uri>http://example.org/person4</uri></binding>
+    </result>
   </results>
 </sparql>
