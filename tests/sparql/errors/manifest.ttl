@@ -6,7 +6,7 @@
 <>  rdf:type mf:Manifest ;
     rdfs:comment "Errors API working test cases" ;
     mf:entries
-    ( 
+    (
      [  mf:name    "XPath substring() invalid arguments" ;
         rdfs:comment
             "Error API test 1 - function error handled gracefully" ;
@@ -14,6 +14,30 @@
             [ qt:query  <error-api-1.rq> ;
               qt:data   <data.ttl> ] ;
         mf:result  <error-api-1-result.ttl>
+     ]
+
+     [  rdf:type mf:QueryEvaluationTest ;
+        mf:name    "Division by zero error in BIND" ;
+        rdfs:comment
+            """Error API test 2 - Tests SPARQL 1.2 error handling in BIND expressions.
+            When division by zero occurs in a BIND expression, the variable becomes unbound
+            and the solution is kept (per SPARQL 1.2 §18.6 Extend definition).""" ;
+        mf:action
+            [ qt:query  <error-api-2.rq> ;
+              qt:data   <data.ttl> ] ;
+        mf:result  <error-api-2-result.ttl>
+     ]
+
+     [  rdf:type mf:QueryEvaluationTest ;
+        mf:name    "Type conversion error in BIND" ;
+        rdfs:comment
+            """Error API test 5 - Tests SPARQL 1.2 error handling in BIND expressions.
+            When type conversion fails in a BIND expression, the variable becomes unbound
+            and the solution is kept (per SPARQL 1.2 §18.6 Extend definition).""" ;
+        mf:action
+            [ qt:query  <error-api-5.rq> ;
+              qt:data   <data.ttl> ] ;
+        mf:result  <error-api-5-result.ttl>
      ]
 
     ).

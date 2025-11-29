@@ -1,3 +1,42 @@
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rs:      <http://www.w3.org/2001/sw/DataAccess/tests/result-set#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
-# Empty result set - projection expression error prevents any results 
+[]    rdf:type      rs:ResultSet ;
+      rs:resultVariable  "s" ;
+      rs:resultVariable  "p" ;
+      rs:resultVariable  "o" ;
+      rs:resultVariable  "error_result" ;
+      rs:solution   [ rs:binding    [ rs:variable   "s" ;
+                                      rs:value      <http://example.org/subject1>
+                                    ] ;
+                      rs:binding    [ rs:variable   "p" ;
+                                      rs:value      <http://example.org/property1>
+                                    ] ;
+                      rs:binding    [ rs:variable   "o" ;
+                                      rs:value      "test string"
+                                    ] ;
+
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "s" ;
+                                      rs:value      <http://example.org/subject2>
+                                    ] ;
+                      rs:binding    [ rs:variable   "p" ;
+                                      rs:value      <http://example.org/property2>
+                                    ] ;
+                      rs:binding    [ rs:variable   "o" ;
+                                      rs:value      "another string"
+                                    ] ;
+
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "s" ;
+                                      rs:value      <http://example.org/subject3>
+                                    ] ;
+                      rs:binding    [ rs:variable   "p" ;
+                                      rs:value      <http://example.org/property3>
+                                    ] ;
+                      rs:binding    [ rs:variable   "o" ;
+                                      rs:value      "third string"
+                                    ] ;
+
+      ] .
