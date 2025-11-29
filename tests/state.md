@@ -7,32 +7,32 @@ including test results, known limitations, and expected failures.
 
 ## Current Test Results
 
-**Overall**: 997 SPARQL tests passed, 0 failed, 41 expected failures
+**Overall**: 1000 SPARQL tests passed, 0 failed, 38 expected failures
 
 ### Test Categories
 
 | Category                 | Pass | Xfail | Notes                           |
 |--------------------------|------|-------|---------------------------------|
 | C unit tests (`src/`)    |   33 |     0 | Core library component tests    |
-| SPARQL test directories  |  997 |    41 | 32 directories, multiple suites |
+| SPARQL test directories  | 1000 |    38 | 32 directories, multiple suites |
 | Compare tests (`utils/`) |    8 |     0 | Result comparison tests         |
 
-The 997 SPARQL tests run across 32 test directories, each running multiple
+The 1000 SPARQL tests run across 32 test directories, each running multiple
 test suites (sparql-lexer, sparql-parser, sparql-query, etc.).
 
 ### XFailed Breakdown
 
-The 41 xfailed tests come from two sources:
+The 38 xfailed tests come from two sources:
 
 | Source                 | Unique | Xfails | Notes                                 |
 |------------------------|--------|--------|---------------------------------------|
-| XFailTest in manifests |     18 |     18 | Explicitly marked expected failures   |
+| XFailTest in manifests |     15 |     15 | Explicitly marked expected failures   |
 | Negative syntax tests  |     23 |     23 | Parser expected to reject but doesn't |
-| **Total**              | **41** | **41** |                                       |
+| **Total**              | **38** | **38** |                                       |
 
 ## XFailed Tests (Expected Failures)
 
-### XFailTest-based Failures (18 tests)
+### XFailTest-based Failures (15 tests)
 
 These tests are explicitly marked with `t:XFailTest` in manifest files.
 
@@ -108,35 +108,7 @@ Location: `tests/sparql/errors/manifest-failing.ttl`
 
 **Code Locations**: Test framework comparison logic in `tests/sparql_test_framework/`
 
-#### 4. FILTER + MINUS + Unbound Tests (3 tests)
-
-Location: `tests/sparql/filter-unbound/manifest-bad.ttl`
-
-**Complexity**: MEDIUM-HIGH (6/10) - Multi-component interaction bug
-**Risk**: Medium - Changes affect expression evaluation with MINUS
-**Priority**: HIGH PRIORITY - Similar pattern to recently fixed negation bug
-
-| Test                         | Description                                  |
-|------------------------------|----------------------------------------------|
-| `filter-minus-simple`        | Simple FILTER + MINUS with unbound variables |
-| `filter-minus-complex`       | Complex FILTER + MINUS with partial bindings |
-| `filter-minus-mixed-binding` | Mixed bound/unbound scenarios                |
-
-**Root cause**: Gap in unbound expression handling when combined with MINUS.
-
-- FILTER + MINUS should not cause type errors with unbound variables
-- Complex BGP generating partial bindings with FILTER + MINUS fails
-- Mixed scenarios where some solutions have bound variables, others unbound
-- Related to expression unbound handling work, but MINUS interaction not complete
-- **Pattern similarity**: Likely shares variable corruption pattern with recently fixed negation tests
-
-**Code Locations**:
-
-- `src/rasqal_rowsource_filter.c` (FILTER rowsource)
-- `src/rasqal_rowsource_minus.c` (MINUS rowsource)
-- `src/rasqal_expr.c` (expression evaluation with unbound values)
-
-#### 5. BIND Test (1 test)
+#### 4. BIND Test (1 test)
 
 Location: `tests/sparql/bind/manifest-failing.ttl`
 
@@ -188,15 +160,14 @@ but currently accepts it. They run in `sparql-parser-negative` or
 - **4 Error API tests**: Test framework debug output comparison issue
 - **23 Negative syntax tests**: Parser validation, not query execution
 
-### Actual Query Engine Failures (14 tests)
+### Actual Query Engine Failures (11 tests)
 
 | Category       | Count | Bug Type                              |
 |----------------|-------|---------------------------------------|
 | ValueTesting   |     7 | Type promotion, boolean, extended type|
 | ExprEquals     |     3 | Integer equality canonicalization     |
-| FILTER+MINUS   |     3 | Unbound variable handling in MINUS    |
 | BIND           |     1 | UNION variable scope isolation        |
-| **Total**      |**14** | (3 negation tests fixed 2025-11-27)  |
+| **Total**      |**11** | (3 negation tests fixed 2025-11-27, 3 FILTER+MINUS tests fixed 2025-11-28) |
 
 ## Technical Architecture
 
@@ -228,5 +199,27 @@ ROOT Scope
 
 - Fix Error API test framework debug output issue (4 tests)
 - Fix UNION variable scoping for BIND (1 test)
-- Fix FILTER+MINUS+unbound interaction (3 tests)
 - Property Paths implementation
+
+## Fixed Issues
+
+### 2025-11-28: FILTER+MINUS Tests (3 tests) - RESOLVED
+
+The 3 FILTER+MINUS tests in `tests/sparql/filter-unbound/` were incorrectly marked as XFailTest. Investigation revealed:
+
+- The MINUS operator implementation is working correctly
+- Tests were producing correct results (18, 8, 18 results respectively)
+- Expected result files (.srx) were incorrect, showing empty results
+- Root cause: Tests were marked as failing based on outdated assumption that "MINUS is known to not work"
+
+**Resolution**:
+
+- Regenerated correct expected result files using roqet
+- Moved test definitions from manifest-bad.ttl to manifest.ttl
+- Changed test type from XFailTest to QueryEvaluationTest
+- Removed manifest-bad.ttl and updated Makefile.am
+- All 18 tests in filter-unbound directory now pass
+
+### 2025-11-27: Negation Tests (3 tests) - RESOLVED
+
+Fixed variable corruption in PROJECT rowsource affecting EXISTS/NOT EXISTS expressions.
