@@ -481,6 +481,30 @@ Most SPARQL test directories use: `sparql-lexer sparql-parser sparql-query`
 - **Result Comparison**: Compares actual vs expected results
 - **Format Validation**: Validates output format compliance
 
+### Environment Variables
+
+The framework supports the following environment variables for
+configuring test execution behavior:
+
+- **`RASQAL_COMPARE_ENABLE=yes`**: Automatically enables the
+  `--use-rasqal-compare` flag for all test executions. When set to
+  `"yes"` (case-insensitive), the framework will automatically use the
+  `rasqal-compare` utility for result comparison instead of the default
+  textual comparison method. This is particularly useful for graph result
+  comparison, as `rasqal-compare` provides more robust RDF graph
+  isomorphism checking. The environment variable is checked by:
+  - `run-test-suites` (test orchestrator)
+  - `create-test-plan` (test plan generator)
+  Setting this variable is equivalent to passing
+  `--use-rasqal-compare` to all test runner invocations. If the flag is
+  explicitly provided via command-line arguments, the environment
+  variable will not override it. This environment variable is
+  particularly useful when invoked before `make check`, either at the
+  top level (which recursively runs `make check` in all test
+  directories) or in a single test directory, as it enables the flag
+  for all test executions without needing to modify individual test
+  configurations.
+
 ## Test Data and Formats
 
 ### Input Formats
