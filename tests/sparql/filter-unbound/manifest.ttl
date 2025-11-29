@@ -25,6 +25,9 @@
     :filter-ucase-unbound
     :filter-strstarts-unbound
     :filter-round-unbound
+    :filter-minus-simple
+    :filter-minus-complex
+    :filter-minus-mixed-binding
     ) .
 
 :filter-eq-unbound rdf:type mf:QueryEvaluationTest ;
@@ -175,4 +178,34 @@
          [ qt:query  <filter-round-unbound.rq> ;
            qt:data   <test-data-expressions.ttl> ] ;
     mf:result  <filter-round-unbound.srx>
+    .
+
+:filter-minus-simple rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-minus-simple - Simple FILTER + MINUS with unbound variables" ;
+    rdfs:comment "Regression test: FILTER + MINUS should not cause type errors with unbound variables" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-minus-simple.rq> ;
+           qt:data   <test-data.ttl> ] ;
+    mf:result  <filter-minus-simple.srx>
+    .
+
+:filter-minus-complex rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-minus-complex - Complex FILTER + MINUS with partial bindings" ;
+    rdfs:comment "Regression test: Complex BGP generating partial bindings with FILTER + MINUS" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-minus-complex.rq> ;
+           qt:data   <test-data-complex.ttl> ] ;
+    mf:result  <filter-minus-complex.srx>
+    .
+
+:filter-minus-mixed-binding rdf:type mf:QueryEvaluationTest ;
+    mf:name    "filter-minus-mixed-binding - FILTER + MINUS with mixed bound/unbound scenarios" ;
+    rdfs:comment "Regression test: Mixed scenarios where some solutions have bound variables, others unbound" ;
+    dawgt:approval dawgt:Approved ;
+    mf:action
+         [ qt:query  <filter-minus-mixed-binding.rq> ;
+           qt:data   <test-data.ttl> ] ;
+    mf:result  <filter-minus-mixed-binding.srx>
     .
