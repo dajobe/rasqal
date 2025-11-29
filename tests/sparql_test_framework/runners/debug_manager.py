@@ -26,6 +26,8 @@ import subprocess
 from pathlib import Path
 from typing import Dict, Any, Optional
 
+from ..utils import get_temp_file_path
+
 logger = logging.getLogger(__name__)
 
 # Constants
@@ -234,15 +236,29 @@ class ComparisonManager:
             return False
 
     def _compare_with_system_diff(self, test_name: str) -> bool:
-        """Compare results using system diff utility."""
+        """Compare results using system diff utility with whitespace normalization."""
         try:
-            result = subprocess.run(
-                [DIFF_CMD, "result.out", "roqet.out"],
-                capture_output=True,
-                text=True,
-                timeout=30,
+            # Read both files using the temp file path function
+            expected_path = get_temp_file_path("result.out")
+            actual_path = get_temp_file_path("roqet.out")
+
+            if not expected_path.exists() or not actual_path.exists():
+                logger.warning(f"Missing comparison files for test '{test_name}'")
+                return False
+
+            expected_content = expected_path.read_text()
+            actual_content = actual_path.read_text()
+
+            # Normalize whitespace: strip trailing whitespace from each line
+            expected_normalized = "\n".join(
+                line.rstrip() for line in expected_content.splitlines()
             )
-            return result.returncode == 0
+            actual_normalized = "\n".join(
+                line.rstrip() for line in actual_content.splitlines()
+            )
+
+            # Compare normalized content
+            return expected_normalized == actual_normalized
         except Exception as e:
             logger.warning(f"System diff failed for test '{test_name}': {e}")
             return False

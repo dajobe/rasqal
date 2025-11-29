@@ -257,6 +257,14 @@ class QueryExecutor:
         if not config.result_file or not config.result_file.exists():
             return "csv"  # Default format
 
+        # Check file extension first
+        if config.result_file.suffix == ".ttl":
+            return "turtle"
+        elif config.result_file.suffix == ".srx":
+            return "xml"
+        elif config.result_file.suffix == ".srj":
+            return "srj"
+
         # Read first few lines to detect format
         try:
             with open(config.result_file, "r") as f:
@@ -266,6 +274,8 @@ class QueryExecutor:
                 return "xml"  # SRX format
             elif first_line.startswith("{") or '"results"' in first_line:
                 return "srj"  # SRJ/JSON format
+            elif first_line.startswith("@prefix") or first_line.startswith("@base"):
+                return "turtle"  # Turtle format
             else:
                 return "csv"  # Default to CSV for other formats
         except Exception:
