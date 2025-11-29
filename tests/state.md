@@ -1,6 +1,6 @@
 # Rasqal Test Suite State
 
-Last updated: 2025-11-27
+Last updated: 2025-11-28
 
 This document describes the current state of the Rasqal test suite,
 including test results, known limitations, and expected failures.
@@ -200,26 +200,3 @@ ROOT Scope
 - Fix Error API test framework debug output issue (4 tests)
 - Fix UNION variable scoping for BIND (1 test)
 - Property Paths implementation
-
-## Fixed Issues
-
-### 2025-11-28: FILTER+MINUS Tests (3 tests) - RESOLVED
-
-The 3 FILTER+MINUS tests in `tests/sparql/filter-unbound/` were incorrectly marked as XFailTest. Investigation revealed:
-
-- The MINUS operator implementation is working correctly
-- Tests were producing correct results (18, 8, 18 results respectively)
-- Expected result files (.srx) were incorrect, showing empty results
-- Root cause: Tests were marked as failing based on outdated assumption that "MINUS is known to not work"
-
-**Resolution**:
-
-- Regenerated correct expected result files using roqet
-- Moved test definitions from manifest-bad.ttl to manifest.ttl
-- Changed test type from XFailTest to QueryEvaluationTest
-- Removed manifest-bad.ttl and updated Makefile.am
-- All 18 tests in filter-unbound directory now pass
-
-### 2025-11-27: Negation Tests (3 tests) - RESOLVED
-
-Fixed variable corruption in PROJECT rowsource affecting EXISTS/NOT EXISTS expressions.
