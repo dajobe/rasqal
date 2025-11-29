@@ -1,38 +1,38 @@
 # Rasqal Test Suite State
 
-Last updated: 2025-11-28
+Last updated: 2025-11-29
 
 This document describes the current state of the Rasqal test suite,
 including test results, known limitations, and expected failures.
 
 ## Current Test Results
 
-**Overall**: 1000 SPARQL tests passed, 0 failed, 38 expected failures
+**Overall**: 1002 SPARQL tests passed, 0 failed, 36 expected failures
 
 ### Test Categories
 
 | Category                 | Pass | Xfail | Notes                           |
 |--------------------------|------|-------|---------------------------------|
 | C unit tests (`src/`)    |   33 |     0 | Core library component tests    |
-| SPARQL test directories  | 1000 |    38 | 32 directories, multiple suites |
+| SPARQL test directories  | 1002 |    36 | 32 directories, multiple suites |
 | Compare tests (`utils/`) |    8 |     0 | Result comparison tests         |
 
-The 1000 SPARQL tests run across 32 test directories, each running multiple
+The 1002 SPARQL tests run across 32 test directories, each running multiple
 test suites (sparql-lexer, sparql-parser, sparql-query, etc.).
 
 ### XFailed Breakdown
 
-The 38 xfailed tests come from two sources:
+The 36 xfailed tests come from two sources:
 
 | Source                 | Unique | Xfails | Notes                                 |
 |------------------------|--------|--------|---------------------------------------|
-| XFailTest in manifests |     15 |     15 | Explicitly marked expected failures   |
+| XFailTest in manifests |     13 |     13 | Explicitly marked expected failures   |
 | Negative syntax tests  |     23 |     23 | Parser expected to reject but doesn't |
-| **Total**              | **38** | **38** |                                       |
+| **Total**              | **36** | **36** |                                       |
 
 ## XFailed Tests (Expected Failures)
 
-### XFailTest-based Failures (15 tests)
+### XFailTest-based Failures (13 tests)
 
 These tests are explicitly marked with `t:XFailTest` in manifest files.
 
@@ -83,7 +83,7 @@ comparison.
 
 **Code Locations**: `src/rasqal_literal.c:rasqal_literal_equals()` (lines 2924-2928)
 
-#### 3. Error API Tests (4 tests) - TEST FRAMEWORK ISSUE
+#### 3. Error API Tests (2 tests) - TEST FRAMEWORK ISSUE
 
 Location: `tests/sparql/errors/manifest-failing.ttl`
 
@@ -91,20 +91,21 @@ Location: `tests/sparql/errors/manifest-failing.ttl`
 **Risk**: Very Low - No engine changes required
 **Priority**: QUICK WIN - Easy fix, cleans up test suite
 
-| Test          | Description                 |
-|---------------|-----------------------------|
-| `error-api-2` | Division by zero error      |
-| `error-api-3` | Filter expression error     |
-| `error-api-4` | Join expression error       |
-| `error-api-5` | Projection expression error |
+| Test          | Description             |
+|---------------|-------------------------|
+| `error-api-3` | Filter expression error |
+| `error-api-4` | Join expression error   |
+
+**Status**: 2 tests fixed on 2025-11-29 (error-api-2, error-api-5)
 
 **Important**: These are NOT engine failures.
 
-- **Actual behavior**: The engine correctly handles errors by returning no results
-- **Test failure cause**: Test framework comparison fails because debug output
-  is included in actual results while expected result files contain only clean output
-- **Fix needed**: Test framework should filter debug output before comparison,
-  or expected result files should be updated
+- **Fixed tests** (error-api-2, error-api-5): BIND expression errors that correctly
+  leave variables unbound and preserve solutions per SPARQL 1.2 §18.6 Extend definition.
+  These now pass after fixing expected results and test framework format detection.
+- **Remaining tests** (error-api-3, error-api-4): FILTER expression errors that correctly
+  remove solutions per SPARQL 1.2 §18.6 Filter definition. Expected to fail due to debug
+  output in test framework comparison.
 
 **Code Locations**: Test framework comparison logic in `tests/sparql_test_framework/`
 
@@ -155,9 +156,9 @@ but currently accepts it. They run in `sparql-parser-negative` or
 
 ## Actual Engine Compliance
 
-### Not Engine Bugs (27 tests)
+### Not Engine Bugs (25 tests)
 
-- **4 Error API tests**: Test framework debug output comparison issue
+- **2 Error API tests**: Test framework debug output comparison issue
 - **23 Negative syntax tests**: Parser validation, not query execution
 
 ### Actual Query Engine Failures (11 tests)
@@ -167,7 +168,7 @@ but currently accepts it. They run in `sparql-parser-negative` or
 | ValueTesting   |     7 | Type promotion, boolean, extended type|
 | ExprEquals     |     3 | Integer equality canonicalization     |
 | BIND           |     1 | UNION variable scope isolation        |
-| **Total**      |**11** | (3 negation tests fixed 2025-11-27, 3 FILTER+MINUS tests fixed 2025-11-28) |
+| **Total**      |**11** | (3 negation tests fixed 2025-11-27, 3 FILTER+MINUS tests fixed 2025-11-28, 2 Error API tests fixed 2025-11-29) |
 
 ## Technical Architecture
 
@@ -195,8 +196,17 @@ ROOT Scope
 └── SUBQUERY Scope
 ```
 
+## Recent Fixes
+
+- **2025-11-29**: Fixed Error API tests for BIND expressions (error-api-2, error-api-5)
+  - Updated expected results to match SPARQL 1.2 §18.6 Extend semantics
+  - Fixed test framework format detection for Turtle output
+  - Tests now correctly verify that BIND errors leave variables unbound
+- **2025-11-28**: Fixed FILTER+MINUS tests (3 tests)
+- **2025-11-27**: Fixed negation tests (3 tests)
+
 ## Future Work
 
-- Fix Error API test framework debug output issue (4 tests)
+- Fix Error API test framework debug output issue for FILTER tests (2 tests)
 - Fix UNION variable scoping for BIND (1 test)
 - Property Paths implementation
