@@ -20,39 +20,6 @@
       ]
 
      [  rdf:type t:XFailTest ;
-	mf:name    "boolean-false-canonical" ;
-        rdfs:comment
-            """Test: Lexical form of FALSE. Expected to fail due to engine boolean handling bug.""" ;
-        mf:action
-            [ qt:data   <boolean-0.n3> ;
-              qt:query  <boolean-false-canonical.rq> ] ;
-        mf:result  <boolean-false-canonical-result.n3> ;
-        dawgt:approval dawgt:NotApproved
-      ]
-
-     [  rdf:type t:XFailTest ;
-	mf:name    "boolean-true-canonical" ;
-        rdfs:comment
-            """Test: Lexical form of TRUE. Expected to fail due to engine boolean handling bug.""" ;
-        mf:action
-            [ qt:data   <boolean-0.n3> ;
-              qt:query  <boolean-true-canonical.rq> ] ;
-        mf:result  <boolean-true-canonical-result.n3> ;
-        dawgt:approval dawgt:NotApproved
-      ]
-
-     [  rdf:type t:XFailTest ;
-	mf:name    "boolean-EBV-canonical" ;
-        rdfs:comment
-            """Test: Lexical form of EBV. Expected to fail due to engine boolean handling bug.""" ;
-        mf:action
-            [ qt:data   <boolean-0.n3> ;
-              qt:query  <boolean-EBV-canonical.rq> ] ;
-        mf:result  <boolean-EBV-canonical-result.n3> ;
-        dawgt:approval dawgt:NotApproved
-      ]
-
-     [  rdf:type t:XFailTest ;
 	mf:name    "extendedType-ne-fail" ;
         rdfs:comment
             """Opaque types can not be tested for != . Expected to fail due to engine extended type comparison bug. 

@@ -7,61 +7,56 @@ including test results, known limitations, and expected failures.
 
 ## Current Test Results
 
-**Overall**: 1007 SPARQL tests passed, 0 failed, 31 expected failures
+**Overall**: 1011 SPARQL tests passed, 0 failed, 27 expected failures
 
 ### Test Categories
 
 | Category                 | Pass | Xfail | Notes                           |
 |--------------------------|------|-------|---------------------------------|
 | C unit tests (`src/`)    |   33 |     0 | Core library component tests    |
-| SPARQL test directories  | 1007 |    31 | 32 directories, multiple suites |
+| SPARQL test directories  | 1011 |    27 | 32 directories, multiple suites |
 | Compare tests (`utils/`) |    8 |     0 | Result comparison tests         |
 
-The 1007 SPARQL tests run across 32 test directories, each running multiple
+The 1011 SPARQL tests run across 32 test directories, each running multiple
 test suites (sparql-lexer, sparql-parser, sparql-query, etc.).
 
 ### XFailed Breakdown
 
-The 31 xfailed tests come from two sources:
+The 27 xfailed tests come from two sources:
 
 | Source                 | Unique | Xfails | Notes                                 |
 |------------------------|--------|--------|---------------------------------------|
-| XFailTest in manifests |      8 |      8 | Explicitly marked expected failures   |
+| XFailTest in manifests |      4 |      4 | Explicitly marked expected failures   |
 | Negative syntax tests  |     23 |     23 | Parser expected to reject but doesn't |
-| **Total**              | **31** | **31** |                                       |
+| **Total**              | **27** | **27** |                                       |
 
 ## XFailed Tests (Expected Failures)
 
-### XFailTest-based Failures (8 tests)
+### XFailTest-based Failures (4 tests)
 
 These tests are explicitly marked with `t:XFailTest` in manifest files.
 
-#### 1. ValueTesting (7 tests)
+#### 1. ValueTesting (3 tests)
 
 Location: `tests/sparql/ValueTesting/manifest-negative.n3`
 
-**Complexity**: HIGH (8/10) - Requires core type system changes
-**Risk**: Medium - Changes affect type promotion, boolean handling, extended types
-**Priority**: DEFER - High complexity, edge cases, low real-world impact
+**Complexity**: MEDIUM-HIGH (6/10) - Requires type system changes
+**Risk**: Medium - Changes affect type promotion and extended type handling
+**Priority**: LOW - Edge cases with limited real-world impact
 
 | Test                                 | Description              |
 |--------------------------------------|--------------------------|
 | `typePromotion-decimal-decimal-pass` | Type promotion           |
-| `typePromotion-decimal-decimal-fail` | Type promotion           |
-| `boolean-false-canonical`            | Boolean canonicalization |
-| `boolean-true-canonical`             | Boolean canonicalization |
-| `boolean-EBV-canonical`              | Boolean EBV              |
 | `extendedType-ne-fail`               | Extended type comparison |
 | `extendedType-literal-ne`            | Extended type literal    |
 
 **Root causes**:
 
-- **Type promotion tests** (2 tests, MEDIUM-HIGH complexity): Engine type promotion bug within xsd:decimal type tree
-- **Boolean tests** (3 tests, MEDIUM complexity): Engine boolean handling bug with lexical forms (TRUE/FALSE/EBV)
+- **Type promotion test** (1 test, MEDIUM-HIGH complexity): Engine type promotion bug within xsd:decimal type tree
 - **Extended type tests** (2 tests, MEDIUM complexity): Engine extended type comparison bug - opaque types like
   `loc:latitude` and `loc:ECEF_X` should fail with type error but don't
 
-**Code Locations**: `src/rasqal_literal.c` (type promotion, boolean handling, comparison)
+**Code Locations**: `src/rasqal_literal.c` (type promotion, comparison)
 
 #### 2. BIND Test (1 test)
 
@@ -114,13 +109,13 @@ but currently accepts it. They run in `sparql-parser-negative` or
 
 - **23 Negative syntax tests**: Parser validation, not query execution
 
-### Actual Query Engine Failures (8 tests)
+### Actual Query Engine Failures (4 tests)
 
 | Category       | Count | Bug Type                              |
 |----------------|-------|---------------------------------------|
-| ValueTesting   |     7 | Type promotion, boolean, extended type|
+| ValueTesting   |     3 | Type promotion, extended type         |
 | BIND           |     1 | UNION variable scope isolation        |
-| **Total**      | **8** | (3 negation tests fixed 2025-11-27, 3 FILTER+MINUS tests fixed 2025-11-28, 4 Error API tests fixed 2025-11-29 and 2025-11-30, 3 ExprEquals tests fixed 2025-11-30) |
+| **Total**      | **4** | (3 negation tests fixed 2025-11-27, 3 FILTER+MINUS tests fixed 2025-11-28, 4 Error API tests fixed 2025-11-29 and 2025-11-30, 3 ExprEquals tests fixed 2025-11-30, 4 ValueTesting tests fixed 2025-11-30) |
 
 ## Technical Architecture
 
@@ -150,6 +145,12 @@ ROOT Scope
 
 ## Recent Fixes
 
+- **2025-11-30**: Fixed ValueTesting type promotion and boolean canonicalization (4 tests)
+  - Fixed decimal subtype promotion for integer subtypes (typePromotion-decimal-decimal-fail)
+  - Fixed boolean RDF term equality to compare lexical forms, not values
+  - Triple pattern matching now correctly compares boolean lexical forms
+  - FILTER expressions correctly compare boolean values
+  - Moved fixed tests from manifest-negative.n3 to manifest.n3
 - **2025-11-30**: Fixed ExprEquals integer equality tests (3 tests)
   - Fixed integer equality canonicalization to use value comparison instead of lexical form comparison
   - Ensures that '01'^^xsd:integer equals '1'^^xsd:integer per SPARQL value equality semantics

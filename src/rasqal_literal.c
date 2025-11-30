@@ -770,15 +770,16 @@ retype:
 
     case RASQAL_LITERAL_BOOLEAN:
       i = rasqal_xsd_boolean_value_from_string(l->string);
-      /* Free passed in string if it is not our static objects */
-      if(l->string != rasqal_xsd_boolean_true &&
-         l->string != rasqal_xsd_boolean_false)
-        RASQAL_FREE(char*, l->string);
-      /* and replace with a static string */
-      l->string = i ? rasqal_xsd_boolean_true : rasqal_xsd_boolean_false;
-      l->string_len = i ? RASQAL_XSD_BOOLEAN_TRUE_LEN : RASQAL_XSD_BOOLEAN_FALSE_LEN;
-      
       l->value.integer = i;
+      if(canonicalize) {
+        /* Free passed in string if it is not our static objects */
+        if(l->string != rasqal_xsd_boolean_true &&
+           l->string != rasqal_xsd_boolean_false)
+          RASQAL_FREE(char*, l->string);
+        /* and replace with a static string */
+        l->string = i ? rasqal_xsd_boolean_true : rasqal_xsd_boolean_false;
+        l->string_len = i ? RASQAL_XSD_BOOLEAN_TRUE_LEN : RASQAL_XSD_BOOLEAN_FALSE_LEN;
+      }
       break;
 
   case RASQAL_LITERAL_STRING:
@@ -892,12 +893,27 @@ rasqal_literal_string_to_native(rasqal_literal *l, int flags)
     return 0;
   }
 
-  rc = rasqal_literal_set_typed_value(l, native_type,
-                                      NULL /* existing string */,
-                                      canonicalize);
+  /* If already the correct native type and canonicalization requested,
+   * still canonicalize (e.g., for boolean "0" -> "false")
+   */
+  if(l->type == native_type && canonicalize) {
+    rc = rasqal_literal_set_typed_value(l, native_type,
+                                        NULL /* existing string */,
+                                        canonicalize);
+    if(!rasqal_xsd_datatype_check(native_type, l->string, 1))
+      return 0;
+    return rc;
+  }
 
-  if(!rasqal_xsd_datatype_check(native_type, l->string, 1))
-    return 0;
+  /* Type conversion needed */
+  if(l->type != native_type) {
+    rc = rasqal_literal_set_typed_value(l, native_type,
+                                        NULL /* existing string */,
+                                        canonicalize);
+
+    if(!rasqal_xsd_datatype_check(native_type, l->string, 1))
+      return 0;
+  }
   
   return rc;
 }
@@ -2692,6 +2708,23 @@ rasqal_literal_string_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     }
   }
 
+  /* For numeric types in value comparison (not RDF term comparison),
+   * compare values instead of lexical forms. This ensures that
+   * '01'^^xsd:integer equals '1'^^xsd:integer per SPARQL value equality.
+   * For RDF term equality (triple matching), compare lexical forms.
+   */
+  if(!(flags & RASQAL_COMPARE_RDF) &&
+     (l1->type == RASQAL_LITERAL_INTEGER || 
+      l1->type == RASQAL_LITERAL_INTEGER_SUBTYPE ||
+      l1->type == RASQAL_LITERAL_BOOLEAN) &&
+     (l2->type == RASQAL_LITERAL_INTEGER || 
+      l2->type == RASQAL_LITERAL_INTEGER_SUBTYPE ||
+      l2->type == RASQAL_LITERAL_BOOLEAN)) {
+    /* Compare integer values directly for value equality */
+    result = (l1->value.integer == l2->value.integer);
+    goto done;
+  }
+
   if(dt1 || dt2) {
     /* if either is NULL - type error */
     if(!dt1 || !dt2) {
@@ -2708,21 +2741,6 @@ rasqal_literal_string_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       goto done;
     }
     /* at this point the datatypes (URIs) are the same */
-  }
-
-  /* For numeric types, compare values instead of lexical forms.
-   * This ensures that '01'^^xsd:integer equals '1'^^xsd:integer
-   * per SPARQL value equality semantics.
-   */
-  if((l1->type == RASQAL_LITERAL_INTEGER || 
-      l1->type == RASQAL_LITERAL_INTEGER_SUBTYPE ||
-      l1->type == RASQAL_LITERAL_BOOLEAN) &&
-     (l2->type == RASQAL_LITERAL_INTEGER || 
-      l2->type == RASQAL_LITERAL_INTEGER_SUBTYPE ||
-      l2->type == RASQAL_LITERAL_BOOLEAN)) {
-    /* Compare integer values directly */
-    result = (l1->value.integer == l2->value.integer);
-    goto done;
   }
 
   if(l1->type == RASQAL_LITERAL_DECIMAL && 
@@ -2872,8 +2890,16 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
 
   if(flags & RASQAL_COMPARE_RDF) {
     /* no promotion but compare as RDF terms; like rasqal_literal_as_node() */
-    rasqal_literal_type type1 = rasqal_literal_get_rdf_term_type(l1);
-    rasqal_literal_type type2 = rasqal_literal_get_rdf_term_type(l2);
+    rasqal_literal_type type1;
+    rasqal_literal_type type2;
+    
+    /* Ensure values are native types for proper comparison.
+     * Do NOT canonicalize - RDF term equality requires same lexical form. */
+    rasqal_literal_string_to_native(l1, 0);
+    rasqal_literal_string_to_native(l2, 0);
+    
+    type1 = rasqal_literal_get_rdf_term_type(l1);
+    type2 = rasqal_literal_get_rdf_term_type(l2);
 
     if(type1 == RASQAL_LITERAL_UNKNOWN || type2 == RASQAL_LITERAL_UNKNOWN ||
        type1 != type2)

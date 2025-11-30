@@ -91,5 +91,35 @@
         dawgt:approval dawgt:NotApproved
       ]
 
+     [  mf:name    "boolean-false-canonical" ;
+        rdfs:comment
+            "Test: Lexical form of FALSE. Verifies that the query literal FALSE with canonical lexical form 'false' matches only data literals with that exact lexical form." ;
+        mf:action
+            [ qt:data   <boolean-0.n3> ;
+              qt:query  <boolean-false-canonical.rq> ] ;
+        mf:result  <boolean-false-canonical-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  mf:name    "boolean-true-canonical" ;
+        rdfs:comment
+            "Test: Lexical form of TRUE. Verifies that the query literal TRUE with canonical lexical form 'true' matches only data literals with that exact lexical form." ;
+        mf:action
+            [ qt:data   <boolean-0.n3> ;
+              qt:query  <boolean-true-canonical.rq> ] ;
+        mf:result  <boolean-true-canonical-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  mf:name    "boolean-EBV-canonical" ;
+        rdfs:comment
+            "Test: Lexical form of EBV. Tests that FILTER with boolean literals compares by value, returning results for literals with 'true' lexical form." ;
+        mf:action
+            [ qt:data   <boolean-0.n3> ;
+              qt:query  <boolean-EBV-canonical.rq> ] ;
+        mf:result  <boolean-EBV-canonical-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
     # End of tests
    ).
