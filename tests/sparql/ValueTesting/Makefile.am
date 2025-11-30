@@ -20,7 +20,7 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-SPARQL_MANIFEST_FILES= manifest.n3 manifest-negative.n3
+SPARQL_MANIFEST_FILES= manifest.n3
 
 # REMOVED: SPARQL_MODEL_FILES, SPARQL_TEST_FILES, SPARQL_RESULT_FILES, EXPECTED_SPARQL_CORRECT, EXPECTED_SPARQL_CORRECT_FAILURES
 
@@ -47,7 +47,7 @@ check-local: build-roqet build-sparql-test-utils
 	@$(PYTHON) $(top_srcdir)/tests/bin/run-test-suites .
 
 get-testsuites-list:
-	@echo "sparql-lexer sparql-parser sparql-query sparql-query-negative"
+	@echo "sparql-lexer sparql-parser sparql-query"
 
 get-testsuite-sparql-lexer get-testsuite-sparql-parser:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
@@ -67,17 +67,8 @@ get-testsuite-sparql-query:
 		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s {srcdir} --manifest-file {srcdir}/manifest.n3 --test-case {test_id}" \
 		--manifest-file $(srcdir)/manifest.n3
 
-get-testsuite-sparql-query-negative:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
-		--suite-name sparql-query-negative \
-		--srcdir $(srcdir) \
-		--builddir $(top_builddir) \
-		--test-type NegativeTest \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s $(srcdir) -m {srcdir}/manifest-negative.n3 --test-case {test_id}" \		--manifest-file $(srcdir)/manifest-negative.n3
-
 dist-hook:
 	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(srcdir)/manifest.n3 \
-		--manifest-file $(srcdir)/manifest-negative.n3 \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)

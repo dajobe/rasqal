@@ -7,52 +7,36 @@ including test results, known limitations, and expected failures.
 
 ## Current Test Results
 
-**Overall**: 1013 SPARQL tests passed, 0 failed, 25 expected failures
+**Overall**: 1014 SPARQL tests passed, 0 failed, 24 expected failures
 
 ### Test Categories
 
 | Category                 | Pass | Xfail | Notes                           |
 |--------------------------|------|-------|---------------------------------|
 | C unit tests (`src/`)    |   33 |     0 | Core library component tests    |
-| SPARQL test directories  | 1013 |    25 | 32 directories, multiple suites |
+| SPARQL test directories  | 1014 |    24 | 32 directories, multiple suites |
 | Compare tests (`utils/`) |    8 |     0 | Result comparison tests         |
 
-The 1013 SPARQL tests run across 32 test directories, each running multiple
+The 1014 SPARQL tests run across 32 test directories, each running multiple
 test suites (sparql-lexer, sparql-parser, sparql-query, etc.).
 
 ### XFailed Breakdown
 
-The 25 xfailed tests come from two sources:
+The 24 xfailed tests come from two sources:
 
 | Source                 | Unique | Xfails | Notes                                 |
 |------------------------|--------|--------|---------------------------------------|
-| XFailTest in manifests |      2 |      2 | Explicitly marked expected failures   |
+| XFailTest in manifests |      1 |      1 | Explicitly marked expected failures   |
 | Negative syntax tests  |     23 |     23 | Parser expected to reject but doesn't |
-| **Total**              | **25** | **25** |                                       |
+| **Total**              | **24** | **24** |                                       |
 
 ## XFailed Tests (Expected Failures)
 
-### XFailTest-based Failures (2 tests)
+### XFailTest-based Failures (1 test)
 
 These tests are explicitly marked with `t:XFailTest` in manifest files.
 
-#### 1. ValueTesting (1 test)
-
-Location: `tests/sparql/ValueTesting/manifest-negative.n3`
-
-**Complexity**: MEDIUM-HIGH (6/10) - Requires type system changes
-**Risk**: Medium - Changes affect type promotion handling
-**Priority**: LOW - Edge case with limited real-world impact
-
-| Test                                 | Description    |
-|--------------------------------------|----------------|
-| `typePromotion-decimal-decimal-pass` | Type promotion |
-
-**Root cause**: Engine type promotion bug within xsd:decimal type tree.
-
-**Code Locations**: `src/rasqal_literal.c` (type promotion)
-
-#### 2. BIND Test (1 test)
+#### 1. BIND Test (1 test)
 
 Location: `tests/sparql/bind/manifest-failing.ttl`
 
@@ -103,17 +87,16 @@ but currently accepts it. They run in `sparql-parser-negative` or
 
 - **23 Negative syntax tests**: Parser validation, not query execution
 
-### Actual Query Engine Failures (2 tests)
+### Actual Query Engine Failures (1 test)
 
 | Category       | Count | Bug Type                       |
 |----------------|-------|--------------------------------|
-| ValueTesting   |     1 | Type promotion                 |
 | BIND           |     1 | UNION variable scope isolation |
-| **Total**      | **2** |                                |
+| **Total**      | **1** |                                |
 
 Recent fixes: 3 negation tests (2025-11-27), 3 FILTER+MINUS tests (2025-11-28),
 4 Error API tests (2025-11-29/30), 3 ExprEquals tests (2025-11-30),
-6 ValueTesting tests (2025-11-30)
+7 ValueTesting tests (2025-11-30)
 
 ## Technical Architecture
 
@@ -143,6 +126,10 @@ ROOT Scope
 
 ## Recent Fixes
 
+- **2025-11-30**: All ValueTesting tests now pass (7 tests total fixed)
+  - Last test typePromotion-decimal-decimal-pass was already passing
+  - Moved from manifest-negative.n3 to manifest.n3
+  - Deleted empty manifest-negative.n3 and removed negative test suite
 - **2025-11-30**: Fixed extended type (UDT) comparison and empty result formatting (2 tests)
   - Enhanced UDT comparison to check datatype URI equality before allowing comparison
   - Different datatype URIs now correctly raise type errors per SPARQL semantics
