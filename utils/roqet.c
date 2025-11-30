@@ -164,8 +164,13 @@ roqet_log_handler(void *data, raptor_log_message *message)
       warning_count++;
       break;
 
-    case RAPTOR_LOG_LEVEL_NONE:
     case RAPTOR_LOG_LEVEL_TRACE:
+      /* TRACE level messages are expected during normal operation
+       * (e.g., type errors in FILTER expressions). Silently ignore them.
+       */
+      break;
+
+    case RAPTOR_LOG_LEVEL_NONE:
     case RAPTOR_LOG_LEVEL_DEBUG:
     case RAPTOR_LOG_LEVEL_INFO:
 
