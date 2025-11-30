@@ -7,6 +7,8 @@
 *~
 .DS_Store
 .claude/
+.cursor/
+.cursorrules
 .covsubmit
 .covtoken
 .gdb_history
