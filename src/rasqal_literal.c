@@ -2466,71 +2466,101 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                     rasqal_literal_type_label(type1));
     }
 #endif
-    /* cannot compare UDTs */
+    /* Handle UDT comparison: only allow if both have same datatype URI */
     if(type0 == RASQAL_LITERAL_UDT || type1 == RASQAL_LITERAL_UDT) {
-      if(error_p)
-        *error_p = 1;
-      return 0;
-    }
-
-    type = rasqal_literal_promote_numerics(lits[0], lits[1], flags);
-    if(type == RASQAL_LITERAL_UNKNOWN) {
-      int type_diff;
-
-      /* no promotion but compare as RDF terms; like rasqal_literal_as_node() */
-      type0 = rasqal_literal_get_rdf_term_type(lits[0]);
-      type1 = rasqal_literal_get_rdf_term_type(lits[1]);
-      
-      if(type0 == RASQAL_LITERAL_UNKNOWN || type1 == RASQAL_LITERAL_UNKNOWN)
-        return 1;
-
-      type_diff = RASQAL_GOOD_CAST(int, type0) - RASQAL_GOOD_CAST(int, type1);
-      if(type_diff != 0) {
-#ifdef RASQAL_DEBUG
-        if(rasqal_get_debug_level() >= 2) {
-          RASQAL_DEBUG2("RDF term literal returning type difference %d\n",
-                        type_diff);
+      if(type0 == RASQAL_LITERAL_UDT && type1 == RASQAL_LITERAL_UDT) {
+        /* Both are UDTs - check if datatype URIs are equal */
+        if(!lits[0]->datatype || !lits[1]->datatype ||
+           !raptor_uri_equals(lits[0]->datatype, lits[1]->datatype)) {
+          /* Different datatypes - type error */
+          if(error_p)
+            *error_p = 1;
+          return 0;
         }
-#endif
-        return type_diff;
+        /* Same datatype - compare as strings (no promotion needed) */
+        type = RASQAL_LITERAL_STRING;
+        promotion = 0;
+      } else {
+        /* One UDT, one non-UDT - type error */
+        if(error_p)
+          *error_p = 1;
+        return 0;
       }
-      if(error_p)
-        *error_p = 1;
-      return 0;
+    } else {
+      type = rasqal_literal_promote_numerics(lits[0], lits[1], flags);
+      if(type == RASQAL_LITERAL_UNKNOWN) {
+        int type_diff;
+
+        /* no promotion but compare as RDF terms; like rasqal_literal_as_node() */
+        type0 = rasqal_literal_get_rdf_term_type(lits[0]);
+        type1 = rasqal_literal_get_rdf_term_type(lits[1]);
+        
+        if(type0 == RASQAL_LITERAL_UNKNOWN || type1 == RASQAL_LITERAL_UNKNOWN)
+          return 1;
+
+        type_diff = RASQAL_GOOD_CAST(int, type0) - RASQAL_GOOD_CAST(int, type1);
+        if(type_diff != 0) {
+#ifdef RASQAL_DEBUG
+          if(rasqal_get_debug_level() >= 2) {
+            RASQAL_DEBUG2("RDF term literal returning type difference %d\n",
+                          type_diff);
+          }
+#endif
+          return type_diff;
+        }
+        if(error_p)
+          *error_p = 1;
+        return 0;
+      }
+      promotion = 1;
     }
-    promotion = 1;
   } else {
     /* Default to SPARQL/XQuery promotion rules when no flags set */
     rasqal_literal_type type0 = lits[0]->type;
     rasqal_literal_type type1 = lits[1]->type;
 
-    /* cannot compare UDTs */
+    /* Handle UDT comparison: only allow if both have same datatype URI */
     if(type0 == RASQAL_LITERAL_UDT || type1 == RASQAL_LITERAL_UDT) {
-      if(error_p)
-        *error_p = 1;
-      return 0;
-    }
-
-    type = rasqal_literal_promote_numerics(lits[0], lits[1], 0);
-    if(type == RASQAL_LITERAL_UNKNOWN) {
-      int type_diff;
-
-      /* no promotion but compare as RDF terms; like rasqal_literal_as_node() */
-      type0 = rasqal_literal_get_rdf_term_type(lits[0]);
-      type1 = rasqal_literal_get_rdf_term_type(lits[1]);
-      
-      if(type0 == RASQAL_LITERAL_UNKNOWN || type1 == RASQAL_LITERAL_UNKNOWN)
-        return 1;
-
-      type_diff = RASQAL_GOOD_CAST(int, type0) - RASQAL_GOOD_CAST(int, type1);
-      if(type_diff != 0) {
+      if(type0 == RASQAL_LITERAL_UDT && type1 == RASQAL_LITERAL_UDT) {
+        /* Both are UDTs - check if datatype URIs are equal */
+        if(!lits[0]->datatype || !lits[1]->datatype ||
+           !raptor_uri_equals(lits[0]->datatype, lits[1]->datatype)) {
+          /* Different datatypes - type error */
+          if(error_p)
+            *error_p = 1;
+          return 0;
+        }
+        /* Same datatype - compare as strings (no promotion needed) */
+        type = RASQAL_LITERAL_STRING;
+        promotion = 0;
+      } else {
+        /* One UDT, one non-UDT - type error */
         if(error_p)
           *error_p = 1;
-        return type_diff;
+        return 0;
       }
-      type = type1;
-    } else
-      promotion = 1;
+    } else {
+      type = rasqal_literal_promote_numerics(lits[0], lits[1], 0);
+      if(type == RASQAL_LITERAL_UNKNOWN) {
+        int type_diff;
+
+        /* no promotion but compare as RDF terms; like rasqal_literal_as_node() */
+        type0 = rasqal_literal_get_rdf_term_type(lits[0]);
+        type1 = rasqal_literal_get_rdf_term_type(lits[1]);
+        
+        if(type0 == RASQAL_LITERAL_UNKNOWN || type1 == RASQAL_LITERAL_UNKNOWN)
+          return 1;
+
+        type_diff = RASQAL_GOOD_CAST(int, type0) - RASQAL_GOOD_CAST(int, type1);
+        if(type_diff != 0) {
+          if(error_p)
+            *error_p = 1;
+          return type_diff;
+        }
+        type = type1;
+      } else
+        promotion = 1;
+    }
   }
 
 #ifdef RASQAL_DEBUG
@@ -2705,6 +2735,31 @@ rasqal_literal_string_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
               l2->type == RASQAL_LITERAL_STRING) {
       dt2 = raptor_uri_copy(xsd_string_uri);
       free_dt2 = 1;
+    }
+  }
+
+  /* Check for incompatible UDT types before other comparisons.
+   * UDTs with different datatype URIs cannot be compared and should
+   * raise a type error per SPARQL semantics.
+   */
+  if(l1->type == RASQAL_LITERAL_UDT || l2->type == RASQAL_LITERAL_UDT) {
+    if(l1->type == RASQAL_LITERAL_UDT && l2->type == RASQAL_LITERAL_UDT) {
+      /* Both are UDTs - check if datatype URIs are equal */
+      if(!l1->datatype || !l2->datatype ||
+         !raptor_uri_equals(l1->datatype, l2->datatype)) {
+        /* Different datatypes - type error */
+        if(error_p)
+          *error_p = 1;
+        result = 0;
+        goto done;
+      }
+      /* Same datatype - can compare (fall through to string comparison) */
+    } else {
+      /* One UDT, one non-UDT - type error */
+      if(error_p)
+        *error_p = 1;
+      result = 0;
+      goto done;
     }
   }
 
