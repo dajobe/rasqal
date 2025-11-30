@@ -176,7 +176,6 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         nrow->values[i] = rasqal_new_literal_from_literal(row->values[offset]);
       } else {
         rasqal_variable* v;
-        rasqal_query *query = rowsource->query;
         
         v = (rasqal_variable*)raptor_sequence_get_at(con->projection_variables, i);
         if(v && v->expression) {
@@ -458,8 +457,10 @@ main(int argc, char *argv[])
   }
   
 #ifdef RASQAL_DEBUG
-  fprintf(RASQAL_DEBUG_FH, "result of projection:\n");
-  rasqal_rowsource_print_row_sequence(rowsource, seq, RASQAL_DEBUG_FH);
+  if(rasqal_get_debug_level() >= 2) {
+    fprintf(RASQAL_DEBUG_FH, "result of projection:\n");
+    rasqal_rowsource_print_row_sequence(rowsource, seq, RASQAL_DEBUG_FH);
+  }
 #endif
 
   tidy:

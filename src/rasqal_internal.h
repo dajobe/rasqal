@@ -94,13 +94,62 @@ void rasqal_sign_free(void *ptr);
 #endif
 
 #ifdef RASQAL_DEBUG
-/* Debugging messages */
-#define RASQAL_DEBUG1(msg) do {fprintf(RASQAL_DEBUG_FH, "%s:%d:%s: " msg, __FILE__, __LINE__, __FUNCTION__); } while(0)
-#define RASQAL_DEBUG2(msg, arg1) do {fprintf(RASQAL_DEBUG_FH, "%s:%d:%s: " msg, __FILE__, __LINE__, __FUNCTION__, arg1);} while(0)
-#define RASQAL_DEBUG3(msg, arg1, arg2) do {fprintf(RASQAL_DEBUG_FH, "%s:%d:%s: " msg, __FILE__, __LINE__, __FUNCTION__, arg1, arg2);} while(0)
-#define RASQAL_DEBUG4(msg, arg1, arg2, arg3) do {fprintf(RASQAL_DEBUG_FH, "%s:%d:%s: " msg, __FILE__, __LINE__, __FUNCTION__, arg1, arg2, arg3);} while(0)
-#define RASQAL_DEBUG5(msg, arg1, arg2, arg3, arg4) do {fprintf(RASQAL_DEBUG_FH, "%s:%d:%s: " msg, __FILE__, __LINE__, __FUNCTION__, arg1, arg2, arg3, arg4);} while(0)
-#define RASQAL_DEBUG6(msg, arg1, arg2, arg3, arg4, arg5) do {fprintf(RASQAL_DEBUG_FH, "%s:%d:%s: " msg, __FILE__, __LINE__, __FUNCTION__, arg1, arg2, arg3, arg4, arg5);} while(0)
+#include <stdlib.h>
+
+/* Runtime debug level control via RASQAL_DEBUG_LEVEL environment variable.
+ *
+ * Debug levels:
+ *   0 (Off): No debug output (for testing)
+ *   1 (Normal): Standard RASQAL_DEBUG1-6 macro output (default)
+ *   2 (Verbose): Level 1 + detailed algebra dumps, scope analysis, dataset operations
+ *   3 (Very Verbose): Level 2 + expression evaluation traces, variable usage tracking
+ *
+ * Default level is 1 when RASQAL_DEBUG_LEVEL is not set or invalid.
+ * Values outside 0-3 are clamped to valid range.
+ */
+static inline int
+rasqal_get_debug_level(void)
+{
+  static int level = -1;  /* -1 = not yet initialized */
+  if (level == -1) {
+    const char* env = getenv("RASQAL_DEBUG_LEVEL");
+    if (env && *env) {
+      level = atoi(env);
+      /* Clamp to valid range 0-3 */
+      if (level < 0) level = 0;
+      if (level > 3) level = 3;
+    } else {
+      level = 1;  /* Default: normal debug output */
+    }
+  }
+  return level;
+}
+
+/* Debugging messages - only output if level >= 1 (normal debug) */
+#define RASQAL_DEBUG1(msg) \
+  do { if(rasqal_get_debug_level() >= 1) { \
+    fprintf(RASQAL_DEBUG_FH, "%s:%d:%s: " msg, __FILE__, __LINE__, __FUNCTION__); \
+  } } while(0)
+#define RASQAL_DEBUG2(msg, arg1) \
+  do { if(rasqal_get_debug_level() >= 1) { \
+    fprintf(RASQAL_DEBUG_FH, "%s:%d:%s: " msg, __FILE__, __LINE__, __FUNCTION__, arg1); \
+  } } while(0)
+#define RASQAL_DEBUG3(msg, arg1, arg2) \
+  do { if(rasqal_get_debug_level() >= 1) { \
+    fprintf(RASQAL_DEBUG_FH, "%s:%d:%s: " msg, __FILE__, __LINE__, __FUNCTION__, arg1, arg2); \
+  } } while(0)
+#define RASQAL_DEBUG4(msg, arg1, arg2, arg3) \
+  do { if(rasqal_get_debug_level() >= 1) { \
+    fprintf(RASQAL_DEBUG_FH, "%s:%d:%s: " msg, __FILE__, __LINE__, __FUNCTION__, arg1, arg2, arg3); \
+  } } while(0)
+#define RASQAL_DEBUG5(msg, arg1, arg2, arg3, arg4) \
+  do { if(rasqal_get_debug_level() >= 1) { \
+    fprintf(RASQAL_DEBUG_FH, "%s:%d:%s: " msg, __FILE__, __LINE__, __FUNCTION__, arg1, arg2, arg3, arg4); \
+  } } while(0)
+#define RASQAL_DEBUG6(msg, arg1, arg2, arg3, arg4, arg5) \
+  do { if(rasqal_get_debug_level() >= 1) { \
+    fprintf(RASQAL_DEBUG_FH, "%s:%d:%s: " msg, __FILE__, __LINE__, __FUNCTION__, arg1, arg2, arg3, arg4, arg5); \
+  } } while(0)
 
 #if defined(HAVE_DMALLOC_H) && defined(RASQAL_MEMORY_DEBUG_DMALLOC)
 void* rasqal_system_malloc(size_t size);

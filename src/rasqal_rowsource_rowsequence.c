@@ -364,9 +364,11 @@ main(int argc, char *argv[])
   }
 
 #ifdef RASQAL_DEBUG  
-  RASQAL_DEBUG1("Result Row:\n  ");
-  rasqal_row_print(row, stderr);
-  fputc('\n', stderr);
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("Result Row:\n  ");
+    rasqal_row_print(row, stderr);
+    fputc('\n', stderr);
+  }
 #endif
 
   rasqal_free_row(row); row = NULL;
@@ -432,9 +434,11 @@ main(int argc, char *argv[])
     }
 
   #ifdef RASQAL_DEBUG  
-    RASQAL_DEBUG1("Result Row:\n  ");
-    rasqal_row_print(row, stderr);
-    fputc('\n', stderr);
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("Result Row:\n  ");
+      rasqal_row_print(row, stderr);
+      fputc('\n', stderr);
+    }
   #endif
 
     rasqal_free_row(row); row = NULL;

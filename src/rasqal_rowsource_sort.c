@@ -137,9 +137,11 @@ rasqal_sort_rowsource_process(rasqal_rowsource* rowsource,
   }
   
 #ifdef RASQAL_DEBUG
-  fputs("resulting ", RASQAL_DEBUG_FH);
-  rasqal_map_print(con->map, RASQAL_DEBUG_FH);
-  fputs("\n", RASQAL_DEBUG_FH);
+  if(rasqal_get_debug_level() >= 2) {
+    fputs("resulting ", RASQAL_DEBUG_FH);
+    rasqal_map_print(con->map, RASQAL_DEBUG_FH);
+    fputs("\n", RASQAL_DEBUG_FH);
+  }
 #endif
   
   /* do sort/distinct: walk map in order, adding rows to sequence */

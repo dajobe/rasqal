@@ -88,11 +88,12 @@ rasqal_world_register_query_results_format_factory(rasqal_world* world,
     goto tidy;
   }
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG3("Registered query result format %s with context size %d\n",
-                factory->desc.names[0], factory->context_length);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG3("Registered query result format %s with context size %d\n",
+                  factory->desc.names[0], factory->context_length);
+  }
 #endif
-
   return factory;
 
   /* Clean up on failure */
@@ -794,8 +795,10 @@ rasqal_world_guess_query_results_format_name(rasqal_world* world,
 
     scores[i].score = score < 10 ? score : 10; 
     scores[i].factory = factory;
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
-    RASQAL_DEBUG3("Score %15s : %d\n", factory->desc.names[0], score);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 3) {
+      RASQAL_DEBUG3("Score %15s : %d\n", factory->desc.names[0], score);
+    }
 #endif
   }
   

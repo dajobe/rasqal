@@ -126,14 +126,15 @@ rasqal_new_bindings_from_var_values(rasqal_query* query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(var, rasqal_variable, NULL);
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1  
-  RASQAL_DEBUG1("binding ");
-  rasqal_variable_print(var, stderr);
-  fputs(" and row values ", stderr);
-  raptor_sequence_print(values, stderr);
-  fputc('\n', stderr);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("binding ");
+    rasqal_variable_print(var, stderr);
+    fputs(" and row values ", stderr);
+    raptor_sequence_print(values, stderr);
+    fputc('\n', stderr);
+  }
 #endif
-
   varlist = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                                 (raptor_data_print_handler)rasqal_variable_print);
   if(!varlist) {

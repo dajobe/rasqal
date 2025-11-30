@@ -178,9 +178,11 @@ rasqal_engine_rowsort_map_add_row(rasqal_map* map, rasqal_row* row)
 
   /* duplicate, and not added so delete it */
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("Got duplicate row ");
-  rasqal_row_print(row, RASQAL_DEBUG_FH);
-  fputc('\n', RASQAL_DEBUG_FH);
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("Got duplicate row ");
+    rasqal_row_print(row, RASQAL_DEBUG_FH);
+    fputc('\n', RASQAL_DEBUG_FH);
+  }
 #endif
   rasqal_free_row(row);
 

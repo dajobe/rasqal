@@ -133,12 +133,14 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     }
 
 #ifdef RASQAL_DEBUG
-    RASQAL_DEBUG1("join expression condition is constant: ");
-    if(error)
-      fputs("type error", RASQAL_DEBUG_FH);
-    else
-      rasqal_literal_print(result, RASQAL_DEBUG_FH);
-    fputc('\n', RASQAL_DEBUG_FH);
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("join expression condition is constant: ");
+      if(error)
+        fputs("type error", RASQAL_DEBUG_FH);
+      else
+        rasqal_literal_print(result, RASQAL_DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
+    }
 #endif
 
     if(error) {
@@ -180,8 +182,10 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     return -1;
 
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG2("rowsource %p ", rowsource);
-  rasqal_print_row_compatible(stderr, con->rc_map);
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG2("rowsource %p ", rowsource);
+    rasqal_print_row_compatible(stderr, con->rc_map);
+  }
 #endif
 
   return 0;
@@ -195,9 +199,11 @@ rasqal_join_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   con = (rasqal_join_rowsource_context*)user_data;
 
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG2("join rowsource %p finish handler called\n", rowsource);
-  if(con->left_row)
-    RASQAL_DEBUG1("freeing con->left_row\n");
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG2("join rowsource %p finish handler called\n", rowsource);
+    if(con->left_row)
+      RASQAL_DEBUG1("freeing con->left_row\n");
+  }
 #endif
 
   if(con->left_row)
@@ -297,14 +303,16 @@ rasqal_join_rowsource_build_merged_row(rasqal_rowsource* rowsource,
   row->offset = con->offset;
 
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("merge\n  left row   : ");
-  rasqal_row_print(con->left_row, stderr);
-  fputs("\n  right row  : ", stderr);
-  if(right_row)
-    rasqal_row_print(right_row, stderr);
-  else
-    fputs("NONE", stderr);
-  fputs("\n", stderr);
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("merge\n  left row   : ");
+    rasqal_row_print(con->left_row, stderr);
+    fputs("\n  right row  : ", stderr);
+    if(right_row)
+      rasqal_row_print(right_row, stderr);
+    else
+      fputs("NONE", stderr);
+    fputs("\n", stderr);
+  }
 #endif
 
   for(i = 0; i < con->left_row->size; i++) {
@@ -324,9 +332,11 @@ rasqal_join_rowsource_build_merged_row(rasqal_rowsource* rowsource,
   }
   
 #ifdef RASQAL_DEBUG
-  fputs("  result row : ", stderr);
-  rasqal_row_print(row, stderr);
-  fputs("\n", stderr);
+  if(rasqal_get_debug_level() >= 2) {
+    fputs("  result row : ", stderr);
+    rasqal_row_print(row, stderr);
+    fputs("\n", stderr);
+  }
 #endif
 
   return row;
@@ -357,12 +367,14 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
       con->left_row  = rasqal_rowsource_read_row(con->left);
 #ifdef RASQAL_DEBUG
-      RASQAL_DEBUG2("rowsource %p read left row : ", rowsource);
-      if(con->left_row)
-        rasqal_row_print(con->left_row, stderr);
-      else
-        fputs("NONE", stderr);
-      fputs("\n", stderr);
+      if(rasqal_get_debug_level() >= 2) {
+        RASQAL_DEBUG2("rowsource %p read left row : ", rowsource);
+        if(con->left_row)
+          rasqal_row_print(con->left_row, stderr);
+        else
+          fputs("NONE", stderr);
+        fputs("\n", stderr);
+      }
 #endif
       con->state = JS_INIT_RIGHT;
     }
@@ -383,12 +395,14 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
     right_row = rasqal_rowsource_read_row(con->right);
 #ifdef RASQAL_DEBUG
-    RASQAL_DEBUG2("rowsource %p read right row : ", rowsource);
-    if(right_row)
-      rasqal_row_print(right_row, stderr);
-    else
-      fputs("NONE", stderr);
-    fputs("\n", stderr);
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG2("rowsource %p read right row : ", rowsource);
+      if(right_row)
+        rasqal_row_print(right_row, stderr);
+      else
+        fputs("NONE", stderr);
+      fputs("\n", stderr);
+    }
 #endif
 
     if(!right_row && con->state == JS_READ_RIGHT) {
@@ -457,12 +471,14 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         result = rasqal_expression_evaluate2(con->expr, query->eval_context, &error);
       }
 #ifdef RASQAL_DEBUG
-      RASQAL_DEBUG1("join expression result: ");
-      if(error)
-        fputs("type error", RASQAL_DEBUG_FH);
-      else
-        rasqal_literal_print(result, RASQAL_DEBUG_FH);
-      fputc('\n', RASQAL_DEBUG_FH);
+      if(rasqal_get_debug_level() >= 2) {
+        RASQAL_DEBUG1("join expression result: ");
+        if(error)
+          fputs("type error", RASQAL_DEBUG_FH);
+        else
+          rasqal_literal_print(result, RASQAL_DEBUG_FH);
+        fputc('\n', RASQAL_DEBUG_FH);
+      }
 #endif
 
       if(error) {
@@ -871,7 +887,9 @@ main(int argc, char *argv[])
     }
 
 #ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
     rasqal_rowsource_print_row_sequence(rowsource, seq, RASQAL_DEBUG_FH);
+  }
 #endif
 
     raptor_free_sequence(seq); seq = NULL;

@@ -460,8 +460,10 @@ rasqal_query_results_execute_with_engine(rasqal_query_results* query_results,
   }
 
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("After execute_init, query is now:\n");
-  rasqal_query_print(query, stderr);
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("After execute_init, query is now:\n");
+    rasqal_query_print(query, stderr);
+  }
 #endif
 
   /* Choose either to execute all now and store OR do it on demand (lazy) */
@@ -1991,9 +1993,11 @@ rasqal_query_results_sort_compare_row(const void *a, const void *b, void *arg)
   /* still equal?  make sort stable by using the original order */
   if(!result) {
     result = row_a->offset - row_b->offset;
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG2("Got equality result so using offsets, returning %d\n",
-                  result);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG2("Got equality result so using offsets, returning %d\n",
+                    result);
+    }
 #endif
   }
 
@@ -2292,7 +2296,7 @@ const struct {
 };
 
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+#ifdef RASQAL_DEBUG
 static void
 print_bindings_results_simple(rasqal_query_results *results, FILE* output)
 {
@@ -2352,10 +2356,12 @@ main(int argc, char *argv[])
                                               base_uri,
                                               expected_data[i].qr_string,
                                               0);
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("Query result from string:");
-    print_bindings_results_simple(first_qr, stderr);
-    rasqal_query_results_rewind(first_qr);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("Query result from string:");
+      print_bindings_results_simple(qr, stderr);
+      rasqal_query_results_rewind(qr);
+    }
 #endif
 
     raptor_free_uri(base_uri);

@@ -439,9 +439,13 @@ rasqal_evaluate_basic_pattern_internal(rasqal_graph_pattern* gp,
           return 0;
         }
 
-        RASQAL_DEBUG3("%s: Instantiated triple %d: ", RASQAL_EXISTS_MODE_NAME(mode), i);
-        rasqal_triple_print(inst_triple, RASQAL_DEBUG_FH);
-        fprintf(RASQAL_DEBUG_FH, "\n");
+#ifdef RASQAL_DEBUG
+        if(rasqal_get_debug_level() >= 2) {
+          RASQAL_DEBUG3("%s: Instantiated triple %d: ", RASQAL_EXISTS_MODE_NAME(mode), i);
+          rasqal_triple_print(inst_triple, RASQAL_DEBUG_FH);
+          fprintf(RASQAL_DEBUG_FH, "\n");
+        }
+#endif
 
         /* Check if instantiated triple exists */
         triple_exists = rasqal_check_triple_exists_in_data(inst_triple, triples_source, query);
@@ -559,10 +563,8 @@ rasqal_evaluate_union_pattern_internal(rasqal_graph_pattern* gp,
 
   num_patterns = raptor_sequence_size(gp->graph_patterns);
 
-#ifdef RASQAL_DEBUG
   RASQAL_DEBUG3("Evaluating UNION pattern with %d sub-patterns for %s\n", 
                 num_patterns, RASQAL_EXISTS_MODE_NAME(mode));
-#endif
 
   /* UNION semantics with mode-aware optimization:
    * - EXISTS mode: ANY sub-pattern matching means success (disjunction)
@@ -575,10 +577,8 @@ rasqal_evaluate_union_pattern_internal(rasqal_graph_pattern* gp,
     if(!sub_gp)
       continue;
 
-#ifdef RASQAL_DEBUG
     RASQAL_DEBUG4("Evaluating UNION sub-pattern %d/%d for %s\n", 
                   i + 1, num_patterns, RASQAL_EXISTS_MODE_NAME(mode));
-#endif
 
     /* Recursive evaluation of sub-pattern */
     sub_result = rasqal_evaluate_exists_pattern_unified(sub_gp, triples_source,
@@ -588,17 +588,13 @@ rasqal_evaluate_union_pattern_internal(rasqal_graph_pattern* gp,
     if(mode == RASQAL_EXISTS_MODE_NOT_EXISTS) {
       if(!sub_result) {
         /* NOT EXISTS: succeed immediately if any sub-pattern fails */
-#ifdef RASQAL_DEBUG
         RASQAL_DEBUG2("NOT EXISTS UNION: sub-pattern %d failed, returning success\n", i + 1);
-#endif
         return 1;
       }
     } else {
       if(sub_result) {
         /* EXISTS: succeed immediately if any sub-pattern succeeds */
-#ifdef RASQAL_DEBUG
         RASQAL_DEBUG2("EXISTS UNION: sub-pattern %d succeeded, returning success\n", i + 1);
-#endif
         return 1;
       }
     }
@@ -608,11 +604,9 @@ rasqal_evaluate_union_pattern_internal(rasqal_graph_pattern* gp,
    * - EXISTS mode: no sub-pattern matched, return failure
    * - NOT EXISTS mode: all sub-patterns matched, return failure
    */
-#ifdef RASQAL_DEBUG
   RASQAL_DEBUG3("%s UNION: all sub-patterns %s, returning failure\n",
                 RASQAL_EXISTS_MODE_NAME(mode), 
                 (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? "succeeded" : "failed");
-#endif
   return 0;
 }
 
@@ -626,14 +620,10 @@ rasqal_evaluate_optional_pattern_internal(rasqal_graph_pattern* gp,
   rasqal_graph_pattern* required_gp;
   int required_result;
 
-#ifdef RASQAL_DEBUG
   RASQAL_DEBUG2("OPTIONAL pattern internal: mode=%s\n", RASQAL_EXISTS_MODE_NAME(mode));
-#endif
 
   if(!gp->graph_patterns || raptor_sequence_size(gp->graph_patterns) < 2) {
-#ifdef RASQAL_DEBUG
     RASQAL_DEBUG2("OPTIONAL pattern missing sub-patterns for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
-#endif
     return (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 1 : 0; /* Invalid OPTIONAL: NOT EXISTS succeeds, EXISTS fails */
   }
 
@@ -641,15 +631,11 @@ rasqal_evaluate_optional_pattern_internal(rasqal_graph_pattern* gp,
   required_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, 0);
 
   if(!required_gp) {
-#ifdef RASQAL_DEBUG
     RASQAL_DEBUG2("OPTIONAL pattern missing required sub-pattern for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
-#endif
     return (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 1 : 0;
   }
 
-#ifdef RASQAL_DEBUG
   RASQAL_DEBUG2("Evaluating OPTIONAL required pattern for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
-#endif
 
   /* Required pattern evaluation with mode-aware optimization */
   required_result = rasqal_evaluate_exists_pattern_unified(required_gp, triples_source,
@@ -658,29 +644,21 @@ rasqal_evaluate_optional_pattern_internal(rasqal_graph_pattern* gp,
   if(mode == RASQAL_EXISTS_MODE_NOT_EXISTS) {
     if(!required_result) {
       /* NOT EXISTS: succeed immediately if required pattern fails */
-#ifdef RASQAL_DEBUG
       RASQAL_DEBUG1("NOT EXISTS OPTIONAL: required pattern failed, returning success\n");
-#endif
       return 1;
     }
     /* Required pattern succeeded, continue evaluation - OPTIONAL never affects NOT EXISTS result
      * since the optional part is optional and doesn't change the required pattern result */
-#ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("NOT EXISTS OPTIONAL: required pattern succeeded, returning failure\n");
-#endif
     return 0;
   } else {
     if(!required_result) {
       /* EXISTS: fail if required pattern fails */
-#ifdef RASQAL_DEBUG
       RASQAL_DEBUG1("EXISTS OPTIONAL: required pattern failed, returning failure\n");
-#endif
       return 0;
     }
     /* Required pattern succeeded, optional part doesn't affect EXISTS result */
-#ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("EXISTS OPTIONAL: required pattern succeeded, returning success\n");
-#endif
     return 1;
   }
 }
@@ -712,52 +690,38 @@ rasqal_evaluate_graph_pattern_internal(rasqal_graph_pattern* gp,
 {
   rasqal_graph_pattern* sub_gp;
 
-#ifdef RASQAL_DEBUG
   RASQAL_DEBUG2("GRAPH pattern internal: mode=%s\n", RASQAL_EXISTS_MODE_NAME(mode));
-#endif
 
   if(!gp->graph_patterns || raptor_sequence_size(gp->graph_patterns) < 1) {
-#ifdef RASQAL_DEBUG
     RASQAL_DEBUG2("GRAPH pattern missing sub-patterns for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
-#endif
     return (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 1 : 0; /* Invalid GRAPH: NOT EXISTS succeeds, EXISTS fails */
   }
 
   sub_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, 0);
   if(!sub_gp) {
-#ifdef RASQAL_DEBUG
     RASQAL_DEBUG2("GRAPH pattern missing sub-pattern for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
-#endif
     return (mode == RASQAL_EXISTS_MODE_NOT_EXISTS) ? 1 : 0;
   }
 
-#ifdef RASQAL_DEBUG
   RASQAL_DEBUG2("Evaluating GRAPH sub-pattern for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
-#endif
 
   /* Handle named graph context */
   if(gp->origin) {
     /* Use origin-aware evaluation for basic patterns in graph context */
     if(sub_gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
-#ifdef RASQAL_DEBUG
       RASQAL_DEBUG2("GRAPH using basic pattern with origin for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
-#endif
       return rasqal_evaluate_basic_pattern_internal(sub_gp, triples_source,
                                                     query, outer_row, gp->origin, mode);
     } else {
       /* For complex patterns, recursively evaluate with mode awareness
        * Note: nested graph contexts need enhanced triples_source support */
-#ifdef RASQAL_DEBUG
       RASQAL_DEBUG2("GRAPH using complex pattern with origin for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
-#endif
       return rasqal_evaluate_exists_pattern_unified(sub_gp, triples_source,
                                                     query, outer_row, gp->origin, mode);
     }
   } else {
     /* No graph context specified, use default evaluation with mode awareness */
-#ifdef RASQAL_DEBUG
     RASQAL_DEBUG2("GRAPH using default context for %s\n", RASQAL_EXISTS_MODE_NAME(mode));
-#endif
     return rasqal_evaluate_exists_pattern_unified(sub_gp, triples_source, query,
                                                   outer_row, NULL, mode);
   }

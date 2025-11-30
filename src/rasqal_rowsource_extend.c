@@ -221,23 +221,25 @@ rasqal_extend_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       output_row->size = output_size;
 
 #ifdef RASQAL_DEBUG
-      /* Debug: Verify the variable binding */
-      RASQAL_DEBUG2("EXTEND: Bound variable %s to value: ", con->var->name);
-      rasqal_literal_print(result, RASQAL_DEBUG_FH);
-      fputc('\n', RASQAL_DEBUG_FH);
+      if(rasqal_get_debug_level() >= 2) {
+        /* Debug: Verify the variable binding */
+        RASQAL_DEBUG2("EXTEND: Bound variable %s to value: ", con->var->name);
+        rasqal_literal_print(result, RASQAL_DEBUG_FH);
+        fputc('\n', RASQAL_DEBUG_FH);
 
-      /* Debug: Print the full row */
-      RASQAL_DEBUG1("EXTEND: Output row values:\n");
-      for(j = 0; j < output_row->size; j++) {
-        rasqal_variable* var = rasqal_rowsource_get_variable_by_offset(rowsource, j);
-        if(var) {
-          fprintf(RASQAL_DEBUG_FH, "  %s = ", var->name);
-          if(output_row->values[j]) {
-            rasqal_literal_print(output_row->values[j], RASQAL_DEBUG_FH);
-          } else {
-            fputs("NULL", RASQAL_DEBUG_FH);
+        /* Debug: Print the full row */
+        RASQAL_DEBUG1("EXTEND: Output row values:\n");
+        for(j = 0; j < output_row->size; j++) {
+          rasqal_variable* var = rasqal_rowsource_get_variable_by_offset(rowsource, j);
+          if(var) {
+            fprintf(RASQAL_DEBUG_FH, "  %s = ", var->name);
+            if(output_row->values[j]) {
+              rasqal_literal_print(output_row->values[j], RASQAL_DEBUG_FH);
+            } else {
+              fputs("NULL", RASQAL_DEBUG_FH);
+            }
+            fputc('\n', RASQAL_DEBUG_FH);
           }
-          fputc('\n', RASQAL_DEBUG_FH);
         }
       }
 #endif

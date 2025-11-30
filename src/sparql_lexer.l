@@ -795,11 +795,13 @@ rasqal_sparql_name_check(unsigned char *string, size_t length,
 {
   int rc = 0;
   int c = -1;
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
-  RASQAL_DEBUG1("Checking name '");
-  if(length)
-     fwrite(string, length, sizeof(unsigned char), stderr);
-  fprintf(stderr, "' (length %d), flags %d\n", RASQAL_BAD_CAST(int, length), RASQAL_GOOD_CAST(int, check_flags));
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 3) {
+    RASQAL_DEBUG1("Checking name '");
+    if(length)
+       fwrite(string, length, sizeof(unsigned char), stderr);
+    fprintf(stderr, "' (length %d), flags %d\n", RASQAL_BAD_CAST(int, length), RASQAL_GOOD_CAST(int, check_flags));
+  }
 #endif
 
   if(!length)

@@ -367,22 +367,30 @@ main(int argc, char *argv[])
   rasqal_random_seed(r, 54321);
     
   for(test = 0; test < NTESTS; test++) {
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    int v;
-    
-    v = rasqal_random_irand(r);
-    fprintf(stderr, "%s: Test %3d  value: %10d\n", program, test, v);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      int v;
+
+      v = rasqal_random_irand(r);
+      fprintf(stderr, "%s: Test %3d  value: %10d\n", program, test, v);
+    } else {
+      (void)rasqal_random_irand(r);
+    }
 #else
     (void)rasqal_random_irand(r);
 #endif
   }
 
   for(test = 0; test < NTESTS; test++) {
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    double d;
-    
-    d = rasqal_random_drand(r);
-    fprintf(stderr, "%s: Test %3d  value: %10f\n", program, test, d);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      double d;
+
+      d = rasqal_random_drand(r);
+      fprintf(stderr, "%s: Test %3d  value: %10f\n", program, test, d);
+    } else {
+      (void)rasqal_random_drand(r);
+    }
 #else
     (void)rasqal_random_drand(r);
 #endif

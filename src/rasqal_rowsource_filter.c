@@ -151,31 +151,33 @@ rasqal_filter_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     /* Use standard evaluation for compatibility with Extend operations */
     result = rasqal_expression_evaluate2(con->expr, query->eval_context, &error);
 #ifdef RASQAL_DEBUG
-    RASQAL_DEBUG1("filter expression result: ");
-    if(error)
-      fputs("type error", RASQAL_DEBUG_FH);
-    else
-      rasqal_literal_print(result, RASQAL_DEBUG_FH);
-    fputc('\n', RASQAL_DEBUG_FH);
-
-    /* Debug: Print the comparison details */
-    if(con->expr->op == RASQAL_EXPR_EQ && con->expr->arg1 && con->expr->arg2) {
-      RASQAL_DEBUG1("COMPARISON DEBUG:\n");
-      RASQAL_DEBUG1("  Left operand: ");
-      if(con->expr->arg1->op == RASQAL_EXPR_LITERAL && con->expr->arg1->literal) {
-        rasqal_literal_print(con->expr->arg1->literal, RASQAL_DEBUG_FH);
-      } else {
-        fputs("non-literal", RASQAL_DEBUG_FH);
-      }
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("filter expression result: ");
+      if(error)
+        fputs("type error", RASQAL_DEBUG_FH);
+      else
+        rasqal_literal_print(result, RASQAL_DEBUG_FH);
       fputc('\n', RASQAL_DEBUG_FH);
 
-      RASQAL_DEBUG1("  Right operand: ");
-      if(con->expr->arg2->op == RASQAL_EXPR_LITERAL && con->expr->arg2->literal) {
-        rasqal_literal_print(con->expr->arg2->literal, RASQAL_DEBUG_FH);
-      } else {
-        fputs("non-literal", RASQAL_DEBUG_FH);
+      /* Debug: Print the comparison details */
+      if(con->expr->op == RASQAL_EXPR_EQ && con->expr->arg1 && con->expr->arg2) {
+        RASQAL_DEBUG1("COMPARISON DEBUG:\n");
+        RASQAL_DEBUG1("  Left operand: ");
+        if(con->expr->arg1->op == RASQAL_EXPR_LITERAL && con->expr->arg1->literal) {
+          rasqal_literal_print(con->expr->arg1->literal, RASQAL_DEBUG_FH);
+        } else {
+          fputs("non-literal", RASQAL_DEBUG_FH);
+        }
+        fputc('\n', RASQAL_DEBUG_FH);
+
+        RASQAL_DEBUG1("  Right operand: ");
+        if(con->expr->arg2->op == RASQAL_EXPR_LITERAL && con->expr->arg2->literal) {
+          rasqal_literal_print(con->expr->arg2->literal, RASQAL_DEBUG_FH);
+        } else {
+          fputs("non-literal", RASQAL_DEBUG_FH);
+        }
+        fputc('\n', RASQAL_DEBUG_FH);
       }
-      fputc('\n', RASQAL_DEBUG_FH);
     }
 #endif
     if(error) {

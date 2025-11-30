@@ -221,7 +221,12 @@ def run_roqet_with_format(
     cmd.extend(["-q", query_file])
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        # Set RASQAL_DEBUG_LEVEL=0 to suppress debug output during
+        # testing.  This eliminates the need for fragile string-based
+        # filtering of debug messages.
+        env = os.environ.copy()
+        env['RASQAL_DEBUG_LEVEL'] = '0'
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, env=env)
         return result.stdout, result.stderr, result.returncode
     except subprocess.TimeoutExpired:
         return "", f"Command timed out after {timeout} seconds", 124

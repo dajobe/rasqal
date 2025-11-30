@@ -402,9 +402,13 @@ rasqal_srj_create_literal(rasqal_world* world,
 static int
 rasqal_srj_null_handler(void* ctx)
 {
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  rasqal_srj_context* context = (rasqal_srj_context*)ctx;
-  RASQAL_DEBUG2("SRJ null in state %d", context->state);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    rasqal_srj_context* context = (rasqal_srj_context*)ctx;
+    RASQAL_DEBUG2("SRJ null in state %d", context->state);
+  } else {
+    (void)ctx; /* avoid unused parameter warning */
+  }
 #else
   (void)ctx; /* avoid unused parameter warning */
 #endif
@@ -418,17 +422,20 @@ rasqal_srj_boolean_handler(void* ctx, int value)
 {
   rasqal_srj_context* context = (rasqal_srj_context*)ctx;
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG3("SRJ boolean %d in state %d", value, context->state);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG3("SRJ boolean %d in state %d", value, context->state);
+  }
 #endif
-
   if(context->state == STATE_BEFORE_ROOT &&
      context->current_key && !strcmp(context->current_key, "boolean")) {
     context->is_boolean_result = 1;
     context->boolean_value = value;
     context->finished = 1;
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG2("SRJ: Set boolean result to %d\n", value);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG2("SRJ: Set boolean result to %d\n", value);
+    }
 #endif
   }
 
@@ -442,10 +449,11 @@ rasqal_srj_string_handler(void* ctx, const unsigned char* str, RASQAL_YAJL_LEN_T
   char* string_value;
   rasqal_variable *v;
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG4("SRJ string '%.*s' in state %d", (int)len, str, context->state);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG4("SRJ string '%.*s' in state %d", (int)len, str, context->state);
+  }
 #endif
-
   string_value = rasqal_srj_strndup(str, len);
   if(!string_value)
     return 0;
@@ -453,8 +461,10 @@ rasqal_srj_string_handler(void* ctx, const unsigned char* str, RASQAL_YAJL_LEN_T
   switch(context->state) {
     case STATE_IN_VARS_ARRAY:
       /* Variable name in vars array */
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-      RASQAL_DEBUG2("SRJ: Adding variable '%s' to vars table\n", string_value);
+#ifdef RASQAL_DEBUG
+      if(rasqal_get_debug_level() >= 2) {
+        RASQAL_DEBUG2("SRJ: Adding variable '%s' to vars table\n", string_value);
+      }
 #endif
       v = rasqal_variables_table_add2(context->vars_table,
                                       RASQAL_VARIABLE_TYPE_NORMAL,
@@ -465,8 +475,10 @@ rasqal_srj_string_handler(void* ctx, const unsigned char* str, RASQAL_YAJL_LEN_T
         return 0;
       }
       rasqal_free_variable(v);
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-      RASQAL_DEBUG2("SRJ: Successfully added variable '%s' to vars table\n", string_value);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG2("SRJ: Successfully added variable '%s' to vars table\n", string_value);
+  }
 #endif
       break;
 
@@ -520,8 +532,10 @@ rasqal_srj_start_map_handler(void* ctx)
 {
   rasqal_srj_context* context = (rasqal_srj_context*)ctx;
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("SRJ start map in state %d", context->state);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG2("SRJ start map in state %d", context->state);
+  }
 #endif
 
   switch(context->state) {
@@ -576,8 +590,11 @@ rasqal_srj_map_key_handler(void* ctx, const unsigned char* key, RASQAL_YAJL_LEN_
 {
   rasqal_srj_context* context = (rasqal_srj_context*)ctx;
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG4("SRJ map key '%.*s' in state %d", (int)len, key, context->state);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG4("SRJ map key '%.*s' in state %d", (int)len, key,
+                  context->state);
+  }
 #endif
 
   /* Store current key */
@@ -591,19 +608,25 @@ rasqal_srj_map_key_handler(void* ctx, const unsigned char* key, RASQAL_YAJL_LEN_
   /* Update state based on key and current state */
   if(context->state == STATE_BEFORE_ROOT) {
     if(!strcmp(context->current_key, "head")) {
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-      RASQAL_DEBUG1("SRJ: State transition BEFORE_ROOT -> IN_HEAD\n");
+#ifdef RASQAL_DEBUG
+      if(rasqal_get_debug_level() >= 2) {
+        RASQAL_DEBUG1("SRJ: State transition BEFORE_ROOT -> IN_HEAD\n");
+      }
 #endif
       context->state = STATE_IN_HEAD;
     } else if(!strcmp(context->current_key, "results")) {
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-      RASQAL_DEBUG1("SRJ: State transition BEFORE_ROOT -> IN_RESULTS\n");
+#ifdef RASQAL_DEBUG
+      if(rasqal_get_debug_level() >= 2) {
+        RASQAL_DEBUG1("SRJ: State transition BEFORE_ROOT -> IN_RESULTS\n");
+      }
 #endif
       context->state = STATE_IN_RESULTS;
     } else if(!strcmp(context->current_key, "boolean")) {
       /* Boolean result - stay in BEFORE_ROOT to handle value */
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-      RASQAL_DEBUG1("SRJ: Found boolean key, staying in BEFORE_ROOT\n");
+#ifdef RASQAL_DEBUG
+      if(rasqal_get_debug_level() >= 2) {
+        RASQAL_DEBUG1("SRJ: Found boolean key, staying in BEFORE_ROOT\n");
+      }
 #endif
     }
   } else if(context->state == STATE_IN_BINDING_OBJECT) {
@@ -611,11 +634,13 @@ rasqal_srj_map_key_handler(void* ctx, const unsigned char* key, RASQAL_YAJL_LEN_
     context->current_variable = rasqal_variables_table_get_by_name(context->vars_table,
                                                                    RASQAL_VARIABLE_TYPE_NORMAL,
                                                                    (const unsigned char*)context->current_key);
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    if(context->current_variable) {
-      RASQAL_DEBUG3("SRJ: Found variable '%s' at offset %d", context->current_key, context->current_variable->offset);
-    } else {
-      RASQAL_DEBUG2("SRJ: Variable '%s' not found in vars table\n", context->current_key);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      if(context->current_variable) {
+        RASQAL_DEBUG3("SRJ: Found variable '%s' at offset %d", context->current_key, context->current_variable->offset);
+      } else {
+        RASQAL_DEBUG2("SRJ: Variable '%s' not found in vars table\n", context->current_key);
+      }
     }
 #endif
   }
@@ -629,8 +654,10 @@ rasqal_srj_end_map_handler(void* ctx)
   rasqal_srj_context* context = (rasqal_srj_context*)ctx;
   rasqal_literal* literal;
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("SRJ end map in state %d", context->state);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG2("SRJ end map in state %d", context->state);
+  }
 #endif
 
   switch(context->state) {
@@ -647,9 +674,11 @@ rasqal_srj_end_map_handler(void* ctx)
 
     case STATE_IN_BINDING_OBJECT:
       /* End of binding object - add row to queue */
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-      RASQAL_DEBUG3("SRJ: End binding object, current_row=%p, rows_count=%d", 
-                    context->current_row, context->rows_count);
+#ifdef RASQAL_DEBUG
+      if(rasqal_get_debug_level() >= 2) {
+        RASQAL_DEBUG3("SRJ: End binding object, current_row=%p, rows_count=%d", 
+                      context->current_row, context->rows_count);
+      }
 #endif
       if(context->current_row) {
         /* Ensure row queue has space */
@@ -665,8 +694,10 @@ rasqal_srj_end_map_handler(void* ctx)
 
         context->rows[context->rows_count++] = context->current_row;
         context->current_row = NULL;
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-        RASQAL_DEBUG2("SRJ: Added row to queue, new rows_count=%d", context->rows_count);
+#ifdef RASQAL_DEBUG
+        if(rasqal_get_debug_level() >= 2) {
+          RASQAL_DEBUG2("SRJ: Added row to queue, new rows_count=%d", context->rows_count);
+        }
 #endif
       }
       context->state = STATE_IN_BINDINGS_ARRAY;
@@ -674,72 +705,88 @@ rasqal_srj_end_map_handler(void* ctx)
 
     case STATE_IN_VALUE_OBJECT:
       /* End of value object - create literal and set in row */
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-      if(context->current_variable) {
-        RASQAL_DEBUG2("SRJ: End value object - var=%s", (const char*)context->current_variable->name);
-      } else {
-        RASQAL_DEBUG1("SRJ: End value object - var=NULL");
-      }
-      if(context->value_type) {
-        RASQAL_DEBUG2("SRJ: Value type: %s", context->value_type);
-      }
-      if(context->value_value) {
-        RASQAL_DEBUG2("SRJ: Value value: %s", context->value_value);
+#ifdef RASQAL_DEBUG
+      if(rasqal_get_debug_level() >= 2) {
+        if(context->current_variable) {
+          RASQAL_DEBUG2("SRJ: End value object - var=%s", (const char*)context->current_variable->name);
+        } else {
+          RASQAL_DEBUG1("SRJ: End value object - var=NULL");
+        }
+        if(context->value_type) {
+          RASQAL_DEBUG2("SRJ: Value type: %s", context->value_type);
+        }
+        if(context->value_value) {
+          RASQAL_DEBUG2("SRJ: Value value: %s", context->value_value);
+        }
       }
 #endif
+
       if(context->current_variable && context->value_type && context->value_value) {
         /* Create row if we don't have one and rowsource size is correct */
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-        RASQAL_DEBUG4("SRJ: Creating row: current_row=%p, rowsource=%p, size=%d", 
-                      context->current_row, context->rowsource, 
-                      context->rowsource ? context->rowsource->size : -1);
+#ifdef RASQAL_DEBUG
+        if(rasqal_get_debug_level() >= 2) {
+          RASQAL_DEBUG4("SRJ: Creating row: current_row=%p, rowsource=%p, size=%d", 
+                        context->current_row, context->rowsource,
+                        context->rowsource ? context->rowsource->size : -1);
+        }
 #endif
         if(!context->current_row && context->rowsource && context->rowsource->size > 0) {
           context->current_row = rasqal_new_row(context->rowsource);
           if(!context->current_row)
             return 0;
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-          RASQAL_DEBUG2("SRJ: Created new row, size %d", context->current_row->size);
+#ifdef RASQAL_DEBUG
+          if(rasqal_get_debug_level() >= 2) {
+            RASQAL_DEBUG2("SRJ: Created new row, size %d", context->current_row->size);
+          }
 #endif
         }
 
         if(context->current_row) {
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-          RASQAL_DEBUG4("SRJ: Creating literal: type='%s', value='%s', datatype='%s'", 
-                        context->value_type ? context->value_type : "NULL",
-                        context->value_value ? context->value_value : "NULL",
-                        context->value_datatype ? context->value_datatype : "NULL");
+#ifdef RASQAL_DEBUG
+          if(rasqal_get_debug_level() >= 2) {
+            RASQAL_DEBUG4("SRJ: Creating literal: type='%s', value='%s', datatype='%s'", 
+                          context->value_type ? context->value_type : "NULL",
+                          context->value_value ? context->value_value : "NULL",
+                          context->value_datatype ? context->value_datatype : "NULL");
+          }
 #endif
           literal = rasqal_srj_create_literal(context->world,
                                               context->value_type,
                                               context->value_value,
                                               context->value_datatype,
                                               context->value_lang);
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-          if(literal) {
-            RASQAL_DEBUG2("SRJ: Created literal, setting at offset %d", context->current_variable->offset);
-          } else {
-            RASQAL_DEBUG1("SRJ: Failed to create literal");
+#ifdef RASQAL_DEBUG
+          if(rasqal_get_debug_level() >= 2) {
+            if(literal) {
+              RASQAL_DEBUG2("SRJ: Created literal, setting at offset %d", context->current_variable->offset);
+            } else {
+              RASQAL_DEBUG1("SRJ: Failed to create literal");
+            }
           }
 #endif
           if(literal) {
             rasqal_row_set_value_at(context->current_row,
                                     context->current_variable->offset,
                                     literal);
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-            RASQAL_DEBUG3("SRJ: Set literal at offset %d, row size %d", 
-                          context->current_variable->offset, context->current_row->size);
+#ifdef RASQAL_DEBUG
+            if(rasqal_get_debug_level() >= 2) {
+              RASQAL_DEBUG3("SRJ: Set literal at offset %d, row size %d",
+                            context->current_variable->offset, context->current_row->size);
+            }
 #endif
-            rasqal_free_literal(literal); literal = NULL;
+            rasqal_free_literal(literal);
+            literal = NULL;
           }
         }
       } else {
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-        RASQAL_DEBUG1("SRJ: Missing required fields for literal creation");
+#ifdef RASQAL_DEBUG
+        if(rasqal_get_debug_level() >= 2) {
+          RASQAL_DEBUG1("SRJ: Missing required fields for literal creation");
+        }
 #endif
+        context->state = STATE_IN_BINDING_OBJECT;
+        context->current_variable = NULL;
       }
-      context->state = STATE_IN_BINDING_OBJECT;
-      context->current_variable = NULL;
       break;
 
     case STATE_BEFORE_ROOT:
@@ -762,20 +809,25 @@ rasqal_srj_start_array_handler(void* ctx)
 {
   rasqal_srj_context* context = (rasqal_srj_context*)ctx;
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("SRJ start array in state %d", context->state);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG2("SRJ start array in state %d", context->state);
+  }
 #endif
-
   if(context->state == STATE_IN_HEAD &&
      context->current_key && !strcmp(context->current_key, "vars")) {
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
     RASQAL_DEBUG1("SRJ: State transition IN_HEAD -> IN_VARS_ARRAY\n");
+  }
 #endif
     context->state = STATE_IN_VARS_ARRAY;
   } else if(context->state == STATE_IN_RESULTS &&
             context->current_key && !strcmp(context->current_key, "bindings")) {
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
     RASQAL_DEBUG1("SRJ: State transition IN_RESULTS -> IN_BINDINGS_ARRAY\n");
+  }
 #endif
     context->state = STATE_IN_BINDINGS_ARRAY;
   }
@@ -788,10 +840,11 @@ rasqal_srj_end_array_handler(void* ctx)
 {
   rasqal_srj_context* context = (rasqal_srj_context*)ctx;
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("SRJ end array in state %d", context->state);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG2("SRJ end array in state %d", context->state);
+  }
 #endif
-
   switch(context->state) {
     case STATE_IN_VARS_ARRAY:
       context->state = STATE_IN_HEAD;
@@ -800,8 +853,10 @@ rasqal_srj_end_array_handler(void* ctx)
         int vars_count = rasqal_variables_table_get_total_variables_count(context->vars_table);
         if(vars_count > 0) {
           context->rowsource->size = vars_count;
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-          RASQAL_DEBUG2("SRJ: Updated rowsource size to %d (from vars array)", vars_count);
+#ifdef RASQAL_DEBUG
+          if(rasqal_get_debug_level() >= 2) {
+            RASQAL_DEBUG2("SRJ: Updated rowsource size to %d (from vars array)", vars_count);
+          }
 #endif
         }
       }
@@ -839,13 +894,14 @@ rasqal_srj_parse_chunk(rasqal_srj_context* context, raptor_iostream* iostr)
 
   bytes_read = raptor_iostream_read_bytes(buffer, 1, sizeof(buffer), iostr);
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("SRJ: read %zu bytes from stream\n", bytes_read);
-  if(bytes_read > 0) {
-    RASQAL_DEBUG3("SRJ: data: %.*s", (int)bytes_read, buffer);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG2("SRJ: read %zu bytes from stream\n", bytes_read);
+    if(bytes_read > 0) {
+      RASQAL_DEBUG3("SRJ: data: %.*s", (int)bytes_read, buffer);
+    }
   }
 #endif
-
   if(bytes_read == 0) {
     /* EOF reached - finalize parsing */
 #ifdef HAVE_YAJL2
@@ -907,24 +963,29 @@ rasqal_srj_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
   /* Handle boolean results */
   if(context->is_boolean_result) {
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("SRJ: Boolean result, returning no rows");
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("SRJ: Boolean result, returning no rows");
+    }
 #endif
     return NULL; /* Boolean results have no rows */
   }
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG4("SRJ: read_row: current_row_index=%d, rows_count=%d, finished=%d", 
-                context->current_row_index, context->rows_count, context->finished);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG4("SRJ: read_row: current_row_index=%d, rows_count=%d, finished=%d", 
+                  context->current_row_index, context->rows_count, context->finished);
+  }
 #endif
-
   /* Return next row if available */
   if(context->current_row_index < context->rows_count) {
     rasqal_row* row = context->rows[context->current_row_index];
     context->rows[context->current_row_index] = NULL; /* Transfer ownership */
     context->current_row_index++;
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG3("SRJ: Returning row %d of %d\n", context->current_row_index, context->rows_count);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG3("SRJ: Returning row %d of %d\n", context->current_row_index, context->rows_count);
+    }
 #endif
     return row;
   }
@@ -939,10 +1000,11 @@ rasqal_srj_rowsource_ensure_variables(rasqal_rowsource* rowsource, void* user_da
   rasqal_srj_context* context = (rasqal_srj_context*)user_data;
   raptor_iostream* iostr;
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG1("SRJ: ensure_variables called\n");
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("SRJ: ensure_variables called\n");
+  }
 #endif
-
   if(!context)
     return 1;
 
@@ -959,8 +1021,10 @@ rasqal_srj_rowsource_ensure_variables(rasqal_rowsource* rowsource, void* user_da
 
       /* If we've found a boolean result, we can stop */
       if(context->is_boolean_result) {
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-        RASQAL_DEBUG2("SRJ: Found boolean result %d\n", context->boolean_value);
+#ifdef RASQAL_DEBUG
+        if(rasqal_get_debug_level() >= 2) {
+          RASQAL_DEBUG2("SRJ: Found boolean result %d\n", context->boolean_value);
+        }
 #endif
         break;
       }
@@ -977,8 +1041,10 @@ rasqal_srj_rowsource_ensure_variables(rasqal_rowsource* rowsource, void* user_da
     int vars_count = rasqal_variables_table_get_total_variables_count(context->vars_table);
     if(vars_count > 0) {
       rowsource->size = vars_count;
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-      RASQAL_DEBUG2("SRJ: Updated rowsource size to %d", rowsource->size);
+#ifdef RASQAL_DEBUG
+      if(rasqal_get_debug_level() >= 2) {
+        RASQAL_DEBUG2("SRJ: Updated rowsource size to %d", rowsource->size);
+      }
 #endif
     }
   }

@@ -1837,12 +1837,14 @@ rasqal_expression_is_constant(rasqal_expression* e)
       RASQAL_FATAL2("Unknown operation %u", e->op);
   }
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("expression %p: ", e);
-  rasqal_expression_print(e, RASQAL_DEBUG_FH);
-  fprintf(RASQAL_DEBUG_FH, " %s constant\n", (result ? "is" : "is not"));
+#ifdef RASQAL_DEBUG
+  if (rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG2("expression %p: ", e);
+    rasqal_expression_print(e, RASQAL_DEBUG_FH);
+    fprintf(RASQAL_DEBUG_FH, " %s constant\n", (result ? "is" : "is not"));
+  }
 #endif
-  
+
   return result;
 }
 

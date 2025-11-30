@@ -780,8 +780,10 @@ main(int argc, char *argv[])
     const unsigned char *str;
     str = RASQAL_GOOD_CAST(const unsigned char*, double_valid_tests[test]);
     
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
     fprintf(stderr, "%s: Valid Test %3d value: %s\n", program, test, str);
+  }
 #endif
     if(!rasqal_xsd_check_double_format(str, 0 /* flags */)) {
       fprintf(stderr, "%s: Valid Test %3d value: %s FAILED\n", 
@@ -794,8 +796,10 @@ main(int argc, char *argv[])
     const unsigned char *str;
     str = RASQAL_GOOD_CAST(const unsigned char*, double_invalid_tests[test]);
     
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
     fprintf(stderr, "%s: Invalid Test %3d value: %s\n", program, test, str);
+  }
 #endif
     if(rasqal_xsd_check_double_format(str, 0 /* flags */)) {
       fprintf(stderr,

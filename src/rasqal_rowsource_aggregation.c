@@ -325,10 +325,12 @@ rasqal_builtin_agg_expression_execute_step(void* user_data,
     
     b->l = result;
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG3("Aggregation step result %s (error=%d)\n", 
-                  (result ? RASQAL_GOOD_CAST(const char*, rasqal_literal_as_string(result)) : "(NULL)"),
-                  b->error);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG3("Aggregation step result %s (error=%d)\n",
+                    (result ? RASQAL_GOOD_CAST(const char*, rasqal_literal_as_string(result)) : "(NULL)"),
+                    b->error);
+    }
 #endif
   }
   
@@ -553,8 +555,10 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
 
         row = NULL;
 #ifdef RASQAL_DEBUG
-        RASQAL_DEBUG2("Aggregation ending group %d", con->last_group_id);
-        fputc('\n', RASQAL_DEBUG_FH);
+        if(rasqal_get_debug_level() >= 2) {
+          RASQAL_DEBUG2("Aggregation ending group %d", con->last_group_id);
+          fputc('\n', RASQAL_DEBUG_FH);
+        }
 #endif
 
         /* Empty distinct maps */
@@ -574,8 +578,10 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       con->saved_row = NULL;
       
 #ifdef RASQAL_DEBUG
-      RASQAL_DEBUG2("Aggregation starting group %d", row->group_id);
-      fputc('\n', RASQAL_DEBUG_FH);
+      if(rasqal_get_debug_level() >= 2) {
+        RASQAL_DEBUG2("Aggregation starting group %d", row->group_id);
+        fputc('\n', RASQAL_DEBUG_FH);
+      }
 #endif
 
 
@@ -660,9 +666,11 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
         }
 
 #ifdef RASQAL_DEBUG
-        RASQAL_DEBUG2("Aggregation expr %d step over literals: ", i);
-        raptor_sequence_print(seq, RASQAL_DEBUG_FH);
-        fputc('\n', RASQAL_DEBUG_FH);
+        if(rasqal_get_debug_level() >= 2) {
+          RASQAL_DEBUG2("Aggregation expr %d step over literals: ", i);
+          raptor_sequence_print(seq, RASQAL_DEBUG_FH);
+          fputc('\n', RASQAL_DEBUG_FH);
+        }
 #endif
 
         error = rasqal_builtin_agg_expression_execute_step(expr_data->agg_user_data,
@@ -747,9 +755,11 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       result = rasqal_builtin_agg_expression_execute_result(expr_data->agg_user_data);
   
 #ifdef RASQAL_DEBUG
-      RASQAL_DEBUG2("Aggregation %d ending group with result: ", i);
-      rasqal_literal_print(result, RASQAL_DEBUG_FH);
-      fputc('\n', RASQAL_DEBUG_FH);
+      if(rasqal_get_debug_level() >= 2) {
+        RASQAL_DEBUG2("Aggregation %d ending group with result: ", i);
+        rasqal_literal_print(result, RASQAL_DEBUG_FH);
+        fputc('\n', RASQAL_DEBUG_FH);
+      }
 #endif
       
       v = rasqal_rowsource_get_variable_by_offset(rowsource, offset);
@@ -1401,7 +1411,9 @@ main(int argc, char *argv[])
     
 
 #ifdef RASQAL_DEBUG
-    rasqal_rowsource_print_row_sequence(rowsource, seq, stderr);
+    if(rasqal_get_debug_level() >= 2) {
+      rasqal_rowsource_print_row_sequence(rowsource, seq, stderr);
+    }
 #endif
 
     raptor_free_sequence(seq); seq = NULL;

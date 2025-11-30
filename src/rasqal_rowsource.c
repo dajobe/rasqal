@@ -221,10 +221,12 @@ rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource)
     rc = rowsource->handler->ensure_variables(rowsource, rowsource->user_data);
 
 #ifdef RASQAL_DEBUG
-  if(!rc) {
-    RASQAL_DEBUG4("%s rowsource %p usage %d header: ", rowsource->handler->name,
-                  rowsource, rowsource->usage);
-    rasqal_rowsource_print_header(rowsource, stderr);
+  if(rasqal_get_debug_level() >= 2) {
+    if(!rc) {
+      RASQAL_DEBUG4("%s rowsource %p usage %d header: ", rowsource->handler->name,
+                    rowsource, rowsource->usage);
+      rasqal_rowsource_print_header(rowsource, stderr);
+    }
   }
 #endif
 
@@ -255,13 +257,15 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
     row = (rasqal_row*)raptor_sequence_get_at(rowsource->rows_sequence,
                                               rowsource->offset++);
 #ifdef RASQAL_DEBUG
-    RASQAL_DEBUG3("%s rowsource %p returned saved row:  ",
-                  rowsource->handler->name, rowsource);
-    if(row)
-      rasqal_row_print(row, stderr);
-    else
-      fputs("NONE", stderr);
-    fputs("\n", stderr);
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG3("%s rowsource %p returned saved row:  ",
+                    rowsource->handler->name, rowsource);
+      if(row)
+        rasqal_row_print(row, stderr);
+      else
+        fputs("NONE", stderr);
+      fputs("\n", stderr);
+    }
 #endif      
     if(row)
       row = rasqal_new_row_from_row(row);
@@ -327,14 +331,16 @@ cleanup:
   }
 
 #ifdef RASQAL_DEBUG
-  if(rowsource) {
-    RASQAL_DEBUG4("%s rowsource %p usage %d returned row:  ", rowsource->handler->name, 
-                  rowsource, rowsource->usage);
-    if(row)
-      rasqal_row_print(row, stderr);
-    else
-      fputs("NONE", stderr);
-    fputs("\n", stderr);
+  if(rasqal_get_debug_level() >= 2) {
+    if(rowsource) {
+      RASQAL_DEBUG4("%s rowsource %p usage %d returned row:  ", rowsource->handler->name, 
+                    rowsource, rowsource->usage);
+      if(row)
+        rasqal_row_print(row, stderr);
+      else
+        fputs("NONE", stderr);
+      fputs("\n", stderr);
+    }
   }
 #endif
 
@@ -805,8 +811,10 @@ rasqal_rowsource_write_internal(rasqal_rowsource *rowsource,
   raptor_iostream_counted_string_write(rs_name, indent_delta, iostr);
   raptor_iostream_write_byte('(', iostr);
 #ifdef RASQAL_DEBUG
-  raptor_iostream_counted_string_write("usage=", 6, iostr);
-  raptor_iostream_decimal_write(rowsource->usage, iostr);
+  if(rasqal_get_debug_level() >= 2) {
+    raptor_iostream_counted_string_write("usage=", 6, iostr);
+    raptor_iostream_decimal_write(rowsource->usage, iostr);
+  }
 #endif
   raptor_iostream_write_byte('\n', iostr);
   indent_delta++;

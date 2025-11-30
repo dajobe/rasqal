@@ -661,23 +661,27 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   
   
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("algebra result: \n");
-  rasqal_algebra_node_print(node, RASQAL_DEBUG_FH);
-  fputc('\n', RASQAL_DEBUG_FH);
-#endif
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("algebra result: \n");
+    rasqal_algebra_node_print(node, RASQAL_DEBUG_FH);
+    fputc('\n', RASQAL_DEBUG_FH);
+  }
   RASQAL_DEBUG2("algebra nodes: %d\n", execution_data->nodes_count);
-
+#endif
+  
   error = RASQAL_ENGINE_OK;
   execution_data->rowsource = rasqal_algebra_node_to_rowsource(execution_data,
                                                                node,
                                                                &error);
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("rowsource (query plan) result: \n");
-  if(execution_data->rowsource)
-    rasqal_rowsource_print(execution_data->rowsource, RASQAL_DEBUG_FH);
-  else
-    fputs("NULL", RASQAL_DEBUG_FH);
-  fputc('\n', RASQAL_DEBUG_FH);
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("rowsource (query plan) result: \n");
+    if(execution_data->rowsource)
+      rasqal_rowsource_print(execution_data->rowsource, RASQAL_DEBUG_FH);
+    else
+      fputs("NULL", RASQAL_DEBUG_FH);
+    fputc('\n', RASQAL_DEBUG_FH);
+  }
 #endif
   if(error != RASQAL_ENGINE_OK)
     rc = 1;

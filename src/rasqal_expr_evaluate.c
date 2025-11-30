@@ -78,8 +78,7 @@ int rasqal_evaluate_not_exists_pattern_with_origin(rasqal_graph_pattern* gp,
                                                    rasqal_row* outer_row,
                                                    rasqal_literal* graph_origin);
 
-/* Enable evaluation debugging by defining RASQAL_DEBUG_EVAL */
-/* #define RASQAL_DEBUG_EVAL 1 */
+/* Expression evaluation debugging enabled at debug level 3 */
 
 
 /* 
@@ -492,8 +491,10 @@ rasqal_expression_evaluate_sameterm(rasqal_expression *e,
     goto failed;
 
   b = rasqal_literal_same_term(l1, l2);
-#ifdef RASQAL_DEBUG_EVAL
-  RASQAL_DEBUG2("rasqal_literal_same_term() returned: %d\n", b);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 3) {
+    RASQAL_DEBUG2("rasqal_literal_same_term() returned: %d\n", b);
+  }
 #endif
 
   rasqal_free_literal(l1);
@@ -548,11 +549,13 @@ rasqal_expression_evaluate_in_set(rasqal_expression *e,
     
     found = (rasqal_literal_equals_flags(l1, arg_literal, 
                                          eval_context->flags, error_p) != 0);
-#ifdef RASQAL_DEBUG_EVAL
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 3) {
     if(error_p && *error_p)
       RASQAL_DEBUG1("rasqal_literal_equals_flags() returned: FAILURE\n");
     else
       RASQAL_DEBUG2("rasqal_literal_equals_flags() returned: %d\n", found);
+  }
 #endif
     rasqal_free_literal(arg_literal);
 
@@ -973,10 +976,12 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
   errs.e = 0;
 
-#ifdef RASQAL_DEBUG_EVAL
-  RASQAL_DEBUG2("evaluating expression %p: ", e);
-  rasqal_expression_print(e, stderr);
-  fprintf(stderr, "\n");
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 3) {
+    RASQAL_DEBUG2("evaluating expression %p: ", e);
+    rasqal_expression_print(e, stderr);
+    fprintf(stderr, "\n");
+  }
 #endif
   
   switch(e->op) {
@@ -1093,18 +1098,22 @@ rasqal_expression_evaluate2(rasqal_expression* e,
        */
       if(!rasqal_xsd_datatype_check(l1->type, l1->string, flags) ||
          !rasqal_xsd_datatype_check(l2->type, l2->string, flags)) {
-#ifdef RASQAL_DEBUG_EVAL
-        RASQAL_DEBUG1("One of the literals was invalid\n");
+#ifdef RASQAL_DEBUG
+        if(rasqal_get_debug_level() >= 3) {
+          RASQAL_DEBUG1("One of the literals was invalid\n");
+        }
 #endif
         goto failed;
       }
 
       vars.b = (rasqal_literal_equals_flags(l1, l2, flags, &errs.e) != 0);
-#ifdef RASQAL_DEBUG_EVAL
-      if(errs.e)
-        RASQAL_DEBUG1("rasqal_literal_equals_flags returned: FAILURE\n");
-      else
-        RASQAL_DEBUG2("rasqal_literal_equals_flags returned: %d\n", vars.b);
+#ifdef RASQAL_DEBUG
+      if(rasqal_get_debug_level() >= 3) {
+        if(errs.e)
+          RASQAL_DEBUG1("rasqal_literal_equals_flags returned: FAILURE\n");
+        else
+          RASQAL_DEBUG2("rasqal_literal_equals_flags returned: %d\n", vars.b);
+      }
 #endif
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
@@ -1870,15 +1879,17 @@ rasqal_expression_evaluate2(rasqal_expression* e,
 
   got_result:
 
-#ifdef RASQAL_DEBUG_EVAL
-  RASQAL_DEBUG2("result of %p: ", e);
-  rasqal_expression_print(e, stderr);
-  fputs( ": ", stderr);
-  if(error_p && *error_p)
-    fputs("FAILURE",stderr);
-  else
-    rasqal_literal_print(result, stderr);
-  fputc('\n', stderr);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 3) {
+    RASQAL_DEBUG2("result of %p: ", e);
+    rasqal_expression_print(e, stderr);
+    fputs( ": ", stderr);
+    if(error_p && *error_p)
+      fputs("FAILURE",stderr);
+    else
+      rasqal_literal_print(result, stderr);
+    fputc('\n', stderr);
+  }
 #endif
   
   return result;

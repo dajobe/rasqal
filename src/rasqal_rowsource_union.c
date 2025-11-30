@@ -225,12 +225,14 @@ rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   if(con->state == 0) {
     row = rasqal_rowsource_read_row(con->left);
 #ifdef RASQAL_DEBUG
-    RASQAL_DEBUG2("rowsource %p read left row : ", rowsource);
-    if(row)
-      rasqal_row_print(row, stderr);
-    else
-      fputs("NONE", stderr);
-    fputs("\n", stderr);
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG2("rowsource %p read left row : ", rowsource);
+      if(row)
+        rasqal_row_print(row, stderr);
+      else
+        fputs("NONE", stderr);
+      fputs("\n", stderr);
+    }
 #endif
 
     if(!row) {
@@ -249,12 +251,14 @@ rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   if(!row && con->state == 1) {
     row = rasqal_rowsource_read_row(con->right);
 #ifdef RASQAL_DEBUG
-    RASQAL_DEBUG2("rowsource %p read right row : ", rowsource);
-    if(row)
-      rasqal_row_print(row, stderr);
-    else
-      fputs("NONE", stderr);
-    fputs("\n", stderr);
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG2("rowsource %p read right row : ", rowsource);
+      if(row)
+        rasqal_row_print(row, stderr);
+      else
+        fputs("NONE", stderr);
+      fputs("\n", stderr);
+    }
 #endif
 
     if(!row)
@@ -309,13 +313,15 @@ rasqal_union_rowsource_read_all_rows(rasqal_rowsource* rowsource,
   }
 
 #ifdef RASQAL_DEBUG
-  fprintf(RASQAL_DEBUG_FH, "left rowsource (%d vars):\n",
-          rasqal_rowsource_get_size(con->left));
-  rasqal_rowsource_print_row_sequence(con->left, seq1, RASQAL_DEBUG_FH);
-
-  fprintf(RASQAL_DEBUG_FH, "right rowsource (%d vars):\n",
-          rasqal_rowsource_get_size(con->right));
-  rasqal_rowsource_print_row_sequence(con->right, seq2, RASQAL_DEBUG_FH);
+  if(rasqal_get_debug_level() >= 2) {
+    fprintf(RASQAL_DEBUG_FH, "left rowsource (%d vars):\n",
+            rasqal_rowsource_get_size(con->left));
+    rasqal_rowsource_print_row_sequence(con->left, seq1, RASQAL_DEBUG_FH);
+    
+    fprintf(RASQAL_DEBUG_FH, "right rowsource (%d vars):\n",
+            rasqal_rowsource_get_size(con->right));
+    rasqal_rowsource_print_row_sequence(con->right, seq2, RASQAL_DEBUG_FH);
+  }
 #endif
 
   /* transform rows from left to match new projection */
@@ -628,7 +634,9 @@ main(int argc, char *argv[])
   }
   
 #ifdef RASQAL_DEBUG
-  rasqal_rowsource_print_row_sequence(rowsource, seq, RASQAL_DEBUG_FH);
+  if(rasqal_get_debug_level() >= 2) {
+    rasqal_rowsource_print_row_sequence(rowsource, seq, RASQAL_DEBUG_FH);
+  }
 #endif
 
   tidy:

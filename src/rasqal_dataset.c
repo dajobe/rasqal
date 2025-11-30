@@ -417,11 +417,13 @@ rasqal_dataset_term_iterator_next(rasqal_dataset_term_iterator* iter)
     
     if(!iter->cursor)
       break;
-    
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
-    RASQAL_DEBUG1("Matching against triple: ");
-    rasqal_triple_print(iter->cursor->triple, RASQAL_DEBUG_FH);
-    fputc('\n', RASQAL_DEBUG_FH);
+
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 3) {
+      RASQAL_DEBUG1("Matching against triple: ");
+      rasqal_triple_print(iter->cursor->triple, RASQAL_DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
+    }
 #endif
 
     if(rasqal_raptor_triple_match(iter->dataset->world,

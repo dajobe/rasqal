@@ -547,11 +547,13 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
     rasqal_free_literal(variable_predicate);
     return 0;
   }
-  
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
-  RASQAL_DEBUG1("Got result set node ");
-  rasqal_literal_print(resultSet_node, RASQAL_DEBUG_FH);
-  fputc('\n', RASQAL_DEBUG_FH);
+
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 3) {
+    RASQAL_DEBUG1("Got result set node ");
+    rasqal_literal_print(resultSet_node, RASQAL_DEBUG_FH);
+    fputc('\n', RASQAL_DEBUG_FH);
+  }
 #endif    
 
 
@@ -570,10 +572,12 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
     if(!solution_node)
       break;
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
-    RASQAL_DEBUG1("Got variable node ");
-    rasqal_literal_print(solution_node, RASQAL_DEBUG_FH);
-    fputc('\n', RASQAL_DEBUG_FH);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 3) {
+      RASQAL_DEBUG1("Got variable node ");
+      rasqal_literal_print(solution_node, RASQAL_DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
+    }
 #endif
     
     if(1) {
@@ -624,10 +628,12 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
     if(!solution_node)
       break;
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
-    RASQAL_DEBUG1("Got solution node (row) ");
-    rasqal_literal_print(solution_node, RASQAL_DEBUG_FH);
-    fputc('\n', RASQAL_DEBUG_FH);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 3) {
+      RASQAL_DEBUG1("Got solution node (row) ");
+      rasqal_literal_print(solution_node, RASQAL_DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
+    }
 #endif
 
     row = rasqal_new_row(con->rowsource);
@@ -645,10 +651,12 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
       if(!binding_node)
         break;
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
-      RASQAL_DEBUG1("  Got binding node ");
-      rasqal_literal_print(binding_node, RASQAL_DEBUG_FH);
-      fputc('\n', RASQAL_DEBUG_FH);
+#ifdef RASQAL_DEBUG
+      if(rasqal_get_debug_level() >= 3) {
+        RASQAL_DEBUG1("  Got binding node ");
+        rasqal_literal_print(binding_node, RASQAL_DEBUG_FH);
+        fputc('\n', RASQAL_DEBUG_FH);
+      }
 #endif
 
       /* variable ?var := getTarget(?bn, rs:variable) */
@@ -661,12 +669,14 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
                                                 binding_node,
                                                 value_predicate);
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 2
-      RASQAL_DEBUG1("    Variable: ");
-      rasqal_literal_print(var_literal, RASQAL_DEBUG_FH);
-      fputs(" Value: ", RASQAL_DEBUG_FH);
-      rasqal_literal_print(value_literal, RASQAL_DEBUG_FH);
-      fputc('\n', RASQAL_DEBUG_FH);
+#ifdef RASQAL_DEBUG
+      if(rasqal_get_debug_level() >= 3) {
+        RASQAL_DEBUG1("    Variable: ");
+        rasqal_literal_print(var_literal, RASQAL_DEBUG_FH);
+        fputs(" Value: ", RASQAL_DEBUG_FH);
+        rasqal_literal_print(value_literal, RASQAL_DEBUG_FH);
+        fputc('\n', RASQAL_DEBUG_FH);
+      }
 #endif
 
       /* save row[?var] = ?val */

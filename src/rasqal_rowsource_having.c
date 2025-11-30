@@ -133,12 +133,14 @@ rasqal_having_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     }
 
 #ifdef RASQAL_DEBUG
-    RASQAL_DEBUG1("having expression list result: ");
-    if(!literal_seq)
-      fputs("NULL", RASQAL_DEBUG_FH);
-    else
-      raptor_sequence_print(literal_seq, RASQAL_DEBUG_FH);
-    fputc('\n', RASQAL_DEBUG_FH);
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("having expression list result: ");
+      if(!literal_seq)
+        fputs("NULL", RASQAL_DEBUG_FH);
+      else
+        raptor_sequence_print(literal_seq, RASQAL_DEBUG_FH);
+      fputc('\n', RASQAL_DEBUG_FH);
+    }
 #endif
 
     if(!literal_seq) {

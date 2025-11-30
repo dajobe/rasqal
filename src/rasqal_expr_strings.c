@@ -604,10 +604,12 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
     }
 
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("Concating literal ");
-    rasqal_literal_print(arg_literal, stderr);
-    fprintf(stderr, " with existing mode %d  lang=%s\n", mode, lang_tag);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("Concating literal ");
+      rasqal_literal_print(arg_literal, stderr);
+      fprintf(stderr, " with existing mode %d  lang=%s\n", mode, lang_tag);
+    }
 #endif
 
     if(arg_literal->datatype) {
@@ -641,9 +643,11 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
           mode = 1;
         } else if (mode == 1) {
           /* mode 1: Already got a lang tag so check it */
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-          RASQAL_DEBUG3("concat compare lang %s vs %s\n",
-                        arg_literal->language, lang_tag);
+#ifdef RASQAL_DEBUG
+          if(rasqal_get_debug_level() >= 2) {
+            RASQAL_DEBUG3("concat compare lang %s vs %s\n",
+                          arg_literal->language, lang_tag);
+          }
 #endif
           if(strcmp(arg_literal->language, lang_tag)) {
             /* different languages, so result is simple literal */
@@ -697,10 +701,12 @@ rasqal_expression_evaluate_concat(rasqal_expression *e,
 
   /* result_str and lang and dt (if set) becomes owned by result */
   result_l = rasqal_new_string_literal(world, result_str, lang_tag, dt, NULL);
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG1("Concat result literal: ");
-  rasqal_literal_print(result_l, stderr);
-  fprintf(stderr, " with mode %d\n", mode);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("Concat result literal: ");
+    rasqal_literal_print(result_l, stderr);
+    fprintf(stderr, " with mode %d\n", mode);
+  }
 #endif
 
   return result_l;
@@ -914,23 +920,27 @@ rasqal_expression_evaluate_strbefore(rasqal_expression *e,
 
   if(!rasqal_literal_is_string(l1) || !rasqal_literal_is_string(l2)) {
     /* not strings */
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
     RASQAL_DEBUG1("Cannot strbefore haystack ");
     rasqal_literal_print(l1, stderr);
     fputs( " to needle ", stderr);
     rasqal_literal_print(l2, stderr);
     fputs(" - both not string", stderr);
+  }
 #endif
-    goto failed;
+  goto failed;
   }
 
   if(l2->language && rasqal_literal_string_languages_compare(l1, l2)) {
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("Cannot strbefore haystack ");
-    rasqal_literal_print(l1, stderr);
-    fputs( " to language needle ", stderr);
-    rasqal_literal_print(l2, stderr);
-    fputs(" - languages mismatch", stderr);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("Cannot strbefore haystack ");
+      rasqal_literal_print(l1, stderr);
+      fputs( " to language needle ", stderr);
+      rasqal_literal_print(l2, stderr);
+      fputs(" - languages mismatch", stderr);
+    }
 #endif
     goto failed;
   }
@@ -1034,23 +1044,27 @@ rasqal_expression_evaluate_strafter(rasqal_expression *e,
 
   if(!rasqal_literal_is_string(l1) || !rasqal_literal_is_string(l2)) {
     /* not strings */
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("Cannot strafter haystack ");
-    rasqal_literal_print(l1, stderr);
-    fputs( " to needle ", stderr);
-    rasqal_literal_print(l2, stderr);
-    fputs(" - both not string", stderr);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("Cannot strafter haystack ");
+      rasqal_literal_print(l1, stderr);
+      fputs( " to needle ", stderr);
+      rasqal_literal_print(l2, stderr);
+      fputs(" - both not string", stderr);
+    }
 #endif
     goto failed;
   }
 
   if(l2->language && rasqal_literal_string_languages_compare(l1, l2)) {
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("Cannot strafter haystack ");
-    rasqal_literal_print(l1, stderr);
-    fputs( " to language needle ", stderr);
-    rasqal_literal_print(l2, stderr);
-    fputs(" - languages mismatch", stderr);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("Cannot strafter haystack ");
+      rasqal_literal_print(l1, stderr);
+      fputs( " to language needle ", stderr);
+      rasqal_literal_print(l2, stderr);
+      fputs(" - languages mismatch", stderr);
+    }
 #endif
     goto failed;
   }

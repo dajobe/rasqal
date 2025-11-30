@@ -181,7 +181,15 @@ def run_command(
 
     # Handle None env argument - subprocess.run expects an iterable or None means inherit
     if env is None:
-        env = {}
+        env_dict = os.environ.copy()
+    else:
+        # Merge with current environment
+        env_dict = os.environ.copy()
+        env_dict.update(env)
+
+    # Set RASQAL_DEBUG_LEVEL=0 to suppress debug output during testing
+    env_dict['RASQAL_DEBUG_LEVEL'] = '0'
+    env = env_dict
 
     # Use default timeout if none specified
     if timeout is None:

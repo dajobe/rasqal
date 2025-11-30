@@ -550,8 +550,10 @@ rasqal_triples_rowsource_get_next_constraint_based_row(rasqal_rowsource* rowsour
   }
 
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG2("Processing column %d\n", con->current_column);
-  rasqal_triples_rowsource_print_column_variable_matrix(con);
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG2("Processing column %d\n", con->current_column);
+    rasqal_triples_rowsource_print_column_variable_matrix(con);
+  }
 #endif
 
   /* Main processing loop */
@@ -796,7 +798,7 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     goto done;
 
 #ifdef RASQAL_DEBUG
-  if(1) {
+  if(rasqal_get_debug_level() >= 2) {
     int values_returned = 0;
     /* Count actual bound values */
     for(i = 0; i < con->size; i++) {

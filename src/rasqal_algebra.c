@@ -2096,17 +2096,19 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
       break;
   }
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  if(gp) {
-    RASQAL_DEBUG1("Input gp:\n");
-    rasqal_graph_pattern_print(gp, stderr);
-    fputc('\n', stderr);
-  }
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    if(gp) {
+      RASQAL_DEBUG1("Input gp:\n");
+      rasqal_graph_pattern_print(gp, stderr);
+      fputc('\n', stderr);
+    }
 
-  if(node) {
-    RASQAL_DEBUG1("Resulting node:\n");
-    rasqal_algebra_node_print(node, stderr);
-    fputc('\n', stderr);
+    if(node) {
+      RASQAL_DEBUG1("Resulting node:\n");
+      rasqal_algebra_node_print(node, stderr);
+      fputc('\n', stderr);
+    }
   }
 #endif
 
@@ -2187,17 +2189,18 @@ rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
   is_z1 = rasqal_algebra_node_is_empty(node->node1);
   is_z2 = rasqal_algebra_node_is_empty(node->node2);
   
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG1("Checking node\n");
-  rasqal_algebra_node_print(node, stderr);
-  fprintf(stderr, "\nNode 1 (%s): %s\n", 
-          is_z1 ? "empty" : "not empty",
-          rasqal_algebra_node_operator_as_counted_string(node->node1->op, NULL));
-  fprintf(stderr, "Node 2 (%s): %s\n", 
-          is_z2 ? "empty" : "not empty",
-          rasqal_algebra_node_operator_as_counted_string(node->node2->op, NULL));
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("Checking node\n");
+    rasqal_algebra_node_print(node, stderr);
+    fprintf(stderr, "\nNode 1 (%s): %s\n",
+            is_z1 ? "empty" : "not empty",
+            rasqal_algebra_node_operator_as_counted_string(node->node1->op, NULL));
+    fprintf(stderr, "Node 2 (%s): %s\n",
+            is_z2 ? "empty" : "not empty",
+            rasqal_algebra_node_operator_as_counted_string(node->node2->op, NULL));
+  }
 #endif
-
   if(is_z1 && !is_z2) {
     /* Replace join(Z, A) by A */
     
@@ -2377,9 +2380,11 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
     }
 
 #ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
     RASQAL_DEBUG1("after adding new variable, resulting aggregate vars ");
     rasqal_map_print(ae->agg_vars, stderr);
     fputc('\n', stderr);
+  }
 #endif
 
     new_e = rasqal_new_expression_from_expression(new_e);
@@ -2518,12 +2523,13 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
                             rasqal_algebra_remove_znodes,
                             &modified);
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG1("modified after remove zones, algebra node now:\n  ");
-  rasqal_algebra_node_print(node, stderr);
-  fputs("\n", stderr);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("modified after remove zones, algebra node now:\n  ");
+    rasqal_algebra_node_print(node, stderr);
+    fputs("\n", stderr);
+  }
 #endif
-
 
   return node;
 }
@@ -2614,20 +2620,22 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
     rasqal_query_build_variables_use(query, projection);
   
 #ifdef RASQAL_DEBUG
-  if(ae->counter) {
-    raptor_sequence* seq = projection->variables;
+  if(rasqal_get_debug_level() >= 2) {
+    if(ae->counter) {
+      raptor_sequence* seq = projection->variables;
 
-    if(seq) {
-      RASQAL_DEBUG1("after aggregate expressions extracted:\n");
-      raptor_sequence_print(seq, stderr);
-      fputs("\n", stderr);
+      if(seq) {
+        RASQAL_DEBUG1("after aggregate expressions extracted:\n");
+        raptor_sequence_print(seq, stderr);
+        fputs("\n", stderr);
 
-      RASQAL_DEBUG1("aggregate expressions:\n");
-      raptor_sequence_print(ae->agg_exprs, stderr);
-      fputs("\n", stderr);
+        RASQAL_DEBUG1("aggregate expressions:\n");
+        raptor_sequence_print(ae->agg_exprs, stderr);
+        fputs("\n", stderr);
+      }
+    } else {
+      RASQAL_DEBUG1("found no aggregate expressions in select\n");
     }
-  } else {
-    RASQAL_DEBUG1("found no aggregate expressions in select\n");
   }
 #endif
 
@@ -2687,10 +2695,12 @@ rasqal_algebra_query_add_group_by(rasqal_query* query,
     
     node = rasqal_new_groupby_algebra_node(query, node, seq);
     
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("modified after adding group node, algebra node now:\n  ");
-    rasqal_algebra_node_print(node, stderr);
-    fputs("\n", stderr);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("modified after adding group node, algebra node now:\n  ");
+      rasqal_algebra_node_print(node, stderr);
+      fputs("\n", stderr);
+    }
 #endif
   }
   
@@ -2740,10 +2750,12 @@ rasqal_algebra_query_add_orderby(rasqal_query* query,
 
     node = rasqal_new_orderby_algebra_node(query, node, seq, distinct);
     
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("modified after adding orderby node, algebra node now:\n  ");
-    rasqal_algebra_node_print(node, stderr);
-    fputs("\n", stderr);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("modified after adding orderby node, algebra node now:\n  ");
+      rasqal_algebra_node_print(node, stderr);
+      fputs("\n", stderr);
+    }
 #endif
   }
 
@@ -2776,10 +2788,12 @@ rasqal_algebra_query_add_slice(rasqal_query* query,
   if(modifier->limit > 0 || modifier->offset > 0) {
     node = rasqal_new_slice_algebra_node(query, node, modifier->limit, modifier->offset);
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("modified after adding slice node, algebra node now:\n  ");
-    rasqal_algebra_node_print(node, stderr);
-    fputs("\n", stderr);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("modified after adding slice node, algebra node now:\n  ");
+      rasqal_algebra_node_print(node, stderr);
+      fputs("\n", stderr);
+    }
 #endif
   }
 
@@ -2828,13 +2842,14 @@ rasqal_algebra_query_add_aggregation(rasqal_query* query,
     goto tidy;
   }
   
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG1("modified after adding aggregation node, algebra node now:\n  ");
-  rasqal_algebra_node_print(node, stderr);
-  fputs("\n", stderr);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("modified after adding aggregation node, algebra node now:\n  ");
+      rasqal_algebra_node_print(node, stderr);
+      fputs("\n", stderr);
+    }
 #endif
-
-  return node;
+    return node;
 
 
   tidy:
@@ -2897,12 +2912,13 @@ rasqal_algebra_query_add_projection(rasqal_query* query,
   
   node = rasqal_new_project_algebra_node(query, node, vars_seq);
   
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG1("modified after adding project node, algebra node now:\n  ");
-  rasqal_algebra_node_print(node, stderr);
-  fputs("\n", stderr);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("modified after adding project node, algebra node now:\n  ");
+    rasqal_algebra_node_print(node, stderr);
+    fputs("\n", stderr);
+  }
 #endif
-  
   return node;
 }
 
@@ -2952,15 +2968,16 @@ rasqal_algebra_query_add_construct_projection(rasqal_query* query,
   
   node = rasqal_new_project_algebra_node(query, node, vars_seq);
   
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG1("modified after adding construct project node, algebra node now:\n  ");
-  rasqal_algebra_node_print(node, stderr);
-  fputs("\n", stderr);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("modified after adding construct project node, algebra node now:\n  ");
+    rasqal_algebra_node_print(node, stderr);
+    fputs("\n", stderr);
+  }
 #endif
-  
-  raptor_free_sequence(seq);
+    raptor_free_sequence(seq);
 
-  return node;
+    return node;
 }
 
 
@@ -2985,10 +3002,12 @@ rasqal_algebra_query_add_distinct(rasqal_query* query,
   if(projection->distinct) {
     node = rasqal_new_distinct_algebra_node(query, node);
 
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("modified after adding distinct node, algebra node now:\n  ");
-    rasqal_algebra_node_print(node, stderr);
-    fputs("\n", stderr);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("modified after adding distinct node, algebra node now:\n  ");
+      rasqal_algebra_node_print(node, stderr);
+      fputs("\n", stderr);
+    }
 #endif
   }
 
@@ -3032,10 +3051,12 @@ rasqal_algebra_query_add_having(rasqal_query* query,
     
     node = rasqal_new_having_algebra_node(query, node, exprs_seq);
     
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-    RASQAL_DEBUG1("modified after adding having node, algebra node now:\n  ");
-    rasqal_algebra_node_print(node, stderr);
-    fputs("\n", stderr);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      RASQAL_DEBUG1("modified after adding having node, algebra node now:\n  ");
+      rasqal_algebra_node_print(node, stderr);
+      fputs("\n", stderr);
+    }
 #endif
   }
 

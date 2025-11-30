@@ -430,12 +430,14 @@ rasqal_raptor_triple_match(rasqal_world* world,
 {
   int rc = 0;
   
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG1("\ntriple ");
-  rasqal_triple_print(triple, stderr);
-  fputs("\nmatch  ", stderr);
-  rasqal_triple_print(match, stderr);
-  fputs("\n", stderr);
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG1("\ntriple ");
+    rasqal_triple_print(triple, stderr);
+    fputs("\nmatch  ", stderr);
+    rasqal_triple_print(match, stderr);
+    fputs("\n", stderr);
+  }
 #endif
 
   if(match->subject && (parts & RASQAL_TRIPLE_SUBJECT)) {
@@ -483,8 +485,10 @@ rasqal_raptor_triple_match(rasqal_world* world,
   rc = 1;
   done:
   
-#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("result: %s\n", (rc ? "match" : "no match"));
+#ifdef RASQAL_DEBUG
+  if(rasqal_get_debug_level() >= 2) {
+    RASQAL_DEBUG2("result: %s\n", (rc ? "match" : "no match"));
+  }
 #endif
 
   return rc;
@@ -583,12 +587,14 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
   rtmc = (rasqal_raptor_triples_match_context*)rtm->user_data;
 
 #ifdef RASQAL_DEBUG
-  if(rtmc->cur) {
-    RASQAL_DEBUG1("  matched statement ");
-    rasqal_triple_print(rtmc->cur->triple, stderr);
-    fputc('\n', stderr);
-  } else
-    RASQAL_FATAL1("  matched NO statement - BUG\n");
+  if(rasqal_get_debug_level() >= 2) {
+    if(rtmc->cur) {
+      RASQAL_DEBUG1("  matched statement ");
+      rasqal_triple_print(rtmc->cur->triple, stderr);
+      fputc('\n', stderr);
+    } else
+      RASQAL_FATAL1("  matched NO statement - BUG\n");
+  }
 #endif
 
   /* set variable values from the fields of statement */
@@ -700,10 +706,12 @@ rasqal_raptor_next_match(struct rasqal_triples_match_s* rtm, void *user_data)
   while(rtmc->cur) {
     rtmc->cur = rtmc->cur->next;
 #ifdef RASQAL_DEBUG
-    if(!rtmc->cur) {
-      RASQAL_DEBUG1("triple match ended when matching ");
-      rasqal_triple_print(&rtmc->match, stderr);
-      fputc('\n', stderr);
+    if(rasqal_get_debug_level() >= 2) {
+      if(!rtmc->cur) {
+        RASQAL_DEBUG1("triple match ended when matching ");
+        rasqal_triple_print(&rtmc->match, stderr);
+        fputc('\n', stderr);
+      }
     }
 #endif
     if(rtmc->cur &&

@@ -332,9 +332,11 @@ rasqal_groupby_rowsource_process(rasqal_rowsource* rowsource,
   }
 
 #ifdef RASQAL_DEBUG
-  fputs("Grouping ", RASQAL_DEBUG_FH);
-  raptor_avltree_print(con->tree, RASQAL_DEBUG_FH);
-  fputs("\n", RASQAL_DEBUG_FH);
+  if(rasqal_get_debug_level() >= 2) {
+    fputs("Grouping ", RASQAL_DEBUG_FH);
+    raptor_avltree_print(con->tree, RASQAL_DEBUG_FH);
+    fputs("\n", RASQAL_DEBUG_FH);
+  }
 #endif
 
   if(raptor_avltree_size(con->tree))
@@ -884,7 +886,9 @@ main(int argc, char *argv[])
       }
 
 #ifdef RASQAL_DEBUG
-    rasqal_rowsource_print_row_sequence(rowsource, seq, stderr);
+    if(rasqal_get_debug_level() >= 2) {
+      rasqal_rowsource_print_row_sequence(rowsource, seq, stderr);
+    }
 #endif
 
     raptor_free_sequence(seq); seq = NULL;

@@ -410,16 +410,20 @@ rasqal_minus_read_row_correlated(rasqal_rowsource* rowsource,
       rasqal_row* rhs_row;
       int rhs_count = 0;
 #ifdef RASQAL_DEBUG
-      RASQAL_DEBUG1("=== MINUS: Processing LHS row ===\n");
-      RASQAL_DEBUG1("  LHS: ");
-      rasqal_row_print(lhs_row, RASQAL_DEBUG_FH);
-      fputc('\n', RASQAL_DEBUG_FH);
+      if(rasqal_get_debug_level() >= 2) {
+        RASQAL_DEBUG1("=== MINUS: Processing LHS row ===\n");
+        RASQAL_DEBUG1("  LHS: ");
+        rasqal_row_print(lhs_row, RASQAL_DEBUG_FH);
+        fputc('\n', RASQAL_DEBUG_FH);
+      }
 #endif
       while((rhs_row = rasqal_rowsource_read_row(con->rhs_rowsource)) != NULL) {
         rhs_count++;
 #ifdef RASQAL_DEBUG
-        RASQAL_DEBUG2("  RHS[%d]: ", rhs_count);
-        rasqal_row_print(rhs_row, RASQAL_DEBUG_FH);
+        if(rasqal_get_debug_level() >= 2) {
+          RASQAL_DEBUG2("  RHS[%d]: ", rhs_count);
+          rasqal_row_print(rhs_row, RASQAL_DEBUG_FH);
+        }
 #endif
         if(rasqal_minus_compatible_check(con->rc_map, lhs_row, rhs_row)) {
 #ifdef RASQAL_DEBUG
