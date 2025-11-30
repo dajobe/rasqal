@@ -40,25 +40,36 @@ These tests are explicitly marked with `t:XFailTest` in manifest files.
 
 Location: `tests/sparql/bind/manifest-failing.ttl`
 
-**Complexity**: MEDIUM (5/10) - Scope validation logic fix
-**Risk**: Low-Medium - Scoping logic change
+**Complexity**: HIGH (7/10) - Requires scope `local_vars` population system
+**Risk**: Medium - Core scope variable tracking changes
 **Priority**: LOW - Very specific edge case
 
 | Test     | Description            |
 |----------|------------------------|
 | `bind07` | BIND in UNION branches |
 
-**Root cause**: UNION variable scoping bug.
+**Root cause**: Variables bound in isolated GROUP scopes leak into outer query results.
 
-- **Problem**: Variable scoping validation in `rasqal_query_transform.c` doesn't
-  properly isolate UNION branch scopes
-- **Effect**: Query `{ BIND(?o+1 AS ?z) } UNION { BIND(?o+2 AS ?z) }` fails with
-  error "BIND variable z already used in group graph pattern"
-- **Expected**: Each UNION branch should have independent variable scope,
-  allowing the same variable to be bound in each branch
-- **Affected function**: `rasqal_query_graph_pattern_build_variables_use_map_binds()`
+- **Problem**: Variables bound via BIND inside isolated GROUP patterns (UNION branches)
+  incorrectly appear in query results. Per SPARQL scoping rules (see bind10/bind11 tests),
+  variables bound inside `{ }` groups should not be visible outside those groups.
+- **Effect**: Query `SELECT ?s ?p ?o ?z { ?s ?p ?o . { BIND(?o+1 AS ?z) } UNION { BIND(?o+2 AS ?z) } }`
+  returns results with `?z` bindings when `?z` should appear in SELECT header but have
+  NO bindings in any result rows.
+- **Expected**: Variables in isolated GROUP scopes should not propagate bindings to outer scopes
+- **Investigation findings (2025-11-30)**:
+  - The scope system (`rasqal_query_scope`) exists architecturally but `local_vars` tables
+    are not populated during query execution
+  - Implemented `rasqal_query_variable_bound_at_root_level()` helper function
+  - Modified PROJECT rowsource to check scope visibility before including bindings
+  - Fix is architecturally correct but requires `local_vars` population to work
+- **What's needed**: Populate scope `local_vars` when BIND/Extend operations create variables,
+  OR use alternative mechanism to track variable origin scope
 
-**Code Locations**: `src/rasqal_query_transform.c` (BIND variable validation)
+**Code Locations**:
+- `src/rasqal_query_transform.c` (scope checking, added `rasqal_query_variable_bound_at_root_level()`)
+- `src/rasqal_rowsource_project.c` (projection with scope filtering - partial fix in place)
+- `src/rasqal_internal.h` (added function declaration)
 
 ### Negative Syntax Test Failures (23 tests)
 
