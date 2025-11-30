@@ -7,32 +7,32 @@ including test results, known limitations, and expected failures.
 
 ## Current Test Results
 
-**Overall**: 1004 SPARQL tests passed, 0 failed, 34 expected failures
+**Overall**: 1007 SPARQL tests passed, 0 failed, 31 expected failures
 
 ### Test Categories
 
 | Category                 | Pass | Xfail | Notes                           |
 |--------------------------|------|-------|---------------------------------|
 | C unit tests (`src/`)    |   33 |     0 | Core library component tests    |
-| SPARQL test directories  | 1004 |    34 | 32 directories, multiple suites |
+| SPARQL test directories  | 1007 |    31 | 32 directories, multiple suites |
 | Compare tests (`utils/`) |    8 |     0 | Result comparison tests         |
 
-The 1004 SPARQL tests run across 32 test directories, each running multiple
+The 1007 SPARQL tests run across 32 test directories, each running multiple
 test suites (sparql-lexer, sparql-parser, sparql-query, etc.).
 
 ### XFailed Breakdown
 
-The 34 xfailed tests come from two sources:
+The 31 xfailed tests come from two sources:
 
 | Source                 | Unique | Xfails | Notes                                 |
 |------------------------|--------|--------|---------------------------------------|
-| XFailTest in manifests |     11 |     11 | Explicitly marked expected failures   |
+| XFailTest in manifests |      8 |      8 | Explicitly marked expected failures   |
 | Negative syntax tests  |     23 |     23 | Parser expected to reject but doesn't |
-| **Total**              | **34** | **34** |                                       |
+| **Total**              | **31** | **31** |                                       |
 
 ## XFailed Tests (Expected Failures)
 
-### XFailTest-based Failures (11 tests)
+### XFailTest-based Failures (8 tests)
 
 These tests are explicitly marked with `t:XFailTest` in manifest files.
 
@@ -63,27 +63,7 @@ Location: `tests/sparql/ValueTesting/manifest-negative.n3`
 
 **Code Locations**: `src/rasqal_literal.c` (type promotion, boolean handling, comparison)
 
-#### 2. ExprEquals Tests (3 tests)
-
-Location: `tests/sparql/ExprEquals/manifest-failures.n3`
-
-**Complexity**: MEDIUM (5/10) - Localized integer canonicalization fix
-**Risk**: Low - Changes localized to comparison logic
-**Priority**: MEDIUM-TERM TARGET - Well-defined problem, clear solution
-
-| Test                                      | Description                |
-|-------------------------------------------|----------------------------|
-| `Equality 1-1 -- graph`                   | Graph equality             |
-| `Equality 1-2 -- graph`                   | Graph equality             |
-| `Equality - 2 var - test equals -- graph` | Variable equality in graph |
-
-**Root cause**: Engine integer equality bug - `'01'^^xsd:integer` not recognized
-as equal to `1`. The engine should canonicalize integer lexical forms before
-comparison.
-
-**Code Locations**: `src/rasqal_literal.c:rasqal_literal_equals()` (lines 2924-2928)
-
-#### 3. BIND Test (1 test)
+#### 2. BIND Test (1 test)
 
 Location: `tests/sparql/bind/manifest-failing.ttl`
 
@@ -134,14 +114,13 @@ but currently accepts it. They run in `sparql-parser-negative` or
 
 - **23 Negative syntax tests**: Parser validation, not query execution
 
-### Actual Query Engine Failures (11 tests)
+### Actual Query Engine Failures (8 tests)
 
 | Category       | Count | Bug Type                              |
 |----------------|-------|---------------------------------------|
 | ValueTesting   |     7 | Type promotion, boolean, extended type|
-| ExprEquals     |     3 | Integer equality canonicalization     |
 | BIND           |     1 | UNION variable scope isolation        |
-| **Total**      |**11** | (3 negation tests fixed 2025-11-27, 3 FILTER+MINUS tests fixed 2025-11-28, 4 Error API tests fixed 2025-11-29 and 2025-11-30) |
+| **Total**      | **8** | (3 negation tests fixed 2025-11-27, 3 FILTER+MINUS tests fixed 2025-11-28, 4 Error API tests fixed 2025-11-29 and 2025-11-30, 3 ExprEquals tests fixed 2025-11-30) |
 
 ## Technical Architecture
 
@@ -171,6 +150,12 @@ ROOT Scope
 
 ## Recent Fixes
 
+- **2025-11-30**: Fixed ExprEquals integer equality tests (3 tests)
+  - Fixed integer equality canonicalization to use value comparison instead of lexical form comparison
+  - Ensures that '01'^^xsd:integer equals '1'^^xsd:integer per SPARQL value equality semantics
+  - Applied to integer, decimal, and floating point numeric types
+  - Removed obsolete RDQL-specific code and updated documentation
+  - Moved fixed tests from manifest-failures.n3 to manifest.n3
 - **2025-11-30**: Fixed Error API tests (error-api-3, error-api-4)
   - Implemented runtime debug level control via RASQAL_DEBUG_LEVEL environment variable
   - Test framework now sets RASQAL_DEBUG_LEVEL=0 to suppress all debug output during testing
