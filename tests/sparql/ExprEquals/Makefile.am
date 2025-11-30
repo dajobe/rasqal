@@ -20,14 +20,14 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-SPARQL_MANIFEST_FILES= manifest.n3 manifest-failures.n3
+SPARQL_MANIFEST_FILES= manifest.n3
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
-.PHONY: build-core build-roqet build-sparql-test-utils check-local get-testsuites-list get-testsuite-sparql-lexer get-testsuite-sparql-parser get-testsuite-sparql-query get-testsuite-sparql-query-negative
+.PHONY: build-core build-roqet build-sparql-test-utils check-local get-testsuites-list get-testsuite-sparql-lexer get-testsuite-sparql-parser get-testsuite-sparql-query
 
 # This sequence allows parallel building of build-core and then once
 # that is built, parallel building of the dependent programs: roqet,
@@ -45,7 +45,7 @@ check-local: build-roqet build-sparql-test-utils
 	@$(PYTHON) $(top_srcdir)/tests/bin/run-test-suites .
 
 get-testsuites-list:
-	@echo "sparql-lexer sparql-parser sparql-query sparql-query-negative"
+	@echo "sparql-lexer sparql-parser sparql-query"
 
 get-testsuite-sparql-lexer:
 	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
@@ -74,18 +74,8 @@ get-testsuite-sparql-query:
 		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s {srcdir} --manifest-file {srcdir}/manifest.n3 --test-case {test_id}" \
 		--manifest-file $(srcdir)/manifest.n3
 
-get-testsuite-sparql-query-negative:
-	@PYTHONPATH=$(top_srcdir)/tests $(PYTHON3) $(top_srcdir)/tests/bin/create-test-plan \
-		--suite-name sparql-query-negative \
-		--srcdir $(srcdir) \
-		--builddir $(top_builddir) \
-		--test-type NegativeTest \
-		--action-template "$(PYTHON3) $(top_srcdir)/tests/bin/run-sparql-tests -s {srcdir} --manifest-file {srcdir}/manifest-failures.n3 --test-case {test_id}" \
-		--manifest-file $(srcdir)/manifest-failures.n3
-
 dist-hook:
 	$(PYTHON3) $(top_srcdir)/tests/bin/bundle-test-files \
 		--manifest-file $(srcdir)/manifest.n3 \
-		--manifest-file $(srcdir)/manifest-failures.n3 \
 		--srcdir $(srcdir) \
 		--distdir $(distdir)

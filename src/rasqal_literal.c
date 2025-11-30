@@ -2013,7 +2013,7 @@ rasqal_literal_get_language(rasqal_literal* l)
  * rasqal_new_literal_from_promotion:
  * @lit: existing literal
  * @type: type to promote to
- * @flags: 0 (flag #RASQAL_COMPARE_URI is unused: was RDQL)
+ * @flags: 0 (unused)
  *
  * INTERNAL - Make a new literal from a type promotion
  *
@@ -2136,10 +2136,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       break;
     
     case RASQAL_LITERAL_BOOLEAN:
-      if(flags & RASQAL_COMPARE_URI)
-        i = rasqal_xsd_boolean_value_from_string(lit->string);
-      else
-        i = rasqal_literal_as_boolean(lit, &errori);
+      i = rasqal_literal_as_boolean(lit, &errori);
       /* failure always means no match */
       if(errori)
         new_lit = NULL;
@@ -2292,84 +2289,6 @@ rasqal_literal_string_compare(rasqal_literal* l1, rasqal_literal* l2,
 }
 
 
-/*
- * rasqal_literal_rdql_promote_calculate:
- * @l1: first literal
- * @l2: second literal
- *
- * INTERNAL - Handle RDQL type promotion rules
- *
- * Return value: type to promote to or RASQAL_LITERAL_UNKNOWN if not possible.
- */
-static rasqal_literal_type
-rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
-{    
-  int seen_string = 0;
-  int seen_int = 0;
-  int seen_double = 0;
-  int seen_boolean = 0;
-  int i;
-  rasqal_literal *lits[2];
-  rasqal_literal_type type = RASQAL_LITERAL_UNKNOWN;
-
-  lits[0] = l1;
-  lits[1] = l2;
-
-  for(i = 0; i < 2; i++) {
-    switch(lits[i]->type) {
-    case RASQAL_LITERAL_URI:
-    case RASQAL_LITERAL_DECIMAL:
-      break;
-      
-    case RASQAL_LITERAL_STRING:
-    case RASQAL_LITERAL_XSD_STRING:
-    case RASQAL_LITERAL_BLANK:
-    case RASQAL_LITERAL_PATTERN:
-    case RASQAL_LITERAL_QNAME:
-    case RASQAL_LITERAL_DATE:
-    case RASQAL_LITERAL_DATETIME:
-    case RASQAL_LITERAL_UDT:
-      seen_string++;
-      break;
-      
-    case RASQAL_LITERAL_BOOLEAN:
-      seen_boolean = 1;
-      break;
-      
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_INTEGER_SUBTYPE:
-      seen_int++;
-      break;
-      
-    case RASQAL_LITERAL_DOUBLE:
-    case RASQAL_LITERAL_FLOAT:
-      seen_double++;
-      break;
-      
-    case RASQAL_LITERAL_VARIABLE:
-      /* this case was dealt with elsewhere */
-      
-    case RASQAL_LITERAL_UNKNOWN:
-    default:
-      RASQAL_FATAL2("Unknown literal type %u", lits[i]->type);
-    }
-  }
-
-  
-  if(lits[0]->type != lits[1]->type) {
-    type = seen_string ? RASQAL_LITERAL_STRING : RASQAL_LITERAL_INTEGER;
-    if((seen_int & seen_double) || (seen_int & seen_string))
-      type = RASQAL_LITERAL_DOUBLE;
-    if(seen_boolean & seen_string)
-      type = RASQAL_LITERAL_BOOLEAN;
-  } else
-    type = lits[0]->type;
-  
-  return type;
-}
-
-
-
 /**
  * rasqal_literal_compare:
  * @l1: #rasqal_literal first literal
@@ -2392,7 +2311,7 @@ rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
  *   RASQAL_COMPARE_NOCASE: use case independent string comparisons
  *   RASQAL_COMPARE_XQUERY: use XQuery comparison and type promotion rules
  *   RASQAL_COMPARE_RDF: use RDF term comparison
- *   RASQAL_COMPARE_URI: allow comparison of URIs (typically for SPARQL ORDER)
+ *   RASQAL_COMPARE_URI: allow comparison of URIs (for SPARQL ORDER BY and GROUP BY)
  * 
  * If @error is not NULL, *error is set to non-0 on error
  *
@@ -2509,9 +2428,37 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     }
     promotion = 1;
   } else {
-    /* RDQL promotion rules */
-    type = rasqal_literal_rdql_promote_calculate(lits[0], lits[1]);
-    promotion = 1;
+    /* Default to SPARQL/XQuery promotion rules when no flags set */
+    rasqal_literal_type type0 = lits[0]->type;
+    rasqal_literal_type type1 = lits[1]->type;
+
+    /* cannot compare UDTs */
+    if(type0 == RASQAL_LITERAL_UDT || type1 == RASQAL_LITERAL_UDT) {
+      if(error_p)
+        *error_p = 1;
+      return 0;
+    }
+
+    type = rasqal_literal_promote_numerics(lits[0], lits[1], 0);
+    if(type == RASQAL_LITERAL_UNKNOWN) {
+      int type_diff;
+
+      /* no promotion but compare as RDF terms; like rasqal_literal_as_node() */
+      type0 = rasqal_literal_get_rdf_term_type(lits[0]);
+      type1 = rasqal_literal_get_rdf_term_type(lits[1]);
+      
+      if(type0 == RASQAL_LITERAL_UNKNOWN || type1 == RASQAL_LITERAL_UNKNOWN)
+        return 1;
+
+      type_diff = RASQAL_GOOD_CAST(int, type0) - RASQAL_GOOD_CAST(int, type1);
+      if(type_diff != 0) {
+        if(error_p)
+          *error_p = 1;
+        return type_diff;
+      }
+      type = type1;
+    } else
+      promotion = 1;
   }
 
 #ifdef RASQAL_DEBUG
@@ -2673,10 +2620,11 @@ rasqal_literal_string_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
   if(rasqal_literal_string_languages_compare(l1, l2))
     return 0;
 
-  /* For a value comparison (or RDQL), promote plain literal to typed
-   * literal "xx"^^xsd:string if the other literal is typed
+  /* For a value comparison, promote plain literal to typed
+   * literal "xx"^^xsd:string if the other literal is typed.
+   * RASQAL_COMPARE_XQUERY enables value comparison semantics.
    */
-  if(flags & RASQAL_COMPARE_XQUERY || flags & RASQAL_COMPARE_URI) {
+  if(flags & RASQAL_COMPARE_XQUERY) {
     if(l1->type == RASQAL_LITERAL_STRING && 
        l2->type == RASQAL_LITERAL_XSD_STRING) {
       dt1 = raptor_uri_copy(xsd_string_uri);
@@ -2704,6 +2652,36 @@ rasqal_literal_string_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       goto done;
     }
     /* at this point the datatypes (URIs) are the same */
+  }
+
+  /* For numeric types, compare values instead of lexical forms.
+   * This ensures that '01'^^xsd:integer equals '1'^^xsd:integer
+   * per SPARQL value equality semantics.
+   */
+  if((l1->type == RASQAL_LITERAL_INTEGER || 
+      l1->type == RASQAL_LITERAL_INTEGER_SUBTYPE ||
+      l1->type == RASQAL_LITERAL_BOOLEAN) &&
+     (l2->type == RASQAL_LITERAL_INTEGER || 
+      l2->type == RASQAL_LITERAL_INTEGER_SUBTYPE ||
+      l2->type == RASQAL_LITERAL_BOOLEAN)) {
+    /* Compare integer values directly */
+    result = (l1->value.integer == l2->value.integer);
+    goto done;
+  }
+
+  if(l1->type == RASQAL_LITERAL_DECIMAL && 
+     l2->type == RASQAL_LITERAL_DECIMAL) {
+    /* Compare decimal values directly */
+    result = rasqal_xsd_decimal_equals(l1->value.decimal, l2->value.decimal);
+    goto done;
+  }
+
+  if((l1->type == RASQAL_LITERAL_DOUBLE || l1->type == RASQAL_LITERAL_FLOAT) &&
+     (l2->type == RASQAL_LITERAL_DOUBLE || l2->type == RASQAL_LITERAL_FLOAT)) {
+    /* Compare floating point values directly */
+    result = rasqal_double_approximately_equal(l1->value.floating,
+                                               l2->value.floating);
+    goto done;
   }
 
   /* Finally check the lexical forms */
@@ -2884,13 +2862,8 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
   } else
       type = l1->type;
   } else {
-    /* RDQL rules: compare as values with no promotion */
+    /* Compare as values with no promotion */
     if(l1->type != l2->type) {
-      /* booleans can be compared to strings */
-      if(l2->type == RASQAL_LITERAL_BOOLEAN &&
-         l1->type == RASQAL_LITERAL_STRING)
-        result = !strcmp(RASQAL_GOOD_CAST(const char*, l1->string),
-                         RASQAL_GOOD_CAST(const char*, l2->string));
       goto tidy;
     }
     type = l1->type;
