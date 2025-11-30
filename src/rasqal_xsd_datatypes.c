@@ -495,6 +495,20 @@ typedef struct {
 #define XSD_INTEGER_DERIVED_FIRST (RASQAL_LITERAL_LAST_XSD + 1)
 #define XSD_INTEGER_DERIVED_LAST (RASQAL_LITERAL_LAST_XSD + XSD_INTEGER_DERIVED_COUNT - 1)
 
+/* Integer subtype indices within sparql_xsd_names array */
+#define XSD_SUBTYPE_NONPOSITIVEINTEGER (XSD_INTEGER_DERIVED_FIRST + 0)
+#define XSD_SUBTYPE_NEGATIVEINTEGER (XSD_INTEGER_DERIVED_FIRST + 1)
+#define XSD_SUBTYPE_LONG (XSD_INTEGER_DERIVED_FIRST + 2)
+#define XSD_SUBTYPE_INT (XSD_INTEGER_DERIVED_FIRST + 3)
+#define XSD_SUBTYPE_SHORT (XSD_INTEGER_DERIVED_FIRST + 4)
+#define XSD_SUBTYPE_BYTE (XSD_INTEGER_DERIVED_FIRST + 5)
+#define XSD_SUBTYPE_NONNEGATIVEINTEGER (XSD_INTEGER_DERIVED_FIRST + 6)
+#define XSD_SUBTYPE_UNSIGNEDLONG (XSD_INTEGER_DERIVED_FIRST + 7)
+#define XSD_SUBTYPE_POSITIVEINTEGER (XSD_INTEGER_DERIVED_FIRST + 8)
+#define XSD_SUBTYPE_UNSIGNEDINT (XSD_INTEGER_DERIVED_FIRST + 9)
+#define XSD_SUBTYPE_UNSIGNEDSHORT (XSD_INTEGER_DERIVED_FIRST + 10)
+#define XSD_SUBTYPE_UNSIGNEDBYTE (XSD_INTEGER_DERIVED_FIRST + 11)
+
 #define XSD_DATE_OFFSET (XSD_INTEGER_DERIVED_LAST + 2)
 
 /* atomic XSD literals + 12 types derived from xsd:integer plus DATE plus a NULL */
@@ -724,6 +738,165 @@ rasqal_xsd_datatype_parent_type(rasqal_literal_type type)
     return parent_xsd_type[type];
 
   return RASQAL_LITERAL_UNKNOWN;
+}
+
+
+/*
+ * rasqal_xsd_get_integer_subtype_index:
+ * @world: rasqal world object
+ * @uri: datatype URI
+ *
+ * INTERNAL - Get the integer subtype index for a datatype URI
+ *
+ * Returns the index in the sparql_xsd_names array for integer subtypes,
+ * or -1 if not an integer subtype.
+ *
+ * Return value: subtype index or -1
+ */
+static int
+rasqal_xsd_get_integer_subtype_index(rasqal_world* world, raptor_uri* uri)
+{
+  int i;
+  
+  if(!uri || !world->xsd_datatype_uris)
+    return -1;
+  
+  for(i = RASQAL_GOOD_CAST(int, XSD_INTEGER_DERIVED_FIRST);
+      i <= RASQAL_GOOD_CAST(int, XSD_INTEGER_DERIVED_LAST);
+      i++) {
+    if(raptor_uri_equals(uri, world->xsd_datatype_uris[i]))
+      return i;
+  }
+  
+  return -1;
+}
+
+
+/*
+ * rasqal_xsd_decimal_subtype_promote_index:
+ * @world: rasqal world object
+ * @l1: first literal (must be INTEGER_SUBTYPE)
+ * @l2: second literal (must be INTEGER_SUBTYPE)
+ * @target_idx_p: pointer to store target subtype index
+ *
+ * INTERNAL - Determine promotion subtype index for two integer subtypes
+ *
+ * Per XML Schema type promotion rules for decimal subtypes:
+ * - unsignedByte < unsignedShort < unsignedInt < unsignedLong < 
+ *   nonNegativeInteger < integer < decimal
+ * - byte < short < int < long < integer < decimal
+ * - When mixing signed and unsigned, promote to wider signed type
+ *
+ * The promotion type is the least common ancestor that can represent
+ * both values. For example:
+ * - unsignedByte + unsignedShort → unsignedShort
+ * - byte + short → short
+ * - unsignedByte + byte → short or wider
+ *
+ * Return value: non-0 on success, 0 on failure
+ */
+static int
+rasqal_xsd_decimal_subtype_promote_index(rasqal_world* world,
+                                         rasqal_literal* l1,
+                                         rasqal_literal* l2,
+                                         int* target_idx_p)
+{
+  int idx1, idx2;
+  int target_idx;
+  
+  if(!l1 || !l2 || !l1->datatype || !l2->datatype || !target_idx_p)
+    return 0;
+  
+  idx1 = rasqal_xsd_get_integer_subtype_index(world, l1->datatype);
+  idx2 = rasqal_xsd_get_integer_subtype_index(world, l2->datatype);
+  
+  if(idx1 < 0 || idx2 < 0)
+    return 0;
+  
+  /* If same subtype, return that subtype */
+  if(idx1 == idx2) {
+    *target_idx_p = idx1;
+    return 1;
+  }
+  
+  /* 
+   * Type hierarchy in sparql_xsd_names array:
+   * Signed types (XSD_SUBTYPE_NONPOSITIVEINTEGER to XSD_SUBTYPE_BYTE):
+   *   nonPositiveInteger, negativeInteger, long, int, short, byte
+   * Unsigned types (XSD_SUBTYPE_NONNEGATIVEINTEGER to XSD_SUBTYPE_UNSIGNEDBYTE):
+   *   nonNegativeInteger, unsignedLong, positiveInteger,
+   *   unsignedInt, unsignedShort, unsignedByte
+   *
+   * Note: Higher index = narrower type (more specific)
+   * Lower index = wider type (more general)
+   *
+   * For unsigned types: unsignedByte is narrowest, nonNegativeInteger is widest
+   * For signed types: byte is narrowest, nonPositiveInteger is widest
+   */
+  
+  /* Both unsigned types */
+  if(idx1 >= XSD_SUBTYPE_NONNEGATIVEINTEGER && idx2 >= XSD_SUBTYPE_NONNEGATIVEINTEGER) {
+    /* Return wider type (lower index) */
+    target_idx = (idx1 < idx2) ? idx1 : idx2;
+    *target_idx_p = target_idx;
+    return 1;
+  }
+  
+  /* Both signed types */
+  if(idx1 < XSD_SUBTYPE_NONNEGATIVEINTEGER && idx2 < XSD_SUBTYPE_NONNEGATIVEINTEGER) {
+    /* Return wider type (lower index) */
+    target_idx = (idx1 < idx2) ? idx1 : idx2;
+    *target_idx_p = target_idx;
+    return 1;
+  }
+  
+  /* Mixed signed and unsigned: promote to wider signed type */
+  /* Find the wider signed type that can represent both */
+  if(idx1 < XSD_SUBTYPE_NONNEGATIVEINTEGER) {
+    /* l1 is signed, l2 is unsigned */
+    /* Use l1's signed type, but may need to promote to wider */
+    target_idx = idx1;
+  } else {
+    /* l1 is unsigned, l2 is signed */
+    /* Use l2's signed type */
+    target_idx = idx2;
+  }
+  
+  /* Ensure we use at least 'short' which can represent both */
+  if(target_idx > XSD_SUBTYPE_SHORT)
+    target_idx = XSD_SUBTYPE_SHORT;
+  
+  *target_idx_p = target_idx;
+  return 1;
+}
+
+
+/*
+ * rasqal_xsd_decimal_subtype_promote_uri:
+ * @world: rasqal world object
+ * @l1: first literal (must be INTEGER_SUBTYPE)
+ * @l2: second literal (must be INTEGER_SUBTYPE)
+ *
+ * INTERNAL - Get target datatype URI for integer subtype promotion
+ *
+ * Returns the datatype URI for the promoted subtype.
+ *
+ * Return value: target datatype URI or NULL
+ */
+raptor_uri*
+rasqal_xsd_decimal_subtype_promote_uri(rasqal_world* world,
+                                       rasqal_literal* l1,
+                                       rasqal_literal* l2)
+{
+  int target_idx;
+  
+  if(!rasqal_xsd_decimal_subtype_promote_index(world, l1, l2, &target_idx))
+    return NULL;
+  
+  if(!world->xsd_datatype_uris || target_idx < 0)
+    return NULL;
+  
+  return world->xsd_datatype_uris[target_idx];
 }
 
 #endif /* not STANDALONE */

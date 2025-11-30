@@ -132,6 +132,53 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type,
 }
 
 
+/*
+ * rasqal_new_integer_subtype_literal:
+ * @world: rasqal world object
+ * @integer: int value
+ * @datatype_uri: datatype URI for the integer subtype
+ *
+ * INTERNAL - Create a new integer subtype literal with specific datatype URI
+ *
+ * Return value: New rasqal_literal or NULL on failure
+ */
+static rasqal_literal*
+rasqal_new_integer_subtype_literal(rasqal_world* world,
+                                    int integer,
+                                    raptor_uri* datatype_uri)
+{
+  rasqal_literal* l;
+  size_t slen = 0;
+  
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(datatype_uri, raptor_uri, NULL);
+  
+  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
+  if(!l)
+    return NULL;
+  
+  l->valid = 1;
+  l->usage = 1;
+  l->world = world;
+  l->type = RASQAL_LITERAL_INTEGER_SUBTYPE;
+  l->value.integer = integer;
+  l->string = rasqal_xsd_format_integer(integer, &slen);
+  l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
+  if(!l->string) {
+    rasqal_free_literal(l);
+    return NULL;
+  }
+  l->datatype = raptor_uri_copy(datatype_uri);
+  if(!l->datatype) {
+    rasqal_free_literal(l);
+    return NULL;
+  }
+  l->parent_type = RASQAL_LITERAL_INTEGER;
+  
+  return l;
+}
+
+
 /**
  * rasqal_new_numeric_literal_from_long:
  * @world: rasqal world object
@@ -1876,6 +1923,15 @@ rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
   rasqal_literal_type promotion_type;
   rasqal_literal_type result_type = RASQAL_LITERAL_UNKNOWN;
 
+  /* Check for integer subtype promotion (decimal subtype hierarchy) */
+  if(type1 == RASQAL_LITERAL_INTEGER_SUBTYPE &&
+     type2 == RASQAL_LITERAL_INTEGER_SUBTYPE) {
+    /* Both are integer subtypes - promote within decimal subtype hierarchy */
+    /* The actual target subtype is determined by rasqal_xsd_decimal_subtype_promote_uri() */
+    result_type = RASQAL_LITERAL_INTEGER_SUBTYPE;
+    goto done;
+  }
+
   /* B1 1.b http://www.w3.org/TR/xpath20/#dt-type-promotion */
   if(type1 == RASQAL_LITERAL_DECIMAL &&
      (type2 == RASQAL_LITERAL_FLOAT || type2 == RASQAL_LITERAL_DOUBLE)) {
@@ -3492,7 +3548,6 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
   type = rasqal_literal_promote_numerics(l1, l2, flags);
   switch(type) {
     case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_INTEGER_SUBTYPE:
       i = rasqal_literal_as_integer(l1, &error);
       if(error)
         break;
@@ -3501,6 +3556,39 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
         break;
 
       result = rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i);
+      break;
+      
+    case RASQAL_LITERAL_INTEGER_SUBTYPE:
+      /* Check if both are integer subtypes for decimal subtype promotion */
+      if(l1->type == RASQAL_LITERAL_INTEGER_SUBTYPE &&
+         l2->type == RASQAL_LITERAL_INTEGER_SUBTYPE) {
+        raptor_uri* target_uri;
+        
+        i = rasqal_literal_as_integer(l1, &error);
+        if(error)
+          break;
+        i = i + rasqal_literal_as_integer(l2, &error);
+        if(error)
+          break;
+        
+        /* Get target datatype URI for promotion */
+        target_uri = rasqal_xsd_decimal_subtype_promote_uri(l1->world, l1, l2);
+        if(target_uri) {
+          result = rasqal_new_integer_subtype_literal(l1->world, i, target_uri);
+        } else {
+          /* Fallback to regular integer */
+          result = rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i);
+        }
+      } else {
+        /* One is integer, one is integer subtype - promote to integer */
+        i = rasqal_literal_as_integer(l1, &error);
+        if(error)
+          break;
+        i = i + rasqal_literal_as_integer(l2, &error);
+        if(error)
+          break;
+        result = rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i);
+      }
       break;
       
     case RASQAL_LITERAL_FLOAT:
@@ -3581,14 +3669,36 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
   switch(type) {
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
-      i = rasqal_literal_as_integer(l1, &error);
-      if(error)
-        break;
-      i = i - rasqal_literal_as_integer(l2, &error);
-      if(error)
-        break;
-
-      result = rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i);
+      /* Check if both are integer subtypes for decimal subtype promotion */
+      if(l1->type == RASQAL_LITERAL_INTEGER_SUBTYPE &&
+         l2->type == RASQAL_LITERAL_INTEGER_SUBTYPE) {
+        raptor_uri* target_uri;
+        
+        i = rasqal_literal_as_integer(l1, &error);
+        if(error)
+          break;
+        i = i - rasqal_literal_as_integer(l2, &error);
+        if(error)
+          break;
+        
+        /* Get target datatype URI for promotion */
+        target_uri = rasqal_xsd_decimal_subtype_promote_uri(l1->world, l1, l2);
+        if(target_uri) {
+          result = rasqal_new_integer_subtype_literal(l1->world, i, target_uri);
+        } else {
+          /* Fallback to regular integer */
+          result = rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i);
+        }
+      } else {
+        /* One is integer, one is integer subtype - promote to integer */
+        i = rasqal_literal_as_integer(l1, &error);
+        if(error)
+          break;
+        i = i - rasqal_literal_as_integer(l2, &error);
+        if(error)
+          break;
+        result = rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i);
+      }
       break;
       
     case RASQAL_LITERAL_FLOAT:
@@ -3669,14 +3779,36 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
   switch(type) {
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
-      i = rasqal_literal_as_integer(l1, &error);
-      if(error)
-        break;
-      i = i * rasqal_literal_as_integer(l2, &error);
-      if(error)
-        break;
-
-      result = rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i);
+      /* Check if both are integer subtypes for decimal subtype promotion */
+      if(l1->type == RASQAL_LITERAL_INTEGER_SUBTYPE &&
+         l2->type == RASQAL_LITERAL_INTEGER_SUBTYPE) {
+        raptor_uri* target_uri;
+        
+        i = rasqal_literal_as_integer(l1, &error);
+        if(error)
+          break;
+        i = i * rasqal_literal_as_integer(l2, &error);
+        if(error)
+          break;
+        
+        /* Get target datatype URI for promotion */
+        target_uri = rasqal_xsd_decimal_subtype_promote_uri(l1->world, l1, l2);
+        if(target_uri) {
+          result = rasqal_new_integer_subtype_literal(l1->world, i, target_uri);
+        } else {
+          /* Fallback to regular integer */
+          result = rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i);
+        }
+      } else {
+        /* One is integer, one is integer subtype - promote to integer */
+        i = rasqal_literal_as_integer(l1, &error);
+        if(error)
+          break;
+        i = i * rasqal_literal_as_integer(l2, &error);
+        if(error)
+          break;
+        result = rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i);
+      }
       break;
       
     case RASQAL_LITERAL_FLOAT:

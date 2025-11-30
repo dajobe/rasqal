@@ -81,5 +81,15 @@
         dawgt:approval dawgt:NotApproved
       ]
 
+     [  mf:name    "typePromotion-decimal-decimal-fail" ;
+        rdfs:comment
+            "Test: product of type promotion within the xsd:decimal type tree. The test verifies that adding xsd:unsignedByte and xsd:unsignedShort results in xsd:unsignedShort according to XML Schema type promotion rules." ;
+        mf:action
+            [ qt:data   <typePromotion-0.n3> ;
+              qt:query  <typePromotion-decimal-decimal-fail.rq> ] ;
+        mf:result  <typePromotion-decimal-decimal-fail-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
     # End of tests
    ).

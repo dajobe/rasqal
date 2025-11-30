@@ -1777,6 +1777,9 @@ unsigned char* rasqal_xsd_format_integer(int i, size_t *len_p);
 unsigned char* rasqal_xsd_format_float(float f, size_t *len_p);
 unsigned char* rasqal_xsd_format_double(double d, size_t *len_p);
 rasqal_literal_type rasqal_xsd_datatype_parent_type(rasqal_literal_type type);
+raptor_uri* rasqal_xsd_decimal_subtype_promote_uri(rasqal_world* world,
+                                                   rasqal_literal* l1,
+                                                   rasqal_literal* l2);
 
 int rasqal_xsd_boolean_value_from_string(const unsigned char* string);
 

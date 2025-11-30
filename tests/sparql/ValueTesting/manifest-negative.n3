@@ -85,20 +85,5 @@
         dawgt:approval dawgt:NotApproved
       ]
 
-     [  rdf:type t:XFailTest ;
-	mf:name    "typePromotion-decimal-decimal-fail" ;
-        rdfs:comment
-            """Test: product of type promotion within the xsd:decimal type tree. Expected to fail due to engine type promotion bug.
-             The test verifies that adding 'xsd:unsignedByte' and 'xsd:unsignedShort' should result in 'xsd:unsignedShort'
-             according to XML Schema type promotion rules. The engine currently fails to properly promote these types
-             and returns 'UNKNOWN' type instead of the expected 'xsd:unsignedShort'. This violates XML Schema
-             numeric type promotion semantics where unsignedByte + unsignedShort = unsignedShort.""" ;
-        mf:action
-            [ qt:data   <typePromotion-0.n3> ;
-              qt:query  <typePromotion-decimal-decimal-fail.rq> ] ;
-        mf:result  <typePromotion-decimal-decimal-fail-result.n3> ;
-        dawgt:approval dawgt:NotApproved
-      ]
-
     # End of tests
    ). 
