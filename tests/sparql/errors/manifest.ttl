@@ -40,6 +40,30 @@
         mf:result  <error-api-5-result.ttl>
      ]
 
+     [  rdf:type mf:QueryEvaluationTest ;
+        mf:name    "Filter expression error" ;
+        rdfs:comment
+            """Error API test 3 - Tests SPARQL 1.2 error handling in FILTER expressions.
+            When fn:substring() receives invalid arguments in a FILTER, the solution is removed
+            (per SPARQL 1.2 §18.6 Filter definition).""" ;
+        mf:action
+            [ qt:query  <error-api-3.rq> ;
+              qt:data   <data.ttl> ] ;
+        mf:result  <error-api-3-result.ttl>
+     ]
+
+     [  rdf:type mf:QueryEvaluationTest ;
+        mf:name    "Join expression error" ;
+        rdfs:comment
+            """Error API test 4 - Tests SPARQL 1.2 error handling in FILTER expressions with joins.
+            When division by zero occurs in a FILTER expression, the solution is removed
+            (per SPARQL 1.2 §18.6 Filter definition).""" ;
+        mf:action
+            [ qt:query  <error-api-4.rq> ;
+              qt:data   <data.ttl> ] ;
+        mf:result  <error-api-4-result.ttl>
+     ]
+
     ).
 
 

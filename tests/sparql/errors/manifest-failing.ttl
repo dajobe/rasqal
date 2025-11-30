@@ -8,34 +8,4 @@
     rdfs:comment "Errors API failing test cases" ;
     mf:entries
     (
-     [  rdf:type t:XFailTest ;
-        mf:name    "Filter expression error" ;
-        rdfs:comment
-            """Error API test 3 - Tests SPARQL 1.2 error handling in FILTER expressions.
-            When fn:substring() receives invalid arguments in a FILTER, the solution is removed
-            (per SPARQL 1.2 §18.6 Filter definition). Expected to fail due to debug output
-            in test framework comparison. The engine correctly handles filter expression errors by returning
-            no results, but the test framework comparison fails because debug output is included in the
-            actual results while the expected result file contains only clean output.""" ;
-        mf:action
-            [ qt:query  <error-api-3.rq> ;
-              qt:data   <data.ttl> ] ;
-        mf:result  <error-api-3-result.ttl>
-     ]
-
-     [  rdf:type t:XFailTest ;
-        mf:name    "Join expression error" ;
-        rdfs:comment
-            """Error API test 4 - Tests SPARQL 1.2 error handling in FILTER expressions with joins.
-            When division by zero occurs in a FILTER expression, the solution is removed
-            (per SPARQL 1.2 §18.6 Filter definition). Expected to fail due to debug output
-            in test framework comparison. The engine correctly handles join expression errors by returning
-            no results, but the test framework comparison fails because debug output is included in the
-            actual results while the expected result file contains only clean output.""" ;
-        mf:action
-            [ qt:query  <error-api-4.rq> ;
-              qt:data   <data.ttl> ] ;
-        mf:result  <error-api-4-result.ttl>
-     ]
-
-    ). 
+    ).

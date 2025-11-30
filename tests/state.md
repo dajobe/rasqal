@@ -7,32 +7,32 @@ including test results, known limitations, and expected failures.
 
 ## Current Test Results
 
-**Overall**: 1002 SPARQL tests passed, 0 failed, 36 expected failures
+**Overall**: 1004 SPARQL tests passed, 0 failed, 34 expected failures
 
 ### Test Categories
 
 | Category                 | Pass | Xfail | Notes                           |
 |--------------------------|------|-------|---------------------------------|
 | C unit tests (`src/`)    |   33 |     0 | Core library component tests    |
-| SPARQL test directories  | 1002 |    36 | 32 directories, multiple suites |
+| SPARQL test directories  | 1004 |    34 | 32 directories, multiple suites |
 | Compare tests (`utils/`) |    8 |     0 | Result comparison tests         |
 
-The 1002 SPARQL tests run across 32 test directories, each running multiple
+The 1004 SPARQL tests run across 32 test directories, each running multiple
 test suites (sparql-lexer, sparql-parser, sparql-query, etc.).
 
 ### XFailed Breakdown
 
-The 36 xfailed tests come from two sources:
+The 34 xfailed tests come from two sources:
 
 | Source                 | Unique | Xfails | Notes                                 |
 |------------------------|--------|--------|---------------------------------------|
-| XFailTest in manifests |     13 |     13 | Explicitly marked expected failures   |
+| XFailTest in manifests |     11 |     11 | Explicitly marked expected failures   |
 | Negative syntax tests  |     23 |     23 | Parser expected to reject but doesn't |
-| **Total**              | **36** | **36** |                                       |
+| **Total**              | **34** | **34** |                                       |
 
 ## XFailed Tests (Expected Failures)
 
-### XFailTest-based Failures (13 tests)
+### XFailTest-based Failures (11 tests)
 
 These tests are explicitly marked with `t:XFailTest` in manifest files.
 
@@ -83,33 +83,33 @@ comparison.
 
 **Code Locations**: `src/rasqal_literal.c:rasqal_literal_equals()` (lines 2924-2928)
 
-#### 3. Error API Tests (2 tests) - TEST FRAMEWORK ISSUE
+#### 3. Error API Tests - FIXED ✓
 
-Location: `tests/sparql/errors/manifest-failing.ttl`
+Location: `tests/sparql/errors/` (previously in `manifest-failing.ttl`)
 
-**Complexity**: LOW (2/10) - Test framework fix only, NOT an engine bug
-**Risk**: Very Low - No engine changes required
-**Priority**: QUICK WIN - Easy fix, cleans up test suite
+**Status**: All 4 tests fixed on 2025-11-29
 
-| Test          | Description             |
-|---------------|-------------------------|
-| `error-api-3` | Filter expression error |
-| `error-api-4` | Join expression error   |
+**Important**: These were NOT engine failures - the engine handled errors correctly per
+SPARQL 1.2 spec. The failures were due to test framework issues.
 
-**Status**: 2 tests fixed on 2025-11-29 (error-api-2, error-api-5)
+Fixes applied:
 
-**Important**: These are NOT engine failures.
+- **error-api-2, error-api-5** (BIND errors): Fixed by correcting expected results and
+  test framework format detection. BIND expression errors correctly leave variables unbound
+  and preserve solutions per SPARQL 1.2 §18.6 Extend definition.
+- **error-api-3, error-api-4** (FILTER errors): Fixed by implementing runtime debug level
+  control. FILTER expression errors correctly remove solutions per SPARQL 1.2 §18.6 Filter
+  definition. The test framework now sets `RASQAL_DEBUG_LEVEL=0` to suppress debug output,
+  allowing clean result comparison.
 
-- **Fixed tests** (error-api-2, error-api-5): BIND expression errors that correctly
-  leave variables unbound and preserve solutions per SPARQL 1.2 §18.6 Extend definition.
-  These now pass after fixing expected results and test framework format detection.
-- **Remaining tests** (error-api-3, error-api-4): FILTER expression errors that correctly
-  remove solutions per SPARQL 1.2 §18.6 Filter definition. These may fail due to
-  test framework comparison issues (not engine bugs).
+**Code Changes**:
 
-**Code Locations**: Test framework comparison logic in `tests/sparql_test_framework/`
+- Test framework: Modified to set `RASQAL_DEBUG_LEVEL=0` environment variable during test execution
+  to suppress all debug output (see Test Framework Changes section below)
+- Expected results: Updated `error-api-{2,3,4,5}-result.ttl` with correct Turtle format
+- Manifests: Moved all 4 tests from `manifest-failing.ttl` to `manifest.ttl`
 
-#### 4. BIND Test (1 test)
+#### 3. BIND Test (1 test)
 
 Location: `tests/sparql/bind/manifest-failing.ttl`
 
@@ -168,7 +168,7 @@ but currently accepts it. They run in `sparql-parser-negative` or
 | ValueTesting   |     7 | Type promotion, boolean, extended type|
 | ExprEquals     |     3 | Integer equality canonicalization     |
 | BIND           |     1 | UNION variable scope isolation        |
-| **Total**      |**11** | (3 negation tests fixed 2025-11-27, 3 FILTER+MINUS tests fixed 2025-11-28, 2 Error API tests fixed 2025-11-29) |
+| **Total**      |**11** | (3 negation tests fixed 2025-11-27, 3 FILTER+MINUS tests fixed 2025-11-28, 4 Error API tests fixed 2025-11-29) |
 
 ## Technical Architecture
 
@@ -198,16 +198,16 @@ ROOT Scope
 
 ## Recent Fixes
 
-- **2025-11-29**: Fixed Error API tests for BIND expressions (error-api-2, error-api-5)
-  - Updated expected results to match SPARQL 1.2 §18.6 Extend semantics
+- **2025-11-29**: Fixed all Error API tests (error-api-2, error-api-3, error-api-4, error-api-5)
+  - Implemented debug message filtering in test framework to strip compiled-in rasqal debug output
+  - Updated expected results to match SPARQL 1.2 §18.6 semantics (Extend and Filter definitions)
   - Fixed test framework format detection for Turtle output
-  - Tests now correctly verify that BIND errors leave variables unbound
+  - Tests now correctly verify BIND errors (keep solutions, variables unbound) and FILTER errors (remove solutions)
 - **2025-11-28**: Fixed FILTER+MINUS tests (3 tests)
 - **2025-11-27**: Fixed negation tests (3 tests)
 
 ## Future Work
 
-- Fix Error API test framework comparison issue for FILTER tests (2 tests)
 - Fix UNION variable scoping for BIND (1 test)
 - Property Paths implementation
 
