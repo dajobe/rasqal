@@ -104,8 +104,8 @@ Location: `tests/sparql/errors/manifest-failing.ttl`
   leave variables unbound and preserve solutions per SPARQL 1.2 §18.6 Extend definition.
   These now pass after fixing expected results and test framework format detection.
 - **Remaining tests** (error-api-3, error-api-4): FILTER expression errors that correctly
-  remove solutions per SPARQL 1.2 §18.6 Filter definition. Expected to fail due to debug
-  output in test framework comparison.
+  remove solutions per SPARQL 1.2 §18.6 Filter definition. These may fail due to
+  test framework comparison issues (not engine bugs).
 
 **Code Locations**: Test framework comparison logic in `tests/sparql_test_framework/`
 
@@ -207,6 +207,13 @@ ROOT Scope
 
 ## Future Work
 
-- Fix Error API test framework debug output issue for FILTER tests (2 tests)
+- Fix Error API test framework comparison issue for FILTER tests (2 tests)
 - Fix UNION variable scoping for BIND (1 test)
 - Property Paths implementation
+
+## Test Framework Changes
+
+- **2025-11-29**: Implemented runtime debug level control via `RASQAL_DEBUG_LEVEL` environment variable
+  - Test framework now sets `RASQAL_DEBUG_LEVEL=0` to suppress all debug output during testing
+  - Eliminates need for fragile string-based debug message filtering
+  - See `specs/rasqal-runtime-debug-control.md` for details
