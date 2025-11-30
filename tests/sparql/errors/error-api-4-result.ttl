@@ -3,4 +3,10 @@
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 []    rdf:type      rs:ResultSet ;
+      rs:resultVariable  "s1" ;
+      rs:resultVariable  "p1" ;
+      rs:resultVariable  "o1" ;
+      rs:resultVariable  "s2" ;
+      rs:resultVariable  "p2" ;
+      rs:resultVariable  "o2" ;
  .

@@ -121,5 +121,28 @@
         dawgt:approval dawgt:NotApproved
       ]
 
+     [  mf:name    "extendedType-ne-fail" ;
+        rdfs:comment
+            "Test: Opaque types cannot be tested for !=. Verifies that comparing incompatible extended types (loc:latitude vs loc:ECEF_X) raises a type error and returns empty results." ;
+        rdfs:seeAlso
+            <http://www.w3.org/2005/04/26-dawg-irc#T15-21-30> ;
+        mf:action
+            [ qt:data   <extendedType-0.n3> ;
+              qt:query  <extendedType-ne-fail.rq> ] ;
+        mf:result  <extendedType-ne-fail-result.n3> ;
+        dawgt:approval dawgt:Approved ;
+        dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JulSep/0175>
+      ]
+
+     [  mf:name    "extendedType-literal-ne" ;
+        rdfs:comment
+            "Test: FILTER negative match on extended type. Verifies that comparing a variable with loc:latitude type against a loc:ECEF_X literal raises a type error." ;
+        mf:action
+            [ qt:data   <extendedType-0.n3> ;
+              qt:query  <extendedType-literal-ne.rq> ] ;
+        mf:result  <extendedType-literal-ne-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
     # End of tests
    ).

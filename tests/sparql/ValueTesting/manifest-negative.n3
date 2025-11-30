@@ -19,38 +19,5 @@
         dawgt:approval dawgt:NotApproved
       ]
 
-     [  rdf:type t:XFailTest ;
-	mf:name    "extendedType-ne-fail" ;
-        rdfs:comment
-            """Opaque types can not be tested for != . Expected to fail due to engine extended type comparison bug. 
-             The test compares extended types 'loc:latitude' and 'loc:ECEF_X' which are incompatible for comparison.
-             The engine should detect this type incompatibility and fail with a type error, but currently fails
-             silently or returns incorrect results. This violates SPARQL semantics where extended types with
-             different datatypes cannot be compared.""" ;
-        rdfs:seeAlso
-            <http://www.w3.org/2005/04/26-dawg-irc#T15-21-30> ;
-        mf:action
-            [ qt:data   <extendedType-0.n3> ;
-              qt:query  <extendedType-ne-fail.rq> ] ;
-        mf:result  <extendedType-ne-fail-result.n3> ;
-        dawgt:approval dawgt:Approved ;
-	dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JulSep/0175>
-      ]
-
-     [  rdf:type t:XFailTest ;
-	mf:name    "extendedType-literal-ne" ;
-        rdfs:comment
-            """Test FILTER negative match on extended type. Expected to fail due to engine extended type comparison bug.
-             The test compares a variable bound to 'loc:latitude' type with a literal of type 'loc:ECEF_X'.
-             According to SPARQL semantics, these extended types are incompatible and should cause a type error
-             during filter evaluation. The engine currently fails to detect this incompatibility and either
-             fails silently or returns incorrect boolean results instead of raising a proper type error.""" ;
-        mf:action
-            [ qt:data   <extendedType-0.n3> ;
-              qt:query  <extendedType-literal-ne.rq> ] ;
-        mf:result  <extendedType-literal-ne-result.n3> ;
-        dawgt:approval dawgt:NotApproved
-      ]
-
     # End of tests
    ). 
