@@ -1,6 +1,6 @@
 # Rasqal Test Suite State
 
-Last updated: 2025-11-29
+Last updated: 2025-11-30
 
 This document describes the current state of the Rasqal test suite,
 including test results, known limitations, and expected failures.
@@ -83,32 +83,6 @@ comparison.
 
 **Code Locations**: `src/rasqal_literal.c:rasqal_literal_equals()` (lines 2924-2928)
 
-#### 3. Error API Tests - FIXED ✓
-
-Location: `tests/sparql/errors/` (previously in `manifest-failing.ttl`)
-
-**Status**: All 4 tests fixed on 2025-11-29
-
-**Important**: These were NOT engine failures - the engine handled errors correctly per
-SPARQL 1.2 spec. The failures were due to test framework issues.
-
-Fixes applied:
-
-- **error-api-2, error-api-5** (BIND errors): Fixed by correcting expected results and
-  test framework format detection. BIND expression errors correctly leave variables unbound
-  and preserve solutions per SPARQL 1.2 §18.6 Extend definition.
-- **error-api-3, error-api-4** (FILTER errors): Fixed by implementing runtime debug level
-  control. FILTER expression errors correctly remove solutions per SPARQL 1.2 §18.6 Filter
-  definition. The test framework now sets `RASQAL_DEBUG_LEVEL=0` to suppress debug output,
-  allowing clean result comparison.
-
-**Code Changes**:
-
-- Test framework: Modified to set `RASQAL_DEBUG_LEVEL=0` environment variable during test execution
-  to suppress all debug output (see Test Framework Changes section below)
-- Expected results: Updated `error-api-{2,3,4,5}-result.ttl` with correct Turtle format
-- Manifests: Moved all 4 tests from `manifest-failing.ttl` to `manifest.ttl`
-
 #### 3. BIND Test (1 test)
 
 Location: `tests/sparql/bind/manifest-failing.ttl`
@@ -156,9 +130,8 @@ but currently accepts it. They run in `sparql-parser-negative` or
 
 ## Actual Engine Compliance
 
-### Not Engine Bugs (25 tests)
+### Not Engine Bugs (23 tests)
 
-- **2 Error API tests**: Test framework debug output comparison issue
 - **23 Negative syntax tests**: Parser validation, not query execution
 
 ### Actual Query Engine Failures (11 tests)
@@ -168,7 +141,7 @@ but currently accepts it. They run in `sparql-parser-negative` or
 | ValueTesting   |     7 | Type promotion, boolean, extended type|
 | ExprEquals     |     3 | Integer equality canonicalization     |
 | BIND           |     1 | UNION variable scope isolation        |
-| **Total**      |**11** | (3 negation tests fixed 2025-11-27, 3 FILTER+MINUS tests fixed 2025-11-28, 4 Error API tests fixed 2025-11-29) |
+| **Total**      |**11** | (3 negation tests fixed 2025-11-27, 3 FILTER+MINUS tests fixed 2025-11-28, 4 Error API tests fixed 2025-11-29 and 2025-11-30) |
 
 ## Technical Architecture
 
@@ -198,11 +171,13 @@ ROOT Scope
 
 ## Recent Fixes
 
-- **2025-11-29**: Fixed all Error API tests (error-api-2, error-api-3, error-api-4, error-api-5)
-  - Implemented debug message filtering in test framework to strip compiled-in rasqal debug output
-  - Updated expected results to match SPARQL 1.2 §18.6 semantics (Extend and Filter definitions)
-  - Fixed test framework format detection for Turtle output
-  - Tests now correctly verify BIND errors (keep solutions, variables unbound) and FILTER errors (remove solutions)
+- **2025-11-30**: Fixed Error API tests (error-api-3, error-api-4)
+  - Implemented runtime debug level control via RASQAL_DEBUG_LEVEL environment variable
+  - Test framework now sets RASQAL_DEBUG_LEVEL=0 to suppress all debug output during testing
+  - All Error API tests now pass cleanly
+- **2025-11-29**: Fixed Error API tests (error-api-2, error-api-5)
+  - Updated expected results to match SPARQL 1.2 §18.6 Extend semantics for BIND expressions
+  - Fixed test framework format detection for Turtle output files
 - **2025-11-28**: Fixed FILTER+MINUS tests (3 tests)
 - **2025-11-27**: Fixed negation tests (3 tests)
 
@@ -213,7 +188,7 @@ ROOT Scope
 
 ## Test Framework Changes
 
-- **2025-11-29**: Implemented runtime debug level control via `RASQAL_DEBUG_LEVEL` environment variable
+- **2025-11-30**: Implemented runtime debug level control via `RASQAL_DEBUG_LEVEL` environment variable
   - Test framework now sets `RASQAL_DEBUG_LEVEL=0` to suppress all debug output during testing
   - Eliminates need for fragile string-based debug message filtering
   - See `specs/rasqal-runtime-debug-control.md` for details
