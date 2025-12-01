@@ -321,6 +321,52 @@
         resolved according to SPARQL 1.1 scoping rules, preventing access to
         out-of-scope variables and maintaining proper semantic isolation.</para>
       </section>
+
+      <section id="extend-rowsource-scoping">
+        <title>EXTEND Rowsource Scope Integration</title>
+
+        <para>The EXTEND rowsource (which implements SPARQL BIND operations) uses
+        scope-aware variable registration to ensure proper variable scoping
+        throughout the query execution pipeline. When a BIND operation creates a
+        new variable binding, the rowsource stores the execution scope and
+        registers the bound variable in the scope's <literal>local_vars</literal>
+        table.</para>
+
+        <para>This registration enables the scope visibility system to correctly
+        determine which variables are bound at which scope level. Variables bound
+        within isolated GROUP patterns (such as UNION branches) are registered in
+        their respective scope's <literal>local_vars</literal> table, allowing
+        the system to distinguish between root-level bindings and isolated scope
+        bindings during projection and variable resolution.</para>
+
+        <para>The scope integration ensures that BIND variables follow SPARQL 1.1
+        scoping rules where variables bound within isolated patterns are not
+        visible outside those patterns, maintaining proper semantic isolation
+        while enabling correct variable resolution within their scope.</para>
+      </section>
+
+      <section id="project-rowsource-scoping">
+        <title>PROJECT Rowsource Scope Integration</title>
+
+        <para>The PROJECT rowsource (which implements SELECT projections) uses
+        scope-aware variable checking to ensure that only variables bound at the
+        root level are included in query results. When projecting variables, the
+        rowsource uses the evaluation scope to check if each variable is bound at
+        the root level using
+        <function>rasqal_query_variable_bound_at_root_level</function>.</para>
+
+        <para>This check ensures that variables bound only within isolated GROUP
+        patterns (such as UNION branches) are not included in the final
+        projection, maintaining SPARQL 1.1 scoping semantics where variables
+        bound within isolated patterns are not visible outside those patterns.
+        Variables that are not bound at the root level are left as NULL
+        (unbound) in the projection results.</para>
+
+        <para>The scope-aware projection checking prevents variables from isolated
+        scopes from leaking into query results, ensuring correct SPARQL 1.1
+        semantic behavior for complex queries with nested patterns and UNION
+        operations.</para>
+      </section>
     </section>
 
     <section id="rowsource-types">
@@ -351,7 +397,15 @@
         </varlistentry>
         <varlistentry>
           <term>Project Rowsource</term>
-          <listitem><para>Selects and reorders variables in result rows</para></listitem>
+          <listitem><para>Selects and reorders variables in result rows with
+          scope-aware variable checking to ensure only root-level bound variables
+          are included in projections</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Extend Rowsource</term>
+          <listitem><para>Implements SPARQL BIND operations with scope-aware
+          variable registration, ensuring BIND variables are properly tracked in
+          their execution scope's local variables table</para></listitem>
         </varlistentry>
         <varlistentry>
           <term>Empty Rowsource</term>
@@ -424,6 +478,66 @@
         <para>This ensures that variable lookups respect SPARQL 1.2 scoping
         requirements while maintaining efficient resolution performance and
         supporting variable correlation analysis for complex query patterns.</para>
+      </section>
+
+      <section id="variable-registration-in-scopes">
+        <title>Variable Registration in Scopes</title>
+
+        <para>The scope system tracks variables bound within each scope through
+        the <literal>local_vars</literal> table. This table is populated when
+        variables are bound within a scope, such as through BIND operations or
+        basic graph pattern matching. The registration enables the system to
+        determine variable visibility and binding context throughout the query
+        execution pipeline.</para>
+
+        <para>Key registration points include:</para>
+        <itemizedlist>
+          <listitem><para><emphasis>BIND Operations</emphasis> - EXTEND rowsource
+          registers BIND variables in their execution scope's
+          <literal>local_vars</literal> table during variable initialization</para></listitem>
+          <listitem><para><emphasis>Basic Graph Patterns</emphasis> - Variables
+          from triple patterns are tracked through structural analysis during
+          query transformation</para></listitem>
+          <listitem><para><emphasis>Scope Hierarchy Building</emphasis> - The
+          scope hierarchy building process establishes proper parent-child
+          relationships, ensuring nested scopes correctly inherit and isolate
+          variable bindings</para></listitem>
+        </itemizedlist>
+
+        <para>This registration system enables functions like
+        <function>rasqal_query_variable_bound_at_root_level</function> to
+        accurately determine whether a variable is bound at the root query level
+        or only within isolated child scopes, which is critical for correct
+        projection behavior in SPARQL queries with complex nested patterns.</para>
+      </section>
+
+      <section id="root-level-variable-checking">
+        <title>Root-Level Variable Checking</title>
+
+        <para>The <function>rasqal_query_variable_bound_at_root_level</function>
+        function determines whether a variable is bound at the root query level
+        (and thus visible in query results) or only within isolated child scopes
+        (such as UNION branches or nested GROUP patterns). This function is
+        critical for ensuring correct SPARQL 1.1 scoping semantics during query
+        projection.</para>
+
+        <para>The checking algorithm:</para>
+        <orderedlist>
+          <listitem><para>Traverses up the scope hierarchy to find the actual
+          root scope (ROOT type with no parent)</para></listitem>
+          <listitem><para>Checks if the variable is in the root scope's
+          <literal>local_vars</literal> table</para></listitem>
+          <listitem><para>Recursively checks if the variable is exclusively
+          bound in isolated GROUP scopes (which would exclude it from root-level
+          visibility)</para></listitem>
+          <listitem><para>Falls back to structural analysis of the root graph
+          pattern for variables from basic graph patterns</para></listitem>
+        </orderedlist>
+
+        <para>This function ensures that PROJECT rowsource correctly filters
+        variables, only including those bound at the root level in query
+        results and leaving variables bound only in isolated scopes as NULL
+        (unbound), maintaining proper SPARQL 1.1 semantic isolation.</para>
       </section>
 
     </section>
@@ -893,6 +1007,111 @@ FILTER NOT EXISTS {
 
     </section>
 
+    <section id="numeric-type-promotion">
+      <title>Numeric Type Promotion and Subtype Handling</title>
+
+      <para>Rasqal implements comprehensive numeric type promotion following XPath
+      2.0 and XML Schema type promotion rules. The system handles promotion between
+      numeric types and correctly processes integer subtypes within the decimal
+      subtype hierarchy.</para>
+
+      <section id="integer-subtype-promotion">
+        <title>Integer Subtype Promotion</title>
+
+        <para>Integer subtypes (such as <literal>xsd:byte</literal>,
+        <literal>xsd:short</literal>, <literal>xsd:int</literal>,
+        <literal>xsd:long</literal>, <literal>xsd:unsignedByte</literal>, etc.)
+        are promoted according to the decimal subtype hierarchy when used in
+        arithmetic operations. The promotion system determines the least common
+        ancestor type that can represent both operands.</para>
+
+        <para>Key promotion rules:</para>
+        <itemizedlist>
+          <listitem><para><emphasis>Same Subtype</emphasis> - Operations on the
+          same integer subtype preserve that subtype</para></listitem>
+          <listitem><para><emphasis>Unsigned Types</emphasis> - Operations between
+          unsigned types promote to the wider unsigned type (e.g.,
+          <literal>unsignedByte + unsignedShort → unsignedShort</literal>)</para></listitem>
+          <listitem><para><emphasis>Signed Types</emphasis> - Operations between
+          signed types promote to the wider signed type (e.g.,
+          <literal>byte + short → short</literal>)</para></listitem>
+          <listitem><para><emphasis>Mixed Signed/Unsigned</emphasis> - Operations
+          mixing signed and unsigned types promote to the wider signed type that
+          can represent both (e.g., <literal>unsignedByte + byte → short</literal>
+          or wider)</para></listitem>
+          <listitem><para><emphasis>Result Type</emphasis> - Per W3C SPARQL test
+          requirements, operations on integer subtypes produce
+          <literal>xsd:decimal</literal> results (the common ancestor type in the
+          decimal tree)</para></listitem>
+        </itemizedlist>
+
+        <para>This promotion system ensures correct SPARQL 1.1 semantics for
+        arithmetic operations involving integer subtypes while maintaining type
+        safety and preventing overflow conditions.</para>
+      </section>
+
+      <section id="decimal-to-float-promotion">
+        <title>Decimal to Float/Double Promotion</title>
+
+        <para>Following XPath 2.0 type promotion rules, decimal types (including
+        integer subtypes) can be promoted to <literal>xsd:float</literal> or
+        <literal>xsd:double</literal> when mixed with floating-point types in
+        arithmetic operations. This enables correct type handling for expressions
+        like <literal>xsd:integer + xsd:double</literal>.</para>
+      </section>
+
+    </section>
+
+    <section id="literal-comparison-semantics">
+      <title>Literal Comparison Semantics</title>
+
+      <para>Rasqal implements different comparison semantics depending on whether
+      the comparison is for SPARQL value equality or RDF term equality, ensuring
+      correct behavior for both query evaluation and triple matching.</para>
+
+      <section id="value-equality-comparison">
+        <title>Value Equality Comparison</title>
+
+        <para>For SPARQL value equality (used in FILTER expressions and value
+        comparisons), the system compares the actual values of literals rather than
+        their lexical forms. This ensures that <literal>'01'^^xsd:integer</literal>
+        equals <literal>'1'^^xsd:integer</literal> per SPARQL semantics, as both
+        represent the same numeric value.</para>
+
+        <para>Integer and boolean types are compared directly by their numeric
+        values, enabling correct canonicalization where different lexical forms
+        representing the same value are considered equal.</para>
+      </section>
+
+      <section id="rdf-term-equality-comparison">
+        <title>RDF Term Equality Comparison</title>
+
+        <para>For RDF term equality (used in triple pattern matching), the system
+        compares lexical forms rather than values. This ensures that
+        <literal>'true'^^xsd:boolean</literal> and
+        <literal>'1'^^xsd:boolean</literal> are considered different RDF terms,
+        even though they represent the same boolean value, maintaining correct RDF
+        semantics for triple matching.</para>
+
+        <para>Boolean RDF term equality requires exact lexical form matching,
+        ensuring that different lexical representations of the same boolean value
+        are treated as distinct RDF terms during triple pattern evaluation.</para>
+      </section>
+
+      <section id="extended-type-comparison">
+        <title>Extended Type (UDT) Comparison</title>
+
+        <para>User-defined types (UDTs) follow strict type checking rules. UDTs
+        with different datatype URIs cannot be compared and raise a type error per
+        SPARQL semantics. Only UDTs with identical datatype URIs can be compared,
+        and the comparison uses the lexical form of the literal values.</para>
+
+        <para>This ensures type safety for extended datatypes while maintaining
+        correct SPARQL semantic behavior for custom type systems.</para>
+      </section>
+
+    </section>
+
   </section>
 
       <section id="variable-binding-system">
@@ -1154,6 +1373,38 @@ static void rasqal_query_scope_print_variable_analysis(
         <para>These internal tools provide comprehensive visibility into the scope
         architecture, making it easier for Rasqal developers to debug complex SPARQL queries and
         understand variable scoping behavior.</para>
+      </section>
+
+      <section id="runtime-debug-level-control">
+        <title>Runtime Debug Level Control</title>
+
+        <para>Rasqal provides runtime control over debug output verbosity through the
+        <literal>RASQAL_DEBUG_LEVEL</literal> environment variable. This enables
+        developers to adjust debug output without recompiling, making debugging
+        more flexible and test frameworks cleaner.</para>
+
+        <para><emphasis>Debug Levels:</emphasis></para>
+        <itemizedlist>
+          <listitem><para><literal>0 (Off)</literal> - No debug output (useful for
+          testing and production environments)</para></listitem>
+          <listitem><para><literal>1 (Normal)</literal> - Standard debug output via
+          <literal>RASQAL_DEBUG1</literal> through <literal>RASQAL_DEBUG6</literal>
+          macros (default when not set)</para></listitem>
+          <listitem><para><literal>2 (Verbose)</literal> - Level 1 plus detailed
+          algebra dumps, scope analysis, and dataset operations</para></listitem>
+          <listitem><para><literal>3 (Very Verbose)</literal> - Level 2 plus
+          expression evaluation traces and variable usage tracking</para></listitem>
+        </itemizedlist>
+
+        <para>The debug level is read once at startup and cached for performance.
+        Values outside the 0-3 range are automatically clamped to valid bounds.
+        The test framework automatically sets <literal>RASQAL_DEBUG_LEVEL=0</literal>
+        to suppress debug output during test execution, eliminating the need for
+        fragile string-based debug message filtering.</para>
+
+        <para>This runtime control complements the compile-time
+        <literal>RASQAL_DEBUG</literal> flag, allowing fine-grained control over
+        debug verbosity without requiring code changes or recompilation.</para>
       </section>
 
     </section>
