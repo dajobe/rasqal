@@ -1637,17 +1637,42 @@ rasqal_query_prepare_common(rasqal_query *query)
     if(rc)
       goto done;
 
-    /* Remove unbound variables from SELECT * projection */
+    /* Remove variables not visible at root scope from SELECT * projection
+     * This is critical for BIND scoping: variables bound inside isolated
+     * scopes (like group patterns in UNION branches) should not be visible
+     * at the outer SELECT level per SPARQL scoping rules.
+     */
     if(projection && projection->wildcard) {
       raptor_sequence* vars_seq = rasqal_projection_get_variables_sequence(projection);
       if(vars_seq) {
         int j;
         int vars_size = raptor_sequence_size(vars_seq);
 
-        /* Remove unbound variables from the end to avoid index issues */
+        /* Remove variables from the end to avoid index issues */
         for(j = vars_size - 1; j >= 0; j--) {
           rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(vars_seq, j);
+          int should_remove = 0;
+
+          /* Check if variable is bound at all */
           if(!rasqal_query_variable_is_bound(query, v)) {
+            should_remove = 1;
+          } else {
+            /* Variable is bound - check if it's only bound in isolated child scopes
+             * A variable should be excluded from outer SELECT if it's ONLY bound
+             * inside isolated GROUP patterns (e.g., UNION branches with { BIND })
+             */
+            int bound_at_root_level = rasqal_query_variable_bound_at_root_level(query, v);
+            if(!bound_at_root_level) {
+              should_remove = 1;
+#ifdef RASQAL_DEBUG
+              if(rasqal_get_debug_level() >= 2) {
+                fprintf(RASQAL_DEBUG_FH, "SELECT * filtering: Variable ?%s only bound in isolated scopes - excluding from projection\n", v->name);
+              }
+#endif
+            }
+          }
+
+          if(should_remove) {
             raptor_sequence_delete_at(vars_seq, j);
             rasqal_free_variable(v);
           }
@@ -1954,6 +1979,227 @@ rasqal_query_variable_is_bound(rasqal_query* query, rasqal_variable* v)
 }
 
 
+/* Helper function to recursively check if variable is in any isolated GROUP scope */
+static int
+rasqal_check_variable_in_isolated_group_scopes(rasqal_query_scope* scope, rasqal_variable* v)
+{
+  if(!scope || !v)
+    return 0;
+  
+  /* Check if this is an isolated GROUP scope with the variable */
+  if(scope->scope_type == RASQAL_QUERY_SCOPE_TYPE_GROUP &&
+     scope->local_vars &&
+     rasqal_variables_table_contains(scope->local_vars, v->type, v->name)) {
+    return 1;  /* Found in isolated GROUP scope */
+  }
+  
+  /* Recursively check all child scopes */
+  if(scope->child_scopes) {
+    int i;
+    int size = raptor_sequence_size(scope->child_scopes);
+    for(i = 0; i < size; i++) {
+      rasqal_query_scope* child_scope = (rasqal_query_scope*)raptor_sequence_get_at(scope->child_scopes, i);
+      if(rasqal_check_variable_in_isolated_group_scopes(child_scope, v))
+        return 1;
+    }
+  }
+  
+  return 0;
+}
+
+
+/*
+ * rasqal_query_variable_bound_at_root_level:
+ * @query: #rasqal_query object
+ * @v: variable
+ *
+ * INTERNAL - Test if a variable is bound at the root (non-isolated) level
+ *
+ * This checks if a variable is bound in the root graph pattern or its
+ * non-isolated descendants. Variables bound only inside isolated GROUP
+ * patterns (e.g., UNION branches) are not visible at the root level.
+ *
+ * Return value: non-0 if bound at root level
+ */
+int
+rasqal_query_variable_bound_at_root_level(rasqal_query* query,
+                                         rasqal_variable* v)
+{
+  rasqal_graph_pattern* root_gp;
+  rasqal_query_scope* root_scope;
+  rasqal_query_scope* actual_root_scope;
+  int in_root_scope;
+
+  if(!query || !v || !query->query_graph_pattern)
+    return 0;
+
+  root_gp = query->query_graph_pattern;
+
+  /* BIND UNION FIX: Find the actual root scope by traversing up the parent chain.
+   * The query graph pattern's scope might be a GROUP scope (like in UNION branches),
+   * so we need to find the true root scope (one with ROOT type and no parent).
+   */
+  root_scope = root_gp->execution_scope;
+  actual_root_scope = NULL;
+  
+  if(root_scope) {
+    /* Traverse up to find the actual root scope */
+    actual_root_scope = root_scope;
+    while(actual_root_scope->parent_scope) {
+      actual_root_scope = actual_root_scope->parent_scope;
+    }
+    /* Verify it's actually a root scope, or treat root GROUP as root scope */
+    if(actual_root_scope->scope_type != RASQAL_QUERY_SCOPE_TYPE_ROOT) {
+      /* If this is the root graph pattern's scope and it has no parent,
+       * treat it as the root scope (even if it's a GROUP) */
+      if(actual_root_scope == root_scope && !actual_root_scope->parent_scope) {
+        /* Root graph pattern's scope with no parent - treat as root scope */
+      } else {
+        /* Not a root scope - the current scope is isolated (like GROUP in UNION) */
+        actual_root_scope = NULL;
+      }
+    }
+  } else {
+    actual_root_scope = NULL;
+  }
+  
+  /* First, check if variable is in root scope's local_vars */
+  in_root_scope = 0;
+  if(actual_root_scope && actual_root_scope->local_vars) {
+    in_root_scope = rasqal_variables_table_contains(actual_root_scope->local_vars,
+                                                        v->type, v->name);
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      fprintf(RASQAL_DEBUG_FH, "SCOPE CHECK: Variable ?%s is %s in root scope local_vars\n",
+              v->name, in_root_scope ? "FOUND" : "NOT FOUND");
+    }
+#endif
+    if(in_root_scope) {
+      return 1;  /* Found in root scope - bound at root level */
+    }
+  }
+  
+  /* Before any structural check, verify variable is NOT only in isolated GROUP scopes.
+   * If variable is in an isolated GROUP scope's local_vars but NOT in root scope's local_vars,
+   * then it's only bound in isolated scope and should return 0.
+   * Recursively check all descendant scopes. */
+  if(actual_root_scope && !in_root_scope) {
+    /* Check if variable is in any isolated GROUP scope (recursively) */
+    if(actual_root_scope->child_scopes) {
+      int i;
+      int size = raptor_sequence_size(actual_root_scope->child_scopes);
+      for(i = 0; i < size; i++) {
+        rasqal_query_scope* child_scope = (rasqal_query_scope*)raptor_sequence_get_at(actual_root_scope->child_scopes, i);
+        if(rasqal_check_variable_in_isolated_group_scopes(child_scope, v)) {
+          return 0;  /* Variable only in isolated GROUP scope - not bound at root */
+        }
+      }
+    }
+  }
+  
+  if(root_scope && root_scope->scope_type == RASQAL_QUERY_SCOPE_TYPE_GROUP) {
+    /* Current scope is an isolated GROUP scope (like UNION branch).
+     * If variable is in this scope's local_vars, it's NOT bound at root level. */
+    if(root_scope->local_vars && 
+       rasqal_variables_table_contains(root_scope->local_vars, v->type, v->name)) {
+      return 0;  /* Not bound at root level */
+    }
+  }
+
+  /* Before structural check, verify variable is NOT only in UNION branch GROUP patterns.
+   * Check graph pattern structure directly to see if variable is only in isolated GROUP patterns.
+   * This must happen BEFORE any structural check that might find the variable. */
+  if(root_gp->graph_patterns) {
+    int i;
+    int size = raptor_sequence_size(root_gp->graph_patterns);
+    int found_in_union_branch = 0;
+    int found_at_root_level = 0;
+    
+    for(i = 0; i < size; i++) {
+      rasqal_graph_pattern* child_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(root_gp->graph_patterns, i);
+      if(!child_gp)
+        continue;
+        
+      /* Check UNION patterns - their branches are isolated GROUP patterns */
+      if(child_gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_UNION && child_gp->graph_patterns) {
+        int j;
+        int union_size = raptor_sequence_size(child_gp->graph_patterns);
+        for(j = 0; j < union_size; j++) {
+          rasqal_graph_pattern* union_branch = (rasqal_graph_pattern*)raptor_sequence_get_at(child_gp->graph_patterns, j);
+          if(union_branch && union_branch->op == RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
+            /* This is a UNION branch GROUP - check if THIS SPECIFIC variable is bound here */
+            if(rasqal_graph_pattern_variable_bound_below(union_branch, v)) {
+              found_in_union_branch = 1;
+              break;
+            }
+          }
+        }
+        if(found_in_union_branch)
+          break;
+      } else if(child_gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_UNION) {
+        /* Check non-UNION patterns - if THIS SPECIFIC variable is found here, it's at root level */
+        if(rasqal_graph_pattern_variable_bound_below(child_gp, v)) {
+          found_at_root_level = 1;
+          break;
+        }
+      }
+    }
+    
+    /* If THIS SPECIFIC variable is found in UNION branch GROUP patterns but NOT at root level, return 0 */
+    if(found_in_union_branch && !found_at_root_level) {
+      return 0;
+    }
+  }
+
+  /* Fallback: Check if variable is bound in root-level triples (but NOT in UNION branches).
+   * Only check if we haven't already determined it's only in UNION branches. */
+  if(rasqal_graph_pattern_variable_bound_in(root_gp, v)) {
+    /* If variable is found in root graph pattern's triples, it's bound at root level.
+     * Variables in basic graph patterns are bound at root level even if not in local_vars.
+     * Only exclude if we've already determined it's exclusively in UNION branches. */
+    return 1;
+  }
+
+  /* Check non-isolated child patterns (OPTIONAL, FILTER, BIND, etc.)
+   * Skip UNION patterns because they contain isolated GROUP patterns (branches)
+   * that should not be checked. For GROUP patterns, check if they're isolated
+   * (like UNION branches) or if they're the root GROUP (which should be checked) */
+  if(root_gp->graph_patterns) {
+    int i;
+    int size = raptor_sequence_size(root_gp->graph_patterns);
+    for(i = 0; i < size; i++) {
+      rasqal_graph_pattern* child_gp = (rasqal_graph_pattern*)raptor_sequence_get_at(root_gp->graph_patterns, i);
+      if(child_gp) {
+        /* Skip UNION patterns - they contain isolated GROUP patterns (branches)
+         * that are already handled by the check above */
+        if(child_gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_UNION) {
+          continue;
+        }
+        
+        /* For GROUP patterns, check if they're isolated (like UNION branches).
+         * Isolated GROUP patterns have their own scope that's not the root scope. */
+        if(child_gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
+          /* Check if this GROUP is isolated (has its own scope that's not root) */
+          if(child_gp->execution_scope && 
+             child_gp->execution_scope->scope_type == RASQAL_QUERY_SCOPE_TYPE_GROUP &&
+             child_gp->execution_scope != actual_root_scope) {
+            /* Isolated GROUP (like UNION branch) - skip it */
+            continue;
+          }
+          /* Root-level GROUP - check its children */
+        }
+
+        /* Check if variable is bound in this pattern */
+        if(rasqal_graph_pattern_variable_bound_below(child_gp, v))
+          return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+
+
 /*
  * rasqal_query_variable_is_bound_in_scope:
  * @query: #rasqal_query object
@@ -2116,15 +2362,20 @@ rasqal_query_build_scope_hierarchy_recursive(rasqal_query* query,
         return 1;
       }
 
+    } else if(parent_scope->scope_type == RASQAL_QUERY_SCOPE_TYPE_ROOT && 
+              gp == query->query_graph_pattern) {
+      /* This is the root graph pattern being processed with a ROOT parent scope.
+       * Use the parent ROOT scope instead of creating a new GROUP scope. */
+      current_scope = parent_scope;
     } else {
-      /* Nested group pattern - create isolated scope */
-      current_scope = rasqal_new_query_scope(query, RASQAL_QUERY_SCOPE_TYPE_GROUP, NULL);
+      /* Nested group pattern (like UNION branch) - create isolated scope
+       * NOTE: We pass parent_scope so the hierarchy is correct, but GROUP scopes
+       * do NOT inherit variables from parent - they are isolated (for bind10) */
+      current_scope = rasqal_new_query_scope(query, RASQAL_QUERY_SCOPE_TYPE_GROUP, parent_scope);
       if(!current_scope) {
         RASQAL_DEBUG1("Failed to create group scope\n");
         return 1;
       }
-      
-
       
       /* Group scopes do NOT inherit from parent - they are isolated */
       /* This is the key for bind10: nested patterns can't see outer variables */

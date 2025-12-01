@@ -173,17 +173,38 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     for(i = 0; i < rowsource->size; i++) {
       int offset = con->projection[i];
       if(offset >= 0) {
-        nrow->values[i] = rasqal_new_literal_from_literal(row->values[offset]);
+        rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(con->projection_variables, i);
+
+        /* Check if this variable is visible at the PROJECT scope.
+         * Variables bound only in isolated child scopes (e.g., GROUP patterns
+         * within UNION branches) should not have their bindings included in
+         * the projection per SPARQL scoping rules (see bind07 test).
+         */
+        if(con->evaluation_scope && v && row->values[offset]) {
+          /* Check if variable is bound at root level (not just in isolated child scopes).
+           * For bind07: ?z is bound inside { BIND } patterns within UNION branches,
+           * but NOT at the root query level where ?s ?p ?o is bound.
+           */
+          int bound_at_root = rasqal_query_variable_bound_at_root_level(query, v);
+
+          if(bound_at_root) {
+            nrow->values[i] = rasqal_new_literal_from_literal(row->values[offset]);
+          }
+          /* else: Variable only bound in isolated scopes - leave as NULL (unbound) */
+        } else {
+          /* No scope checking available or no value - copy directly */
+          nrow->values[i] = rasqal_new_literal_from_literal(row->values[offset]);
+        }
       } else {
         rasqal_variable* v;
-        
+
         v = (rasqal_variable*)raptor_sequence_get_at(con->projection_variables, i);
         if(v && v->expression) {
           int error = 0;
 
           if(v->value)
             rasqal_free_literal(v->value);
-          
+
           v->value = rasqal_expression_evaluate2(v->expression,
                                                  query->eval_context,
                                                  &error);

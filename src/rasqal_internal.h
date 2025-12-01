@@ -920,7 +920,7 @@ rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* 
 rasqal_rowsource* rasqal_new_exists_rowsource(rasqal_world *world, rasqal_query* query, rasqal_triples_source* triples_source, rasqal_graph_pattern* exists_pattern, rasqal_row* outer_row, rasqal_literal* graph_origin, int is_negated);
 
 /* rasqal_rowsource_extend.c */
-rasqal_rowsource* rasqal_new_extend_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* input_rs, rasqal_variable* var, rasqal_expression* expr);
+rasqal_rowsource* rasqal_new_extend_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* input_rs, rasqal_variable* var, rasqal_expression* expr, rasqal_query_scope* execution_scope);
 
 /* rasqal_rowsource_engine.c */
 rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_results);
@@ -1660,6 +1660,7 @@ rasqal_variable* rasqal_query_get_variable_by_offset(rasqal_query* query, int id
 const rasqal_query_execution_factory* rasqal_query_get_engine_by_name(const char* name);
 int rasqal_query_variable_is_bound(rasqal_query* query, rasqal_variable* v);
 int rasqal_query_variable_is_bound_in_scope(rasqal_query* query, rasqal_variable* v, rasqal_query_scope* scope);
+int rasqal_query_variable_bound_at_root_level(rasqal_query* query, rasqal_variable* v);
 rasqal_variable* rasqal_query_get_variable_in_graph_pattern(rasqal_query* query, const char* name, rasqal_graph_pattern* gp);
 rasqal_triple_parts rasqal_query_variable_bound_in_triple(rasqal_query* query, rasqal_variable* v, int column);
 int rasqal_query_store_select_query(rasqal_query* query, rasqal_projection* projection, raptor_sequence* data_graphs, rasqal_graph_pattern* where_gp, rasqal_solution_modifier* modifier);

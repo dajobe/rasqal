@@ -263,7 +263,8 @@ rasqal_algebra_extend_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
   /* Create the Extend rowsource with scope integration */
   RASQAL_DEBUG1("Creating Extend rowsource\n");
   return rasqal_new_extend_rowsource(query->world, query, input_rs,
-                                     node->var, node->expr);
+                                     node->var, node->expr,
+                                     node->execution_scope);
 }
 
 

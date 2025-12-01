@@ -379,9 +379,14 @@ rasqal_new_project_algebra_node(rasqal_query* query,
     node->node1 = node1;
     node->vars_seq = vars_seq;
 
-    /* Inherit execution scope from input node so project rowsource can find variables */
-    if(node1->execution_scope)
+    /* Inherit execution scope from input node so project rowsource can find variables.
+     * If input node doesn't have a scope, use the root query graph pattern's scope. */
+    if(node1->execution_scope) {
       node->execution_scope = node1->execution_scope;
+    } else if(query && query->query_graph_pattern && query->query_graph_pattern->execution_scope) {
+      /* Fallback to root scope if input node doesn't have one */
+      node->execution_scope = query->query_graph_pattern->execution_scope;
+    }
 
     return node;
   }
@@ -1448,6 +1453,10 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
         rasqal_free_expression(expr);
         goto fail;
       }
+
+      /* BIND UNION FIX: Copy execution_scope from graph pattern to algebra node
+       * so that the EXTEND rowsource can register variables in the correct scope */
+      gnode->execution_scope = egp->execution_scope;
     } else {
       /* If E is any other form:*/
       rasqal_algebra_node* anode;
@@ -1556,6 +1565,10 @@ rasqal_algebra_bind_graph_pattern_to_algebra(rasqal_query* query,
     rasqal_free_algebra_node(empty_node);
     return NULL;
   }
+
+  /* BIND UNION FIX: Copy execution_scope from graph pattern to algebra node
+   * so that the EXTEND rowsource can register variables in the correct scope */
+  extend_node->execution_scope = gp->execution_scope;
 
   return extend_node;
 }

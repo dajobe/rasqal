@@ -123,6 +123,17 @@ rasqal_extend_rowsource_ensure_variables(rasqal_rowsource* rowsource,
       return 1;
   }
 
+  /* BIND UNION FIX: Register the variable in the scope's local_vars table
+   * so that scope visibility checking can determine which variables are
+   * bound at which scope level (fix for bind07 test) */
+  if(con->extend_scope && con->extend_scope->local_vars) {
+    if(!rasqal_variables_table_contains(con->extend_scope->local_vars, con->var->type, con->var->name)) {
+      if(rasqal_variables_table_add_variable(con->extend_scope->local_vars, con->var)) {
+        return 1;
+      }
+    }
+  }
+
   return 0;
 }
 
@@ -300,16 +311,18 @@ rasqal_new_extend_rowsource_with_filter(rasqal_world *world,
                                         rasqal_rowsource* input_rs,
                                         rasqal_variable* var,
                                         rasqal_expression* expr,
-                                        rasqal_expression* filter_expr);
+                                        rasqal_expression* filter_expr,
+                                        rasqal_query_scope* execution_scope);
 
 rasqal_rowsource*
 rasqal_new_extend_rowsource(rasqal_world *world,
                             rasqal_query *query,
                             rasqal_rowsource* input_rs,
                             rasqal_variable* var,
-                            rasqal_expression* expr)
+                            rasqal_expression* expr,
+                            rasqal_query_scope* execution_scope)
 {
-  return rasqal_new_extend_rowsource_with_filter(world, query, input_rs, var, expr, NULL);
+  return rasqal_new_extend_rowsource_with_filter(world, query, input_rs, var, expr, NULL, execution_scope);
 }
 
 rasqal_rowsource*
@@ -318,7 +331,8 @@ rasqal_new_extend_rowsource_with_filter(rasqal_world *world,
                                         rasqal_rowsource* input_rs,
                                         rasqal_variable* var,
                                         rasqal_expression* expr,
-                                        rasqal_expression* filter_expr)
+                                        rasqal_expression* filter_expr,
+                                        rasqal_query_scope* execution_scope)
 {
   rasqal_extend_rowsource_context *con;
   int flags = 0;
@@ -340,6 +354,9 @@ rasqal_new_extend_rowsource_with_filter(rasqal_world *world,
   } else {
     con->filter_expr = NULL;
   }
+
+  /* Store execution scope for variable registration */
+  con->extend_scope = execution_scope;
 
   return rasqal_new_rowsource_from_handler(world, query,
                                            con,

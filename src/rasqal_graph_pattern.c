@@ -1275,6 +1275,13 @@ rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp,
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, 0);
 
+  /* Check if this graph pattern is a BIND that binds the variable */
+  if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BIND && gp->var && v &&
+     gp->var->name && v->name &&
+     !strcmp((const char*)gp->var->name, (const char*)v->name)) {
+    return 1;
+  }
+
   /* Check if variable is bound in this graph pattern's scope */
   if(gp->execution_scope) {
     /* Check if variable is in the scope's local variables */
