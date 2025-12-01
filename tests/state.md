@@ -7,71 +7,20 @@ including test results, known limitations, and expected failures.
 
 ## Current Test Results
 
-**Overall**: 1014 SPARQL tests passed, 0 failed, 24 expected failures
+**Overall**: 1034 SPARQL tests passed, 0 failed, 24 expected failures
 
 ### Test Categories
 
 | Category                 | Pass | Xfail | Notes                           |
 |--------------------------|------|-------|---------------------------------|
 | C unit tests (`src/`)    |   33 |     0 | Core library component tests    |
-| SPARQL test directories  | 1014 |    24 | 32 directories, multiple suites |
+| SPARQL test directories  | 1034 |    24 | 32 directories, multiple suites |
 | Compare tests (`utils/`) |    8 |     0 | Result comparison tests         |
 
-The 1014 SPARQL tests run across 32 test directories, each running multiple
+The 1034 SPARQL tests run across 32 test directories, each running multiple
 test suites (sparql-lexer, sparql-parser, sparql-query, etc.).
 
-### XFailed Breakdown
-
-The 24 xfailed tests come from two sources:
-
-| Source                 | Unique | Xfails | Notes                                 |
-|------------------------|--------|--------|---------------------------------------|
-| XFailTest in manifests |      1 |      1 | Explicitly marked expected failures   |
-| Negative syntax tests  |     23 |     23 | Parser expected to reject but doesn't |
-| **Total**              | **24** | **24** |                                       |
-
-## XFailed Tests (Expected Failures)
-
-### XFailTest-based Failures (1 test)
-
-These tests are explicitly marked with `t:XFailTest` in manifest files.
-
-#### 1. BIND Test (1 test)
-
-Location: `tests/sparql/bind/manifest-failing.ttl`
-
-**Complexity**: HIGH (7/10) - Requires scope `local_vars` population system
-**Risk**: Medium - Core scope variable tracking changes
-**Priority**: LOW - Very specific edge case
-
-| Test     | Description            |
-|----------|------------------------|
-| `bind07` | BIND in UNION branches |
-
-**Root cause**: Variables bound in isolated GROUP scopes leak into outer query results.
-
-- **Problem**: Variables bound via BIND inside isolated GROUP patterns (UNION branches)
-  incorrectly appear in query results. Per SPARQL scoping rules (see bind10/bind11 tests),
-  variables bound inside `{ }` groups should not be visible outside those groups.
-- **Effect**: Query `SELECT ?s ?p ?o ?z { ?s ?p ?o . { BIND(?o+1 AS ?z) } UNION { BIND(?o+2 AS ?z) } }`
-  returns results with `?z` bindings when `?z` should appear in SELECT header but have
-  NO bindings in any result rows.
-- **Expected**: Variables in isolated GROUP scopes should not propagate bindings to outer scopes
-- **Investigation findings (2025-11-30)**:
-  - The scope system (`rasqal_query_scope`) exists architecturally but `local_vars` tables
-    are not populated during query execution
-  - Implemented `rasqal_query_variable_bound_at_root_level()` helper function
-  - Modified PROJECT rowsource to check scope visibility before including bindings
-  - Fix is architecturally correct but requires `local_vars` population to work
-- **What's needed**: Populate scope `local_vars` when BIND/Extend operations create variables,
-  OR use alternative mechanism to track variable origin scope
-
-**Code Locations**:
-- `src/rasqal_query_transform.c` (scope checking, added `rasqal_query_variable_bound_at_root_level()`)
-- `src/rasqal_rowsource_project.c` (projection with scope filtering - partial fix in place)
-- `src/rasqal_internal.h` (added function declaration)
-
-### Negative Syntax Test Failures (23 tests)
+### XFailed Tests : Negative Syntax Test Failures (24 tests)
 
 These are tests where the parser is expected to reject invalid syntax
 but currently accepts it. They run in `sparql-parser-negative` or
@@ -83,7 +32,8 @@ but currently accepts it. They run in `sparql-parser-negative` or
 | syntax         |      3 | Basic syntax rejection         |
 | update         |      1 | SPARQL Update syntax           |
 | aggregate      |      1 | Aggregate syntax               |
-| **Total**      | **23** |                                |
+| bind           |      1 | SPARQL BIND syntax             |
+| **Total**      | **24** |                                |
 
 **Root cause**: Parser accepts syntax that should be rejected.
 
@@ -91,23 +41,6 @@ but currently accepts it. They run in `sparql-parser-negative` or
 - The parser should reject them with a syntax error
 - Instead, the parser accepts the invalid queries
 - Likely missing syntax validation rules in `sparql_parser.y`
-
-## Actual Engine Compliance
-
-### Not Engine Bugs (23 tests)
-
-- **23 Negative syntax tests**: Parser validation, not query execution
-
-### Actual Query Engine Failures (1 test)
-
-| Category       | Count | Bug Type                       |
-|----------------|-------|--------------------------------|
-| BIND           |     1 | UNION variable scope isolation |
-| **Total**      | **1** |                                |
-
-Recent fixes: 3 negation tests (2025-11-27), 3 FILTER+MINUS tests (2025-11-28),
-4 Error API tests (2025-11-29/30), 3 ExprEquals tests (2025-11-30),
-7 ValueTesting tests (2025-11-30)
 
 ## Technical Architecture
 
@@ -137,6 +70,18 @@ ROOT Scope
 
 ## Recent Fixes
 
+- **2025-11-30**: Fixed BIND variable scoping in isolated GROUP patterns (bind07)
+  - Fixed variables bound via BIND inside isolated GROUP patterns (UNION branches)
+    incorrectly appearing in query results
+  - Variables bound within isolated scopes are now properly excluded from SELECT
+    projections per SPARQL 1.1 scoping rules
+  - Implemented scope-aware variable registration in EXTEND rowsource
+  - Added `rasqal_query_variable_bound_at_root_level()` function to check variable
+    visibility at root scope
+  - Modified PROJECT rowsource to use scope-aware variable checking
+  - Fixed scope hierarchy building to ensure proper parent references for nested
+    GROUP scopes
+  - Test moved from manifest-failing.ttl to manifest.ttl
 - **2025-11-30**: All ValueTesting tests now pass (7 tests total fixed)
   - Last test typePromotion-decimal-decimal-pass was already passing
   - Moved from manifest-negative.n3 to manifest.n3
@@ -170,7 +115,6 @@ ROOT Scope
 
 ## Future Work
 
-- Fix UNION variable scoping for BIND (1 test)
 - Property Paths implementation
 
 ## Test Framework Changes
