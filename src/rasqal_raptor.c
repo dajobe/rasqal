@@ -531,7 +531,8 @@ rasqal_raptor_free_triples_source(void *user_data)
   while(cur) {
     rasqal_raptor_triple *next = cur->next;
     rasqal_triple_set_origin(cur->triple, NULL); /* shared URI literal */
-    rasqal_free_triple(cur->triple);
+    if(cur->triple)
+      rasqal_free_triple(cur->triple);
     RASQAL_FREE(rasqal_raptor_triple, cur);
     cur = next;
   }
@@ -601,7 +602,6 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
 
   if(bindings[0] && (parts & RASQAL_TRIPLE_SUBJECT)) {
     rasqal_literal *l = rtmc->cur->triple->subject;
-    RASQAL_DEBUG1("binding subject to variable\n");
     rasqal_variable_set_value(bindings[0], rasqal_new_literal_from_literal(l));
     result = RASQAL_TRIPLE_SUBJECT;
   }
@@ -618,7 +618,6 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
       RASQAL_DEBUG1("subject and predicate values match\n");
     } else {
       rasqal_literal *l = rtmc->cur->triple->predicate;
-      RASQAL_DEBUG1("binding predicate to variable\n");
       rasqal_variable_set_value(bindings[1], rasqal_new_literal_from_literal(l));
       result = (rasqal_triple_parts)(result | RASQAL_TRIPLE_PREDICATE);
     }
@@ -654,7 +653,6 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     
     if(bind) {
       rasqal_literal *l = rtmc->cur->triple->object;
-      RASQAL_DEBUG1("binding object to variable\n");
       rasqal_variable_set_value(bindings[2], rasqal_new_literal_from_literal(l));
       result = (rasqal_triple_parts)(result | RASQAL_TRIPLE_OBJECT);
     }
@@ -663,7 +661,6 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
   if(bindings[3] && (parts & RASQAL_TRIPLE_ORIGIN)) {
     rasqal_literal *l;
     l = rasqal_new_literal_from_literal(rtmc->cur->triple->origin);
-    RASQAL_DEBUG1("binding origin to variable\n");
     rasqal_variable_set_value(bindings[3], l);
     result = (rasqal_triple_parts)(result | RASQAL_TRIPLE_ORIGIN);
   }

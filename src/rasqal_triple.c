@@ -113,7 +113,7 @@ rasqal_free_triple(rasqal_triple* t)
 {
   if(!t)
     return;
-  
+
   if(t->subject)
     rasqal_free_literal(t->subject);
   if(t->predicate)
