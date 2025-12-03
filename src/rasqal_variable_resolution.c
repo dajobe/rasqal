@@ -991,14 +991,19 @@ static rasqal_query_scope* create_test_scope_hierarchy(rasqal_world* world, rasq
       return NULL;
     }
 
-    /* Set scope name for identification */
-    scopes[i]->scope_name = RASQAL_GOOD_CAST(char*, test_scopes[i].scope_name);
+    /* Set scope name for identification - allocate a copy */
+    if(scopes[i]->scope_name) {
+      RASQAL_FREE(char*, scopes[i]->scope_name);
+    }
+    scopes[i]->scope_name = RASQAL_MALLOC(char*, strlen(test_scopes[i].scope_name) + 1);
+    if(scopes[i]->scope_name) {
+      strcpy(scopes[i]->scope_name, test_scopes[i].scope_name);
+    }
     scopes[i]->scope_id = i;
 
-    /* Create local variables table */
-    scopes[i]->local_vars = rasqal_new_variables_table(world);
+    /* Use the existing local_vars (already created by rasqal_new_query_scope) */
     if(!scopes[i]->local_vars) {
-      fprintf(stderr, "Failed to create variables table for scope %s\n", test_scopes[i].scope_name);
+      fprintf(stderr, "Failed: scope has no variables table for scope %s\n", test_scopes[i].scope_name);
       rasqal_free_query(query);
       return NULL;
     }
@@ -1016,14 +1021,20 @@ static rasqal_query_scope* create_test_scope_hierarchy(rasqal_world* world, rasq
         rasqal_free_query(query);
         return NULL;
       }
-
+      /* Free the caller's reference - the variables_table now owns the variable */
+      rasqal_free_variable(var);
     }
   }
 
   /* Set up parent-child relationships */
   for(i = 0; i < 5; i++) {
     if(test_scopes[i].parent_index >= 0) {
-      scopes[i]->parent_scope = scopes[test_scopes[i].parent_index];
+      rasqal_query_scope* parent = scopes[test_scopes[i].parent_index];
+      scopes[i]->parent_scope = parent;
+      /* Add child to parent's child_scopes sequence for proper cleanup */
+      if(parent->child_scopes) {
+        raptor_sequence_push(parent->child_scopes, scopes[i]);
+      }
     }
   }
 
@@ -1166,18 +1177,25 @@ static int test_scope_hierarchy(rasqal_world* world, rasqal_query_scope* root_sc
   }
   
   child_scope->parent_scope = root_scope;
-  child_scope->scope_name = RASQAL_GOOD_CAST(char*, "CHILD_EXISTS");
+  /* Allocate a copy of the scope name (will be freed when scope is freed) */
+  if(child_scope->scope_name) {
+    RASQAL_FREE(char*, child_scope->scope_name);
+  }
+  child_scope->scope_name = RASQAL_MALLOC(char*, strlen("CHILD_EXISTS") + 1);
+  if(child_scope->scope_name) {
+    strcpy(child_scope->scope_name, "CHILD_EXISTS");
+  }
   child_scope->scope_id = 99;
 
-  /* Add a variable to the child scope */
-  child_vars = rasqal_new_variables_table(world);
+  /* Use the existing local_vars from the scope (created by rasqal_new_query_scope) */
+  child_vars = child_scope->local_vars;
   if(!child_vars) {
-    fprintf(stderr, "FAIL: Could not create child variables table\n");
+    fprintf(stderr, "FAIL: Child scope has no local_vars table\n");
     failures++;
     goto cleanup;
   }
-  child_scope->local_vars = child_vars;
 
+  /* Add a variable to the child scope */
   child_var = rasqal_variables_table_add2(child_vars, RASQAL_VARIABLE_TYPE_NORMAL,
                                          (unsigned char*)"?child_var", 0, NULL);
   if(!child_var) {
@@ -1185,6 +1203,8 @@ static int test_scope_hierarchy(rasqal_world* world, rasqal_query_scope* root_sc
     failures++;
     goto cleanup;
   }
+  /* Free the caller's reference - the variables_table now owns the variable */
+  rasqal_free_variable(child_var);
 
   /* Test 1: Child scope can access parent variables */
   memset(&context, 0, sizeof(context));
@@ -1230,12 +1250,9 @@ static int test_scope_hierarchy(rasqal_world* world, rasqal_query_scope* root_sc
   }
 
 cleanup:
+  /* Free the child scope - it will free local_vars automatically */
   if(child_scope) {
-    if(child_scope->local_vars) {
-      rasqal_free_variables_table(child_scope->local_vars);
-      child_scope->local_vars = NULL; /* Prevent double-free */
-    }
-    /* Note: We don't free child_scope directly as it will be freed with the query */
+    rasqal_free_query_scope(child_scope);
   }
   if(test_query) {
     rasqal_free_query(test_query);
@@ -1359,6 +1376,8 @@ static int test_cross_scope_access_control(rasqal_world* world, rasqal_query_sco
           fprintf(stderr, "FAIL: Cross-scope access control failed\n");
           failures++;
         }
+        /* Free the caller's reference - the variables_table now owns the variable */
+        rasqal_free_variable(test_var);
       }
       rasqal_free_variables_table(test_vt);
     }
@@ -1479,6 +1498,11 @@ int main(int argc, char *argv[])
   }
 
 tidy:
+  /* Free the root scope if it was created - this will free all child scopes
+   * through the child_scopes sequence */
+  if(root_scope)
+    rasqal_free_query_scope(root_scope);
+
   if(query)
     rasqal_free_query(query);
 
@@ -1525,22 +1549,29 @@ static int test_scope_aware_expression_evaluation(rasqal_world* world, rasqal_qu
   if(root_scope && root_scope->local_vars) {
     rasqal_variable* test_var = rasqal_variables_table_get(root_scope->local_vars, 0);
     if(test_var) {
-      /* Create a simple expression: ?x (variable reference) */
-      rasqal_literal* var_literal = rasqal_new_variable_literal(world, test_var);
-      if(var_literal) {
-        expr = rasqal_new_literal_expression(world, var_literal);
-        if(expr) {
-          result = rasqal_expression_evaluate_with_scope(expr, eval_context, &scope_context);
-          if(result) {
-            printf("PASS: Scope-aware expression evaluation for variable reference\n");
-            rasqal_free_literal(result);
+      /* Create a new reference to the variable since rasqal_new_variable_literal() takes ownership */
+      rasqal_variable* test_var_copy = rasqal_new_variable_from_variable(test_var);
+      if(test_var_copy) {
+        /* Create a simple expression: ?x (variable reference) */
+        rasqal_literal* var_literal = rasqal_new_variable_literal(world, test_var_copy);
+        if(var_literal) {
+          expr = rasqal_new_literal_expression(world, var_literal);
+          if(expr) {
+            result = rasqal_expression_evaluate_with_scope(expr, eval_context, &scope_context);
+            if(result) {
+              printf("PASS: Scope-aware expression evaluation for variable reference\n");
+              rasqal_free_literal(result);
+            } else {
+              printf("PASS: Scope-aware expression evaluation returned NULL (expected for GROUP scope)\n");
+            }
+            rasqal_free_expression(expr); /* This will also free var_literal and test_var_copy */
           } else {
-            printf("PASS: Scope-aware expression evaluation returned NULL (expected for GROUP scope)\n");
+            /* Expression creation failed, need to free the literal */
+            rasqal_free_literal(var_literal);
           }
-          rasqal_free_expression(expr); /* This will also free var_literal */
         } else {
-          /* Expression creation failed, need to free the literal */
-          rasqal_free_literal(var_literal);
+          /* Literal creation failed, free the variable copy */
+          rasqal_free_variable(test_var_copy);
         }
       }
     }
