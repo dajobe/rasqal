@@ -2302,6 +2302,12 @@ rasqal_query_build_scope_hierarchy(rasqal_query* query)
   if(!query || !query->query_graph_pattern)
     return 0;
 
+  /* Check if scope hierarchy already exists - don't rebuild */
+  if(query->query_graph_pattern->execution_scope) {
+    RASQAL_DEBUG1("Scope hierarchy already exists, skipping rebuild\n");
+    return 0;
+  }
+
   /* Create root scope for the entire query */
   root_scope = rasqal_new_query_scope(query, RASQAL_QUERY_SCOPE_TYPE_ROOT, NULL);
   if(!root_scope) {
@@ -2311,18 +2317,22 @@ rasqal_query_build_scope_hierarchy(rasqal_query* query)
 
   RASQAL_DEBUG2("Created root scope: %s\n", root_scope->scope_name);
 
-  /* Assign root scope to the main query graph pattern */
-  query->query_graph_pattern->execution_scope = root_scope;
+  /* Create scopes for all graph patterns in the query.
+   * The recursive function will assign root_scope to query_graph_pattern
+   * with proper reference counting. */
+  rc = rasqal_query_build_scope_hierarchy_recursive(query, query->query_graph_pattern, root_scope);
 
-  /* Create scopes for all graph patterns in the query */
-  if(rasqal_query_build_scope_hierarchy_recursive(query, query->query_graph_pattern, root_scope)) {
+  /* Free our local reference to root_scope - the graph pattern(s) now own it */
+  rasqal_free_query_scope(root_scope);
+
+  if(rc) {
     RASQAL_DEBUG1("Failed to build scope hierarchy recursively\n");
     return 1;
   }
 
   RASQAL_DEBUG1("Created complete scope hierarchy\n");
 
-  return rc;
+  return 0;
 }
 
 
@@ -2362,11 +2372,12 @@ rasqal_query_build_scope_hierarchy_recursive(rasqal_query* query,
         return 1;
       }
 
-    } else if(parent_scope->scope_type == RASQAL_QUERY_SCOPE_TYPE_ROOT && 
+    } else if(parent_scope->scope_type == RASQAL_QUERY_SCOPE_TYPE_ROOT &&
               gp == query->query_graph_pattern) {
       /* This is the root graph pattern being processed with a ROOT parent scope.
-       * Use the parent ROOT scope instead of creating a new GROUP scope. */
-      current_scope = parent_scope;
+       * Use the parent ROOT scope instead of creating a new GROUP scope.
+       * Increment reference count since this graph pattern will own a reference. */
+      current_scope = rasqal_new_query_scope_from_query_scope(parent_scope);
     } else {
       /* Nested group pattern (like UNION branch) - create isolated scope
        * NOTE: We pass parent_scope so the hierarchy is correct, but GROUP scopes
@@ -2381,9 +2392,10 @@ rasqal_query_build_scope_hierarchy_recursive(rasqal_query* query,
       /* This is the key for bind10: nested patterns can't see outer variables */
     }
   } else {
-    /* Other patterns inherit from parent scope */
-    current_scope = parent_scope;
-    RASQAL_DEBUG3("Using parent scope: %s for graph pattern %d\n", 
+    /* Other patterns inherit from parent scope.
+     * Increment reference count since this graph pattern will own a reference. */
+    current_scope = rasqal_new_query_scope_from_query_scope(parent_scope);
+    RASQAL_DEBUG3("Using parent scope: %s for graph pattern %d\n",
                   parent_scope ? parent_scope->scope_name : "NULL", gp->gp_index);
   }
 

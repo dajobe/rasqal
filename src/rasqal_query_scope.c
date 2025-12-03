@@ -151,6 +151,32 @@ rasqal_new_query_scope(rasqal_query* query, int scope_type, rasqal_query_scope* 
 
 
 /**
+ * rasqal_new_query_scope_from_query_scope:
+ * @scope: query scope to reference (borrowed)
+ *
+ * Create a new reference to an existing query scope.
+ *
+ * Increments the reference count on the scope, following rasqal's
+ * pattern for reference-counted objects (like rasqal_new_literal_from_literal).
+ *
+ * Ownership:
+ * - @scope: borrowed reference (not freed)
+ * - Return value: owned reference (caller must free with rasqal_free_query_scope)
+ *
+ * Return value: the scope with incremented reference count, or NULL if scope is NULL
+ */
+rasqal_query_scope*
+rasqal_new_query_scope_from_query_scope(rasqal_query_scope* scope)
+{
+  if(!scope)
+    return NULL;
+
+  scope->usage++;
+  return scope;
+}
+
+
+/**
  * rasqal_free_query_scope:
  * @scope: query scope (owned, may be NULL)
  *

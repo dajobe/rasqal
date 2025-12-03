@@ -401,6 +401,10 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->bindings)
     rasqal_free_bindings(gp->bindings);
 
+  /* Free execution scope - uses reference counting */
+  if(gp->execution_scope)
+    rasqal_free_query_scope(gp->execution_scope);
+
   RASQAL_FREE(rasqal_graph_pattern, gp);
 }
 

@@ -586,6 +586,7 @@ int rasqal_graph_pattern_write(rasqal_graph_pattern* gp, raptor_iostream* iostr)
 
 /* Query Scope Functions - Phase 1 Implementation */
 rasqal_query_scope* rasqal_new_query_scope(rasqal_query* query, int scope_type, rasqal_query_scope* parent_scope);
+rasqal_query_scope* rasqal_new_query_scope_from_query_scope(rasqal_query_scope* scope);
 void rasqal_free_query_scope(rasqal_query_scope* scope);
 int rasqal_query_scope_compute_visible_variables(rasqal_query_scope* scope);
 int rasqal_query_scope_add_child_scope(rasqal_query_scope* parent, rasqal_query_scope* child);
