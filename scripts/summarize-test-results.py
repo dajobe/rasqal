@@ -78,6 +78,8 @@ class TestSummary:
         # Each entry is a dict with: suite, test_id, directory, error_detail, log_path
         self.failed_tests = []
         self.xfailed_tests = []
+        # Unit test failures with details
+        self.unit_test_failures = []
 
     def has_data(self) -> bool:
         """Check if any test data was found."""
@@ -87,6 +89,51 @@ class TestSummary:
             or len(self.sparql_suites) > 0
             or self.compare_tests is not None
         )
+
+
+def parse_unit_test_failures(content: str) -> list:
+    """Parse detailed unit test failure information from log content."""
+    failures = []
+
+    # Look for FAIL: test_name lines in the src section
+    fail_pattern = r"^FAIL:\s+(\S+)"
+    for match in re.finditer(fail_pattern, content, re.MULTILINE):
+        test_name = match.group(1)
+
+        # Try to find details about this failure in test-suite.log section
+        # Look for the test name followed by error information
+        start_pos = match.end()
+        context_size = 10000  # Look ahead for details
+        context = content[start_pos:start_pos + context_size]
+
+        # Try to extract error summary
+        error_detail = None
+        leak_summary = None
+
+        # Look for LeakSanitizer summary for this test
+        leak_pattern = rf"FAIL:\s+{re.escape(test_name)}.*?SUMMARY:\s+AddressSanitizer:\s+(.+?)(?=\n(?:FAIL|PASS|$))"
+        leak_match = re.search(leak_pattern, content, re.DOTALL)
+        if leak_match:
+            leak_summary = leak_match.group(1).strip()
+            # Extract just the summary line
+            if '\n' in leak_summary:
+                leak_summary = leak_summary.split('\n')[0]
+
+        # Look for segfault/crash info
+        crash_pattern = rf"FAIL:\s+{re.escape(test_name)}.*?(AddressSanitizer:\s*(?:SEGV|DEADLYSIGNAL).*?)(?=\n\n|SUMMARY)"
+        crash_match = re.search(crash_pattern, content, re.DOTALL)
+        if crash_match:
+            error_detail = "CRASHED: " + crash_match.group(1).strip().split('\n')[0]
+        elif leak_summary:
+            error_detail = f"Memory leak: {leak_summary}"
+
+        failures.append({
+            "test_name": test_name,
+            "error_detail": error_detail,
+            "leak_summary": leak_summary
+        })
+
+    return failures
 
 
 def parse_unit_tests(content: str) -> Optional[Dict[str, int]]:
@@ -558,6 +605,31 @@ def parse_log_content(content: str, log_source: str = "stdin") -> TestSummary:
     summary.line_count = len(content.splitlines())
 
     summary.unit_tests = parse_unit_tests(content)
+    summary.unit_test_failures = parse_unit_test_failures(content)
+
+    # If we found unit test failures but no details, try to read src/test-suite.log
+    if summary.unit_test_failures and log_source != "stdin":
+        for failure in summary.unit_test_failures:
+            if not failure.get('error_detail'):
+                # Try to read from src/test-suite.log
+                log_dir = Path(log_source).parent if log_source else Path(".")
+                test_suite_log = log_dir / "src" / "test-suite.log"
+                if test_suite_log.exists():
+                    try:
+                        with open(test_suite_log, 'r') as f:
+                            test_content = f.read()
+                        # Re-parse with the detailed content
+                        detailed_failures = parse_unit_test_failures(test_content)
+                        # Update failures with details from test-suite.log
+                        for detailed in detailed_failures:
+                            for f in summary.unit_test_failures:
+                                if f['test_name'] == detailed['test_name'] and detailed.get('error_detail'):
+                                    f['error_detail'] = detailed['error_detail']
+                                    f['leak_summary'] = detailed.get('leak_summary')
+                        break  # Only need to read once
+                    except:
+                        pass  # If we can't read it, just continue
+
     summary.library_tests = parse_library_tests(content)
     summary.sparql_suites = parse_sparql_suites(content)
     summary.compare_tests = parse_compare_tests(content)
@@ -703,6 +775,51 @@ def format_unit_tests(
             f"{'Failed':<12} {failed_str}",
             "",
         ]
+    return "\n".join(lines)
+
+
+def format_unit_test_failures(
+    unit_test_failures: list, markdown: bool = False, use_color: bool = False
+) -> str:
+    """Format detailed unit test failure information."""
+    if not unit_test_failures:
+        return ""
+
+    if markdown:
+        header = ["Test Name", "Error Summary"]
+        rows = []
+        for failure in unit_test_failures:
+            test_name = f"`{failure['test_name']}`"
+            error = failure.get('error_detail', 'No details available')
+            if error and len(error) > 150:
+                error = error[:147] + "..."
+            error = error.replace("|", "\\|").replace("\n", " ") if error else "No details"
+            rows.append([test_name, error])
+        lines = ["#### Unit Test Failures (Details)", ""]
+        lines.extend(format_markdown_table(header, rows, ["l", "l"]))
+        lines.append("")
+    else:
+        header = "UNIT TEST FAILURES (Details):"
+        if use_color:
+            header = f"{Colors.RED}{Colors.BOLD}{header}{Colors.RESET}"
+        lines = [header, ""]
+        for i, failure in enumerate(unit_test_failures, 1):
+            test_name = failure['test_name']
+            if use_color:
+                test_name = f"{Colors.RED}{test_name}{Colors.RESET}"
+            lines.append(f"  {i}. {test_name}")
+            if failure.get('error_detail'):
+                error = failure['error_detail']
+                # Wrap long error messages
+                if len(error) > 100:
+                    lines.append(f"     Error: {error[:100]}")
+                    lines.append(f"            {error[100:]}")
+                else:
+                    lines.append(f"     Error: {error}")
+            else:
+                lines.append(f"     Error: No details available - check src/test-suite.log")
+            lines.append("")
+
     return "\n".join(lines)
 
 
@@ -1082,6 +1199,15 @@ def generate_summary(
         output_lines.append(
             format_unit_tests(
                 summary.unit_tests, markdown=markdown, use_color=use_color
+            )
+        )
+
+    # Unit test failure details
+    if summary.unit_test_failures:
+        output_lines.append(format_section_header("", markdown=markdown))
+        output_lines.append(
+            format_unit_test_failures(
+                summary.unit_test_failures, markdown=markdown, use_color=use_color
             )
         )
 
