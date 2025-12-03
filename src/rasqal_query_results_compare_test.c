@@ -630,7 +630,7 @@ test_advanced_graph_comparison(rasqal_world* world)
   triple1 = raptor_new_statement_from_nodes(world->raptor_world_ptr, raptor_term_copy(bnode1), raptor_term_copy(uri1), raptor_term_copy(literal1), NULL);
   triple2 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode1, uri2, raptor_term_copy(bnode2), NULL);
   triple3 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode2, raptor_term_copy(uri1), raptor_term_copy(literal1), NULL);
-  triple4 = raptor_new_statement_from_nodes(world->raptor_world_ptr, raptor_term_copy(bnode3), uri1, literal1, NULL);
+  triple4 = raptor_new_statement_from_nodes(world->raptor_world_ptr, bnode3, uri1, literal1, NULL);
   bnode1 = bnode2 = bnode3 = uri1 = uri2 = literal1 = NULL;
 
   if(!triple1 || !triple2 || !triple3 || !triple4) {
