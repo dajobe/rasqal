@@ -771,15 +771,15 @@ retype:
     case RASQAL_LITERAL_BOOLEAN:
       i = rasqal_xsd_boolean_value_from_string(l->string);
       l->value.integer = i;
-      if(canonicalize) {
-        /* Free passed in string if it is not our static objects */
-        if(l->string != rasqal_xsd_boolean_true &&
-           l->string != rasqal_xsd_boolean_false)
-          RASQAL_FREE(char*, l->string);
-        /* and replace with a static string */
-        l->string = i ? rasqal_xsd_boolean_true : rasqal_xsd_boolean_false;
-        l->string_len = i ? RASQAL_XSD_BOOLEAN_TRUE_LEN : RASQAL_XSD_BOOLEAN_FALSE_LEN;
-      }
+      /* Always free passed in string if it is not our static objects
+       * to prevent memory leaks when converting from RDF data */
+      if(l->string != rasqal_xsd_boolean_true &&
+         l->string != rasqal_xsd_boolean_false)
+        RASQAL_FREE(char*, l->string);
+      /* Always replace with a static string to ensure all boolean
+       * literals use static strings */
+      l->string = i ? rasqal_xsd_boolean_true : rasqal_xsd_boolean_false;
+      l->string_len = i ? RASQAL_XSD_BOOLEAN_TRUE_LEN : RASQAL_XSD_BOOLEAN_FALSE_LEN;
       break;
 
   case RASQAL_LITERAL_STRING:
