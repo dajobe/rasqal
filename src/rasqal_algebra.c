@@ -1622,7 +1622,8 @@ rasqal_algebra_select_graph_pattern_to_algebra(rasqal_query* query,
     int j;
     for(j = 0; j < var_count; j++) {
       rasqal_variable* v = rasqal_variables_table_get(query->vars_table, j);
-      rasqal_projection_add_variable(projection, rasqal_new_variable_from_variable(v));
+      /* rasqal_projection_add_variable() increments usage internally */
+      rasqal_projection_add_variable(projection, v);
     }
     /* Clear the wildcard flag since we've expanded it */
     projection->wildcard = 0;
