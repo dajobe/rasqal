@@ -209,62 +209,65 @@ rasqal_extend_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   /* Evaluate expression with scope awareness */
   result = evaluate_extend_expression(con, input_row);
 
-  if(result) {
-    /* Expression evaluated successfully - create extended row */
-    /* Input row has size N, output row needs size N+1 for the new variable */
-    int output_size = input_row->size + 1;
+  /* SPARQL 1.2 Extend semantics: Create extended row regardless of success/failure
+   * - On success: Extend(μ, var, expr) = μ ∪ { (var,value) | value = expr(μ) }
+   * - On error: Extend(μ, var, expr) = μ (with var unbound/NULL)
+   * In both cases, we need to create a row with size N+1 to match the expected
+   * rowsource size, otherwise downstream operations will access out-of-bounds memory.
+   */
+  int output_size = input_row->size + 1;
 
-    output_row = rasqal_new_row_for_size(con->input_rs->world, output_size);
-    if(output_row) {
-      int i;
-      int j;
+  output_row = rasqal_new_row_for_size(con->input_rs->world, output_size);
+  if(output_row) {
+    int i;
+    int j;
 
-      /* Set the rowsource for proper variable resolution */
-      rasqal_row_set_rowsource(output_row, rowsource);
+    /* Set the rowsource for proper variable resolution */
+    rasqal_row_set_rowsource(output_row, rowsource);
 
-      /* Copy all values from input row */
-      for(i = 0; i < input_row->size; i++) {
-        output_row->values[i] = rasqal_new_literal_from_literal(input_row->values[i]);
-      }
-
-      /* Set the extend variable value in the last position */
-      output_row->values[input_row->size] = rasqal_new_literal_from_literal(result);
-      output_row->size = output_size;
-
-#ifdef RASQAL_DEBUG
-      if(rasqal_get_debug_level() >= 2) {
-        /* Debug: Verify the variable binding */
-        RASQAL_DEBUG2("EXTEND: Bound variable %s to value: ", con->var->name);
-        rasqal_literal_print(result, RASQAL_DEBUG_FH);
-        fputc('\n', RASQAL_DEBUG_FH);
-
-        /* Debug: Print the full row */
-        RASQAL_DEBUG1("EXTEND: Output row values:\n");
-        for(j = 0; j < output_row->size; j++) {
-          rasqal_variable* var = rasqal_rowsource_get_variable_by_offset(rowsource, j);
-          if(var) {
-            fprintf(RASQAL_DEBUG_FH, "  %s = ", var->name);
-            if(output_row->values[j]) {
-              rasqal_literal_print(output_row->values[j], RASQAL_DEBUG_FH);
-            } else {
-              fputs("NULL", RASQAL_DEBUG_FH);
-            }
-            fputc('\n', RASQAL_DEBUG_FH);
-          }
-        }
-      }
-#endif
+    /* Copy all values from input row */
+    for(i = 0; i < input_row->size; i++) {
+      output_row->values[i] = rasqal_new_literal_from_literal(input_row->values[i]);
     }
 
-    /* Free the original result since we created a copy */
-    rasqal_free_literal(result);
-    result = NULL;
-  } else {
-    /* Expression evaluation failed - preserve original row */
-    output_row = input_row;
-    input_row = NULL; /* Don't free it since we're returning it */
-    if(result)
+    /* Set the extend variable value in the last position */
+    if(result) {
+      /* Expression evaluated successfully */
+      output_row->values[input_row->size] = rasqal_new_literal_from_literal(result);
       rasqal_free_literal(result);
+    } else {
+      /* Expression evaluation failed - set to NULL (unbound) */
+      output_row->values[input_row->size] = NULL;
+    }
+    output_row->size = output_size;
+
+#ifdef RASQAL_DEBUG
+    if(rasqal_get_debug_level() >= 2) {
+      /* Debug: Verify the variable binding */
+      RASQAL_DEBUG2("EXTEND: Variable %s bound to: ", con->var->name);
+      if(result) {
+        rasqal_literal_print(result, RASQAL_DEBUG_FH);
+      } else {
+        fputs("NULL (expression error)", RASQAL_DEBUG_FH);
+      }
+      fputc('\n', RASQAL_DEBUG_FH);
+
+      /* Debug: Print the full row */
+      RASQAL_DEBUG1("EXTEND: Output row values:\n");
+      for(j = 0; j < output_row->size; j++) {
+        rasqal_variable* var = rasqal_rowsource_get_variable_by_offset(rowsource, j);
+        if(var) {
+          fprintf(RASQAL_DEBUG_FH, "  %s = ", var->name);
+          if(output_row->values[j]) {
+            rasqal_literal_print(output_row->values[j], RASQAL_DEBUG_FH);
+          } else {
+            fputs("NULL", RASQAL_DEBUG_FH);
+          }
+          fputc('\n', RASQAL_DEBUG_FH);
+        }
+      }
+    }
+#endif
   }
 
   /* Clean up input row if we created a new output row */
