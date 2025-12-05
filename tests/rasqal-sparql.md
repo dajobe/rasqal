@@ -1,6 +1,6 @@
 # Rasqal SPARQL Compliance
 
-**Last Updated**: 2025-11-30
+**Last Updated**: 2025-12-05
 
 This document defines Rasqal's compliance status with SPARQL 1.1 and SPARQL 1.2 Query specifications. It serves as the authoritative reference for implementation status, test results, and known limitations.
 
@@ -313,7 +313,7 @@ ROOT Scope
 
 ---
 
-## Recent Fixes (November 2025)
+## Recent Fixes (November-December 2025)
 
 ### 2025-11-30: BIND Variable Scoping
 
@@ -355,7 +355,28 @@ ROOT Scope
 - Fixed variable corruption in PROJECT rowsource
 - Fixed negation subset tests (subset-02, subset-03)
 
-**Total Progress**: 40+ tests fixed through systematic investigation
+### 2025-12-03: Memory Management Improvements
+
+- Fixed memory leak in boolean literal string handling
+- Improved scope hierarchy reference counting and cleanup
+- Fixed memory leaks in variable resolution test framework
+- Added null check before freeing triple
+- Enhanced test result summary script with failure details
+
+### 2025-12-04: EXTEND Semantics and Type Handling
+
+- **Fixed EXTEND semantics to handle expression evaluation errors**
+  - Changed EXTEND rowsource to always create extended rows with correct size
+  - Set unbound variables to NULL on expression evaluation failure
+  - Implements proper SPARQL 1.2 Extend semantics per §18.6
+- **Fixed integer subtype literal datatype URI preservation**
+  - Integer subtypes (xsd:byte, xsd:short, etc.) now preserve original datatype URIs
+  - Ensures correct SPARQL type semantics for integer subtype literals
+- **Fixed variable reference counting in wildcard projection expansion**
+  - Removed double increment of variable reference count in SELECT * expansion
+  - Prevents memory leaks in SELECT * queries with nested projections
+
+**Total Progress**: 49 commits fixing 40+ tests through systematic investigation
 
 ---
 
@@ -425,8 +446,8 @@ SELECT ?x ?x WHERE { ?s ?p ?o }  # Duplicate variable (should fail)
 
 ### Code Quality
 
-- **Memory Management**: No memory leaks or excessive usage
-- **Error Handling**: Graceful handling of all error conditions
+- **Memory Management**: Recent fixes (Dec 2025) eliminated memory leaks in boolean literals, scope hierarchies, and variable resolution
+- **Error Handling**: Enhanced EXTEND semantics for proper expression error handling per SPARQL 1.2 §18.6
 - **Performance**: No significant performance regression
 - **Test Coverage**: Comprehensive test suites for all implemented features
 
