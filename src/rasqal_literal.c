@@ -132,53 +132,6 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type,
 }
 
 
-/*
- * rasqal_new_integer_subtype_literal:
- * @world: rasqal world object
- * @integer: int value
- * @datatype_uri: datatype URI for the integer subtype
- *
- * INTERNAL - Create a new integer subtype literal with specific datatype URI
- *
- * Return value: New rasqal_literal or NULL on failure
- */
-static rasqal_literal*
-rasqal_new_integer_subtype_literal(rasqal_world* world,
-                                    int integer,
-                                    raptor_uri* datatype_uri)
-{
-  rasqal_literal* l;
-  size_t slen = 0;
-  
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(datatype_uri, raptor_uri, NULL);
-  
-  l = RASQAL_CALLOC(rasqal_literal*, 1, sizeof(*l));
-  if(!l)
-    return NULL;
-  
-  l->valid = 1;
-  l->usage = 1;
-  l->world = world;
-  l->type = RASQAL_LITERAL_INTEGER_SUBTYPE;
-  l->value.integer = integer;
-  l->string = rasqal_xsd_format_integer(integer, &slen);
-  l->string_len = RASQAL_BAD_CAST(unsigned int, slen);
-  if(!l->string) {
-    rasqal_free_literal(l);
-    return NULL;
-  }
-  l->datatype = raptor_uri_copy(datatype_uri);
-  if(!l->datatype) {
-    rasqal_free_literal(l);
-    return NULL;
-  }
-  l->parent_type = RASQAL_LITERAL_INTEGER;
-  
-  return l;
-}
-
-
 /**
  * rasqal_new_numeric_literal_from_long:
  * @world: rasqal world object
@@ -674,7 +627,12 @@ retype:
     memcpy((void*)l->string, string, l->string_len + 1);
   }
 
-  if(l->type <= RASQAL_LITERAL_LAST_XSD) {
+  if(l->type == RASQAL_LITERAL_INTEGER_SUBTYPE) {
+    /* For integer subtypes, preserve the existing datatype URI */
+    if(!l->datatype)
+      return 1;
+    l->parent_type = rasqal_xsd_datatype_parent_type(type);
+  } else if(l->type <= RASQAL_LITERAL_LAST_XSD) {
     dt_uri = rasqal_xsd_datatype_type_to_uri(l->world, l->type);
     if(!dt_uri)
       return 1;
