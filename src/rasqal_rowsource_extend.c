@@ -185,6 +185,7 @@ rasqal_extend_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   rasqal_row* output_row = NULL;
   rasqal_literal* result = NULL;
   int extend_var_offset;
+  int output_size;
 
   con = (rasqal_extend_rowsource_context*)user_data;
 
@@ -215,7 +216,7 @@ rasqal_extend_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
    * In both cases, we need to create a row with size N+1 to match the expected
    * rowsource size, otherwise downstream operations will access out-of-bounds memory.
    */
-  int output_size = input_row->size + 1;
+  output_size = input_row->size + 1;
 
   output_row = rasqal_new_row_for_size(con->input_rs->world, output_size);
   if(output_row) {
