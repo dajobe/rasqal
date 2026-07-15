@@ -1,12 +1,17 @@
 # Rasqal SPARQL Compliance
 
-**Last Updated**: 2025-12-05
+**Last Updated**: 2026-07-14
 
-This document defines Rasqal's compliance status with SPARQL 1.1 and SPARQL 1.2 Query specifications. It serves as the authoritative reference for implementation status, test results, and known limitations.
+This document defines Rasqal's compliance status with the SPARQL 1.1 Query
+Recommendation and the SPARQL 1.2 Query drafts. It serves as the authoritative
+reference for implementation status, test results, and known limitations.
 
 ## Executive Summary
 
-Rasqal provides **high SPARQL 1.1 and 1.2 Query compliance** with all core features implemented, excluding Property Paths.
+Rasqal implements SPARQL 1.1 Query excluding Property Paths, evaluated per the
+clarified algebra text of the SPARQL 1.2 Query drafts. The new SPARQL 1.2 / RDF
+1.2 features (triple terms, reifiers, directional language-tagged strings, new
+built-in functions, the `VERSION` declaration) are **not** implemented.
 
 ### Key Metrics
 
@@ -17,9 +22,13 @@ Rasqal provides **high SPARQL 1.1 and 1.2 Query compliance** with all core featu
 
 ### Compliance Status
 
-- **SPARQL 1.1 Core Features**: ✅ **COMPLETE**
-- **SPARQL 1.2 Features**: ✅ **COMPLETE** except for Property Paths
-- **W3C Test Suite**: 100% pass rate for implemented features
+- **SPARQL 1.1 Core Features**: ✅ **COMPLETE** except Property Paths
+- **SPARQL algebra semantics**: ✅ aligned with the clarified text of the SPARQL
+  1.2 Query drafts (Extend, MINUS, EXISTS substitution — semantics unchanged
+  from SPARQL 1.1)
+- **SPARQL 1.2 new features**: ❌ **NOT IMPLEMENTED** (see Known Limitations)
+- **W3C Test Suite**: 100% pass rate for implemented features (SPARQL 1.1 suite;
+  the W3C `sparql12` suite is not yet integrated)
 
 ---
 
@@ -41,7 +50,7 @@ Rasqal provides **high SPARQL 1.1 and 1.2 Query compliance** with all core featu
 - **UNION**: Pattern alternatives with isolated scoping
 - **FILTER**: Expression-based solution filtering
 - **GRAPH**: Named graph context matching
-- **MINUS**: Set difference with SPARQL 1.2 correlated evaluation
+- **MINUS**: Set difference with correlated evaluation
 - **BIND**: Variable assignment with scope-aware evaluation
 - **VALUES**: Inline data support
 - **EXISTS / NOT EXISTS**: Existential quantification
@@ -77,39 +86,48 @@ Rasqal provides **high SPARQL 1.1 and 1.2 Query compliance** with all core featu
 
 ### ❌ Not Implemented
 
-- **Property Paths**: Complex path expressions (explicitly deferred, low priority)
+- **Property Paths**: Complex path expressions (explicitly deferred, low
+  priority)
   - Requires storage layer API changes
   - Marked as "unlikely to implement"
 
 ---
 
-## SPARQL 1.2 Compliance
+## SPARQL 1.2 Status
 
-Rasqal implements SPARQL 1.2 semantics through enhanced variable correlation, scope-aware evaluation, and the Extend algebra operator.
+The SPARQL 1.2 Query drafts restate the SPARQL 1.1 algebra more precisely and
+add new features on top of it. Rasqal's evaluation follows the clarified algebra
+text (this section), but implements none of the new SPARQL 1.2 features (see
+Known Limitations). Note that the Extend operator, MINUS domain-intersection
+compatibility, and EXISTS substitution below are SPARQL 1.1 semantics — the
+SPARQL 1.2 section numbers cited are where the current drafts state them.
 
-### ✅ Fully Implemented SPARQL 1.2 Features
+### ✅ Algebra Alignment with the SPARQL 1.2 Draft Text
 
 #### Query Processing Pipeline
 
-- Four-phase pipeline: Parsing → Transformation → Algebra Generation → Rowsource Execution
+- Four-phase pipeline: Parsing → Transformation → Algebra Generation → Rowsource
+  Execution
 - Parser creates AST with scope hierarchies
 - Transformation validates and optimizes with correlation analysis
 - Rowsource execution uses iterator-based lazy evaluation
 
 #### Algebra Operators
 
-All SPARQL 1.2 algebra operators implemented:
+All operators of the SPARQL Query algebra implemented:
 
 - BGP, Join, LeftJoin, Filter, Union, Graph
-- **Extend** (SPARQL 1.2 feature replacing Assignment)
+- **Extend** (standard algebra operator since SPARQL 1.1; replaced Rasqal's
+  internal Assignment operator)
 - Minus, Group, Aggregation, AggregateJoin
 - OrderBy, Project, Distinct, Reduced, Slice
 - Values, Service
 
-#### Extend Operator (SPARQL 1.2)
+#### Extend Operator
 
-- ✅ **FULLY IMPLEMENTED** - Replaces SPARQL 1.1 Assignment operator
-- Implements SPARQL 1.2 Extend semantics:
+- ✅ **FULLY IMPLEMENTED** - Replaced Rasqal's internal Assignment operator
+- Implements the Extend semantics as stated in SPARQL 1.2 Query §18.6 (unchanged
+  from SPARQL 1.1):
 
   ```text
   Extend(μ, var, expr) = μ ∪ {(var, value) | var not in dom(μ) and value = expr(μ)}
@@ -123,21 +141,24 @@ All SPARQL 1.2 algebra operators implemented:
 
 #### Variable Correlation Architecture
 
-- ✅ **FULLY IMPLEMENTED** - Advanced SPARQL 1.2 feature
+- ✅ **FULLY IMPLEMENTED** - Rasqal implementation technique for correct negation
+  evaluation
 - Pre-computed correlation maps for MINUS operations
 - Intelligent correlation detection for complex negation patterns
 - Dual evaluation modes (simple caching vs. correlated evaluation)
 - Scope-aware variable resolution with hierarchical scope system
-- Implements formal SPARQL 1.2 substitute(pattern, μ) semantics
+- Implements the formal substitute(pattern, μ) semantics as stated in the SPARQL
+  1.2 drafts
 
-#### Enhanced MINUS Semantics
+#### MINUS Semantics
 
-- ✅ **FULLY IMPLEMENTED** - SPARQL 1.2 domain-intersection semantics
+- ✅ **FULLY IMPLEMENTED** - domain-intersection semantics (SPARQL 1.1 §8.3.2,
+  restated in the SPARQL 1.2 drafts)
 - Only variables bound on both sides considered for compatibility
-- SPARQL 1.2 correlated evaluation for complex negation patterns
+- Correlated evaluation for complex negation patterns
 - Two evaluation paths:
   - Simple path: RHS caching for normal MINUS (performance optimized)
-  - Correlated path: SPARQL 1.2 compliant evaluation with LHS context
+  - Correlated path: spec-compliant evaluation with LHS context
 - Intelligent mode detection based on variable dependencies
 
 #### EXISTS/NOT EXISTS Evaluation
@@ -148,9 +169,26 @@ All SPARQL 1.2 algebra operators implemented:
 - Scope-aware variable resolution
 - All pattern types supported: BASIC, GROUP, UNION, OPTIONAL, FILTER, GRAPH
 
-### ❌ SPARQL 1.2 Not Implemented
+### ❌ SPARQL 1.2 New Features - Not Implemented
 
-- **Property Paths**: Same as SPARQL 1.1 (explicitly deferred)
+None of the normative additions of SPARQL 1.2 Query (its Appendix A change list)
+are implemented:
+
+- **Triple terms**: `<<( s p o )>>` in patterns, expressions and VALUES; no
+  triple-term literal type exists in the term model
+- **Reified triples and annotations**: `<< s p o ~ r >>` and `{| ... |}` syntax
+  (desugaring via `rdf:reifies`)
+- **Functions on triple terms**: `TRIPLE`, `isTRIPLE`, `SUBJECT`, `PREDICATE`,
+  `OBJECT`
+- **Directional language-tagged strings**: `"x"@en--ltr` literals with datatype
+  `rdf:dirLangString` (see Known Limitations for a parsing hazard)
+- **Language/direction functions**: `LANGDIR`, `hasLANG`, `hasLANGDIR`,
+  `STRLANGDIR`
+- **`VERSION` declaration** in the query prologue
+- **Property Paths**: carried forward from SPARQL 1.1 (explicitly deferred)
+
+Data-side support for triple terms and directional strings additionally depends
+on Raptor gaining RDF 1.2 term support.
 
 ---
 
@@ -159,11 +197,11 @@ All SPARQL 1.2 algebra operators implemented:
 ### Current Test Status (2025-11-30)
 
 | Category                 | Pass | Xfail | Total | Notes                           |
-|--------------------------|------|-------|-------|---------------------------------|
-| C unit tests (`src/`)    |   33 |     0 |    33 | Core library component tests    |
-| SPARQL test directories  | 1034 |    24 |  1058 | 32 directories, multiple suites |
-| Compare tests (`utils/`) |    8 |     0 |     8 | Result comparison tests         |
-| **Total**                | 1075 |    24 |  1099 |                                 |
+|:-------------------------|:-----|:------|:------|:--------------------------------|
+| C unit tests (`src/`)    | 33   | 0     | 33    | Core library component tests    |
+| SPARQL test directories  | 1034 | 24    | 1058  | 32 directories, multiple suites |
+| Compare tests (`utils/`) | 8    | 0     | 8     | Result comparison tests         |
+| **Total**                | 1075 | 24    | 1099  |                                 |
 
 ### Test Pass Rate
 
@@ -172,20 +210,23 @@ All SPARQL 1.2 algebra operators implemented:
 
 ### XFailed Tests: Parser Validation (24 tests)
 
-All remaining XFailed tests are parser validation issues where the parser accepts invalid syntax that should be rejected. These do **not** affect query execution.
+All remaining XFailed tests are parser validation issues where the parser
+accepts invalid syntax that should be rejected. These do **not** affect query
+execution.
 
 | Directory      | Count  | Notes                          |
-|----------------|--------|--------------------------------|
-| Syntax-SPARQL3 |     18 | SPARQL 1.1/1.2 syntax features |
-| syntax         |      3 | Basic syntax rejection         |
-| update         |      1 | SPARQL Update syntax           |
-| aggregate      |      1 | Aggregate syntax               |
-| bind           |      1 | SPARQL BIND syntax             |
+|:---------------|:-------|:-------------------------------|
+| Syntax-SPARQL3 | 18     | SPARQL 1.1/1.2 syntax features |
+| syntax         | 3      | Basic syntax rejection         |
+| update         | 1      | SPARQL Update syntax           |
+| aggregate      | 1      | Aggregate syntax               |
+| bind           | 1      | SPARQL BIND syntax             |
 | **Total**      | **24** |                                |
 
 **Root Cause**: Missing validation rules in `src/sparql_parser.y`
 
-**Impact**: None - parser works correctly for all valid queries. These are validation-only issues.
+**Impact**: None - parser works correctly for all valid queries. These are
+validation-only issues.
 
 **Priority**: Low - can be deferred as they don't affect query execution.
 
@@ -195,7 +236,8 @@ All remaining XFailed tests are parser validation issues where the parser accept
 
 ### VALUES Implementation
 
-**Status**: ✅ **COMPLETE** - Full SPARQL 1.1 VALUES support with W3C test compliance
+**Status**: ✅ **COMPLETE** - Full SPARQL 1.1 VALUES support with W3C test
+compliance
 
 **Features**:
 
@@ -208,7 +250,8 @@ All remaining XFailed tests are parser validation issues where the parser accept
 
 ### EXISTS/NOT EXISTS Implementation
 
-**Status**: ✅ **COMPLETE** - Full SPARQL 1.1 EXISTS / NOT EXISTS support with 100% W3C test compliance
+**Status**: ✅ **COMPLETE** - Full SPARQL 1.1 EXISTS / NOT EXISTS support with
+100% W3C test compliance
 
 **Features**:
 
@@ -220,11 +263,13 @@ All remaining XFailed tests are parser validation issues where the parser accept
 
 **Test Results**: 5/5 W3C SPARQL 1.1 EXISTS tests passing (100% compliance)
 
-**Architecture**: Algebra-based implementation with proper expression-rowsource integration
+**Architecture**: Algebra-based implementation with proper expression-rowsource
+integration
 
 ### BIND Implementation
 
-**Status**: ✅ **COMPLETE** - Full SPARQL 1.1 BIND implementation with comprehensive test coverage
+**Status**: ✅ **COMPLETE** - Full SPARQL 1.1 BIND implementation with
+comprehensive test coverage
 
 **Features**:
 
@@ -239,20 +284,22 @@ All remaining XFailed tests are parser validation issues where the parser accept
 **Recent Fixes** (2025-11-30):
 
 - Fixed variable scoping in isolated GROUP patterns (bind07)
-- Variables bound within isolated scopes properly excluded from SELECT projections
+- Variables bound within isolated scopes properly excluded from SELECT
+  projections
 - Implemented scope-aware variable registration and root-level checking
 
 ### MINUS Implementation
 
-**Status**: ✅ **COMPLETE** - Full SPARQL 1.1 MINUS support with SPARQL 1.2 correlated evaluation
+**Status**: ✅ **COMPLETE** - Full SPARQL 1.1 MINUS support with correlated
+evaluation
 
 **Features**:
 
 - Complete lexer, parser, algebra, rowsource implementation
-- SPARQL 1.2 correlated evaluation for complex negation patterns
+- Correlated evaluation for complex negation patterns
 - Two evaluation paths:
   - Simple path: RHS caching for normal MINUS (performance optimized)
-  - Correlated path: SPARQL 1.2 compliant evaluation with LHS variable context
+  - Correlated path: spec-compliant evaluation with LHS variable context
 - Variable correlation analysis for automatic mode detection
 - Domain-intersection semantics for compatibility checking
 
@@ -262,7 +309,8 @@ All remaining XFailed tests are parser validation issues where the parser accept
 - full-minuend, partial-minuend (subtraction patterns)
 - FILTER+MINUS tests (complex negation patterns)
 
-**Architecture**: Algebra-based implementation with intelligent evaluation mode selection
+**Architecture**: Algebra-based implementation with intelligent evaluation mode
+selection
 
 ### Aggregation Implementation
 
@@ -305,10 +353,14 @@ ROOT Scope
 
 ### Key Architectural Features
 
-- **Rowsource Architecture**: Iterator-based lazy evaluation for memory efficiency
-- **Scope-Aware Variable Resolution**: Hierarchical scope system with proper isolation
-- **Variable Correlation Analysis**: Pre-computed correlation maps for optimization
-- **Dual Evaluation Modes**: Performance-optimized simple path with SPARQL 1.2 compliant correlated path
+- **Rowsource Architecture**: Iterator-based lazy evaluation for memory
+  efficiency
+- **Scope-Aware Variable Resolution**: Hierarchical scope system with proper
+  isolation
+- **Variable Correlation Analysis**: Pre-computed correlation maps for
+  optimization
+- **Dual Evaluation Modes**: Performance-optimized simple path with
+  spec-compliant correlated path
 - **Expression Evaluation**: Scope-aware evaluation with proper error handling
 
 ---
@@ -317,7 +369,8 @@ ROOT Scope
 
 ### 2025-11-30: BIND Variable Scoping
 
-- Fixed variables bound via BIND inside isolated GROUP patterns incorrectly appearing in query results
+- Fixed variables bound via BIND inside isolated GROUP patterns incorrectly
+  appearing in query results
 - Implemented scope-aware variable registration in EXTEND rowsource
 - Added `rasqal_query_variable_bound_at_root_level()` function
 - Modified PROJECT rowsource to use scope-aware variable checking
@@ -343,7 +396,8 @@ ROOT Scope
 
 ### 2025-11-30: Error API Tests (2 tests)
 
-- Implemented runtime debug level control via `RASQAL_DEBUG_LEVEL` environment variable
+- Implemented runtime debug level control via `RASQAL_DEBUG_LEVEL` environment
+  variable
 - Test framework now sets `RASQAL_DEBUG_LEVEL=0` to suppress debug output
 
 ### 2025-11-28: FILTER+MINUS Tests (3 tests)
@@ -370,7 +424,8 @@ ROOT Scope
   - Set unbound variables to NULL on expression evaluation failure
   - Implements proper SPARQL 1.2 Extend semantics per §18.6
 - **Fixed integer subtype literal datatype URI preservation**
-  - Integer subtypes (xsd:byte, xsd:short, etc.) now preserve original datatype URIs
+  - Integer subtypes (xsd:byte, xsd:short, etc.) now preserve original datatype
+    URIs
   - Ensures correct SPARQL type semantics for integer subtype literals
 - **Fixed variable reference counting in wildcard projection expansion**
   - Removed double increment of variable reference count in SELECT * expansion
@@ -407,6 +462,23 @@ SELECT ?x ?x WHERE { ?s ?p ?o }  # Duplicate variable (should fail)
 
 **Priority**: Low (marked as "unlikely to implement")
 
+### SPARQL 1.2 / RDF 1.2 New Features
+
+**Status**: Not implemented (see the SPARQL 1.2 Status section above for the
+list)
+
+**Dependencies**: Triple terms and directional language-tagged strings require
+Raptor RDF 1.2 term support first; both also change the public `rasqal_literal`
+model (ABI impact)
+
+**Parsing hazard**: The lexer's language-tag pattern accepts the RDF 1.2
+base-direction syntax `"x"@en--ltr` but stores `en--ltr` as an ordinary language
+tag instead of rejecting it or modeling the base direction. The result is a
+silently wrong literal (`LANG()` returns `"en--ltr"`) rather than a syntax
+error.
+
+**Test suites**: The W3C `rdf-tests` repository now publishes a
+`sparql/sparql12` suite; it is not yet integrated into the Rasqal test tree
 
 ---
 
@@ -423,7 +495,8 @@ SELECT ?x ?x WHERE { ?s ?p ?o }  # Duplicate variable (should fail)
 ### Test Categories
 
 - **Unit Tests**: Lexer, parser, expression evaluation
-- **Integration Tests**: End-to-end query execution, result formatting, error handling
+- **Integration Tests**: End-to-end query execution, result formatting, error
+  handling
 - **Conformance Tests**: W3C SPARQL 1.1 test suite, custom test cases
 
 ### Test Framework Features
@@ -446,8 +519,10 @@ SELECT ?x ?x WHERE { ?s ?p ?o }  # Duplicate variable (should fail)
 
 ### Code Quality
 
-- **Memory Management**: Recent fixes (Dec 2025) eliminated memory leaks in boolean literals, scope hierarchies, and variable resolution
-- **Error Handling**: Enhanced EXTEND semantics for proper expression error handling per SPARQL 1.2 §18.6
+- **Memory Management**: Recent fixes (Dec 2025) eliminated memory leaks in
+  boolean literals, scope hierarchies, and variable resolution
+- **Error Handling**: Enhanced EXTEND semantics for proper expression error
+  handling per SPARQL 1.2 §18.6
 - **Performance**: No significant performance regression
 - **Test Coverage**: Comprehensive test suites for all implemented features
 
@@ -460,11 +535,21 @@ SELECT ?x ?x WHERE { ?s ?p ?o }  # Duplicate variable (should fail)
 
 ## Conclusion
 
-Rasqal provides **high SPARQL 1.1 and 1.2 Query compliance** with all core features implemented excluding Property Paths. The implementation demonstrates:
+Rasqal provides **high SPARQL 1.1 Query compliance** with all core features
+implemented excluding Property Paths, evaluated per the clarified algebra text
+of the SPARQL 1.2 Query drafts. The implementation demonstrates:
 
-- **Complete SPARQL 1.1 Core Features**: All major features implemented with W3C compliance
-- **SPARQL 1.2 Enhancements**: Advanced features like variable correlation and Extend operator fully implemented
+- **Complete SPARQL 1.1 Core Features**: All major features implemented with W3C
+  compliance
+- **Modern algebra semantics**: Extend, MINUS correlation and EXISTS
+  substitution verified against the current SPARQL 1.2 draft text
 - **High Test Pass Rate**: 97.7% with comprehensive W3C test suite coverage
-- **Robust Architecture**: Scope-aware evaluation, variable correlation, and performance optimizations
+- **Robust Architecture**: Scope-aware evaluation, variable correlation, and
+  performance optimizations
 
-The remaining 24 XFailed tests are parser validation issues that don't affect query execution. The query execution engine is fully functional and production-ready for all implemented SPARQL features.
+The new SPARQL 1.2 features (triple terms, reifiers, directional language-tagged
+strings, new built-in functions, `VERSION`) are not implemented.
+
+The remaining 24 XFailed tests are parser validation issues that don't affect
+query execution. The query execution engine is fully functional and
+production-ready for all implemented SPARQL features.
